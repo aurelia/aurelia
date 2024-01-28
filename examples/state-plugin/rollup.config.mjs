@@ -1,5 +1,4 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
 
 /** @type {import('rollup').RollupOptions} */
 export default {
@@ -8,5 +7,5 @@ export default {
         file: 'dist/bundle.js',
         sourcemap: true
     },
-    plugins: [nodeResolve(), terser()]
+    plugins: [nodeResolve()]
 }

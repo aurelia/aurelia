@@ -8,7 +8,7 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "dev": "concurrently \"npm run dev:1\" \"npm run dev:2\"",
+    "dev": "concurrently \"npm run dev:1\" \"npm run dev:2\" \"npx http-server --silent\"",
     "dev:1": "cd ../../packages/state && npm run build -- --watch",
     "dev:2": "npm run build -- --watch",
     "build": "rollup -c",

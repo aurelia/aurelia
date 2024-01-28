@@ -1,6 +1,6 @@
 import { all, IContainer, ILogger, lazy, MaybePromise, optional, Registration } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
-import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
+import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
 export class Store<T extends object, TAction = unknown> implements IStore<T> {
   public static register(c: IContainer) {
@@ -130,20 +130,30 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     devTools.init(this._initialState);
     devTools.subscribe((message) => {
       this._logger.info('DevTools sent a message:', message);
-      if (message.type === "ACTION" && message.payload !== undefined) {
-        if (message.payload == null) {
+      const payload: IDevToolsPayload = typeof message.payload === 'string'
+        ? tryParseJson(message.payload ?? 'null')
+        : message.payload;
+
+      if (payload === void 0) {
+        return;
+      }
+
+      if (message.type === "ACTION") {
+        if (payload == null) {
           throw new Error('DevTools sent an action with no payload');
         }
         void new Promise<void>(r => {
-          r(this.dispatch(message.payload as TAction));
+          r(this.dispatch(payload as TAction));
         }).catch((ex) => {
           throw new Error(`Issue when trying to dispatch an action through devtools:\n${ex}`);
+        }).then(() => {
+          devTools.send('ACTION', this._state);
         });
         return;
       }
 
-      if (message.type === "DISPATCH" && message.payload) {
-        switch (message.payload.type) {
+      if (message.type === "DISPATCH" && payload != null) {
+        switch (payload.type) {
           case "JUMP_TO_STATE":
           case "JUMP_TO_ACTION":
             this._setState(JSON.parse(message.state));
@@ -158,7 +168,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
           case "ROLLBACK": {
             const parsedState = JSON.parse(message.state) as T;
             this._setState(parsedState);
-            devTools.init(parsedState);
+            devTools.send('ROLLBACK', parsedState);
             return;
           }
         }
@@ -194,3 +204,13 @@ function typingsTest() {
   store.dispatch({ type: 'hello' });
 }
 /* eslint-enable */
+
+function tryParseJson(str: string) {
+  try {
+    return JSON.parse(str);
+  } catch (ex) {
+    // eslint-disable-next-line no-console
+    console.log(`Error parsing JSON:\n${(str ?? '').slice(0, 200)}\n${ex}`);
+    return undefined;
+  }
+}

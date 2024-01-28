@@ -30,12 +30,14 @@ export const IDevToolsExtension = /*@__PURE__*/createInterface<IDevToolsExtensio
 
 export interface IDevToolsMessage {
   type: "ACTION" | "DISPATCH";
-  payload?: {
-    name: string;
-    args?: string[];
-    type: "JUMP_TO_STATE" | "JUMP_TO_ACTION" | "COMMIT" | "RESET" | "ROLLBACK";
-  };
+  payload?: string | IDevToolsPayload;
   state: string;
+}
+
+export interface IDevToolsPayload {
+  name: string;
+  args?: string[];
+  type: "JUMP_TO_STATE" | "JUMP_TO_ACTION" | "COMMIT" | "RESET" | "ROLLBACK";
 }
 
 export interface IDevtoolsAction<T = unknown> {
@@ -68,7 +70,7 @@ export interface IDevTools<T> {
    *
    * If action is null then we suppose we send liftedState
    */
-  send: (action: IDevtoolsAction<string>, state: T) => void;
+  send: (action: string | IDevtoolsAction<string>, state: T) => void;
   /**
    * sends the error message to be shown in the extension's monitor.
    */

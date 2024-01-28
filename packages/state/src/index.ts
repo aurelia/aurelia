@@ -1,4 +1,7 @@
-export { StateDefaultConfiguration } from './configuration';
+export {
+  StateDefaultConfiguration,
+  type IStateConfigurationOptions,
+} from './configuration';
 export {
   ActionHandler,
 } from './action-handler';

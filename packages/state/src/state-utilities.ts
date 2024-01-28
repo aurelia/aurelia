@@ -1,7 +1,9 @@
-import { AccessorType, Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { type SubscribableValue } from './interfaces';
-import { State } from '@aurelia/runtime-html';
+import { DI } from '@aurelia/kernel';
 
+/** @internal */
+export const createInterface = DI.createInterface;
 /** @internal */
 export function createStateBindingScope(state: object, scope: Scope) {
   const overrideContext = { bindingContext: state };
@@ -17,6 +19,3 @@ export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promis
 export function isSubscribable(v: unknown): v is SubscribableValue {
   return v instanceof Object && 'subscribe' in (v as SubscribableValue);
 }
-
-/** @internal */export const atLayout = AccessorType.Layout;
-/** @internal */export const stateActivating = State.activating;

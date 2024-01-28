@@ -9,15 +9,17 @@ import {
   IConnectableBinding,
   Scope,
   type IAccessor,
-  type IObserverLocator, type IOverrideContext, type IsBindingBehavior
+  type IObserverLocator, type IOverrideContext, type IsBindingBehavior, AccessorType
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited, State } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
 } from './interfaces';
-import { atLayout, createStateBindingScope, stateActivating } from './state-utilities';
+import { createStateBindingScope } from './state-utilities';
 
+const atLayout = AccessorType.Layout;
+const stateActivating = State.activating;
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */

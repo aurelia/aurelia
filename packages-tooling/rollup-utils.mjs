@@ -48,7 +48,7 @@ export function rollupTypeScript(overrides) {
   return typescript({
     tsconfig: 'tsconfig.build.json',
     sourceMap: true,
-    include: ['src/**/*.ts'],
+    include: ['./**/*.ts'],
     noEmitOnError: false,
     removeComments: true,
     ...overrides,

@@ -38,7 +38,7 @@ export class Scrollbar {
   @bindable
   value: 'vertical' | 'horizontal' | 'y' | 'x';
 
-  constructor(private element: Element, p: IPlatform) {
+  constructor(private readonly element: Element, p: IPlatform) {
     const doc = p.document;
     if (!('hasSb' in doc)) {
       const style = doc.createElement('style');

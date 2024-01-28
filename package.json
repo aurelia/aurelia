@@ -54,6 +54,7 @@
     "examples/realworld",
     "examples/realworld-advanced",
     "examples/router-animation",
+    "examples/state-plugin",
     "examples/sierpinski-triangle"
   ],
   "license": "MIT",

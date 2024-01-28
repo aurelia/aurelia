@@ -1,5 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { IActionHandler, IState } from './interfaces';
+import { IActionHandler, IState, IStore } from './interfaces';
 import { ActionHandler } from './action-handler';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
@@ -11,6 +11,8 @@ import {
   StateBindingCommand,
   StateBindingInstructionRenderer,
 } from './state-templating';
+import { IDevToolsOptions } from './interfaces-devtools';
+import { AppTask } from '@aurelia/runtime-html';
 
 const standardRegistrations = [
   StateAttributePattern,
@@ -26,17 +28,27 @@ const standardRegistrations = [
   Store,
 ];
 
-const createConfiguration = <T>(initialState: T, actionHandlers: IActionHandler<T>[]) => {
+const createConfiguration = <T>(
+  initialState: T,
+  actionHandlers: IActionHandler<T>[],
+  options: IStateConfigurationOptions = {}
+) => {
   return {
     register: (c: IContainer) => {
       c.register(
         Registration.instance(IState, initialState),
         ...standardRegistrations,
         ...actionHandlers.map(ActionHandler.define),
+        AppTask.creating(IStore, store => store.connectDevTools(options.devToolsOptions ?? {}))
       );
     },
-    init: <T1>(state: T1, ...actionHandlers: IActionHandler<T1>[]) => createConfiguration(state, actionHandlers),
+    init: <T1>(state: T1, actionHandlers: IActionHandler<T1>[], options: IStateConfigurationOptions) =>
+      createConfiguration(state, actionHandlers, options),
   };
 };
 
-export const StateDefaultConfiguration = createConfiguration({}, []);
+export const StateDefaultConfiguration = /*@__PURE__*/createConfiguration({}, []);
+
+export interface IStateConfigurationOptions {
+  devToolsOptions?: IDevToolsOptions;
+}

@@ -1,24 +1,38 @@
-import { all, IContainer, ILogger, MaybePromise, optional, Registration } from '@aurelia/kernel';
+import { all, IContainer, ILogger, lazy, MaybePromise, optional, Registration } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
+import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
 
 export class Store<T extends object, TAction = unknown> implements IStore<T> {
   public static register(c: IContainer) {
     Registration.singleton(IStore, this).register(c);
   }
 
-  /** @internal */ protected static inject = [optional(IState), all(IActionHandler), ILogger];
+  /** @internal */ protected static inject = [
+    optional(IState),
+    all(IActionHandler),
+    ILogger,
+    lazy(IDevToolsExtension)
+  ];
 
+  /** @internal */ private readonly _initialState: any;
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _handlers: IActionHandler<T>[];
   /** @internal */ private _dispatching = 0;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
+  /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
 
-  public constructor(initialState: T | null, actionHandlers: IActionHandler<T>[], logger: ILogger) {
-    this._state = initialState ?? new State() as T;
+  public constructor(
+    initialState: T | null,
+    actionHandlers: IActionHandler<T>[],
+    logger: ILogger,
+    getDevTools: () => IDevToolsExtension
+  ) {
+    this._initialState = this._state = initialState ?? new State() as T;
     this._handlers = actionHandlers;
     this._logger = logger;
+    this._getDevTools = getDevTools;
   }
 
   public subscribe(subscriber: IStoreSubscriber<T>): void {
@@ -102,14 +116,62 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return afterDispatch(this._state);
     }
   }
+
+  public connectDevTools(options: IDevToolsOptions) {
+    const extension = this._getDevTools();
+    const hasDevTools = extension != null;
+    if (!hasDevTools) {
+      throw new Error('Devtools extension is not available');
+    }
+    options.name ??= 'Aurelia State plugin';
+
+    const devTools = extension.connect(options);
+    devTools.init(this._initialState);
+    devTools.subscribe((message) => {
+      this._logger.info('DevTools sent a message', message);
+      if (message.type === "ACTION" && message.payload !== undefined) {
+        if (message.payload == null) {
+          throw new Error('DevTools sent an action with no payload');
+        }
+        void new Promise<void>(r => {
+          r(this.dispatch(message.payload as TAction));
+        }).catch((ex) => {
+          throw new Error(`Issue when trying to dispatch an action through devtools:\n${ex}`);
+        });
+        return;
+      }
+
+      if (message.type === "DISPATCH" && message.payload) {
+        switch (message.payload.type) {
+          case "JUMP_TO_STATE":
+          case "JUMP_TO_ACTION":
+            this._setState(JSON.parse(message.state));
+            return;
+          case "COMMIT":
+            devTools.init(this._state);
+            return;
+          case "RESET":
+            devTools.init(this._initialState);
+            this._setState(this._initialState);
+            return;
+          case "ROLLBACK": {
+            const parsedState = JSON.parse(message.state) as T;
+            this._setState(parsedState);
+            devTools.init(parsedState);
+            return;
+          }
+        }
+      }
+    });
+  }
 }
-class State {}
+class State { }
 
 class StateProxyHandler<T extends object> implements ProxyHandler<T> {
   public constructor(
     /** @internal */ private readonly _owner: Store<T>,
     /** @internal */ private readonly _logger: ILogger,
-  ) {}
+  ) { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public set(target: T, prop: string | symbol, value: unknown, receiver: unknown): boolean {

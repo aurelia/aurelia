@@ -1,18 +1,22 @@
 {
-  "name": "@examples/helloworld",
+  "name": "@examples/state-plugin",
   "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.10",
+  "version": "0.8.0",
   "scripts": {
+    "dev": "concurrently \"npm run dev:1\" \"npm run dev:2\"",
+    "dev:1": "cd ../../packages/state && npm run build -- --watch",
+    "dev:2": "npm run build -- --watch",
     "build": "rollup -c",
     "build:kernel": "cd ../../packages/kernel && npm run build",
     "build:runtime": "cd ../../packages/runtime && npm run build",
     "build:runtime-html": "cd ../../packages/runtime-html && npm run build",
-    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
+    "build:1": "cd ../../packages/state && npm run build",
+    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\" \"npm run build:1\"",
     "postbuild:all": "rollup -c"
   },
   "dependencies": {
@@ -21,7 +25,8 @@
     "@aurelia/platform": "2.0.0-beta.10",
     "@aurelia/platform-browser": "2.0.0-beta.10",
     "@aurelia/runtime-html": "2.0.0-beta.10",
-    "@aurelia/runtime": "2.0.0-beta.10"
+    "@aurelia/runtime": "2.0.0-beta.10",
+    "@aurelia/state": "2.0.0-beta.10"
   },
   "devDependencies": {
     "@aurelia/http-server": "2.0.0-beta.10",

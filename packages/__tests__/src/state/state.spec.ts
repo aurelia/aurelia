@@ -9,7 +9,7 @@ describe('state/state.spec.ts', function () {
       if ('__REDUX_DEVTOOLS_EXTENSION__' in window) return;
       Object.assign(window, {
         __REDUX_DEVTOOLS_EXTENSION__: {
-          connect: () => ({ subscribe: () => {/* empty */} })
+          connect: () => ({ init: () => {/* empty */}, subscribe: () => {/* empty */} })
         }
       });
     });

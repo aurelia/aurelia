@@ -7,15 +7,13 @@ import * as path from 'path';
 // eslint-disable-next-line
 const tsJestCreateTransformer = (TsJest as any).createTransformer;
 // making both esm and cjs work without any issues
-const $createTransformer = (typeof tsJestCreateTransformer === 'function'
-  ? tsJestCreateTransformer
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  : typeof tsJestCreateTransformer.default?.createTransformer === 'function'
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    ? tsJestCreateTransformer.default.createTransformer
-    : typeof tsJest.createTransformer === 'function'
-      ? tsJest.createTransformer
-      : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
+const $createTransformer = (typeof tsJest.createTransformer === 'function'
+  ? tsJest.createTransformer
+  // eslint-disable-next-line
+  : typeof (tsJest as any).default?.createTransformer === 'function'
+    // eslint-disable-next-line
+    ? (tsJest as any).default.createTransformer
+    : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
 ) as typeof tsJest.createTransformer;
 
 const tsTransformer = $createTransformer();

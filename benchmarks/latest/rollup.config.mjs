@@ -2,6 +2,10 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import alias from '@rollup/plugin-alias';
 import path from 'path';
+import url from 'url';
+
+// const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [{

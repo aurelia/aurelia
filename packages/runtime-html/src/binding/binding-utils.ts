@@ -1,10 +1,10 @@
-import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
+import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
-import { createInterface, resource } from '../utilities-di';
+import { createInterface, resource, resource2 } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -79,12 +79,14 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
       return this.l.root.get(ISignaler);
     });
     defineHiddenProp(proto, 'getConverter', function (this: T, name: string) {
-      const key = ValueConverter.keyFrom(name);
+      // const key = ValueConverter.keyFrom(name);
       let resourceLookup = resourceLookupCache.get(this);
       if (resourceLookup == null) {
         resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
       }
-      return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
+      return resourceLookup[name] ??= this.l.get(resource2<ValueConverterInstance>('valueConverter', name));// this.l.get<ValueConverterInstance>((this.l as IContainer).findResource!('valueConverter', name)!);
+      // const res = this.l.findResource!('valueConverter', name);
+      // return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
     });
     defineHiddenProp(proto, 'getBehavior', function (this: T, name: string) {
       const key = BindingBehavior.keyFrom(name);

@@ -24,7 +24,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
           bindables: {
             value: { mode: BindingMode.twoWay }
           }
-        }, class FormInput { }),
+        }, class FormInput {}),
         ValueConverter.define('properCase', class ProperCase {
           public toView(value: unknown): unknown {
             if (typeof value == 'string' && value) {

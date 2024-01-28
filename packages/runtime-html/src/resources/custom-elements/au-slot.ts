@@ -102,6 +102,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
+    debugger;
     this.view = factory.create().setLocation(this._location = location);
   }
 

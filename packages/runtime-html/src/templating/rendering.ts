@@ -34,6 +34,9 @@ export class Rendering {
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
+      if (!r.target) {
+        throw createMappedError(ErrorNames.rendering_invalid_renderer_target);
+      }
       all[r.target] = r;
       return all;
     }, createLookup<IRenderer>());

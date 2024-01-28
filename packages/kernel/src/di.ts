@@ -87,6 +87,8 @@ export interface IContainer extends IServiceLocator, IDisposable {
    * This is a semi private API, apps should avoid using it directly
    */
   useResources(container: IContainer): void;
+  findResource?<TType extends ResourceType>(type: string, name: string): TType | null;
+  getResource?<I extends InstanceType<TType>, TType extends ResourceType = ResourceType>(type: string, name: string): I;
   find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
   create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }

@@ -65,6 +65,7 @@ export const enum ErrorNames {
   view_factory_invalid_name = 756,
 
   rendering_mismatch_length = 757,
+  rendering_invalid_renderer_target = 758,
 
   attribute_def_not_found = 759,
   element_def_not_found = 760,
@@ -182,7 +183,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.view_factory_provider_not_ready]: `Cannot resolve ViewFactory before the provider was prepared.`,
   [ErrorNames.view_factory_invalid_name]: `Cannot resolve ViewFactory without a (valid) name.`,
 
-  [ErrorNames.rendering_mismatch_length]: `AUR0757: The compiled template is not aligned with the render instructions. There are {{0}} targets and {{1}} instructions.`,
+  [ErrorNames.rendering_mismatch_length]: `The compiled template is not aligned with the render instructions. There are {{0}} targets and {{1}} instructions.`,
+  [ErrorNames.rendering_invalid_renderer_target]: `Invalid renderer target. Found either null/undefined or empty string`,
 
   [ErrorNames.watch_null_config]: `Invalid @watch decorator config. Expected an expression or a fn but received null/undefined.`,
   [ErrorNames.watch_invalid_change_handler]: `Invalid @watch decorator change handler config.`

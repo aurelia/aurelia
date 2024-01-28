@@ -13,6 +13,7 @@ import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
 import { AttrSyntax } from '../attribute-pattern';
+import { IResourceDefinitionResolver } from '../../templating/resource-resolver';
 
 /**
  * An optional interface describing the dynamic composition activate convention.
@@ -190,7 +191,7 @@ export class AuCompose {
     //       current: proceed
     const { _template: template, _component: component, _model: model } = context.change;
     const { _container: container, host, $controller, _location: loc, _instruction } = this;
-    const vmDef = this.getDef(component);
+    const vmDef =  this.getDef(container, component);
     const childCtn: IContainer = container.createChild();
     let compositionHost: HTMLElement | IRenderLocation;
 
@@ -360,12 +361,14 @@ export class AuCompose {
   }
 
   /** @internal */
-  private getDef(component?: object | Constructable) {
+  private getDef(container: IContainer, component?: object | Constructable) {
     const Ctor = (isFunction(component)
       ? component
       : component?.constructor) as Constructable;
+    // return container.get(IResourceDefinitionResolver).resolve(container, 'element', Ctor);
     return CustomElement.isType(Ctor)
-      ? CustomElement.getDefinition(Ctor)
+      ? container.get(IResourceDefinitionResolver).resolve(container, 'element', Ctor)
+      // ? CustomElement.getDefinition(Ctor)
       : null;
   }
 }

@@ -76,6 +76,7 @@ import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
+import { ResourceDefinitionResolver, defaultDefinitionResolution } from './templating/resource-resolver';
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -87,6 +88,8 @@ export const DefaultComponents = [
   TemplateCompiler,
   DirtyChecker,
   NodeObserverLocator,
+  ResourceDefinitionResolver,
+  defaultDefinitionResolution,
 ];
 
 /**

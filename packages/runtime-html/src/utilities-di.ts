@@ -13,6 +13,12 @@ import {
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+export const resource2 = <T>(type: string, name: string) => ({
+  $isResolver: true,
+  resolve: (handler, requestor) => requestor.getResource?.(type, name)
+} as IResolver<T>);
+
 export const resource = <T extends Key>(key: T) =>
   createResolver((key, handler, requestor) =>
     requestor.has(key, false)

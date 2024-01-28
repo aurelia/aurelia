@@ -12,7 +12,7 @@ import {
   MultiAttrInstruction,
 } from '../renderer';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
-import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
+import { etIsFunction, etIsIterator, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
 
 import type {
@@ -142,12 +142,17 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
-    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    defineMetadata(cmdBaseName, definition, definition.Type);
-    defineMetadata(cmdBaseName, definition, definition);
-    appendResourceKey(Type, cmdBaseName);
+    // const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
+    // defineMetadata(cmdBaseName, definition, definition.Type);
+    // defineMetadata(cmdBaseName, definition, definition);
+    // appendResourceKey(Type, cmdBaseName);
 
-    return definition.Type as BindingCommandType<T>;
+    // return definition.Type as BindingCommandType<T>;
+    return objectAssign(Type, {
+      $au: typeof nameOrDef === 'string'
+        ? { type: 'bindingCommand', name: nameOrDef }
+        : { type: 'bindingCommand', ...nameOrDef }
+    }) as unknown as BindingCommandType<T>;
   },
   getAnnotation: getCommandAnnotation,
 });

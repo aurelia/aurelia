@@ -1,7 +1,7 @@
 import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { emptyArray } from './platform';
-import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze } from './utilities';
+import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze, isFunction } from './utilities';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -77,7 +77,17 @@ const annotation = /*@__PURE__*/ objectFreeze({
 });
 
 const resBaseName = 'au:resource';
-export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
+
+type StaticResourceType<T = {}> = Constructable & {
+  $au: { [key: string]: unknown; type: string; name: string } & T;
+};
+
+// if is resource (target.$au)
+// then check target.$au.type + register into
+// export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const hasResources = (target: unknown): target is StaticResourceType =>
+  isFunction(target) && typeof (target as StaticResourceType).$au?.type === 'string';
 /** @internal */
 export const getAllResources = (target: Constructable): readonly ResourceDefinition[] => {
   const keys = getOwnMetadata(resBaseName, target) as string[];

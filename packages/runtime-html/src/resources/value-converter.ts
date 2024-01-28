@@ -94,12 +94,18 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     return isFunction(value) && hasOwnMetadata(vcBaseName, value);
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
-    const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
-    defineMetadata(vcBaseName, definition, definition.Type);
-    defineMetadata(vcBaseName, definition, definition);
-    appendResourceKey(Type, vcBaseName);
+    const def = typeof nameOrDef === 'string' ? { name: nameOrDef } : nameOrDef;
+    (Type as any).$au = {
+      type: 'valueConverter',
+      ...def
+    };
+    // const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
+    // defineMetadata(vcBaseName, definition, definition.Type);
+    // defineMetadata(vcBaseName, definition, definition);
+    // appendResourceKey(Type, vcBaseName);
 
-    return definition.Type as ValueConverterType<T>;
+    // return definition.Type as ValueConverterType<T>;
+    return Type as ValueConverterType<T>;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
     const def = getOwnMetadata(vcBaseName, Type);

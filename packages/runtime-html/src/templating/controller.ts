@@ -35,6 +35,7 @@ import type {
   Constructable,
   IDisposable,
   IServiceLocator,
+  ResourceType,
 } from '@aurelia/kernel';
 import type {
   IBinding,
@@ -50,6 +51,7 @@ import type { IInstruction } from '../renderer';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import { ErrorNames, createMappedError } from '../errors';
+import { IResourceDefinitionResolver } from './resource-resolver';
 
 type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
@@ -224,7 +226,12 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
-    definition = definition ?? getElementDefinition(viewModel.constructor as Constructable);
+    definition = definition
+      ?? ctn.root.get(IResourceDefinitionResolver).resolve(
+          ctn,
+          'element',
+          viewModel.constructor as ResourceType
+        );// getElementDefinition(viewModel.constructor as Constructable);
 
     const controller = new Controller<C>(
       /* container      */ctn,

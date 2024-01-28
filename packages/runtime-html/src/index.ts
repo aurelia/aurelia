@@ -393,6 +393,12 @@ export {
   Rendering,
 } from './templating/rendering';
 export {
+  IResourceDefinitionResolver,
+  ResourceDefinitionResolver,
+  type ResourceHandler,
+  defaultDefinitionResolution,
+} from './templating/resource-resolver';
+export {
   ViewFactory,
   IViewFactory,
 } from './templating/view';

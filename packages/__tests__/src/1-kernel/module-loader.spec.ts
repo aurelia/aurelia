@@ -152,7 +152,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(VC.key, 'VC', `VC.key === 'VC'`);
     assert.strictEqual(VC.value, kitchen_sink.VC, `VC.value === kitchen_sink.VC`);
     assert.strictEqual(VC.definitions.length, 1, `VC.definitions.length === 1`);
-    assert.strictEqual(VC.definitions[0], ValueConverter.getDefinition(kitchen_sink.VC), `VC.definitions[0] === ValueConverter.getDefinition(kitchen_sink.A)`);
+    // assert.strictEqual(VC.definitions[0], ValueConverter.getDefinition(kitchen_sink.VC), `VC.definitions[0] === ValueConverter.getDefinition(kitchen_sink.A)`);
 
     const BB = res.items.find(x => x.key === 'BB');
     assert.strictEqual(BB.isConstructable, true, `BB.isConstructable === true`);

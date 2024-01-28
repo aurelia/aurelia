@@ -1,9 +1,22 @@
 import { IExpressionParser } from '@aurelia/runtime';
 import {
-  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType, PartialCustomElementDefinition, IInstruction, DefaultBindingSyntax, PropertyBindingInstruction, TextBindingInstruction
+  BindingMode,
+  AuSlot,
+  CustomElement,
+  CustomElementDefinition,
+  CustomElementType,
+  HydrateElementInstruction,
+  InstructionType,
+  PartialCustomElementDefinition,
+  IInstruction,
+  DefaultBindingSyntax,
+  PropertyBindingInstruction,
+  TextBindingInstruction,
+  IResourceDefinitionResolver
 } from '@aurelia/runtime-html';
 import {
-  assert, TestContext
+  assert,
+  TestContext
 } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
@@ -304,6 +317,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     (only ? it.only : it)(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
       container.register(AuSlot, ...customElements);
+      const defResolver = container.get(IResourceDefinitionResolver);
 
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
@@ -317,7 +331,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
         const actualInstruction = allInstructions.find((i) =>
           i.type === InstructionType.hydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string).includes('au-slot')
-            || (i as HEI).res === CustomElement.getDefinition(AuSlot)
+            || (i as HEI).res === defResolver.resolve(container, 'element', AuSlot)
           )
           && (i as HydrateElementInstruction).auSlot.name === expectedSlotInfo.slotName
         ) as HydrateElementInstruction;
@@ -337,7 +351,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
         const elementInstruction = allInstructions.find(i =>
           i.type === InstructionType.hydrateElement
           && (typeof (i as HEI).res === 'string' && ((i as HEI).res as string) === elName
-            || (i as HEI).res === container.find(CustomElement, elName)
+            || (i as HEI).res === defResolver.resolve(container, 'element', elName)
           )
         ) as HydrateElementInstruction;
         assert.notEqual(elementInstruction, void 0, `Instruction for element "${elName}" missing`);

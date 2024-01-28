@@ -176,17 +176,24 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 
 /** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
-  const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-  defineMetadata(caBaseName, definition, definition.Type);
-  defineMetadata(caBaseName, definition, definition);
-  appendResourceKey(Type, caBaseName);
+  const def = typeof nameOrDef === 'string' ? { name: nameOrDef } : nameOrDef;
+  (Type as any).$au = {
+    type: 'attribute',
+    ...def,
+  };
+  return Type as CustomAttributeType<T>;
+  // const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
+  // defineMetadata(caBaseName, definition, definition.Type);
+  // defineMetadata(caBaseName, definition, definition);
+  // appendResourceKey(Type, caBaseName);
 
-  return definition.Type as CustomAttributeType<T>;
+  // return definition.Type as CustomAttributeType<T>;
 };
 
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getAttributeDefinition = <T extends Constructable>(Type: T | Function): CustomAttributeDefinition<T> => {
+  console.log('<!> --- do not use this API --- <!>');
   const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
   if (def === void 0) {
     throw createMappedError(ErrorNames.attribute_def_not_found, Type);

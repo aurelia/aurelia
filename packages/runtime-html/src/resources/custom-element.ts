@@ -406,11 +406,7 @@ export const elementBaseName = /*@__PURE__*/getResourceKeyFor('custom-element');
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
 
 /** @internal */
-export const generateElementName = /*@__PURE__*/(() => {
-  let id = 0;
-
-  return () => `unnamed-${++id}`;
-})();
+export const generateElementName = /*@__PURE__*/((id) => () => `unnamed-${++id}`)(0);
 
 const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
   defineMetadata(getAnnotationKeyFor(prop), value, Type);
@@ -418,17 +414,26 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 
 /** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
-  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-  defineMetadata(elementBaseName, definition, definition.Type);
-  defineMetadata(elementBaseName, definition, definition);
-  appendResourceKey(definition.Type, elementBaseName);
+  // const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
+  // defineMetadata(elementBaseName, definition, definition.Type);
+  // defineMetadata(elementBaseName, definition, definition);
+  // appendResourceKey(definition.Type, elementBaseName);
 
-  return definition.Type as CustomElementType<C>;
+  const name = typeof nameOrDef === 'string' ? nameOrDef : nameOrDef.name;
+  const def = typeof nameOrDef === 'string' ? { name } : nameOrDef;
+  if (Type == null) {
+    Type = generateElementType(name) as C;
+  }
+
+  (Type as any).$au = { type: 'element', ...def };
+
+  // return definition.Type as CustomElementType<C>;
+  return Type as CustomElementType<C>;
 };
 
 /** @internal */
 export const isElementType = <C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) => {
-  return isFunction(value) && hasOwnMetadata(elementBaseName, value);
+  return isFunction(value) && (value as any).$au?.type === 'element'; // hasOwnMetadata(elementBaseName, value);
 };
 
 /** @internal */
@@ -499,12 +504,14 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
-  if (def === void 0) {
-    throw createMappedError(ErrorNames.element_def_not_found, Type);
-  }
+  console.warn('<!> --- Do not use this getDefinition() API --- <!>');
+  return CustomElementDefinition.create((Type as any).$au, Type as C) as CustomElementDefinition<C>;
+  // const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
+  // if (def === void 0) {
+  //   throw createMappedError(ErrorNames.element_def_not_found, Type);
+  // }
 
-  return def;
+  // return def;
 };
 
 /** @internal */

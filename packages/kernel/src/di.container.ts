@@ -70,6 +70,8 @@ export class Container implements IContainer {
    */
   private res: Record<string, IResolver | IDisposableResolver | undefined>;
 
+  private readonly _resource2: Record<string, Record<string, ResourceType>> = {};
+
   /** @internal */
   private readonly _disposableResolvers: Map<Key, IDisposableResolver> = new Map<Key, IDisposableResolver>();
 
@@ -106,6 +108,15 @@ export class Container implements IContainer {
         for (const key in parent.res) {
           this.registerResolver(key, parent.res[key]!);
         }
+
+        const res2 = parent._resource2;
+        let Ctor: ResourceType;
+        for (const type in res2) {
+          for (const key in res2[type]) {
+            Ctor = (this._resource2[type] ??= {})[key] = res2[type][key];
+            // Registration.singleton(Ctor, Ctor).register(this);
+          }
+        }
       }
     }
 
@@ -132,18 +143,20 @@ export class Container implements IContainer {
       if (isRegistry(current)) {
         current.register(this);
       } else if (hasResources(current)) {
-        const defs = getAllResources(current);
-        if (defs.length === 1) {
-          // Fast path for the very common case
-          defs[0].register(this);
-        } else {
-          j = 0;
-          jj = defs.length;
-          while (jj > j) {
-            defs[j].register(this);
-            ++j;
-          }
-        }
+        // Registration.singleton(current, current as Constructable).register(this);
+        (this._resource2[current.$au.type] ??= {})[current.$au.name] = current;
+        // const defs = getAllResources(current);
+        // if (defs.length === 1) {
+        //   // Fast path for the very common case
+        //   defs[0].register(this);
+        // } else {
+        //   j = 0;
+        //   jj = defs.length;
+        //   while (jj > j) {
+        //     defs[j].register(this);
+        //     ++j;
+        //   }
+        // }
       } else if (isClass(current)) {
         Registration.singleton(current, current as Constructable).register(this);
       } else {
@@ -435,6 +448,29 @@ export class Container implements IContainer {
     for (const key in res) {
       this.registerResolver(key, res[key]!);
     }
+    const res2 = container._resource2;
+    let Ctor: ResourceType;
+    for (const type in res2) {
+      for (const key in res2[type]) {
+        Ctor = (this._resource2[type] ??= {})[key] = res2[type][key];
+        // Registration.singleton(Ctor, Ctor).register(this);
+      }
+    }
+  }
+
+  public findResource<TType extends ResourceType>(type: string, name: string): TType | null {
+    return this._resource2[type]?.[name] as TType ?? this.root._resource2[type]?.[name] ?? null;
+  }
+
+  public getResource<I extends InstanceType<TType>, TType extends ResourceType = ResourceType>(type: string, name: string): I {
+    let Ctor = this._resource2[type]?.[name];
+    if (Ctor != null) {
+      return this.get(Ctor) as I;
+    }
+    if ((Ctor = this.root._resource2[type]?.[name]) != null) {
+      return this.root.get(Ctor) as I;
+    }
+    throw new Error(`No resource was found for type '${type}' and name '${name}'`);
   }
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
@@ -513,16 +549,18 @@ export class Container implements IContainer {
     }
 
     if (hasResources(keyAsValue)) {
-      const defs = getAllResources(keyAsValue);
-      if (defs.length === 1) {
-        // Fast path for the very common case
-        defs[0].register(handler);
-      } else {
-        const len = defs.length;
-        for (let d = 0; d < len; ++d) {
-          defs[d].register(handler);
-        }
-      }
+      Registration.singleton(keyAsValue, keyAsValue).register(handler);
+      (this._resource2[keyAsValue.$au.type] ??= {})[keyAsValue.$au.name] = keyAsValue;
+      // const defs = getAllResources(keyAsValue);
+      // if (defs.length === 1) {
+      //   // Fast path for the very common case
+      //   defs[0].register(handler);
+      // } else {
+      //   const len = defs.length;
+      //   for (let d = 0; d < len; ++d) {
+      //     defs[d].register(handler);
+      //   }
+      // }
       const newResolver = handler._resolvers.get(keyAsValue);
       if (newResolver != null) {
         return newResolver;

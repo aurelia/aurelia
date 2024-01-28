@@ -626,6 +626,7 @@ export class CustomAttributeRenderer implements IRenderer {
   }
 }
 
+const locations: any[] = [];
 @renderer(hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {

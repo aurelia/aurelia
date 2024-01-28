@@ -1,8 +1,8 @@
 import { emptyArray, Protocol, all } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
-import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
-import { objectFreeze } from '../utilities';
+import type { Class, Constructable, IContainer, IRegistry, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import { objectAssign, objectFreeze } from '../utilities';
 
 export interface AttributePatternDefinition {
   pattern: string;
@@ -510,6 +510,7 @@ export interface AttributePattern {
   getPatternDefinitions<TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>): AttributePatternDefinition[];
 }
 
+const patternSymbol = Symbol('au:attr-pattern');
 export function attributePattern(...patternDefs: AttributePatternDefinition[]): AttributePatternDecorator {
   return function decorator<TProto, TClass>(target: DecoratableAttributePattern<TProto, TClass>): DecoratedAttributePattern<TProto, TClass> {
     return AttributePattern.define(patternDefs, target);
@@ -530,8 +531,10 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
 
 const apBaseName = getResourceKeyFor('attribute-pattern');
 const annotationKey = 'attribute-pattern-definitions';
+// const getAllPatternDefinitions = <TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) =>
+//   Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
 const getAllPatternDefinitions = <TProto, TClass>(Type: DecoratedAttributePattern<TProto, TClass>) =>
-  Protocol.annotation.get(Type, annotationKey) as AttributePatternDefinition[];
+  ((Type as any)[patternSymbol] ?? []) as AttributePatternDefinition[];
 
 export const AttributePattern = objectFreeze<AttributePattern>({
   name: apBaseName,
@@ -540,14 +543,26 @@ export const AttributePattern = objectFreeze<AttributePattern>({
     patternDefs: AttributePatternDefinition[],
     Type: DecoratableAttributePattern<TProto, TClass>,
   ) {
-    const definition = new AttributePatternResourceDefinition(Type);
-    defineMetadata(apBaseName, definition, Type);
-    appendResourceKey(Type, apBaseName);
+    return objectAssign(Type, {
+      [patternSymbol]: patternDefs,
+      register(this: typeof Type & IRegistry, c: IContainer) {
+        singletonRegistration(IAttributePattern, this).register(c);
+      }
+    }) as DecoratedAttributePattern<TProto, TClass>;
+    // return class extends (Type as Constructable) {
+    //   public static register(c: IContainer) {
+    //     singletonRegistration(IAttributePattern, this).register(c);
+    //     (Type as any).register?.(c);
+    //   }
+    // } as any;
+    // const definition = new AttributePatternResourceDefinition(Type);
+    // defineMetadata(apBaseName, definition, Type);
+    // appendResourceKey(Type, apBaseName);
 
-    Protocol.annotation.set(Type, annotationKey, patternDefs);
-    appendAnnotationKey(Type, annotationKey);
+    // Protocol.annotation.set(Type, annotationKey, patternDefs);
+    // appendAnnotationKey(Type, annotationKey);
 
-    return Type as DecoratedAttributePattern<TProto, TClass>;
+    // return Type as DecoratedAttributePattern<TProto, TClass>;
   },
   getPatternDefinitions: getAllPatternDefinitions,
 });

@@ -981,7 +981,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           createMyElement(`<div with.bind="{item: people[0]}"><au-slot name="s1">\${item.firstName}<au-slot name="s2">\${item.lastName}</au-slot></au-slot></div>`),
         ],
-        { 'my-element': [`<div>John<div>John</div></div>`, new AuSlotsInfo(['s2'])] }
+        { 'my-element': [`<div>John<div>John</div></div>`, new AuSlotsInfo(['s2'])] },
       );
       yield new TestData(
         'works replacing div[with]>au-slot[name=s1]>au-slot[name=s2] - outer scope',
@@ -2258,6 +2258,57 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       assert.strictEqual(l1Id, 3, '3 instances of CeL1');
       assert.strictEqual(l2Id, 2, '2 instances of CeL2');
       assert.strictEqual(l3Id, 2, '2 instances of CeL3');
+    });
+
+    it('injects right CE instance in nested projection 2', function () {
+      let l1Id = 0;
+      let l2Id = 0;
+      let l3Id = 0;
+
+      @customElement({ name: 'ce-l1', template: '<au-slot>' })
+      class CeL1 { id = ++l1Id; }
+
+      @customElement({ name: 'ce-l2', template: '<au-slot>' })
+      class CeL2 { id = ++l2Id; }
+
+      @customElement({ name: 'ce-l3', template: 'id: ${l1.id}-${l2.id}' })
+      class CeL3 {
+        l1 = resolve(CeL1);
+        l2 = resolve(CeL2);
+        id = ++l3Id;
+      }
+
+      const { assertTextContain: assertApp2TextContain } = createFixture(
+        `<ce-l1><span au-slot>foo</span></ce-l1> <!-- ce-l1#1 -->
+        <ce-l1> <!-- ce-l1#2 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>
+        <ce-l1> <!-- ce-l1#3 -->
+          <template au-slot>
+            <span>bar</span>
+            <ce-l2>
+              <ce-l3>
+              </ce-l3>
+            </ce-l2>
+          </template>
+        </ce-l1>`,
+        CustomElement.define({
+          name: 'app',
+          dependencies: [CeL1, CeL2, CeL3]
+        }),
+      );
+
+      assert.strictEqual(l1Id, 3, `3 (instead of ${l1Id}) instances of CeL1`);
+      assert.strictEqual(l2Id, 2, `2 (instead of ${l2Id}) instances of CeL2`);
+      assert.strictEqual(l3Id, 2, `2 (instead of ${l3Id}) instances of CeL3'`);
+      assertApp2TextContain('id: 2-1');
+      assertApp2TextContain('id: 3-2');
     });
 
     it('injects right instance when used together with newInstance & newInstanceForScope', function () {

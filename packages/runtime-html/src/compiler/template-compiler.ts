@@ -24,11 +24,10 @@ import {
 import { IPlatform } from '../platform';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
-import { CustomAttribute } from '../resources/custom-attribute';
-import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
+import { CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
 import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, allResources, createInterface, resource, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
 import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { oneTime, type BindingMode, toView, fromView, twoWay, defaultMode } from '../binding/interfaces-bindings';
@@ -44,6 +43,7 @@ import type { PartialCustomElementDefinition } from '../resources/custom-element
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import type { IAuSlotProjections } from '../templating/controller.projection';
 import { ErrorNames, createMappedError } from '../errors';
+import { IResourceDefinitionResolver } from '../templating/resource-resolver';
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): void {
@@ -140,7 +140,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrTarget = attrSyntax.target;
       attrValue = attrSyntax.rawValue;
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._makeComm(attrSyntax);
       if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -334,7 +334,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrName);
       }
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._makeComm(attrSyntax);
       if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -525,7 +525,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._makeComm(attrSyntax);
       if (bindingCommand !== null) {
         if (attrSyntax.command === 'bind') {
           letInstructions.push(new LetBindingInstruction(
@@ -695,7 +695,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       attrSyntax = context._attrParser.parse(attrName, attrValue);
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._makeComm(attrSyntax);
 
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
@@ -1426,7 +1426,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // todo: should it always camel case???
         // const attrTarget = camelCase(attrSyntax.target);
         // ================================================
-        command = context._createCommand(attrSyntax);
+        command = context._makeComm(attrSyntax);
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
           throw createMappedError(ErrorNames.compiler_binding_to_non_bindable, attrSyntax.target, attrDef.name);
@@ -1673,6 +1673,7 @@ class CompilationContext {
   public readonly _attrParser: IAttributeParser;
   public readonly _attrMapper: IAttrMapper;
   public readonly _exprParser: IExpressionParser;
+  public readonly _resolver: IResourceDefinitionResolver;
   public readonly p: IPlatform;
   // an array representing targets of instructions, built on depth first tree walking compilation
   public readonly rows: IInstruction[][];
@@ -1702,6 +1703,7 @@ class CompilationContext {
     this._attrParser = hasParent ? parent._attrParser : container.get(IAttributeParser);
     this._exprParser = hasParent ? parent._exprParser : container.get(IExpressionParser);
     this._attrMapper = hasParent ? parent._attrMapper : container.get(IAttrMapper);
+    this._resolver = hasParent ? parent._resolver : container.get(IResourceDefinitionResolver);
     this._logger = hasParent ? parent._logger : container.get(ILogger);
     this.p = hasParent ? parent.p : container.get(IPlatform);
     this.localEls = hasParent ? parent.localEls : new Set();
@@ -1743,14 +1745,36 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return this._resolver.resolve(this.c, 'element', name);
+    // return this.c.find(CustomElement, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return this._resolver.resolve(this.c, 'attribute', name);
+    // return this.c.find(CustomAttribute, name);
+  }
+
+  public _makeComm(syntax: AttrSyntax): BindingCommandInstance | null {
+    if (this.root !== this) {
+      return this.root._makeComm(syntax);
+    }
+    const name = syntax.command;
+    if (name === null) {
+      return null;
+    }
+
+    let result = this._commands[name];
+    if (result == null) {
+      const commandType = this.c.findResource!('bindingCommand', name);
+      if (commandType === null) {
+        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
+      }
+      result = this._commands[name] = this.c.get(resource(commandType)) as BindingCommandInstance;
+    }
+    return result;
   }
 
   /**
@@ -1774,7 +1798,7 @@ class CompilationContext {
    */
   public _createCommand(syntax: AttrSyntax): BindingCommandInstance | null {
     if (this.root !== this) {
-      return this.root._createCommand(syntax);
+      return this.root._makeComm(syntax);
     }
     const name = syntax.command;
     if (name === null) {

@@ -1,8 +1,21 @@
 import { Transformer } from '@parcel/plugin';
-import SourceMap from '@parcel/source-map';
+import $SourceMap from '@parcel/source-map';
+import * as ParcelSourceMap from '@parcel/source-map';
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 // eslint-disable-next-line import/no-nodejs-modules
 import { relative, extname } from 'path';
+
+const SourceMap = (typeof $SourceMap === 'function'
+  ? $SourceMap
+  // eslint-disable-next-line
+  : typeof ($SourceMap as any).default === 'function'
+    // eslint-disable-next-line
+    ? ($SourceMap as any).default
+    : (typeof ParcelSourceMap === 'function'
+      ? ParcelSourceMap
+      // eslint-disable-next-line
+      :(ParcelSourceMap as any).default)
+) as typeof $SourceMap;
 
 export default new Transformer({
   async loadConfig({config}) {

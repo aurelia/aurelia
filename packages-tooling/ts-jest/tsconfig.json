@@ -4,7 +4,6 @@
     "rootDir": "src",
     "declarationDir": "dist/types",
     "outDir": "dist/cjs",
-    "allowSyntheticDefaultImports": true,
   },
   "include": ["src"]
 }

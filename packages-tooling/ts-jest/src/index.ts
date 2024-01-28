@@ -1,9 +1,20 @@
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import tsJest, { TsJestTransformerOptions } from 'ts-jest';
+import * as TsJest from 'ts-jest';
 import type { TransformOptions, TransformedSource } from '@jest/transform';
 import * as path from 'path';
 
-const tsTransformer = tsJest.createTransformer();
+// eslint-disable-next-line
+const tsJestCreateTransformer = (TsJest as any).createTransformer;
+// making both esm and cjs work without any issues
+const $createTransformer = (typeof tsJestCreateTransformer === 'function'
+  ? tsJestCreateTransformer
+  : typeof tsJest.createTransformer === 'function'
+    ? tsJest.createTransformer
+    : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
+) as typeof tsJest.createTransformer;
+
+const tsTransformer = $createTransformer();
 
 function _createTransformer(
   conventionsOptions = {},

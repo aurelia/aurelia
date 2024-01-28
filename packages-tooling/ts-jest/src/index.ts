@@ -9,9 +9,13 @@ const tsJestCreateTransformer = (TsJest as any).createTransformer;
 // making both esm and cjs work without any issues
 const $createTransformer = (typeof tsJestCreateTransformer === 'function'
   ? tsJestCreateTransformer
-  : typeof tsJest.createTransformer === 'function'
-    ? tsJest.createTransformer
-    : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  : typeof tsJestCreateTransformer.default?.createTransformer === 'function'
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    ? tsJestCreateTransformer.default.createTransformer
+    : typeof tsJest.createTransformer === 'function'
+      ? tsJest.createTransformer
+      : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
 ) as typeof tsJest.createTransformer;
 
 const tsTransformer = $createTransformer();

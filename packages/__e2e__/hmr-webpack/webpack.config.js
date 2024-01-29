@@ -34,7 +34,15 @@ module.exports = function (env, { mode }) {
     stats: 'errors-only',
     module: {
       rules: [
-        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
+        { test: /\.ts$/i, use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true
+            }
+          },
+          '@aurelia/webpack-loader'
+        ], exclude: /node_modules/ },
         { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
       ]
     },

@@ -25,7 +25,7 @@ import { ContentBinding } from "./binding/content-binding";
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { IEventModifierHandler, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
+import { IEventModifier, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
@@ -858,8 +858,10 @@ export class TextBindingRenderer implements IRenderer {
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
   public target!: typeof InstructionType.listenerBinding;
+
   /** @internal */
-  private readonly _modifierHandler = resolve(IEventModifierHandler);
+  private readonly _modifierHandler = resolve(IEventModifier);
+
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,

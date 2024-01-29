@@ -42,7 +42,7 @@ export class ListenerBinding implements IBinding {
   public readonly boundFn = true;
 
   /** @internal */
-  private readonly _modifiedEventHandler: ModifiedEventVerifier | null = null;
+  private readonly _modifiedEventHandler: IModifiedEventHandler | null = null;
 
   public constructor(
     locator: IServiceLocator,
@@ -50,7 +50,7 @@ export class ListenerBinding implements IBinding {
     public target: Node,
     public targetEvent: string,
     options: ListenerBindingOptions,
-    modifiedEventHandler: ModifiedEventVerifier | null,
+    modifiedEventHandler: IModifiedEventHandler | null,
   ) {
     this.l = locator;
     this._options = options;
@@ -123,19 +123,19 @@ mixinUseScope(ListenerBinding);
 mixingBindingLimited(ListenerBinding, () => 'callSource');
 mixinAstEvaluator(true, true)(ListenerBinding);
 
-export type ModifiedEventVerifier = (event: Event) => boolean;
+export type IModifiedEventHandler = (event: Event) => boolean;
 
-export interface IEventModifier {
+export interface IModifiedEventHandlerCreator {
   readonly type: string | string[];
-  getHandler(modifier: string): ModifiedEventVerifier;
+  getHandler(modifier: string): IModifiedEventHandler;
 }
-export const IEvenModifier = createInterface<IEventModifier>('IEventModifier');
+export const IModifiedEventHandlerCreator = /*@__PURE__*/createInterface<IModifiedEventHandlerCreator>('IEventModifier');
 
 export interface IKeyMapping {
   readonly meta: string[];
   readonly keys: Record<string, number>;
 }
-export const IKeyMapping = createInterface<IKeyMapping>('IKeyMapping', x => x.instance({
+export const IKeyMapping = /*@__PURE__*/createInterface<IKeyMapping>('IKeyMapping', x => x.instance({
   meta: ['ctrl', 'alt', 'shift', 'meta'],
   keys: {
     escape: 27,
@@ -145,9 +145,9 @@ export const IKeyMapping = createInterface<IKeyMapping>('IKeyMapping', x => x.in
   },
 }));
 
-class MouseEventModifier implements IEventModifier {
+class ModifiedMouseEventHandler implements IModifiedEventHandlerCreator {
   public static register(c: IContainer) {
-    c.register(singletonRegistration(IEvenModifier, MouseEventModifier));
+    c.register(singletonRegistration(IModifiedEventHandlerCreator, ModifiedMouseEventHandler));
   }
 
   public readonly type = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu'];
@@ -156,7 +156,7 @@ class MouseEventModifier implements IEventModifier {
   /** @internal */
   private readonly _mouseButtons = ['left', 'middle', 'right'];
 
-  public getHandler(modifier: string): ModifiedEventVerifier {
+  public getHandler(modifier: string): IModifiedEventHandler {
     const modifiers = modifier.split(/[:+.]/);
     if (__DEV__) {
       // verify modifiers and add warnings if necessary
@@ -185,19 +185,19 @@ class MouseEventModifier implements IEventModifier {
       if (stop) event.stopPropagation();
 
       return true;
-    }) as ModifiedEventVerifier;
+    }) as IModifiedEventHandler;
   }
 }
 
-class KeyboardEventModifier implements IEventModifier {
+class ModifiedKeyboardEventHandler implements IModifiedEventHandlerCreator {
   public static register(c: IContainer) {
-    c.register(singletonRegistration(IEvenModifier, KeyboardEventModifier));
+    c.register(singletonRegistration(IModifiedEventHandlerCreator, ModifiedKeyboardEventHandler));
   }
 
   /** @internal */
   private readonly _mapping = resolve(IKeyMapping);
   public readonly type = ['keydown', 'keyup'];
-  public getHandler(modifier: string): ModifiedEventVerifier {
+  public getHandler(modifier: string): IModifiedEventHandler {
     const modifiers = modifier.split(/[:+.]/);
     if (__DEV__) {
       // verify modifiers and add warnings if necessary
@@ -236,14 +236,14 @@ class KeyboardEventModifier implements IEventModifier {
       if (stop) event.stopPropagation();
 
       return true;
-    }) as ModifiedEventVerifier;
+    }) as IModifiedEventHandler;
   }
 }
 
-export interface IEventModifierHandler {
-  getHandler(type: string, modifier: string | null): ModifiedEventVerifier | null;
+export interface IEventModifier {
+  getHandler(type: string, modifier: string | null): IModifiedEventHandler | null;
 }
-export const IEventModifierHandler = createInterface<IEventModifierHandler>('IEventModifierHandler', x => x.instance({
+export const IEventModifier = /*@__PURE__*/createInterface<IEventModifier>('IEventModifierHandler', x => x.instance({
   getHandler: () => {
     if (__DEV__) {
       // eslint-disable-next-line no-console
@@ -253,19 +253,19 @@ export const IEventModifierHandler = createInterface<IEventModifierHandler>('IEv
   }
 }));
 
-export class EventModifierHandler implements IEventModifierHandler {
+export class EventModifier implements IEventModifier {
   public static register(c: IContainer) {
-    c.register(singletonRegistration(IEventModifierHandler, EventModifierHandler));
+    c.register(singletonRegistration(IEventModifier, EventModifier));
   }
   /** @internal */
-  private readonly _reg = resolve(all(IEvenModifier))
-    .reduce((acc: Record<string, IEventModifier>, cur) => {
+  private readonly _reg = resolve(all(IModifiedEventHandlerCreator))
+    .reduce((acc: Record<string, IModifiedEventHandlerCreator>, cur) => {
       const types = isArray(cur.type) ? cur.type : [cur.type];
       types.forEach(t => acc[t] = cur);
       return acc;
     }, {});
 
-  public getHandler(type: string, modifier: string | null): ModifiedEventVerifier | null {
+  public getHandler(type: string, modifier: string | null): IModifiedEventHandler | null {
     return isString(modifier) ? this._reg[type]?.getHandler(modifier) ?? null : null;
   }
 }
@@ -273,9 +273,9 @@ export class EventModifierHandler implements IEventModifierHandler {
 export const EventModifierRegistration = {
   register(c: IContainer) {
     c.register(
-      EventModifierHandler,
-      MouseEventModifier,
-      KeyboardEventModifier,
+      EventModifier,
+      ModifiedMouseEventHandler,
+      ModifiedKeyboardEventHandler,
     );
   }
 };

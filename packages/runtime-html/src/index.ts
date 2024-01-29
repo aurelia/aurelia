@@ -105,6 +105,12 @@ export {
 export {
   ListenerBinding,
   ListenerBindingOptions,
+  type IModifiedEventHandler,
+  IEventModifier,
+  EventModifier,
+  EventModifierRegistration,
+  IModifiedEventHandlerCreator,
+  IKeyMapping,
 } from './binding/listener-binding';
 export {
   AttributeBinding,
@@ -306,6 +312,8 @@ export {
 } from './resources/value-converters/sanitize';
 
 export {
+  type ConfigurationOptionsProvider,
+
   DefaultComponents,
 
   DefaultBindingSyntax,

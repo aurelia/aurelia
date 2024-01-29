@@ -908,7 +908,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('AccessBoundaryExpression', function () {
 
-    it.only('evaluates scope boundary', function () {
+    it('evaluates scope boundary', function () {
       const a = { a: 'a' };
       const b = { b: 'b' };
       const c = { c: 'c' };

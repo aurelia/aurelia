@@ -908,7 +908,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
   describe('AccessBoundaryExpression', function () {
 
-    it('evaluates scope boundary', function () {
+    it.only('evaluates scope boundary', function () {
       const a = { a: 'a' };
       const b = { b: 'b' };
       const c = { c: 'c' };
@@ -916,14 +916,14 @@ describe('2-runtime/ast.spec.ts', function () {
       let scope: Scope = Scope.create(a, null, true);
       assert.strictEqual(astEvaluate(boundary, scope, null, null), a, `astEvaluate(boundary, scope, null)`);
 
-      scope = Scope.fromParent(Scope.create(b), a);
-      assert.strictEqual(astEvaluate(boundary, scope, null, null), a, `astEvaluate(boundary, scope, null)`);
+      scope = Scope.fromParent(Scope.create(b, null, true), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), b, `astEvaluate(boundary, scope, null)`);
 
-      scope = Scope.fromParent(Scope.fromParent(Scope.create(c), b), a);
-      assert.strictEqual(astEvaluate(boundary, scope, null, null), a, `astEvaluate(boundary, scope, null)`);
+      scope = Scope.fromParent(Scope.fromParent(Scope.create(c, null, true), b), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), c, `astEvaluate(boundary, scope, null)`);
 
-      scope = Scope.fromParent(Scope.fromParent(Scope.fromParent(Scope.create(d), c), b), a);
-      assert.strictEqual(astEvaluate(boundary, scope, null, null), a, `astEvaluate(boundary, scope, null)`);
+      scope = Scope.fromParent(Scope.fromParent(Scope.fromParent(Scope.create(d, null, true), c), b), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), d, `astEvaluate(boundary, scope, null)`);
     });
   });
 

@@ -128,7 +128,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
-    ...AccessBoundaryList,
     ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
     [`$this.$parent`,     new AccessScopeExpression('$parent')],
     [`$parent.$this`,     new AccessScopeExpression('$this', 1)],
@@ -201,7 +200,6 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
   const SimplePrimaryList: [string, any][] = [
-    ...AccessBoundaryList,
     ...AccessThisList,
     ...AccessScopeList,
     ...SimpleLiteralList,
@@ -214,7 +212,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   // 2. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
   ];
   // 3. parseMemberExpression.MemberExpression TemplateLiteral
@@ -237,17 +235,17 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
   ];
   // 1. parseOptionalExpression.MemberExpression ?. [ AssignmentExpression ]
   const SimpleOptionalAccessKeyedList: [string, any][] = [
-    ...SimplePrimaryList
+    ...[...SimplePrimaryList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}?.[b]`, new AccessKeyedExpression(expr, $b, true)] as [string, any])
   ];
   // 2. parseOptionalExpression.MemberExpression ?. IdentifierName
   const SimpleOptionalAccessMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}?.b`, new AccessMemberExpression(expr, 'b', true)] as [string, any]),
     [`a?.b?.c?.d`, new AccessMemberExpression(new AccessMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', true), 'd', true)] as [string, any]
   ];
@@ -265,7 +263,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   //                            MemberExpression ?. IdentifierName Arguments
   //                            MemberExpression ?. IdentifierName ?. Arguments
   const SimpleOptionalCallMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [
         [`${input}.b?.()`, new CallMemberExpression(expr, 'b', [], false, true)] as [string, any],
         [`${input}?.b()`, new CallMemberExpression(expr, 'b', [], true, false)] as [string, any],
@@ -292,12 +290,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // used only for testing complex UnaryExpression expressions
   const SimpleIsLeftHandSideList: [string, any][] = [
     ...SimplePrimaryList,
+    ...AccessBoundaryList,
     ...SimpleLeftHandSideList
   ];
 
   // same as SimpleIsLeftHandSideList but without $parent and $this (ergo, LeftHandSide according to the actual spec)
   const SimpleIsNativeLeftHandSideList: [string, any][] = [
     ...AccessScopeList,
+    ...AccessBoundaryList,
     ...SimpleLiteralList,
     ...SimpleParenthesizedList,
     ...SimpleLeftHandSideList

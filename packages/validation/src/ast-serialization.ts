@@ -60,6 +60,9 @@ export class Deserializer implements IExpressionHydrator {
         const expr: Pick<AST.AccessThisExpression, 'ancestor'> = raw;
         return new AST.AccessThisExpression(expr.ancestor);
       }
+      case ASTExpressionTypes.AccessBoundaryExpression: {
+        return new AST.AccessBoundaryExpression();
+      }
       case ASTExpressionTypes.AccessScopeExpression: {
         const expr: Pick<AST.AccessScopeExpression, 'name' | 'ancestor'> = raw;
         return new AST.AccessScopeExpression(expr.name, expr.ancestor);

@@ -50,6 +50,7 @@ import {
   ekObjectBindingPattern,
   ekBindingIdentifier,
   ekObjectDestructuring,
+  AccessBoundaryExpression,
 } from './ast';
 import { createInterface, createLookup, objectAssign } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
@@ -289,50 +290,51 @@ const enum Token {
   NullKeyword             = 0b0000000001000_0000_000010,
   UndefinedKeyword        = 0b0000000001000_0000_000011,
   ThisScope               = 0b0000000001100_0000_000100,
-  // HostScope            = 0b0000000001100_0000_000101,
-  ParentScope             = 0b0000000001100_0000_000110,
-  OpenParen               = 0b0101001000001_0000_000111,
-  OpenBrace               = 0b0001000000000_0000_001000,
-  Dot                     = 0b0000001000000_0000_001001,
-  DotDot                  = 0b0000000000000_0000_001010,
-  DotDotDot               = 0b0000000000000_0000_001011,
-  QuestionDot             = 0b0100001000000_0000_001100,
-  CloseBrace              = 0b1110000000000_0000_001101,
-  CloseParen              = 0b1110000000000_0000_001110,
-  Comma                   = 0b1100000000000_0000_001111,
-  OpenBracket             = 0b0101001000001_0000_010000,
-  CloseBracket            = 0b1110000000000_0000_010011,
-  Colon                   = 0b1100000000000_0000_010100,
-  Semicolon               = 0b1100000000000_0000_010101,
-  Question                = 0b1100000000000_0000_010110,
-  Ampersand               = 0b1100000000000_0000_010111,
-  Bar                     = 0b1100000000000_0000_011000,
-  QuestionQuestion        = 0b1100100000000_0010_011001,
-  BarBar                  = 0b1100100000000_0011_011010,
-  AmpersandAmpersand      = 0b1100100000000_0100_011011,
-  EqualsEquals            = 0b1100100000000_0101_011100,
-  ExclamationEquals       = 0b1100100000000_0101_011101,
-  EqualsEqualsEquals      = 0b1100100000000_0101_011110,
-  ExclamationEqualsEquals = 0b1100100000000_0101_011111,
-  LessThan                = 0b1100100000000_0110_100000,
-  GreaterThan             = 0b1100100000000_0110_100001,
-  LessThanEquals          = 0b1100100000000_0110_100010,
-  GreaterThanEquals       = 0b1100100000000_0110_100011,
-  InKeyword               = 0b1100100001000_0110_100100,
-  InstanceOfKeyword       = 0b1100100001000_0110_100101,
-  Plus                    = 0b0100110000000_0111_100110,
-  Minus                   = 0b0100110000000_0111_100111,
-  TypeofKeyword           = 0b0000010001000_0000_101000,
-  VoidKeyword             = 0b0000010001000_0000_101001,
-  Asterisk                = 0b1100100000000_1000_101010,
-  Percent                 = 0b1100100000000_1000_101011,
-  Slash                   = 0b1100100000000_1000_101100,
-  Equals                  = 0b1000000000000_0000_101101,
-  Exclamation             = 0b0000010000000_0000_101110,
-  TemplateTail            = 0b0100001000001_0000_101111,
-  TemplateContinuation    = 0b0100001000001_0000_110000,
-  OfKeyword               = 0b1000000001010_0000_110001,
-  Arrow                   = 0b0000000000000_0000_110010,
+  AccessBoundary          = 0b0000000001100_0000_000101,
+  // HostScope            = 0b0000000001100_0000_000110,
+  ParentScope             = 0b0000000001100_0000_000111,
+  OpenParen               = 0b0101001000001_0000_001000,
+  OpenBrace               = 0b0001000000000_0000_001001,
+  Dot                     = 0b0000001000000_0000_001010,
+  DotDot                  = 0b0000000000000_0000_001011,
+  DotDotDot               = 0b0000000000000_0000_001100,
+  QuestionDot             = 0b0100001000000_0000_001101,
+  CloseBrace              = 0b1110000000000_0000_001110,
+  CloseParen              = 0b1110000000000_0000_001111,
+  Comma                   = 0b1100000000000_0000_010000,
+  OpenBracket             = 0b0101001000001_0000_010011,
+  CloseBracket            = 0b1110000000000_0000_010100,
+  Colon                   = 0b1100000000000_0000_010101,
+  Semicolon               = 0b1100000000000_0000_010110,
+  Question                = 0b1100000000000_0000_010111,
+  Ampersand               = 0b1100000000000_0000_011000,
+  Bar                     = 0b1100000000000_0000_011001,
+  QuestionQuestion        = 0b1100100000000_0010_011010,
+  BarBar                  = 0b1100100000000_0011_011011,
+  AmpersandAmpersand      = 0b1100100000000_0100_011100,
+  EqualsEquals            = 0b1100100000000_0101_011101,
+  ExclamationEquals       = 0b1100100000000_0101_011110,
+  EqualsEqualsEquals      = 0b1100100000000_0101_011111,
+  ExclamationEqualsEquals = 0b1100100000000_0101_100000,
+  LessThan                = 0b1100100000000_0110_100001,
+  GreaterThan             = 0b1100100000000_0110_100010,
+  LessThanEquals          = 0b1100100000000_0110_100011,
+  GreaterThanEquals       = 0b1100100000000_0110_100100,
+  InKeyword               = 0b1100100001000_0110_100101,
+  InstanceOfKeyword       = 0b1100100001000_0110_100110,
+  Plus                    = 0b0100110000000_0111_100111,
+  Minus                   = 0b0100110000000_0111_101000,
+  TypeofKeyword           = 0b0000010001000_0000_101001,
+  VoidKeyword             = 0b0000010001000_0000_101010,
+  Asterisk                = 0b1100100000000_1000_101011,
+  Percent                 = 0b1100100000000_1000_101100,
+  Slash                   = 0b1100100000000_1000_101101,
+  Equals                  = 0b1000000000000_0000_101110,
+  Exclamation             = 0b0000010000000_0000_101111,
+  TemplateTail            = 0b0100001000001_0000_110000,
+  TemplateContinuation    = 0b0100001000001_0000_110001,
+  OfKeyword               = 0b1000000001010_0000_110010,
+  Arrow                   = 0b0000000000000_0000_110011,
 }
 _END_CONST_ENUM();
 
@@ -342,6 +344,7 @@ const $null = PrimitiveLiteralExpression.$null;
 const $undefined = PrimitiveLiteralExpression.$undefined;
 const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
+const boundary = new AccessBoundaryExpression();
 
 const etNone = 'None' as const;
 const etInterpolation = 'Interpolation' as const;
@@ -556,6 +559,11 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
             result = new AccessThisExpression($scopeDepth);
             break;
         }
+        break;
+      case Token.AccessBoundary: // this
+        $assignable = false;
+        nextToken();
+        result = boundary;
         break;
       case Token.OpenParen:
         result = parseCoverParenthesizedExpressionAndArrowParameterList(expressionType);
@@ -1699,7 +1707,7 @@ const unexpectedDoubleDot = () =>
  * Usage: TokenValues[token & Token.Type]
  */
 const TokenValues = [
-  $false, $true, $null, $undefined, '$this', null/* '$host' */, '$parent',
+  $false, $true, $null, $undefined, 'this', '$this', null/* '$host' */, '$parent',
 
   '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', ';', '?', '\'', '"',
 
@@ -1714,6 +1722,7 @@ const KeywordLookup: Record<string, Token> = objectAssign(Object.create(null), {
   null: Token.NullKeyword,
   false: Token.FalseKeyword,
   undefined: Token.UndefinedKeyword,
+  this: Token.AccessBoundary,
   $this: Token.ThisScope,
   $parent: Token.ParentScope,
   in: Token.InKeyword,

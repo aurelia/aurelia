@@ -10,6 +10,7 @@ enum ASTExpressionTypes {
   AssignExpression = 'AssignExpression',
   ConditionalExpression = 'ConditionalExpression',
   AccessThisExpression = 'AccessThisExpression',
+  AccessBoundaryExpression = 'AccessBoundaryExpression',
   AccessScopeExpression = 'AccessScopeExpression',
   AccessMemberExpression = 'AccessMemberExpression',
   AccessKeyedExpression = 'AccessKeyedExpression',
@@ -193,6 +194,9 @@ export class Serializer implements AST.IVisitor<string> {
   }
   public visitAccessThis(expr: AST.AccessThisExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
+  }
+  public visitAccessBoundary(expr: AST.AccessBoundaryExpression): string {
+    return `{"$TYPE":"${ASTExpressionTypes.AccessBoundaryExpression}"}`;
   }
   public visitAccessScope(expr: AST.AccessScopeExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessScopeExpression}","name":"${expr.name}","ancestor":${expr.ancestor}}`;

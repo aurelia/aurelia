@@ -75,6 +75,17 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '456');
   });
 
+  it('allows access to component boundary state via this in .state command', async function () {
+    const state = { text: '123' };
+    const { getBy } = await createFixture
+      .component({ text: '456' })
+      .html('<input value.state="this.text">')
+      .deps(StateDefaultConfiguration.init(state))
+      .build().started;
+
+    assert.strictEqual(getBy('input').value, '456');
+  });
+
   it('reacts to view model changes', async function () {
     const state = { text: '123' };
     const { component, getBy, flush } = await createFixture

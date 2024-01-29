@@ -30,6 +30,7 @@ import {
   DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
   ArrowFunction,
+  AccessBoundaryExpression,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -66,6 +67,7 @@ const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
+const boundary = new AccessBoundaryExpression();
 
 const $a = new AccessScopeExpression('a');
 const $b = new AccessScopeExpression('b');
@@ -121,8 +123,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`$parent`,           $parent],
     [`$parent.$parent`,   new AccessThisExpression(2)]
   ];
+  const AccessBoundaryList: [string, any][] = [
+    [`this`,             boundary],
+  ];
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
+    ...AccessBoundaryList,
     ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
     [`$this.$parent`,     new AccessScopeExpression('$parent')],
     [`$parent.$this`,     new AccessScopeExpression('$this', 1)],
@@ -195,6 +201,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // concatenation of 1 through 7 (all Primary expressions)
   // This forms the group Precedence.Primary
   const SimplePrimaryList: [string, any][] = [
+    ...AccessBoundaryList,
     ...AccessThisList,
     ...AccessScopeList,
     ...SimpleLiteralList,
@@ -440,6 +447,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ['IsFunction', 'call command'],
   ] as [ExpressionType, string][]) {
     describe(name, function () {
+      describe('parse AccessBoundaryList', function () {
+        for (const [input, expected] of AccessBoundaryList) {
+          it(input, function () {
+            verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+      });
+
       describe('parse AccessThisList', function () {
         for (const [input, expected] of AccessThisList) {
           it(input, function () {

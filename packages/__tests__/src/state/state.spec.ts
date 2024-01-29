@@ -75,7 +75,7 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '456');
   });
 
-  it('allows access to component boundary state via this in .state command', async function () {
+  it('remains in state boundary via this in .state command', async function () {
     const state = { text: '123' };
     const { getBy } = await createFixture
       .component({ text: '456' })
@@ -83,7 +83,7 @@ describe('state/state.spec.ts', function () {
       .deps(StateDefaultConfiguration.init(state))
       .build().started;
 
-    assert.strictEqual(getBy('input').value, '456');
+    assert.strictEqual(getBy('input').value, '123');
   });
 
   it('reacts to view model changes', async function () {

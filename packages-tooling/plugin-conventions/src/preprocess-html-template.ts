@@ -45,7 +45,7 @@ export function preprocessHtmlTemplate(
   let registrationImported = false;
 
   if (shadowMode === null && hasSlot) {
-    throw new Error(`<slot> cannot be used in ${unit.path}. <slot> is only available when using ShadowDOM. Please turn on ShadowDOM, or use <au-slot> in non-ShadowDOM mode. https://docs.aurelia.io/app-basics/components-revisited#au-slot`);
+    // todo: what here? need to combine information with custom element before warning/throwing
   }
 
   deps.forEach((d, i) => {

@@ -1,13 +1,14 @@
 import { createError, isString, safeString } from '../utilities';
-import { CustomExpression, ekAccessKeyed, ekAccessMember, ekAccessScope, ekAccessThis, ekArrayBindingPattern, ekArrayDestructuring, ekArrayLiteral, ekArrowFunction, ekAssign, ekBinary, ekBindingBehavior, ekBindingIdentifier, ekCallFunction, ekCallMember, ekCallScope, ekConditional, ekCustom, ekDestructuringAssignmentLeaf, ekForOfStatement, ekInterpolation, ekObjectBindingPattern, ekObjectDestructuring, ekObjectLiteral, ekPrimitiveLiteral, ekTaggedTemplate, ekTemplate, ekUnary, ekValueConverter } from './ast';
+import { CustomExpression, ekAccessBoundary, ekAccessKeyed, ekAccessMember, ekAccessScope, ekAccessThis, ekArrayBindingPattern, ekArrayDestructuring, ekArrayLiteral, ekArrowFunction, ekAssign, ekBinary, ekBindingBehavior, ekBindingIdentifier, ekCallFunction, ekCallMember, ekCallScope, ekConditional, ekCustom, ekDestructuringAssignmentLeaf, ekForOfStatement, ekInterpolation, ekObjectBindingPattern, ekObjectDestructuring, ekObjectLiteral, ekPrimitiveLiteral, ekTaggedTemplate, ekTemplate, ekUnary, ekValueConverter } from './ast';
 
-import type { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, IsExpressionOrStatement, IsBindingBehavior } from './ast';
+import type { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, IsExpressionOrStatement, IsBindingBehavior, AccessBoundaryExpression } from './ast';
 
 export interface IVisitor<T = unknown> {
   visitAccessKeyed(expr: AccessKeyedExpression): T;
   visitAccessMember(expr: AccessMemberExpression): T;
   visitAccessScope(expr: AccessScopeExpression): T;
   visitAccessThis(expr: AccessThisExpression): T;
+  visitAccessBoundary(expr: AccessBoundaryExpression): T;
   visitArrayBindingPattern(expr: ArrayBindingPattern): T;
   visitArrayLiteral(expr: ArrayLiteralExpression): T;
   visitArrowFunction(expr: ArrowFunction): T;
@@ -40,6 +41,7 @@ export const astVisit = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) 
     case ekAccessMember: return visitor.visitAccessMember(ast);
     case ekAccessScope: return visitor.visitAccessScope(ast);
     case ekAccessThis: return visitor.visitAccessThis(ast);
+    case ekAccessBoundary: return visitor.visitAccessBoundary(ast);
     case ekArrayBindingPattern: return visitor.visitArrayBindingPattern(ast);
     case ekArrayDestructuring: return visitor.visitDestructuringAssignmentExpression(ast);
     case ekArrayLiteral: return visitor.visitArrayLiteral(ast);
@@ -101,6 +103,10 @@ export class Unparser implements IVisitor<void> {
     while (i--) {
       this.text += '.$parent';
     }
+  }
+
+  public visitAccessBoundary(expr: AccessBoundaryExpression): void {
+    this.text += 'this';
   }
 
   public visitAccessScope(expr: AccessScopeExpression): void {

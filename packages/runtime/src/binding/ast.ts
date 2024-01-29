@@ -13,6 +13,7 @@ export {
 } from './ast.visitor';
 
 /** @internal */ export const ekAccessThis = 'AccessThis';
+/** @internal */ export const ekAccessBoundary = 'AccessBoundary';
 /** @internal */ export const ekAccessGlobal = 'AccessGlobal';
 /** @internal */ export const ekAccessScope = 'AccessScope';
 /** @internal */ export const ekArrayLiteral = 'ArrayLiteral';
@@ -46,6 +47,7 @@ export {
 export type ExpressionKind =
   | 'AccessThis'
   | 'AccessGlobal'
+  | 'AccessBoundary'
   | 'AccessScope'
   | 'ArrayLiteral'
   | 'ObjectLiteral'
@@ -79,7 +81,7 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
 
 export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 
-export type IsPrimary = AccessThisExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
+export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
@@ -193,6 +195,10 @@ export class AccessThisExpression {
   public constructor(
     public readonly ancestor: number = 0,
   ) {}
+}
+
+export class AccessBoundaryExpression {
+  public readonly $kind: 'AccessBoundary' = ekAccessBoundary;
 }
 
 export class AccessScopeExpression {

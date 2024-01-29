@@ -108,7 +108,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('compiles the binding to a TranslationBindingInstruction', function () {
       const [sut] = createFixture();
-      const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '' };
+      const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '', parts: [] };
       const actual = sut.build({
         node: { nodeName: 'abc' } as unknown as Element,
         attr: syntax,
@@ -249,7 +249,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('compiles the binding to a TranslationBindBindingInstruction', function () {
       const { parser, mapper, suts: [sut] } = createFixture();
-      const syntax: AttrSyntax = { command: 't.bind', rawName: 't.bind', rawValue: 'obj.key', target: 'bind' };
+      const syntax: AttrSyntax = { command: 't.bind', rawName: 't.bind', rawValue: 'obj.key', target: 'bind', parts: [] };
       const actual = sut.build({
         node: { nodeName: 'abc' } as unknown as Element,
         attr: syntax,

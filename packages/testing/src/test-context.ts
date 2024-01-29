@@ -17,6 +17,8 @@ export class TestContext {
   public get UIEvent() { return this.platform.globalThis.UIEvent; }
   public get Event() { return this.platform.globalThis.Event; }
   public get CustomEvent() { return this.platform.globalThis.CustomEvent; }
+  public get KeyboardEvent() { return this.platform.globalThis.KeyboardEvent; }
+  public get MouseEvent() { return this.platform.globalThis.MouseEvent; }
   public get Node() { return this.platform.globalThis.Node; }
   public get Element() { return this.platform.globalThis.Element; }
   public get HTMLElement() { return this.platform.globalThis.HTMLElement; }

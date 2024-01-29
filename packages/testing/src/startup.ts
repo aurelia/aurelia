@@ -196,15 +196,34 @@ export function createFixture<T extends object>(
     const el = strictQueryBy(selector, `to compare value against "${value}"`);
     assert.strictEqual((el as any).value, value);
   }
-  function trigger(selector: string, event: string, init?: CustomEventInit): void {
+
+  function trigger(selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
     const el = strictQueryBy(selector, `to fire event "${event}"`);
-    el.dispatchEvent(new ctx.CustomEvent(event, init));
+    return $triggerEvent(el, ctx, event, init, overrides);
   }
-  ['click', 'change', 'input', 'scroll'].forEach(event => {
+  mouseEvents.forEach(event => {
     Object.defineProperty(trigger, event, {
-      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-        const el = strictQueryBy(selector, `to fire event "${event}"`);
-        el.dispatchEvent(new ctx.CustomEvent(event, init));
+      configurable: true,
+      writable: true,
+      value: (selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void => {
+        return triggerMouseEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
+      }
+    });
+  });
+  keyboardEvents.forEach(event => {
+    Object.defineProperty(trigger, event, {
+      configurable: true,
+      writable: true,
+      value: (selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void => {
+        return triggerKeyboardEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
+      }
+    });
+  });
+
+  ['change', 'input', 'scroll'].forEach(event => {
+    Object.defineProperty(trigger, event, {
+      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void => {
+        return $triggerEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
       }
     });
   });
@@ -445,11 +464,22 @@ export interface IFixture<T> {
   flush(): void;
 }
 
-export type ITrigger = ((selector: string, event: string, init?: CustomEventInit) => void) & {
-  click(selector: string, init?: CustomEventInit): void;
-  change(selector: string, init?: CustomEventInit): void;
-  input(selector: string, init?: CustomEventInit): void;
-  scroll(selector: string, init?: CustomEventInit): void;
+export type ITrigger = {
+  (selector: string, event: 'keydown' | 'keyup' | 'keypress', init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  (selector: string, event: 'click' | 'mousedown' | 'mouseup' | 'mousemove' | 'dbclick' | 'contextmenu', init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  (selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  keydown(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  keyup(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  keypress(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  click(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mousedown(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mouseup(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mousemove(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  dbclick(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  contextmenu(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  change(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  input(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  scroll(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
 };
 
 export interface IFixtureBuilderBase<T, E = {}> {
@@ -572,3 +602,56 @@ function testBuilderTypings() {
   const C1: IsType<{ a: number[] }, typeof component> = 1;
 }
 /* eslint-enable */
+
+const mouseEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'dbclick', 'contextmenu'];
+const keyboardEvents = ['keydown', 'keyup', 'keypress'];
+function $triggerEvent(el: Element, ctx: TestContext, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
+  if (mouseEvents.includes(event)) {
+    return triggerMouseEvent(el, ctx, event, init, overrides);
+  }
+  if (keyboardEvents.includes(event)) {
+    return triggerKeyboardEvent(el, ctx, event, init, overrides);
+  }
+  const e = new ctx.CustomEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+function triggerKeyboardEvent(el: Element, ctx: TestContext, event: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void {
+  const e = new ctx.KeyboardEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+function triggerMouseEvent(el: Element, ctx: TestContext, event: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void {
+  const e = new ctx.MouseEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+mouseEvents.forEach(event => {
+  Object.defineProperty($triggerEvent, event, {
+    configurable: true, writable: true, value: (el: Element, ctx: TestContext, init?: MouseEventInit, overrides?: Record<string, unknown>): void => {
+      return triggerMouseEvent(el, ctx, event, init, overrides);
+    }
+  });
+});
+keyboardEvents.forEach(event => {
+  Object.defineProperty($triggerEvent, event, {
+    configurable: true, writable: true, value: (el: Element, ctx: TestContext, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void => {
+      return triggerKeyboardEvent(el, ctx, event, init, overrides);
+    }
+  });
+});

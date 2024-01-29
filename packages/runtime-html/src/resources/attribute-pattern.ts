@@ -436,6 +436,7 @@ export class AttrSyntax {
     public rawValue: string,
     public target: string,
     public command: string | null,
+    public parts: string[] | null = null
   ) {}
 }
 
@@ -491,7 +492,7 @@ export class AttributeParser implements IAttributeParser {
     }
     const pattern = interpretation.pattern;
     if (pattern == null) {
-      return new AttrSyntax(name, value, name, null);
+      return new AttrSyntax(name, value, name, null, null);
     } else {
       return this._patterns[pattern][pattern](name, value, interpretation.parts);
     }
@@ -586,6 +587,19 @@ export class RefAttributePattern {
       }
     }
     return new AttrSyntax(rawName, rawValue, target, 'ref');
+  }
+}
+
+@attributePattern(
+  { pattern: 'PART.trigger:PART', symbols: '.:' },
+  { pattern: 'PART.capture:PART', symbols: '.:' },
+)
+export class EventAttributePattern {
+  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
+  }
+  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
   }
 }
 

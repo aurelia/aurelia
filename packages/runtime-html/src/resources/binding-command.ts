@@ -326,7 +326,13 @@ export class TriggerBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, etIsFunction), info.attr.target, true, false);
+    return new ListenerBindingInstruction(
+      exprParser.parse(info.attr.rawValue, etIsFunction),
+      info.attr.target,
+      true,
+      false,
+      info.attr.parts?.[2] ?? null
+    );
   }
 }
 
@@ -335,7 +341,13 @@ export class CaptureBindingCommand implements BindingCommandInstance {
   public get type(): 'IgnoreAttr' { return ctIgnoreAttr; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new ListenerBindingInstruction(exprParser.parse(info.attr.rawValue, etIsFunction), info.attr.target, false, true);
+    return new ListenerBindingInstruction(
+      exprParser.parse(info.attr.rawValue, etIsFunction),
+      info.attr.target,
+      false,
+      true,
+      info.attr.parts?.[2] ?? null
+    );
   }
 }
 

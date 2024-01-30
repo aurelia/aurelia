@@ -22,7 +22,7 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow, etIsProperty } from '../../utilities';
+import { areEqual, isArray, isPromise, rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
@@ -416,7 +416,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
     const normalizedItems: unknown[] = [];
 
-    iterate(items, (item, index) => {
+    _resolver.resolve(items).iterate(items, (item, index) => {
       normalizedItems[index] = item;
     });
     this._normalizedItems = normalizedItems;
@@ -433,10 +433,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, _factory, local, _location, items, _scopeMap, _forOfBinding, forOf, _hasDestructuredLocal } = this;
     const parentScope = $controller.scope;
-    const newLen = getCount(items);
+    const newLen = _resolver.resolve(items).getCount(items);
     const views = this.views = Array(newLen);
 
-    iterate(items, (item, i) => {
+    _resolver.resolve(items).iterate(items, (item, i) => {
       view = views[i] = _factory.create().setLocation(_location);
       view.nodes.unlink();
       viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
@@ -717,65 +717,112 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$length = length;
 };
 
-const toStringTag = baseObjectPrototype.toString as {
-  call(obj: unknown): keyof '[object Array]' | '[object Map]' | '[object Set]' | '[object Number]' | '[object Null]' | '[object Undefined]';
-};
-type AcceptableCollection = Collection | number | null | undefined;
-const getCount = (result: AcceptableCollection): number => {
-  switch (toStringTag.call(result) as string) {
-    case '[object Array]': return (result as unknown[]).length;
-    case '[object Map]': return (result as Map<unknown, unknown>).size;
-    case '[object Set]': return (result as Set<unknown>).size;
-    case '[object Number]': return result as number;
-    case '[object Null]': return 0;
-    case '[object Undefined]': return 0;
-    default: throw createMappedError(ErrorNames.repeat_non_countable, result);
-  }
-};
+export interface IRepeatableHandlerResolver {
+  resolve(value: Repeatable): IRepeatableHandler;
+}
 
-const iterate = (result: AcceptableCollection, func: (item: unknown, index: number, arr: AcceptableCollection) => void): void => {
-  switch (toStringTag.call(result) as string) {
-    case '[object Array]': return $array(result as unknown[], func);
-    case '[object Map]': return $map(result as Map<unknown, unknown>, func);
-    case '[object Set]': return $set(result as Set<unknown>, func);
-    case '[object Number]': return $number(result as number, func);
-    case '[object Null]': return;
-    case '[object Undefined]': return;
-    // todo: remove this count method
-    default: createMappedError(ErrorNames.repeat_non_iterable, result);
+const _resolver = new class RepeatableHandlerResolver implements IRepeatableHandlerResolver {
+  public resolve(value: Repeatable): IRepeatableHandler {
+    if (value instanceof Array) {
+      return _arrayHandler;
+    }
+    if (value instanceof Set) {
+      return _setHandler;
+    }
+    if (value instanceof Map) {
+      return _mapHandler;
+    }
+    if (typeof value === 'number') {
+      return _numberHandler;
+    }
+    if (value === null || value === void 0) {
+      return _nullishHandler;
+    }
+    return _unknownHandler;
   }
-};
+}();
 
-const $array = (result: unknown[], func: (item: unknown, index: number, arr: Collection) => void): void => {
-  const ii = result.length;
-  let i = 0;
-  for (; i < ii; ++i) {
-    func(result[i], i, result);
-  }
-};
+export interface IRepeatableHandler {
+  iterate(value: Repeatable, func: (item: unknown, index: number, value: Repeatable) => void): void;
+  getCount(value: Repeatable): number;
+}
 
-const $map = (result: Map<unknown, unknown>, func: (item: unknown, index: number, arr: Collection) => void): void => {
-  let i = -0;
-  let entry: [unknown, unknown] | undefined;
-  for (entry of result.entries()) {
-    func(entry, i++, result);
+const _arrayHandler = new class ArrayHandler implements IRepeatableHandler {
+  public iterate(value: unknown[], func: (item: unknown, index: number, value: unknown[]) => void): void {
+    const ii = value.length;
+    let i = 0;
+    for (; i < ii; ++i) {
+      func(value[i], i, value);
+    }
   }
-};
 
-const $set = (result: Set<unknown>, func: (item: unknown, index: number, arr: Collection) => void): void => {
-  let i = 0;
-  let key: unknown;
-  for (key of result.keys()) {
-    func(key, i++, result);
+  public getCount(value: unknown[]): number {
+    return value.length;
   }
-};
+}();
 
-const $number = (result: number, func: (item: number, index: number, arr: number) => void): void => {
-  let i = 0;
-  for (; i < result; ++i) {
-    func(i, i, result);
+const _setHandler = new class SetHandler implements IRepeatableHandler {
+  public iterate(value: Set<unknown>, func: (item: unknown, index: number, value: Set<unknown>) => void): void {
+    let i = 0;
+    let key: unknown;
+    for (key of value.keys()) {
+      func(key, i++, value);
+    }
   }
-};
+
+  public getCount(value: Set<unknown>): number {
+    return value.size;
+  }
+}();
+
+const _mapHandler = new class MapHandler implements IRepeatableHandler {
+  public iterate(value: Map<unknown, unknown>, func: (item: unknown, index: number, value: Map<unknown, unknown>) => void): void {
+    let i = 0;
+    let entry: [unknown, unknown] | undefined;
+    for (entry of value.entries()) {
+      func(entry, i++, value);
+    }
+  }
+
+  public getCount(value: Map<unknown, unknown>): number {
+    return value.size;
+  }
+}();
+
+const _numberHandler = new class NumberHandler implements IRepeatableHandler {
+  public iterate(value: number, func: (item: number, index: number, value: number) => void): void {
+    let i = 0;
+    for (; i < value; ++i) {
+      func(i, i, value);
+    }
+  }
+
+  public getCount(value: number): number {
+    return value;
+  }
+}();
+
+const _nullishHandler = new class NullishHandler implements IRepeatableHandler {
+  public iterate(_value: null | undefined, _func: (item: null | undefined, index: number, value: null | undefined) => void): void {
+    // do nothing
+  }
+
+  public getCount(_value: null | undefined): number {
+    return 0;
+  }
+}();
+
+const _unknownHandler = new class UnknownHandler implements IRepeatableHandler {
+  public iterate(value: Repeatable, _func: (item: unknown, index: number, value: Repeatable) => void): void {
+    throw createMappedError(ErrorNames.repeat_non_iterable, value);
+  }
+
+  public getCount(value: Repeatable): number {
+    throw createMappedError(ErrorNames.repeat_non_countable, value);
+  }
+}();
+
+type Repeatable = Collection | number | null | undefined;
 
 const getKeyValue = (
   keyMap: Map<unknown, unknown>,

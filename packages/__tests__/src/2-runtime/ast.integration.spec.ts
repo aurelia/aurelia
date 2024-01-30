@@ -250,4 +250,24 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
     });
   });
+
+  describe('[[AccessBoundary]]', function () {
+    it('retrieves binding from component boundary in single repeat', async function () {
+      const { assertText } = createFixture
+        .html`<div repeat.for="name of ['bar', 'baz']">(\${this.name + name})</div>`
+        .component({ name: 'foo' })
+        .build();
+
+      assertText('(foobar)(foobaz)');
+    });
+
+    it('retrieves binding from component boundary in nested repeat', async function () {
+      const { assertText } = createFixture
+        .html`<div repeat.for="name of ['bar', 'baz']"><div repeat.for="name of ['qux']">(\${this.name + $parent.name + name})</div></div>`
+        .component({ name: 'foo' })
+        .build();
+
+      assertText('(foobarqux)(foobazqux)');
+    });
+  });
 });

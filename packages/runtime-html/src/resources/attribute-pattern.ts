@@ -610,10 +610,18 @@ export class ColonPrefixedBindAttributePattern {
   }
 }
 
-@attributePattern({ pattern: '@PART', symbols: '@' })
+@attributePattern(
+  { pattern: '@PART', symbols: '@' },
+  { pattern: '@PART:PART', symbols: '@:' },
+)
 export class AtPrefixedTriggerAttributePattern {
   public '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+
+  public '@PART:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    parts.splice(1, 0, 'trigger');
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
 }
 

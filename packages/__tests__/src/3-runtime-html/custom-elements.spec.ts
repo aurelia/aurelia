@@ -1,4 +1,4 @@
-import { Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
+import { Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
@@ -245,6 +245,32 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       const { trigger } = createFixture(
         '<button keydown.trigger:enter+ctrl+shift="enter()"></button>',
         { enter: () => entered = 1 }
+      );
+      trigger('button', 'keydown', { key: 'enter', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'enter', ctrlKey: true, shiftKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with shorthand event syntax', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button @click:right="clicked()"></button>',
+        { clicked: () => clicked = 1 },
+        [ShortHandBindingSyntax]
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with shorthandl keyboard event + multiple modifiers', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button @keydown:enter+ctrl+shift="enter()"></button>',
+        { enter: () => entered = 1 },
+        [ShortHandBindingSyntax]
       );
       trigger('button', 'keydown', { key: 'enter', ctrlKey: true });
       assert.strictEqual(entered, 0);

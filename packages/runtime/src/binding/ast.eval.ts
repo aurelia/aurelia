@@ -39,7 +39,8 @@ import {
   ekArrayBindingPattern,
   ekObjectBindingPattern,
   ekObjectDestructuring,
-  ekCustom
+  ekCustom,
+  ekAccessBoundary
 } from './ast';
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
@@ -57,6 +58,17 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
         oc = currentScope?.overrideContext ?? null;
       }
       return i < 1 && currentScope ? currentScope.bindingContext : void 0;
+    }
+    case ekAccessBoundary: {
+      let currentScope: Scope | null = s;
+
+      while (
+        currentScope != null
+        && !currentScope.isBoundary
+      ) {
+        currentScope = currentScope.parent;
+      }
+      return currentScope ? currentScope.bindingContext : void 0;
     }
     case ekAccessScope: {
       const obj = getContext(s, ast.name, ast.ancestor) as IBindingContext;

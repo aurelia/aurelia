@@ -10,6 +10,7 @@ export {
   AccessThisExpression,
   AccessGlobalExpression,
   AccessScopeExpression,
+  AccessBoundaryExpression,
   AccessMemberExpression,
   AccessKeyedExpression,
   CallScopeExpression,

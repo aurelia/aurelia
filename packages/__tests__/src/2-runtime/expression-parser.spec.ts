@@ -30,6 +30,7 @@ import {
   DestructuringAssignmentSingleExpression,
   IsBindingBehavior,
   ArrowFunction,
+  AccessBoundaryExpression,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -66,6 +67,7 @@ const $arr = ArrayLiteralExpression.$empty;
 const $obj = ObjectLiteralExpression.$empty;
 const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
+const boundary = new AccessBoundaryExpression();
 
 const $a = new AccessScopeExpression('a');
 const $b = new AccessScopeExpression('b');
@@ -120,6 +122,9 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`$this`,             $this],
     [`$parent`,           $parent],
     [`$parent.$parent`,   new AccessThisExpression(2)]
+  ];
+  const AccessBoundaryList: [string, any][] = [
+    [`this`,             boundary],
   ];
   // 2. parsePrimaryExpression.IdentifierName
   const AccessScopeList: [string, any][] = [
@@ -207,7 +212,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   // 2. parseMemberExpression.MemberExpression . IdentifierName
   const SimpleAccessMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}.b`, new AccessMemberExpression(expr, 'b')] as [string, any])
   ];
   // 3. parseMemberExpression.MemberExpression TemplateLiteral
@@ -230,17 +235,17 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
   // 3. parseCallExpression.MemberExpression Arguments
   const SimpleCallMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}.b()`, new CallMemberExpression(expr, 'b', [])] as [string, any])
   ];
   // 1. parseOptionalExpression.MemberExpression ?. [ AssignmentExpression ]
   const SimpleOptionalAccessKeyedList: [string, any][] = [
-    ...SimplePrimaryList
+    ...[...SimplePrimaryList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}?.[b]`, new AccessKeyedExpression(expr, $b, true)] as [string, any])
   ];
   // 2. parseOptionalExpression.MemberExpression ?. IdentifierName
   const SimpleOptionalAccessMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [`${input}?.b`, new AccessMemberExpression(expr, 'b', true)] as [string, any]),
     [`a?.b?.c?.d`, new AccessMemberExpression(new AccessMemberExpression(new AccessMemberExpression($a, 'b', true), 'c', true), 'd', true)] as [string, any]
   ];
@@ -258,7 +263,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   //                            MemberExpression ?. IdentifierName Arguments
   //                            MemberExpression ?. IdentifierName ?. Arguments
   const SimpleOptionalCallMemberList: [string, any][] = [
-    ...[...AccessScopeList, ...SimpleLiteralList]
+    ...[...AccessScopeList, ...SimpleLiteralList, ...AccessBoundaryList]
       .map(([input, expr]) => [
         [`${input}.b?.()`, new CallMemberExpression(expr, 'b', [], false, true)] as [string, any],
         [`${input}?.b()`, new CallMemberExpression(expr, 'b', [], true, false)] as [string, any],
@@ -285,12 +290,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // used only for testing complex UnaryExpression expressions
   const SimpleIsLeftHandSideList: [string, any][] = [
     ...SimplePrimaryList,
+    ...AccessBoundaryList,
     ...SimpleLeftHandSideList
   ];
 
   // same as SimpleIsLeftHandSideList but without $parent and $this (ergo, LeftHandSide according to the actual spec)
   const SimpleIsNativeLeftHandSideList: [string, any][] = [
     ...AccessScopeList,
+    ...AccessBoundaryList,
     ...SimpleLiteralList,
     ...SimpleParenthesizedList,
     ...SimpleLeftHandSideList
@@ -440,6 +447,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ['IsFunction', 'call command'],
   ] as [ExpressionType, string][]) {
     describe(name, function () {
+      describe('parse AccessBoundaryList', function () {
+        for (const [input, expected] of AccessBoundaryList) {
+          it(input, function () {
+            verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+      });
+
       describe('parse AccessThisList', function () {
         for (const [input, expected] of AccessThisList) {
           it(input, function () {

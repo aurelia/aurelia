@@ -1,4 +1,4 @@
-import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext, DirtyChecker } from '@aurelia/runtime';
+import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext, DirtyChecker, IExpressionParser } from '@aurelia/runtime';
 import {
   Repeat,
   Controller,
@@ -12,6 +12,9 @@ import {
   IRendering,
   PropertyBinding,
   HydrateTemplateController,
+  IInstruction,
+  IController,
+  IViewFactory,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -19,7 +22,7 @@ import {
   PLATFORM,
   createContainer,
 } from '@aurelia/testing';
-import { Writable } from '@aurelia/kernel';
+import { Registration, Writable } from '@aurelia/kernel';
 
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   function runActivateLifecycle(sut: Repeat, scope: Scope): void {
@@ -547,7 +550,13 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         const instruction: HydrateTemplateController = {
           props: [{ props: [] }]
         } as any;
-        const sut = new Repeat(instruction, null!, loc, hydratable, itemFactory);
+        const child = container.createChild();
+        child.register(Registration.instance(IInstruction, instruction));
+        child.register(Registration.instance(IExpressionParser, null));
+        child.register(Registration.instance(IRenderLocation, loc));
+        child.register(Registration.instance(IController, hydratable));
+        child.register(Registration.instance(IViewFactory, itemFactory));
+        const sut = child.get<Repeat>(Repeat);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
         binding.target = sut as any;
 

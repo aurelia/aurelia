@@ -1,4 +1,4 @@
-import { type IDisposable, onResolve, IIndexable } from '@aurelia/kernel';
+import { type IDisposable, onResolve, IIndexable, resolve, all } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   BindingContext,
@@ -22,12 +22,13 @@ import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { areEqual, isArray, isPromise, rethrow, etIsProperty } from '../../utilities';
+import { areEqual, isArray, isPromise, rethrow, etIsProperty, isMap, isNumber, isNullish, isSet } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
+import { createInterface } from '../../utilities-di';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -41,8 +42,6 @@ const wrappedExprs = [
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [IInstruction, IExpressionParser, IRenderLocation, IController, IViewFactory];
-
   public views: ISyntheticView[] = [];
   private _oldViews: ISyntheticView[] = [];
 
@@ -65,17 +64,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _normalizedItems?: unknown[] = void 0;
   /** @internal */ private _hasDestructuredLocal: boolean = false;
 
-  /** @internal */ private readonly _location: IRenderLocation;
-  /** @internal */ private readonly _parent: IHydratableController;
-  /** @internal */ private readonly _factory: IViewFactory;
+  /** @internal */ private readonly _location = resolve(IRenderLocation);
+  /** @internal */ private readonly _parent = resolve(IController) as IHydratableController;
+  /** @internal */ private readonly _factory = resolve(IViewFactory);
+  /** @internal */ private readonly _resolver = resolve(IRepeatableHandlerResolver);
 
-  public constructor(
-    instruction: HydrateTemplateController,
-    parser: IExpressionParser,
-    location: IRenderLocation,
-    parent: IHydratableController,
-    factory: IViewFactory,
-  ) {
+  public constructor() {
+    const instruction = resolve(IInstruction) as HydrateTemplateController;
     const keyProp = (instruction.props[0] as IteratorBindingInstruction).props[0];
     if (keyProp !== void 0) {
       const { to, value, command } = keyProp;
@@ -83,6 +78,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (command === null) {
           this.key = value;
         } else if (command === 'bind') {
+          const parser = resolve(IExpressionParser);
           this.key = parser.parse(value, etIsProperty);
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
@@ -91,9 +87,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         throw createMappedError(ErrorNames.repeat_extraneous_binding, to);
       }
     }
-    this._location = location;
-    this._parent = parent;
-    this._factory = factory;
   }
 
   public binding(
@@ -396,7 +389,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const oldObserver = this._observer;
     if (this.$controller.isActive) {
-      newObserver = this._observer = getCollectionObserver(observingInnerItems ? innerItems : this.items);
+      const items = observingInnerItems ? innerItems : this.items;
+      newObserver = this._observer = this._resolver.resolve(items).getObserver(items);
       if (oldObserver !== newObserver) {
         oldObserver?.unsubscribe(this);
         newObserver?.subscribe(this);
@@ -416,7 +410,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
     const normalizedItems: unknown[] = [];
 
-    _resolver.resolve(items).iterate(items, (item, index) => {
+    this._resolver.resolve(items).iterate(items, (item, index) => {
       normalizedItems[index] = item;
     });
     this._normalizedItems = normalizedItems;
@@ -433,10 +427,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     const { $controller, _factory, local, _location, items, _scopeMap, _forOfBinding, forOf, _hasDestructuredLocal } = this;
     const parentScope = $controller.scope;
-    const newLen = _resolver.resolve(items).getCount(items);
+    const newLen = this._resolver.resolve(items).getCount(items);
     const views = this.views = Array(newLen);
 
-    _resolver.resolve(items).iterate(items, (item, i) => {
+    this._resolver.resolve(items).iterate(items, (item, i) => {
       view = views[i] = _factory.create().setLocation(_location);
       view.nodes.unlink();
       viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
@@ -717,37 +711,56 @@ const setContextualProperties = (oc: IRepeatOverrideContext, index: number, leng
   oc.$length = length;
 };
 
+export const IRepeatableHandlerResolver = /*@__PURE__*/createInterface<IRepeatableHandlerResolver>('IRepeatableHandlerResolver', x => x.singleton(RepeatableHandlerResolver));
 export interface IRepeatableHandlerResolver {
-  resolve(value: Repeatable): IRepeatableHandler;
+  resolve(value: unknown): IRepeatableHandler;
 }
 
-const _resolver = new class RepeatableHandlerResolver implements IRepeatableHandlerResolver {
+export class RepeatableHandlerResolver implements IRepeatableHandlerResolver {
+  private readonly _handlers = resolve(all(IRepeatableHandler));
+
   public resolve(value: Repeatable): IRepeatableHandler {
-    if (value instanceof Array) {
+    if (_arrayHandler.handles(value)) {
       return _arrayHandler;
     }
-    if (value instanceof Set) {
+    if (_setHandler.handles(value)) {
       return _setHandler;
     }
-    if (value instanceof Map) {
+    if (_mapHandler.handles(value)) {
       return _mapHandler;
     }
-    if (typeof value === 'number') {
+    if (_numberHandler.handles(value)) {
       return _numberHandler;
     }
-    if (value === null || value === void 0) {
+    if (_nullishHandler.handles(value)) {
       return _nullishHandler;
+    }
+    const handler = this._handlers.find(x => x.handles(value));
+    if (handler !== void 0) {
+      return handler;
     }
     return _unknownHandler;
   }
-}();
+}
+
+export const IRepeatableHandler = /*@__PURE__*/createInterface<IRepeatableHandler>('IRepeatableHandler');
 
 export interface IRepeatableHandler {
+  handles(value: unknown): boolean;
+  getObserver(value: Repeatable): CollectionObserver | undefined;
   iterate(value: Repeatable, func: (item: unknown, index: number, value: Repeatable) => void): void;
   getCount(value: Repeatable): number;
 }
 
 const _arrayHandler = new class ArrayHandler implements IRepeatableHandler {
+  public handles(value: unknown): boolean {
+    return isArray(value);
+  }
+
+  public getObserver(value: unknown[]): CollectionObserver | undefined {
+    return getCollectionObserver(value);
+  }
+
   public iterate(value: unknown[], func: (item: unknown, index: number, value: unknown[]) => void): void {
     const ii = value.length;
     let i = 0;
@@ -762,6 +775,14 @@ const _arrayHandler = new class ArrayHandler implements IRepeatableHandler {
 }();
 
 const _setHandler = new class SetHandler implements IRepeatableHandler {
+  public handles(value: unknown): boolean {
+    return isSet(value);
+  }
+
+  public getObserver(value: Set<unknown>): CollectionObserver | undefined {
+    return getCollectionObserver(value);
+  }
+
   public iterate(value: Set<unknown>, func: (item: unknown, index: number, value: Set<unknown>) => void): void {
     let i = 0;
     let key: unknown;
@@ -776,6 +797,14 @@ const _setHandler = new class SetHandler implements IRepeatableHandler {
 }();
 
 const _mapHandler = new class MapHandler implements IRepeatableHandler {
+  public handles(value: unknown): boolean {
+    return isMap(value);
+  }
+
+  public getObserver(value: Map<unknown, unknown>): CollectionObserver | undefined {
+    return getCollectionObserver(value);
+  }
+
   public iterate(value: Map<unknown, unknown>, func: (item: unknown, index: number, value: Map<unknown, unknown>) => void): void {
     let i = 0;
     let entry: [unknown, unknown] | undefined;
@@ -790,6 +819,14 @@ const _mapHandler = new class MapHandler implements IRepeatableHandler {
 }();
 
 const _numberHandler = new class NumberHandler implements IRepeatableHandler {
+  public handles(value: unknown): boolean {
+    return isNumber(value);
+  }
+
+  public getObserver(_value: number): CollectionObserver | undefined {
+    return void 0;
+  }
+
   public iterate(value: number, func: (item: number, index: number, value: number) => void): void {
     let i = 0;
     for (; i < value; ++i) {
@@ -803,6 +840,14 @@ const _numberHandler = new class NumberHandler implements IRepeatableHandler {
 }();
 
 const _nullishHandler = new class NullishHandler implements IRepeatableHandler {
+  public handles(value: unknown): boolean {
+    return isNullish(value);
+  }
+
+  public getObserver(_value: null | undefined): CollectionObserver | undefined {
+    return void 0;
+  }
+
   public iterate(_value: null | undefined, _func: (item: null | undefined, index: number, value: null | undefined) => void): void {
     // do nothing
   }
@@ -813,6 +858,15 @@ const _nullishHandler = new class NullishHandler implements IRepeatableHandler {
 }();
 
 const _unknownHandler = new class UnknownHandler implements IRepeatableHandler {
+  public handles(_value: unknown): boolean {
+    // Should only return as an explicit last fallback
+    return false;
+  }
+
+  public getObserver(_value: Repeatable): CollectionObserver | undefined {
+    return void 0;
+  }
+
   public iterate(value: Repeatable, _func: (item: unknown, index: number, value: Repeatable) => void): void {
     throw createMappedError(ErrorNames.repeat_non_iterable, value);
   }
@@ -822,7 +876,7 @@ const _unknownHandler = new class UnknownHandler implements IRepeatableHandler {
   }
 }();
 
-type Repeatable = Collection | number | null | undefined;
+type Repeatable = Collection | ArrayLike<unknown> | number | null | undefined;
 
 const getKeyValue = (
   keyMap: Map<unknown, unknown>,

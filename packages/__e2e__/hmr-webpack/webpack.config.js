@@ -29,7 +29,6 @@ module.exports = function (env, { mode }) {
       port: process.env.APP_PORT ?? 9000,
       historyApiFallback: true,
       open: !process.env.CI,
-      
     },
     stats: 'errors-only',
     module: {

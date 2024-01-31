@@ -1,4 +1,4 @@
-import { isArray, isFunction, isString } from '../utilities';
+import { isArray, isFunction, isString, objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
@@ -133,15 +133,26 @@ export const IModifiedEventHandlerCreator = /*@__PURE__*/createInterface<IModifi
 
 export interface IKeyMapping {
   readonly meta: string[];
-  readonly keys: Record<string, number>;
+  readonly keys: Record</* modifier */string, /* key */ string>;
 }
 export const IKeyMapping = /*@__PURE__*/createInterface<IKeyMapping>('IKeyMapping', x => x.instance({
-  meta: ['ctrl', 'alt', 'shift', 'meta'],
+  meta: objectFreeze(['ctrl', 'alt', 'shift', 'meta']) as string[],
   keys: {
-    escape: 27,
-    enter: 13,
-    space: 32,
-    tab: 9,
+    escape: 'Escape',
+    enter: 'Enter',
+    space: 'Space',
+    tab: 'tab',
+    // by default, maps the key a-z and A-Z to their respective keycodes
+    ...Array.from({ length: 25 }).reduce((acc: Record<string, string>, _, idx) => {
+      // map keycode of upper case character from A-Z
+      let char = String.fromCharCode(idx + 65);
+      acc[idx + 65] = char;
+
+      // map keycode and character code of lower case character from a-z
+      char = String.fromCharCode(idx + 97);
+      acc[idx + 97] = acc[char] = char;
+      return acc;
+    }, {})
   },
 }));
 
@@ -150,7 +161,7 @@ class ModifiedMouseEventHandler implements IModifiedEventHandlerCreator {
     c.register(singletonRegistration(IModifiedEventHandlerCreator, ModifiedMouseEventHandler));
   }
 
-  public readonly type = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu'];
+  public readonly type = ['click', 'mousedown', 'mousemove', 'mouseup', 'dblclick', 'contextmenu'];
   /** @internal */
   private readonly _mapping = resolve(IKeyMapping);
   /** @internal */
@@ -179,6 +190,11 @@ class ModifiedMouseEventHandler implements IModifiedEventHandlerCreator {
         if (this._mapping.meta.includes(m) && event[`${m}Key` as keyof MouseEvent] !== true) {
           return false;
         }
+
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(`Modifier '${m}' is not supported for mouse events.`);
+        }
       }
 
       if (prevent) event.preventDefault();
@@ -199,36 +215,31 @@ class ModifiedKeyboardEventHandler implements IModifiedEventHandlerCreator {
   public readonly type = ['keydown', 'keyup'];
   public getHandler(modifier: string): IModifiedEventHandler {
     const modifiers = modifier.split(/[:+.]/);
-    if (__DEV__) {
-      // verify modifiers and add warnings if necessary
-    }
-
     return ((event: KeyboardEvent) => {
       let prevent = false;
       let stop = false;
-      let keyCode = 0;
-      let m: string;
+      let mod: string;
 
-      for (m of modifiers) {
-        switch (m) {
+      for (mod of modifiers) {
+        switch (mod) {
           case 'prevent': prevent = true; continue;
           case 'stop': stop = true; continue;
         }
-        if (this._mapping.meta.includes(m)) {
-          if (event[`${m}Key` as keyof KeyboardEvent] !== true) {
-            return false;
-          }
-          continue;
-        }
-        if ((keyCode = Number(m)) > 0) {
-          if (this._mapping.keys[event.key] !== keyCode) {
+        if (this._mapping.meta.includes(mod)) {
+          if (event[`${mod}Key` as keyof KeyboardEvent] !== true) {
             return false;
           }
           continue;
         }
 
-        if (event.key !== m) {
+        const mappedKey = this._mapping.keys[mod];
+        if (mappedKey !== event.key) {
           return false;
+        }
+
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(`Modifier '${mod}' is not supported for keyboard event with key "${event.key}".`);
         }
       }
 
@@ -249,6 +260,7 @@ export const IEventModifier = /*@__PURE__*/createInterface<IEventModifier>('IEve
       // eslint-disable-next-line no-console
       console.warn('No event modifier handler registered');
     }
+    /* istanbul ignore next */
     return null;
   }
 }));

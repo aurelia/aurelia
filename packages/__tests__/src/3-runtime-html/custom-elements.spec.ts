@@ -1,4 +1,4 @@
-import { Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
+import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
@@ -168,7 +168,31 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with event modifier', function () {
+    it('works with mouse event modifier + middle click', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.trigger:middle="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 1 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with capture event + modifier', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.capture:middle="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 1 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with mouse event modifier + right click', function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button click.trigger:right="clicked()"></button>',
@@ -178,6 +202,29 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 0);
       trigger('button', 'click', { button: 2 });
       assert.strictEqual(clicked, 1);
+    });
+
+    it('works with mouse event modifier + prevent + stop', function () {
+      let clicked = 0;
+      let prevented = false;
+      let stopped = false;
+      const { trigger } = createFixture(
+        '<button click.trigger:right+prevent+stop="clicked()" click.capture=capture></button>',
+        { clicked: () => clicked = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      assert.strictEqual(prevented, false);
+      assert.strictEqual(stopped, false);
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 1);
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(stopped, true);
     });
 
     it('works with multiple event modifiers', function () {
@@ -236,7 +283,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       );
       trigger('button', 'keydown', { key: 'a' });
       assert.strictEqual(entered, 0);
-      trigger('button', 'keydown', { key: 'enter' });
+      trigger('button', 'keydown', { key: 'Enter' });
       assert.strictEqual(entered, 1);
     });
 
@@ -246,9 +293,9 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
         '<button keydown.trigger:enter+ctrl+shift="enter()"></button>',
         { enter: () => entered = 1 }
       );
-      trigger('button', 'keydown', { key: 'enter', ctrlKey: true });
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
       assert.strictEqual(entered, 0);
-      trigger('button', 'keydown', { key: 'enter', ctrlKey: true, shiftKey: true });
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
       assert.strictEqual(entered, 1);
     });
 
@@ -265,17 +312,80 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with shorthandl keyboard event + multiple modifiers', function () {
+    it('works with shorthand keyboard event + multiple modifiers', function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button @keydown:enter+ctrl+shift="enter()"></button>',
         { enter: () => entered = 1 },
         [ShortHandBindingSyntax]
       );
-      trigger('button', 'keydown', { key: 'enter', ctrlKey: true });
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
       assert.strictEqual(entered, 0);
-      trigger('button', 'keydown', { key: 'enter', ctrlKey: true, shiftKey: true });
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
       assert.strictEqual(entered, 1);
+    });
+
+    it('works with keycode for upper key by default', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+107="enter()"></button>',
+        { enter: () => entered = 1 },
+      );
+      trigger('button', 'keydown', { key: 'k', ctrlKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with custom keyboard mapping', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+upperK="enter()"></button>',
+        { enter: () => entered = 1 },
+        [AppTask.creating(IKeyMapping, mapping => {
+          mapping.keys.upperk = 'K';
+        })]
+      );
+      trigger('button', 'keydown', { key: 'K' });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'K', ctrlKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('does not work without keyboard mapping for custom modifier', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+super_k="enter()"></button>',
+        { enter: () => entered = 1 },
+        [AppTask.creating(IKeyMapping, mapping => {
+          mapping.keys.upper_k = 'K';
+        })]
+      );
+      trigger('button', 'keydown', { key: 'K', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+    });
+
+    it('works with prevent and stop together with other combo', function () {
+      let entered = 0;
+      let prevented = false;
+      let stopped = false;
+
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+shift+enter+stop+prevent="enter()", keydown.capture="capture"></button>',
+        {
+          enter: () => entered = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        }
+      );
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+      assert.strictEqual(prevented, false);
+      assert.strictEqual(stopped, false);
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
+      assert.strictEqual(entered, 1);
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(stopped, true);
     });
   });
 

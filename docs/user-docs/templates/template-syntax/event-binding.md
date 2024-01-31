@@ -214,10 +214,11 @@ Custom element:
 
 ```javascript
 export class CustomElement {
-  // Assume eventAggregator is injected and available
+  // inject host element to dispatch custom event
+  host = resolve(Element);
   someMethod() {
     const data = { /* Payload data */ };
-    this.eventAggregator.publish('my-custom-event', data);
+    this.host.dispatchEvent(new CustomEvent({ detail: data }))
   }
 }
 ```
@@ -225,7 +226,7 @@ export class CustomElement {
 Parent component:
 
 ```html
-<custom-element event-aggregator.bind="eventAggregator" my-custom-event.trigger="handleCustomEvent($event)"></custom-element>
+<custom-element my-custom-event.trigger="handleCustomEvent($event)"></custom-element>
 ```
 
 Parent view-model:
@@ -260,6 +261,76 @@ export class MyViewModel {
 Here, the `search` function is called only after the user has stopped typing for 300 milliseconds, improving performance and user experience.
 
 These examples showcase the versatility of event binding in Aurelia 2. By understanding and applying these patterns, you can create interactive and efficient applications that respond to user actions in a controlled and performant manner.
+
+### Event modifiers
+
+When you need to ensure some conditions are met before processing an event, you can use event modifiers. Event modifiers can be specified via event syntax, follow by a colon and modifiers:
+
+```
+[event].trigger[:modifier]="[expression]"
+```
+
+By default, Aurelia handles 2 set of common events: mouse and keyboard events. An example is as follow:
+
+```HTML
+<button click.trigger:ctrl="onCtrlClick()">Next page</button>
+```
+
+In the example above, the handler `onCtrlClick()` will only be called when the button is clicked while the `Ctrl` key being pressed.
+Keyboard event sometimes employ even more complex condition, as per the following example:
+
+```HTML
+<textarea keydown.trigger:ctrl+enter="send()">
+```
+In this example, we will only call `send()` when the user hits the `Enter` + `Ctrl` key combo. This example also demonstrates how to use multiple modifiers, they can be separated by the character `+` as delimiter.
+
+#### Prevent default and stop propagation
+
+`preventDefault` and `stopPropagation` are two functions commonly called on any events. Event modifiers can be used to declaratively and easily call those functions, as per following example:
+
+```HTML
+<button click.trigger:stop:prevent="validate()">Validate</button>
+```
+
+#### Mouse button modifiers
+
+When handling mouse event, it sometimes requires a specific mouse button. By default, Aurelia provides 3 modifiers `left`, `middle` and `right` to support mouse button verification. An example is as follow:
+
+```HTML
+<button click.trigger:middle="newTab()">Open in new tab</button>
+```
+
+#### Keyboard mapping
+
+When using keyboard event modifier, sometimes a certain key is used as modifier.
+You can use the char code representing the key as the modifier, like the following example, where we want to handle the combo `Ctrl + K` (notice its the upper `K`):
+
+```HTML
+<textarea keydown.trigger:ctrl+75="openSearchDialog()">
+```
+`75` is the charcode of the upper case letter `K`.
+
+Even though direct, it's not always clear `75` means when looking at the template, so it's often desirable to use the real letter `K` instead.
+Though Aurelia is not taught to, by default, understand the letter `K` means the code `75`. You can teach Aurelia by adding to the `IKeyMapping`:
+
+```typescript
+import { AppTask, IKeyMapping } from 'aurelia';
+
+Aurelia.register(
+  AppTask.creating(IKeyMapping, mapping => {
+    mapping.keys.upper_k = 75;
+  })
+)
+```
+After this enhancement, the `:ctrl+upper_k` modifier will be understood as `ctrl+75`.
+
+Note that we cannot use the upper case letter `K` as modifier in HTML because HTML is case insensitive. We use, in this example, `upper_k` as an alternative for that, and add the mapping accordingly.
+
+{% hint style="info" %}
+By default, Aurelia provides mapping for all lower case a-z letters in both keycode and leter so both `:ctrl+a` and `:ctrl+97` works.
+For upper case letter, only keycode mapping is provided, for example: `:65` for upper letter A works.
+{% endhint %}
+
 
 ## Conclusion
 

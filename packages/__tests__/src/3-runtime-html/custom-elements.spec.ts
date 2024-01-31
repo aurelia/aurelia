@@ -1,4 +1,4 @@
-import { Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, ValueConverter } from '@aurelia/runtime-html';
+import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
@@ -136,35 +136,257 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     trigger('button', 'click');
   });
 
-  it('works with multi dot event name for trigger', function () {
-    let clicked = 0;
-    const { trigger } = createFixture(
-      '<button bs.open-modal.trigger="clicked()"></button>',
-      { clicked: () => clicked = 1 }
-    );
-    trigger('button', 'bs.open-modal');
-    assert.strictEqual(clicked, 1);
-  });
+  describe('event', function () {
+    it('works with multi dot event name for trigger', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button bs.open-modal.trigger="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'bs.open-modal');
+      assert.strictEqual(clicked, 1);
+    });
 
-  it('works with multi dot event name for delegate', function () {
-    let clicked = 0;
-    const { trigger } = createFixture(
-      '<button bs.open-modal.delegate="clicked()"></button>',
-      { clicked: () => clicked = 1 },
-      [delegateSyntax]
-    );
-    trigger('button', 'bs.open-modal', { bubbles: true });
-    assert.strictEqual(clicked, 1);
-  });
+    it('works with multi dot event name for delegate', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button bs.open-modal.delegate="clicked()"></button>',
+        { clicked: () => clicked = 1 },
+        [delegateSyntax]
+      );
+      trigger('button', 'bs.open-modal', { bubbles: true });
+      assert.strictEqual(clicked, 1);
+    });
 
-  it('works with multi dot event name for capture', function () {
-    let clicked = 0;
-    const { trigger } = createFixture(
-      '<button bs.open-modal.capture="clicked()"></button>',
-      { clicked: () => clicked = 1 }
-    );
-    trigger('button', 'bs.open-modal');
-    assert.strictEqual(clicked, 1);
+    it('works with multi dot event name for capture', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button bs.open-modal.capture="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'bs.open-modal');
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with mouse event modifier + middle click', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.trigger:middle="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 1 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with capture event + modifier', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.capture:middle="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 1 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with mouse event modifier + right click', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.trigger:right="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with mouse event modifier + prevent + stop', function () {
+      let clicked = 0;
+      let prevented = false;
+      let stopped = false;
+      const { trigger } = createFixture(
+        '<button click.trigger:right+prevent+stop="clicked()" click.capture=capture></button>',
+        { clicked: () => clicked = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        }
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      assert.strictEqual(prevented, false);
+      assert.strictEqual(stopped, false);
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 1);
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(stopped, true);
+    });
+
+    it('works with multiple event modifiers', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button click.trigger:right+ctrl="clicked()"></button>',
+        { clicked: () => clicked = 1 }
+      );
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 2, ctrlKey: true });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('calls preventDefault() when event modifier "prevent" is used', function () {
+      let clicked = 0;
+      let prevented = false;
+
+      const { trigger } = createFixture(
+        '<button click.trigger:prevent="clicked()", click.capture="capture"></button>',
+        {
+          clicked: () => clicked = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+          }
+        }
+      );
+      trigger('button', 'click');
+      assert.strictEqual(clicked, 1);
+      assert.strictEqual(prevented, true);
+    });
+
+    it('calls stopPropagation() when event modifier "stop" is used', function () {
+      let clicked = 0;
+      let stopped = false;
+
+      const { trigger } = createFixture(
+        '<button click.trigger:stop="clicked()", click.capture="capture"></button>',
+        {
+          clicked: () => clicked = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        }
+      );
+      trigger('button', 'click');
+      assert.strictEqual(clicked, 1);
+      assert.strictEqual(stopped, true);
+    });
+
+    it('works with keyboard modifier', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:enter="enter()"></button>',
+        { enter: () => entered = 1 }
+      );
+      trigger('button', 'keydown', { key: 'a' });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'Enter' });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with multiple keyboard modifiers', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:enter+ctrl+shift="enter()"></button>',
+        { enter: () => entered = 1 }
+      );
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with shorthand event syntax', function () {
+      let clicked = 0;
+      const { trigger } = createFixture(
+        '<button @click:right="clicked()"></button>',
+        { clicked: () => clicked = 1 },
+        [ShortHandBindingSyntax]
+      );
+      trigger('button', 'click', { button: 0 });
+      assert.strictEqual(clicked, 0);
+      trigger('button', 'click', { button: 2 });
+      assert.strictEqual(clicked, 1);
+    });
+
+    it('works with shorthand keyboard event + multiple modifiers', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button @keydown:enter+ctrl+shift="enter()"></button>',
+        { enter: () => entered = 1 },
+        [ShortHandBindingSyntax]
+      );
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with keycode for upper key by default', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+107="enter()"></button>',
+        { enter: () => entered = 1 },
+      );
+      trigger('button', 'keydown', { key: 'k', ctrlKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('works with custom keyboard mapping', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+upperK="enter()"></button>',
+        { enter: () => entered = 1 },
+        [AppTask.creating(IKeyMapping, mapping => {
+          mapping.keys.upperk = 'K';
+        })]
+      );
+      trigger('button', 'keydown', { key: 'K' });
+      assert.strictEqual(entered, 0);
+      trigger('button', 'keydown', { key: 'K', ctrlKey: true });
+      assert.strictEqual(entered, 1);
+    });
+
+    it('does not work without keyboard mapping for custom modifier', function () {
+      let entered = 0;
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+super_k="enter()"></button>',
+        { enter: () => entered = 1 },
+        [AppTask.creating(IKeyMapping, mapping => {
+          mapping.keys.upper_k = 'K';
+        })]
+      );
+      trigger('button', 'keydown', { key: 'K', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+    });
+
+    it('works with prevent and stop together with other combo', function () {
+      let entered = 0;
+      let prevented = false;
+      let stopped = false;
+
+      const { trigger } = createFixture(
+        '<button keydown.trigger:ctrl+shift+enter+stop+prevent="enter()", keydown.capture="capture"></button>',
+        {
+          enter: () => entered = 1,
+          capture: (e: Event) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        }
+      );
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true });
+      assert.strictEqual(entered, 0);
+      assert.strictEqual(prevented, false);
+      assert.strictEqual(stopped, false);
+      trigger('button', 'keydown', { key: 'Enter', ctrlKey: true, shiftKey: true });
+      assert.strictEqual(entered, 1);
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(stopped, true);
+    });
   });
 
   describe('resolve', function () {

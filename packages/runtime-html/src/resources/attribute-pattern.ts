@@ -436,6 +436,7 @@ export class AttrSyntax {
     public rawValue: string,
     public target: string,
     public command: string | null,
+    public parts: string[] | null = null
   ) {}
 }
 
@@ -491,7 +492,7 @@ export class AttributeParser implements IAttributeParser {
     }
     const pattern = interpretation.pattern;
     if (pattern == null) {
-      return new AttrSyntax(name, value, name, null);
+      return new AttrSyntax(name, value, name, null, null);
     } else {
       return this._patterns[pattern][pattern](name, value, interpretation.parts);
     }
@@ -589,6 +590,19 @@ export class RefAttributePattern {
   }
 }
 
+@attributePattern(
+  { pattern: 'PART.trigger:PART', symbols: '.:' },
+  { pattern: 'PART.capture:PART', symbols: '.:' },
+)
+export class EventAttributePattern {
+  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
+  }
+  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
+  }
+}
+
 @attributePattern({ pattern: ':PART', symbols: ':' })
 export class ColonPrefixedBindAttributePattern {
   public ':PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
@@ -596,10 +610,18 @@ export class ColonPrefixedBindAttributePattern {
   }
 }
 
-@attributePattern({ pattern: '@PART', symbols: '@' })
+@attributePattern(
+  { pattern: '@PART', symbols: '@' },
+  { pattern: '@PART:PART', symbols: '@:' },
+)
 export class AtPrefixedTriggerAttributePattern {
   public '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+
+  public '@PART:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    parts.splice(1, 0, 'trigger');
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
 }
 

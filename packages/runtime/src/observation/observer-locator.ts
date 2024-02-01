@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve } from '@aurelia/kernel';
 import { getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -67,18 +67,9 @@ export type ObservableSetter = PropertyDescriptor['set'] & {
 };
 
 export class ObserverLocator {
-  /** @internal */ protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
   /** @internal */ private readonly _adapters: IObjectObservationAdapter[] = [];
-  /** @internal */ private readonly _dirtyChecker: IDirtyChecker;
-  /** @internal */ private readonly _nodeObserverLocator: INodeObserverLocator;
-
-  public constructor(
-    dirtyChecker: IDirtyChecker,
-    nodeObserverLocator: INodeObserverLocator,
-  ) {
-    this._dirtyChecker = dirtyChecker;
-    this._nodeObserverLocator = nodeObserverLocator;
-  }
+  /** @internal */ private readonly _dirtyChecker = resolve(IDirtyChecker);
+  /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator);
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this._adapters.push(adapter);
@@ -177,6 +168,7 @@ export class ObserverLocator {
         obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this);
       }
 
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return obs == null
         ? pd.configurable
           ? this._createComputedObserver(obj, key, pd, true)

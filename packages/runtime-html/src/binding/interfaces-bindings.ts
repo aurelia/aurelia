@@ -14,6 +14,11 @@ import { objectFreeze } from '../utilities';
 /** @internal */ export const defaultMode = 0b1000;
 /**
  * Mode of a binding to operate
+ * - 1 / one time - bindings should only update the target once
+ * - 2 / to view - bindings should update the target and observe the source for changes to update again
+ * - 3 / from view - bindings should update the source and observe the target for changes to update again
+ * - 6 / two way - bindings should observe both target and source for changes to update the other side
+ * - 8 / default - undecided mode, bindings, depends on the circumstance, may decide what to do accordingly
  */
 export const BindingMode = /*@__PURE__*/ objectFreeze({
   oneTime,

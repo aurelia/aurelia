@@ -106,8 +106,12 @@ export interface INodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
-  /** @internal */
-  protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
+  public static register(container: IContainer) {
+    container.register(
+      singletonRegistration(this, this),
+      aliasRegistration(this, INodeObserverLocator),
+    );
+  }
 
   /**
    * Indicates whether the node observer will be allowed to use dirty checking for a property it doesn't know how to observe
@@ -171,11 +175,6 @@ export class NodeObserverLocator implements INodeObserverLocator {
       SELECT: ['value'],
       TEXTAREA: ['value'],
     });
-  }
-
-  public static register(container: IContainer) {
-    aliasRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
-    singletonRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
   }
 
   // deepscan-disable-next-line

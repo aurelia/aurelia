@@ -1,8 +1,8 @@
 import { IPlatform } from '../platform';
 import { createLookup, isString, objectAssign } from '../utilities';
-import { createInterface, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
 
-import type { IContainer, IResolver } from '@aurelia/kernel';
+import { resolve, type IContainer } from '@aurelia/kernel';
 import type { INode } from '../dom';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
@@ -24,12 +24,11 @@ export class NoopSVGAnalyzer {
 }
 
 export class SVGAnalyzer {
-  /**
-   * @internal
-   */
-  public static inject = [IPlatform];
-  public static register(container: IContainer): IResolver<ISVGAnalyzer> {
-    return singletonRegistration(ISVGAnalyzer, this).register(container);
+  public static register(container: IContainer): void {
+    container.register(
+      singletonRegistration(this, this),
+      aliasRegistration(this, ISVGAnalyzer)
+    );
   }
 
   /** @internal */
@@ -128,7 +127,8 @@ export class SVGAnalyzer {
 
   /** @internal */
   private readonly SVGElement: typeof SVGElement;
-  public constructor(platform: IPlatform) {
+  public constructor() {
+    const platform = resolve(IPlatform);
     this.SVGElement = platform.globalThis.SVGElement;
 
     const div = platform.document.createElement('div');

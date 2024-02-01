@@ -1,4 +1,4 @@
-import { DI, IContainer, InstanceProvider, type IResolver, type Key, type Constructable, type IIndexable } from '@aurelia/kernel';
+import { DI, IContainer, InstanceProvider, type IResolver, type Key, type Constructable, type IIndexable, resolve } from '@aurelia/kernel';
 
 import {
   Controller,
@@ -45,20 +45,11 @@ export type WebComponentViewModelClass =
  */
 export class WcCustomElementRegistry implements IWcElementRegistry {
   /** @internal */
-  protected static inject = [IContainer, IPlatform, IRendering];
-
+  private readonly ctn = resolve(IContainer);
   /** @internal */
-  private readonly ctn: IContainer;
+  private readonly p = resolve(IPlatform);
   /** @internal */
-  private readonly p: IPlatform;
-  /** @internal */
-  private readonly r: IRendering;
-
-  public constructor(ctn: IContainer, p: IPlatform, r: IRendering) {
-    this.ctn = ctn;
-    this.p = p;
-    this.r = r;
-  }
+  private readonly r = resolve(IRendering);
 
   public define(name: string, def: Constructable | Omit<PartialCustomElementDefinition, 'name'>, options?: ElementDefinitionOptions): Constructable<HTMLElement> {
     if (!name.includes('-')) {

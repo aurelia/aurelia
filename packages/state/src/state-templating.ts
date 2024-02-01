@@ -1,4 +1,4 @@
-import { camelCase } from '@aurelia/kernel';
+import { camelCase, resolve } from '@aurelia/kernel';
 import {
   type ExpressionType,
   IExpressionParser,
@@ -92,12 +92,9 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sb';
 
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -122,12 +119,8 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sd';
-
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,

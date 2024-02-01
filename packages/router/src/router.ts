@@ -183,6 +183,11 @@ export class Router implements IRouter {
   private navigatorStateChangeEventSubscription!: IDisposable;
   private navigatorNavigateEventSubscription!: IDisposable;
 
+  /** Is processing navigation */
+  private _isProcessingNav: boolean = false;
+  /** Pending navigation */
+  private _pendingNavigation?: NavigatorNavigateEvent;
+
   public constructor(
     /**
      * @internal
@@ -320,12 +325,44 @@ export class Router implements IRouter {
    * @internal
    */
   public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
-    // Instructions extracted from queue, one at a time
-    this.processNavigation(event.navigation).catch(error => {
-      // event.navigation.reject?.();
-      throw error;
-    });
+    void this._handleNavigatorNavigateEvent(event);
   };
+
+  private async _handleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
+    if (this._isProcessingNav) {
+      // We prevent multiple navigation at the same time, but we store the last navigation requested.
+      if (this._pendingNavigation) {
+        // This pending navigation is cancelled
+        this._pendingNavigation.navigation.process?.resolve(false);
+      }
+      this._pendingNavigation = event;
+      return;
+    }
+    this._isProcessingNav = true;
+
+    try {
+      await this.processNavigation(event.navigation);
+    } catch (error) {
+      event.navigation.process?.reject(error);
+    } finally {
+      this._isProcessingNav = false;
+    }
+
+    if (this._pendingNavigation) {
+      const pending = this._pendingNavigation;
+      this._pendingNavigation = undefined;
+      await this._handleNavigatorNavigateEvent(pending);
+    }
+  }
+
+  /**
+   * Is processing navigation
+   *
+   * @internal
+   */
+  public get isProcessingNav(): boolean {
+    return this._isProcessingNav || !!this._pendingNavigation;
+  }
 
   /**
    * Handle the navigator's state change event.

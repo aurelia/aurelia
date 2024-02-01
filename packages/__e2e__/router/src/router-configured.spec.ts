@@ -155,4 +155,73 @@ test.describe('router', () => {
     expect(page.url()).toBe(`${baseURL}/`);
     await expect(page.locator('#root-vp')).toContainText('Home page');
   });
+
+  test('Ensure no duplication with load', async ({ page, baseURL }) => {
+    // Home
+    const proms: Promise<void>[] = [];
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+    // Flood navigation
+    for (let i = 0; i < 50; i++) {
+      switch (i % 3) {
+        case 0:
+          proms.push(page.click('#page-one-link'));
+          break;
+        case 1:
+          proms.push(page.click('#page-two-link'));
+          break;
+        case 2:
+          proms.push(page.click('#auth-link'));
+          break;
+      }
+    }
+
+    await Promise.all(proms);
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/two-route`);
+    expect(await page.locator('#root-vp').textContent()).toBe('Two page');
+  });
+
+  test('Ensure no duplication with back/forward', async ({ page, baseURL }) => {
+    // Home
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to "one"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/one-route`),
+      page.click('#page-one-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/one-route`);
+    await expect(page.locator('#root-vp')).toContainText('One page');
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+
+    // Flood back/forward
+    const proms: Promise<unknown>[] = [];
+    for (let i = 0; i < 98; i++) {
+      if (i % 2 === 0) {
+        proms.push(page.goBack(), page.goBack());
+      } else {
+        proms.push(page.goForward(), page.goForward());
+      }
+    }
+    await Promise.all(proms);
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+
+    expect(page.url()).toBe(`${baseURL}/pages/two-route`);
+    expect(await page.locator('#root-vp').textContent()).toBe('Two page');
+  });
 });

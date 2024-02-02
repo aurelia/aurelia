@@ -543,7 +543,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (__DEV__) {
           // eslint-disable-next-line no-console
           console.warn(
-            `Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
+            `[DEV:aurelia] Property "${realAttrTarget}" is declared with literal string ${realAttrValue}. ` +
             `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`
           );
         }
@@ -772,6 +772,16 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
 
           removeAttr();
+
+          if (__DEV__) {
+            attrDef = context._findAttr(realAttrTarget);
+            if (attrDef !== null) {
+              // eslint-disable-next-line no-console
+              console.warn(`[DEV:aurelia] Binding with bindable "${realAttrTarget}" on custom element "${elDef.name}" is ambiguous.` +
+                `There is a custom attribute with the same name.`
+              );
+            }
+          }
           continue;
         }
       }
@@ -1506,7 +1516,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (ignoredAttributes.length > 0) {
           if (__DEV__)
             // eslint-disable-next-line no-console
-            console.warn(`The attribute(s) ${ignoredAttributes.map(attr => attr.name).join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+            console.warn(`[DEV:aurelia] The attribute(s) ${ignoredAttributes.map(attr => attr.name).join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
         }
 
         bindableEl.remove();

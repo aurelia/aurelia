@@ -759,7 +759,7 @@ export class TemplateCompiler implements ITemplateCompiler {
                 ? new SetPropertyInstruction(realAttrValue, bindable.name)
                 : new InterpolationInstruction(expr, bindable.name)
             );
-           } else {
+          } else {
             commandBuildInfo.node = el;
             commandBuildInfo.attr = attrSyntax;
             commandBuildInfo.bindable = bindable;

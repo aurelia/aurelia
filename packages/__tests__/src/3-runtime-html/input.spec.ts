@@ -97,7 +97,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     it('special property valueAsNumber on <input type=date>', function () {
       const { appHost: host, component: comp, ctx } = createFixture(
         `<input type=date value-as-number.bind="count">`,
-        { count: 0 }
+        { count: undefined }
       );
       const input = host.querySelector('input');
       assert.strictEqual(input.valueAsNumber, 0);

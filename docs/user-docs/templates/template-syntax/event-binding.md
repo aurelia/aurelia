@@ -32,7 +32,7 @@ Aurelia 2 offers two primary commands for event binding:
 
 To listen for a click event on a button and call a method named `handleClick`, you would write:
 
-```HTML
+```html
 <button click.trigger="handleClick()">Click me!</button>
 ```
 
@@ -42,7 +42,7 @@ When the button is clicked, your view-model's `handleClick` method will be execu
 
 You can pass the event object itself or other custom data to your event handler method. For instance, to pass the event object to the `handleClick` method, you would modify the binding like this:
 
-```HTML
+```html
 <button click.trigger="handleClick($event)">Click me!</button>
 ```
 
@@ -64,7 +64,7 @@ Aurelia 2 allows you to bind to any standard DOM event. Here are some common eve
 
 The `click` event is frequently used for buttons, links, and other clickable elements.
 
-```HTML
+```html
 <a href="#" click.trigger="navigate()">Go somewhere</a>
 ```
 
@@ -80,7 +80,7 @@ The `keypress` event is useful for responding to user input in text fields or wh
 
 The `mouseover` event can trigger interactions when the user hovers over an element.
 
-```HTML
+```html
 <div mouseover.trigger="showTooltip()">Hover over me!</div>
 ```
 
@@ -185,7 +185,7 @@ export class MyViewModel {
 
 Event delegation is useful for handling events on dynamically generated content, such as a list of items.
 
-```HTML
+```html
 <ul click.trigger="listClicked($event)">
   <li repeat.for="item of items" data-id="${item.id}">${item.name}</li>
 </ul>
@@ -272,14 +272,14 @@ When you need to ensure some conditions are met before processing an event, you 
 
 By default, Aurelia handles 2 set of common events: mouse and keyboard events. An example is as follow:
 
-```HTML
+```html
 <button click.trigger:ctrl="onCtrlClick()">Next page</button>
 ```
 
 In the example above, the handler `onCtrlClick()` will only be called when the button is clicked while the `Ctrl` key being pressed.
 Keyboard event sometimes employ even more complex condition, as per the following example:
 
-```HTML
+```html
 <textarea keydown.trigger:ctrl+enter="send()">
 ```
 In this example, we will only call `send()` when the user hits the `Enter` + `Ctrl` key combo. This example also demonstrates how to use multiple modifiers, they can be separated by the character `+` as delimiter.
@@ -288,7 +288,7 @@ In this example, we will only call `send()` when the user hits the `Enter` + `Ct
 
 `preventDefault` and `stopPropagation` are two functions commonly called on any events. Event modifiers can be used to declaratively and easily call those functions, as per following example:
 
-```HTML
+```html
 <button click.trigger:stop:prevent="validate()">Validate</button>
 ```
 
@@ -296,7 +296,7 @@ In this example, we will only call `send()` when the user hits the `Enter` + `Ct
 
 When handling mouse event, it sometimes requires a specific mouse button. By default, Aurelia provides 3 modifiers `left`, `middle` and `right` to support mouse button verification. An example is as follow:
 
-```HTML
+```html
 <button click.trigger:middle="newTab()">Open in new tab</button>
 ```
 
@@ -305,7 +305,7 @@ When handling mouse event, it sometimes requires a specific mouse button. By def
 When using keyboard event modifier, sometimes a certain key is used as modifier.
 You can use the char code representing the key as the modifier, like the following example, where we want to handle the combo `Ctrl + K` (notice its the upper `K`):
 
-```HTML
+```html
 <textarea keydown.trigger:ctrl+75="openSearchDialog()">
 ```
 `75` is the charcode of the upper case letter `K`.
@@ -318,11 +318,11 @@ import { AppTask, IKeyMapping } from 'aurelia';
 
 Aurelia.register(
   AppTask.creating(IKeyMapping, mapping => {
-    mapping.keys.upper_k = 75;
+    mapping.keys.upper_k = 'K';
   })
 )
 ```
-After this enhancement, the `:ctrl+upper_k` modifier will be understood as `ctrl+75`.
+After this enhancement, the `:ctrl+upper_k` modifier will be understood as `ctrl+75` or `ctrl` + upper `K` key.
 
 Note that we cannot use the upper case letter `K` as modifier in HTML because HTML is case insensitive. We use, in this example, `upper_k` as an alternative for that, and add the mapping accordingly.
 

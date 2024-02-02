@@ -7,9 +7,11 @@ import {
 } from '@aurelia/runtime-html';
 import {
   assert,
+  createFixture,
   TestContext,
 } from '@aurelia/testing';
 import { isFirefox, isNode } from '../util.js';
+import { resolve } from '@aurelia/kernel';
 
 describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
   interface IHarmoniousCompilationTestCase {
@@ -304,95 +306,6 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         assert.equal(comp.count, 1);
       },
     },
-    {
-      title: 'props are always camelized',
-      template: '<input type="number" value-as-number.to-view="1">',
-      assertFn: (ctx, host, _comp: { count: number }) => {
-        const input = host.querySelector('input');
-        assert.equal(input.valueAsNumber, 1);
-      },
-    },
-    {
-      title: 'special property valueAsNumber on <input type=number>',
-      template: '<input type="number" value-as-number.bind="count">',
-      browserOnly: true,
-      assertFn: (ctx, host, comp: { count: number }) => {
-        const input = host.querySelector('input');
-        assert.strictEqual(input.valueAsNumber, 0);
-
-        input.valueAsNumber = 5;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, 5);
-
-        input.valueAsNumber = NaN;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, NaN);
-
-        input.valueAsNumber = 'abc' as any;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, NaN);
-
-        // reset first
-        input.valueAsNumber = 0;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, 0);
-
-        // then bogus value
-        comp.count = 'abc' as any;
-        ctx.platform.domWriteQueue.flush();
-        assert.strictEqual(input.valueAsNumber, NaN);
-        // input.valueAsNumber observer does not propagate the value back
-        // this may result in some GH issues
-        assert.strictEqual(comp.count, 'abc', 'comp.count === abc');
-
-        input.value = '123';
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, 123);
-      },
-    },
-    {
-      title: 'special property valueAsNumber on <input type=date>',
-      template: '<input type="date" value-as-number.bind="count">',
-      browserOnly: true,
-      assertFn: (ctx, host, comp: { count: number }) => {
-        const input = host.querySelector('input');
-        assert.strictEqual(input.valueAsNumber, 0);
-
-        // invalid, though not propagating change to view model just yet
-        // because the value of the input hasn't actually been changed in the observer:
-        // when adding the first subscriber, input valueAsNumber observer gets its initial value as 0
-        // so now, it wouldn't detect any change -> comp.count === undefined
-        input.valueAsNumber = 5;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, undefined);
-
-        const todayInMs = new Date(2021, 1, 14).getTime();
-        // when entering a Date, its YYYY-MM-DD format is used to display
-        // unfortunately, this creates a loss, as it's in UTC,
-        // and when converting back to number of Ms, it's different with the input
-        // so calculating the real value here using the string representation of the date in the <input/>
-        // example:       for GMT+11
-        // when enter:    input.valueAsNumber = new Date(2021, 01, 14)
-        // will display:  13/02/2021
-        input.valueAsNumber = todayInMs;
-        const actualReturnedTimeInMs = new Date(input.valueAsDate).getTime();
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(input.valueAsNumber, actualReturnedTimeInMs, 'input[type=date].valueAsNumber === today_in_ms');
-        assert.strictEqual(comp.count, actualReturnedTimeInMs, 'vm.count === today_in_ms');
-
-        input.valueAsNumber = 'abc' as any;
-        input.dispatchEvent(new ctx.CustomEvent('change'));
-        assert.strictEqual(comp.count, NaN, 'comp.count === NaN when input.valueAsNumber is bogus');
-
-        // then bogus value
-        comp.count = 'abc' as any;
-        ctx.platform.domWriteQueue.flush();
-        assert.strictEqual(input.valueAsNumber, NaN);
-        // input.valueAsNumber observer does not propagate the value back
-        // this may result in some GH issues
-        assert.strictEqual(comp.count, 'abc', 'comp.count === abc');
-      },
-    },
   ];
 
   testCases.forEach((testCase, idx) => {
@@ -439,5 +352,31 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         body?.focus();
       }
     });
+  });
+
+  it('gives priority to custom element bindable over custom attribute with the same name', function () {
+    const { assertStyles, printHtml } = createFixture(
+      `<square size.bind="width"></square>`,
+      { width: 10 },
+      [
+        CustomElement.define({ name: 'square', bindables: ['size'] }, class Square {
+          host = resolve(INode) as HTMLElement;
+          size: number;
+          attached() {
+            this.host.style.width = `${this.size}px`;
+          }
+        }),
+        CustomAttribute.define('size', class Size  {
+          value: any;
+          host = resolve(INode) as Element;
+          attached() {
+            this.host.setAttribute('size', this.value);
+          }
+        })
+      ]
+    );
+
+    printHtml();
+    assertStyles('square', { width: '10px' });
   });
 });

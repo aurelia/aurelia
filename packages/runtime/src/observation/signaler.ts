@@ -19,13 +19,7 @@ export class Signaler {
   }
 
   public addSignalListener(name: string, listener: ISubscriber): void {
-    const signals = this.signals;
-    const listeners = signals[name];
-    if (listeners === undefined) {
-      signals[name] = new Set([listener]);
-    } else {
-      listeners.add(listener);
-    }
+    (this.signals[name] ??= new Set()).add(listener);
   }
 
   public removeSignalListener(name: string, listener: ISubscriber): void {

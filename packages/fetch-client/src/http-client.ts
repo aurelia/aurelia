@@ -1,6 +1,6 @@
 import { DI, IContainer, IIndexable, Registration, resolve } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration';
-import { Interceptor, ValidInterceptorMethodName } from './interfaces';
+import { IFetchInterceptor } from './interfaces';
 import { CacheInterceptor, RetryInterceptor } from './interceptors';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
@@ -51,12 +51,12 @@ export class HttpClient {
   /**
    * @internal
    */
-  private _interceptors: Interceptor[] = [];
+  private _interceptors: IFetchInterceptor[] = [];
 
   /**
    * The interceptors to be run during requests.
    */
-  public get interceptors(): Interceptor[] {
+  public get interceptors(): IFetchInterceptor[] {
     return this._interceptors.slice(0);
   }
 
@@ -343,20 +343,20 @@ export class HttpClient {
     }
   }
 
-  private processRequest(request: Request, interceptors: Interceptor[]): Promise<Request | Response> {
+  private processRequest(request: Request, interceptors: IFetchInterceptor[]): Promise<Request | Response> {
     return this._applyInterceptors(request, interceptors, 'request', 'requestError', this);
   }
 
-  private processResponse(response: Promise<Response>, interceptors: Interceptor[], request: Request): Promise<Request | Response> {
+  private processResponse(response: Promise<Response>, interceptors: IFetchInterceptor[], request: Request): Promise<Request | Response> {
     return this._applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
   }
 
   /** @internal */
   private _applyInterceptors(
     input: Request | Promise<Response | Request>,
-    interceptors: Interceptor[] | undefined,
-    successName: ValidInterceptorMethodName,
-    errorName: ValidInterceptorMethodName,
+    interceptors: IFetchInterceptor[] | undefined,
+    successName: 'request' | 'response',
+    errorName: 'requestError' | 'responseError',
     ...interceptorArgs: unknown[]
   ): Promise<Request | Response> {
     return (interceptors ?? [])

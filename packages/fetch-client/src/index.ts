@@ -1,26 +1,30 @@
 export {
-  type Interceptor,
-  type RetryConfiguration,
-  type RetryableRequest,
-  type ValidInterceptorMethodName
+  type IFetchInterceptor,
 } from './interfaces';
 export {
   json
 } from './utilities-fetch-client';
 export {
-  type CacheEvent,
-  CacheEvents,
+  // cache interceptor
+  type ICacheEventData,
+  ICacheConfiguration,
+  CacheEvent,
   CacheInterceptor,
-  type CacheItem,
+  type ICacheItem,
   CacheService,
   ICacheService,
-  IStorage,
+  ICacheStorage,
+  // storage implementations
   MemoryStorage,
-  RetryInterceptor,
-  RetryStrategy,
   BrowserIndexDBStorage,
   BrowserLocalStorage,
   BrowserSessionStorage,
+
+  // retry interceptor
+  RetryInterceptor,
+  RetryStrategy,
+  type IRetryConfiguration,
+  type IRetryableRequest,
 } from './interceptors';
 export { HttpClientConfiguration } from './http-client-configuration';
 export { IFetchFn, HttpClient, IHttpClient, HttpClientEvent } from './http-client';

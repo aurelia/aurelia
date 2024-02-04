@@ -1,6 +1,6 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
 import { HttpClient } from '../http-client';
-import { Interceptor, RetryableRequest, RetryConfiguration } from '../interfaces';
+import { IFetchInterceptor } from '../interfaces';
 
 /**
  * The strategy to use when retrying requests.
@@ -12,7 +12,7 @@ export const RetryStrategy = Object.freeze({
   random: 3
 });
 
-const defaultRetryConfig: RetryConfiguration = {
+const defaultRetryConfig: IRetryConfiguration = {
   maxRetries: 3,
   interval: 1000,
   strategy: RetryStrategy.fixed
@@ -21,15 +21,15 @@ const defaultRetryConfig: RetryConfiguration = {
 /**
  * Interceptor that retries requests on error, based on a given RetryConfiguration.
  */
-export class RetryInterceptor implements Interceptor {
+export class RetryInterceptor implements IFetchInterceptor {
   /** @internal */
   private readonly p = resolve(IPlatform);
-  public retryConfig: RetryConfiguration;
+  public retryConfig: IRetryConfiguration;
 
   /**
    * Creates an instance of RetryInterceptor.
    */
-  public constructor(retryConfig?: RetryConfiguration) {
+  public constructor(retryConfig?: IRetryConfiguration) {
     this.retryConfig = {...defaultRetryConfig, ...(retryConfig ?? {})};
 
     if (this.retryConfig.strategy === RetryStrategy.exponential
@@ -44,7 +44,7 @@ export class RetryInterceptor implements Interceptor {
    * @param request - The request to be sent.
    * @returns The existing request, a new request or a response; or a Promise for any of these.
    */
-  public request(request: RetryableRequest): RetryableRequest {
+  public request(request: IRetryableRequest): IRetryableRequest {
     if (!request.retryConfig) {
       request.retryConfig = {...this.retryConfig};
       request.retryConfig.counter = 0;
@@ -62,7 +62,7 @@ export class RetryInterceptor implements Interceptor {
    * @param response - The response.
    * @returns The response; or a Promise for one.
    */
-  public response(response: Response, request: RetryableRequest): Response {
+  public response(response: Response, request: IRetryableRequest): Response {
     // retry was successful, so clean up after ourselves
     delete request.retryConfig;
     return response;
@@ -77,8 +77,8 @@ export class RetryInterceptor implements Interceptor {
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
-  public responseError(error: Response, request: RetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
-    const { retryConfig } = request as { retryConfig: Required<RetryConfiguration> };
+  public responseError(error: Response, request: IRetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
+    const { retryConfig } = request as { retryConfig: Required<IRetryConfiguration> };
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
@@ -97,7 +97,7 @@ export class RetryInterceptor implements Interceptor {
                 return newRequest;
               })
               .then(newRequest => {
-                const retryableRequest: RetryableRequest = {...newRequest, retryConfig };
+                const retryableRequest: IRetryableRequest = {...newRequest, retryConfig };
                 return httpClient.fetch(retryableRequest);
               });
           }
@@ -114,8 +114,8 @@ export class RetryInterceptor implements Interceptor {
   }
 }
 
-function calculateDelay(retryConfig: RetryConfiguration): number {
-  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<RetryConfiguration>;
+function calculateDelay(retryConfig: IRetryConfiguration): number {
+  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<IRetryConfiguration>;
 
   if (typeof (strategy) === 'function') {
     return (retryConfig.strategy as (retryCount: number) => number)(counter);
@@ -155,3 +155,18 @@ const retryStrategies = [
   (retryCount: number, interval: number) => number,
   (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
 ];
+
+export type IRetryableRequest = Request & { retryConfig?: IRetryConfiguration };
+
+export interface IRetryConfiguration {
+  maxRetries: number;
+  interval?: number;
+  strategy?: number | ((retryCount: number) => number);
+  minRandomInterval?: number;
+  maxRandomInterval?: number;
+  counter?: number;
+  requestClone?: Request;
+  doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
+  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
+}
+

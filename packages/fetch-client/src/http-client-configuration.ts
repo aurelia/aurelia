@@ -1,6 +1,6 @@
 import { IContainer, resolve } from '@aurelia/kernel';
-import { CacheInterceptor, RetryInterceptor } from './interceptors';
-import { CacheConfiguration, Interceptor, RetryConfiguration } from './interfaces';
+import { CacheInterceptor, ICacheConfiguration, IRetryConfiguration, RetryInterceptor } from './interceptors';
+import { IFetchInterceptor } from './interfaces';
 
 /**
  * A class for configuring HttpClients.
@@ -22,7 +22,7 @@ export class HttpClientConfiguration {
   /**
    * Interceptors to be added to the HttpClient.
    */
-  public interceptors: Interceptor[] = [];
+  public interceptors: IFetchInterceptor[] = [];
 
   public dispatcher: Node | null = null;
 
@@ -64,7 +64,7 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  public withInterceptor(interceptor: Interceptor): HttpClientConfiguration {
+  public withInterceptor(interceptor: IFetchInterceptor): HttpClientConfiguration {
     this.interceptors.push(interceptor);
     return this;
   }
@@ -97,13 +97,13 @@ export class HttpClientConfiguration {
     return this.withInterceptor({ response: rejectOnError });
   }
 
-  public withRetry(config?: RetryConfiguration): HttpClientConfiguration {
+  public withRetry(config?: IRetryConfiguration): HttpClientConfiguration {
     const interceptor = this._container.invoke(RetryInterceptor, [config]);
 
     return this.withInterceptor(interceptor);
   }
 
-  public withCache(config?: CacheConfiguration): HttpClientConfiguration {
+  public withCache(config?: ICacheConfiguration): HttpClientConfiguration {
     const interceptor = this._container.invoke(CacheInterceptor, [config]);
 
     return this.withInterceptor(interceptor);

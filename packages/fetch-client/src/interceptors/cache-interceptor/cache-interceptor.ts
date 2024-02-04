@@ -1,9 +1,9 @@
 import { resolve } from '@aurelia/kernel';
-import { CacheConfiguration, Interceptor } from '../../interfaces';
+import { IFetchInterceptor } from '../../interfaces';
 import { ICacheService } from './cach-service';
 
 /** Default configuration which gets spread with overrides */
-const defaultCacheConfig: CacheConfiguration = {
+const defaultCacheConfig: ICacheConfiguration = {
   /** 5 minutes */
   cacheTime: 300_000,
   /** Always stale */
@@ -12,19 +12,26 @@ const defaultCacheConfig: CacheConfiguration = {
   refreshInterval: 0
 };
 
+export interface ICacheConfiguration {
+  cacheTime?: number;
+  staleTime?: number;
+  refreshStaleImmediate?: boolean;
+  refreshInterval?: number;
+}
+
 /**
  * Interceptor that caches requests on success.
  */
-export class CacheInterceptor implements Interceptor {
+export class CacheInterceptor implements IFetchInterceptor {
   public static readonly prefix = 'au:interceptor:';
   public static readonly cacheHeader = 'x-au-fetch-cache';
 
   /** @internal */
   private readonly _cacheService = resolve(ICacheService);
   /** @internal */
-  private readonly _config: CacheConfiguration;
+  private readonly _config: ICacheConfiguration;
 
-  public constructor(config?: CacheConfiguration) {
+  public constructor(config?: ICacheConfiguration) {
     this._config = { ...defaultCacheConfig, ...(config ?? {}) };
   }
 

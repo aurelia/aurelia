@@ -4,7 +4,7 @@ import { HttpClient } from './http-client';
  * Interceptors can process requests before they are sent, and responses
  * before they are returned to callers.
  */
-export interface Interceptor {
+export interface IFetchInterceptor {
   /**
    * Called with the request before it is sent. Request interceptors can modify and
    * return the request, or return a new one to be sent. If desired, the interceptor
@@ -53,27 +53,4 @@ export interface Interceptor {
    * Optional. Called when the owning http client is disposed for cleanup purposes.
    */
   dispose?(): void;
-}
-
-export type ValidInterceptorMethodName = keyof Interceptor;
-
-export type RetryableRequest = Request & { retryConfig?: RetryConfiguration };
-
-export interface RetryConfiguration {
-  maxRetries: number;
-  interval?: number;
-  strategy?: number | ((retryCount: number) => number);
-  minRandomInterval?: number;
-  maxRandomInterval?: number;
-  counter?: number;
-  requestClone?: Request;
-  doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
-  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
-}
-
-export interface CacheConfiguration {
-  cacheTime?: number;
-  staleTime?: number;
-  refreshStaleImmediate?: boolean;
-  refreshInterval?: number;
 }

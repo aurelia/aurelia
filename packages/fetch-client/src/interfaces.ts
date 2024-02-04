@@ -48,6 +48,11 @@ export interface Interceptor {
    * @returns The response; or a Promise for one.
    */
   responseError?(error: unknown, request?: Request, httpClient?: HttpClient): Response | Promise<Response>;
+
+  /**
+   * Optional. Called when the owning http client is disposed for cleanup purposes.
+   */
+  dispose?(): void;
 }
 
 export type ValidInterceptorMethodName = keyof Interceptor;

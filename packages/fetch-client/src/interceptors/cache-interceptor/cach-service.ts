@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { DI, IDisposable, IEventAggregator, IPlatform, resolve } from '@aurelia/kernel';
 import { IStorage } from './storage';
-import { CacheConfiguration } from '../../interfaces';
 import { IHttpClient } from '../../http-client';
-import { CacheInterceptor } from './cache-interceptor';
 
 export type CacheItem<T = unknown> = {
     staleTime?: number;
@@ -17,7 +15,7 @@ export const ICacheService = /*@__PURE__*/DI.createInterface<CacheService>(x => 
 /**
  * Events that are published by the CacheService
  */
-export const CacheEvents = {
+export const CacheEvents = /*@__PURE__*/ Object.freeze({
     Set: 'au:fetch:cache:set',
     Get: 'au:fetch:cache:get',
     Clear: 'au:fetch:cache:clear',
@@ -31,7 +29,7 @@ export const CacheEvents = {
     CacheBackgroundRefreshed: 'au:fetch:cache:background:refreshed',
     CacheBackgroundRefreshing: 'au:fetch:cache:background:refreshing',
     CacheBackgroundStopped: 'au:fetch:cache:background:stopped',
-} as const;
+});
 
 type CacheChannels = typeof CacheEvents[keyof typeof CacheEvents];
 
@@ -46,16 +44,14 @@ export type CacheEvent<T> = {
 export class CacheService implements IDisposable {
 
     private readonly storage = resolve(IStorage);
-    private readonly platform = resolve(IPlatform);
-    private readonly ea = resolve(IEventAggregator);
-    private readonly httpClient = resolve(IHttpClient);
-    private readonly _subscribedEvents: IDisposable[] = [];
-    /** @internal */
-    private _interval?: number;
-    /** @internal */
-    private readonly _timeouts: number[] = [];
+    /** @internal */ private readonly _platform = resolve(IPlatform);
+    /** @internal */ private readonly ea = resolve(IEventAggregator);
+    /** @internal */ private readonly _httpClient = resolve(IHttpClient);
+    /** @internal */ private readonly _subscribedEvents: IDisposable[] = [];
+    /** @internal */ private _interval = -1;
+    /** @internal */ private readonly _timeouts: number[] = [];
 
-    private readonly _requestMap = new Map<string, Request>();
+    /** @internal */ private readonly _requestMap = new Map<string, Request>();
 
     public subscribe<T>(channel: CacheChannels, callback: (value: CacheEvent<T>) => void) {
         const event = this.ea.subscribe(channel, callback);
@@ -70,31 +66,34 @@ export class CacheService implements IDisposable {
     }
 
     public setStaleTimer(key: string, staleTime: number, request: Request) {
-      this._timeouts.push(setTimeout(async () => {
+      const timeoutId = this._platform.setTimeout(async () => {
         this.delete(key);
-        await this.httpClient.get(request);
+        await this._httpClient.get(request);
         const value = this.getItem(key);
         this.ea.publish(CacheEvents.CacheStaleRefreshed, { key, value });
-      }, staleTime));
+
+        this._clearTimeout(timeoutId);
+      }, staleTime);
+      this._timeouts.push(timeoutId);
     }
 
-    public startBackgroundRefresh(timer?: number){
-      if(!timer) return;
-      this._interval =  this.platform.setInterval(() => {
+    public startBackgroundRefresh(timer?: number) {
+      if(!timer || this._interval > -1) return;
+      this._interval =  this._platform.setInterval(() => {
         this.ea.publish(CacheEvents.CacheBackgroundRefreshing);
-
-          this._requestMap.forEach((req, key)=> {
-            this.delete(key);
-            void this.httpClient.get(req).then(() => {
-              const value = this.getItem(key);
-              this.ea.publish(CacheEvents.CacheBackgroundRefreshed, { key, value });
-            });
+        this._requestMap.forEach((req, key)=> {
+          this.delete(key);
+          void this._httpClient.get(req).then(() => {
+            const value = this.getItem(key);
+            this.ea.publish(CacheEvents.CacheBackgroundRefreshed, { key, value });
+          });
         });
       }, timer);
     }
 
-    public stopBackgroundRefresh(){
-      this.platform.clearInterval(this._interval);
+    public stopBackgroundRefresh() {
+      this._platform.clearInterval(this._interval);
+      this._interval = -1;
       this.ea.publish(CacheEvents.CacheBackgroundStopped);
     }
 
@@ -158,13 +157,23 @@ export class CacheService implements IDisposable {
         this.ea.publish(CacheEvents.Reset);
         this.stopBackgroundRefresh();
         this._timeouts.forEach(x => {
-          this.platform.clearTimeout(x);
+          this._platform.clearTimeout(x);
         });
+        this._timeouts.length = 0;
     }
 
     public dispose(): void {
         this.clear();
         this._subscribedEvents.forEach(x => x.dispose());
         this.ea.publish(CacheEvents.Dispose);
+    }
+
+    /** @internal */
+    private _clearTimeout(id: number) {
+      this._platform.clearTimeout(id);
+      const idx = this._timeouts.indexOf(id);
+      if (idx > -1) {
+        this._timeouts.splice(idx, 1);
+      }
     }
 }

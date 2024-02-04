@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import { CacheConfiguration, Interceptor } from '../../interfaces';
-import { CacheEvents, ICacheService } from './cach-service';
+import { ICacheService } from './cach-service';
 
 /** Default configuration which gets spread with overrides */
 const defaultCacheConfig: CacheConfiguration = {
@@ -22,14 +22,14 @@ export class CacheInterceptor implements Interceptor {
   /** @internal */
   private readonly _cacheService = resolve(ICacheService);
   /** @internal */
-  private readonly _config?: CacheConfiguration;
+  private readonly _config: CacheConfiguration;
 
   public constructor(config?: CacheConfiguration) {
     this._config = { ...defaultCacheConfig, ...(config ?? {}) };
-    this._cacheService.startBackgroundRefresh(this._config.refreshInterval);
   }
 
   public request(request: Request): Request | Response | Promise<Request | Response> {
+    this._cacheService.startBackgroundRefresh(this._config.refreshInterval);
     if (request.method !== 'GET') return request;
     const cacheItem = this._cacheService.get<Response & Record<string, boolean>>(this.key(request));
     return this.mark(cacheItem) ?? request;
@@ -48,11 +48,15 @@ export class CacheInterceptor implements Interceptor {
       ...this._config
     }, request);
 
-    if(this._config?.refreshStaleImmediate && this._config.staleTime !== undefined && this._config.staleTime > 0) {
-      this._cacheService.setStaleTimer(key, this._config.staleTime, request);
+    if(this._config?.refreshStaleImmediate && this._config.staleTime! > 0) {
+      this._cacheService.setStaleTimer(key, this._config.staleTime!, request);
     }
 
     return response;
+  }
+
+  public dispose(): void {
+    this._cacheService.stopBackgroundRefresh();
   }
 
   private key(request: Request): string {

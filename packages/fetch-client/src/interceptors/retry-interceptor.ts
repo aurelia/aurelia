@@ -1,15 +1,16 @@
+import { IPlatform, resolve } from '@aurelia/kernel';
 import { HttpClient } from '../http-client';
 import { Interceptor, RetryableRequest, RetryConfiguration } from '../interfaces';
 
 /**
  * The strategy to use when retrying requests.
  */
-export const RetryStrategy = {
+export const RetryStrategy = Object.freeze({
   fixed: 0,
   incremental: 1,
   exponential: 2,
   random: 3
-} as const;
+});
 
 const defaultRetryConfig: RetryConfiguration = {
   maxRetries: 3,
@@ -21,6 +22,8 @@ const defaultRetryConfig: RetryConfiguration = {
  * Interceptor that retries requests on error, based on a given RetryConfiguration.
  */
 export class RetryInterceptor implements Interceptor {
+  /** @internal */
+  private readonly p = resolve(IPlatform);
   public retryConfig: RetryConfiguration;
 
   /**
@@ -61,7 +64,7 @@ export class RetryInterceptor implements Interceptor {
    */
   public response(response: Response, request: RetryableRequest): Response {
     // retry was successful, so clean up after ourselves
-    Reflect.deleteProperty(request, 'retryConfig');
+    delete request.retryConfig;
     return response;
   }
 
@@ -79,13 +82,13 @@ export class RetryInterceptor implements Interceptor {
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
-        const result = retryConfig.doRetry !== undefined ? retryConfig.doRetry(error, request) : true;
+        const result = retryConfig.doRetry != null ? retryConfig.doRetry(error, request) : true;
 
         return Promise.resolve(result).then(doRetry => {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
-            return new Promise(resolve => setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            return new Promise(resolve => this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {
@@ -94,18 +97,18 @@ export class RetryInterceptor implements Interceptor {
                 return newRequest;
               })
               .then(newRequest => {
-                const retryableRequest: RetryableRequest = {...newRequest, retryConfig};
+                const retryableRequest: RetryableRequest = {...newRequest, retryConfig };
                 return httpClient.fetch(retryableRequest);
               });
           }
 
           // no more retries, so clean up
-          Reflect.deleteProperty(request, 'retryConfig');
+          delete request.retryConfig;
           throw error;
         });
       }
       // no more retries, so clean up
-      Reflect.deleteProperty(request, 'retryConfig');
+      delete request.retryConfig;
       throw error;
     });
   }

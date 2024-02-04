@@ -1,7 +1,6 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
 import { CacheItem } from './cach-service';
 import { IStorage } from './storage';
-import { CacheInterceptor } from './cache-interceptor';
 
 export class BrowserIndexDBStorage implements IStorage {
   public readonly cache = resolve(IPlatform).globalThis.indexedDB;

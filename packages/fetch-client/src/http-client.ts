@@ -1,7 +1,7 @@
-import { DI, IContainer, IIndexable, resolve } from '@aurelia/kernel';
+import { DI, IContainer, IIndexable, Registration, resolve } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { Interceptor, ValidInterceptorMethodName } from './interfaces';
-import { RetryInterceptor } from './interceptors';
+import { CacheInterceptor, RetryInterceptor } from './interceptors';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
@@ -68,6 +68,12 @@ export class HttpClient {
   /** @internal */
   private readonly _fetchFn = resolve(IFetchFn);
 
+  public constructor() {
+    this._container.register(
+      Registration.instance(HttpClient, this)
+    );
+  }
+
   /**
    * Configure this client with default settings to be used by all requests.
    *
@@ -77,7 +83,6 @@ export class HttpClient {
    * @chainable
    */
   public configure(config: RequestInit | ((config: HttpClientConfiguration) => HttpClientConfiguration | void) | HttpClientConfiguration): HttpClient {
-
     let normalizedConfig: HttpClientConfiguration;
 
     if (typeof config === 'object') {
@@ -121,6 +126,19 @@ export class HttpClient {
 
       if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
         throw new Error('The retry interceptor must be the last interceptor defined.');
+      }
+
+      const cacheInterceptorIndex = interceptors.findIndex(x => x instanceof CacheInterceptor);
+      if (cacheInterceptorIndex >= 0) {
+        if (retryInterceptorIndex > 0) {
+          if (retryInterceptorIndex < cacheInterceptorIndex) {
+            throw new Error('The cache interceptor must be defined before the retry interceptor.');
+          }
+        } else {
+          if (cacheInterceptorIndex !== interceptors.length - 1) {
+            throw new Error('The cache interceptor is only allowed as the last interceptor or second last before the retry interceptor');
+          }
+        }
       }
     }
 
@@ -300,6 +318,15 @@ export class HttpClient {
     return this._callFetch(input, body, init, 'DELETE');
   }
 
+  /**
+   * Dispose and cleanup used resources of this client.
+   */
+  public dispose() {
+    this._interceptors.forEach(i => i.dispose?.());
+    this._interceptors.length = 0;
+    this._dispatcher = null;
+  }
+
   /** @internal */
   private _trackRequestStart(): void {
     this.isRequesting = !!(++this.activeRequestCount);
@@ -420,7 +447,7 @@ const hasOwnProperty = (obj: object, v: PropertyKey) => Object.prototype.hasOwnP
 /**
  * A lookup containing events used by HttpClient.
  */
-export const HttpClientEvent = {
+export const HttpClientEvent = Object.freeze({
   /**
    * Event to be triggered when a request is sent.
    */
@@ -429,4 +456,4 @@ export const HttpClientEvent = {
    * Event to be triggered when a request is completed.
    */
   drained: 'aurelia-fetch-client-requests-drained'
-};
+});

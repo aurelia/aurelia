@@ -1,7 +1,6 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
 import { BrowserStorage } from './storage-browser';
 
-
 /**
  * A simple browser local storage based storage implementation for cache interceptor
  */

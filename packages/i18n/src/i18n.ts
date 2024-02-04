@@ -94,6 +94,10 @@ export interface I18N {
    * Queue a subscriber to be invoked for when the locale of a I18N service changes
    */
   subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
+  /**
+   * Remove a subscriber from the list of subscribers to be invoked for when the locale of a I18N service changes
+   */
+  unsubscribeLocaleChange(subscriber: ILocalChangeSubscriber): void;
 }
 export const I18N = /*@__PURE__*/DI.createInterface<I18N>('I18N');
 
@@ -246,6 +250,10 @@ export class I18nService implements I18N {
 
   public subscribeLocaleChange(subscriber: ILocalChangeSubscriber): void {
     this._localeSubscribers.add(subscriber);
+  }
+
+  public unsubscribeLocaleChange(subscriber: ILocalChangeSubscriber): void {
+    this._localeSubscribers.delete(subscriber);
   }
 
   private now() {

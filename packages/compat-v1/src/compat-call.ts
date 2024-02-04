@@ -1,7 +1,7 @@
 import { camelCase, IIndexable, type IContainer, type IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, ExpressionType, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
-import { ensureExpression } from './utilities';
+import { astBind, astEvaluate, astUnbind, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
+import { bindingCommand, BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { ensureExpression, etIsFunction } from './utilities';
 
 const registeredSymbol = Symbol('.call');
 
@@ -33,14 +33,14 @@ export class CallBindingInstruction {
 
 @bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.None { return CommandType.None; }
+  public get type(): 'None' { return 'None'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.name;
     return new CallBindingInstruction(
-      exprParser.parse(info.attr.rawValue, (ExpressionType.IsProperty | ExpressionType.IsFunction) as ExpressionType) as IsBindingBehavior,
+      exprParser.parse(info.attr.rawValue, etIsFunction),
       target
     );
   }
@@ -58,7 +58,7 @@ export class CallBindingRenderer implements IRenderer {
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty | ExpressionType.IsFunction);
+    const expr = ensureExpression(exprParser, instruction.from, etIsFunction);
     renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
 }

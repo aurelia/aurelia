@@ -3,6 +3,7 @@ export {
 } from './platform';
 
 export {
+  createResolver,
   all,
   factory,
   type IAllResolver,
@@ -61,7 +62,7 @@ export {
 export {
   LogLevel,
   type IConsoleLike,
-  ColorOptions,
+  type ColorOptions,
   ILogConfig,
   type ILogEvent,
   ILogEventFactory,

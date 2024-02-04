@@ -1,13 +1,13 @@
 import {
   createIndexMap,
-  AccessorType,
+  type AccessorType,
   type ISubscriberCollection,
   type ICollectionSubscriberCollection,
   type IObserver,
-  type CollectionKind,
   type ICollectionObserver,
   type IndexMap,
   type ISubscriber,
+  atObserver,
 } from '../observation';
 import {
   CollectionLengthObserver,
@@ -377,10 +377,10 @@ export function disableArrayObservation(): void {
   }
 }
 
-export interface ArrayObserver extends ICollectionObserver<CollectionKind.array>, ICollectionSubscriberCollection {}
+export interface ArrayObserver extends ICollectionObserver<'array'>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = atObserver;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
   private lenObs?: CollectionLengthObserver;
@@ -428,7 +428,7 @@ export class ArrayObserver {
 }
 
 export interface IArrayIndexObserver extends IObserver {
-  owner: ICollectionObserver<CollectionKind.array>;
+  owner: ICollectionObserver<'array'>;
 }
 
 export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}

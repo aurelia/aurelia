@@ -1,4 +1,4 @@
-import { DI, IContainer, IServiceLocator } from '@aurelia/kernel';
+import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   astEvaluate,
@@ -58,21 +58,12 @@ const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidatio
 
 @bindingBehavior('validate')
 export class ValidateBindingBehavior implements BindingBehaviorInstance {
-  protected static inject = [IPlatform, IObserverLocator];
 
   /** @internal */
-  private readonly _platform: IPlatform;
+  private readonly _platform = resolve(IPlatform);
 
   /** @internal */
-  private readonly _observerLocator: IObserverLocator;
-
-  public constructor(
-    platform: IPlatform,
-    observerLocator: IObserverLocator,
-  ) {
-    this._platform = platform;
-    this._observerLocator = observerLocator;
-  }
+  private readonly _observerLocator = resolve(IObserverLocator);
 
   public bind(scope: Scope, binding: IBinding) {
     if (!(binding instanceof PropertyBinding)) {
@@ -115,8 +106,6 @@ interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
  * Binding behavior. Indicates the bound property should be validated.
  */
 class ValidatitionConnector implements ValidationResultsSubscriber {
-  /** @internal */
-  protected static inject = [IPlatform, IObserverLocator, IDefaultTrigger];
   private readonly propertyBinding: BindingWithBehavior;
   private target!: HTMLElement;
   private trigger!: ValidationTrigger;

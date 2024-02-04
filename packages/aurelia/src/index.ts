@@ -89,8 +89,7 @@ export {
   Task,
   TaskAbortError,
   TaskQueue,
-  TaskQueuePriority,
-  TaskStatus
+  type TaskStatus
 } from '@aurelia/platform';
 
 export {
@@ -155,7 +154,7 @@ export {
   // WritableKeys,
 
   // IConsoleLike,
-  ColorOptions,
+  type ColorOptions,
   // ILogConfig,
   // ILogEvent,
   // ILogEventFactory,
@@ -207,7 +206,7 @@ export {
 } from '@aurelia/kernel';
 
 export {
-  CollectionKind,
+  type CollectionKind,
   batch,
   // CallFunctionExpression,
   // connects,
@@ -778,7 +777,6 @@ export {
   // IAttributeBindingInstruction,
   // ISetAttributeInstruction,
   // isInstruction,
-  // IStylePropertyBindingInstruction,
 
   // NodeSequenceFactory,
   // FragmentNodeSequence,
@@ -804,6 +802,7 @@ export {
   // ShadowDOMRegistry,
   // IShadowDOMStyleFactory,
   shadowCSS,
+  processContent,
 
   // AdoptedStyleSheetsStyles,
   // StyleElementStyles,
@@ -847,4 +846,11 @@ export {
   type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
+
+  watch,
+
+  IKeyMapping,
+  IModifiedEventHandlerCreator,
+  IEventModifier,
+  type IModifiedEventHandler,
 } from '@aurelia/runtime-html';

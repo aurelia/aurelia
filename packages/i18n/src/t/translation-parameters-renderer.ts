@@ -1,14 +1,11 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
-  ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  BindingMode,
-  CommandType,
   IHydratableController,
   IRenderer,
   renderer,
@@ -21,8 +18,10 @@ import {
 } from '@aurelia/runtime-html';
 
 import type {
+  BindingMode,
   BindingCommandInstance,
 } from '@aurelia/runtime-html';
+import { bmToView, ctNone, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -37,7 +36,7 @@ export class TranslationParametersAttributePattern {
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
-  public mode: BindingMode.toView = BindingMode.toView;
+  public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
     public from: IsBindingBehavior,
@@ -47,7 +46,7 @@ export class TranslationParametersBindingInstruction {
 
 @bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: CommandType.None = CommandType.None;
+  public readonly type: 'None' = ctNone;
   public get name() { return attribute; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationParametersBindingInstruction {
@@ -61,7 +60,7 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     } else {
       target = info.bindable.name;
     }
-    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, ExpressionType.IsProperty), target);
+    return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, etIsProperty), target);
   }
 }
 

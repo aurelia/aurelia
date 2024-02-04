@@ -1,6 +1,6 @@
-import { camelCase } from '@aurelia/kernel';
+import { camelCase, resolve } from '@aurelia/kernel';
 import {
-  ExpressionType,
+  type ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
@@ -9,8 +9,7 @@ import {
   attributePattern,
   AttrSyntax,
   bindingCommand,
-  CommandType,
-  DefinitionType,
+  type CommandType,
   IAttrMapper,
   IHydratableController,
   IPlatform,
@@ -40,7 +39,7 @@ export class DispatchAttributePattern {
 
 @bindingCommand('state')
 export class StateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return CommandType.None; }
+  public get type(): CommandType { return 'None'; }
   public get name(): string { return 'state'; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): IInstruction {
@@ -55,7 +54,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === DefinitionType.Element) {
+      if (value === '' && info.def.type === 'Element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -66,7 +65,7 @@ export class StateBindingCommand implements BindingCommandInstance {
 
 @bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return CommandType.IgnoreAttr; }
+  public get type(): CommandType { return 'IgnoreAttr'; }
   public get name(): string { return 'dispatch'; }
 
   public build(info: ICommandBuildInfo): IInstruction {
@@ -93,12 +92,9 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sb';
 
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -113,7 +109,7 @@ export class StateBindingInstructionRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
+      ensureExpression(exprParser, instruction.from, 'IsFunction'),
       target,
       instruction.to,
       this._stateContainer,
@@ -123,12 +119,8 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sd';
-
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -137,7 +129,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.ast, ExpressionType.IsProperty);
+    const expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
     renderingCtrl.addBinding(new StateDispatchBinding(
       renderingCtrl.container,
       expr,

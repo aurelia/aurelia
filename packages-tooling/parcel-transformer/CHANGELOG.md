@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.10"></a>
+# 2.0.0-beta.10 (2024-01-26)
+
+**Note:** Version bump only for package @aurelia/parcel-transformer
+
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 

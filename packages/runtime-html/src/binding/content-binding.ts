@@ -6,8 +6,8 @@ import {
   astUnbind,
   connectable
 } from '@aurelia/runtime';
-import { State } from '../templating/controller';
-import { BindingMode } from './interfaces-bindings';
+import { activating } from '../templating/controller';
+import { toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
@@ -16,7 +16,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
 import { isArray, safeString } from '../utilities';
-import type { IBindingController } from './interfaces-bindings';
+import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator } from './binding-utils';
 
 const queueTaskOptions: QueueTaskOptions = {
@@ -35,7 +35,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
-  public readonly mode: BindingMode = BindingMode.toView;
+  public readonly mode: BindingMode = toView;
 
   /** @internal */
   public _scope?: Scope;
@@ -110,7 +110,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       this._scope!,
       this,
       // should observe?
-      (this.mode & BindingMode.toView) > 0 ? this : null
+      (this.mode & toView) > 0 ? this : null
     );
     this.obs.clear();
     if (newValue === this._value) {
@@ -121,7 +121,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       this._task = null;
       return;
     }
-    const shouldQueueFlush = this._controller.state !== State.activating;
+    const shouldQueueFlush = this._controller.state !== activating;
     if (shouldQueueFlush) {
       this._queueUpdate(newValue);
     } else {
@@ -139,13 +139,13 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       this.ast,
       this._scope!,
       this,
-      (this.mode & BindingMode.toView) > 0 ? this : null
+      (this.mode & toView) > 0 ? this : null
     );
     this.obs.clear();
     if (isArray(v)) {
       this.observeCollection(v);
     }
-    const shouldQueueFlush = this._controller.state !== State.activating;
+    const shouldQueueFlush = this._controller.state !== activating;
     if (shouldQueueFlush) {
       this._queueUpdate(v);
     } else {
@@ -169,7 +169,7 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
       this.ast,
       this._scope,
       this,
-      (this.mode & BindingMode.toView) > 0 ? this : null
+      (this.mode & toView) > 0 ? this : null
     );
     if (isArray(v)) {
       this.observeCollection(v);

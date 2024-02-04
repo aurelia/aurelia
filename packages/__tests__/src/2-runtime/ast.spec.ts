@@ -20,7 +20,6 @@ import {
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
-  ExpressionKind,
   IConnectableBinding,
   // IsBinary,
   IsBindingBehavior,
@@ -44,6 +43,7 @@ import {
   astEvaluate,
   astAssign,
   astBind,
+  AccessBoundaryExpression,
 } from '@aurelia/runtime';
 
 const $false = PrimitiveLiteralExpression.$false;
@@ -56,6 +56,7 @@ const $obj = ObjectLiteralExpression.$empty;
 const $tpl = TemplateExpression.$empty;
 const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
+const boundary = new AccessBoundaryExpression();
 
 const dummyLocator = { get: () => null } as unknown as IServiceLocator & IAstEvaluator;
 const dummyLocatorThatReturnsNull = {
@@ -110,7 +111,11 @@ describe('2-runtime/ast.spec.ts', function () {
       [`$parent`, $parent],
       [`$parent.$parent`, new AccessThisExpression(2)]
     ];
+    const AccessBoundaryList: [string, AccessBoundaryExpression][] = [
+      [`this`, boundary],
+    ];
     const AccessScopeList: [string, AccessScopeExpression][] = [
+      ...AccessBoundaryList,
       ...AccessThisList.map(([input, expr]) => [`${input}.a`, new AccessScopeExpression('a', expr.ancestor)] as [string, any]),
       [`$this.$parent`, new AccessScopeExpression('$parent')],
       [`$host.$parent`, new AccessScopeExpression('$parent', undefined)],
@@ -899,6 +904,27 @@ describe('2-runtime/ast.spec.ts', function () {
       assert.deepStrictEqual(binding.calls[0], ['observe', scope.parent.bindingContext, 'foo'], 'binding.calls[0]');
     });
 
+  });
+
+  describe('AccessBoundaryExpression', function () {
+
+    it('evaluates scope boundary', function () {
+      const a = { a: 'a' };
+      const b = { b: 'b' };
+      const c = { c: 'c' };
+      const d = { d: 'd' };
+      let scope: Scope = Scope.create(a, null, true);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), a, `astEvaluate(boundary, scope, null)`);
+
+      scope = Scope.fromParent(Scope.create(b, null, true), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), b, `astEvaluate(boundary, scope, null)`);
+
+      scope = Scope.fromParent(Scope.fromParent(Scope.create(c, null, true), b), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), c, `astEvaluate(boundary, scope, null)`);
+
+      scope = Scope.fromParent(Scope.fromParent(Scope.fromParent(Scope.create(d, null, true), c), b), a);
+      assert.strictEqual(astEvaluate(boundary, scope, null, null), d, `astEvaluate(boundary, scope, null)`);
+    });
   });
 
   describe('AccessThisExpression', function () {
@@ -1796,7 +1822,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{a} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'a'),
@@ -1813,7 +1839,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{a, b} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'a'),
@@ -1835,7 +1861,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{...rest} = {a: 1, b:2}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentRestExpression(
               new AccessMemberExpression($this, 'rest'),
@@ -1851,7 +1877,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[a] = [1, 2]', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'a'),
@@ -1868,7 +1894,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[a, b] = [1, 2]', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'a'),
@@ -1890,7 +1916,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('[...rest] = [1, 2]', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentRestExpression(
               new AccessMemberExpression($this, 'rest'),
@@ -1906,7 +1932,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{prop1, prop2:{prop21}} = {prop1: "foo", prop2: {prop21: 123}}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'prop1'),
@@ -1914,7 +1940,7 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ObjectDestructuring,
+              'ObjectDestructuring',
               [
                 new DestructuringAssignmentSingleExpression(
                   new AccessMemberExpression($this, 'prop21'),
@@ -1935,7 +1961,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{prop1, prop2:{prop21:{prop212:newProp212}, prop22}} = {prop1: "foo", prop2: {prop21: {prop211: 123, prop212: 456}, prop22: "bar" }}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'prop1'),
@@ -1943,10 +1969,10 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ObjectDestructuring,
+              'ObjectDestructuring',
               [
                 new DestructuringAssignmentExpression(
-                  ExpressionKind.ObjectDestructuring,
+                  'ObjectDestructuring',
                   [
                     new DestructuringAssignmentSingleExpression(
                       new AccessMemberExpression($this, 'newProp212'),
@@ -1976,7 +2002,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{prop1,coll:[,{p2:item2p2}]} = {prop1:"foo",coll:[{p1:1,p2:2},{p1:3,p2:4}]}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'prop1'),
@@ -1984,10 +2010,10 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ArrayDestructuring,
+              'ArrayDestructuring',
               [
                 new DestructuringAssignmentExpression(
-                  ExpressionKind.ObjectDestructuring,
+                  'ObjectDestructuring',
                   [
                     new DestructuringAssignmentSingleExpression(
                       new AccessMemberExpression($this, 'item2p2'),
@@ -2012,7 +2038,7 @@ describe('2-runtime/ast.spec.ts', function () {
       it('{prop1,coll:[,{p:[item21]}]} = {prop1:"foo",coll:[{p:[1,2]},{p:[3,4]}]}', function () {
         const bc: Record<string, any> = {};
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'prop1'),
@@ -2020,13 +2046,13 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ArrayDestructuring,
+              'ArrayDestructuring',
               [
                 new DestructuringAssignmentExpression(
-                  ExpressionKind.ObjectDestructuring,
+                  'ObjectDestructuring',
                   [
                     new DestructuringAssignmentExpression(
-                      ExpressionKind.ArrayDestructuring,
+                      'ArrayDestructuring',
                       [
                         new DestructuringAssignmentSingleExpression(
                           new AccessMemberExpression($this, 'item21'),
@@ -2056,7 +2082,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
 
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ArrayDestructuring,
+          'ArrayDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'k'),
@@ -2064,7 +2090,7 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ObjectDestructuring,
+              'ObjectDestructuring',
               [
                 new DestructuringAssignmentSingleExpression(
                   new AccessMemberExpression($this, 'prop1'),
@@ -2072,7 +2098,7 @@ describe('2-runtime/ast.spec.ts', function () {
                   void 0
                 ),
                 new DestructuringAssignmentExpression(
-                  ExpressionKind.ObjectDestructuring,
+                  'ObjectDestructuring',
                   [
                     new DestructuringAssignmentSingleExpression(
                       new AccessMemberExpression($this, 'prop21'),
@@ -2098,7 +2124,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
 
         astAssign(new DestructuringAssignmentExpression(
-          ExpressionKind.ArrayDestructuring,
+          'ArrayDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'k'),
@@ -2106,7 +2132,7 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ArrayDestructuring,
+              'ArrayDestructuring',
               [
                 new DestructuringAssignmentSingleExpression(
                   new AccessMemberExpression($this, 'item2'),
@@ -2128,7 +2154,7 @@ describe('2-runtime/ast.spec.ts', function () {
         const bc: Record<string, any> = {};
 
         const expr = new DestructuringAssignmentExpression(
-          ExpressionKind.ObjectDestructuring,
+          'ObjectDestructuring',
           [
             new DestructuringAssignmentSingleExpression(
               new AccessMemberExpression($this, 'a'),
@@ -2136,7 +2162,7 @@ describe('2-runtime/ast.spec.ts', function () {
               void 0
             ),
             new DestructuringAssignmentExpression(
-              ExpressionKind.ObjectDestructuring,
+              'ObjectDestructuring',
               [
                 new DestructuringAssignmentSingleExpression(
                   new AccessMemberExpression($this, 'c'),

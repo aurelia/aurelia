@@ -29,12 +29,19 @@ module.exports = function (env, { mode }) {
       port: process.env.APP_PORT ?? 9000,
       historyApiFallback: true,
       open: !process.env.CI,
-      
     },
     stats: 'errors-only',
     module: {
       rules: [
-        { test: /\.ts$/i, use: ['ts-loader', '@aurelia/webpack-loader'], exclude: /node_modules/ },
+        { test: /\.ts$/i, use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              transpileOnly: true
+            }
+          },
+          '@aurelia/webpack-loader'
+        ], exclude: /node_modules/ },
         { test: /\.html$/i, use: '@aurelia/webpack-loader', exclude: /node_modules/ }
       ]
     },

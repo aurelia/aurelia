@@ -1,5 +1,5 @@
 import { DI, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import { isArray } from './utilities';
+import { isArray, objectFreeze } from './utilities';
 
 import type { Scope } from './observation/scope';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
@@ -105,13 +105,7 @@ export interface ICollectionSubscriberCollection extends ICollectionSubscribable
  */
 export type Collection = unknown[] | Set<unknown> | Map<unknown, unknown>;
 
-export const enum CollectionKind {
-  indexed = 0b1000,
-  keyed   = 0b0100,
-  array   = 0b1001,
-  map     = 0b0110,
-  set     = 0b0111,
-}
+export type CollectionKind = 'indexed' | 'keyed' | 'array' | 'map' | 'set';
 
 export type LengthPropertyName<T> =
   T extends unknown[] ? 'length' :
@@ -119,34 +113,30 @@ export type LengthPropertyName<T> =
       T extends Map<unknown, unknown> ? 'size' :
         never;
 
-export type CollectionTypeToKind<T> =
-  T extends unknown[] ? CollectionKind.array | CollectionKind.indexed :
-    T extends Set<unknown> ? CollectionKind.set | CollectionKind.keyed :
-      T extends Map<unknown, unknown> ? CollectionKind.map | CollectionKind.keyed :
-        never;
-
 export type CollectionKindToType<T> =
-  T extends CollectionKind.array ? unknown[] :
-    T extends CollectionKind.indexed ? unknown[] :
-      T extends CollectionKind.map ? Map<unknown, unknown> :
-        T extends CollectionKind.set ? Set<unknown> :
-          T extends CollectionKind.keyed ? Set<unknown> | Map<unknown, unknown> :
+  T extends 'array' ? unknown[] :
+    T extends 'indexed' ? unknown[] :
+      T extends 'map' ? Map<unknown, unknown> :
+        T extends 'set' ? Set<unknown> :
+          T extends 'keyed' ? Set<unknown> | Map<unknown, unknown> :
             never;
 
 export type ObservedCollectionKindToType<T> =
-  T extends CollectionKind.array ? unknown[] :
-    T extends CollectionKind.indexed ? unknown[] :
-      T extends CollectionKind.map ? Map<unknown, unknown> :
-        T extends CollectionKind.set ? Set<unknown> :
-          T extends CollectionKind.keyed ? Map<unknown, unknown> | Set<unknown> :
+  T extends 'array' ? unknown[] :
+    T extends 'indexed' ? unknown[] :
+      T extends 'map' ? Map<unknown, unknown> :
+        T extends 'set' ? Set<unknown> :
+          T extends 'keyed' ? Map<unknown, unknown> | Set<unknown> :
             never;
 
-export const enum AccessorType {
-  None          = 0b0_000_000,
-  Observer      = 0b0_000_001,
-
-  Node          = 0b0_000_010,
-
+/** @internal */ export const atNone     = 0b0_000_000;
+/** @internal */ export const atObserver = 0b0_000_001;
+/** @internal */ export const atNode     = 0b0_000_010;
+/** @internal */ export const atLayout   = 0b0_000_100;
+export const AccessorType = /*@__PURE__*/objectFreeze({
+  None      : atNone,
+  Observer  : atObserver,
+  Node      : atNode,
   // misc characteristic of accessors/observers when update
   //
   // by default, everything is synchronous
@@ -155,9 +145,9 @@ export const enum AccessorType {
   // queue it instead
   // todo: https://gist.github.com/paulirish/5d52fb081b3570c81e3a
   // todo: https://csstriggers.com/
-  Layout        = 0b0_000_100,
-}
-
+  Layout    : atLayout,
+} as const);
+export type AccessorType = typeof AccessorType[keyof typeof AccessorType];
 /**
  * Basic interface to normalize getting/setting a value of any property on any object
  */
@@ -260,7 +250,7 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   ICollectionSubscribable {
   type: AccessorType;
   collection: ObservedCollectionKindToType<T>;
-  getLengthObserver(): T extends CollectionKind.array ? CollectionLengthObserver : CollectionSizeObserver;
+  getLengthObserver(): T extends 'array' ? CollectionLengthObserver : CollectionSizeObserver;
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;

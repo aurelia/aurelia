@@ -1,5 +1,5 @@
 import { IBinding, INodeObserverLocator, IObserverLocator, type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { fromView } from '../../binding/interfaces-bindings';
 import { NodeObserverLocator } from '../../observation/observer-locator';
 import { bindingBehavior } from '../binding-behavior';
 
@@ -19,7 +19,7 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
       throw createMappedError(ErrorNames.update_trigger_behavior_no_triggers);
     }
 
-    if (!(binding instanceof PropertyBinding) || !(binding.mode & BindingMode.fromView)) {
+    if (!(binding instanceof PropertyBinding) || !(binding.mode & fromView)) {
       throw createMappedError(ErrorNames.update_trigger_invalid_usage);
     }
 

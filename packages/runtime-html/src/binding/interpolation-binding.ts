@@ -1,6 +1,5 @@
 import {
   AccessorOrObserver,
-  AccessorType,
   astBind,
   astEvaluate,
   astUnbind,
@@ -8,9 +7,9 @@ import {
   IAstEvaluator,
   IConnectableBinding
 } from '@aurelia/runtime';
-import { State } from '../templating/controller';
+import { activating } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { BindingMode } from './interfaces-bindings';
+import { toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
@@ -20,8 +19,8 @@ import type {
   IObserverLocator,
   IsExpression, Scope
 } from '@aurelia/runtime';
-import { isArray } from '../utilities';
-import type { IBindingController } from './interfaces-bindings';
+import { atLayout, isArray } from '../utilities';
+import type { BindingMode, IBindingController } from './interfaces-bindings';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
@@ -113,7 +112,7 @@ export class InterpolationBinding implements IBinding {
     // todo:
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== State.activating && (targetObserver.type & AccessorType.Layout) > 0;
+    const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
     let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
@@ -175,7 +174,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
-  public readonly mode: BindingMode = BindingMode.toView;
+  public readonly mode: BindingMode = toView;
   public _scope?: Scope;
   public task: ITask | null = null;
   public isBound: boolean = false;
@@ -222,7 +221,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
       this._scope!,
       this,
       // should observe?
-      (this.mode & BindingMode.toView) > 0 ? this : null
+      (this.mode & toView) > 0 ? this : null
     );
     this.obs.clear();
     // todo(!=): maybe should do strict comparison?
@@ -256,7 +255,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
       this.ast,
       this._scope,
       this,
-      (this.mode & BindingMode.toView) > 0 ?  this : null,
+      (this.mode & toView) > 0 ?  this : null,
     );
     if (isArray(this._value)) {
       this.observeCollection(this._value);

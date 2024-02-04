@@ -4,7 +4,6 @@ import { AppTask, IPlatform } from '@aurelia/runtime-html';
 import {
   DialogActionKey,
   DialogCloseResult,
-  DialogDeactivationStatuses,
   DialogOpenResult,
   IDialogService,
   IDialogController,
@@ -127,7 +126,7 @@ export class DialogService implements IDialogService {
             return controller.cancel().then(() => null);
           }
           return controller.cancel().then(result =>
-            result.status === DialogDeactivationStatuses.Cancel
+            result.status === 'cancel'
               ? null
               : controller
           );

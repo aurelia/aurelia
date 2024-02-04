@@ -59,8 +59,8 @@ export function defineAstMethods() {
     def(ast, 'unbind', function (this: typeof ast, ...args: unknown[]) {
       return (astUnbind as any)(this, ...args);
     });
-    console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with $kind Custom.'
-      + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.'
-    );
   });
+  console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".'
+    + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.'
+  );
 }

@@ -133,6 +133,96 @@ describe('3-runtime-html/template-compiler.ce_and_surrogate.spec.ts', function (
       }
     },
     {
+      title: 'Basic surrogate with text nodes and template',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: 'before <template>ignored</template> after'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'before after');
+      }
+    },
+    {
+      title: 'Basic surrogate with before text nodes and template',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: 'before <template>ignored</template>'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'before');
+      }
+    },
+    {
+      title: 'Basic surrogate with after text nodes and template',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: '<template>ignored</template> after'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'after');
+      }
+    },
+    {
+      title: 'Basic surrogate with text nodes and template',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: 'before <div>foo</div> after'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'before foo after');
+      }
+    },
+    {
+      title: 'Basic surrogate with before text nodes and template',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: 'before <div>foo</div>'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'before foo');
+      }
+    },
+    {
+      title: 'Basic surrogate with after text nodes and element',
+      template: '<foo>',
+      resources: [
+        CustomElement.define(
+          {
+            name: 'foo',
+            template: '<div>foo</div> after'
+          }
+        )
+      ],
+      assertFn: (ctx, host, _comp) => {
+        assert.html.textContent(host, 'foo after');
+      }
+    },
+    {
       title: 'Basic surrogate [style] merge scenario',
       template: '<foo style="height: 100px;">',
       resources: [

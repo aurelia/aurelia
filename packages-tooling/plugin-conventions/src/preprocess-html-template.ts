@@ -1,9 +1,10 @@
 import * as path from 'path';
-import modifyCode, { type ModifyCodeResult } from 'modify-code';
+import { type ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IPreprocessOptions } from './options';
 import { stripMetaData } from './strip-meta-data';
 import { resourceName } from './resource-name';
 import { fileExists } from './file-exists';
+import { modifyCode } from './modify-code';
 
 // stringModuleWrap is to deal with pure css text module import in shadowDOM mode.
 // For webpack:
@@ -44,7 +45,7 @@ export function preprocessHtmlTemplate(
   let registrationImported = false;
 
   if (shadowMode === null && hasSlot) {
-    throw new Error(`<slot> cannot be used in ${unit.path}. <slot> is only available when using ShadowDOM. Please turn on ShadowDOM, or use <au-slot> in non-ShadowDOM mode. https://docs.aurelia.io/app-basics/components-revisited#au-slot`);
+    // todo: what here? need to combine information with custom element before warning/throwing
   }
 
   deps.forEach((d, i) => {

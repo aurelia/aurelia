@@ -1,9 +1,11 @@
-import { DI, type MaybePromise, type IRegistry, type IDisposable } from '@aurelia/kernel';
+import { type MaybePromise, type IRegistry, type IDisposable } from '@aurelia/kernel';
+import { IDevToolsOptions } from './interfaces-devtools';
+import { createInterface } from './state-utilities';
 
-export const IActionHandler = /*@__PURE__*/DI.createInterface<IActionHandler>('IActionHandler');
+export const IActionHandler = /*@__PURE__*/createInterface<IActionHandler>('IActionHandler');
 export type IActionHandler<T = any> = (state: T, action: unknown) => MaybePromise<T>;
 
-export const IStore = /*@__PURE__*/DI.createInterface<IStore<object>>('IStore');
+export const IStore = /*@__PURE__*/createInterface<IStore<object>>('IStore');
 export interface IStore<T extends object, TAction = unknown> {
   subscribe(subscriber: IStoreSubscriber<T>): void;
   unsubscribe(subscriber: IStoreSubscriber<T>): void;
@@ -15,9 +17,13 @@ export interface IStore<T extends object, TAction = unknown> {
    * @param params - all the parameters to be called with the action
    */
   dispatch(action: TAction): void | Promise<void>;
+  /**
+   * For Devtools integration
+   */
+  connectDevTools(options?: IDevToolsOptions): void;
 }
 
-export const IState = /*@__PURE__*/DI.createInterface<object>('IState');
+export const IState = /*@__PURE__*/createInterface<object>('IState');
 
 export type IRegistrableAction = IActionHandler & IRegistry;
 

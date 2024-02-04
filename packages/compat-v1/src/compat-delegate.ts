@@ -1,7 +1,7 @@
 import { DI, IContainer, IIndexable } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, ExpressionType, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { AppTask, bindingCommand, BindingCommandInstance, CommandType, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
-import { createLookup, ensureExpression, isFunction } from './utilities';
+import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { AppTask, bindingCommand, BindingCommandInstance, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 
@@ -23,22 +23,20 @@ export const delegateSyntax = {
   }
 };
 
-const instructionType = 'dl';
-
 @bindingCommand('delegate')
 export class DelegateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType.IgnoreAttr { return CommandType.IgnoreAttr; }
+  public get type(): 'IgnoreAttr' { return 'IgnoreAttr'; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     return new DelegateBindingInstruction(
-      exprParser.parse(info.attr.rawValue, ExpressionType.IsFunction),
+      exprParser.parse(info.attr.rawValue, etIsFunction),
       info.attr.target,
       false
     );
   }
 }
 
-@renderer(instructionType)
+@renderer('dl')
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
   /** @internal */ protected static get inject() { return [IEventDelegator]; }
@@ -60,7 +58,7 @@ export class ListenerBindingRenderer implements IRenderer {
     platform: IPlatform,
     exprParser: IExpressionParser,
   ): void {
-    const expr = ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction);
+    const expr = ensureExpression(exprParser, instruction.from, etIsFunction);
     renderingCtrl.addBinding(new DelegateListenerBinding(
       renderingCtrl.container,
       expr,

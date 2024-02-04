@@ -47,36 +47,36 @@ export const {
   defineProperties,
 } = Object;
 
-export const Object_keys = Object.keys;
-export const Object_is = Object.is;
-export const Object_freeze = Object.freeze;
-export const Object_assign = Object.assign;
-export const Object_create = Object.create;
+/** @internal */ export const Object_keys = Object.keys;
+/** @internal */ export const Object_is = Object.is;
+/** @internal */ export const Object_freeze = Object.freeze;
+/** @internal */ export const Object_assign = Object.assign;
+/** @internal */ export const Object_create = Object.create;
 
-export const Number_isNaN = Number.isNaN;
+/** @internal */ export const Number_isNaN = Number.isNaN;
 
-export const Reflect_apply = Reflect.apply;
+/** @internal */ export const Reflect_apply = Reflect.apply;
 
-export const ArrayBuffer_isView = ArrayBuffer.isView;
+/** @internal */ export const ArrayBuffer_isView = ArrayBuffer.isView;
 
-export function uncurryThis<TArgs extends any[], TRet>(func: (...args: TArgs) => TRet): (thisArg: unknown, ...args: TArgs) => TRet {
+/** @internal */ export function uncurryThis<TArgs extends any[], TRet>(func: (...args: TArgs) => TRet): (thisArg: unknown, ...args: TArgs) => TRet {
   return (thisArg: unknown, ...args: TArgs) => Reflect_apply(func, thisArg, args);
 }
 
-export const hasOwnProperty = uncurryThis(Object.prototype.hasOwnProperty);
-export const propertyIsEnumerable = uncurryThis(Object.prototype.propertyIsEnumerable);
+/** @internal */ export const hasOwnProperty = uncurryThis(Object.prototype.hasOwnProperty);
+/** @internal */ export const propertyIsEnumerable = uncurryThis(Object.prototype.propertyIsEnumerable);
 
-export const TypedArrayPrototype = getPrototypeOf(Uint8Array.prototype);
+/** @internal */ export const TypedArrayPrototype = getPrototypeOf(Uint8Array.prototype);
 
 const TypedArrayProto_toStringTag = uncurryThis(
   (getOwnPropertyDescriptor(TypedArrayPrototype, Symbol.toStringTag) as PropertyDescriptor).get as () => string
 );
 
-export const Object_toString = uncurryThis(Object.prototype.toString);
-export const RegExp_toString = uncurryThis(RegExp.prototype.toString);
-export const Date_toISOString = uncurryThis(Date.prototype.toISOString);
-export const Date_toString = uncurryThis(Date.prototype.toString);
-export const Error_toString = uncurryThis(Error.prototype.toString);
+/** @internal */ export const Object_toString = uncurryThis(Object.prototype.toString);
+/** @internal */ export const RegExp_toString = uncurryThis(RegExp.prototype.toString);
+/** @internal */ export const Date_toISOString = uncurryThis(Date.prototype.toISOString);
+/** @internal */ export const Date_toString = uncurryThis(Date.prototype.toString);
+/** @internal */ export const Error_toString = uncurryThis(Error.prototype.toString);
 
 export const Date_getTime = uncurryThis(Date.prototype.getTime);
 export const Set_values = uncurryThis(Set.prototype.values);

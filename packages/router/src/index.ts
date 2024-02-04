@@ -39,7 +39,7 @@ export {
   type RouteableComponentType,
   type IRoutingInstruction,
   type LoadInstruction,
-  ReloadBehavior,
+  type ReloadBehavior,
 } from './interfaces';
 
 export {

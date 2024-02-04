@@ -1,7 +1,7 @@
 import { ConsideredActiveCustomAttribute } from './considered-active';
 import { IEventAggregator } from '@aurelia/kernel';
 import { IRouter, RouterStartEvent } from '../router';
-import { CustomAttribute, IHydratedController } from '@aurelia/runtime-html';
+import { BindingMode, CustomAttribute, IHydratedController } from '@aurelia/runtime-html';
 import { LoadInstruction } from '../interfaces';
 import { RoutingInstruction } from '../instructions/routing-instruction';
 
@@ -82,3 +82,5 @@ export function getLoadIndicator(element: HTMLElement): HTMLElement {
   indicator ??= element;
   return indicator;
 }
+
+/** @internal */ export const bmToView = BindingMode.toView;

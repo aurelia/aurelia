@@ -77,30 +77,34 @@ export class Container implements IContainer {
     return this._parent as (IContainer | null);
   }
 
-  public constructor(
-    private readonly _parent: Container | null,
-    private readonly config: ContainerConfiguration
-  ) {
-    if (_parent === null) {
-      this.root = this;
+  /** @internal */
+  private readonly _parent: Container | null;
+  /** @internal */
+  private readonly config: ContainerConfiguration;
 
-      this._resolvers = new Map();
+  public constructor(
+    parent: Container | null,
+    config: ContainerConfiguration
+  ) {
+    this._parent = parent;
+    this.config = config;
+    this._resolvers = new Map();
+    this.res = {};
+
+    if (parent === null) {
+      this.root = this;
       this._factories = new Map<Constructable, Factory>();
 
-      this.res = {};
     } else {
-      this.root = _parent.root;
-
-      this._resolvers = new Map();
-      this._factories = _parent._factories;
-      this.res = {};
+      this.root = parent.root;
+      this._factories = parent._factories;
 
       if (config.inheritParentResources) {
         // todo: when the simplify resource system work is commenced
         //       this resource inheritance can just be a Object.create() call
         //       with parent resources as the prototype of the child resources
-        for (const key in _parent.res) {
-          this.registerResolver(key, _parent.res[key]!);
+        for (const key in parent.res) {
+          this.registerResolver(key, parent.res[key]!);
         }
       }
     }
@@ -424,6 +428,13 @@ export class Container implements IContainer {
       resolvers.delete(key);
     }
     disposableResolvers.clear();
+  }
+
+  public useResources(container: Container): void {
+    const res = container.res;
+    for (const key in res) {
+      this.registerResolver(key, res[key]!);
+    }
   }
 
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {

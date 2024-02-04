@@ -98,24 +98,13 @@ class ParserState {
   }
 }
 
-export const enum ExpressionKind {
-  Route,
-  CompositeSegment,
-  ScopedSegment,
-  SegmentGroup,
-  Segment,
-  Component,
-  Action,
-  Viewport,
-  ParameterList,
-  Parameter,
-}
+export type ExpressionKind = 'Route' | 'CompositeSegment' | 'ScopedSegment' | 'SegmentGroup' | 'Segment' | 'Component' | 'Action' | 'Viewport' | 'ParameterList' | 'Parameter';
 
 const cache = new Map<string, RouteExpression>();
 
 export type RouteExpressionOrHigher = CompositeSegmentExpressionOrHigher | RouteExpression;
 export class RouteExpression {
-  public get kind(): ExpressionKind.Route { return ExpressionKind.Route; }
+  public get kind(): 'Route' { return 'Route'; }
 
   public constructor(
     public readonly isAbsolute: boolean,
@@ -204,7 +193,7 @@ export type CompositeSegmentExpressionOrLower = RouteExpression | CompositeSegme
  * - b = `CompositeSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression | CompositeSegmentExpression`)
  */
 export class CompositeSegmentExpression {
-  public get kind(): ExpressionKind.CompositeSegment { return ExpressionKind.CompositeSegment; }
+  public get kind(): 'CompositeSegment' { return 'CompositeSegment'; }
 
   public constructor(
     public readonly siblings: readonly ScopedSegmentExpressionOrHigher[],
@@ -271,7 +260,7 @@ export type ScopedSegmentExpressionOrLower = CompositeSegmentExpressionOrLower |
  * - b = `ScopedSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression`)
  */
 export class ScopedSegmentExpression {
-  public get kind(): ExpressionKind.ScopedSegment { return ExpressionKind.ScopedSegment; }
+  public get kind(): 'ScopedSegment' { return 'ScopedSegment'; }
 
   public constructor(
     public readonly left: SegmentGroupExpressionOrHigher,
@@ -340,7 +329,7 @@ export type SegmentGroupExpressionOrLower = ScopedSegmentExpressionOrLower | Seg
  * - a = `CompositeSegmentExpressionOrHigher` (`SegmentExpression | SegmentGroupExpression | ScopedSegmentExpression | CompositeSegmentExpression`)
  */
 export class SegmentGroupExpression {
-  public get kind(): ExpressionKind.SegmentGroup { return ExpressionKind.SegmentGroup; }
+  public get kind(): 'SegmentGroup' { return 'SegmentGroup'; }
 
   public constructor(
     public readonly expression: CompositeSegmentExpressionOrHigher,
@@ -372,7 +361,7 @@ export class SegmentGroupExpression {
  * A (non-composite) segment specifying a single component and (optional) viewport / action.
  */
 export class SegmentExpression {
-  public get kind(): ExpressionKind.Segment { return ExpressionKind.Segment; }
+  public get kind(): 'Segment' { return 'Segment'; }
 
   public static get Empty(): SegmentExpression { return new SegmentExpression(ComponentExpression.Empty, ViewportExpression.Empty, true); }
 
@@ -409,7 +398,7 @@ export class SegmentExpression {
 }
 
 export class ComponentExpression {
-  public get kind(): ExpressionKind.Component { return ExpressionKind.Component; }
+  public get kind(): 'Component' { return 'Component'; }
 
   public static get Empty(): ComponentExpression { return new ComponentExpression('', ParameterListExpression.Empty); }
 
@@ -485,7 +474,7 @@ export class ComponentExpression {
 }
 
 export class ViewportExpression {
-  public get kind(): ExpressionKind.Viewport { return ExpressionKind.Viewport; }
+  public get kind(): 'Viewport' { return 'Viewport'; }
 
   public static get Empty(): ViewportExpression { return new ViewportExpression(''); }
 
@@ -516,7 +505,7 @@ export class ViewportExpression {
 }
 
 export class ParameterListExpression {
-  public get kind(): ExpressionKind.ParameterList { return ExpressionKind.ParameterList; }
+  public get kind(): 'ParameterList' { return 'ParameterList'; }
 
   public static get Empty(): ParameterListExpression { return new ParameterListExpression([]); }
 
@@ -553,7 +542,7 @@ export class ParameterListExpression {
 }
 
 export class ParameterExpression {
-  public get kind(): ExpressionKind.Parameter { return ExpressionKind.Parameter; }
+  public get kind(): 'Parameter' { return 'Parameter'; }
 
   public static get Empty(): ParameterExpression { return new ParameterExpression('', ''); }
 

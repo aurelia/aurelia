@@ -2,11 +2,10 @@ import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
-import { DefinitionType } from './resources-shared';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
-import { BindingMode } from '../binding/interfaces-bindings';
+import { type BindingMode, toView } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -20,6 +19,7 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable'
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
+import { dtAttribute } from './resources-shared';
 
 declare module '@aurelia/kernel' {
   interface IContainer {
@@ -98,7 +98,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get type(): DefinitionType.Attribute { return DefinitionType.Attribute; }
+  public get type(): 'Attribute' { return dtAttribute; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,
@@ -132,7 +132,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'name'), name),
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, BindingMode.toView),
+      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView),
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),

@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
-import { ComponentAppellation, IRouteableComponent, ReloadBehavior, RouteableComponentType, LoadInstruction } from '../interfaces';
+import { ComponentAppellation, IRouteableComponent, RouteableComponentType, LoadInstruction } from '../interfaces';
 import { IRouter } from '../router';
 import { arrayRemove } from '../utilities/utils';
 import { ViewportContent } from './viewport-content';
@@ -284,7 +284,7 @@ export class Viewport extends Endpoint {
 
     if (!content.equalComponent(nextContent) ||
       navigation.navigation.refresh || // Navigation 'refresh' performed
-      content.reloadBehavior === ReloadBehavior.refresh // ReloadBehavior 'refresh' takes precedence
+      content.reloadBehavior === 'refresh' // ReloadBehavior 'refresh' takes precedence
     ) {
       return this.transitionAction = 'swap';
     }
@@ -292,7 +292,7 @@ export class Viewport extends Endpoint {
     // If we got here, component is the same name/type
 
     // Explicitly don't allow navigation back to the same component again
-    if (content.reloadBehavior === ReloadBehavior.disallow) {
+    if (content.reloadBehavior === 'disallow') {
       nextContent.delete();
       this.contents.splice(this.contents.indexOf(nextContent), 1);
       return this.transitionAction = 'skip';
@@ -300,7 +300,7 @@ export class Viewport extends Endpoint {
 
     // Explicitly re-load same component again
     // TODO(alpha): NEED TO CHECK THIS TOWARDS activeContent REGARDING scope
-    if (content.reloadBehavior === ReloadBehavior.reload) {
+    if (content.reloadBehavior === 'reload') {
       content.reload = true;
 
       nextContent.instruction.component.set(content.componentInstance);

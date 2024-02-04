@@ -1,6 +1,5 @@
 import { emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
-  AccessorType,
   getObserverLookup,
   IDirtyChecker,
   INodeObserverLocator,
@@ -17,11 +16,11 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
+import { atLayout, atNode, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type { IIndexable, IContainer } from '@aurelia/kernel';
-import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
+import type { AccessorType, IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import { createMappedError, ErrorNames } from '../errors';
 
@@ -52,7 +51,7 @@ const nsAttributes = objectAssign(
 );
 
 const elementPropertyAccessor = new PropertyAccessor();
-elementPropertyAccessor.type = AccessorType.Node | AccessorType.Layout;
+elementPropertyAccessor.type = (atNode | atLayout) as AccessorType;
 
 export interface INodeObserverConfigBase {
   /**
@@ -107,8 +106,12 @@ export interface INodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
-  /** @internal */
-  protected static readonly inject = [IServiceLocator, IPlatform, IDirtyChecker, ISVGAnalyzer];
+  public static register(container: IContainer) {
+    container.register(
+      singletonRegistration(this, this),
+      aliasRegistration(this, INodeObserverLocator),
+    );
+  }
 
   /**
    * Indicates whether the node observer will be allowed to use dirty checking for a property it doesn't know how to observe
@@ -172,11 +175,6 @@ export class NodeObserverLocator implements INodeObserverLocator {
       SELECT: ['value'],
       TEXTAREA: ['value'],
     });
-  }
-
-  public static register(container: IContainer) {
-    aliasRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
-    singletonRegistration(INodeObserverLocator, NodeObserverLocator).register(container);
   }
 
   // deepscan-disable-next-line

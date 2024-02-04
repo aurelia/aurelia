@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.10"></a>
+# 2.0.0-beta.10 (2024-01-26)
+
+### Bug Fixes:
+
+* **au-slot:** properly handle nested projection registration (#1881) ([00e8dee](https://github.com/aurelia/aurelia/commit/00e8dee))
+* **kernel:** stack preserving error logging for console (#1884) ([030bfa1](https://github.com/aurelia/aurelia/commit/030bfa1))
+
+
+### Refactorings:
+
+* **enums:** string literal types in favour of const enums (#1870) ([e21e0c9](https://github.com/aurelia/aurelia/commit/e21e0c9))
+
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 

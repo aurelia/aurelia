@@ -1,5 +1,5 @@
-import { IContainer, IPlatform, Registration } from '@aurelia/kernel';
-import { AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber } from '../observation';
+import { IContainer, IPlatform, Registration, resolve } from '@aurelia/kernel';
+import { type AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber, atNone } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { createError, createInterface, safeString } from '../utilities';
 
@@ -48,10 +48,6 @@ export const DirtyCheckSettings = {
 };
 
 export class DirtyChecker {
-  /**
-   * @internal
-   */
-  public static inject = [IPlatform];
   public static register(c: IContainer) {
     c.register(
       Registration.singleton(this, this),
@@ -65,8 +61,8 @@ export class DirtyChecker {
   /** @internal */
   private _elapsedFrames: number = 0;
 
+  private readonly p = resolve(IPlatform);
   public constructor(
-    private readonly p: IPlatform,
   ) {
     subscriberCollection(DirtyCheckProperty);
   }
@@ -121,7 +117,7 @@ export class DirtyChecker {
 export interface DirtyCheckProperty extends IObserver, ISubscriberCollection { }
 
 export class DirtyCheckProperty implements DirtyCheckProperty {
-  public type: AccessorType = AccessorType.None;
+  public type: AccessorType = atNone;
 
   /** @internal */
   private _oldValue: unknown = void 0;

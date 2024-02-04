@@ -1,4 +1,4 @@
-import type { ISignaler, ISubscriber } from '@aurelia/runtime';
+import { AccessorType, type ISignaler, type ISubscriber } from '@aurelia/runtime';
 import type { ISVGAnalyzer } from './observation/svg-analyzer';
 
 const O = Object;
@@ -68,3 +68,18 @@ export const defineHiddenProp = <T>(obj: object, key: PropertyKey, value: T): T 
 export const addSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.addSignalListener(signal, listener);
 /** @internal */
 export const removeSignalListener = (signaler: ISignaler, signal: string, listener: ISubscriber) => signaler.removeSignalListener(signal, listener);
+
+/** ExpressionType */
+/** @internal */ export const etInterpolation = 'Interpolation' as const;
+/** @internal */ export const etIsIterator = 'IsIterator' as const;
+/** @internal */ export const etIsFunction = 'IsFunction' as const;
+/** @internal */ export const etIsProperty = 'IsProperty' as const;
+
+/** TaskStatus */
+/** @internal */ export const tsPending = 'pending' as const;
+/** @internal */ export const tsRunning = 'running' as const;
+
+/** AccessorType */
+/** @internal */ export const atObserver: AccessorType = AccessorType.Observer;
+/** @internal */ export const atNode: AccessorType = AccessorType.Node;
+/** @internal */ export const atLayout: AccessorType = AccessorType.Layout;

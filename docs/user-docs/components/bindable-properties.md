@@ -54,7 +54,7 @@ The `@bindable` decorator signals to Aurelia that a property is bindable in our 
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable firstName = '';
@@ -83,16 +83,16 @@ Due to the way the Aurelia binding system works, change callbacks will not be fi
 If you would like to call your change handler functions when the component is initially bound (like v1), you can achieve this the following way:
 
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable firstName = '';
     @bindable lastName  = '';
-    
+
     bound() {
         this.firstNameChanged(this.firstName, undefined);
     }
-    
+
     firstNameChanged(newVal, oldVal) {
         console.log('Value changed');
     }
@@ -118,12 +118,12 @@ You can change the name of the callback that is fired when a change is made `@bi
 {% tabs %}
 {% tab title="name-component.ts" %}
 ```typescript
-import { bindable } from 'aurelia'; 
+import { bindable } from 'aurelia';
 
 export class NameComponent {
     @bindable({ mode: BindingMode.twoWay}) firstName = '';
     @bindable({ callback: 'lnameChanged' }) lastName  = '';
-    
+
     lnameChanged(val) {}
 }
 ```
@@ -181,10 +181,10 @@ When using `.bind` for input/form control values such as text inputs, select dro
 In some cases, you want to make an impact on the value that is binding. For such a scenario, you can use the possibility of new `set`.
 
 ```typescript
-@bindable({ 
+@bindable({
     set: value => someFunction(value),  /* HERE */
     // Or set: value => value,
-    mode: /* ... */ 
+    mode: /* ... */
 })
 ```
 

@@ -5,7 +5,6 @@ import {
   type Collection,
   CollectionObserver,
   DestructuringAssignmentExpression,
-  ExpressionKind,
   ForOfStatement,
   getCollectionObserver,
   type IndexMap,
@@ -17,14 +16,13 @@ import {
   astAssign,
   createIndexMap,
   IExpressionParser,
-  ExpressionType,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { templateController } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { bindable } from '../../bindable';
-import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow } from '../../utilities';
+import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
 
 import type { PropertyBinding } from '../../binding/property-binding';
@@ -38,8 +36,8 @@ function dispose(disposable: IDisposable): void {
 }
 
 const wrappedExprs = [
-  ExpressionKind.BindingBehavior,
-  ExpressionKind.ValueConverter,
+  'BindingBehavior',
+  'ValueConverter',
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
@@ -85,7 +83,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (command === null) {
           this.key = value;
         } else if (command === 'bind') {
-          this.key = parser.parse(value, ExpressionType.IsProperty);
+          this.key = parser.parse(value, etIsProperty);
         } else {
           throw createMappedError(ErrorNames.repeat_invalid_key_binding_command, command);
         }
@@ -126,7 +124,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     this._refreshCollectionObserver();
     const dec = forOf.declaration;
-    if(!(this._hasDestructuredLocal = dec.$kind === ExpressionKind.ArrayDestructuring || dec.$kind === ExpressionKind.ObjectDestructuring)) {
+    if(!(this._hasDestructuredLocal = dec.$kind === 'ArrayDestructuring' || dec.$kind === 'ObjectDestructuring')) {
       this.local = astEvaluate(dec, this.$controller.scope, binding, null) as string;
     }
   }

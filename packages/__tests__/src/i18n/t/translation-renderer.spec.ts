@@ -14,7 +14,6 @@ import {
 } from '@aurelia/i18n';
 import { Constructable } from '@aurelia/kernel';
 import {
-  ExpressionType,
   IBinding,
   IExpressionParser,
   IObserverLocator,
@@ -109,7 +108,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('compiles the binding to a TranslationBindingInstruction', function () {
       const [sut] = createFixture();
-      const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '' };
+      const syntax: AttrSyntax = { command: 't', rawName: 't', rawValue: 'obj.key', target: '', parts: [] };
       const actual = sut.build({
         node: { nodeName: 'abc' } as unknown as Element,
         attr: syntax,
@@ -138,7 +137,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const expressionParser = container.get(IExpressionParser);
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-      const from = expressionParser.parse('simple.key', ExpressionType.IsCustom);
+      const from = expressionParser.parse('simple.key', 'IsCustom');
       const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
@@ -160,7 +159,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const binding = new TranslationBinding({ state: 0 }, container, {} as unknown as IObserverLocator, container.get(IPlatform), targetElement);
       const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-      const from = expressionParser.parse('simple.key', ExpressionType.IsCustom);
+      const from = expressionParser.parse('simple.key', 'IsCustom');
       const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
@@ -250,7 +249,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
 
     it('compiles the binding to a TranslationBindBindingInstruction', function () {
       const { parser, mapper, suts: [sut] } = createFixture();
-      const syntax: AttrSyntax = { command: 't.bind', rawName: 't.bind', rawValue: 'obj.key', target: 'bind' };
+      const syntax: AttrSyntax = { command: 't.bind', rawName: 't.bind', rawValue: 'obj.key', target: 'bind', parts: [] };
       const actual = sut.build({
         node: { nodeName: 'abc' } as unknown as Element,
         attr: syntax,
@@ -281,7 +280,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const expressionParser = container.get(IExpressionParser);
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-      const from = expressionParser.parse('simple.key', ExpressionType.IsProperty);
+      const from = expressionParser.parse('simple.key', 'IsProperty');
       const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
@@ -301,7 +300,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const expressionParser = container.get(IExpressionParser);
       const controller = ({ container, bindings: [], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-      const from = expressionParser.parse('simple.key', ExpressionType.IsProperty);
+      const from = expressionParser.parse('simple.key', 'IsProperty');
       const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,
@@ -323,7 +322,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       const binding = new TranslationBinding({ state: 0 }, container, {} as unknown as IObserverLocator, container.get(IPlatform), targetElement);
       const controller = ({ container, bindings: [binding], addBinding(binding) { (controller.bindings as unknown as IBinding[]).push(binding); } } as unknown as IHydratableController);
 
-      const from = expressionParser.parse('simple.key', ExpressionType.IsProperty);
+      const from = expressionParser.parse('simple.key', 'IsProperty');
       const callBindingInstruction: PropertyBindingInstruction = { type: InstructionType.propertyBinding, from, to: 'value', mode: BindingMode.oneTime };
       sut.render(
         controller,

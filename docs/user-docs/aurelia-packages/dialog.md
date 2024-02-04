@@ -176,8 +176,8 @@ interface IDialogController {
    */
   readonly closed: Promise<DialogCloseResult>;
 
-  ok(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Ok>>;
-  cancel(value?: unknown): Promise<DialogCloseResult<DialogDeactivationStatuses.Cancel>>;
+  ok(value?: unknown): Promise<DialogCloseResult<'ok'>>;
+  cancel(value?: unknown): Promise<DialogCloseResult<'cancel'>>;
   error(value?: unknown): Promise<void>;
 }
 ```
@@ -214,7 +214,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
             return openDialogResult.dialog.closed;
           })
           .then((response) => {
-            if (response.status === DialogDeactivationStatuses.Ok) {
+            if (response.status === 'ok') {
               console.log('good');
             } else {
               console.log('bad');
@@ -251,7 +251,7 @@ An important feature of the dialog plugin is that it is possible to resolve and 
         }, 3000);
 
         const response = await dialog.closed;
-        if (response.status === DialogDeactivationStatuses.Ok) {
+        if (response.status === 'ok') {
           console.log('good');
         } else {
           console.log('bad');
@@ -306,7 +306,7 @@ export class Welcome {
       .open({ component: () => EditPerson, model: this.person })
       .whenClosed(response => {
         console.log('The edit dialog has been closed');
-        if (response.status === DialogDeactivationStatuses.Ok) {
+        if (response.status === 'ok') {
           console.log('good');
         } else {
           console.log('bad');

@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.10"></a>
+# 2.0.0-beta.10 (2024-01-26)
+
+### BREAKING CHANGE:
+
+* **enums:** string literal types replace const enums (#1870) ([e21e0c9](https://github.com/aurelia/aurelia/commit/e21e0c9))
+
+
+### Features:
+
+* **route-recognizer:** support for route parameter constraints (#1862) ([8f29cfd](https://github.com/aurelia/aurelia/commit/8f29cfd))
+
+
+### Bug Fixes:
+
+* **docs:** various doc fix
+* **au-slot:** properly handle nested projection registration (#1881) ([00e8dee](https://github.com/aurelia/aurelia/commit/00e8dee))
+* **kernel:** stack preserving error logging for console (#1884) ([030bfa1](https://github.com/aurelia/aurelia/commit/030bfa1))
+* **portal:** remove target marker when deactivated (#1883) ([3db4c17](https://github.com/aurelia/aurelia/commit/3db4c17))
+* **validation:** evaluation of tagged rules from bindings (#1878) ([43d12f6](https://github.com/aurelia/aurelia/commit/43d12f6))
+* **validation:** property parsing with lambda and istanbul (#1877) ([71f82cf](https://github.com/aurelia/aurelia/commit/71f82cf))
+* **router:** store root/default page instruction correctly (#1869) ([84e6380](https://github.com/aurelia/aurelia/commit/84e6380))
+* **runtime-html:** template wrapping  (#1875) ([bfdaa3b](https://github.com/aurelia/aurelia/commit/bfdaa3b))
+* **i18n:** handle change of key in t.bind (#1868) ([c185764](https://github.com/aurelia/aurelia/commit/c185764))
+* **router-lite:** Router injection and ignoring null/undefined values for query parameters (#1859) ([6a79bc9](https://github.com/aurelia/aurelia/commit/6a79bc9))
+* **router-lite:** injection of Router alias ([6a79bc9](https://github.com/aurelia/aurelia/commit/6a79bc9))
+* **runtime-html:** fix broken tests ([bfdaa3b](https://github.com/aurelia/aurelia/commit/bfdaa3b))
+
+
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 

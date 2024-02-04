@@ -1,11 +1,11 @@
-import { Task, TaskAbortError, TaskStatus } from '@aurelia/platform';
+import { Task, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IInstruction } from '../../renderer';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
   ICustomAttributeController,
@@ -18,7 +18,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
 import { templateController } from '../custom-attribute';
-import { isPromise, safeString } from '../../utilities';
+import { isPromise, safeString, tsPending, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
 @templateController('promise')
@@ -110,7 +110,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   fulfilled?.activate(initiator, s, data),
                 ), defaultQueuingOptions)).result;
               };
-              if (this.preSettledTask!.status === TaskStatus.running) {
+              if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(fulfill);
               } else {
                 this.preSettledTask!.cancel();
@@ -129,7 +129,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   rejected?.activate(initiator, s, err),
                 ), defaultQueuingOptions)).result;
               };
-              if (this.preSettledTask!.status === TaskStatus.running) {
+              if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(reject);
               } else {
                 this.preSettledTask!.cancel();
@@ -139,7 +139,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
           ));
     };
 
-    if (this.postSettledTask?.status === TaskStatus.running) {
+    if (this.postSettledTask?.status === tsRunning) {
       void this.postSettlePromise.then($swap);
     } else {
       this.postSettledTask?.cancel();
@@ -160,11 +160,11 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('pending')
+@templateController(tsPending)
 export class PendingTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.toView }) public value!: Promise<unknown>;
+  @bindable({ mode: toView }) public value!: Promise<unknown>;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -209,7 +209,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
+  @bindable({ mode: fromView }) public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -255,7 +255,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 export class RejectedTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: BindingMode.fromView }) public value!: unknown;
+  @bindable({ mode: fromView }) public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 

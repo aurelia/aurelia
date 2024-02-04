@@ -6,16 +6,15 @@ import {
   Writable,
 } from '@aurelia/kernel';
 import {
-  ICollectionObserver,
-  CollectionKind,
+  type ICollectionObserver,
   IObserverLocator,
-  Scope,
+  type Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { templateController } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { bindable } from '../../bindable';
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { oneTime } from '../../binding/interfaces-bindings';
 import { isArray } from '../../utilities';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
@@ -249,13 +248,13 @@ export class Case implements ICustomAttributeViewModel {
         default: return !!v;
       }
     },
-    mode: BindingMode.oneTime
+    mode: oneTime
   })
   public fallThrough: boolean = false;
 
   public view: ISyntheticView | undefined = void 0;
   private $switch!: Switch;
-  /** @internal */ private _observer: ICollectionObserver<CollectionKind.array> | undefined;
+  /** @internal */ private _observer: ICollectionObserver<'array'> | undefined;
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);

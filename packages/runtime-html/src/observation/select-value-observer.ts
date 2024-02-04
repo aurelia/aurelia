@@ -1,14 +1,13 @@
 import {
-  type CollectionKind,
   subscriberCollection,
-  AccessorType,
+  type AccessorType,
   type ICollectionObserver,
   type IObserverLocator,
   type ISubscriberCollection,
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
-import { createError, hasOwnProperty, isArray } from '../utilities';
+import { atLayout, atNode, atObserver, createError, hasOwnProperty, isArray } from '../utilities';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';
 import { createMutationObserver } from '../utilities-dom';
@@ -37,7 +36,7 @@ export interface SelectValueObserver extends
 export class SelectValueObserver implements INodeObserver {
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
-  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -51,7 +50,7 @@ export class SelectValueObserver implements INodeObserver {
   /** @internal */
   private _hasChanges: boolean = false;
   /** @internal */
-  private _arrayObserver?: ICollectionObserver<CollectionKind.array> = void 0;
+  private _arrayObserver?: ICollectionObserver<'array'> = void 0;
   /** @internal */
   private _nodeObserver?: MutationObserver = void 0;
 

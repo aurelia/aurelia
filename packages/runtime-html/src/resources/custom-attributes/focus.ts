@@ -1,4 +1,4 @@
-import { BindingMode } from '../../binding/interfaces-bindings';
+import { twoWay } from '../../binding/interfaces-bindings';
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { customAttribute } from '../custom-attribute';
@@ -10,11 +10,9 @@ import { resolve } from '@aurelia/kernel';
  * Focus attribute for element focus binding
  */
 export class Focus implements ICustomAttributeViewModel {
-  /** @internal */ protected static inject = [INode, IPlatform];
-
   public readonly $controller!: ICustomAttributeController<this>;
 
-  @bindable({ mode: BindingMode.twoWay })
+  @bindable({ mode: twoWay })
   public value: unknown;
 
   /**

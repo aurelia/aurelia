@@ -1,21 +1,23 @@
-import { AccessorType, Collection, CollectionKind, IObserver } from '../observation';
+import { Collection, IObserver, atObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { ensureProto } from '../utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
+  AccessorType,
   ICollectionObserver,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
   ICollectionSubscriber,
+  CollectionKind,
 } from '../observation';
 import { ErrorNames, createMappedError } from '../errors';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IObserver, ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = atObserver;
 
   /** @internal */
   private _value: number;
@@ -24,7 +26,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
   private readonly _obj: unknown[];
 
   public constructor(
-    public readonly owner: ICollectionObserver<CollectionKind.array>,
+    public readonly owner: ICollectionObserver<'array'>,
   ) {
     this._value = (this._obj = owner.collection).length;
   }
@@ -63,7 +65,7 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber {
-  public readonly type: AccessorType = AccessorType.Observer;
+  public readonly type: AccessorType = atObserver;
 
   /** @internal */
   private _value: number;
@@ -72,7 +74,7 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
   private readonly _obj: Set<unknown> | Map<unknown, unknown>;
 
   public constructor(
-    public readonly owner: ICollectionObserver<CollectionKind.map | CollectionKind.set>,
+    public readonly owner: ICollectionObserver<'map' | 'set'>,
   ) {
     this._value = (this._obj = owner.collection).size;
   }

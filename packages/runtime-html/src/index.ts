@@ -72,7 +72,7 @@ export {
   BindingCommandDefinition,
   type BindingCommandKind,
   type BindingCommandType,
-  CommandType,
+  type CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -105,6 +105,12 @@ export {
 export {
   ListenerBinding,
   ListenerBindingOptions,
+  type IModifiedEventHandler,
+  IEventModifier,
+  EventModifier,
+  EventModifierRegistration,
+  IModifiedEventHandlerCreator,
+  IKeyMapping,
 } from './binding/listener-binding';
 export {
   AttributeBinding,
@@ -267,7 +273,7 @@ export {
 export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
-export {
+export type {
   DefinitionType,
 } from './resources/resources-shared';
 
@@ -306,6 +312,8 @@ export {
 } from './resources/value-converters/sanitize';
 
 export {
+  type ConfigurationOptionsProvider,
+
   DefaultComponents,
 
   DefaultBindingSyntax,
@@ -346,7 +354,7 @@ export {
   Controller,
   isCustomElementController,
   isCustomElementViewModel,
-  ViewModelKind,
+  type ViewModelKind,
   State,
   type ControllerVisitor,
   type IViewModel,

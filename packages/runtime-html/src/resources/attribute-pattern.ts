@@ -1,4 +1,4 @@
-import { emptyArray, Protocol, all } from '@aurelia/kernel';
+import { emptyArray, Protocol, all, resolve } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
@@ -436,6 +436,7 @@ export class AttrSyntax {
     public rawValue: string,
     public target: string,
     public command: string | null,
+    public parts: string[] | null = null
   ) {}
 }
 
@@ -452,9 +453,6 @@ export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('
 
 export class AttributeParser implements IAttributeParser {
   /** @internal */
-  protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
-
-  /** @internal */
   private readonly _cache: Record<string, Interpretation> = {};
   /**
    * A 2 level record with the same key on both levels.
@@ -467,11 +465,9 @@ export class AttributeParser implements IAttributeParser {
   /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
 
-  public constructor(
-    interpreter: ISyntaxInterpreter,
-    attrPatterns: IAttributePattern[],
-  ) {
-    this._interpreter = interpreter;
+  public constructor() {
+    const interpreter = this._interpreter = resolve(ISyntaxInterpreter);
+    const attrPatterns = resolve(all(IAttributePattern));
     const patterns: AttributeParser['_patterns'] = this._patterns = {};
     const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
       (allDefs, attrPattern) => {
@@ -491,7 +487,7 @@ export class AttributeParser implements IAttributeParser {
     }
     const pattern = interpretation.pattern;
     if (pattern == null) {
-      return new AttrSyntax(name, value, name, null);
+      return new AttrSyntax(name, value, name, null, null);
     } else {
       return this._patterns[pattern][pattern](name, value, interpretation.parts);
     }
@@ -589,6 +585,19 @@ export class RefAttributePattern {
   }
 }
 
+@attributePattern(
+  { pattern: 'PART.trigger:PART', symbols: '.:' },
+  { pattern: 'PART.capture:PART', symbols: '.:' },
+)
+export class EventAttributePattern {
+  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
+  }
+  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
+  }
+}
+
 @attributePattern({ pattern: ':PART', symbols: ':' })
 export class ColonPrefixedBindAttributePattern {
   public ':PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
@@ -596,10 +605,18 @@ export class ColonPrefixedBindAttributePattern {
   }
 }
 
-@attributePattern({ pattern: '@PART', symbols: '@' })
+@attributePattern(
+  { pattern: '@PART', symbols: '@' },
+  { pattern: '@PART:PART', symbols: '@:' },
+)
 export class AtPrefixedTriggerAttributePattern {
   public '@PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+
+  public '@PART:PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    parts.splice(1, 0, 'trigger');
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
 }
 

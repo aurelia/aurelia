@@ -1,9 +1,9 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
-import { ITask, TaskStatus } from '@aurelia/platform';
+import { ITask } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
-import { addSignalListener, def, defineHiddenProp, removeSignalListener } from '../utilities';
+import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
 import { createInterface, resource } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
@@ -53,9 +53,7 @@ export class BindingTargetSubscriber implements ISubscriber {
  * Implement method `useScope` in a common way for a binding. For internal use only for size saving.
  */
 export const mixinUseScope = <T extends { _scope?: Scope }>(target: Constructable<T>) => {
-  defineHiddenProp(target.prototype, 'useScope', function (this: T, scope: Scope) {
-    this._scope = scope;
-  });
+  defineHiddenProp(target.prototype, 'useScope', useScope);
 };
 
 /**
@@ -72,28 +70,10 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
       def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
     }
     def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-    defineHiddenProp(proto, 'get', function (this: T, key: Key) {
-      return this.l.get(key);
-    });
-    defineHiddenProp(proto, 'getSignaler', function (this: T) {
-      return this.l.root.get(ISignaler);
-    });
-    defineHiddenProp(proto, 'getConverter', function (this: T, name: string) {
-      const key = ValueConverter.keyFrom(name);
-      let resourceLookup = resourceLookupCache.get(this);
-      if (resourceLookup == null) {
-        resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
-      }
-      return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
-    });
-    defineHiddenProp(proto, 'getBehavior', function (this: T, name: string) {
-      const key = BindingBehavior.keyFrom(name);
-      let resourceLookup = resourceLookupCache.get(this);
-      if (resourceLookup == null) {
-        resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
-      }
-      return resourceLookup[key] ??= this.l.get<BindingBehaviorInstance>(resource(key));
-    });
+    defineHiddenProp(proto, 'get', evaluatorGet<T>);
+    defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
+    defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
+    defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
   };
 };
 
@@ -139,6 +119,33 @@ export class FlushQueue implements IFlushQueue {
     this._items.clear();
     this._flushing = false;
   }
+}
+
+type IHasServiceLocator = { l: IServiceLocator };
+function useScope<T extends { _scope?: Scope }>(this: T, scope: Scope) {
+  this._scope = scope;
+}
+function evaluatorGet<T extends IHasServiceLocator>(this: T, key: Key) {
+  return this.l.get(key);
+}
+function evaluatorGetSignaler<T extends IHasServiceLocator>(this: T) {
+  return this.l.root.get(ISignaler);
+}
+function evaluatorGetConverter<T extends IHasServiceLocator>(this: T, name: string) {
+  const key = ValueConverter.keyFrom(name);
+  let resourceLookup = resourceLookupCache.get(this);
+  if (resourceLookup == null) {
+    resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+  }
+  return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
+}
+function evaluatorGetBehavior<T extends IHasServiceLocator>(this: T, name: string) {
+  const key = BindingBehavior.keyFrom(name);
+  let resourceLookup = resourceLookupCache.get(this);
+  if (resourceLookup == null) {
+    resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+  }
+  return resourceLookup[key] ??= this.l.get<BindingBehaviorInstance>(resource(key));
 }
 
 function flushItem(item: IFlushable, _: IFlushable, items: Set<IFlushable>) {
@@ -213,7 +220,7 @@ const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === tsPending;
     dispose();
     if (isPending) {
       callOriginalCallback();
@@ -263,7 +270,7 @@ const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, 
   };
   fn.flush = () => {
     // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === TaskStatus.pending;
+    isPending = limiterTask?.status === tsPending;
     dispose();
     if (isPending) {
       callOriginalCallback();

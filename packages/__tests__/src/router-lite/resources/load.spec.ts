@@ -1,5 +1,5 @@
 import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router-lite';
-import { customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
+import { CustomElement, customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
@@ -1191,6 +1191,97 @@ describe('router-lite/resources/load.spec.ts', function () {
     host.querySelector<HTMLAnchorElement>('a').click();
     await queue.yield();
     assert.html.textContent(host, 'product init', 'round#2 - back - text');
+
+    await au.stop(true);
+  });
+
+  for (const value of [null, undefined]) {
+    it(`${value} value for a query-string param is ignored`, async function () {
+      @route('product')
+      @customElement({ name: 'pro-duct', template: `product` })
+      class Product {
+        public query: Readonly<URLSearchParams>;
+        public canLoad(_params: Params, _next: RouteNode, _current: RouteNode): boolean {
+          this.query = _next.queryParams;
+          return true;
+        }
+      }
+
+      @route({
+        routes: [
+          Product,
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="route:product; params.bind: {id: value}"></a><au-viewport></au-viewport>' })
+      class Root {
+        private readonly value = value;
+      }
+
+      const { au, host, container } = await start({ appRoot: Root, registrations: [Product] });
+      const queue = container.get(IPlatform).domWriteQueue;
+      await queue.yield();
+
+      host.querySelector('a').click();
+      await queue.yield();
+
+      const product = CustomElement.for<Product>(host.querySelector('pro-duct')).viewModel;
+      const query = product.query;
+      assert.strictEqual(query.get('id'), null);
+      assert.deepStrictEqual(Array.from(query.keys()), []);
+
+      await au.stop(true);
+    });
+  }
+
+  it('respects constrained routes', async function () {
+    @route('nf')
+    @customElement({ name: 'not-found', template: `nf` })
+    class NotFound { }
+
+    @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
+    @customElement({ name: 'pro-duct', template: `product \${id}` })
+    class Product {
+      public id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @route({ routes: [Product, NotFound], fallback: 'nf' })
+    @customElement({
+      name: 'ro-ot',
+      template: `
+        <a load="route:product; params.bind:{id: 42}"></a>
+        <a load="route:product; params.bind:{id: foo}"></a>
+        <a load="product/bar"></a>
+        <au-viewport></au-viewport>
+      `
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const anchors = Array.from(host.querySelectorAll('a'));
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 42');
+
+    anchors[1].click();
+    await queue.yield();
+    assert.html.textContent(host, 'nf');
+
+    anchors[0].click();
+    await queue.yield();
+    assert.html.textContent(host, 'product 42');
+
+    anchors[2].click();
+    await queue.yield();
+    assert.html.textContent(host, 'nf');
 
     await au.stop(true);
   });

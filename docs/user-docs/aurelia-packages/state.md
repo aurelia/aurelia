@@ -79,7 +79,7 @@ Aurelia
   .register(
     StateDefaultConfiguration.init(
       initialState,
-      keywordsHandler
+      [keywordsHandler]
     )
   )
   .app(MyApp)

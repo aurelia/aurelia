@@ -47,13 +47,10 @@ async function createFixture<T extends Constructable>(
   container.register(RouterConfiguration);
   container.register(...deps);
 
-  const component = container.get(Component);
-  const router = container.get(IRouter);
-
   const au = new Aurelia(container);
   const host = ctx.createElement('div');
 
-  au.app({ component, host });
+  au.app({ component: Component, host });
 
   await au.start();
 
@@ -65,10 +62,10 @@ async function createFixture<T extends Constructable>(
     ctx,
     au,
     host,
-    component,
+    component: au.root.controller.viewModel as InstanceType<T>,
     platform,
     container,
-    router,
+    router: container.get(IRouter),
     startTracing() {
       logConfig.level = LogLevel.trace;
     },
@@ -205,6 +202,22 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   })
   @customElement({ name: 'root2', template: `root2${vp(2)}` })
   class Root2 { }
+
+  it('injecting Router and IRouter should yield the same instance', async function () {
+    @customElement({ name: 'app', template: 'app' })
+    class App {
+      public constructor(
+        @inject(Router) public readonly router1: Router,
+        @IRouter public readonly router2: IRouter,
+      ) {}
+    }
+
+    const  { component, tearDown } = await createFixture(App, []);
+
+    assert.strictEqual(component.router1, component.router2, 'router mismatch');
+
+    await tearDown();
+  });
 
   // Start with a broad sample of non-generated tests that are easy to debug and mess around with.
   it(`root1 can load a01 as a string and can determine if it's active`, async function () {
@@ -7084,6 +7097,54 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await router.load({ component: 'c1', params: { 'foo%2Fbar': 'awesome possum' } });
     assert.html.textContent(host, 'c1 awesome possum');
+
+    await au.stop(true);
+  });
+
+  it('Router#load respects constrained routes', async function () {
+    @route('nf')
+    @customElement({ name: 'not-found', template: `nf` })
+    class NotFound { }
+
+    @route({ id: 'product', path: 'product/:id{{^\\d+$}}' })
+    @customElement({ name: 'pro-duct', template: `product \${id}` })
+    class Product {
+      public id: unknown;
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode): boolean {
+        this.id = params.id;
+        return true;
+      }
+    }
+
+    @route({ routes: [Product, NotFound], fallback: 'nf' })
+    @customElement({
+      name: 'ro-ot',
+      template: `<au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { au, host, container } = await start({ appRoot: Root });
+
+    const queue = container.get(IPlatform).domWriteQueue;
+    await queue.yield();
+
+    const router = container.get(IRouter);
+
+    await router.load('product/42');
+    await queue.yield();
+    assert.html.textContent(host, 'product 42', 'round#1');
+
+    await router.load('product/foo');
+    await queue.yield();
+    assert.html.textContent(host, 'nf', 'round#2');
+
+    await router.load({ component: 'product', params: { id: '42' } });
+    await queue.yield();
+    assert.html.textContent(host, 'product 42', 'round#3');
+
+    await router.load({ component: 'product', params: { id: 'foo' } });
+    await queue.yield();
+    assert.html.textContent(host, 'nf', 'round#4');
 
     await au.stop(true);
   });

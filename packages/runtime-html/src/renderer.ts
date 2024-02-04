@@ -9,7 +9,7 @@ import {
   resolve,
 } from '@aurelia/kernel';
 import {
-  ExpressionType,
+  type ExpressionType,
   IExpressionParser,
   IObserverLocator,
   type Interpolation,
@@ -18,14 +18,14 @@ import {
   type IObservable,
   type ForOfStatement,
 } from '@aurelia/runtime';
-import { BindingMode } from './binding/interfaces-bindings';
+import { toView, type BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
 import { InterpolationBinding } from './binding/interpolation-binding';
 import { ContentBinding } from "./binding/content-binding";
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
 import { RefBinding } from './binding/ref-binding';
-import { ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
+import { IEventModifier, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
 import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
@@ -34,7 +34,7 @@ import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
 import type { AttrSyntax } from './resources/attribute-pattern';
-import { objectKeys, isString, def } from './utilities';
+import { objectKeys, isString, def, etIsProperty, etInterpolation, etIsIterator, etIsFunction, objectFreeze } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotProjections, IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
@@ -43,28 +43,50 @@ import type { PartialCustomElementDefinition } from './resources/custom-element'
 import { ErrorNames, createMappedError } from './errors';
 import { SpreadBinding } from './binding/spread-binding';
 
-export const enum InstructionType {
-  hydrateElement = 'ra',
-  hydrateAttribute = 'rb',
-  hydrateTemplateController = 'rc',
-  hydrateLetElement = 'rd',
-  setProperty = 're',
-  interpolation = 'rf',
-  propertyBinding = 'rg',
-  letBinding = 'ri',
-  refBinding = 'rj',
-  iteratorBinding = 'rk',
-  multiAttr = 'rl',
-  textBinding = 'ha',
-  listenerBinding = 'hb',
-  attributeBinding = 'hc',
-  stylePropertyBinding = 'hd',
-  setAttribute = 'he',
-  setClassAttribute = 'hf',
-  setStyleAttribute = 'hg',
-  spreadBinding = 'hs',
-  spreadElementProp = 'hp',
-}
+/** @internal */ export const hydrateElement = 'ra';
+/** @internal */ export const hydrateAttribute = 'rb';
+/** @internal */ export const hydrateTemplateController = 'rc';
+/** @internal */ export const hydrateLetElement = 'rd';
+/** @internal */ export const setProperty = 're';
+/** @internal */ export const interpolation = 'rf';
+/** @internal */ export const propertyBinding = 'rg';
+/** @internal */ export const letBinding = 'ri';
+/** @internal */ export const refBinding = 'rj';
+/** @internal */ export const iteratorBinding = 'rk';
+/** @internal */ export const multiAttr = 'rl';
+/** @internal */ export const textBinding = 'ha';
+/** @internal */ export const listenerBinding = 'hb';
+/** @internal */ export const attributeBinding = 'hc';
+/** @internal */ export const stylePropertyBinding = 'hd';
+/** @internal */ export const setAttribute = 'he';
+/** @internal */ export const setClassAttribute = 'hf';
+/** @internal */ export const setStyleAttribute = 'hg';
+/** @internal */ export const spreadBinding = 'hs';
+/** @internal */ export const spreadElementProp = 'hp';
+
+export const InstructionType = /*@__PURE__*/ objectFreeze({
+  hydrateElement,
+  hydrateAttribute,
+  hydrateTemplateController,
+  hydrateLetElement,
+  setProperty,
+  interpolation,
+  propertyBinding,
+  letBinding,
+  refBinding,
+  iteratorBinding,
+  multiAttr,
+  textBinding,
+  listenerBinding,
+  attributeBinding,
+  stylePropertyBinding,
+  setAttribute,
+  setClassAttribute,
+  setStyleAttribute,
+  spreadBinding,
+  spreadElementProp,
+});
+export type InstructionType = typeof InstructionType[keyof typeof InstructionType];
 
 export type InstructionTypeName = string;
 
@@ -79,7 +101,7 @@ export function isInstruction(value: unknown): value is IInstruction {
 }
 
 export class InterpolationInstruction {
-  public readonly type = InstructionType.interpolation;
+  public readonly type = interpolation;
 
   public constructor(
     public from: string | Interpolation,
@@ -88,7 +110,7 @@ export class InterpolationInstruction {
 }
 
 export class PropertyBindingInstruction {
-  public readonly type = InstructionType.propertyBinding;
+  public readonly type = propertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -98,7 +120,7 @@ export class PropertyBindingInstruction {
 }
 
 export class IteratorBindingInstruction {
-  public readonly type = InstructionType.iteratorBinding;
+  public readonly type = iteratorBinding;
 
   public constructor(
     public forOf: string | ForOfStatement,
@@ -108,7 +130,7 @@ export class IteratorBindingInstruction {
 }
 
 export class RefBindingInstruction {
-  public readonly type = InstructionType.refBinding;
+  public readonly type = refBinding;
 
   public constructor(
     public readonly from: string | IsBindingBehavior,
@@ -117,7 +139,7 @@ export class RefBindingInstruction {
 }
 
 export class SetPropertyInstruction {
-  public readonly type = InstructionType.setProperty;
+  public readonly type = setProperty;
 
   public constructor(
     public value: unknown,
@@ -126,7 +148,7 @@ export class SetPropertyInstruction {
 }
 
 export class MultiAttrInstruction {
-  public readonly type = InstructionType.multiAttr;
+  public readonly type = multiAttr;
 
   public constructor(
     public value: string,
@@ -136,7 +158,7 @@ export class MultiAttrInstruction {
 }
 
 export class HydrateElementInstruction {
-  public readonly type = InstructionType.hydrateElement;
+  public readonly type = hydrateElement;
 
   /**
    * A special property that can be used to store <au-slot/> usage information
@@ -172,7 +194,7 @@ export class HydrateElementInstruction {
 }
 
 export class HydrateAttributeInstruction {
-  public readonly type = InstructionType.hydrateAttribute;
+  public readonly type = hydrateAttribute;
 
   public constructor(
     // in theory, Constructor of resources should be accepted too
@@ -187,7 +209,7 @@ export class HydrateAttributeInstruction {
 }
 
 export class HydrateTemplateController {
-  public readonly type = InstructionType.hydrateTemplateController;
+  public readonly type = hydrateTemplateController;
 
   public constructor(
     public def: PartialCustomElementDefinition,
@@ -203,7 +225,7 @@ export class HydrateTemplateController {
 }
 
 export class HydrateLetElementInstruction {
-  public readonly type = InstructionType.hydrateLetElement;
+  public readonly type = hydrateLetElement;
 
   public constructor(
     public instructions: LetBindingInstruction[],
@@ -212,7 +234,7 @@ export class HydrateLetElementInstruction {
 }
 
 export class LetBindingInstruction {
-  public readonly type = InstructionType.letBinding;
+  public readonly type = letBinding;
 
   public constructor(
     public from: string | IsBindingBehavior | Interpolation,
@@ -221,7 +243,7 @@ export class LetBindingInstruction {
 }
 
 export class TextBindingInstruction {
-  public readonly type = InstructionType.textBinding;
+  public readonly type = textBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -229,17 +251,18 @@ export class TextBindingInstruction {
 }
 
 export class ListenerBindingInstruction {
-  public readonly type = InstructionType.listenerBinding;
+  public readonly type = listenerBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
     public preventDefault: boolean,
     public capture: boolean,
+    public modifier: string | null,
   ) {}
 }
 export class StylePropertyBindingInstruction {
-  public readonly type = InstructionType.stylePropertyBinding;
+  public readonly type = stylePropertyBinding;
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -248,7 +271,7 @@ export class StylePropertyBindingInstruction {
 }
 
 export class SetAttributeInstruction {
-  public readonly type = InstructionType.setAttribute;
+  public readonly type = setAttribute;
 
   public constructor(
     public value: string,
@@ -257,7 +280,7 @@ export class SetAttributeInstruction {
 }
 
 export class SetClassAttributeInstruction {
-  public readonly type: InstructionType.setClassAttribute = InstructionType.setClassAttribute;
+  public readonly type: typeof InstructionType.setClassAttribute = setClassAttribute;
 
   public constructor(
     public readonly value: string,
@@ -265,7 +288,7 @@ export class SetClassAttributeInstruction {
 }
 
 export class SetStyleAttributeInstruction {
-  public readonly type: InstructionType.setStyleAttribute = InstructionType.setStyleAttribute;
+  public readonly type: typeof InstructionType.setStyleAttribute = setStyleAttribute;
 
   public constructor(
     public readonly value: string,
@@ -273,7 +296,7 @@ export class SetStyleAttributeInstruction {
 }
 
 export class AttributeBindingInstruction {
-  public readonly type = InstructionType.attributeBinding;
+  public readonly type = attributeBinding;
 
   public constructor(
     /**
@@ -289,11 +312,11 @@ export class AttributeBindingInstruction {
 }
 
 export class SpreadBindingInstruction {
-  public readonly type = InstructionType.spreadBinding;
+  public readonly type = spreadBinding;
 }
 
 export class SpreadElementPropBindingInstruction {
-  public readonly type = InstructionType.spreadElementProp;
+  public readonly type = spreadElementProp;
   public constructor(
     public readonly instructions: IInstruction,
   ) {}
@@ -433,10 +456,10 @@ function getRefTarget(refHost: INode, refTargetName: string): object {
   }
 }
 
-@renderer(InstructionType.setProperty)
+@renderer(setProperty)
 /** @internal */
 export class SetPropertyRenderer implements IRenderer {
-  public target!: InstructionType.setProperty;
+  public target!: typeof InstructionType.setProperty;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -452,12 +475,12 @@ export class SetPropertyRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.hydrateElement)
+@renderer(hydrateElement)
 /** @internal */
 export class CustomElementRenderer implements IRenderer {
   /** @internal */ private readonly _rendering = resolve(IRendering);
 
-  public target!: InstructionType.hydrateElement;
+  public target!: typeof InstructionType.hydrateElement;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -532,12 +555,12 @@ export class CustomElementRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.hydrateAttribute)
+@renderer(hydrateAttribute)
 /** @internal */
 export class CustomAttributeRenderer implements IRenderer {
   /** @internal */ private readonly _rendering = resolve(IRendering);
 
-  public target!: InstructionType.hydrateAttribute;
+  public target!: typeof InstructionType.hydrateAttribute;
 
   public render(
     /**
@@ -604,12 +627,12 @@ export class CustomAttributeRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.hydrateTemplateController)
+@renderer(hydrateTemplateController)
 /** @internal */
 export class TemplateControllerRenderer implements IRenderer {
   /** @internal */ private readonly _rendering = resolve(IRendering);
 
-  public target!: InstructionType.hydrateTemplateController;
+  public target!: typeof InstructionType.hydrateTemplateController;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -677,10 +700,10 @@ export class TemplateControllerRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.hydrateLetElement)
+@renderer(hydrateLetElement)
 /** @internal */
 export class LetElementRenderer implements IRenderer {
-  public target!: InstructionType.hydrateLetElement;
+  public target!: typeof InstructionType.hydrateLetElement;
   public render(
     renderingCtrl: IHydratableController,
     target: Node & ChildNode,
@@ -700,7 +723,7 @@ export class LetElementRenderer implements IRenderer {
     let i = 0;
     while (ii > i) {
       childInstruction = childInstructions[i];
-      expr = ensureExpression(exprParser, childInstruction.from, ExpressionType.IsProperty);
+      expr = ensureExpression(exprParser, childInstruction.from, etIsProperty);
       renderingCtrl.addBinding(new LetBinding(
         container,
         observerLocator,
@@ -713,10 +736,10 @@ export class LetElementRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.refBinding)
+@renderer(refBinding)
 /** @internal */
 export class RefBindingRenderer implements IRenderer {
-  public target!: InstructionType.refBinding;
+  public target!: typeof InstructionType.refBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: INode,
@@ -726,16 +749,16 @@ export class RefBindingRenderer implements IRenderer {
   ): void {
     renderingCtrl.addBinding(new RefBinding(
       renderingCtrl.container,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       getRefTarget(target, instruction.to)
     ));
   }
 }
 
-@renderer(InstructionType.interpolation)
+@renderer(interpolation)
 /** @internal */
 export class InterpolationBindingRenderer implements IRenderer {
-  public target!: InstructionType.interpolation;
+  public target!: typeof InstructionType.interpolation;
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -749,18 +772,18 @@ export class InterpolationBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.Interpolation),
+      ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
 
-@renderer(InstructionType.propertyBinding)
+@renderer(propertyBinding)
 /** @internal */
 export class PropertyBindingRenderer implements IRenderer {
-  public target!: InstructionType.propertyBinding;
+  public target!: typeof InstructionType.propertyBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -774,7 +797,7 @@ export class PropertyBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
       instruction.mode,
@@ -782,10 +805,10 @@ export class PropertyBindingRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.iteratorBinding)
+@renderer(iteratorBinding)
 /** @internal */
 export class IteratorBindingRenderer implements IRenderer {
-  public target!: InstructionType.iteratorBinding;
+  public target!: typeof InstructionType.iteratorBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -799,18 +822,18 @@ export class IteratorBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.forOf, ExpressionType.IsIterator),
+      ensureExpression(exprParser, instruction.forOf, etIsIterator),
       getTarget(target),
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
 
-@renderer(InstructionType.textBinding)
+@renderer(textBinding)
 /** @internal */
 export class TextBindingRenderer implements IRenderer {
-  public target!: InstructionType.textBinding;
+  public target!: typeof InstructionType.textBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: ChildNode,
@@ -825,16 +848,20 @@ export class TextBindingRenderer implements IRenderer {
       observerLocator,
       platform.domWriteQueue,
       platform,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target as Text,
     ));
   }
 }
 
-@renderer(InstructionType.listenerBinding)
+@renderer(listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
-  public target!: InstructionType.listenerBinding;
+  public target!: typeof InstructionType.listenerBinding;
+
+  /** @internal */
+  private readonly _modifierHandler = resolve(IEventModifier);
+
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -844,18 +871,19 @@ export class ListenerBindingRenderer implements IRenderer {
   ): void {
     renderingCtrl.addBinding(new ListenerBinding(
       renderingCtrl.container,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsFunction),
+      ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
       new ListenerBindingOptions(instruction.preventDefault, instruction.capture),
+      this._modifierHandler.getHandler(instruction.to, instruction.modifier),
     ));
   }
 }
 
-@renderer(InstructionType.setAttribute)
+@renderer(setAttribute)
 /** @internal */
 export class SetAttributeRenderer implements IRenderer {
-  public target!: InstructionType.setAttribute;
+  public target!: typeof InstructionType.setAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -865,9 +893,9 @@ export class SetAttributeRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.setClassAttribute)
+@renderer(setClassAttribute)
 export class SetClassAttributeRenderer implements IRenderer {
-  public target!: InstructionType.setClassAttribute;
+  public target!: typeof InstructionType.setClassAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -877,9 +905,9 @@ export class SetClassAttributeRenderer implements IRenderer {
   }
 }
 
-@renderer(InstructionType.setStyleAttribute)
+@renderer(setStyleAttribute)
 export class SetStyleAttributeRenderer implements IRenderer {
-  public target!: InstructionType.setStyleAttribute;
+  public target!: typeof InstructionType.setStyleAttribute;
   public render(
     _: IHydratableController,
     target: HTMLElement,
@@ -914,10 +942,10 @@ const ambiguousStyles = [
   'left',
 ];
 
-@renderer(InstructionType.stylePropertyBinding)
+@renderer(stylePropertyBinding)
 /** @internal */
 export class StylePropertyBindingRenderer implements IRenderer {
-  public target!: InstructionType.stylePropertyBinding;
+  public target!: typeof InstructionType.stylePropertyBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -934,10 +962,10 @@ export class StylePropertyBindingRenderer implements IRenderer {
           renderingCtrl.container,
           observerLocator,
           platform.domWriteQueue,
-          ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+          ensureExpression(exprParser, instruction.from, etIsProperty),
           target.style,
           instruction.to,
-          BindingMode.toView,
+          toView,
         ));
         return;
       }
@@ -947,10 +975,10 @@ export class StylePropertyBindingRenderer implements IRenderer {
       renderingCtrl.container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target.style,
       instruction.to,
-      BindingMode.toView,
+      toView,
     ));
   }
 }
@@ -966,10 +994,10 @@ class DevStylePropertyBinding extends PropertyBinding {
   }
 }
 
-@renderer(InstructionType.attributeBinding)
+@renderer(attributeBinding)
 /** @internal */
 export class AttributeBindingRenderer implements IRenderer {
-  public target!: InstructionType.attributeBinding;
+  public target!: typeof InstructionType.attributeBinding;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -988,24 +1016,24 @@ export class AttributeBindingRenderer implements IRenderer {
       container,
       observerLocator,
       platform.domWriteQueue,
-      ensureExpression(exprParser, instruction.from, ExpressionType.IsProperty),
+      ensureExpression(exprParser, instruction.from, etIsProperty),
       target,
       instruction.attr/* targetAttribute */,
       classMapping == null
         ? instruction.to/* targetKey */
         : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '),
-      BindingMode.toView,
+      toView,
     ));
   }
 }
 
-@renderer(InstructionType.spreadBinding)
+@renderer(spreadBinding)
 export class SpreadRenderer implements IRenderer {
 
   /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ private readonly _rendering = resolve(IRendering);
 
-  public readonly target!: InstructionType.spreadBinding;
+  public readonly target!: typeof InstructionType.spreadBinding;
 
   public render(
     renderingCtrl: IHydratableController,

@@ -1,17 +1,10 @@
-import { IDisposable } from '@aurelia/kernel';
-import { Collection, ExpressionType, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
+import { IDisposable, resolve } from '@aurelia/kernel';
+import { Collection, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
 import { ExpressionWatcher } from '@aurelia/runtime-html';
 
 export class BindingEngine {
-  /** @internal */
-  protected static inject = [IExpressionParser, IObserverLocator];
-
-  public constructor(
-    public readonly parser: IExpressionParser,
-    public readonly observerLocator: IObserverLocator,
-  ) {
-
-  }
+  public readonly parser = resolve(IExpressionParser);
+  public readonly observerLocator = resolve(IObserverLocator);
 
   public propertyObserver(object: {}, prop: PropertyKey): IBindingEnginePropertyObserver {
     return {
@@ -47,7 +40,7 @@ export class BindingEngine {
     const scope = Scope.create(bindingContext, {}, true);
     return {
       subscribe: callback => {
-        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, ExpressionType.IsProperty), callback);
+        const observer = new ExpressionWatcher(scope, null!, this.observerLocator, this.parser.parse(expression, 'IsProperty'), callback);
         observer.bind();
         return {
           dispose: () => observer.unbind()

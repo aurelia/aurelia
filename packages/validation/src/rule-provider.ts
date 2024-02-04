@@ -1,14 +1,12 @@
 import { Metadata } from '@aurelia/metadata';
 import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
-  ExpressionType,
   IExpressionParser,
   Interpolation,
   IsBindingBehavior,
   PrimitiveLiteralExpression,
   AccessScopeExpression,
   Scope,
-  ExpressionKind,
   IAstEvaluator,
   astEvaluate,
 } from '@aurelia/runtime';
@@ -534,7 +532,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
 }
 
 // eslint-disable-next-line no-useless-escape
-const classicAccessorPattern = /^function\s*\([$_\w\d]+\)\s*\{(?:\s*["']{1}use strict["']{1};)?(?:[$_\s\w\d\/\*.['"\]+;\(\)]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
+const classicAccessorPattern = /^(?:function)?\s*\(?[$_\w\d]+\)?\s*(?:=>)?\s*\{(?:\s*["']{1}use strict["']{1};)?(?:[$_\s\w\d\/\*.['"\]+;\(\)]+)?\s*return\s+[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)\s*;?\s*\}$/;
 const arrowAccessorPattern = /^\(?[$_\w\d]+\)?\s*=>\s*[$_\w\d]+((\.[$_\w\d]+|\[['"$_\w\d]+\])+)$/;
 export const rootObjectSymbol = '$root';
 export type PropertyAccessor<TObject extends IValidateable = IValidateable, TValue = unknown> = (object: TObject) => TValue;
@@ -556,7 +554,7 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
   }
 
-  return [property, parser.parse(`${rootObjectSymbol}.${property}`, ExpressionType.IsProperty)];
+  return [property, parser.parse(`${rootObjectSymbol}.${property}`, 'IsProperty')];
 }
 
 /**
@@ -646,14 +644,14 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public parseMessage(message: string): Interpolation | PrimitiveLiteralExpression {
-    const parsed = this.parser.parse(message, ExpressionType.Interpolation);
-    if (parsed?.$kind === ExpressionKind.Interpolation) {
+    const parsed = this.parser.parse(message, 'Interpolation');
+    if (parsed?.$kind === 'Interpolation') {
       for (const expr of parsed.expressions) {
         const name = (expr as AccessScopeExpression).name;
         if (contextualProperties.has(name)) {
           this.logger.warn(`Did you mean to use "$${name}" instead of "${name}" in this validation message template: "${message}"?`);
         }
-        if (expr.$kind === ExpressionKind.AccessThis || (expr as AccessScopeExpression).ancestor > 0) {
+        if (expr.$kind === 'AccessThis' || (expr as AccessScopeExpression).ancestor > 0) {
           throw new Error('$parent is not permitted in validation message expressions.'); // TODO: use reporter
         }
       }

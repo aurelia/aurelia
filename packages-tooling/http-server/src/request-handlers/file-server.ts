@@ -4,7 +4,7 @@ import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, 
 import { join, resolve, relative, extname } from 'path';
 import { ILogger } from '@aurelia/kernel';
 import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces';
-import { IHttpContext, HttpContextState } from '../http-context';
+import { IHttpContext } from '../http-context';
 import { getContentType, HTTPStatusCode, getContentEncoding, ContentEncoding } from '../http-utils';
 import { readFile, isReadable, exists } from '../file-utils';
 
@@ -96,7 +96,7 @@ export class FileServer implements IRequestHandler {
       });
     }
 
-    context.state = HttpContextState.end;
+    context.state = 'end';
   }
 
 }
@@ -153,7 +153,7 @@ export class Http2FileServer implements IHttp2FileServer {
       response.end();
     }
 
-    context.state = HttpContextState.end;
+    context.state = 'end';
   }
 
   private pushAll(stream: ServerHttp2Stream, contentEncoding: string) {

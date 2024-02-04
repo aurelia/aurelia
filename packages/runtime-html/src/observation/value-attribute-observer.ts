@@ -1,9 +1,9 @@
-import { AccessorType, subscriberCollection } from '@aurelia/runtime';
+import { subscriberCollection } from '@aurelia/runtime';
 import { mixinNodeObserverUseConfig } from './observation-utils';
-import { areEqual } from '../utilities';
+import { areEqual, atLayout, atNode, atObserver } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
-import type { ISubscriberCollection } from '@aurelia/runtime';
+import type { AccessorType, ISubscriberCollection } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import type { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 
@@ -14,7 +14,7 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
 export class ValueAttributeObserver implements INodeObserver {
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
-  public type: AccessorType = AccessorType.Node | AccessorType.Observer | AccessorType.Layout;
+  public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
 
   /** @internal */
   public readonly _el: INode & IIndexable;

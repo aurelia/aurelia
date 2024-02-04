@@ -44,12 +44,7 @@ export interface IRouteableComponent extends ICustomElementViewModel {
   readonly $controller?: ICustomElementController<this>;
 }
 
-export const enum ReloadBehavior {
-  default = 'default',
-  disallow = 'disallow',
-  reload = 'reload',
-  refresh = 'refresh',
-}
+export type ReloadBehavior = 'default' | 'disallow' | 'reload' | 'refresh';
 
 export interface IRoutingInstruction {
   component: ComponentAppellation;

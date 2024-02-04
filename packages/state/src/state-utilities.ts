@@ -1,6 +1,9 @@
 import { Scope } from '@aurelia/runtime';
 import { type SubscribableValue } from './interfaces';
+import { DI } from '@aurelia/kernel';
 
+/** @internal */
+export const createInterface = DI.createInterface;
 /** @internal */
 export function createStateBindingScope(state: object, scope: Scope) {
   const overrideContext = { bindingContext: state };

@@ -2,8 +2,6 @@ import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   CustomExpression,
-  ExpressionType,
-  Interpolation,
   connectable,
   astEvaluate,
   astUnbind,
@@ -15,7 +13,6 @@ import {
   CustomElement,
   IPlatform,
   type IBindingController,
-  State,
   mixinAstEvaluator,
   mixingBindingLimited,
   type IHydratableController,
@@ -35,6 +32,7 @@ import type {
 } from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
+import { etInterpolation, etIsProperty, stateActivating } from '../utils';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -66,6 +64,46 @@ const taskQueueOpts: QueueTaskOptions = {
 };
 
 export class TranslationBinding implements IConnectableBinding {
+
+  public static create({
+    parser,
+    observerLocator,
+    context,
+    controller,
+    target,
+    instruction,
+    platform,
+    isParameterContext,
+  }: TranslationBindingCreationContext) {
+    const binding = this._getBinding({ observerLocator, context, controller, target, platform });
+    const expr = typeof instruction.from === 'string'
+      /* istanbul ignore next */
+      ? parser.parse(instruction.from, etIsProperty)
+      : instruction.from;
+    if (isParameterContext) {
+      binding.useParameter(expr);
+    } else {
+      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, etInterpolation) : undefined;
+      binding.ast = interpolation || expr;
+    }
+  }
+
+  /** @internal */
+  private static _getBinding({
+    observerLocator,
+    context,
+    controller,
+    target,
+    platform,
+  }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
+    let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
+    if (!binding) {
+      binding = new TranslationBinding(controller, context, observerLocator, platform, target);
+      controller.addBinding(binding);
+    }
+    return binding;
+  }
+
   public isBound: boolean = false;
   public ast!: IsExpression;
   private readonly i18n: I18N;
@@ -79,9 +117,6 @@ export class TranslationBinding implements IConnectableBinding {
 
   /** @internal */
   private _task: ITask | null = null;
-
-  /** @internal */
-  private _isInterpolation!: boolean;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -121,58 +156,19 @@ export class TranslationBinding implements IConnectableBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this.i18n.subscribeLocaleChange(this);
     this._taskQueue = platform.domWriteQueue;
-  }
-
-  public static create({
-    parser,
-    observerLocator,
-    context,
-    controller,
-    target,
-    instruction,
-    platform,
-    isParameterContext,
-  }: TranslationBindingCreationContext) {
-    const binding = this._getBinding({ observerLocator, context, controller, target, platform });
-    const expr = typeof instruction.from === 'string'
-      ? parser.parse(instruction.from, ExpressionType.IsProperty)
-      : instruction.from;
-    if (isParameterContext) {
-      binding.useParameter(expr);
-    } else {
-      const interpolation = expr instanceof CustomExpression ? parser.parse(expr.value as string, ExpressionType.Interpolation) : undefined;
-      binding.ast = interpolation || expr;
-    }
-  }
-
-  /** @internal */
-  private static _getBinding({
-    observerLocator,
-    context,
-    controller,
-    target,
-    platform,
-  }: Omit<TranslationBindingCreationContext, 'parser' | 'instruction' | 'isParameterContext'>): TranslationBinding {
-    let binding: TranslationBinding | null = controller.bindings && controller.bindings.find((b) => b instanceof TranslationBinding && b.target === target) as TranslationBinding;
-    if (!binding) {
-      binding = new TranslationBinding(controller, context, observerLocator, platform, target);
-      controller.addBinding(binding);
-    }
-    return binding;
   }
 
   public bind(_scope: Scope): void {
     if (this.isBound) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (!this.ast) { throw new Error('key expression is missing'); }
+    const ast = this.ast;
+    if (ast == null) { throw new Error('key expression is missing'); }
     this._scope = _scope;
-    this._isInterpolation = this.ast instanceof Interpolation;
+    this.i18n.subscribeLocaleChange(this);
 
-    this._keyExpression = astEvaluate(this.ast, _scope, this, this) as string;
+    this._keyExpression = astEvaluate(ast, _scope, this, this) as string;
     this._ensureKeyExpression();
     this.parameter?.bind(_scope);
 
@@ -185,6 +181,7 @@ export class TranslationBinding implements IConnectableBinding {
       return;
     }
 
+    this.i18n.unsubscribeLocaleChange(this);
     astUnbind(this.ast, this._scope, this);
 
     this.parameter?.unbind();
@@ -198,11 +195,9 @@ export class TranslationBinding implements IConnectableBinding {
     this.obs.clearAll();
   }
 
-  public handleChange(newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
+  public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
     this.obs.version++;
-    this._keyExpression = this._isInterpolation
-        ? astEvaluate(this.ast, this._scope, this, this) as string
-        : newValue as string;
+    this._keyExpression = astEvaluate(this.ast, this._scope, this, this) as string;
     this.obs.clear();
     this._ensureKeyExpression();
     this.updateTranslations();
@@ -240,7 +235,7 @@ export class TranslationBinding implements IConnectableBinding {
           const accessor = controller?.viewModel
             ? this.oL.getAccessor(controller.viewModel, camelCase(attribute))
             : this.oL.getAccessor(this.target, attribute);
-          const shouldQueueUpdate = this._controller.state !== State.activating && (accessor.type & AccessorType.Layout) > 0;
+          const shouldQueueUpdate = this._controller.state !== stateActivating && (accessor.type & AccessorType.Layout) > 0;
           if (shouldQueueUpdate) {
             accessorUpdateTasks.push(new AccessorUpdateTask(accessor, value, this.target, attribute));
           } else {
@@ -253,7 +248,7 @@ export class TranslationBinding implements IConnectableBinding {
 
     let shouldQueueContent = false;
     if (Object.keys(content).length > 0) {
-      shouldQueueContent = this._controller.state !== State.activating;
+      shouldQueueContent = this._controller.state !== stateActivating;
       if (!shouldQueueContent) {
         this._updateContent(content);
       }

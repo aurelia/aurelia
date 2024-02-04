@@ -22,6 +22,7 @@ import { NavigationCoordinator } from './navigation-coordinator';
 import { Runner, Step } from './utilities/runner';
 import { Title } from './title';
 import { RoutingHook } from './routing-hook';
+import { FoundRoute } from './found-route';
 import { IRouterConfiguration } from './index';
 
 /**
@@ -800,7 +801,13 @@ export class Router implements IRouter {
     navigation.path = basePath + (state as string) + query + fragment;
     // }
 
-    const fullViewportStates = [RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction];
+    const fullViewportStates: RoutingInstruction[] = [];
+    // Handle default / root page, because "-" + "" = "-" (so just a "clear")
+    const targetRoute = instructions.length === 1 ? instructions[0].route : null;
+    if (!(targetRoute != null && ((typeof targetRoute === 'string' && targetRoute === '') || ((targetRoute as FoundRoute).matching === '')))) {
+      fullViewportStates.push(RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction);
+    }
+
     fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
     navigation.fullStateInstruction = fullViewportStates;
 

@@ -1,6 +1,5 @@
 import {
   DI,
-  Injectable,
   Registration,
   type IResolver,
   type Key,
@@ -10,48 +9,29 @@ import {
   type ResourceDefinition,
   type IAllResolver,
   IOptionalResolver,
+  createResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-import { objectAssign } from './utilities';
 
-export const resource = <T extends Key>(key: T) => {
-  function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
-    DI.inject(Resolver)(target, property, descriptor);
-  }
-  Resolver.$isResolver = true;
-  Resolver.resolve = (handler: IContainer, requestor: IContainer) =>
+export const resource = <T extends Key>(key: T) =>
+  createResolver((key, handler, requestor) =>
     requestor.has(key, false)
       ? requestor.get(key)
-      : requestor.root.get(key);
+      : requestor.root.get(key))(key);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return Resolver as IResolver<T> & ((...args: unknown[]) => any);
-};
-
-export const optionalResource = <T extends Key>(key: T) => {
-  return objectAssign(function Resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number) {
-    DI.inject(Resolver)(target, property, descriptor);
-  }, {
-    $isResolver: true,
-    resolve: (handler: IContainer, requestor: IContainer) =>
-      requestor.has(key, false)
-        ? requestor.get(key)
-        : requestor.root.has(key, false)
-          ? requestor.root.get(key)
-          : void 0,
-  }) as IOptionalResolver<T>;
-};
-
+export const optionalResource = <T extends Key>(key: T) =>
+  createResolver((key, handler, requestor) =>
+    (requestor.has(key, false)
+      ? requestor.get(key)
+      : requestor.root.has(key, false)
+        ? requestor.root.get(key)
+        : void 0))(key) as IOptionalResolver<T>;
 /**
  * A resolver builder for resolving all registrations of a key
  * with resource semantic (leaf + root + ignore middle layer container)
  */
-export const allResources = <T extends Key>(key: T) => {
-  function Resolver(target: Constructable, property?: string | number, descriptor?: PropertyDescriptor | number) {
-    DI.inject(Resolver)(target, property, descriptor);
-  }
-  Resolver.$isResolver = true;
-  Resolver.resolve = function (handler: IContainer, requestor: IContainer) {
+export const allResources = <T extends Key>(key: T) =>
+  createResolver((key, handler, requestor) => {
     if (/* is root? */requestor.root === requestor) {
       return requestor.getAll(key, false);
     }
@@ -59,9 +39,7 @@ export const allResources = <T extends Key>(key: T) => {
     return requestor.has(key, false)
       ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
       : requestor.root.getAll(key, false);
-  };
-  return Resolver as IAllResolver<T>;
-};
+  })(key) as IAllResolver<T>;
 
 /** @internal */
 export const createInterface = DI.createInterface;

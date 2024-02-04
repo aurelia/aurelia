@@ -6,6 +6,7 @@ import {
   SpreadAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
+  EventAttributePattern,
 } from './resources/attribute-pattern';
 import {
   DefaultBindingCommand,
@@ -76,6 +77,7 @@ import { AuSlot } from './resources/custom-elements/au-slot';
 import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
+import { EventModifierRegistration } from './binding/listener-binding';
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -98,6 +100,8 @@ export const DefaultBindingSyntax = [
   RefAttributePattern,
   DotSeparatedAttributePattern,
   SpreadAttributePattern,
+  EventAttributePattern,
+  EventModifierRegistration,
 ];
 
 /**

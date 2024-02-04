@@ -1,9 +1,10 @@
-import { AccessorType, ICoercionConfiguration, IObserver, InterceptorFunc } from '../observation';
+import { ICoercionConfiguration, IObserver, InterceptorFunc, atObserver } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { areEqual, def, objectAssign } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
+  AccessorType,
   ISubscriber,
   ISubscriberCollection,
 } from '../observation';
@@ -16,7 +17,7 @@ export interface SetterObserver extends ISubscriberCollection {}
  */
 export class SetterObserver implements IObserver, ISubscriberCollection {
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
-  public type: AccessorType = AccessorType.Observer;
+  public type: AccessorType = atObserver;
 
   /** @internal */
   private _value: unknown = void 0;

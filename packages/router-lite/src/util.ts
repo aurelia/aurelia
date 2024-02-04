@@ -1,5 +1,6 @@
 import { Params } from './instructions';
 import type { RouteNode } from './route-tree';
+import { BindingMode } from '@aurelia/runtime-html';
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 
@@ -103,7 +104,11 @@ export function mergeURLSearchParams(source: URLSearchParams, other: Params | nu
   const query = clone ? new URLSearchParams(source) : source;
   if(other == null) return query;
   for(const [key, value] of Object.entries(other)) {
-    query.append(key, value!);
+    if (value == null) continue;
+    query.append(key, value);
   }
   return query;
 }
+
+/** @internal */ export const bmToView = BindingMode.toView;
+/** @internal */ export const bmFromView = BindingMode.fromView;

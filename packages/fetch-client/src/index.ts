@@ -7,7 +7,7 @@ export {
 export {
   // cache interceptor
   type ICacheEventData,
-  ICacheConfiguration,
+  type ICacheConfiguration,
   CacheEvent,
   CacheInterceptor,
   type ICacheItem,

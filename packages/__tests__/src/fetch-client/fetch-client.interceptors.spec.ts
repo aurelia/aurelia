@@ -1,4 +1,4 @@
-import { IHttpClient, Interceptor } from '@aurelia/fetch-client';
+import { IHttpClient, IFetchInterceptor } from '@aurelia/fetch-client';
 import { resolve } from '@aurelia/kernel';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
@@ -40,7 +40,7 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
 
   it('runs on request', async function () {
     let i = 0;
-    const interceptor: Interceptor = {
+    const interceptor: IFetchInterceptor = {
       request(r) {
         i = 1;
         return r;
@@ -78,7 +78,7 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
 
   it('runs requestError', async function () {
     let i = 0;
-    const interceptor: Interceptor = {
+    const interceptor: IFetchInterceptor = {
       requestError() {
         i = 1;
         return mockResponse;

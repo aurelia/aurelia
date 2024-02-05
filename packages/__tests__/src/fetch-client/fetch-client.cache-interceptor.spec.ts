@@ -1,4 +1,4 @@
-import { CacheEvents, IHttpClient } from '@aurelia/fetch-client';
+import { CacheEvent, IHttpClient } from '@aurelia/fetch-client';
 import { IEventAggregator, IPlatform, Writable, resolve } from '@aurelia/kernel';
 import { assert, createFixture, createSpy } from '@aurelia/testing';
 import { isNode } from '../util.js';
@@ -13,13 +13,13 @@ describe('fetch-client/fetch-client.cache-interceptor.spec.ts', function () {
   let client: IHttpClient;
   let callCount: number;
   let ea: IEventAggregator;
-  let eventCount: Writable<typeof CacheEvents>;
+  let eventCount: Writable<typeof CacheEvent>;
   let p: IPlatform;
 
   beforeEach(function () {
     callCount = 0;
     mockResponse = new Response(null, { status: 200 });
-    eventCount = Object.keys(CacheEvents).reduce((acc, key) => { acc[key] = 0; return acc; }, {}) as typeof eventCount;
+    eventCount = Object.keys(CacheEvent).reduce((acc, key) => { acc[key] = 0; return acc; }, {}) as typeof eventCount;
     window.fetch = function (...args: any[]) {
       callCount++;
       if (mockResponse instanceof Promise) {
@@ -39,8 +39,8 @@ describe('fetch-client/fetch-client.cache-interceptor.spec.ts', function () {
       p = resolve(IPlatform);
     }));
 
-    for (const key of Object.keys(CacheEvents)) {
-      ea.subscribe(CacheEvents[key], () => eventCount[key]++);
+    for (const key of Object.keys(CacheEvent)) {
+      ea.subscribe(CacheEvent[key], () => eventCount[key]++);
     }
 
   });

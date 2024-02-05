@@ -16,7 +16,20 @@ export const IFetchFn = /*@__PURE__*/DI.createInterface<typeof fetch>('fetch', x
   return x.instance(fetch);
 });
 
-export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.singleton(HttpClient));
+export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.cachedCallback((handler) => {
+  // reason for this gymnastic is because the way fetch-client is used in applications
+  // there's no registration, there's only direct usage
+  // which means application won't have the opportunity to register IHttpClient and HttpClient properly
+  // app may inject HttpClient in some places and IHttpClient in some other
+  // so we need to make sure HttpClient and IHttpClient are the same instance
+  if (handler.has(HttpClient, false)) {
+    return handler.get(HttpClient);
+  }
+  const client = handler.invoke(HttpClient);
+  handler.register(Registration.instance(HttpClient, client));
+  return client;
+}));
+
 export interface IHttpClient extends HttpClient {}
 /**
  * An HTTP client based on the Fetch API.
@@ -67,12 +80,6 @@ export class HttpClient {
   private readonly _container = resolve(IContainer);
   /** @internal */
   private readonly _fetchFn = resolve(IFetchFn);
-
-  public constructor() {
-    this._container.register(
-      Registration.instance(HttpClient, this)
-    );
-  }
 
   /**
    * Configure this client with default settings to be used by all requests.
@@ -131,7 +138,7 @@ export class HttpClient {
       const cacheInterceptorIndex = interceptors.findIndex(x => x instanceof CacheInterceptor);
       if (cacheInterceptorIndex >= 0) {
         if (retryInterceptorIndex > 0) {
-          if (retryInterceptorIndex < cacheInterceptorIndex) {
+          if (retryInterceptorIndex < cacheInterceptorIndex - 1) {
             throw new Error('The cache interceptor must be defined before the retry interceptor.');
           }
         } else {
@@ -392,12 +399,10 @@ export class HttpClient {
 function parseHeaderValues(headers: Record<string, unknown> | undefined): Record<string, string>  {
   const parsedHeaders: Record<string, string> = {};
   const $headers = headers ?? {};
-  for (const name in $headers) {
-    if (hasOwnProperty($headers, name)) {
-      parsedHeaders[name] = (typeof $headers[name] === 'function')
-        ? ($headers[name] as () => string)()
-        : $headers[name] as string;
-    }
+  for (const name of Object.keys($headers)) {
+    parsedHeaders[name] = (typeof $headers[name] === 'function')
+      ? ($headers[name] as () => string)()
+      : $headers[name] as string;
   }
   return parsedHeaders;
 }
@@ -412,8 +417,8 @@ function getRequestUrl(baseUrl: string, url: string): string {
 
 function setDefaultHeaders(headers: Headers, defaultHeaders?: Record<string, string>): void {
   const $defaultHeaders = defaultHeaders ?? {};
-  for (const name in $defaultHeaders) {
-    if (hasOwnProperty($defaultHeaders, name) && !headers.has(name)) {
+  for (const name of Object.keys($defaultHeaders)) {
+    if (!headers.has(name)) {
       headers.set(name, $defaultHeaders[name]);
     }
   }
@@ -441,8 +446,6 @@ function dispatch(node: Node, name: string): void {
   const evt = new node.ownerDocument!.defaultView!.CustomEvent(name, { bubbles: true, cancelable: true });
   setTimeout(() => { node.dispatchEvent(evt); }, 1);
 }
-
-const hasOwnProperty = (obj: object, v: PropertyKey) => Object.prototype.hasOwnProperty.call(obj, v) as boolean;
 
 /**
  * A lookup containing events used by HttpClient.

@@ -61,6 +61,14 @@ describe('fetch-client/fetch-client.cache-interceptor.spec.ts', function () {
     client.configure(c => c.withCache().withRetry());
   });
 
+  it('throws if cache is not before retry interceptor', function () {
+    try {
+      client.configure(c => c.withCache().withInterceptor({}).withRetry());
+    } catch (ex) {
+      assert.match(ex.message, /The cache interceptor is only allowed as the last interceptor or second last before the retry interceptor/);
+    }
+  });
+
   it('caches successful get requests', async function () {
     mockResponse = new Response(null, { status: 200 });
     client.configure(c => c.withCache());

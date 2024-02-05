@@ -1,5 +1,5 @@
 import { DI, IContainer, resolve } from '@aurelia/kernel';
-import { HttpClient, HttpClientConfiguration, IHttpClient, json } from '@aurelia/fetch-client';
+import { HttpClient, HttpClientConfiguration, HttpClientEvent, IHttpClient, json } from '@aurelia/fetch-client';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 
@@ -58,7 +58,19 @@ describe('fetch-client/fetch-client.spec.ts', function () {
     });
 
     it('rejects invalid configs', function () {
-      assert.throws(() => client.configure(1 as RequestInit), void 0, `() => client.configure(1 as RequestInit)`);
+      assert.throws(
+        () => client.configure(1 as RequestInit),
+        /invalid config/,
+        `() => client.configure(1 as RequestInit)`
+      );
+    });
+
+    it('rejects invalid config returned from "configure" call', function () {
+      assert.throws(
+        () => client.configure(() => 1 as any),
+        /The config callback did not return a valid HttpClientConfiguration/,
+        `() => client.configure(1 as RequestInit)`
+      );
     });
 
     it('applies standard configuration', function () {
@@ -127,9 +139,11 @@ describe('fetch-client/fetch-client.spec.ts', function () {
     });
 
     it('works when injecting HttpClient', async function () {
-      ({ component: { http: client } } = createFixture('${message}', class App {
+      const { component: { http: client, http2: http2 } } = createFixture('${message}', class App {
         http = resolve(HttpClient);
-      }));
+        http2 = resolve(IHttpClient);
+      });
+      assert.strictEqual(client, http2);
       assert.deepStrictEqual(
         await client.fetch('/a'),
         { method: 'GET', url: '/a', headers: {} }
@@ -161,6 +175,21 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       assert.deepStrictEqual(callCount, 1);
     });
 
+    it('dispatches event when a request starts/ends', async function () {
+      let started = 0;
+      let drained = 0;
+      document.body.addEventListener(HttpClientEvent.started, () => started++);
+      document.body.addEventListener(HttpClientEvent.drained, () => drained++);
+      client.configure(c => c.withDispatcher(document.body));
+      await Promise.all([
+        client.get('abc'),
+        // client doesn't immediately dispatch an event
+        new Promise(r => setTimeout(r, 10))
+      ]);
+      assert.strictEqual(started, 1);
+      assert.strictEqual(drained, 1);
+    });
+
     it('makes request and aborts with an AbortController signal', async function () {
       window.fetch = originalFetchFn;
       ({ component: { http: client } } = createFixture('${message}', class App {
@@ -180,6 +209,21 @@ describe('fetch-client/fetch-client.spec.ts', function () {
 
       controller.abort();
       await promise;
+    });
+
+    it('auto sets ContentType based on body Blob type', async function () {
+      const blob = new Blob(['abc'], { type: 'text/abc' });
+      assert.deepStrictEqual(
+        await client.fetch('http://example.com/some/cool/path', {
+          method: 'post',
+          body: blob
+        }),
+        {
+          method: 'POST',
+          url: 'http://example.com/some/cool/path',
+          headers: { 'content-type': 'text/abc' }
+        }
+      );
     });
 
     describe('shortcut methods', function () {

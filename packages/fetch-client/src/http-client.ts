@@ -447,7 +447,7 @@ const hasOwnProperty = (obj: object, v: PropertyKey) => Object.prototype.hasOwnP
 /**
  * A lookup containing events used by HttpClient.
  */
-export const HttpClientEvent = Object.freeze({
+export const HttpClientEvent = /*@__PURE__*/Object.freeze({
   /**
    * Event to be triggered when a request is sent.
    */

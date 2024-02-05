@@ -5,7 +5,7 @@ import { IFetchInterceptor } from '../interfaces';
 /**
  * The strategy to use when retrying requests.
  */
-export const RetryStrategy = Object.freeze({
+export const RetryStrategy = /*@__PURE__*/Object.freeze({
   fixed: 0,
   incremental: 1,
   exponential: 2,

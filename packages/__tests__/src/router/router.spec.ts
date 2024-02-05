@@ -2270,7 +2270,7 @@ describe('router/router.spec.ts', function () {
           } else {
             locationPath = path;
           }
-          for (const start of ['blank/', '/context.html/', '/debug.html']) {
+          for (const start of ['blank/', '/context.html', '/debug.html']) {
             if (locationPath.startsWith(start)) {
               locationPath = locationPath.slice(start.length);
             }

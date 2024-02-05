@@ -165,7 +165,7 @@ http.configure(config => config.withRetry(retryOptions))
 
 There are several options can be specified, per the following type:
 ```typescript
-export interface RetryConfiguration {
+export interface IRetryConfiguration {
   maxRetries: number;
   interval?: number;
   strategy?: number | ((retryCount: number) => number);
@@ -191,20 +191,3 @@ export const RetryStrategy: {
 
 Per the names suggest, the interval which a request will be attempted again will be calcuated accordingly for each strategy.
 If you want to supply your own strategy, the `strategy` option can take a callback to be invoked with the number of the retry and the return value is treated as the time to wait until the next fetch attempt.
-
-## Caching responses
-
-The Fetch client also comes with a cache implementation that helps applications short circuit repetitive GET requests for boosting their performance. Caching for the Fetch client can be configured like the following example:
-
-```typescript
-http.configure(config => config.withCache(cacheOptions));
-```
-
-There are two options that can be supplied to change caching behavior, per the following type:
-
-```typescript
-export interface CacheConfiguration {
-  cacheTime?: number;
-  staleTime?: number;
-}
-```

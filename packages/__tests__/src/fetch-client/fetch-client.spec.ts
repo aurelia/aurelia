@@ -175,6 +175,22 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       assert.deepStrictEqual(callCount, 1);
     });
 
+    it('uses default headers', async function () {
+      client.configure(c => c.withDefaults({ headers: { 'x-test': 'abc', 'x-test2': (() => 'a1') as any } }));
+      assert.deepStrictEqual(
+        await client.fetch('/a'),
+        { method: 'GET', url: '/a', headers: { 'x-test': 'abc', 'x-test2': 'a1' } }
+      );
+    });
+
+    it('does not override headers set in fetch call', async function () {
+      client.configure(c => c.withDefaults({ headers: { 'x-test': 'abc' } }));
+      assert.deepStrictEqual(
+        await client.fetch('/a', { headers: { 'x-test': 'def' } }),
+        { method: 'GET', url: '/a', headers: { 'x-test': 'def' } }
+      );
+    });
+
     it('dispatches event when a request starts/ends', async function () {
       let started = 0;
       let drained = 0;

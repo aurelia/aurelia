@@ -85,3 +85,7 @@ http.configure(config => {
     config.withInterceptor(createRetryInterceptor(3, 1000)); // Retry 3 times, 1-second delay
 });
 ```
+
+{% hint style="info" %}
+The Fetch client provides a default implementation of retry interceptor similar like above, with more options for configuration. It's enabled when  called `httpClient.configure(c => c.withRetry(...))`
+{% endhint %}

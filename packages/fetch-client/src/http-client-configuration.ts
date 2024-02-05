@@ -1,5 +1,5 @@
 import { IContainer, resolve } from '@aurelia/kernel';
-import { CacheInterceptor, ICacheConfiguration, IRetryConfiguration, RetryInterceptor } from './interceptors';
+import { IRetryConfiguration, RetryInterceptor } from './interceptors';
 import { IFetchInterceptor } from './interfaces';
 
 /**
@@ -103,11 +103,11 @@ export class HttpClientConfiguration {
     return this.withInterceptor(interceptor);
   }
 
-  public withCache(config?: ICacheConfiguration): HttpClientConfiguration {
-    const interceptor = this._container.invoke(CacheInterceptor, [config]);
+  // public withCache(config?: ICacheConfiguration): HttpClientConfiguration {
+  //   const interceptor = this._container.invoke(CacheInterceptor, [config]);
 
-    return this.withInterceptor(interceptor);
-  }
+  //   return this.withInterceptor(interceptor);
+  // }
 
   public withDispatcher(dispatcher: Node): HttpClientConfiguration {
     this.dispatcher = dispatcher;

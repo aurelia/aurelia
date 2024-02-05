@@ -1,7 +1,7 @@
 import { DI, IContainer, IIndexable, Registration, resolve } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { IFetchInterceptor } from './interfaces';
-import { CacheInterceptor, RetryInterceptor } from './interceptors';
+import { RetryInterceptor } from './interceptors';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
@@ -135,18 +135,18 @@ export class HttpClient {
         throw new Error('The retry interceptor must be the last interceptor defined.');
       }
 
-      const cacheInterceptorIndex = interceptors.findIndex(x => x instanceof CacheInterceptor);
-      if (cacheInterceptorIndex >= 0) {
-        if (retryInterceptorIndex > 0) {
-          if (retryInterceptorIndex < cacheInterceptorIndex - 1) {
-            throw new Error('The cache interceptor must be defined before the retry interceptor.');
-          }
-        } else {
-          if (cacheInterceptorIndex !== interceptors.length - 1) {
-            throw new Error('The cache interceptor is only allowed as the last interceptor or second last before the retry interceptor');
-          }
-        }
-      }
+      // const cacheInterceptorIndex = interceptors.findIndex(x => x instanceof CacheInterceptor);
+      // if (cacheInterceptorIndex >= 0) {
+      //   if (retryInterceptorIndex > 0) {
+      //     if (cacheInterceptorIndex < retryInterceptorIndex - 1) {
+      //       throw new Error('The cache interceptor must be defined before the retry interceptor.');
+      //     }
+      //   } else {
+      //     if (cacheInterceptorIndex !== interceptors.length - 1) {
+      //       throw new Error('The cache interceptor is only allowed as the last interceptor or second last before the retry interceptor');
+      //     }
+      //   }
+      // }
     }
 
     this.baseUrl = normalizedConfig.baseUrl;

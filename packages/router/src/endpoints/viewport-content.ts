@@ -272,45 +272,32 @@ export class ViewportContent extends EndpointContent {
     const parameters = this.instruction.typeParameters(this.router);
     const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
 
-    const hooks = this.getLifecycleHooks(instance, 'canLoad').map(hook => ((innerStep: Step) => {
-      const result = hook(instance, merged, this.instruction, this.navigation);
-      if (typeof result === 'boolean') {
-        if (result === false) {
-          innerStep.exit();
-        }
-        return result;
+    const hooks = this.getLifecycleHooks(instance, 'canLoad').map(hook => ((innerStep: Step | null) => {
+      if (innerStep?.previousValue === false) {
+        return false;
       }
-      if (typeof result === 'string') {
-        innerStep.exit();
-        return result;
-      }
-      return result as Promise<RoutingInstruction[]>;
+      // TODO: If requested, pass previous value into hook
+      return hook(instance, merged, this.instruction, this.navigation);
     }));
 
-    if (hooks.length !== 0) {
-      const hooksResult = Runner.run(null, ...hooks);
-
-      if (hooksResult !== true) {
-        if (hooksResult === false) {
+    if (instance.canLoad != null) {
+      hooks.push((innerStep: Step | null) => {
+        if (innerStep?.previousValue === false) {
           return false;
         }
-        if (typeof hooksResult === 'string') {
-          return hooksResult;
-        }
-        return hooksResult as Promise<RoutingInstruction[]>;
-      }
+        // TODO: If requested, pass previous value into hook
+        return instance.canLoad?.(merged, this.instruction, this.navigation);
+      });
     }
 
-    // No hook for component, we can load
-    if (instance.canLoad == null) {
+    if (hooks.length === 0) {
       return true;
     }
 
-    const result = instance.canLoad(merged, this.instruction, this.navigation);
-    if (typeof result === 'boolean' || typeof result === 'string') {
-      return result;
+    if (hooks.length === 1) {
+      return hooks[0](null);
     }
-    return result as Promise<RoutingInstruction[]>;
+    return Runner.run(null, ...hooks) as unknown as Promise<RoutingInstruction[]>;
   }
 
   /**
@@ -343,38 +330,35 @@ export class ViewportContent extends EndpointContent {
       });
     }
 
-    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step) => {
-      const result = hook(instance, this.instruction, navigation);
-      if (typeof result === 'boolean') {
-        if (result === false) {
-          innerStep.exit();
-        }
-        return result;
+    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
+      if (innerStep?.previousValue === false) {
+        return false;
       }
-      return result as Promise<boolean>;
+      return hook(instance, this.instruction, navigation);
     }));
 
-    if (hooks.length !== 0) {
-      const hooksResult = Runner.run(null, ...hooks);
-
-      if (hooksResult !== true) {
-        if (hooksResult === false) {
+    if (instance.canUnload != null) {
+      hooks.push((innerStep: Step | null) => {
+        if (innerStep?.previousValue === false) {
           return false;
         }
-        return hooksResult as Promise<boolean>;
+        // TODO: If requested, pass previous value into hook
+        const result = instance.canUnload?.(this.instruction, navigation);
+        if (typeof result !== 'boolean' && !(result instanceof Promise)) {
+          throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
       }
+        return result;
+      });
     }
 
-    // No hook in component, we can unload
-    if (!instance.canUnload) {
+    if (hooks.length === 0) {
       return true;
     }
 
-    const result = instance.canUnload(this.instruction, navigation);
-    if (typeof result !== 'boolean' && !(result instanceof Promise)) {
-      throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
+    if (hooks.length === 1) {
+      return hooks[0](null);
     }
-    return result;
+    return Runner.run(null, ...hooks) as boolean | Promise<boolean>;
   }
 
   /**

@@ -371,6 +371,7 @@ export class NavigationCoordinator {
     this.entities.forEach(entity => entity.endpoint.finalizeContentChange(this, null));
     this.completed = true;
     this.navigation.completed = true;
+    this.syncStates.clear();
   }
 
   /**
@@ -392,6 +393,13 @@ export class NavigationCoordinator {
     }).catch(error => { throw error; });
     this.completed = true;
     this.navigation.completed = true;
+    // Resolve awaiting processes
+    [...this.syncStates.values()].forEach(promise => {
+      if (promise.isPending) {
+        promise.resolve();
+      }
+    });
+    this.syncStates.clear();
   }
 
   /**

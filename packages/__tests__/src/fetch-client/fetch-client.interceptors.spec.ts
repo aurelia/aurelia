@@ -11,13 +11,18 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
   const originalFetchFn = window.fetch;
   let mockResponse: Response | Promise<Response>;
   let client: IHttpClient;
-  let callCount: number;
+  let fetchCallCount: number;
+  let mockFetch: typeof window.fetch | undefined;
 
   beforeEach(function () {
-    callCount = 0;
+    fetchCallCount = 0;
     mockResponse = new Response(null, { status: 200 });
+    mockFetch = undefined;
     window.fetch = function (...args: any[]) {
-      callCount++;
+      fetchCallCount++;
+      if (mockFetch) {
+        return mockFetch.apply(this, args);
+      }
       if (mockResponse instanceof Promise) {
         return mockResponse;
       }
@@ -78,17 +83,16 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
 
   it('runs requestError', async function () {
     let i = 0;
-    const interceptor: IFetchInterceptor = {
-      requestError() {
-        i = 1;
-        return mockResponse;
-      }
-    };
     client.configure(c => {
       c.withInterceptor({
         request: () => { throw new Error(); }
       });
-      c.withInterceptor(interceptor);
+      c.withInterceptor({
+        requestError() {
+          i = 1;
+          return mockResponse;
+        }
+      });
     });
 
     await client.fetch('/a');
@@ -164,12 +168,29 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
     assert.instanceOf(error, Error);
   });
 
+  it('runs response error when fetch is aborted', async function () {
+    let i = 0;
+    client.configure(c => c.withInterceptor({
+      responseError() {
+        i = 1;
+        return new Response(null, { status: 333 });
+      }
+    }));
+    mockFetch = originalFetchFn;
+
+    const controller = new AbortController();
+    const result = client.fetch('/path', { signal: controller.signal });
+    controller.abort();
+    assert.strictEqual((await result).status, 333);
+    assert.strictEqual(i, 1);
+  });
+
   it('allows short circuit of request by returning response in interceptor', async function () {
     client.configure(c => c.withInterceptor({
       request: () => mockResponse
     }));
     assert.strictEqual(await client.fetch('/a'), mockResponse);
-    assert.strictEqual(callCount, 0);
+    assert.strictEqual(fetchCallCount, 0);
   });
 
   it('reruns request when request is returned in response interceptor', async function () {
@@ -184,7 +205,7 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
     }));
 
     await client.fetch('/a');
-    assert.strictEqual(callCount, 2);
+    assert.strictEqual(fetchCallCount, 2);
   });
 
   it('reruns request when request is returned in responseError interceptor', async function () {
@@ -202,7 +223,36 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
     }));
 
     await client.fetch('chrome://path');
-    assert.strictEqual(callCount, 2);
+    assert.strictEqual(fetchCallCount, 2);
     assert.strictEqual(i, 1);
+  });
+
+  it('short circuits request interceptors when response is returned in a request interceptor chain', async function () {
+    client.configure(c => c.withInterceptor({
+      request: () => mockResponse
+    }).withInterceptor({
+      request: () => { throw new Error('should not run'); }
+    }));
+
+    await client.fetch('/a');
+  });
+
+  it('short circuits response interceptors when a request is returned in a response interceptor chain', async function () {
+    let i = 0;
+    client.configure(c => c.withInterceptor({
+      response: () => i++ === 0 ? new Request('/a') : mockResponse
+    }).withInterceptor({
+      response: () => {
+        if (i === 1) {
+          throw new Error('should not run');
+        } else {
+          return mockResponse;
+        }
+      }
+    }));
+
+    await client.fetch('/a');
+    assert.strictEqual(fetchCallCount, 2);
+    assert.strictEqual(i, 2);
   });
 });

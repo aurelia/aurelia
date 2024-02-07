@@ -183,11 +183,10 @@ export class HttpClient {
         if (result instanceof Response) {
           response = Promise.resolve(result);
         } else if (result instanceof Request) {
+          request = result;
           // if called directly, context of the fetch fn will be this HttpClient instance
           // which will throw illegal invokcation
-          const fetchFn = this._fetchFn;
-          request = result;
-          response = fetchFn(request);
+          response = this._fetchFn.call(void 0, request);
         } else {
           throw new Error(`An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [${result}]`);
         }
@@ -351,19 +350,20 @@ export class HttpClient {
   }
 
   private processRequest(request: Request, interceptors: IFetchInterceptor[]): Promise<Request | Response> {
-    return this._applyInterceptors(request, interceptors, 'request', 'requestError', this);
+    return this._applyInterceptors(request, interceptors, 'request', 'requestError', Request, this);
   }
 
   private processResponse(response: Promise<Response>, interceptors: IFetchInterceptor[], request: Request): Promise<Request | Response> {
-    return this._applyInterceptors(response, interceptors, 'response', 'responseError', request, this);
+    return this._applyInterceptors(response, interceptors, 'response', 'responseError', Response, request, this);
   }
 
   /** @internal */
   private _applyInterceptors(
-    input: Request | Promise<Response | Request>,
+    input: Request | Response | Promise<Response | Request>,
     interceptors: IFetchInterceptor[] | undefined,
     successName: 'request' | 'response',
     errorName: 'requestError' | 'responseError',
+    Type: typeof Request | typeof Response,
     ...interceptorArgs: unknown[]
   ): Promise<Request | Response> {
     return (interceptors ?? [])
@@ -373,10 +373,7 @@ export class HttpClient {
           const errorHandler = interceptor[errorName];
 
           return chain.then(
-            // todo: should the success handlers be short circuited if the type of value is not as expected?
-            //       example: request handler receiving a response instance or vice versa
-            //       at the moment, the interceptor is always called, even if the type of the value is not as expected
-            successHandler ? (value => successHandler.call(interceptor, value, ...interceptorArgs)) : identity,
+            successHandler ? (value => value instanceof Type ? successHandler.call(interceptor, value, ...interceptorArgs) : value) : identity,
             errorHandler ? (reason => errorHandler.call(interceptor, reason, ...interceptorArgs)) : thrower);
         },
         Promise.resolve(input)

@@ -29,15 +29,15 @@ import { Step } from './index';
  * of whether they have hooks or not).
  */
 export type NavigationState =
-  'guardedUnload' | // fulfilled when canUnload (if any) has been called
-  'guardedLoad' | // fulfilled when canLoad (if any) has been called
-  'guarded' | // fulfilled when check hooks canUnload and canLoad (if any) have been called
-  'unloaded' | // fulfilled when unloading (if any) has been called
-  'loaded' | // fulfilled when loading (if any) has been called
-  'routed' | // fulfilled when initial routing hooks (if any) have been called
-  'bound' | // fulfilled when bind has been called
-  'swapped' |
-  'completed' // fulfilled when everything is done
+  | 'guardedUnload' // fulfilled when canUnload (if any) has been called
+  | 'guardedLoad' // fulfilled when canLoad (if any) has been called
+  | 'guarded' // fulfilled when check hooks canUnload and canLoad (if any) have been called
+  | 'unloaded' // fulfilled when unloading (if any) has been called
+  | 'loaded' // fulfilled when loading (if any) has been called
+  | 'routed' // fulfilled when initial routing hooks (if any) have been called
+  | 'bound' // fulfilled when bind has been called
+  | 'swapped'
+  | 'completed' // fulfilled when everything is done
   ;
 
 /**
@@ -388,9 +388,11 @@ export class NavigationCoordinator {
       }
     });
     // TODO: Review this since it probably should happen in turn
-    this.router.navigator.cancel(this.navigation).then(() => {
-      this.navigation.process?.resolve(false);
-    }).catch(error => { throw error; });
+    this.router.navigator.cancel(this.navigation)
+      .then(() => {
+        this.navigation.process?.resolve(false);
+      })
+      .catch(error => { throw error; });
     this.completed = true;
     this.navigation.completed = true;
     // Resolve awaiting processes

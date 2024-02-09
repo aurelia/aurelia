@@ -58,7 +58,8 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  type Interceptor,
+  type IFetchInterceptor,
+  IFetchFn,
   // RetryConfiguration,
   // RetryableRequest,
   // ValidInterceptorMethodName,

@@ -255,4 +255,26 @@ describe('fetch-client/fetch-client.interceptors.spec.ts', function () {
     assert.strictEqual(fetchCallCount, 2);
     assert.strictEqual(i, 2);
   });
+
+  describe('with promises in interceptors', function () {
+    it('chains request interceptors', async function () {
+      let i = 0;
+      client.configure(c => c.withInterceptor({
+        request: (r) => new Promise(resolve => setTimeout(() => resolve(r), 10))
+      }).withInterceptor({
+        request: (r) => {
+          i = 1;
+          assert.instanceOf(r, Request);
+          return Promise.resolve(r);
+        }
+      }));
+
+      const result = client.fetch('/a');
+      assert.strictEqual(i, 0);
+      await new Promise(r => setTimeout(r, 9));
+      assert.strictEqual(i, 0);
+      await result;
+      assert.strictEqual(i, 1);
+    });
+  });
 });

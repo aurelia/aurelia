@@ -202,7 +202,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Boolean', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Boolean) {
           }
         }
@@ -274,7 +273,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Function', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Function) {
           }
         }
@@ -320,7 +318,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Number', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Number) {
           }
         }
@@ -339,7 +336,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Object', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Object) {
           }
         }
@@ -414,7 +410,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('String', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: String) {
           }
         }

@@ -1,38 +1,39 @@
-import { HttpClient } from './http-client';
-import { Interceptor, RetryableRequest, RetryConfiguration } from './interfaces';
+import { IPlatform, resolve } from '@aurelia/kernel';
+import { HttpClient } from '../http-client';
+import { IFetchInterceptor } from '../interfaces';
 
-export const retryStrategy: {
-  fixed: 0;
-  incremental: 1;
-  exponential: 2;
-  random: 3;
-} = {
+/**
+ * The strategy to use when retrying requests.
+ */
+export const RetryStrategy = /*@__PURE__*/Object.freeze({
   fixed: 0,
   incremental: 1,
   exponential: 2,
   random: 3
-};
+});
 
-const defaultRetryConfig: RetryConfiguration = {
+const defaultRetryConfig: IRetryConfiguration = {
   maxRetries: 3,
   interval: 1000,
-  strategy: retryStrategy.fixed
+  strategy: RetryStrategy.fixed
 };
 
 /**
  * Interceptor that retries requests on error, based on a given RetryConfiguration.
  */
-export class RetryInterceptor implements Interceptor {
-  public retryConfig: RetryConfiguration;
+export class RetryInterceptor implements IFetchInterceptor {
+  /** @internal */
+  private readonly p = resolve(IPlatform);
+  public retryConfig: IRetryConfiguration;
 
   /**
    * Creates an instance of RetryInterceptor.
    */
-  public constructor(retryConfig?: RetryConfiguration) {
-    this.retryConfig = {...defaultRetryConfig, ...(retryConfig !== undefined ? retryConfig : {})};
+  public constructor(retryConfig?: IRetryConfiguration) {
+    this.retryConfig = {...defaultRetryConfig, ...(retryConfig ?? {})};
 
-    if (this.retryConfig.strategy === retryStrategy.exponential &&
-      (this.retryConfig.interval as number) <= 1000) {
+    if (this.retryConfig.strategy === RetryStrategy.exponential
+      && (this.retryConfig.interval as number) <= 1000) {
       throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
     }
   }
@@ -43,7 +44,7 @@ export class RetryInterceptor implements Interceptor {
    * @param request - The request to be sent.
    * @returns The existing request, a new request or a response; or a Promise for any of these.
    */
-  public request(request: RetryableRequest): RetryableRequest {
+  public request(request: IRetryableRequest): IRetryableRequest {
     if (!request.retryConfig) {
       request.retryConfig = {...this.retryConfig};
       request.retryConfig.counter = 0;
@@ -61,9 +62,9 @@ export class RetryInterceptor implements Interceptor {
    * @param response - The response.
    * @returns The response; or a Promise for one.
    */
-  public response(response: Response, request: RetryableRequest): Response {
+  public response(response: Response, request: IRetryableRequest): Response {
     // retry was successful, so clean up after ourselves
-    Reflect.deleteProperty(request, 'retryConfig');
+    delete request.retryConfig;
     return response;
   }
 
@@ -76,19 +77,18 @@ export class RetryInterceptor implements Interceptor {
    * previous interceptor.
    * @returns The response of the retry; or a Promise for one.
    */
-
-  public responseError(error: Response, request: RetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
-    const { retryConfig } = request as { retryConfig: Required<RetryConfiguration> };
+  public responseError(error: Response, request: IRetryableRequest, httpClient: HttpClient): Response | Promise<Response> {
+    const { retryConfig } = request as { retryConfig: Required<IRetryConfiguration> };
     const { requestClone } = retryConfig;
     return Promise.resolve().then(() => {
       if (retryConfig.counter < retryConfig.maxRetries) {
-        const result = retryConfig.doRetry !== undefined ? retryConfig.doRetry(error, request) : true;
+        const result = retryConfig.doRetry != null ? retryConfig.doRetry(error, request) : true;
 
         return Promise.resolve(result).then(doRetry => {
           if (doRetry) {
             retryConfig.counter++;
             const delay = calculateDelay(retryConfig);
-            return new Promise(resolve => setTimeout(resolve, !isNaN(delay) ? delay : 0))
+            return new Promise(resolve => this.p.setTimeout(resolve, !isNaN(delay) ? delay : 0))
               .then(() => {
                 const newRequest = requestClone.clone();
                 if (typeof (retryConfig.beforeRetry) === 'function') {
@@ -97,39 +97,39 @@ export class RetryInterceptor implements Interceptor {
                 return newRequest;
               })
               .then(newRequest => {
-                const retryableRequest: RetryableRequest = {...newRequest, retryConfig};
+                const retryableRequest: IRetryableRequest = {...newRequest, retryConfig };
                 return httpClient.fetch(retryableRequest);
               });
           }
 
           // no more retries, so clean up
-          Reflect.deleteProperty(request, 'retryConfig');
+          delete request.retryConfig;
           throw error;
         });
       }
       // no more retries, so clean up
-      Reflect.deleteProperty(request, 'retryConfig');
+      delete request.retryConfig;
       throw error;
     });
   }
 }
 
-function calculateDelay(retryConfig: RetryConfiguration): number {
-  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<RetryConfiguration>;
+function calculateDelay(retryConfig: IRetryConfiguration): number {
+  const { interval, strategy, minRandomInterval, maxRandomInterval, counter } = retryConfig as Required<IRetryConfiguration>;
 
   if (typeof (strategy) === 'function') {
     return (retryConfig.strategy as (retryCount: number) => number)(counter);
   }
 
   switch (strategy) {
-    case (retryStrategy.fixed):
-      return retryStrategies[retryStrategy.fixed](interval);
-    case (retryStrategy.incremental):
-      return retryStrategies[retryStrategy.incremental](counter, interval);
-    case (retryStrategy.exponential):
-      return retryStrategies[retryStrategy.exponential](counter, interval);
-    case (retryStrategy.random):
-      return retryStrategies[retryStrategy.random](counter, interval, minRandomInterval, maxRandomInterval);
+    case (RetryStrategy.fixed):
+      return retryStrategies[RetryStrategy.fixed](interval);
+    case (RetryStrategy.incremental):
+      return retryStrategies[RetryStrategy.incremental](counter, interval);
+    case (RetryStrategy.exponential):
+      return retryStrategies[RetryStrategy.exponential](counter, interval);
+    case (RetryStrategy.random):
+      return retryStrategies[RetryStrategy.random](counter, interval, minRandomInterval, maxRandomInterval);
     default:
       throw new Error('Unrecognized retry strategy');
   }
@@ -155,3 +155,18 @@ const retryStrategies = [
   (retryCount: number, interval: number) => number,
   (retryCount: number, interval: number, minRandomInterval?: number, maxRandomInterval?: number) => number
 ];
+
+export type IRetryableRequest = Request & { retryConfig?: IRetryConfiguration };
+
+export interface IRetryConfiguration {
+  maxRetries: number;
+  interval?: number;
+  strategy?: number | ((retryCount: number) => number);
+  minRandomInterval?: number;
+  maxRandomInterval?: number;
+  counter?: number;
+  requestClone?: Request;
+  doRetry?(response: Response, request: Request): boolean | Promise<boolean>;
+  beforeRetry?(request: Request, client: HttpClient): Request | Promise<Request>;
+}
+

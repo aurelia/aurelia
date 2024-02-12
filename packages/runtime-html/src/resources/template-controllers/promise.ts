@@ -160,6 +160,46 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 }
 
+function createCancelablePromise<T>(promise: () => Promise<T>) {
+  let started = false;
+  let running = false;
+  let resolve: (value: unknown) => void;
+  let reject: (reason: unknown) => void;
+  const wrapped = new Promise<unknown>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  const cancel = () => {
+    started = true;
+    resolve(null);
+    return wrapped;
+  };
+
+  const run = async () => {
+    if (!started) {
+      started = true;
+      try {
+        running = true;
+        resolve(promise());
+      } catch (err) {
+        reject(err);
+      } finally {
+        running = false;
+      }
+    }
+    return wrapped;
+  };
+
+  return Object.assign(wrapped, {
+    promise: wrapped,
+    get started() { return started; },
+    get running() { return running; },
+    run,
+    cancel
+  });
+}
+
 @templateController(tsPending)
 export class PendingTemplateController implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed

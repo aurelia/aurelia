@@ -33,11 +33,7 @@ export class MyComponent {
 
 ## Hydrating
 
-The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It runs synchronously right after the `define` hook and is still considered part of "construction".
-
-From a caching perspective, it has a direct 1-1 parity with the `define` hook: the hydration is cached per a unique definition that is returned from `define` (or per parent definition, if no new definition is returned from `define`).
-
-Therefore, if you need true per-instance contextual registrations (which should be rare), make sure to bust the cache per instance by returning a clone from the `define` hook.
+The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It is still considered part of "construction".
 
 ```typescript
 export class MyComponent {
@@ -49,7 +45,7 @@ export class MyComponent {
 
 ## Hydrated
 
-The "hydrated" hook is a good place to influence how child components are constructed and rendered contextually. It runs synchronously after the definition is compiled (which happens synchronously after `hydrating`) and, like `hydrating`, can still be considered part of "construction" and has a direct 1-1 parity with the `define` hook from a caching perspective.
+The "hydrated" hook is a good place to influence how child components are constructed and rendered contextually. It runs synchronously after the definition is compiled (which happens synchronously after `hydrating`) and, like `hydrating`, can still be considered part of "construction".
 
 {% hint style="info" %}
 This is the last opportunity to add DI registrations specifically for child components in this container or any other way, affecting what is rendered and how it is rendered.
@@ -65,7 +61,7 @@ export class MyComponent {
 
 ## Created
 
-The "created" hook is the last hook that can be considered part of "construction". It is called (synchronously) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the created hooks execute bottom-up, from child to parent (whereas `define`, `hydrating` and `hydrated` are all top-down). This is also the last hook that runs only once per instance.
+The "created" hook is the last hook that can be considered part of "construction". It is called (synchronously) after this component is hydrated, which includes resolving, compiling and hydrating child components. In terms of the component hierarchy, the created hooks execute bottom-up, from child to parent (whereas `hydrating` and `hydrated` are all top-down). This is also the last hook that runs only once per instance.
 
 Here you can perform any last-minute work that requires having all child components hydrated, which might affect the `bind` and `attach` lifecycles.
 

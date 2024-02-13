@@ -1,2 +1,0 @@
-# @aurelia/router-lite
-

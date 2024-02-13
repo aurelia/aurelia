@@ -43,7 +43,7 @@
 * [Slotted content](components/shadow-dom-and-slots.md)
 * [Scope and context](components/scope-and-binding-context.md)
 * [CustomElement API](components/customelement-api.md)
-* Template compilation
+* [Template compilation](components/template-compilation/README.md)
   * [processContent](developer-guides/scenarios/process-content.md)
   * [Extending templating syntax](developer-guides/scenarios/extending-templating-syntax.md)
   * [Modifying template parsing with AttributePattern](developer-guides/scenarios/attributepattern.md)
@@ -53,8 +53,8 @@
 
 ## Getting to know Aurelia
 
-* Routing
-  * @aurelia/router
+* [Routing](getting-to-know-aurelia/routing/README.md)
+  * [@aurelia/router](getting-to-know-aurelia/routing/aurelia-router/README.md)
     * [Getting Started](routing/getting-started.md)
     * [Creating Routes](routing/creating-routes.md)
     * [Routing Lifecycle](routing/routing-lifecycle.md)
@@ -65,7 +65,7 @@
     * [Route Events](routing/route-events.md)
     * [Router Tutorial](routing/router-tutorial.md)
     * [Router Recipes](routing/router-recipes.md)
-  * @aurelia/router-lite
+  * [@aurelia/router-lite](getting-to-know-aurelia/routing/aurelia-router-lite/README.md)
     * [Getting started](router-lite/getting-started.md)
     * [Router configuration](router-lite/router-configuration.md)
     * [Configuring routes](router-lite/configuring-routes.md)

@@ -5,7 +5,7 @@ Every component instance has a lifecycle that you can tap into. This makes it ea
 For example, you may want to execute some code as soon as your component properties are bound but before the component is first rendered. Or, you may want to run some code to manipulate the DOM as soon as possible after your element is attached to the document.
 
 {% hint style="info" %}
-Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs (`binding/unbinding`, `attaching/detaching`) to clean up any resources you have allocated.&#x20;
+Every lifecycle callback is optional. Implement whatever makes sense for your component, but don't feel obligated to implement any of them if they aren't needed for your scenario. Some of the lifecycle callbacks make sense to implement in pairs (`binding/unbinding`, `attaching/detaching`) to clean up any resources you have allocated.
 {% endhint %}
 
 {% hint style="warning" %}
@@ -31,27 +31,11 @@ export class MyComponent {
 }
 ```
 
-## Define
-
-The "define" hook is the go-to hook for dynamic contextual composition. It runs just after the constructor and can be treated like a late interceptor for the `@customElement` decorator / `CustomElement.define` api: it allows you to change the `CustomElementDefinition` created by the framework before it is compiled, as well as making certain changes to the controller (for example, wrapping or overriding the `scope`).
-
-You'll have the compiled definition of the parent (owning) element available and the custom element's hydration context. The returned definition is the cache key for the compiled definition.
-
-To make a change only the first time the hook is invoked for an instance underneath a particular parent definition (affecting all instances of the type underneath that parent definition), mutate and return the existing definition; to make a contextual change (that needs to be re-compiled per instance), clone the definition before mutating and returning it.
-
-```typescript
-export class MyComponent {
-    define(controller: IDryCustomElementController<this>, hydrationContext: IHydrationContext<unknown>, definition: CustomElementDefinition<Constructable<{}>>) {
-
-    }
-}
-```
-
 ## Hydrating
 
 The "hydrating" hook allows you to add contextual DI registrations (to `controller.container`) to influence which resources are resolved when the template is compiled. It runs synchronously right after the `define` hook and is still considered part of "construction".
 
-From a caching perspective, it has a direct 1-1 parity with the `define` hook: the hydration is cached per a unique definition that is returned from `define` (or per parent definition, if no new definition is returned from `define`).&#x20;
+From a caching perspective, it has a direct 1-1 parity with the `define` hook: the hydration is cached per a unique definition that is returned from `define` (or per parent definition, if no new definition is returned from `define`).
 
 Therefore, if you need true per-instance contextual registrations (which should be rare), make sure to bust the cache per instance by returning a clone from the `define` hook.
 
@@ -65,7 +49,7 @@ export class MyComponent {
 
 ## Hydrated
 
-The "hydrated" hook is a good place to influence how child components are constructed and rendered contextually. It runs synchronously after the definition is compiled (which happens synchronously after `hydrating`) and, like `hydrating`, can still be considered part of "construction" and has a direct 1-1 parity with the `define` hook from a caching perspective.&#x20;
+The "hydrated" hook is a good place to influence how child components are constructed and rendered contextually. It runs synchronously after the definition is compiled (which happens synchronously after `hydrating`) and, like `hydrating`, can still be considered part of "construction" and has a direct 1-1 parity with the `define` hook from a caching perspective.
 
 {% hint style="info" %}
 This is the last opportunity to add DI registrations specifically for child components in this container or any other way, affecting what is rendered and how it is rendered.
@@ -125,7 +109,7 @@ export class MyComponent {
 
 ## Attaching
 
-If your component has a method named "attaching, " the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries.&#x20;
+If your component has a method named "attaching, " the framework will invoke it when it has attached the component's HTML element. You can queue animations and/or initialize certain 3rd party libraries.
 
 {% hint style="info" %}
 If you return a `Promise` from this method, it will not suspend the binding/attaching of child components, but it will be awaited before the `attached` hook is invoked.

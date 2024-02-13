@@ -508,14 +508,13 @@ Each dialog instance goes through the full lifecycle once.
 1. `constructor()`
 2. `.canActivate()` - `dialog` _specific_
 3. `.activate()` - `dialog` _specific_
-4. `define`
-5. `hydrating`
-6. `hydrated`
-7. `.created()`
-8. `.binding()`
-9. `.bound()`
-10. `attaching`
-11. `attached`
+4. `hydrating`
+5. `hydrated`
+6. `.created()`
+7. `.binding()`
+8. `.bound()`
+9. `attaching`
+10. `attached`
 
 \--- deactivation phase:
 

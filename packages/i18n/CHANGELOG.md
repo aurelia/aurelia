@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Features:
+
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* **i18n:** ability to unsubscribe locale change ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+* ***:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Refactorings:
+
+* **controller:** remove define lifecycle hook (#1899) ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

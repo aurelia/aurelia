@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Bug Fixes:
+
+* **convention:** no longer process shadowdom + <slot> (#1889) ([e29bbef](https://github.com/aurelia/aurelia/commit/e29bbef))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

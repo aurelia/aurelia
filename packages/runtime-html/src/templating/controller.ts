@@ -1371,8 +1371,8 @@ const defaultShadowOptions = {
   mode: 'open' as 'open' | 'closed'
 };
 
-const vmkCe = 'customElement' as const;
-export const vmkCa = 'customAttribute' as const;
+/** @internal */ export const vmkCe = 'customElement' as const;
+/** @internal */ export const vmkCa = 'customAttribute' as const;
 const vmkSynth = 'synthetic' as const;
 export type ViewModelKind = typeof vmkCe | typeof vmkCa | typeof vmkSynth;
 

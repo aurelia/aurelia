@@ -1,3 +1,4 @@
+import { resolve } from '@aurelia/kernel';
 import {
   CustomElement,
   customElement,
@@ -415,7 +416,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   // they may change and should the tests.
   // The tests below shouldn't dictate the direction of <au-compose/>
   describe('host/renderlocation injection', function () {
-    it('injects newly created host when composing custom element', async function () {
+    it('injects newly created host when composing custom element', function () {
       @customElement({
         name: 'el',
         template: '<div>Hello world from El</div>'
@@ -425,25 +426,21 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         public constructor(public node: INode) {}
       }
 
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost } = createFixture(
         `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
       );
 
-      await startPromise;
-
       assert.visibleTextEqual(appHost, 'Hello world from El');
       assert.html.innerEqual(appHost, '<el><div>Hello world from El</div></el>');
 
       const el = CustomElement.for(appHost.querySelector('el'), { name: 'el' }).viewModel as El;
       assert.strictEqual(el.node, appHost.querySelector('el'));
-
-      await tearDown();
     });
 
-    it('injects newly created host when composing different custom element', async function () {
+    it('injects newly created host when composing different custom element', function () {
       @customElement({
         name: 'child',
         template: '<div>Hello world from Child</div>'
@@ -462,14 +459,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         public constructor(public node: INode) {}
       }
 
-      const { ctx, appHost, component, startPromise, tearDown } = createFixture(
+      const { ctx, appHost, component } = createFixture(
         `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = Child;
         }
       );
-
-      await startPromise;
 
       assert.visibleTextEqual(appHost, 'Hello world from Child');
       assert.html.innerEqual(appHost, '<child><div>Hello world from Child</div></child>');
@@ -485,40 +480,9 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       const parentElHost = appHost.querySelector('parent');
       const parent = CustomElement.for(parentElHost, { name: 'parent' }).viewModel as Parent;
       assert.strictEqual(parent.node, parentElHost);
-
-      await tearDown();
     });
 
-    it('injects <au-compose/> element itself when composing POJO classes', async function () {
-      let node: INode;
-      class El {
-        public static inject = [INode];
-        public constructor(public el: INode) {
-          node = el;
-        }
-      }
-
-      const { appHost, startPromise, tearDown } = createFixture(
-        `<au-compose component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }">`,
-        class App {
-          public El = El;
-        }
-      );
-
-      await startPromise;
-
-      assert.visibleTextEqual(appHost, 'Hello');
-      assert.html.innerEqual(
-        appHost,
-        '<au-compose><div>Hello</div></au-compose>'
-      );
-
-      assert.strictEqual(node, appHost.querySelector('au-compose'));
-
-      await tearDown();
-    });
-
-    it('injects render location when composing POJO classes with <au-compose containerless/>', async function () {
+    it('injects render location when composing POJO classes with <au-compose containerless/>', function () {
       let loc: IRenderLocation;
       class El {
         public static inject = [IRenderLocation];
@@ -527,32 +491,96 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       }
 
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost, assertHtml } = createFixture(
         `<au-compose component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
       );
 
-      await startPromise;
-
       assert.visibleTextEqual(appHost, 'Hello');
-      assert.html.innerEqual(
-        appHost,
-        '<div>Hello</div>'
+      assert.strictEqual(loc, appHost.lastChild.previousSibling);
+      assertHtml('<!--au-start--><!--au-start--><div>Hello</div><!--au-end--><!--au-end-->');
+    });
+
+    it('injects newly created element when composing POJO with tag bindable', function () {
+      let host: INode;
+      class El {
+        constructor() {
+          host = resolve(INode);
+        }
+      }
+
+      const { appHost, assertHtml, assertText } = createFixture(
+        `<au-compose tag="p" component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }" containerless>`,
+        class App {
+          El = El;
+        }
       );
 
-      assert.strictEqual(loc, appHost.lastChild);
-      assert.strictEqual(appHost.innerHTML, '<!--au-start--><div>Hello</div><!--au-end-->');
+      assertText('Hello');
+      assert.strictEqual(host, appHost.querySelector('p'));
+      assertHtml('<!--au-start--><p><div>Hello</div></p><!--au-end-->');
+    });
 
-      await tearDown();
+    it('injects different host for POJO when tag binding changes', function () {
+      let host: INode;
+      class El {
+        constructor() {
+          host = resolve(INode);
+        }
+      }
+
+      const { component, appHost, assertHtml, assertText } = createFixture(
+        `<au-compose tag.bind="i ? 'h2' : 'h1'" component.bind="El" template="<div>Hello</div>" model.bind="{ index: 0 }" containerless>`,
+        class App {
+          i = 0;
+          El = El;
+        }
+      );
+
+      assertText('Hello');
+      assert.strictEqual(host, appHost.querySelector('h1'));
+      assertHtml('<!--au-start--><h1><div>Hello</div></h1><!--au-end-->');
+
+      component.i = 1;
+      assert.strictEqual(host, appHost.querySelector('h2'));
+      assertHtml('<!--au-start--><h2><div>Hello</div></h2><!--au-end-->');
+    });
+
+    it('ignores tag binding change when composing custom element', function () {
+      let compositionCount = 0;
+      @customElement({
+        name: 'el',
+        template: '<div>Hello world from El</div>'
+      })
+      class El {}
+
+      const { component, assertHtml, assertText } = createFixture(
+        `<au-compose tag.bind="i ? 'h2' : 'h1'" component.bind="El" model.bind="{ index: 0 }" containerless composition.bind="composed">`,
+        class App {
+          i = 0;
+          El = El;
+          set composed(_value: ICompositionController) {
+            compositionCount++;
+          }
+        }
+      );
+
+      assertText('Hello world from El');
+      assertHtml('<!--au-start--><el><div>Hello world from El</div></el><!--au-end-->');
+      // initial binding 1 + initial composition 1
+      assert.strictEqual(compositionCount, 2);
+
+      component.i = 1;
+      assert.strictEqual(compositionCount, 2);
     });
   });
 
-  describe('containerless on usage: <au-compose containerless />', function () {
-    it('works with containerless on the host element', async function () {
+  describe('composition scenarios', function () {
+    it('calls activate with the right model', function () {
       const models: unknown[] = [];
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost } = createFixture(
         `<au-compose component.bind="{ activate }" template="<div>Hello world</div>" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {
@@ -561,13 +589,9 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      await startPromise;
-
       assert.deepStrictEqual(models, [{ index: 0 }]);
       assert.visibleTextEqual(appHost, 'Hello world');
       assert.html.innerEqual(appHost, '<div>Hello world</div>');
-
-      await tearDown();
     });
 
     it('composes non-custom element mutiple times', async function () {
@@ -1058,10 +1082,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           });
         }
       );
-      assert.strictEqual(appHost.innerHTML, '<au-compose><!--au-start--><button>click me</button><!--au-end--></au-compose>');
+      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
-      assert.strictEqual(appHost.innerHTML, '<au-compose></au-compose>');
+      // when there's no template it'll just add a render location for the composition
+      // and doesn't do anything beside that
+      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
     });
 
     it('composes containerless inside a containerless <au-compose>', function () {
@@ -1078,7 +1104,9 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
-      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-end-->');
+      // when there's no template it'll just add a render location for the composition
+      // and doesn't do anything beside that
+      assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
     });
   });
 
@@ -1131,7 +1159,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       });
 
       assertText('hello world');
-      assertHtml('<au-compose><el>hello world</el></au-compose>');
+      assertHtml('<!--au-start--><el>hello world</el><!--au-end-->');
     });
 
     it('passes through combination of normal and bindable attrs', function () {
@@ -1151,7 +1179,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertText('hello world');
       // .bind on id.bind causes the value to be set during .bind
       // which is after class attr, which is during rendering (composition)
-      assertHtml('<au-compose><el class="el" id="1">hello world</el></au-compose>');
+      assertHtml('<!--au-start--><el class="el" id="1">hello world</el><!--au-end-->');
     });
 
     it('switches & cleans up after switching custom element view model', function () {
@@ -1187,7 +1215,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       component.comp = El2;
       assertText('1 hey there hello world');
-      assertHtml('<au-compose><el-2 class="el">1 hey there hello world</el-2></au-compose>');
+      assertHtml('<!--au-start--><el-2 class="el">1 hey there hello world</el-2><!--au-end-->');
       // all bindings to old vm were unbound
       assert.strictEqual(el1MessageCount, 0);
     });

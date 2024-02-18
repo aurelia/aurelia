@@ -722,15 +722,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '');
     });
 
-    it('discards stale composition', async function () {
-      const { appHost, ctx, component, startPromise, tearDown } = createFixture(
+    it('discards stale composition', function () {
+      const { appHost, ctx, component } = createFixture(
         `<au-compose component.bind="El" template.bind="\`<div>$\\{text}</div>\`" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = { text: 'Hello' };
         }
       );
-
-      await startPromise;
 
       assert.visibleTextEqual(appHost, 'Hello');
       assert.html.innerEqual(appHost, '<div>Hello</div>');
@@ -740,8 +738,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       ctx.platform.domWriteQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello 33');
       assert.html.innerEqual(appHost, '<div>Hello 33</div>');
-
-      await tearDown();
     });
   });
 
@@ -1034,10 +1030,10 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       }, class Element1 {
         public host: HTMLElement;
         public async attaching() {
-          return this.host.animate([{ color: 'red' }, { color: 'blue' }], 50).finished;
+          return new Promise(r => setTimeout(r, 50));
         }
         public async detaching() {
-          return this.host.animate([{ color: 'blue' }, { color: 'green' }], { duration: 50 }).finished;
+          return new Promise(r => setTimeout(r, 50));
         }
       });
       const { component, startPromise } = createFixture(
@@ -1123,13 +1119,11 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         assertAttr('el', 'style', 'width: 20%;');
     });
 
-    // the following test demonstrates a behavior that is currently not supported
-    // eslint-disable-next-line mocha/no-skipped-tests
-    it.skip('retains attrs when composing non custom element', function () {
-      const { assertAttr } = createFixture('<au-compose style="width: 20%" component.bind="{}">', class {
+    it('transfers attrs when composing non custom element', function () {
+      const { assertAttr } = createFixture('<au-compose style="width: 20%" tag="p" component.bind="{}">', class {
       });
 
-      assertAttr('au-compose', 'style', 'width: 20%;');
+      assertAttr('p', 'style', 'width: 20%;');
     });
 
     it('passes through ref binding', function () {
@@ -1218,6 +1212,33 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><el-2 class="el">1 hey there hello world</el-2><!--au-end-->');
       // all bindings to old vm were unbound
       assert.strictEqual(el1MessageCount, 0);
+    });
+
+    it('spreads the right attribute on non-custom-element composition tag change', function () {
+      const { component, assertHtml } = createFixture('<au-compose tag.bind="i ? `a` : `b`" component.bind="{ }" download.bind="download">', class {
+        i = 0;
+        download = true;
+      });
+
+      assertHtml('<!--au-start--><b></b><!--au-end-->');
+      component.i = 1;
+
+      assertHtml('<!--au-start--><a download="true"></a><!--au-end-->');
+    });
+
+    // surrogate is not supported on non custom element composition
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip('binds attributes with right scope on non custom element composition tag change', function () {
+      const { component, assertHtml } = createFixture('<au-compose tag.bind="i ? `a` : `b`" component.bind="{ d: download }" template.bind="view">', class {
+        i = 0;
+        download = true;
+        view = '<template download.bind=d>Hey';
+      });
+
+      assertHtml('<!--au-start--><b>Hey</b><!--au-end-->');
+      component.i = 1;
+
+      assertHtml('<!--au-start--><a download="true">Hey</a><!--au-end-->');
     });
 
     it('passes attributes into ...$attrs', function () {

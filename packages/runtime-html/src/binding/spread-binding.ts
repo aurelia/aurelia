@@ -102,12 +102,12 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   /** @internal */ private readonly _innerBindings: IBinding[] = [];
+  /** @internal */ private readonly _hydrationContext: IHydrationContext<object>;
 
   public constructor(
-      /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
+    hydrationContext: IHydrationContext<object>,
   ) {
-    this.$controller = _hydrationContext.controller;
-    this.locator = this.$controller.container;
+    this.locator = (this.$controller = (this._hydrationContext = hydrationContext).controller).container;
   }
 
   public get(key: Key) {

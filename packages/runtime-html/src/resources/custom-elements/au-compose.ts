@@ -125,7 +125,6 @@ export class AuCompose {
   public propertyChanged(name: ChangeSource): void {
     if (name === 'composing' || name === 'composition') return;
     if (name === 'model' && this._composition != null) {
-      // eslint-disable-next-line
       this._composition.update(this.model);
       return;
     }
@@ -205,7 +204,6 @@ export class AuCompose {
     const { _container: container, $controller, _location: loc, _instruction } = this;
     const vmDef = this.getDef(component);
     const childCtn: IContainer = container.createChild();
-    // let compositionHost: HTMLElement | IRenderLocation;
 
     const compositionHost = this._platform.document.createElement(vmDef == null ? this.tag ?? 'div' : vmDef.name);
 
@@ -233,13 +231,13 @@ export class AuCompose {
       }
     };
 
-    const comp = this._getComp(childCtn, component, compositionHost, compositionLocation);
+    const comp = this._createCompInstance(childCtn, component, compositionHost, compositionLocation);
     const compose: () => ICompositionController = () => {
+      const aucomposeCapturedAttrs = _instruction.captures! ?? emptyArray;
       // custom element based composition
       if (vmDef !== null) {
-        const composeCapturedAttrs = _instruction.captures! ?? emptyArray;
         const capture = vmDef.capture;
-        const [capturedBindingAttrs, transferedToHostBindingAttrs] = composeCapturedAttrs
+        const [capturedBindingAttrs, transferedToHostBindingAttrs] = aucomposeCapturedAttrs
           .reduce((attrGroups: [AttrSyntax[], AttrSyntax[]], attr) => {
             const shouldCapture = !(attr.target in vmDef.bindables)
               && (capture === true
@@ -259,22 +257,7 @@ export class AuCompose {
           vmDef,
           compositionLocation
         );
-        const transferHydrationContext = new HydrationContext(
-          $controller,
-          { projections: null, captures: transferedToHostBindingAttrs},
-          this._hydrationContext.parent
-        );
-
-        const bindings = SpreadBinding.create(
-          transferHydrationContext,
-          compositionHost,
-          vmDef,
-          this._rendering,
-          this._compiler,
-          this._platform,
-          this._exprParser,
-          this._observerLocator,
-        );
+        const bindings = this._createSpreadBindings(compositionHost, vmDef, transferedToHostBindingAttrs);
         // Theoretically these bindings aren't bindings of the composed custom element
         // Though they are meant to be activated (bound)/ deactivated (unbound) together
         // with the custom element controller, so it's practically ok to let the composed
@@ -291,20 +274,10 @@ export class AuCompose {
           ),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
-          (model) => comp.activate?.(model) as MaybePromise<void>,
+          (model) => comp.activate?.(model),
           context,
         );
       } else {
-        if (__DEV__) {
-          const captures = this._instruction.captures ?? [];
-          if (captures.length > 0) {
-            // eslint-disable-next-line no-console
-            console.warn(`[DEV:aurelia]: <au-compose> ignored bindings ${captures.map(({ rawName, rawValue }) => `${rawName}="${rawValue}"`).join(", ")}`
-              + ' in composition without a custom element definition as component.'
-            );
-          }
-        }
-
         const targetDef = CustomElementDefinition.create({
           name: CustomElement.generateName(),
           template: template,
@@ -318,9 +291,11 @@ export class AuCompose {
           ? Scope.fromParent(this.parent.scope, comp)
           : Scope.create(comp);
 
-        if (compositionLocation == null) {
-          controller.setHost(compositionHost);
-        } else {
+        const spreadBindings = this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs);
+        spreadBindings.forEach(b => controller.addBinding(b));
+
+        controller.setHost(compositionHost);
+        if (compositionLocation != null) {
           controller.setLocation(compositionLocation);
         }
 
@@ -336,7 +311,7 @@ export class AuCompose {
           ),
           // casting is technically incorrect
           // but it's ignored in the caller anyway
-          (model) => comp.activate?.(model) as MaybePromise<void>,
+          (model) => comp.activate?.(model),
           context,
         );
       }
@@ -351,7 +326,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  private _getComp(
+  private _createCompInstance(
     container: IContainer,
     comp: Constructable | object | undefined,
     host: HTMLElement | IRenderLocation,
@@ -387,6 +362,25 @@ export class AuCompose {
       ? CustomElement.getDefinition(Ctor)
       : null;
   }
+
+  /** @internal */
+  private _createSpreadBindings(host: HTMLElement, def: CustomElementDefinition, capturedAttrs: AttrSyntax[]) {
+    const transferHydrationContext = new HydrationContext(
+      this.$controller,
+      { projections: null, captures: capturedAttrs },
+      this._hydrationContext.parent
+    );
+    return SpreadBinding.create(
+      transferHydrationContext,
+      host,
+      def,
+      this._rendering,
+      this._compiler,
+      this._platform,
+      this._exprParser,
+      this._observerLocator,
+    );
+  }
 }
 
 customElement({
@@ -407,7 +401,7 @@ export interface ICompositionController {
   // while when the value of the @bindables changes, initiator should be
   // the controller wrapped in this composition controller
   deactivate(detachInitator?: IHydratedController): void | Promise<void>;
-  update(model: unknown): void | Promise<void>;
+  update(model: unknown): unknown;
 }
 
 class CompositionContextFactory {
@@ -471,7 +465,7 @@ class CompositionController implements ICompositionController {
     public readonly controller: ISyntheticView | ICustomElementController,
     private readonly start: (attachInitiator?: IHydratedController) => void | Promise<void>,
     private readonly stop: (detachInitator?: IHydratedController) => void | Promise<void>,
-    public readonly update: (model: unknown) => void | Promise<void>,
+    public readonly update: (model: unknown) => unknown,
     public readonly context: CompositionContext,
   ) {
 

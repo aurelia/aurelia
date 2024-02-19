@@ -291,11 +291,13 @@ export class AuCompose {
           ? Scope.fromParent(this.parent.scope, comp)
           : Scope.create(comp);
 
-        const spreadBindings = this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs);
-        spreadBindings.forEach(b => controller.addBinding(b));
-
         controller.setHost(compositionHost);
-        if (compositionLocation != null) {
+        if (compositionLocation == null) {
+          // only spread the bindings if there is an actual host
+          // otherwise we may accidentally do unnecessary work
+          const spreadBindings = this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs);
+          spreadBindings.forEach(b => controller.addBinding(b));
+        } else {
           controller.setLocation(compositionLocation);
         }
 

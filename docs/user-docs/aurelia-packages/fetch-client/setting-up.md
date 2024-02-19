@@ -1,4 +1,4 @@
-# Using the fetch client
+# Setup and Configuration
 
 The Fetch Client can be used in a couple of different ways. You can create a new instance using the `new` keyboard or use dependency injection to create an instance.
 
@@ -25,6 +25,8 @@ httpClient.get('users')
 
 You can inject a new instance into your component or service class by injecting the Fetch client with the `newInstanceOf` decorator. This will ensure our component gets a new instance of the Fetch client.
 
+{% tabs %}
+{% tab title="TypeScript" %}
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
@@ -36,6 +38,39 @@ export class MyComponent implements ICustomElementViewModel {
     }
  }   
 ```
+{% endtab %}
+
+{% tab title="JavaScript" %}
+```javascript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { newInstanceOf } from '@aurelia/kernel';
+import { inject } from 'aurelia';
+
+@inject(newInstanceOf(IHttpClient))
+
+export class MyComponent implements ICustomElementViewModel {    
+    constructor(http) {
+        this.http = http
+    }
+ }   
+```
+
+You can also use `resolve`
+
+```javascript
+
+import { IHttpClient } from '@aurelia/fetch-client';
+import { resolve, newInstanceOf } from '@aurelia/kernel';
+import { inject } from 'aurelia';
+
+@inject(newInstanceOf(IHttpClient))
+
+export class MyComponent implements ICustomElementViewModel {    
+    http = resolve(newInstanceOf(IHttpClient))
+} 
+```
+{% endtab %}
+{% endtabs %}
 
 {% hint style="info" %}
 You should avoid creating new instances of the Fetch client. Instead, you should create a service class or wrapper functionality that encapsulates your HTTP calls.
@@ -45,6 +80,8 @@ You should avoid creating new instances of the Fetch client. Instead, you should
 
 Many configuration options available to the native Fetch API are also available in the Aurelia Fetch Client. You can set default headers, create interceptors (more on that further down) and more.
 
+{% tabs %}
+{% tab title="TypeScript" %}
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
@@ -76,6 +113,46 @@ export class MyComponent implements ICustomElementViewModel {
     }
  }   
 ```
+{% endtab %}
+
+{% tab title="JavaScript" %}
+```javascript
+import { IHttpClient } from '@aurelia/fetch-client';
+import { newInstanceOf } from '@aurelia/kernel';
+import { inject } from 'aurelia';
+
+@inject(newInstanceOf(IHttpClient))
+
+export class MyComponent implements ICustomElementViewModel {    
+    constructor(http) {
+        this.http = http
+        
+        this.http.configure(config =>
+          config
+          .withBaseUrl('api/')
+          .withDefaults({
+            credentials: 'same-origin',
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'Fetch'
+            }
+          })
+          .withInterceptor({
+            request(request) {
+              console.log(`Requesting ${request.method} ${request.url}`);
+              return request;
+            },
+            response(response) {
+              console.log(`Received ${response.status} ${response.url}`);
+              return response;
+            }
+          })
+        );
+    }
+ }    
+```
+{% endtab %}
+{% endtabs %}
 
 In the example above, `withBaseUrl()` is used to specify a base URL that all fetches will be relative to. The `withDefaults()` method allows passing an object that can include any properties described in the optional `init` parameter to the [Request constructor](https://developer.mozilla.org/en-US/docs/Web/API/Request/Request) and will be merged into the new [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) before it is passed to the first request interceptor.
 
@@ -97,6 +174,8 @@ There are some caveats with the default Fetch implementation around error handli
 
 #### Posting JSON
 
+{% tabs %}
+{% tab title="TypeScript" %}
 ```typescript
 import { IHttpClient, json } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
@@ -115,11 +194,41 @@ export class MyComponent implements ICustomElementViewModel {
   
         this.http.fetch('comments', {
           method: 'post',
-          body: JSON(comment)
+          body: json(comment)
         });
     }
  }   
 ```
+{% endtab %}
+
+{% tab title="JavaScript" %}
+```typescript
+import { IHttpClient, json } from '@aurelia/fetch-client';
+import { newInstanceOf } from '@aurelia/kernel';
+import { inject } from 'aurelia';
+
+@inject(newInstanceOf(IHttpClient))
+
+export class MyComponent implements ICustomElementViewModel {    
+    constructor(http) {
+        this.http = http
+    }
+    
+    createComment() {
+        let comment = {
+          title: 'Awesome!',
+          content: 'This Fetch client is pretty rad.'
+        };
+  
+        this.http.fetch('comments', {
+          method: 'post',
+          body: json(comment)
+        });
+    }
+ }       
+```
+{% endtab %}
+{% endtabs %}
 
 For the example above, if you prefer `.get`/`.post`/etc.. style, you can also use corresponding method on the Fetch client
 
@@ -164,6 +273,7 @@ http.configure(config => config.withRetry(retryOptions))
 ```
 
 There are several options can be specified, per the following type:
+
 ```typescript
 export interface IRetryConfiguration {
   maxRetries: number;
@@ -189,5 +299,4 @@ export const RetryStrategy: {
 }
 ```
 
-Per the names suggest, the interval which a request will be attempted again will be calcuated accordingly for each strategy.
-If you want to supply your own strategy, the `strategy` option can take a callback to be invoked with the number of the retry and the return value is treated as the time to wait until the next fetch attempt.
+Per the names suggest, the interval which a request will be attempted again will be calcuated accordingly for each strategy. If you want to supply your own strategy, the `strategy` option can take a callback to be invoked with the number of the retry and the return value is treated as the time to wait until the next fetch attempt.

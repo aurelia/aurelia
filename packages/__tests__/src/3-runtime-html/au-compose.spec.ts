@@ -13,6 +13,7 @@ import {
   createFixture,
   createSpy,
 } from '@aurelia/testing';
+import { isNode } from '../util.js';
 
 describe('3-runtime-html/au-compose.spec.ts', function () {
   describe('view', function () {
@@ -1242,33 +1243,35 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><a download="true">Hey</a><!--au-end-->');
     });
 
-    it('does not pass through when no tag is specified in non custom element composition', function () {
-      let i = 0;
-      let hostEl: HTMLElement;
-      const originalCreateElement = document.createElement;
-      const spied = createSpy(document, 'createElement', (name) => {
-        const el = originalCreateElement.call(document, name);
-        if (name === 'div') {
-          i++;
-          hostEl = el;
-        }
-        return el;
-      });
-      const { assertHtml } = createFixture('<au-compose template="hey" class="el">', class {
-        download = true;
-        hydrated() {
-          i = 0;
-          hostEl = null;
-        }
-      });
+    if (!isNode()) {
+      it('does not pass through when no tag is specified in non custom element composition', function () {
+        let i = 0;
+        let hostEl: HTMLElement;
+        const originalCreateElement = document.createElement;
+        const spied = createSpy(document, 'createElement', (name) => {
+          const el = originalCreateElement.call(document, name);
+          if (name === 'div') {
+            i++;
+            hostEl = el;
+          }
+          return el;
+        });
+        const { assertHtml } = createFixture('<au-compose template="hey" class="el">', class {
+          download = true;
+          hydrated() {
+            i = 0;
+            hostEl = null;
+          }
+        });
 
-      assertHtml('<!--au-start--><!--au-start-->hey<!--au-end--><!--au-end-->');
-      assert.strictEqual(i, 1);
-      assert.notStrictEqual(hostEl, null);
-      assert.notStrictEqual(hostEl.getAttribute('class'), 'el');
+        assertHtml('<!--au-start--><!--au-start-->hey<!--au-end--><!--au-end-->');
+        assert.strictEqual(i, 1);
+        assert.notStrictEqual(hostEl, null);
+        assert.notStrictEqual(hostEl.getAttribute('class'), 'el');
 
-      spied.restore();
-    });
+        spied.restore();
+      });
+    }
 
     it('passes attributes into ...$attrs', function () {
       @customElement({

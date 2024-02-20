@@ -32,7 +32,7 @@ import { IHttpClient } from '@aurelia/fetch-client';
 import { newInstanceOf } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent {    
     constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
 
     }
@@ -48,7 +48,7 @@ import { inject } from 'aurelia';
 
 @inject(newInstanceOf(IHttpClient))
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent {    
     constructor(http) {
         this.http = http
     }
@@ -65,7 +65,7 @@ import { inject } from 'aurelia';
 
 @inject(newInstanceOf(IHttpClient))
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent {    
     http = resolve(newInstanceOf(IHttpClient))
 } 
 ```
@@ -123,7 +123,7 @@ import { inject } from 'aurelia';
 
 @inject(newInstanceOf(IHttpClient))
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent {    
     constructor(http) {
         this.http = http
         
@@ -209,7 +209,7 @@ import { inject } from 'aurelia';
 
 @inject(newInstanceOf(IHttpClient))
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent {    
     constructor(http) {
         this.http = http
     }

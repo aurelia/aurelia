@@ -63,8 +63,6 @@ import { IHttpClient } from '@aurelia/fetch-client';
 import { resolve, newInstanceOf } from '@aurelia/kernel';
 import { inject } from 'aurelia';
 
-@inject(newInstanceOf(IHttpClient))
-
 export class MyComponent {    
     http = resolve(newInstanceOf(IHttpClient))
 } 

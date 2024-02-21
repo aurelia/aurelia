@@ -16,7 +16,7 @@ import {
   IHydratedController,
   ISyntheticView,
 } from '@aurelia/runtime-html';
-import { IContainer, Writable } from '@aurelia/kernel';
+import { IContainer, Writable, resolve } from '@aurelia/kernel';
 import { IRouter } from '../index';
 import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope';
 
@@ -41,13 +41,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   private isBound: boolean = false;
 
-  public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode public readonly element: INode<HTMLElement>,
-    @IContainer public container: IContainer,
-    @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
-    @IController private readonly parentController: IHydratedController,
-  ) { }
+  private readonly router = resolve(IRouter);
+  public readonly element = resolve(INode) as HTMLElement;
+  public container = resolve(IContainer);
+  private readonly parent = resolve(ParentViewportScope) as ViewportScopeCustomElement;
+  private readonly parentController = resolve(IController) as IHydratedController;
 
   // Maybe this really should be here. Check with Binh.
   // public create(

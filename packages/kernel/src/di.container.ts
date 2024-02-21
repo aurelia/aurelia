@@ -603,7 +603,9 @@ export type IResolvedInjection<K extends Key> =
               ? Resolved<R>
               : K extends [infer R1 extends Key, ...infer R2]
                 ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
-                : Resolved<K>;
+                : K extends { __resolved__: infer T }
+                  ? T
+                  : Resolved<K>;
 
 /**
  * Retrieve the resolved value of a key, or values of a list of keys from the currently active container.

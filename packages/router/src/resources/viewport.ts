@@ -22,7 +22,7 @@ import { arrayRemove } from '../utilities/utils';
 import { OpenPromise } from '../utilities/open-promise';
 import { FallbackAction } from '../router-options';
 
-export const ParentViewport = CustomElement.createInjectable();
+const ParentViewport = CustomElement.createInjectable<ViewportCustomElement>();
 
 @customElement({
   name: 'au-viewport',
@@ -118,7 +118,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
   public readonly element = resolve(INode) as HTMLElement;
   public container: IContainer = resolve(IContainer);
   private readonly ea: IEventAggregator = resolve(IEventAggregator);
-  public readonly parentViewport = resolve(ParentViewport) as ViewportCustomElement | null;
+  public readonly parentViewport = resolve(ParentViewport);
   private readonly instruction = resolve(IInstruction) as HydrateElementInstruction;
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {

@@ -22,10 +22,8 @@ import type {
   PartialResourceDefinition,
   Key,
   ResourceDefinition,
-  Injectable,
   IResolver,
   Writable,
-  InterfaceSymbol,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
@@ -378,7 +376,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type InjectableToken<K = any> = ((target: Injectable, property: string | symbol | undefined, index: number) => void) & InterfaceSymbol<K>;
+export type InjectableToken<K = any> = ((target: Constructable, property: string | symbol | undefined, index: number) => void) & {
+  readonly __resolved__: K | null;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;
@@ -511,13 +511,13 @@ export const getElementDefinition = <C extends Constructable>(Type: C | Function
 /** @internal */
 export const createElementInjectable = <K extends Key = Key>(): InjectableToken<K> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
-    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target as Constructable);
-    annotationParamtypes[index!] = $injectable;
+  const $injectable = function (target, property, index): any {
+    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
+    annotationParamtypes[index] = $injectable;
     return target;
-  };
+  } as InternalInjectableToken<K>;
 
-  $injectable.register = function (_container) {
+  $injectable.register = (_container) => {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     return {
       resolve(container, requestor) {

@@ -20,7 +20,7 @@ import { IContainer, Writable, resolve } from '@aurelia/kernel';
 import { IRouter } from '../index';
 import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope';
 
-export const ParentViewportScope = CustomElement.createInjectable();
+const ParentViewportScope = CustomElement.createInjectable<ViewportScopeCustomElement>();
 
 @customElement({
   name: 'au-viewport-scope',
@@ -44,7 +44,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   private readonly router = resolve(IRouter);
   public readonly element = resolve(INode) as HTMLElement;
   public container = resolve(IContainer);
-  private readonly parent = resolve(ParentViewportScope) as unknown as ViewportScopeCustomElement;
+  private readonly parent = resolve(ParentViewportScope);
   private readonly parentController = resolve(IController) as IHydratedController;
 
   // Maybe this really should be here. Check with Binh.

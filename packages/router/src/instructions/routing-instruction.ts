@@ -535,7 +535,7 @@ export class RoutingInstruction {
     const clone = RoutingInstruction.create(
       this.component.func ?? this.component.promise ?? this.component.type ?? this.component.name!,
       this.endpoint.name!,
-      this.parameters.typedParameters !== null ? this.parameters.typedParameters : void 0,
+      this.parameters.typedParameters ?? void 0,
     ) as RoutingInstruction;
     // ...and then set them if they should be transfered.
     if (keepInstances) {
@@ -637,6 +637,7 @@ export class RoutingInstruction {
       if (routeTitle != null) {
         // Only add the title (once) if it's the first instruction
         if (this.routeStart) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call
           return typeof routeTitle === 'string' ? routeTitle : routeTitle(this, navigation);
         } else {
           return '';

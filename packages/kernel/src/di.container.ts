@@ -285,11 +285,9 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this._resolvers.has(key) || isResourceKey(key) && key in this.res
-      ? true
-      : searchAncestors && this._parent != null
-        ? this._parent.has(key, true)
-        : false;
+    return this._resolvers.has(key)
+      || isResourceKey(key) && key in this.res
+      || ((searchAncestors && this._parent?.has(key, true)) ?? false);
   }
 
   public get<K extends Key>(key: K): Resolved<K> {

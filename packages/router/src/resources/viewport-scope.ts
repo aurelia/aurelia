@@ -110,7 +110,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     }
 
     // TODO: Needs to be bound? How to solve?
-    options.source = this.source || null;
+    options.source = this.source ?? null;
 
     this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }

@@ -44,7 +44,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
   private readonly router = resolve(IRouter);
   public readonly element = resolve(INode) as HTMLElement;
   public container = resolve(IContainer);
-  private readonly parent = resolve(ParentViewportScope) as ViewportScopeCustomElement;
+  private readonly parent = resolve(ParentViewportScope) as unknown as ViewportScopeCustomElement;
   private readonly parentController = resolve(IController) as IHydratedController;
 
   // Maybe this really should be here. Check with Binh.

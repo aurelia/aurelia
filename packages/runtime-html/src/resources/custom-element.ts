@@ -517,18 +517,16 @@ export const createElementInjectable = <K extends Key = Key>(): InjectableToken<
     return target;
   } as InternalInjectableToken<K>;
 
-  $injectable.register = (_container) => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return {
-      resolve(container, requestor) {
-        if (requestor.has($injectable, true)) {
-          return requestor.get($injectable);
-        } else {
-          return null;
-        }
-      },
-    } as IResolver;
-  };
+  $injectable.register = (): IResolver => ({
+    $isResolver: true,
+    resolve(container, requestor) {
+      if (requestor.has($injectable, true)) {
+        return requestor.get($injectable);
+      } else {
+        return null;
+      }
+    }
+  });
 
   return $injectable;
 };

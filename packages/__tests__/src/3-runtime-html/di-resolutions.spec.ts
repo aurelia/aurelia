@@ -1,5 +1,5 @@
 import { Constructable, DI, IContainer, newInstanceForScope } from '@aurelia/kernel';
-import { Aurelia, bindable, customElement, CustomElement, IHydratedCustomElementViewModel } from '@aurelia/runtime-html';
+import { Aurelia, bindable, customElement, CustomElement, IHydratedCustomElementViewModel, InjectableToken } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/di-resolutions.spec.ts', function () {
@@ -108,7 +108,7 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
 
   describe('definition.injectable', function () {
     it('resolves injectable', async function () {
-      const InjectableParent = DI.createInterface('injectable');
+      const InjectableParent = DI.createInterface('injectable') as InjectableToken;
       @customElement({
         name: 'child',
       })

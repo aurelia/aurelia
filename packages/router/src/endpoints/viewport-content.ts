@@ -106,7 +106,7 @@ export class ViewportContent extends EndpointContent {
     super(router, viewport, owningScope, hasScope, instruction, navigation);
     // If we've got a container, we're good to resolve type
     if (!this.instruction.component.isType() && connectedCE?.container != null) {
-      this.instruction.component.type = this.toComponentType(connectedCE!.container!);
+      this.instruction.component.type = this.toComponentType(connectedCE.container);
     }
   }
 

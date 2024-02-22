@@ -282,6 +282,7 @@ export {
   containerless,
   customElement,
   CustomElement,
+  type InjectableToken,
   type CustomElementDecorator,
   type CustomElementKind,
   type CustomElementType,

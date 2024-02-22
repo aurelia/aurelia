@@ -52,7 +52,8 @@ const errorsMap: Record<ErrorNames, string>  = {
     `A common cause is circular dependency with bundler, did you accidentally introduce circular dependency into your module graph?`,
   [ErrorNames.no_construct_native_fn]: `'{{0}}' is a native function and cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`,
   [ErrorNames.no_active_container_for_resolve]: `There is not a currently active container to resolve "{{0}}". Are you trying to "new Class(...)" that has a resolve(...) call?`,
-  [ErrorNames.invalid_new_instance_on_interface]: `Failed to instantiate '{{0}}' via @newInstanceOf/@newInstanceForScope, there's no registration and no default implementation.`,
+  [ErrorNames.invalid_new_instance_on_interface]: `Failed to instantiate '{{0}}' via @newInstanceOf/@newInstanceForScope, there's no registration and no default implementation,`
+    + ` or the default implementation does not result in factory for constructing the instances.`,
   [ErrorNames.event_aggregator_publish_invalid_event_name]: `Invalid channel name or instance: '{{0}}'.`,
   [ErrorNames.event_aggregator_subscribe_invalid_event_name]: `Invalid channel name or type: {{0}}.`,
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,

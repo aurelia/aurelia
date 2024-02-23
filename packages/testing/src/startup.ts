@@ -60,7 +60,7 @@ export function createFixture<T extends object>(
   const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
   const App = CustomElement.define<Constructable<K>>({
     ...existingDefs,
-    name: 'app',
+    name: existingDefs.name ?? 'app',
     template,
   }, $$class);
 

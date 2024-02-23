@@ -1,26 +1,25 @@
-import { Constructable, DI, IContainer, newInstanceForScope } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, IHydratedCustomElementViewModel, InjectableToken } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/di-resolutions.spec.ts', function () {
   describe('@newInstanceForScope', function () {
-    it('resolves different instances for each scoped registration', async function () {
+    it('resolves different instances for each scoped registration', function () {
       let id = 0;
       class Model { public id = ++id; }
 
       @customElement({ name: 'list-item', template: `\${model.id}` })
       class ListItem {
-        public static inject = [Model];
-        public constructor(public readonly model: Model) { }
+        public readonly model = resolve(Model);
       }
 
       @customElement({ name: 'list', template: '<list-item>', dependencies: [ListItem] })
       class List {
-        public constructor(@newInstanceForScope(Model) public readonly context: Model) { }
+        public readonly context = resolve(newInstanceForScope(Model));
       }
 
       // act
-      const { component, startPromise, tearDown } = createFixture(
+      const { component } = createFixture(
         `<list component.ref="list1"></list><list component.ref="list2"></list>`,
         class App {
           public readonly list1: IHydratedCustomElementViewModel & List;
@@ -29,26 +28,14 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
         [List]
       );
 
-      await startPromise;
       const listEl1 = component.list1.$controller.host;
       const listEl2 = component.list2.$controller.host;
       assert.strictEqual(id, 2);
       assert.visibleTextEqual(listEl1, '1');
       assert.visibleTextEqual(listEl2, '2');
-
-      await tearDown();
     });
-    // TODO
-    // A skipped test for the most intuitive behavior: @newInstanceForScope(Interface_With_Default)
-    //
-    // Ideally it probably shouldn't require any registration
-    // to invoke an interface with default resolution provided,
-    //
-    // THOUGH, this may not be implemented, for the sake of consistency
-    // with the way normal .get on interface
-    //
-    // eslint-disable-next-line mocha/no-skipped-tests
-    it.skip('resolves dependency with: Interface + @newInstanceForScope + default resolver + no registration', async function () {
+
+    it('resolves dependency with: Interface + @newInstanceForScope + default resolver + no registration', function () {
       // arrange
       let contextCallCount = 0;
       const IListboxContext = DI.createInterface<IListboxContext>(
@@ -70,10 +57,8 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
       })
       class ListboxItem {
         @bindable
-        public value: number;
-        public constructor(
-          @IListboxContext public readonly context: IListboxContext
-        ) { }
+        value: number;
+        context = resolve(IListboxContext);
       }
 
       @customElement({
@@ -82,13 +67,11 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
         dependencies: [IListboxContext, ListboxItem]
       })
       class Listbox {
-        public constructor(
-          @newInstanceForScope(IListboxContext) public readonly context: IListboxContext
-        ) { }
+        context = resolve(newInstanceForScope(IListboxContext));
       }
 
       // act
-      const { component, startPromise, tearDown } = createFixture(
+      const { component } = createFixture(
         `<list-box component.ref="listbox">`,
         class App {
           public readonly listbox: Listbox;
@@ -96,18 +79,14 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
         [Listbox]
       );
 
-      await startPromise;
-
       // assert
       assert.strictEqual(component.listbox.context.open, false);
       assert.strictEqual(contextCallCount, 1);
-
-      await tearDown();
     });
   });
 
   describe('definition.injectable', function () {
-    it('resolves injectable', async function () {
+    it('resolves injectable', function () {
       const InjectableParent = DI.createInterface('injectable') as InjectableToken;
       @customElement({
         name: 'child',
@@ -123,18 +102,14 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
       @customElement({ name: 'parent', template: '<child>', injectable: InjectableParent, dependencies: [Child] })
       class Parent { }
 
-      const { appHost, startPromise, tearDown } = createFixture('<parent>', CustomElement.define({
+      const { appHost } = createFixture('<parent>', CustomElement.define({
         name: 'app',
       }, class App { }), [Parent]);
-
-      await startPromise;
 
       const child = CustomElement.for(appHost.querySelector('child')).viewModel as Child;
       const parent = CustomElement.for(appHost.querySelector('parent')).viewModel as Parent;
       assert.strictEqual(parent, child.parent1);
       assert.strictEqual(parent, child.parent2);
-
-      await tearDown();
     });
   });
 

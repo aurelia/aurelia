@@ -13,7 +13,7 @@ import {
 } from '../renderer';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -121,9 +121,11 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    singletonRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, BindingCommand, key, container);
+    container.register(
+      singletonRegistration(key, Type),
+      aliasRegistration(key, Type),
+      ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
+    );
   }
 }
 

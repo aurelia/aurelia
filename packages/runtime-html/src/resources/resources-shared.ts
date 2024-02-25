@@ -1,3 +1,2 @@
-export const dtElement = 'Element' as const;
-export const dtAttribute = 'Attribute' as const;
-export type DefinitionType = typeof dtElement | typeof dtAttribute;
+/** @internal */ export const dtElement = 'element';
+/** @internal */ export const dtAttribute = 'attribute';

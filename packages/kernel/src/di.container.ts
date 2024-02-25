@@ -510,24 +510,6 @@ export class Container implements IContainer {
       return registrationResolver as IResolver;
     }
 
-    if (hasResources(keyAsValue)) {
-      const defs = getAllResources(keyAsValue);
-      if (defs.length === 1) {
-        // Fast path for the very common case
-        defs[0].register(handler);
-      } else {
-        const len = defs.length;
-        for (let d = 0; d < len; ++d) {
-          defs[d].register(handler);
-        }
-      }
-      const newResolver = handler._resolvers.get(keyAsValue);
-      if (newResolver != null) {
-        return newResolver;
-      }
-      throw createMappedError(ErrorNames.null_resolver_from_register, keyAsValue);
-    }
-
     if (keyAsValue.$isInterface) {
       throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }

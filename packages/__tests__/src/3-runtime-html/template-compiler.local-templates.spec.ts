@@ -8,7 +8,7 @@ import {
   CustomElement, CustomElementDefinition, HydrateElementInstruction
 } from '@aurelia/runtime-html';
 import {
-  assert, generateCartesianProduct, TestContext
+  assert, createFixture, generateCartesianProduct, TestContext
 } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {
@@ -198,7 +198,7 @@ class EventLog implements ISink {
     this.log.push(event);
   }
 }
-function createFixture() {
+function $$createFixture() {
   const ctx = TestContext.create();
   const container = ctx.container;
   container.register(LoggerConfiguration.create({ sinks: [EventLog] }));
@@ -310,14 +310,14 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     }
     for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
       it(template, function () {
-        const { container, sut } = createFixture();
+        const { container, sut } = $$createFixture();
         sut.resolveResources = false;
         const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
         verifyDefinition(definition, container);
       });
       if (template.includes(`mode="fromView"`)) { continue; }
       it(`${template} - content`, async function () {
-        const { ctx, container } = createFixture();
+        const { ctx, container } = $$createFixture();
         const host = ctx.doc.createElement('div');
         ctx.doc.body.appendChild(host);
         const au = new Aurelia(container)
@@ -335,7 +335,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
 
     it('throws error if a root template is a local template', function () {
       const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The root cannot be a local template itself.');
     });
 
@@ -344,25 +344,25 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       <template as-custom-element="foo-bar">Does this work?</template>
       <template as-custom-element="fiz-baz">Of course not!</template>
       `;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The custom element does not have any content other than local template(s).');
     });
 
     it('throws error if a local template is not under root', function () {
       const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Local templates needs to be defined directly under root.');
     });
 
     it('throws error if a local template does not have name', function () {
       const template = `<template as-custom-element="">foo-bar</template><div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The value of "as-custom-element" attribute cannot be empty for local template');
     });
 
     it('throws error if a duplicate local templates are found', function () {
       const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Duplicate definition of the local template named foo-bar');
     });
 
@@ -373,7 +373,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         </div>
       </template>
       <div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'Bindable properties of local templates needs to be defined directly under root.');
     });
 
@@ -382,7 +382,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         <bindable attribute="prop"></bindable>
       </template>
       <div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container, null), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
     });
 
@@ -392,7 +392,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         <bindable name="prop" attribute="baz"></bindable>
       </template>
       <div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(
         () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
         'Bindable property and attribute needs to be unique; found property: prop, attribute: '
@@ -405,7 +405,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         <bindable name="prop2" attribute="bar"></bindable>
       </template>
       <div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
       assert.throws(
         () => sut.compile({ name: 'lorem-ipsum', template }, container, null),
         'Bindable property and attribute needs to be unique; found property: prop2, attribute: bar'
@@ -418,7 +418,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         <bindable name="prop1" attribute="bar"></bindable>
       </template>
       <foo-bar></foo-bar>`;
-        const { ctx, container } = createFixture();
+        const { ctx, container } = $$createFixture();
 
         assert.throws(() =>
           new Aurelia(container)
@@ -433,7 +433,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         <bindable name="prop" unknown-attr who-cares="no one"></bindable>
       </template>
       <div></div>`;
-      const { container, sut } = createFixture();
+      const { container, sut } = $$createFixture();
 
       sut.compile({ name: 'lorem-ipsum', template }, container, null);
       if (__DEV__) {
@@ -459,7 +459,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
      <foo-bar prop="ignored" if.bind="false"></foo-bar>`;
     const expectedContent = "awesome possum";
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -482,7 +482,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
      <foo-bar repeat.for="i of 5" prop.bind="i"></foo-bar>`;
     const expectedContent = "0 1 2 3 4";
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -518,7 +518,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     const template = `<level-two prop="foo2"></level-two><level-one prop="foo1"></level-one>`;
     const expectedContent = "Level Two foo2 Level One inter-dimensional portal Level One foo2 Level One foo1";
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -555,7 +555,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       `;
     const expectedContent = "4 3 2 1";
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -585,7 +585,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     @customElement({ name: 'my-app', template, dependencies: [MyCe] })
     class App { }
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -615,7 +615,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     @customElement({ name: 'my-app', template, dependencies: [MyCe] })
     class App { }
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -646,7 +646,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     @customElement({ name: 'my-app', template, dependencies: [MyCe] })
     class App { }
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -662,6 +662,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
   });
 
   it('recognizes owning element', async function () {
+    let id = 0;
     const template = `
         my-app-content
         <my-le prop.bind></my-le>
@@ -672,10 +673,11 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
         </template>`;
     @customElement({ name: 'my-app', template })
     class App {
-      public prop = false;
+      prop = false;
+      id = ++id;
     }
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)
@@ -686,11 +688,13 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     const vm = au.root.controller.viewModel as App;
 
     assert.html.textContent(host, 'my-app-content my-le-content');
+    assert.strictEqual(id, 1);
 
     vm.prop = true;
     ctx.platform.domWriteQueue.flush();
 
     assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
+    assert.strictEqual(id, 2);
 
     await au.stop();
     ctx.doc.body.removeChild(host);
@@ -720,7 +724,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     @customElement({ name: 'my-app', template })
     class App { }
 
-    const { ctx, container } = createFixture();
+    const { ctx, container } = $$createFixture();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);
     const au = new Aurelia(container)

@@ -15,6 +15,8 @@ export const enum ErrorNames {
 
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
+  element_existed = 153,
+  attribute_existed = 154,
 
   controller_cached_not_found = 500,
   controller_no_shadow_on_containerless = 501,
@@ -122,6 +124,8 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
+  [ErrorNames.element_existed]: `Element {{0}} has already been registered.`,
+  [ErrorNames.attribute_existed]: `Attribute {{0}} has already been registered.`,
 
   [ErrorNames.controller_cached_not_found]: `There is no cached controller for the provided ViewModel: {{0}}`,
   [ErrorNames.controller_no_shadow_on_containerless]: `Invalid combination: cannot combine the containerless custom element option with Shadow DOM.`,

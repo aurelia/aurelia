@@ -4,7 +4,7 @@ import { Watch } from '../watch';
 import { getRef } from '../dom';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
+import { aliasRegistration, transientRegistration } from '../utilities-di';
 import { type BindingMode, toView } from '../binding/interfaces-bindings';
 
 import type {
@@ -98,7 +98,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get type(): 'Attribute' { return dtAttribute; }
+  public get type(): 'attribute' { return dtAttribute; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,
@@ -143,9 +143,11 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    transientRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, CustomAttribute, key, container);
+    container.register(
+      transientRegistration(key, Type),
+      aliasRegistration(key, Type),
+      ...aliases.map(alias => aliasRegistration(Type, CustomAttribute.keyFrom(alias)))
+    );
   }
 
   public toString() {

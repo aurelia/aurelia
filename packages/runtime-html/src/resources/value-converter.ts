@@ -1,9 +1,8 @@
 import {
-  Registration,
   mergeArrays,
   firstDefined,
 } from '@aurelia/kernel';
-import { registerAliases } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
@@ -75,9 +74,11 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    Registration.singleton(key, Type).register(container);
-    Registration.aliasTo(key, Type).register(container);
-    registerAliases(aliases, ValueConverter, key, container);
+    container.register(
+      singletonRegistration(key, Type),
+      aliasRegistration(key, Type),
+      ...aliases.map(alias => aliasRegistration(Type, ValueConverter.keyFrom(alias)))
+    );
   }
 }
 

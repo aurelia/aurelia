@@ -74,11 +74,16 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    container.register(
-      singletonRegistration(key, Type),
-      aliasRegistration(key, Type),
-      ...aliases.map(alias => aliasRegistration(Type, ValueConverter.keyFrom(alias)))
-    );
+    if (!container.has(key, false)) {
+      container.register(
+        singletonRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(Type, ValueConverter.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if(__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.value_converter_existed)}`);
+    }
   }
 }
 

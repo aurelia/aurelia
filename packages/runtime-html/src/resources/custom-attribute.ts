@@ -143,11 +143,16 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    container.register(
-      transientRegistration(key, Type),
-      aliasRegistration(key, Type),
-      ...aliases.map(alias => aliasRegistration(Type, CustomAttribute.keyFrom(alias)))
-    );
+    if (!container.has(key, false)) {
+      container.register(
+        transientRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(Type, CustomAttribute.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed)}`);
+    }
   }
 
   public toString() {

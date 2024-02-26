@@ -370,7 +370,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         aliasRegistration(key, Type),
         ...aliases.map(alias => aliasRegistration(Type, CustomElement.keyFrom(alias)))
       );
-    } else if (__DEV__) {
+    } /* istanbul ignore next */ else if (__DEV__) {
       // eslint-disable-next-line no-console
       console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed)}`);
     }

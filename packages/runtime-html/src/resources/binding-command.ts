@@ -29,6 +29,7 @@ import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
 import { dtElement } from './resources-shared';
+import { ErrorNames, createMappedError } from '../errors';
 
 export const ctNone = 'None' as const;
 export const ctIgnoreAttr = 'IgnoreAttr' as const;
@@ -121,11 +122,16 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    container.register(
-      singletonRegistration(key, Type),
-      aliasRegistration(key, Type),
-      ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
-    );
+    if (!container.has(key, false)) {
+      container.register(
+        singletonRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed)}`);
+    }
   }
 }
 

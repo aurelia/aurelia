@@ -8,7 +8,9 @@ import {
   CustomElement, CustomElementDefinition, HydrateElementInstruction
 } from '@aurelia/runtime-html';
 import {
-  assert, createFixture, generateCartesianProduct, TestContext
+  assert,
+  generateCartesianProduct,
+  TestContext,
 } from '@aurelia/testing';
 
 export function createAttribute(name: string, value: string): Attr {

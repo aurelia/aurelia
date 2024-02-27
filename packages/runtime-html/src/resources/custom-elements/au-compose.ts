@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { Constructable, IContainer, InstanceProvider, MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
@@ -25,7 +25,6 @@ export interface IDynamicComponentActivate<T> {
   activate?(model?: T): unknown;
 }
 
-type MaybePromise<T> = T | Promise<T>;
 type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'>;
 
 // Desired usage:
@@ -37,9 +36,19 @@ export class AuCompose {
   @bindable
   public template?: string | Promise<string>;
 
-  /* determine the component instance used to compose the component */
+  /**
+   * Determine the component instance used to compose the component.
+   *
+   * - When a string is given as a value, it will be used as the name of the custom element to compose.
+   * If there is no locally or globally registered custom element with that name, an error will be thrown.
+   *
+   * - When an object is given as a value, the object will be used as the component instance.
+   * - When a constructor is given as a value, the constructor will be used to create the component instance.
+   * - When a null/undefined is given as a value, the component will be composed as a template-only composition with an empty component instance.
+   * - When a promise is given as a value, the promise will be awaited and the resolved value will be used as the value.
+   */
   @bindable
-  public component?: Constructable | object | Promise<Constructable | object>;
+  public component?: string | Constructable | object | Promise<string | Constructable | object>;
 
   /* the model used to pass to activate lifecycle of the component */
   @bindable
@@ -200,9 +209,18 @@ export class AuCompose {
     // todo: when both component and template are empty
     //       should it throw or try it best to proceed?
     //       current: proceed
-    const { _template: template, _component: component, _model: model } = context.change;
-    const { _container: container, $controller, _location: loc, _instruction } = this;
-    const vmDef = this.getDef(component);
+    const {
+      _template: template,
+      _component: component,
+      _model: model
+    } = context.change;
+    const {
+      _container: container,
+      $controller,
+      _location: loc,
+      _instruction
+    } = this;
+    const vmDef = this._getDefinition(this._hydrationContext.controller.container, component);
     const childCtn: IContainer = container.createChild();
 
     const compositionHost = this._platform.document.createElement(vmDef == null ? this.tag ?? 'div' : vmDef.name);
@@ -231,7 +249,12 @@ export class AuCompose {
       }
     };
 
-    const comp = this._createCompInstance(childCtn, component, compositionHost, compositionLocation);
+    const comp = this._createComponentInstance(
+      childCtn,
+      typeof component === 'string' ? vmDef!.Type : component,
+      compositionHost,
+      compositionLocation
+    );
     const compose: () => ICompositionController = () => {
       const aucomposeCapturedAttrs = _instruction.captures! ?? emptyArray;
       // custom element based composition
@@ -257,12 +280,11 @@ export class AuCompose {
           vmDef,
           compositionLocation
         );
-        const bindings = this._createSpreadBindings(compositionHost, vmDef, transferedToHostBindingAttrs);
         // Theoretically these bindings aren't bindings of the composed custom element
         // Though they are meant to be activated (bound)/ deactivated (unbound) together
         // with the custom element controller, so it's practically ok to let the composed
         // custom element manage these bindings
-        bindings.forEach(b => controller.addBinding(b));
+        this._createSpreadBindings(compositionHost, vmDef, transferedToHostBindingAttrs).forEach(b => controller.addBinding(b));
 
         return new CompositionController(
           controller,
@@ -295,8 +317,7 @@ export class AuCompose {
         if (compositionLocation == null) {
           // only spread the bindings if there is an actual host
           // otherwise we may accidentally do unnecessary work
-          const spreadBindings = this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs);
-          spreadBindings.forEach(b => controller.addBinding(b));
+          this._createSpreadBindings(compositionHost, targetDef, aucomposeCapturedAttrs).forEach(b => controller.addBinding(b));
         } else {
           controller.setLocation(compositionLocation);
         }
@@ -328,7 +349,7 @@ export class AuCompose {
   }
 
   /** @internal */
-  private _createCompInstance(
+  private _createComponentInstance(
     container: IContainer,
     comp: Constructable | object | undefined,
     host: HTMLElement | IRenderLocation,
@@ -356,7 +377,15 @@ export class AuCompose {
   }
 
   /** @internal */
-  private getDef(component?: object | Constructable) {
+  private _getDefinition(container: IContainer, component?: string | object | Constructable) {
+    if (typeof component === 'string') {
+      const def = container.find(CustomElement, component);
+      if (def == null) {
+        throw createMappedError(ErrorNames.au_compose_component_name_not_found, component);
+      }
+      return def;
+    }
+
     const Ctor = (isFunction(component)
       ? component
       : component?.constructor) as Constructable;
@@ -426,7 +455,7 @@ class CompositionContextFactory {
 class ChangeInfo {
   public constructor(
     public readonly _template: MaybePromise<string> | undefined,
-    public readonly _component: MaybePromise<Constructable | object> | undefined,
+    public readonly _component: MaybePromise<string | Constructable | object> | undefined,
     public readonly _model: unknown,
     public readonly _src: ChangeSource | undefined,
   ) { }
@@ -447,7 +476,7 @@ class ChangeInfo {
 class LoadedChangeInfo {
   public constructor(
     public readonly _template: string | undefined,
-    public readonly _component: Constructable | object | undefined,
+    public readonly _component: string | Constructable | object | undefined,
     public readonly _model: unknown,
     public readonly _src: ChangeSource | undefined,
   ) { }

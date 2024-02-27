@@ -167,23 +167,29 @@ export function createFixture<T extends object>(
   function assertHtml(selectorOrHtml: string, html: string | IHtmlAssertOptions = selectorOrHtml, options?: IHtmlAssertOptions) {
     let $html;
     let $options: IHtmlAssertOptions | undefined;
+
+    // assertHtml('some html content')
     if (arguments.length === 1) {
       assert.strictEqual(getInnerHtml(host), selectorOrHtml);
       return;
     }
 
+    // assertHtml('some selector', void 0/ null);
     if (html == null) {
       throw new Error('Invalid null/undefined expected html value');
     }
 
-    const el = strictQueryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
+    // assertHtml('some html content', { compact: true/false })
     if (typeof html !== 'string') {
       $html = selectorOrHtml;
       $options = html;
-      assert.strictEqual(getInnerHtml(el, $options?.compact), $html);
+      assert.strictEqual(getInnerHtml(host, $options?.compact), $html);
       return;
     }
 
+    // assertHtml('selector', 'some html content')
+    // assertHtml('selector', 'some html content', { compact: true/false })
+    const el = strictQueryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
     $options = options;
     assert.strictEqual(getInnerHtml(el, $options?.compact), html);
   }

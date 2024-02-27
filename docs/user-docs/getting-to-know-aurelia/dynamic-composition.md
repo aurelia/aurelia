@@ -33,7 +33,27 @@ export class App {
 
 {% hint style="info" %}
 With a custom element as a view model, all standard lifecycles and `activate` will be called during the composition.
+
+`activate` will be called right after `constructor`, before all other lifecycles.
 {% endhint %}
+
+### Composition with string as custom element name
+
+When using a string value for `component` binding on `<au-compose>`, the value will be understood as a custom element name, and will be used to lookup the actual element definition.
+If there's no element definition found either locally or globally, an error will be thrown.
+
+The following usages are valid:
+
+```html
+<import from="./my-input"></import>
+
+<au-compose component="my-input">
+```
+
+or, suppose `my-input` is a globally available custom element:
+```html
+<au-compose component="my-input">
+```
 
 ## Composing Without a Custom Element
 

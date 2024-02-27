@@ -82,7 +82,7 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
     return { ctx, container, platform, host, au, router, $teardown, App };
   }
 
-  describe('can use lifecycleHooks', function () {
+  describe('[sync] lifecycleHooks', function () {
     this.timeout(5000);
 
     function _elements(config, calledHooks) {
@@ -220,13 +220,10 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
         const expected = _expected(config);
 
         await $load('/my-one', router, platform);
-        await platform.domWriteQueue.yield();
 
         await $load('/my-two', router, platform);
-        await platform.domWriteQueue.yield();
 
         await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
 
         assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
 
@@ -268,10 +265,8 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
         const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
 
         await $load('/my-one/my-two', router, platform);
-        await platform.domWriteQueue.yield();
 
         await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
 
         const expected = _expected(config);
 
@@ -282,7 +277,7 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
     }
   });
 
-  describe('can use async lifecycleHooks', function () {
+  describe('[async] lifecycleHooks', function () {
     this.timeout(30000);
 
     function _elements(config: typeof configs[0], calledHooks: string[]) {
@@ -431,13 +426,10 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
         const expected = _expected(config);
 
         await $load('/my-one', router, platform);
-        await platform.domWriteQueue.yield();
 
         await $load('/my-two', router, platform);
-        await platform.domWriteQueue.yield();
 
         await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
 
         assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
 
@@ -479,10 +471,7 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
         const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
 
         await $load('/my-one/my-two', router, platform);
-        await platform.domWriteQueue.yield();
-
         await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
 
         const expected = _expected(config);
 

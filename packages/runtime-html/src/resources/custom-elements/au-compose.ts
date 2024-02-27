@@ -36,7 +36,17 @@ export class AuCompose {
   @bindable
   public template?: string | Promise<string>;
 
-  /* determine the component instance used to compose the component */
+  /**
+   * Determine the component instance used to compose the component.
+   *
+   * - When a string is given as a value, it will be used as the name of the custom element to compose.
+   * If there is no locally or globally registered custom element with that name, an error will be thrown.
+   *
+   * - When an object is given as a value, the object will be used as the component instance.
+   * - When a constructor is given as a value, the constructor will be used to create the component instance.
+   * - When a null/undefined is given as a value, the component will be composed as a template-only composition with an empty component instance.
+   * - When a promise is given as a value, the promise will be awaited and the resolved value will be used as the value.
+   */
   @bindable
   public component?: string | Constructable | object | Promise<string | Constructable | object>;
 

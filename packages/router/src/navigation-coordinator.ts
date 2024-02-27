@@ -27,17 +27,26 @@ import { Step } from './index';
 /**
  * The different navigation states each endpoint passes through (regardless
  * of whether they have hooks or not).
+ * - **guardedUnload**: fulfilled when canUnload (if any) has been called
+ * - **guardedLoad**: fulfilled when canLoad (if any) has been called
+ * - **guarded**: fulfilled when check hooks canUnload and canLoad (if any) have been called
+ * - **unloaded**: fulfilled when unloading (if any) has been called
+ * - **loaded**: fulfilled when loading (if any) has been called
+ * - **routed**: fulfilled when initial routing hooks (if any) have been called
+ * - **bound**: fulfilled when bind has been called
+ * - **swwap**:
+ * - **completed**: fulfilled when everything is done
  */
 export type NavigationState =
-  | 'guardedUnload' // fulfilled when canUnload (if any) has been called
-  | 'guardedLoad' // fulfilled when canLoad (if any) has been called
-  | 'guarded' // fulfilled when check hooks canUnload and canLoad (if any) have been called
-  | 'unloaded' // fulfilled when unloading (if any) has been called
-  | 'loaded' // fulfilled when loading (if any) has been called
-  | 'routed' // fulfilled when initial routing hooks (if any) have been called
-  | 'bound' // fulfilled when bind has been called
+  | 'guardedUnload'
+  | 'guardedLoad'
+  | 'guarded'
+  | 'unloaded'
+  | 'loaded'
+  | 'routed'
+  | 'bound'
   | 'swapped'
-  | 'completed' // fulfilled when everything is done
+  | 'completed'
   ;
 
 /**

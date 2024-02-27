@@ -340,10 +340,7 @@ export class ViewportContent extends EndpointContent {
         }
         // TODO: If requested, pass previous value into hook
         const result = instance.canUnload?.(this.instruction, navigation);
-        if (typeof result !== 'boolean' && !(result instanceof Promise)) {
-          throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
-      }
-        return result;
+        return result instanceof Promise ? result.then(Boolean) : Boolean(result);
       });
     }
 

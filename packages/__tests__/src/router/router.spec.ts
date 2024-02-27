@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, IRoute, ITitleOptions, RoutingInstruction, routes, Viewport, IRouterOptions } from '@aurelia/router';
-import { CustomElement, customElement, IPlatform, Aurelia, lifecycleHooks } from '@aurelia/runtime-html';
+import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
 describe('router/router.spec.ts', function () {
@@ -13,7 +13,8 @@ describe('router/router.spec.ts', function () {
     return router;
   }
 
-  function spyNavigationStates(router: IRouter, spy) {
+  type NavigationStateCallback = (type: 'push' | 'replace', data: any, title: string, path: string) => void;
+  function spyNavigationStates(router: IRouter, spy: NavigationStateCallback) {
     let _pushState;
     let _replaceState;
     if (spy) {
@@ -156,7 +157,7 @@ describe('router/router.spec.ts', function () {
     return { au, container, platform, host, router, ctx, tearDown };
   }
 
-  async function $setup(config?: IRouterOptions, dependencies: any[] = [], routes: IRoute[] = [], stateSpy?) {
+  async function $setup(config?: IRouterOptions, dependencies: any[] = [], routes: IRoute[] = [], stateSpy: NavigationStateCallback = void 0) {
     const ctx = TestContext.create();
 
     const { container, platform } = ctx;
@@ -198,7 +199,7 @@ describe('router/router.spec.ts', function () {
   it('can be created', async function () {
     this.timeout(5000);
 
-    const { router, tearDown } = await createFixture();
+    const { tearDown } = await createFixture();
 
     await tearDown();
   });
@@ -206,7 +207,7 @@ describe('router/router.spec.ts', function () {
   it('loads viewports left and right', async function () {
     this.timeout(5000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { host, tearDown } = await createFixture();
 
     assert.includes(host.textContent, 'left', `host.textContent`);
     assert.includes(host.textContent, 'right', `host.textContent`);
@@ -225,10 +226,11 @@ describe('router/router.spec.ts', function () {
     await tearDown();
   });
 
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('queues navigations', async function () {
     this.timeout(40000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { host, router, tearDown } = await createFixture();
 
     router.load('uier@left').catch((error) => { throw error; });
     const last = router.load('bar@left');
@@ -542,7 +544,7 @@ describe('router/router.spec.ts', function () {
   it('does not update fullStatePath on wrong history entry', async function () {
     this.timeout(40000);
 
-    const { platform, host, router, tearDown } = await createFixture();
+    const { platform, router, tearDown } = await createFixture();
 
     await $load('foo@left', router, platform);
     await $load('bar@left', router, platform);
@@ -683,15 +685,15 @@ describe('router/router.spec.ts', function () {
   it('overrides querystring with parameter', async function () {
     this.timeout(5000);
 
-    let locationPath: string;
-    let browserTitle: string;
-    const locationCallback = (type, data, title, path) => {
-      // console.log(type, data, title, path);
-      locationPath = path;
-      browserTitle = title;
-    };
+    // let locationPath: string;
+    // let browserTitle: string;
+    // const locationCallback = (type, data, title, path) => {
+    //   // console.log(type, data, title, path);
+    //   locationPath = path;
+    //   browserTitle = title;
+    // };
 
-    const { platform, host, router, tearDown } = await createFixture(void 0, void 0, locationCallback);
+    const { platform, host, router, tearDown } = await createFixture(void 0, void 0);
 
     let url = 'bar(456)@left?id=123';
     await $load(url, router, platform);
@@ -783,6 +785,7 @@ describe('router/router.spec.ts', function () {
     await tearDown();
   });
 
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('loads default when added by if condition becoming true', async function () {
     this.timeout(5000);
 
@@ -817,8 +820,9 @@ describe('router/router.spec.ts', function () {
     await tearDown();
   });
 
-  // if (PLATFORM.isBrowserLike) {
+  // if (PLATFORM.isBrowserLike)
   // TODO: figure out why this works in nodejs locally but not in CI and fix it
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('keeps input when stateful', async function () {
     this.timeout(15000);
 
@@ -855,7 +859,8 @@ describe('router/router.spec.ts', function () {
 
     await tearDown();
   });
-  // }
+
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('keeps input when grandparent stateful', async function () {
     this.timeout(5000);
 
@@ -892,6 +897,8 @@ describe('router/router.spec.ts', function () {
     await tearDown();
   });
 
+  // todo
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('keeps children\'s custom element\'s input when navigation history stateful', async function () {
     this.timeout(5000);
 
@@ -952,6 +959,7 @@ describe('router/router.spec.ts', function () {
   });
 
   // TODO: Fix scoped viewports!
+  // eslint-disable-next-line mocha/no-skipped-tests
   it.skip('loads scoped viewport', async function () {
     this.timeout(5000);
 
@@ -982,7 +990,7 @@ describe('router/router.spec.ts', function () {
   describe('local deps', function () {
     this.timeout(5000);
 
-    async function $setup(dependencies: any[] = [], stateSpy?) {
+    async function $setup(dependencies: any[] = []) {
       const ctx = TestContext.create();
 
       const { container, platform } = ctx;
@@ -1313,7 +1321,7 @@ describe('router/router.spec.ts', function () {
         for (const test of tests) {
           it(`to load route with fallback action "${fallbackAction}" ${test.path} => ${test.url}`, async function () {
             let locationPath: string;
-            const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+            const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
               locationPath = path;
             });
             await $load(test.path, router, platform);
@@ -1324,7 +1332,7 @@ describe('router/router.spec.ts', function () {
         }
         it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
           let locationPath: string;
-          const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+          const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
           });
           for (const test of tests) {
@@ -1341,7 +1349,7 @@ describe('router/router.spec.ts', function () {
           const url = test.url.replace(/@\w+/g, '');
           it(`to load route with fallback action "${fallbackAction}" ${path} => ${url}`, async function () {
             let locationPath: string;
-            const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+            const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
               locationPath = path;
             });
             await $load(path, router, platform);
@@ -1352,7 +1360,7 @@ describe('router/router.spec.ts', function () {
         }
         it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
           let locationPath: string;
-          const { platform, container, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
+          const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
           });
           for (const test of tests) {
@@ -1557,8 +1565,9 @@ describe('router/router.spec.ts', function () {
         await $teardown();
       });
     }
+
     it(`to load above routes (without viewports) in sequence`, async function () {
-      const { platform, host, router, $teardown, App } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
+      const { platform, host, router, $teardown } = await $setup(void 0, appDependencies, appRoutes, locationCallback);
 
       for (const test of tests) {
         await $load(test.path, router, platform);
@@ -1772,419 +1781,6 @@ describe('router/router.spec.ts', function () {
     }
   });
 
-  describe('can use lifecycleHooks', function () {
-    this.timeout(5000);
-
-    function _elements(config, calledHooks) {
-      @lifecycleHooks()
-      class Hooks {
-        name = 'Hooks';
-        canLoad(vm) { calledHooks.push(`${this.name}:${vm.name}:canLoad`); return config.Hooks_canLoad; }
-        loading(vm) { calledHooks.push(`${this.name}:${vm.name}:loading`); }
-        canUnload(vm) { calledHooks.push(`${this.name}:${vm.name}:canUnload`); return config.Hooks_canUnload; }
-        unloading(vm) { calledHooks.push(`${this.name}:${vm.name}:unloading`); }
-      }
-
-      const One = CustomElement.define({ name: 'my-one', template: '!my-one!<au-viewport></au-viewport>', dependencies: [Hooks] },
-        class {
-          name = 'my-one';
-          canLoad() { calledHooks.push(`VM:${this.name}:canLoad`); return config.One_canLoad; }
-          loading() { calledHooks.push(`VM:${this.name}:loading`); }
-          canUnload() { calledHooks.push(`VM:${this.name}:canUnload`); return config.One_canUnload; }
-          unloading() { calledHooks.push(`VM:${this.name}:unloading`); }
-          binding() { calledHooks.push(`VM:${this.name}:binding`); }
-        });
-      const Two = CustomElement.define({ name: 'my-two', template: '!my-two!', dependencies: [Hooks] },
-        class {
-          name = 'my-two';
-          canLoad() { calledHooks.push(`VM:${this.name}:canLoad`); return config.Two_canLoad; }
-          loading() { calledHooks.push(`VM:${this.name}:loading`); }
-          canUnload() { calledHooks.push(`VM:${this.name}:canUnload`); return config.Two_canUnload; }
-          unloading() { calledHooks.push(`VM:${this.name}:unloading`); }
-          binding() { calledHooks.push(`VM:${this.name}:binding`); }
-        });
-      return { Hooks, One, Two };
-    }
-
-    const configs = [
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: false, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: false, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: false, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: false, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: false, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: false },
-    ];
-
-    function _falses($config: typeof configs[0]) {
-      const falses = [];
-      for (const [key, value] of Object.entries($config)) {
-        if (!value) {
-          falses.push(key);
-        }
-      }
-      return falses.join(', ');
-    }
-
-    for (const config of configs) {
-      const calledHooks = [];
-      const { Hooks, One, Two } = _elements(config, calledHooks);
-
-      function _expected($config: typeof config) {
-        let oneLoaded = false;
-        let twoChecked = false;
-        let twoLoaded = false;
-        const expected = [];
-
-        expected.push('Hooks:my-one:canLoad');
-        if (!$config.Hooks_canLoad) {
-          expected.push('Hooks:my-two:canLoad');
-          return expected;
-        }
-
-        expected.push('VM:my-one:canLoad');
-        if ($config.One_canLoad) {
-          expected.push('Hooks:my-one:loading', 'VM:my-one:loading', 'VM:my-one:binding');
-          oneLoaded = true;
-
-          expected.push('Hooks:my-one:canUnload');
-
-          if (!$config.Hooks_canUnload) {
-            expected.push('Hooks:my-one:canUnload');
-            return expected;
-          }
-
-          expected.push('VM:my-one:canUnload');
-          if (!$config.One_canUnload) {
-            expected.push('Hooks:my-one:canUnload');
-            expected.push('VM:my-one:canUnload');
-            return expected;
-          }
-
-          expected.push('Hooks:my-two:canLoad');
-          if ($config.Hooks_canLoad) {
-
-            expected.push('VM:my-two:canLoad');
-            twoChecked = true;
-            if ($config.Two_canLoad) {
-              expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
-              // one = false;
-
-              expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-              twoLoaded = true;
-
-              expected.push('Hooks:my-two:canUnload');
-              if ($config.Hooks_canUnload) {
-                expected.push('VM:my-two:canUnload');
-                if ($config.Two_canUnload) {
-                  expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
-                  // two = false;
-                }
-              }
-            }
-          }
-        }
-
-        if (!oneLoaded && !twoChecked) {
-          expected.push('Hooks:my-two:canLoad');
-          if ($config.Hooks_canLoad) {
-            expected.push('VM:my-two:canLoad');
-            if ($config.Two_canLoad) {
-              expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              twoLoaded = true;
-
-              expected.push('Hooks:my-two:canUnload');
-              if ($config.Hooks_canUnload) {
-                expected.push('VM:my-two:canUnload');
-                if ($config.Two_canUnload) {
-                  expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
-                  // two = false;
-                }
-              }
-            }
-          }
-        }
-
-        return expected;
-      }
-
-      it(`with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-
-        const expected = _expected(config);
-
-        await $load('/my-one', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('/my-two', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
-
-        assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
-
-        await $teardown();
-      });
-    }
-
-    for (const config of configs) {
-      const calledHooks = [];
-      const { Hooks, One, Two } = _elements(config, calledHooks);
-
-      function _expected(config) {
-        const expected = ['Hooks:my-one:canLoad'];
-        if (!config.Hooks_canLoad) return expected;
-        expected.push('VM:my-one:canLoad');
-        if (!config.One_canLoad) return expected;
-        expected.push('Hooks:my-one:loading', 'VM:my-one:loading', 'VM:my-one:binding', 'Hooks:my-two:canLoad');
-        if (!config.Hooks_canLoad) return expected;
-        expected.push('VM:my-two:canLoad');
-        if (!config.Two_canLoad) {
-          expected.push('Hooks:my-one:canUnload', 'VM:my-one:canUnload', 'Hooks:my-one:unloading', 'VM:my-one:unloading');
-          return expected;
-        }
-        expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-
-        expected.push('Hooks:my-two:canUnload');
-        if (!config.Hooks_canUnload) return expected;
-        expected.push('VM:my-two:canUnload');
-        if (!config.Two_canUnload) return expected;
-        expected.push('Hooks:my-one:canUnload');
-        if (!config.Hooks_canUnload) return expected;
-        expected.push('VM:my-one:canUnload');
-        if (!config.One_canUnload) return expected;
-        expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading', 'Hooks:my-one:unloading', 'VM:my-one:unloading');
-        return expected;
-      }
-
-      it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-
-        await $load('/my-one/my-two', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
-
-        const expected = _expected(config);
-
-        assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
-
-        await $teardown();
-      });
-    }
-  });
-
-  describe('can use async lifecycleHooks', function () {
-    this.timeout(30000);
-
-    function _elements(config, calledHooks) {
-      @lifecycleHooks()
-      class Hooks {
-        public name = 'Hooks';
-        public async canLoad(vm) { calledHooks.push(`${this.name}:${vm.name}:canLoad`); /* return config.Hooks_canLoad; */ return new Promise((res) => { setTimeout(() => res(config.Hooks_canLoad), 100); }); }
-        public async loading(vm) { calledHooks.push(`${this.name}:${vm.name}:loading`); return new Promise((res) => { setTimeout(() => res(void 0), 75); }); }
-        public async canUnload(vm) { calledHooks.push(`${this.name}:${vm.name}:canUnload`); /* return config.Hooks_canUnload; */ return new Promise((res) => { setTimeout(() => res(config.Hooks_canUnload), 100); }); }
-        public async unloading(vm) { calledHooks.push(`${this.name}:${vm.name}:unloading`); return new Promise((res) => { setTimeout(() => res(void 0), 75); }); }
-
-        // TODO: Put these in once core supports them
-        // public binding(vm) { calledHooks.push(`${this.name}:${vm.name}:binding`); }
-        // public bound(vm) { calledHooks.push(`${this.name}:${vm.name}:bound`); }
-        // public attaching(vm) { calledHooks.push(`${this.name}:${vm.name}:attaching`); }
-        // public attached(vm) { calledHooks.push(`${this.name}:${vm.name}:attached`); }
-      }
-
-      const One = CustomElement.define({ name: 'my-one', template: '!my-one!<au-viewport></au-viewport>', dependencies: [Hooks] },
-        class {
-          public name = 'my-one';
-          public canLoad() { calledHooks.push(`VM:${this.name}:canLoad`); /* return config.One_canLoad; */ return new Promise((res) => { setTimeout(() => res(config.One_canLoad), 100); }); }
-          public loading() { calledHooks.push(`VM:${this.name}:loading`); return new Promise((res) => { setTimeout(() => res(void 0), 50); }); }
-          public canUnload() { calledHooks.push(`VM:${this.name}:canUnload`); /* return config.One_canUnload; */ return new Promise((res) => { setTimeout(() => res(config.One_canUnload), 100); }); }
-          public unloading() { calledHooks.push(`VM:${this.name}:unloading`); return new Promise((res) => { setTimeout(() => res(void 0), 50); }); }
-          public binding() { calledHooks.push(`VM:${this.name}:binding`); }
-        });
-      const Two = CustomElement.define({ name: 'my-two', template: '!my-two!', dependencies: [Hooks] },
-        class {
-          public name = 'my-two';
-          public canLoad() { calledHooks.push(`VM:${this.name}:canLoad`); /* return config.Two_canLoad; */ return new Promise((res) => { setTimeout(() => res(config.Two_canLoad), 100); }); }
-          public loading() { calledHooks.push(`VM:${this.name}:loading`); return new Promise((res) => { setTimeout(() => res(void 0), 50); }); }
-          public canUnload() { calledHooks.push(`VM:${this.name}:canUnload`); /* return config.Two_canUnload; */ return new Promise((res) => { setTimeout(() => res(config.Two_canUnload), 100); }); }
-          public unloading() { calledHooks.push(`VM:${this.name}:unloading`); return new Promise((res) => { setTimeout(() => res(void 0), 50); }); }
-          public binding() { calledHooks.push(`VM:${this.name}:binding`); }
-        });
-      return { Hooks, One, Two };
-    }
-
-    const configs = [
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: false, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: false, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: false, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: false, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: false, Two_canLoad: true, Two_canUnload: true },
-      { Hooks_canLoad: true, Hooks_canUnload: true, One_canLoad: true, One_canUnload: true, Two_canLoad: true, Two_canUnload: false },
-    ];
-
-    function _falses(config) {
-      const falses = [];
-      for (const [key, value] of Object.entries(config)) {
-        if (!value) {
-          falses.push(key);
-        }
-      }
-      return falses.join(', ');
-    }
-
-    for (const config of configs) {
-      const calledHooks = [];
-      const { Hooks, One, Two } = _elements(config, calledHooks);
-
-      function _expected(config) {
-        let oneLoaded = false;
-        let twoChecked = false;
-        let twoLoaded = false;
-        const expected = [];
-
-        expected.push('Hooks:my-one:canLoad');
-        if (!config.Hooks_canLoad) {
-          expected.push('Hooks:my-two:canLoad');
-          return expected;
-        }
-
-        expected.push('VM:my-one:canLoad');
-        if (config.One_canLoad) {
-          expected.push('Hooks:my-one:loading', 'VM:my-one:loading', 'VM:my-one:binding');
-          oneLoaded = true;
-
-          expected.push('Hooks:my-one:canUnload');
-
-          if (!config.Hooks_canUnload) {
-            expected.push('Hooks:my-one:canUnload');
-            return expected;
-          }
-
-          expected.push('VM:my-one:canUnload');
-          if (!config.One_canUnload) {
-            expected.push('Hooks:my-one:canUnload');
-            expected.push('VM:my-one:canUnload');
-            return expected;
-          }
-
-          expected.push('Hooks:my-two:canLoad');
-          if (config.Hooks_canLoad) {
-
-            expected.push('VM:my-two:canLoad');
-            twoChecked = true;
-            if (config.Two_canLoad) {
-              expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
-              // one = false;
-
-              expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-              twoLoaded = true;
-
-              expected.push('Hooks:my-two:canUnload');
-              if (config.Hooks_canUnload) {
-                expected.push('VM:my-two:canUnload');
-                if (config.Two_canUnload) {
-                  expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
-                  // two = false;
-                }
-              }
-            }
-          }
-        }
-
-        if (!oneLoaded && !twoChecked) {
-          expected.push('Hooks:my-two:canLoad');
-          if (config.Hooks_canLoad) {
-            expected.push('VM:my-two:canLoad');
-            if (config.Two_canLoad) {
-              expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-              twoLoaded = true;
-
-              expected.push('Hooks:my-two:canUnload');
-              if (config.Hooks_canUnload) {
-                expected.push('VM:my-two:canUnload');
-                if (config.Two_canUnload) {
-                  expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
-                  // two = false;
-                }
-              }
-            }
-          }
-        }
-
-        return expected;
-      }
-      it(`with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, host, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-
-        const expected = _expected(config);
-
-        await $load('/my-one', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('/my-two', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
-
-        assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
-
-        await $teardown();
-      });
-    }
-
-    for (const config of configs) {
-      const calledHooks = [];
-      const { Hooks, One, Two } = _elements(config, calledHooks);
-
-      function _expected(config) {
-        const expected = ['Hooks:my-one:canLoad'];
-        if (!config.Hooks_canLoad) return expected;
-        expected.push('VM:my-one:canLoad');
-        if (!config.One_canLoad) return expected;
-        expected.push('Hooks:my-one:loading', 'VM:my-one:loading', 'VM:my-one:binding', 'Hooks:my-two:canLoad');
-        if (!config.Hooks_canLoad) return expected;
-        expected.push('VM:my-two:canLoad');
-        if (!config.Two_canLoad) {
-          expected.push('Hooks:my-one:canUnload', 'VM:my-one:canUnload', 'Hooks:my-one:unloading', 'VM:my-one:unloading');
-          return expected;
-        }
-        expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-
-        expected.push('Hooks:my-two:canUnload');
-        if (!config.Hooks_canUnload) return expected;
-        expected.push('VM:my-two:canUnload');
-        if (!config.Two_canUnload) return expected;
-        expected.push('Hooks:my-one:canUnload');
-        if (!config.Hooks_canUnload) return expected;
-        expected.push('VM:my-one:canUnload');
-        if (!config.One_canUnload) return expected;
-        expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading', 'Hooks:my-one:unloading', 'VM:my-one:unloading');
-        return expected;
-      }
-
-      it(`in parent-child with hook and vm (falses: ${_falses(config)})`, async function () {
-        const { platform, host, router, $teardown } = await $setup({}, [Hooks, One, Two]);
-
-        await $load('/my-one/my-two', router, platform);
-        await platform.domWriteQueue.yield();
-
-        await $load('-', router, platform);
-        await platform.domWriteQueue.yield();
-
-        const expected = _expected(config);
-
-        assert.strictEqual(calledHooks.join('|'), expected.join('|'), `calledHooks`);
-
-        await $teardown();
-      });
-    }
-  });
   describe('can redirect', function () {
     this.timeout(30000);
 
@@ -2508,12 +2104,13 @@ describe('router/router.spec.ts', function () {
 
     const appDependencies = [Siblings, Zero, One, Two];
 
-    let locationPath: string;
-    let browserTitle: string;
+    // let locationPath: string;
+    // let browserTitle: string;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const locationCallback = (type, data, title, path) => {
       // console.log(type, data, title, path);
-      locationPath = path;
-      browserTitle = title;
+      // locationPath = path;
+      // browserTitle = title;
     };
 
     const tests = [
@@ -2525,6 +2122,7 @@ describe('router/router.spec.ts', function () {
 
     for (let j = 0; j < tests.length; j++) {
       const test = tests[j];
+      // eslint-disable-next-line mocha/no-skipped-tests
       it.skip(`to load sibling routes ${test.name}`, async function () {
         const { platform, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
 

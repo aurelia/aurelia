@@ -273,15 +273,13 @@ export {
 export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
-export type {
-  DefinitionType,
-} from './resources/resources-shared';
 
 export {
   capture,
   containerless,
   customElement,
   CustomElement,
+  type InjectableToken,
   type CustomElementDecorator,
   type CustomElementKind,
   type CustomElementType,

@@ -2,7 +2,7 @@ import { InstanceProvider, onResolve, onResolveAll } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { isElementType } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
-import { createInterface } from './utilities-di';
+import { createInterface, instanceRegistration } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
@@ -42,7 +42,8 @@ export class AppRoot implements IDisposable {
       const childCtn = container.createChild();
       let instance: object;
       if (isElementType(component)) {
-        instance = this.container.get(component);
+        instance = childCtn.invoke(component);
+        instanceRegistration(component, instance);
       } else {
         instance = config.component as ICustomElementViewModel;
       }

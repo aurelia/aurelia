@@ -5,7 +5,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
+import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol, ILogger, resolve } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces';
 import { Navigator, NavigatorNavigateEvent } from './navigator';
@@ -182,6 +182,9 @@ export class Router implements IRouter {
 
   private navigatorStateChangeEventSubscription!: IDisposable;
   private navigatorNavigateEventSubscription!: IDisposable;
+
+  /** @internal */
+  private readonly _logger = resolve(ILogger);
 
   public constructor(
     /**
@@ -675,7 +678,7 @@ export class Router implements IRouter {
   public unresolvedInstructionsError(navigation: Navigation, instructions: RoutingInstruction[]): void {
     this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.create(navigation));
     this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
-    throw createUnresolvedinstructionsError(instructions);
+    throw createUnresolvedinstructionsError(instructions, this._logger);
   }
 
   /**
@@ -814,6 +817,7 @@ export class Router implements IRouter {
     if ((navigation.title ?? null) === null) {
       const title = await Title.getTitle(instructions, navigation, this.configuration.options.title);
       if (title !== null) {
+        // eslint-disable-next-line require-atomic-updates
         navigation.title = title;
       }
     }
@@ -887,12 +891,16 @@ interface UnresolvedInstructionsError extends Error {
   remainingInstructions: RoutingInstruction[];
 }
 
-function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[]): UnresolvedInstructionsError {
+function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[], logger: ILogger): UnresolvedInstructionsError {
   // TODO: Improve error message, including suggesting solutions
   const error: Partial<UnresolvedInstructionsError> =
     new Error(`${remainingInstructions.length} remaining instructions after 100 iterations; there is likely an infinite loop.`);
   error.remainingInstructions = remainingInstructions;
-  console.log(error, error.remainingInstructions);
+  logger.warn(error, error.remainingInstructions);
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(error, error.remainingInstructions);
+  }
   return error as UnresolvedInstructionsError;
 }
 

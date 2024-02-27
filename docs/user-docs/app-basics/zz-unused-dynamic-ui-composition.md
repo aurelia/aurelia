@@ -18,7 +18,7 @@ The `au-compose` element can be used to render any custom element given to its `
 ```
 
 ```javascript
-import { CustomElement } from '@aurelia/runtime-html';
+import { CustomElement } from 'aurelia';
 
 export class App {
   MyField = CustomElement.define({
@@ -39,7 +39,7 @@ It's not always necessary, or convenient to compose using a custom element defin
 An example of view only composition:
 
 ```html
-<au-compose view="<p>Hello world</p>"></au-compose>
+<au-compose template="<p>Hello world</p>"></au-compose>
 ```
 
 Inside of our template, we are using the `<au-compose>` element and passing through a view to be rendered. The view is just a plain html string.
@@ -62,6 +62,7 @@ When composing without a custom element as component, the result component will 
 
 ## Migration from v1:
 
+- `<compose>` is renamed to `<au-compose>`
 - `view`/`view-model` have been renamed to `template`/`component`.
 - `template`/`component` (BREAKING CHANGE): passing a string to either template/component no longer means module name. The composer only understands string as template for view and objects and classes for component now. Though if it's still possible to turn treat string as module name, with the help of value converter:
     ```html

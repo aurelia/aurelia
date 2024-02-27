@@ -180,7 +180,7 @@ export class Route {
 
     // Clone it so that original route isn't affected
     // NOTE that it's not a deep clone (yet)
-    const config: IRoute = { ...configOrType } ?? {};
+    const config: IRoute = { ...configOrType };
 
     if ('component' in config || 'instructions' in config) {
       throw new Error(`Invalid route configuration: The 'component' and 'instructions' properties ` +

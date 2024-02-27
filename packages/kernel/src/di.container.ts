@@ -285,11 +285,9 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this._resolvers.has(key) || isResourceKey(key) && key in this.res
-      ? true
-      : searchAncestors && this._parent != null
-        ? this._parent.has(key, true)
-        : false;
+    return this._resolvers.has(key)
+      || isResourceKey(key) && key in this.res
+      || ((searchAncestors && this._parent?.has(key, true)) ?? false);
   }
 
   public get<K extends Key>(key: K): Resolved<K> {
@@ -512,24 +510,6 @@ export class Container implements IContainer {
       return registrationResolver as IResolver;
     }
 
-    if (hasResources(keyAsValue)) {
-      const defs = getAllResources(keyAsValue);
-      if (defs.length === 1) {
-        // Fast path for the very common case
-        defs[0].register(handler);
-      } else {
-        const len = defs.length;
-        for (let d = 0; d < len; ++d) {
-          defs[d].register(handler);
-        }
-      }
-      const newResolver = handler._resolvers.get(keyAsValue);
-      if (newResolver != null) {
-        return newResolver;
-      }
-      throw createMappedError(ErrorNames.null_resolver_from_register, keyAsValue);
-    }
-
     if (keyAsValue.$isInterface) {
       throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }
@@ -603,7 +583,9 @@ export type IResolvedInjection<K extends Key> =
               ? Resolved<R>
               : K extends [infer R1 extends Key, ...infer R2]
                 ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
-                : Resolved<K>;
+                : K extends { __resolved__: infer T }
+                  ? T
+                  : Resolved<K>;
 
 /**
  * Retrieve the resolved value of a key, or values of a list of keys from the currently active container.

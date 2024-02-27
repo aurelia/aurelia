@@ -15,6 +15,11 @@ export const enum ErrorNames {
 
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
+  element_existed = 153,
+  attribute_existed = 154,
+  value_converter_existed = 155,
+  binding_behavior_existed = 156,
+  binding_command_existed = 157,
 
   controller_cached_not_found = 500,
   controller_no_shadow_on_containerless = 501,
@@ -89,8 +94,7 @@ export const enum ErrorNames {
   update_trigger_behavior_no_triggers = 802,
   update_trigger_invalid_usage = 803,
   au_compose_invalid_scope_behavior = 805,
-  // originally not supported
-  // au_compose_containerless = 806,
+  au_compose_component_name_not_found = 806,
   au_compose_invalid_run = 807,
   au_compose_duplicate_deactivate = 808,
   else_without_if = 810,
@@ -122,6 +126,11 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
+  [ErrorNames.element_existed]: `Element {{0}} has already been registered.`,
+  [ErrorNames.attribute_existed]: `Attribute {{0}} has already been registered.`,
+  [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
+  [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
+  [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,
 
   [ErrorNames.controller_cached_not_found]: `There is no cached controller for the provided ViewModel: {{0}}`,
   [ErrorNames.controller_no_shadow_on_containerless]: `Invalid combination: cannot combine the containerless custom element option with Shadow DOM.`,
@@ -200,7 +209,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.update_trigger_invalid_usage]: `"& updateTrigger" invalid usage. This binding behavior can only be applied to two-way/ from-view bindings.`,
   [ErrorNames.au_compose_invalid_scope_behavior]: `Invalid scope behavior "{{0}}" on <au-compose />. Only "scoped" or "auto" allowed.`,
   // originally not supported
-  // [ErrorNames.au_compose_containerless]: `Containerless custom element {{0:name}} is not supported by <au-compose />`,
+  [ErrorNames.au_compose_component_name_not_found]: `<au-compose /> couldn't find a custom element with name "{{0}}", did you forget to register it locally or globally?`,
   [ErrorNames.au_compose_invalid_run]: `Composition has already been activated/deactivated. Id: {{0:controller}}`,
   [ErrorNames.au_compose_duplicate_deactivate]: `Composition has already been deactivated.`,
   [ErrorNames.else_without_if]: `Invalid [else] usage, it should follow an [if]`,

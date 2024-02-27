@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   common: aurelia/common@volatile
-  browser-tools: circleci/browser-tools@1.4.6
+  browser-tools: circleci/browser-tools@1.4.7
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -

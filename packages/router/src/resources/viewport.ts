@@ -1,4 +1,4 @@
-import { IContainer, IEventAggregator } from '@aurelia/kernel';
+import { IContainer, IEventAggregator, resolve } from '@aurelia/kernel';
 import {
   bindable,
   INode,
@@ -22,7 +22,7 @@ import { arrayRemove } from '../utilities/utils';
 import { OpenPromise } from '../utilities/open-promise';
 import { FallbackAction } from '../router-options';
 
-export const ParentViewport = CustomElement.createInjectable();
+const ParentViewport = CustomElement.createInjectable<ViewportCustomElement>();
 
 @customElement({
   name: 'au-viewport',
@@ -114,19 +114,18 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    */
   private isBound: boolean = false;
 
-  public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode public readonly element: INode<HTMLElement>,
-    @IContainer public container: IContainer,
-    @IEventAggregator private readonly ea: IEventAggregator,
-    @ParentViewport public readonly parentViewport: ViewportCustomElement,
-    @IInstruction private readonly instruction: HydrateElementInstruction,
-  ) { }
+  private readonly router = resolve(IRouter);
+  public readonly element = resolve(INode) as HTMLElement;
+  public container: IContainer = resolve(IContainer);
+  private readonly ea: IEventAggregator = resolve(IEventAggregator);
+  public readonly parentViewport = resolve(ParentViewport);
+  private readonly instruction = resolve(IInstruction) as HydrateElementInstruction;
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
     this.container = controller.container;
 
+    // eslint-disable-next-line
     const hasDefault = this.instruction.props.filter((instr: any) => instr.to === 'default').length > 0;
     if (hasDefault && this.parentViewport != null) {
       this.parentViewport.pendingChildren.push(this);

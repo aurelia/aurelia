@@ -172,7 +172,7 @@ export function createFixture<T extends object>(
       return;
     }
 
-    if (!html) {
+    if (html == null) {
       throw new Error('Invalid null/undefined expected html value');
     }
 

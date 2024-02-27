@@ -192,20 +192,18 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
 
         if (!oneLoaded && !twoChecked) {
           expected.push('Hooks:my-two:canLoad');
-          if ($config.Hooks_canLoad) {
-            expected.push('VM:my-two:canLoad');
-            if ($config.Two_canLoad) {
-              expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              twoLoaded = true;
+          expected.push('VM:my-two:canLoad');
+          if ($config.Two_canLoad) {
+            expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            twoLoaded = true;
 
-              expected.push('Hooks:my-two:canUnload');
-              if ($config.Hooks_canUnload) {
-                expected.push('VM:my-two:canUnload');
-                if ($config.Two_canUnload) {
-                  expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
-                  // two = false;
-                }
+            expected.push('Hooks:my-two:canUnload');
+            if ($config.Hooks_canUnload) {
+              expected.push('VM:my-two:canUnload');
+              if ($config.Two_canUnload) {
+                expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading');
+                // two = false;
               }
             }
           }
@@ -235,13 +233,12 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
       const calledHooks = [];
       const { Hooks, One, Two } = _elements(config, calledHooks);
 
-      function _expected(config) {
+      function _expected(config: typeof configs[0]) {
         const expected = ['Hooks:my-one:canLoad'];
         if (!config.Hooks_canLoad) return expected;
         expected.push('VM:my-one:canLoad');
         if (!config.One_canLoad) return expected;
         expected.push('Hooks:my-one:loading', 'VM:my-one:loading', 'VM:my-one:binding', 'Hooks:my-two:canLoad');
-        if (!config.Hooks_canLoad) return expected;
         expected.push('VM:my-two:canLoad');
         if (!config.Two_canLoad) {
           expected.push('Hooks:my-one:canUnload', 'VM:my-one:canUnload', 'Hooks:my-one:unloading', 'VM:my-one:unloading');
@@ -254,7 +251,6 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
         expected.push('VM:my-two:canUnload');
         if (!config.Two_canUnload) return expected;
         expected.push('Hooks:my-one:canUnload');
-        if (!config.Hooks_canUnload) return expected;
         expected.push('VM:my-one:canUnload');
         if (!config.One_canUnload) return expected;
         expected.push('Hooks:my-two:unloading', 'VM:my-two:unloading', 'Hooks:my-one:unloading', 'VM:my-one:unloading');

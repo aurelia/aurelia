@@ -1366,5 +1366,28 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('#d1', '<my-el style="width: 20%;"><p>hey aurelia</p></my-el>', { compact: true });
       assertHtml('#d2', '<my-el style="width: 20%;"><p>hey aurelia</p></my-el>', { compact: true });
     });
+
+    it('renders similar output for containerless element', function () {
+      @customElement({
+        name: 'my-el',
+        template: '<p>hey ${v}</p>',
+        containerless: true,
+      })
+      class El {
+        @bindable v;
+      }
+
+      const { assertHtml } = createFixture(
+        `<div id=d1>
+          <au-compose component.bind="el" style="width: 20%;" v="aurelia"></au-compose>
+        </div>
+        <div id=d2>
+          <my-el style="width: 20%;" v="aurelia"></my-el>
+        </div>`, class { el = El; }, [El]
+      );
+
+      assertHtml('#d1', '<p>hey aurelia</p>', { compact: true });
+      assertHtml('#d2', '<p>hey aurelia</p>', { compact: true });
+    });
   });
 });

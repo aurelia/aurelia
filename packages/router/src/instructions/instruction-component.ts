@@ -215,7 +215,7 @@ export class InstructionComponent {
     }
     const container = parentContainer.createChild();
     const instance = this.isType()
-      ? container.get<IRouteableComponent>(this.type!)
+      ? container.invoke<IRouteableComponent>(this.type!)
       : container.get<IRouteableComponent>(routerComponentResolver(this.name!));
     // TODO: Implement non-traversing lookup (below) based on router configuration
     // let instance;

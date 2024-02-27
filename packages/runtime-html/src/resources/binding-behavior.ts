@@ -1,7 +1,7 @@
 import { firstDefined, mergeArrays, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
 import type { Constructable, IContainer, IResourceKind, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
@@ -64,9 +64,16 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    singletonRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, BindingBehavior, key, container);
+    if (!container.has(key, false)) {
+      container.register(
+        singletonRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(Type, BindingBehavior.keyFrom(alias))),
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_behavior_existed)}`);
+    }
   }
 }
 

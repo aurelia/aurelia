@@ -114,8 +114,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // </template>
       // <template as-custom-element="le-2">...</template>
       //
-      // eagerly registering depdendencies inside the loop above
-      // will make `<le-1/>` miss `<le-2/>` as its dependency
+      // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
       const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies, ...context.deps];
       for (const localElementType of context.deps) {
         (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType));

@@ -1,4 +1,4 @@
-import { IContainer, noop } from '@aurelia/kernel';
+import { IContainer, noop, resolve } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { ICssModulesMapping, INode } from '../dom';
 import { ClassAttributeAccessor } from '../observation/class-attribute-accessor';
@@ -85,10 +85,8 @@ export class ShadowDOMRegistry implements IRegistry {
 }
 
 class AdoptedStyleSheetsStylesFactory {
-  public static inject = [IPlatform];
+  private readonly p = resolve(IPlatform);
   private readonly cache = new Map<string, CSSStyleSheet>();
-
-  public constructor(private readonly p: IPlatform) {}
 
   public createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new AdoptedStyleSheetsStyles(this.p, localStyles, this.cache, sharedStyles);
@@ -96,8 +94,7 @@ class AdoptedStyleSheetsStylesFactory {
 }
 
 class StyleElementStylesFactory {
-  public static inject = [IPlatform];
-  public constructor(private readonly p: IPlatform) {}
+  private readonly p = resolve(IPlatform);
 
   public createStyles(localStyles: string[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new StyleElementStyles(this.p, localStyles, sharedStyles);

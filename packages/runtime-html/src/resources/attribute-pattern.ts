@@ -1,4 +1,4 @@
-import { emptyArray, Protocol, all } from '@aurelia/kernel';
+import { emptyArray, Protocol, all, resolve } from '@aurelia/kernel';
 import { appendAnnotationKey, appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Class, Constructable, IContainer, ResourceDefinition, ResourceType } from '@aurelia/kernel';
@@ -453,9 +453,6 @@ export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('
 
 export class AttributeParser implements IAttributeParser {
   /** @internal */
-  protected static inject = [ISyntaxInterpreter, all(IAttributePattern)];
-
-  /** @internal */
   private readonly _cache: Record<string, Interpretation> = {};
   /**
    * A 2 level record with the same key on both levels.
@@ -468,11 +465,9 @@ export class AttributeParser implements IAttributeParser {
   /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
 
-  public constructor(
-    interpreter: ISyntaxInterpreter,
-    attrPatterns: IAttributePattern[],
-  ) {
-    this._interpreter = interpreter;
+  public constructor() {
+    const interpreter = this._interpreter = resolve(ISyntaxInterpreter);
+    const attrPatterns = resolve(all(IAttributePattern));
     const patterns: AttributeParser['_patterns'] = this._patterns = {};
     const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
       (allDefs, attrPattern) => {

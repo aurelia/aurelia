@@ -105,7 +105,7 @@ export class Scope {
     if (bc == null) {
       throw createMappedError(ErrorNames.create_scope_with_null_context);
     }
-    return new Scope(null, bc as IBindingContext, oc == null ? new OverrideContext() : oc, isBoundary ?? false);
+    return new Scope(null, bc as IBindingContext, oc ?? new OverrideContext(), isBoundary ?? false);
   }
 
   public static fromParent(ps: Scope | null, bc: object): Scope {

@@ -749,9 +749,18 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   // 2. if key is an interface
   if (isInterface(key)) {
     const hasDefault = isFunction((key as unknown as IRegistry).register);
-    const resolver = handler.getResolver(key, hasDefault) as IResolver<Constructable<typeof key>>;
-    const factory = resolver?.getFactory?.(handler);
-    // 2.1 and has factory
+    const resolver = handler.getResolver(key, false) as IResolver<Constructable<typeof key>>;
+    let factory: IFactory | null | undefined;
+    if (resolver == null) {
+      if (hasDefault) {
+        // creating a child as we do not want to pollute the resolver registry
+        // there may be a better way but wasting a container probably isn't the worst
+        factory = createContainer().getResolver(key, true)?.getFactory?.(handler);
+      }
+    } else {
+      factory = resolver.getFactory?.(handler);
+    }
+    // 2.1 and has resolvable factory
     if (factory != null) {
       return factory.construct(requestor);
     }

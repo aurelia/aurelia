@@ -1,5 +1,5 @@
-import { Constructable, IContainer } from '@aurelia/kernel';
-import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHooksEntry } from '@aurelia/runtime-html';
+import { IContainer } from '@aurelia/kernel';
+import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';
@@ -7,7 +7,7 @@ import { Navigation } from '../navigation';
 import { IConnectedCustomElement } from './endpoint';
 import { Runner, Step } from '../utilities/runner';
 import { AwaitableMap } from '../utilities/awaitable-map';
-import { EndpointContent, RoutingScope } from '../index';
+import { EndpointContent, Parameters, RoutingScope } from '../index';
 import { IRouter } from '../router';
 import { FoundRoute } from '../found-route';
 import { FallbackAction } from '../router-options';
@@ -30,12 +30,6 @@ import { FallbackAction } from '../router-options';
  * The content states for the viewport content content.
  */
 export type ContentState = 'created' | 'checkedUnload' | 'checkedLoad' | 'loaded' | 'activating' | 'activated';
-
-// This should really be an export from runtime-html/lifecycle-hooks
-type FuncPropNames<T> = {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  [K in keyof T]: K extends 'constructor' ? never : Required<T>[K] extends Function ? K : never;
-}[keyof T];
 
 /**
  * @internal
@@ -106,7 +100,7 @@ export class ViewportContent extends EndpointContent {
     super(router, viewport, owningScope, hasScope, instruction, navigation);
     // If we've got a container, we're good to resolve type
     if (!this.instruction.component.isType() && connectedCE?.container != null) {
-      this.instruction.component.type = this.toComponentType(connectedCE!.container!);
+      this.instruction.component.type = this.toComponentType(connectedCE.container);
     }
   }
 
@@ -215,6 +209,7 @@ export class ViewportContent extends EndpointContent {
           throw e;
         }
         if (__DEV__) {
+          // eslint-disable-next-line no-console
           console.warn(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
         }
 
@@ -272,45 +267,33 @@ export class ViewportContent extends EndpointContent {
     const parameters = this.instruction.typeParameters(this.router);
     const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
 
-    const hooks = this.getLifecycleHooks(instance, 'canLoad').map(hook => ((innerStep: Step) => {
-      const result = hook(instance, merged, this.instruction, this.navigation);
-      if (typeof result === 'boolean') {
-        if (result === false) {
-          innerStep.exit();
-        }
-        return result;
-      }
-      if (typeof result === 'string') {
-        innerStep.exit();
-        return result;
-      }
-      return result as Promise<RoutingInstruction[]>;
-    }));
-
-    if (hooks.length !== 0) {
-      const hooksResult = Runner.run(null, ...hooks);
-
-      if (hooksResult !== true) {
-        if (hooksResult === false) {
+    const hooks = this.getLifecycleHooks(instance, 'canLoad')
+      .map(hook => ((innerStep: Step | null) => {
+        if (innerStep?.previousValue === false) {
           return false;
         }
-        if (typeof hooksResult === 'string') {
-          return hooksResult;
+        // TODO: If requested, pass previous value into hook
+        return hook(instance, merged, this.instruction, this.navigation);
+      }));
+
+    if (instance.canLoad != null) {
+      hooks.push((innerStep: Step | null) => {
+        if (innerStep?.previousValue === false) {
+          return false;
         }
-        return hooksResult as Promise<RoutingInstruction[]>;
-      }
+        // TODO: If requested, pass previous value into hook
+        return instance.canLoad!(merged, this.instruction, this.navigation);
+      });
     }
 
-    // No hook for component, we can load
-    if (instance.canLoad == null) {
+    if (hooks.length === 0) {
       return true;
     }
 
-    const result = instance.canLoad(merged, this.instruction, this.navigation);
-    if (typeof result === 'boolean' || typeof result === 'string') {
-      return result;
+    if (hooks.length === 1) {
+      return hooks[0](null);
     }
-    return result as Promise<RoutingInstruction[]>;
+    return Runner.run(null, ...hooks) as Promise<RoutingInstruction[]>;
   }
 
   /**
@@ -343,38 +326,32 @@ export class ViewportContent extends EndpointContent {
       });
     }
 
-    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step) => {
-      const result = hook(instance, this.instruction, navigation);
-      if (typeof result === 'boolean') {
-        if (result === false) {
-          innerStep.exit();
-        }
-        return result;
+    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
+      if (innerStep?.previousValue === false) {
+        return false;
       }
-      return result as Promise<boolean>;
+      return hook(instance, this.instruction, navigation);
     }));
 
-    if (hooks.length !== 0) {
-      const hooksResult = Runner.run(null, ...hooks);
-
-      if (hooksResult !== true) {
-        if (hooksResult === false) {
+    if (instance.canUnload != null) {
+      hooks.push((innerStep: Step | null) => {
+        if (innerStep?.previousValue === false) {
           return false;
         }
-        return hooksResult as Promise<boolean>;
-      }
+        // TODO: If requested, pass previous value into hook
+        const result = instance.canUnload?.(this.instruction, navigation);
+        return result instanceof Promise ? result.then(Boolean) : Boolean(result);
+      });
     }
 
-    // No hook in component, we can unload
-    if (!instance.canUnload) {
+    if (hooks.length === 0) {
       return true;
     }
 
-    const result = instance.canUnload(this.instruction, navigation);
-    if (typeof result !== 'boolean' && !(result instanceof Promise)) {
-      throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
+    if (hooks.length === 1) {
+      return hooks[0](null);
     }
-    return result;
+    return Runner.run(null, ...hooks) as boolean | Promise<boolean>;
   }
 
   /**
@@ -409,6 +386,7 @@ export class ViewportContent extends EndpointContent {
 
         hooks.push(...this.getLifecycleHooks(instance, 'load').map(hook =>
           () => {
+            // eslint-disable-next-line no-console
             console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
             return hook(instance, merged, this.instruction, this.navigation);
           }));
@@ -418,22 +396,24 @@ export class ViewportContent extends EndpointContent {
           if (typeof instance.loading  === 'function') {
             hooks.push(() => instance.loading!(merged, this.instruction, this.navigation));
           }
-          if (typeof (instance as any).load  === 'function') {
+          if (hasVmHook(instance, 'load')) {
+            // eslint-disable-next-line no-console
             console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
-            hooks.push(() => (instance as any).load!(merged, this.instruction, this.navigation));
+            hooks.push(() => instance.load(merged, this.instruction, this.navigation));
           }
 
           return Runner.run(null, ...hooks);
         }
 
         // Skip if there's no hook in component
-        if (typeof instance.loading === 'function') {
+        if (hasVmHook(instance, 'loading')) {
           return instance.loading(merged, this.instruction, this.navigation);
         }
         // Skip if there's no hook in component
-        if (typeof (instance as any).load  === 'function') {
+        if (hasVmHook(instance, 'load')) {
+          // eslint-disable-next-line no-console
           console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
-          return (instance as any).load(merged, this.instruction, this.navigation);
+          return instance.load(merged, this.instruction, this.navigation);
         }
       }
     ) as Step<void>;
@@ -467,30 +447,33 @@ export class ViewportContent extends EndpointContent {
 
     hooks.push(...this.getLifecycleHooks(instance, 'unload').map(hook =>
       () => {
+        // eslint-disable-next-line no-console
         console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
         return hook(instance, this.instruction, navigation);
       }));
 
     if (hooks.length !== 0) {
       // Add hook in component
-      if (typeof instance.unloading  === 'function') {
-        hooks.push(() => instance.unloading!(this.instruction, navigation));
+      if (hasVmHook(instance, 'unloading')) {
+        hooks.push(() => instance.unloading(this.instruction, navigation));
       }
-      if (typeof (instance as any).unload  === 'function') {
+      if (hasVmHook(instance, 'unload')) {
+        // eslint-disable-next-line no-console
         console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
-        hooks.push(() => (instance as any).unload!(this.instruction, navigation));
+        hooks.push(() => instance.unload(this.instruction, navigation));
       }
 
       return Runner.run(null, ...hooks) as void | Promise<void>;
     }
 
     // Skip if there's no hook in component
-    if (typeof instance.unloading  === 'function') {
+    if (hasVmHook(instance, 'unloading')) {
       return instance.unloading(this.instruction, navigation);
     }
-    if (typeof (instance as any).unload  === 'function') {
+    if (hasVmHook(instance, 'unload')) {
+      // eslint-disable-next-line no-console
       console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
-      return (instance as any).unload(this.instruction, navigation);
+      return instance.unload(this.instruction, navigation);
     }
   }
 
@@ -505,8 +488,17 @@ export class ViewportContent extends EndpointContent {
    * @param boundCallback - A callback that's called when the content's component has been bound
    * @param attachPromise - A promise that th content's component controller will await before attaching
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public activateComponent(step: Step<void>, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, boundCallback: any, attachPromise: void | Promise<void> | undefined): Step<void> {
+  public activateComponent(
+    step: Step<void>,
+    initiator: IHydratedController | null,
+    parent: ICustomElementController | null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    connectedCE: IConnectedCustomElement,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    boundCallback: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    attachPromise: void | Promise<void> | undefined
+  ): Step<void> {
     return Runner.run(step,
       () => this.contentStates.await('loaded'),
       () => this.waitForParent(parent), // TODO: It might be possible to refactor this away
@@ -556,7 +548,8 @@ export class ViewportContent extends EndpointContent {
     if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
       return;
     }
-    return Runner.run(step,
+    return Runner.run(
+      step,
       // TODO: Revisit once it's possible to abort within lifecycle hooks
       // () => {
       //   if (!this.contentStates.has('activated')) {
@@ -667,9 +660,51 @@ export class ViewportContent extends EndpointContent {
     }
   }
 
+  /** @internal */
   // TODO: Move this elsewhere and fix the typings
-  private getLifecycleHooks(instance: IRouteableComponent, name: string): any[] {
-    const hooks = (instance.$controller!.lifecycleHooks[name as FuncPropNames<Constructable>] ?? []) as LifecycleHooksEntry[];
-    return hooks.map(hook => (hook.instance[name as FuncPropNames<Constructable>] as VoidFunction).bind(hook.instance));
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'canLoad'): LifecycleHook<IRouteableComponent, 'canLoad'>[];
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'loading'): LifecycleHook<IRouteableComponent, 'loading'>[];
+  /**
+   * @deprecated
+   */
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'load'): LifecycleHook<IRouteableComponent, 'loading'>[];
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'canUnload'): LifecycleHook<IRouteableComponent, 'canUnload'>[];
+  /**
+   * @deprecated
+   */
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'unload'): LifecycleHook<IRouteableComponent, 'unloading'>[];
+  private getLifecycleHooks(instance: IRouteableComponent, name: 'unloading'): LifecycleHook<IRouteableComponent, 'unloading'>[];
+  private getLifecycleHooks(instance: IRouteableComponent, name: LifecycleNames): unknown[] {
+    const hooks = (instance.$controller!.lifecycleHooks as LifecycleHooksLookup<IRouteableComponentDeprecated>)[name] ?? [];
+    return hooks.map(hook => ((hook.instance as ILifecycleHooks<IRouteableComponentDeprecated>)[name]).bind(hook.instance));
   }
+}
+
+type IRouteableComponentDeprecated = IRouteableComponent & {
+  load?(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void>;
+  unload?(instruction: RoutingInstruction, navigation: Navigation | null): void | Promise<void>;
+};
+
+type LifecycleNames = 'load' | 'unload' | 'loading' | 'unloading' | 'canLoad' | 'canUnload';
+type IHasVmHook<T extends LifecycleNames> = IRouteableComponentDeprecated & {
+  [key in T]: NonNullable<IRouteableComponentDeprecated[key]>;
+};
+
+/**
+ * @deprecated
+ * 'load' and 'unload' are deprecated in favor of 'loading' and 'unloading'
+ */
+function hasVmHook(
+  instance: IRouteableComponentDeprecated,
+  lifecycle: 'load' | 'unload',
+): instance is IHasVmHook<typeof lifecycle>;
+function hasVmHook(
+  instance: IRouteableComponentDeprecated,
+  lifecycle: 'load' | 'unload' | 'loading' | 'unloading' | 'canLoad' | 'canUnload',
+): instance is IHasVmHook<typeof lifecycle>;
+function hasVmHook(
+  instance: IRouteableComponentDeprecated,
+  lifecycle: 'load' | 'unload' | 'loading' | 'unloading' | 'canLoad' | 'canUnload',
+): instance is IHasVmHook<typeof lifecycle> {
+  return typeof instance[lifecycle] === 'function';
 }

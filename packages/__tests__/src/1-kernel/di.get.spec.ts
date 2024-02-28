@@ -202,7 +202,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Boolean', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Boolean) {
           }
         }
@@ -274,7 +273,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Function', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Function) {
           }
         }
@@ -320,7 +318,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Number', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Number) {
           }
         }
@@ -339,7 +336,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('Object', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: Object) {
           }
         }
@@ -414,7 +410,6 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('String', function () {
         @singleton
         class Foo {
-          // eslint-disable-next-line @typescript-eslint/ban-types
           public constructor(private readonly test: String) {
           }
         }
@@ -663,15 +658,15 @@ describe('1-kernel/di.get.spec.ts', function () {
   });
 
   describe('@newInstanceForScope', function () {
-    it('jit-registers and instantiates when there is a default impl for an interface', function () {
+    it('instantiates, but does not jit-registers, when there is a default impl for an interface', function () {
       const container = DI.createContainer();
       class Impl {}
       const I = DI.createInterface('I', x => x.singleton(Impl));
       assert.instanceOf(container.get(newInstanceForScope(I)), Impl);
-      assert.strictEqual(container.getAll(I).length, 2);
+      assert.strictEqual(container.getAll(I).length, 1);
     });
 
-    it('jit-registers resolver and instance in child', function () {
+    it('does not jit-registers in parent', function () {
       const container = DI.createContainer();
       const child = container.createChild();
       class Impl {}
@@ -683,7 +678,7 @@ describe('1-kernel/di.get.spec.ts', function () {
       // has resolver, no instance
       // has resolver because createNewInstance/scope auto-registers a resolver
       // no instance because new instance forScope doesn't register on handler
-      assert.strictEqual(container.has(I, false), true);
+      assert.strictEqual(container.has(I, false), false);
     });
     // the following test tests a more common, expected scenario,
     // where some instance is scoped to a child container,

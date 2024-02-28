@@ -13,7 +13,7 @@ import {
 } from '../renderer';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -29,6 +29,7 @@ import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
 import { dtElement } from './resources-shared';
+import { ErrorNames, createMappedError } from '../errors';
 
 export const ctNone = 'None' as const;
 export const ctIgnoreAttr = 'IgnoreAttr' as const;
@@ -121,9 +122,16 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
-    singletonRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, BindingCommand, key, container);
+    if (!container.has(key, false)) {
+      container.register(
+        singletonRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed)}`);
+    }
   }
 }
 

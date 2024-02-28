@@ -1,4 +1,4 @@
-import { camelCase } from '@aurelia/kernel';
+import { camelCase, resolve } from '@aurelia/kernel';
 import {
   type ExpressionType,
   IExpressionParser,
@@ -54,7 +54,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === 'element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -92,12 +92,9 @@ export class DispatchBindingInstruction {
 
 @renderer('sb')
 export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sb';
 
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -122,12 +119,8 @@ export class StateBindingInstructionRenderer implements IRenderer {
 
 @renderer('sd')
 export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
   public readonly target!: 'sd';
-
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ private readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,

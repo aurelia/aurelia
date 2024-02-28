@@ -92,7 +92,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
-    return CustomElementDefinition.create({
+    const compiledDef = CustomElementDefinition.create({
       ...partialDefinition,
       name: partialDefinition.name || generateElementName(),
       dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
@@ -104,6 +104,24 @@ export class TemplateCompiler implements ITemplateCompiler {
       hasSlots: context.hasSlot,
       needsCompile: false,
     });
+
+    if (context.deps != null) {
+      // if we have a template like this
+      //
+      // my-app.html
+      // <template as-custom-element="le-1">
+      //  <le-2></le-2>
+      // </template>
+      // <template as-custom-element="le-2">...</template>
+      //
+      // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
+      const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies, ...context.deps];
+      for (const localElementType of context.deps) {
+        (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType));
+      }
+    }
+
+    return compiledDef;
   }
 
   public compileSpread(
@@ -541,8 +559,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       expr = exprParser.parse(realAttrValue, etInterpolation);
       if (expr === null) {
         if (__DEV__) {
-          context._logger.warn(
-            `Property ${realAttrTarget} is declared with literal string ${realAttrValue}. ` +
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[DEV:aurelia] Property "${realAttrTarget}" is declared with literal string ${realAttrValue}. ` +
             `Did you mean ${realAttrTarget}.bind="${realAttrValue}"?`
           );
         }
@@ -724,7 +743,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         }
       }
 
-      if (bindingCommand !== null && bindingCommand.type === ctIgnoreAttr) {
+      if (bindingCommand?.type === ctIgnoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
         // active.class="..."
@@ -742,11 +761,58 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      // if not a ignore attribute binding command
-      // then process with the next possibilities
+      // reaching here means:
+      // + there may or may not be a binding command, but it won't be an overriding command
+
+      if (isCustomElement) {
+        // if the element is a custom element
+        // - prioritize bindables on a custom element before plain attributes
+        bindablesInfo = BindablesInfo.from(elDef, false);
+        bindable = bindablesInfo.attrs[realAttrTarget];
+        if (bindable !== void 0) {
+          if (bindingCommand === null) {
+            expr = exprParser.parse(realAttrValue, etInterpolation);
+            (elBindableInstructions ??= []).push(
+              expr == null
+                ? new SetPropertyInstruction(realAttrValue, bindable.name)
+                : new InterpolationInstruction(expr, bindable.name)
+            );
+          } else {
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = bindable;
+            commandBuildInfo.def = elDef;
+            (elBindableInstructions ??= []).push(bindingCommand.build(
+              commandBuildInfo,
+              context._exprParser,
+              context._attrMapper
+            ));
+          }
+
+          removeAttr();
+
+          if (__DEV__) {
+            attrDef = context._findAttr(realAttrTarget);
+            if (attrDef !== null) {
+              // eslint-disable-next-line no-console
+              console.warn(`[DEV:aurelia] Binding with bindable "${realAttrTarget}" on custom element "${elDef.name}" is ambiguous.` +
+                `There is a custom attribute with the same name.`
+              );
+            }
+          }
+          continue;
+        }
+      }
+
+      // reaching here means:
+      // + there may or may not be a binding command, but it won't be an overriding command
+      // + the attribute is not targeting a bindable property of a custom element
+      //
+      // + maybe it's a custom attribute
+      // + maybe it's a plain attribute
+
+      // check for custom attributes before plain attributes
       attrDef = context._findAttr(realAttrTarget);
-      // when encountering an attribute,
-      // custom attribute takes precedence over custom element bindables
       if (attrDef !== null) {
         bindablesInfo = BindablesInfo.from(attrDef, true);
         // Custom attributes are always in multiple binding mode,
@@ -813,27 +879,11 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
+      // reaching here means:
+      // + it's a plain attribute
+      // + there may or may not be a binding command, but it won't be an overriding command
+
       if (bindingCommand === null) {
-        // reaching here means:
-        // + maybe a bindable attribute with interpolation
-        // + maybe a plain attribute with interpolation
-        // + maybe a plain attribute
-        if (isCustomElement) {
-          bindablesInfo = BindablesInfo.from(elDef, false);
-          bindable = bindablesInfo.attrs[realAttrTarget];
-          if (bindable !== void 0) {
-            expr = exprParser.parse(realAttrValue, etInterpolation);
-            (elBindableInstructions ??= []).push(
-              expr == null
-                ? new SetPropertyInstruction(realAttrValue, bindable.name)
-                : new InterpolationInstruction(expr, bindable.name)
-            );
-
-            removeAttr();
-            continue;
-          }
-        }
-
         // reaching here means:
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
@@ -851,8 +901,6 @@ export class TemplateCompiler implements ITemplateCompiler {
             context._attrMapper.map(el, realAttrTarget) ?? camelCase(realAttrTarget)
           ));
         }
-        // if not a custom attribute + no binding command + not a bindable + not an interpolation
-        // then it's just a plain attribute, do nothing
         continue;
       }
 
@@ -860,30 +908,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // + has binding command
       // + not an overriding binding command
       // + not a custom attribute
-      removeAttr();
-
-      if (isCustomElement) {
-        // if the element is a custom element
-        // - prioritize bindables on a custom element before plain attributes
-        bindablesInfo = BindablesInfo.from(elDef, false);
-        bindable = bindablesInfo.attrs[realAttrTarget];
-        if (bindable !== void 0) {
-          commandBuildInfo.node = el;
-          commandBuildInfo.attr = attrSyntax;
-          commandBuildInfo.bindable = bindable;
-          commandBuildInfo.def = elDef;
-          (elBindableInstructions ??= []).push(bindingCommand.build(
-            commandBuildInfo,
-            context._exprParser,
-            context._attrMapper
-          ));
-          continue;
-        }
-      }
-
-      // reaching here means:
-      // + a plain attribute
-      // + has binding command
+      // + not a custom element bindable
 
       commandBuildInfo.node = el;
       commandBuildInfo.attr = attrSyntax;
@@ -894,6 +919,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         context._exprParser,
         context._attrMapper
       ));
+      removeAttr();
     }
 
     resetCommandBuildInfo();
@@ -1471,7 +1497,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       throw createMappedError(ErrorNames.compiler_template_only_local_template, elName);
     }
     const localTemplateNames: Set<string> = new Set();
-    const localElTypes: CustomElementType[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1507,7 +1532,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         const ignoredAttributes = toArray(bindableEl.attributes).filter((attr) => !allowedLocalTemplateBindableAttributes.includes(attr.name));
         if (ignoredAttributes.length > 0) {
           if (__DEV__)
-            context._logger.warn(`The attribute(s) ${ignoredAttributes.map(attr => attr.name).join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] The attribute(s) ${ignoredAttributes.map(attr => attr.name).join(', ')} will be ignored for ${bindableEl.outerHTML}. Only ${allowedLocalTemplateBindableAttributes.join(', ')} are processed.`);
         }
 
         bindableEl.remove();
@@ -1518,26 +1544,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       }, {});
       class LocalTemplateType {}
       def(LocalTemplateType, 'name', { value: name });
-      localElTypes.push(LocalTemplateType);
-      context._addDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
+      context._addLocalDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
 
       root.removeChild(localTemplate);
-    }
-
-    // if we have a template like this
-    //
-    // my-app.html
-    // <template as-custom-element="le-1">
-    //  <le-2></le-2>
-    // </template>
-    // <template as-custom-element="le-2">...</template>
-    //
-    // eagerly registering depdendencies inside the loop above
-    // will make `<le-1/>` miss `<le-2/>` as its dependency
-
-    const allDeps = [...context.def.dependencies ?? emptyArray, ...localElTypes];
-    for (const Type of localElTypes) {
-      (getElementDefinition(Type).dependencies as Key[]).push(allDeps.filter(d => d !== Type));
     }
   }
 
@@ -1678,7 +1687,7 @@ class CompilationContext {
   public readonly rows: IInstruction[][];
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
-  public deps: unknown[] | undefined;
+  public deps: CustomElementType[] | undefined;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1708,9 +1717,10 @@ class CompilationContext {
     this.rows = instructions ?? [];
   }
 
-  public _addDep(dep: unknown) {
+  public _addLocalDep(dep: CustomElementType) {
     (this.root.deps ??= []).push(dep);
     this.root.c.register(dep);
+    return dep;
   }
 
   public _text(text: string) {

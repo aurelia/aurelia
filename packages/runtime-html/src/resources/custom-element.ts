@@ -12,7 +12,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
+import { aliasRegistration, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -22,7 +22,6 @@ import type {
   PartialResourceDefinition,
   Key,
   ResourceDefinition,
-  Injectable,
   IResolver,
   Writable,
 } from '@aurelia/kernel';
@@ -197,7 +196,7 @@ function markContainerless(target: Constructable) {
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
-  public get type(): 'Element' { return dtElement; }
+  public get type(): 'element' { return dtElement; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,
@@ -364,10 +363,16 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 
   public register(container: IContainer): void {
     const { Type, key, aliases } = this;
+    // todo: warn if alreay has key
     if (!container.has(key, false)) {
-      transientRegistration(key, Type).register(container);
-      aliasRegistration(key, Type).register(container);
-      registerAliases(aliases, CustomElement, key, container);
+      container.register(
+        transientRegistration(key, Type),
+        aliasRegistration(key, Type),
+        ...aliases.map(alias => aliasRegistration(Type, CustomElement.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed)}`);
     }
   }
 
@@ -376,8 +381,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export type InjectableToken<K = any> = (target: Injectable, property: string | symbol | undefined, index: number) => void;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type InjectableToken<K = any> = ((target: Constructable, property: string | symbol | undefined, index: number) => void) & {
+  readonly __resolved__: K | null;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalInjectableToken<K = any> = InjectableToken<K> & {
   register?(container: IContainer): IResolver<K>;
@@ -510,24 +517,22 @@ export const getElementDefinition = <C extends Constructable>(Type: C | Function
 /** @internal */
 export const createElementInjectable = <K extends Key = Key>(): InjectableToken<K> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const $injectable: InternalInjectableToken<K> = function (target, property, index): any {
+  const $injectable = function (target, property, index): any {
     const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
     annotationParamtypes[index] = $injectable;
     return target;
-  };
+  } as InternalInjectableToken<K>;
 
-  $injectable.register = function (_container) {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return {
-      resolve(container, requestor) {
-        if (requestor.has($injectable, true)) {
-          return requestor.get($injectable);
-        } else {
-          return null;
-        }
-      },
-    } as IResolver;
-  };
+  $injectable.register = (): IResolver => ({
+    $isResolver: true,
+    resolve(container, requestor) {
+      if (requestor.has($injectable, true)) {
+        return requestor.get($injectable);
+      } else {
+        return null;
+      }
+    }
+  });
 
   return $injectable;
 };
@@ -549,7 +554,7 @@ export const generateElementType = /*@__PURE__*/(function () {
   ): CustomElementType<Constructable<P>> {
     // Anonymous class ensures that minification cannot cause unintended side-effects, and keeps the class
     // looking similarly from the outside (when inspected via debugger, etc).
-    const Type = class { } as CustomElementType<Constructable<P>>;
+    const Type = class Anonymous { } as CustomElementType<Constructable<P>>;
 
     // Define the name property so that Type.name can be used by end users / plugin authors if they really need to,
     // even when minified.

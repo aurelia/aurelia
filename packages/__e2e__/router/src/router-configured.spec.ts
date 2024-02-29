@@ -1,5 +1,7 @@
-import { test, expect } from '@playwright/test';
+/* eslint-disable max-lines-per-function */
+import { test, expect, type Page } from '@playwright/test';
 import { addCoverage } from '../../playwright-coverage';
+import type { IRouter } from '@aurelia/router';
 
 test.describe('router', () => {
 
@@ -81,7 +83,7 @@ test.describe('router', () => {
     await expect(page.locator('#child-something-missing-link')).toHaveAttribute('href', 'child/something/missing');
   });
 
-  test('from home to auth page, then go back', async ({ page, baseURL }) => {
+  test('goes from home to auth page, then go back', async ({ page, baseURL }) => {
     // Home
     await expect(page.locator('#root-vp')).toHaveText('Home page');
 
@@ -119,7 +121,7 @@ test.describe('router', () => {
     await expect(page.locator('#root-vp')).toHaveText('Home page');
   });
 
-  test('from home to component page, then go back', async ({ page, baseURL }) => {
+  test('goes from home to component page, then go back', async ({ page, baseURL }) => {
     // Home
     await expect(page.locator('#root-vp')).toHaveText('Home page');
 
@@ -155,4 +157,91 @@ test.describe('router', () => {
     expect(page.url()).toBe(`${baseURL}/`);
     await expect(page.locator('#root-vp')).toContainText('Home page');
   });
+
+  // with the loop, the issue with duplicate content is much easier to reproduce
+  for (let i = 0; i < 5; i++) {
+    test(`ensures no duplication with load${i}`, async ({ page, baseURL }) => {
+      // Home
+      const proms: Promise<void>[] = [];
+      await expect(page.locator('#root-vp')).toHaveText('Home page');
+      // Flood navigation
+      for (let i = 0; i < 50; i++) {
+        switch (i % 3) {
+          case 0:
+            proms.push(page.click('#page-one-link'));
+            break;
+          case 1:
+            proms.push(page.click('#page-two-link'));
+            break;
+          case 2:
+            proms.push(page.click('#auth-link'));
+            break;
+        }
+      }
+
+      await Promise.all(proms);
+
+      await _waitProcessingNav(page);
+
+      // Go to "two"
+      await Promise.all([
+        page.waitForURL(`${baseURL}/pages/two-route`),
+        page.click('#page-two-link'),
+      ]);
+      expect(page.url()).toBe(`${baseURL}/pages/two-route`);
+      expect(await page.locator('#root-vp').textContent()).toBe('Two page');
+    });
+  }
+
+  test('ensures no duplication with back/forward', async ({ page, baseURL }) => {
+    // Home
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to "one"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/one-route`),
+      page.click('#page-one-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/pages/one-route`);
+    await expect(page.locator('#root-vp')).toContainText('One page');
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+
+    // Flood back/forward
+    const proms: Promise<unknown>[] = [];
+    for (let i = 0; i < 98; i++) {
+      if (i % 2 === 0) {
+        proms.push(page.goBack(), page.goBack());
+      } else {
+        proms.push(page.goForward(), page.goForward());
+      }
+    }
+    await Promise.all(proms);
+
+    await _waitProcessingNav(page);
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/pages/two-route`),
+      page.click('#page-two-link'),
+    ]);
+
+    expect(page.url()).toBe(`${baseURL}/pages/two-route`);
+    expect(await page.locator('#root-vp').textContent()).toBe('Two page');
+  });
 });
+
+/** Wait until the navigation processing is complete */
+async function _waitProcessingNav(page: Page): Promise<void> {
+  let isNav: boolean;
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise(resolve => setTimeout(resolve, 200));
+    // eslint-disable-next-line no-await-in-loop
+    isNav = await page.evaluate(() => (window as Window & { _auRouter?: IRouter & { isProcessingNav?: boolean } })._auRouter.isProcessingNav);
+  } while (isNav);
+}

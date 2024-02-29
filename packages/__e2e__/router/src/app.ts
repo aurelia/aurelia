@@ -5,14 +5,16 @@ export class App {
   public static routes = [
     { path: ['', 'home'], component: import('./pages/home') },
     { path: 'pages/one-route', component: import('./pages/one') },
-    { path: 'pages/two-route', component: () => import('./pages/two') },
+    { path: 'pages/two-route', component: import('./pages/two') },
   ];
 
   public message = 'Hello, World!';
   public iframeSrc: string;
   public iframeVisible: boolean;
 
-  public constructor(@IRouter public readonly router: IRouter) { }
+  public constructor(@IRouter public readonly router: IRouter) {
+    (window as Window & { _auRouter?: IRouter })._auRouter = router;
+  }
 
   public async toggleFragmentHash() {
     const useUrlFragmentHash = !this.router.configuration.options.useUrlFragmentHash;

@@ -9,6 +9,8 @@ import { IRouterEventLoggerService } from './router-event-logger-service';
   routes: [
     { id: 'home', path: '', component: Home, title: 'Home' },
     { path: 'auth', component: import('./pages/auth').then(x => x.Auth), title: 'Sign in' },
+    { path: 'one', component: import('./pages/one'), title: 'One' },
+    { path: 'two', component: import('./pages/two'), title: 'Two' },
   ]
 })
 @customElement({

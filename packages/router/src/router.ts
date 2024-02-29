@@ -338,6 +338,7 @@ export class Router implements IRouter {
     void this._handleNavigatorNavigateEvent(event);
   };
 
+  /** @internal */
   private async _handleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
     if (this._isProcessingNav) {
       // We prevent multiple navigation at the same time, but we store the last navigation requested.
@@ -371,7 +372,7 @@ export class Router implements IRouter {
    * @internal
    */
   public get isProcessingNav(): boolean {
-    return this._isProcessingNav || !!this._pendingNavigation;
+    return this._isProcessingNav || this._pendingNavigation != null;
   }
 
   /**

@@ -158,212 +158,221 @@ function quickSort(arr: unknown[], indexMap: IndexMap, from: number, to: number,
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const proto = Array.prototype as { [K in keyof any[]]: any[][K] & { observing?: boolean } };
-
-const $push = proto.push;
-const $unshift = proto.unshift;
-const $pop = proto.pop;
-const $shift = proto.shift;
-const $splice = proto.splice;
-const $reverse = proto.reverse;
-const $sort = proto.sort;
-
-const native = { push: $push, unshift: $unshift, pop: $pop, shift: $shift, splice: $splice, reverse: $reverse, sort: $sort };
 const methods: ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'] = ['push', 'unshift', 'pop', 'shift', 'splice', 'reverse', 'sort'];
+let observe: undefined | Pick<typeof proto, typeof methods[number]>;
+let native: undefined | Pick<typeof proto, typeof methods[number]>;
 
-const observe = {
-  // https://tc39.github.io/ecma262/#sec-array.prototype.push
-  push: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      return $push.apply(this, args);
-    }
-    const len = this.length;
-    const argCount = args.length;
-    if (argCount === 0) {
+function overrideArrayPrototypes() {
+  const $push = proto.push;
+  const $unshift = proto.unshift;
+  const $pop = proto.pop;
+  const $shift = proto.shift;
+  const $splice = proto.splice;
+  const $reverse = proto.reverse;
+  const $sort = proto.sort;
+
+  native = { push: $push, unshift: $unshift, pop: $pop, shift: $shift, splice: $splice, reverse: $reverse, sort: $sort };
+
+  observe = {
+    // https://tc39.github.io/ecma262/#sec-array.prototype.push
+    push: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.push> {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        return $push.apply(this, args);
+      }
+      const len = this.length;
+      const argCount = args.length;
+      if (argCount === 0) {
+        return len;
+      }
+      this.length = o.indexMap.length = len + argCount;
+      let i = len;
+      while (i < this.length) {
+        this[i] = args[i - len];
+        o.indexMap[i] = - 2;
+        i++;
+      }
+      o.notify();
+      return this.length;
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
+    unshift: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        return $unshift.apply(this, args);
+      }
+      const argCount = args.length;
+      const inserts = new Array(argCount);
+      let i = 0;
+      while (i < argCount) {
+        inserts[i++] = - 2;
+      }
+      $unshift.apply(o.indexMap, inserts);
+      const len = $unshift.apply(this, args);
+      o.notify();
       return len;
-    }
-    this.length = o.indexMap.length = len + argCount;
-    let i = len;
-    while (i < this.length) {
-      this[i] = args[i - len];
-      o.indexMap[i] = - 2;
-      i++;
-    }
-    o.notify();
-    return this.length;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.unshift
-  unshift: function (this: unknown[], ...args: unknown[]): ReturnType<typeof Array.prototype.unshift>  {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      return $unshift.apply(this, args);
-    }
-    const argCount = args.length;
-    const inserts = new Array(argCount);
-    let i = 0;
-    while (i < argCount) {
-      inserts[i++] = - 2;
-    }
-    $unshift.apply(o.indexMap, inserts);
-    const len = $unshift.apply(this, args);
-    o.notify();
-    return len;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.pop
-  pop: function (this: unknown[]): ReturnType<typeof Array.prototype.pop> {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      return $pop.call(this);
-    }
-    const indexMap = o.indexMap;
-    const element = $pop.call(this);
-    // only mark indices as deleted if they actually existed in the original array
-    const index = indexMap.length - 1;
-    if (indexMap[index] > -1) {
-      indexMap.deletedIndices.push(indexMap[index]);
-      indexMap.deletedItems.push(element);
-    }
-    $pop.call(indexMap);
-    o.notify();
-    return element;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.shift
-  shift: function (this: unknown[]): ReturnType<typeof Array.prototype.shift> {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      return $shift.call(this);
-    }
-    const indexMap = o.indexMap;
-    const element = $shift.call(this);
-    // only mark indices as deleted if they actually existed in the original array
-    if (indexMap[0] > -1) {
-      indexMap.deletedIndices.push(indexMap[0]);
-      indexMap.deletedItems.push(element);
-    }
-    $shift.call(indexMap);
-    o.notify();
-    return element;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.splice
-  splice: function (this: unknown[], ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
-    const start: number = args[0];
-    const deleteCount: number|undefined = args[1];
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      return $splice.apply(this, args);
-    }
-    const len = this.length;
-    const relativeStart = start | 0;
-    const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
-    const indexMap = o.indexMap;
-    const argCount = args.length;
-    const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
-    let i = actualStart;
-    if (actualDeleteCount > 0) {
-      const to = i + actualDeleteCount;
-      while (i < to) {
-        // only mark indices as deleted if they actually existed in the original array
-        if (indexMap[i] > -1) {
-          indexMap.deletedIndices.push(indexMap[i]);
-          indexMap.deletedItems.push(this[i]);
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.pop
+    pop: function (this: unknown[]): ReturnType<typeof Array.prototype.pop> {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        return $pop.call(this);
+      }
+      const indexMap = o.indexMap;
+      const element = $pop.call(this);
+      // only mark indices as deleted if they actually existed in the original array
+      const index = indexMap.length - 1;
+      if (indexMap[index] > -1) {
+        indexMap.deletedIndices.push(indexMap[index]);
+        indexMap.deletedItems.push(element);
+      }
+      $pop.call(indexMap);
+      o.notify();
+      return element;
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.shift
+    shift: function (this: unknown[]): ReturnType<typeof Array.prototype.shift> {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        return $shift.call(this);
+      }
+      const indexMap = o.indexMap;
+      const element = $shift.call(this);
+      // only mark indices as deleted if they actually existed in the original array
+      if (indexMap[0] > -1) {
+        indexMap.deletedIndices.push(indexMap[0]);
+        indexMap.deletedItems.push(element);
+      }
+      $shift.call(indexMap);
+      o.notify();
+      return element;
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.splice
+    splice: function (this: unknown[], ...args: [number, number, ...unknown[]]): ReturnType<typeof Array.prototype.splice> {
+      const start: number = args[0];
+      const deleteCount: number|undefined = args[1];
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        return $splice.apply(this, args);
+      }
+      const len = this.length;
+      const relativeStart = start | 0;
+      const actualStart = relativeStart < 0 ? Math.max((len + relativeStart), 0) : Math.min(relativeStart, len);
+      const indexMap = o.indexMap;
+      const argCount = args.length;
+      const actualDeleteCount = argCount === 0 ? 0 : argCount === 1 ? len - actualStart : deleteCount;
+      let i = actualStart;
+      if (actualDeleteCount > 0) {
+        const to = i + actualDeleteCount;
+        while (i < to) {
+          // only mark indices as deleted if they actually existed in the original array
+          if (indexMap[i] > -1) {
+            indexMap.deletedIndices.push(indexMap[i]);
+            indexMap.deletedItems.push(this[i]);
+          }
+          i++;
+        }
+      }
+      i = 0;
+      if (argCount > 2) {
+        const itemCount = argCount - 2;
+        const inserts = new Array(itemCount);
+        while (i < itemCount) {
+          inserts[i++] = - 2;
+        }
+        $splice.call(indexMap, start, deleteCount, ...inserts);
+      } else {
+        $splice.apply(indexMap, args);
+      }
+      const deleted = $splice.apply(this, args);
+      // only notify when there's deletion, or addition
+      if (actualDeleteCount > 0 || i > 0) {
+        o.notify();
+      }
+      return deleted;
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
+    reverse: function (this: unknown[]): ReturnType<typeof Array.prototype.reverse> {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        $reverse.call(this);
+        return this;
+      }
+      const len = this.length;
+      const middle = (len / 2) | 0;
+      let lower = 0;
+      while (lower !== middle) {
+        const upper = len - lower - 1;
+        const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
+        const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
+        this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
+        this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
+        lower++;
+      }
+      o.notify();
+      return this;
+    },
+    // https://tc39.github.io/ecma262/#sec-array.prototype.sort
+    // https://github.com/v8/v8/blob/master/src/js/array.js
+    sort: function (this: unknown[], compareFn?: (a: unknown, b: unknown) => number): unknown[] {
+      const o = observerLookup.get(this);
+      if (o === void 0) {
+        $sort.call(this, compareFn);
+        return this;
+      }
+      let len = this.length;
+      if (len < 2) {
+        return this;
+      }
+      quickSort(this, o.indexMap, 0, len, preSortCompare);
+      let i = 0;
+      while (i < len) {
+        if (this[i] === void 0) {
+          break;
         }
         i++;
       }
-    }
-    i = 0;
-    if (argCount > 2) {
-      const itemCount = argCount - 2;
-      const inserts = new Array(itemCount);
-      while (i < itemCount) {
-        inserts[i++] = - 2;
+      if (compareFn === void 0 || !isFunction(compareFn)/* spec says throw a TypeError, should we do that too? */) {
+        compareFn = sortCompare;
       }
-      $splice.call(indexMap, start, deleteCount, ...inserts);
-    } else {
-      $splice.apply(indexMap, args);
-    }
-    const deleted = $splice.apply(this, args);
-    // only notify when there's deletion, or addition
-    if (actualDeleteCount > 0 || i > 0) {
-      o.notify();
-    }
-    return deleted;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.reverse
-  reverse: function (this: unknown[]): ReturnType<typeof Array.prototype.reverse> {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      $reverse.call(this);
+      quickSort(this, o.indexMap, 0, i, compareFn);
+      // todo(fred): it shouldn't notify if the sort produce a stable array:
+      //             where every item has the same index before/after
+      //             though this is inefficient we loop a few times like this
+      let shouldNotify = false;
+      for (i = 0, len = o.indexMap.length; len > i; ++i) {
+        if (o.indexMap[i] !== i) {
+          shouldNotify = true;
+          break;
+        }
+      }
+      if (shouldNotify || batching) {
+        o.notify();
+      }
       return this;
     }
-    const len = this.length;
-    const middle = (len / 2) | 0;
-    let lower = 0;
-    while (lower !== middle) {
-      const upper = len - lower - 1;
-      const lowerValue = this[lower];  const lowerIndex = o.indexMap[lower];
-      const upperValue = this[upper];  const upperIndex = o.indexMap[upper];
-      this[lower] = upperValue;        o.indexMap[lower] = upperIndex;
-      this[upper] = lowerValue;        o.indexMap[upper] = lowerIndex;
-      lower++;
-    }
-    o.notify();
-    return this;
-  },
-  // https://tc39.github.io/ecma262/#sec-array.prototype.sort
-  // https://github.com/v8/v8/blob/master/src/js/array.js
-  sort: function (this: unknown[], compareFn?: (a: unknown, b: unknown) => number): unknown[] {
-    const o = observerLookup.get(this);
-    if (o === void 0) {
-      $sort.call(this, compareFn);
-      return this;
-    }
-    let len = this.length;
-    if (len < 2) {
-      return this;
-    }
-    quickSort(this, o.indexMap, 0, len, preSortCompare);
-    let i = 0;
-    while (i < len) {
-      if (this[i] === void 0) {
-        break;
-      }
-      i++;
-    }
-    if (compareFn === void 0 || !isFunction(compareFn)/* spec says throw a TypeError, should we do that too? */) {
-      compareFn = sortCompare;
-    }
-    quickSort(this, o.indexMap, 0, i, compareFn);
-    // todo(fred): it shouldn't notify if the sort produce a stable array:
-    //             where every item has the same index before/after
-    //             though this is inefficient we loop a few times like this
-    let shouldNotify = false;
-    for (i = 0, len = o.indexMap.length; len > i; ++i) {
-      if (o.indexMap[i] !== i) {
-        shouldNotify = true;
-        break;
-      }
-    }
-    if (shouldNotify || batching) {
-      o.notify();
-    }
-    return this;
-  }
-};
+  };
 
-for (const method of methods) {
-  def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  for (const method of methods) {
+    def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  }
 }
 
 let enableArrayObservationCalled = false;
 
 const observationEnabledKey = '__au_arr_on__';
+
 export function enableArrayObservation(): void {
+  if (observe === undefined) {
+    overrideArrayPrototypes();
+  }
+
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!(getOwnMetadata(observationEnabledKey, Array) ?? false)) {
     defineMetadata(observationEnabledKey, true, Array);
     for (const method of methods) {
       if (proto[method].observing !== true) {
-        defineHiddenProp(proto, method, observe[method]);
+        defineHiddenProp(proto, method, observe![method]);
       }
     }
   }
@@ -372,7 +381,7 @@ export function enableArrayObservation(): void {
 export function disableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      defineHiddenProp(proto, method, native[method]);
+      defineHiddenProp(proto, method, native![method]);
     }
   }
 }

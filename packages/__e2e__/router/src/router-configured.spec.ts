@@ -83,7 +83,7 @@ test.describe('router', () => {
     await expect(page.locator('#child-something-missing-link')).toHaveAttribute('href', 'child/something/missing');
   });
 
-  test('from home to auth page, then go back', async ({ page, baseURL }) => {
+  test('goes from home to auth page, then go back', async ({ page, baseURL }) => {
     // Home
     await expect(page.locator('#root-vp')).toHaveText('Home page');
 
@@ -121,7 +121,7 @@ test.describe('router', () => {
     await expect(page.locator('#root-vp')).toHaveText('Home page');
   });
 
-  test('from home to component page, then go back', async ({ page, baseURL }) => {
+  test('goes from home to component page, then go back', async ({ page, baseURL }) => {
     // Home
     await expect(page.locator('#root-vp')).toHaveText('Home page');
 
@@ -158,8 +158,9 @@ test.describe('router', () => {
     await expect(page.locator('#root-vp')).toContainText('Home page');
   });
 
+  // with the loop, the issue with duplicate content is much easier to reproduce
   for (let i = 0; i < 5; i++) {
-    test(`Ensure no duplication with load${  i}`, async ({ page, baseURL }) => {
+    test(`ensures no duplication with load${i}`, async ({ page, baseURL }) => {
       // Home
       const proms: Promise<void>[] = [];
       await expect(page.locator('#root-vp')).toHaveText('Home page');
@@ -192,7 +193,7 @@ test.describe('router', () => {
     });
   }
 
-  test('Ensure no duplication with back/forward', async ({ page, baseURL }) => {
+  test('ensures no duplication with back/forward', async ({ page, baseURL }) => {
     // Home
     await expect(page.locator('#root-vp')).toHaveText('Home page');
 

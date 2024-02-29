@@ -26,7 +26,7 @@ import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
-import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand } from '../resources/binding-command';
+import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand, BindingCommandDefinition } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
@@ -1791,9 +1791,13 @@ class CompilationContext {
       return null;
     }
     let result = this._commands[name];
+    let commandDef: BindingCommandDefinition;
     if (result === void 0) {
-      result = this.c.create(BindingCommand, name) as BindingCommandInstance;
-      if (result === null) {
+      commandDef = this.c.find(BindingCommand, name) as BindingCommandDefinition;
+      if (commandDef != null) {
+        result = this.c.invoke(commandDef.Type);
+      }
+      if (result == null) {
         throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
       }
       this._commands[name] = result;

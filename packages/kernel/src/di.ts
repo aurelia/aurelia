@@ -88,7 +88,6 @@ export interface IContainer extends IServiceLocator, IDisposable {
    */
   useResources(container: IContainer): void;
   find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
-  create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
 }
 
 export class ResolverBuilder<K> {
@@ -753,10 +752,10 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
     let factory: IFactory | null | undefined;
     if (resolver == null) {
       if (hasDefault) {
-        // creating a child as we do not want to pollute the resolver registry
-        // there may be a better way but wasting a container probably isn't the worst
-        factory = createContainer().getResolver(key, true)?.getFactory?.(handler);
+        // creating a new container as we do not want to pollute the resolver registry
+        factory = (newInstanceContainer ??= createContainer()).getResolver(key, true)?.getFactory?.(handler);
       }
+      newInstanceContainer.dispose();
     } else {
       factory = resolver.getFactory?.(handler);
     }
@@ -770,6 +769,8 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   // 3. jit factory, in case of newInstanceOf(SomeClass)
   return handler.getFactory(key).construct(requestor);
 };
+
+let newInstanceContainer: IContainer;
 
 _START_CONST_ENUM();
 /** @internal */

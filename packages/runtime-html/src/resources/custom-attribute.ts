@@ -185,7 +185,6 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
   defineMetadata(caBaseName, definition, definition.Type);
-  defineMetadata(caBaseName, definition, definition);
   appendResourceKey(Type, caBaseName);
 
   return definition.Type as CustomAttributeType<T>;

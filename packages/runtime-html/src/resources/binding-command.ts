@@ -152,7 +152,6 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
     defineMetadata(cmdBaseName, definition, definition.Type);
-    defineMetadata(cmdBaseName, definition, definition);
     appendResourceKey(Type, cmdBaseName);
 
     return definition.Type as BindingCommandType<T>;

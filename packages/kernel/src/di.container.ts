@@ -438,47 +438,23 @@ export class Container implements IContainer {
   public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
     const key = kind.keyFrom(name);
     let resolver = this.res[key];
-    if (resolver === void 0) {
+    if (resolver == null) {
       resolver = this.root.res[key];
-      if (resolver === void 0) {
+      if (resolver == null) {
         return null;
       }
-    }
-
-    if (resolver === null) {
-      return null;
     }
 
     if (isFunction(resolver.getFactory)) {
       const factory = resolver.getFactory(this);
-      if (factory === null || factory === void 0) {
+      if (factory == null) {
         return null;
       }
 
-      const definition = getOwnMetadata(kind.name, factory.Type);
-      if (definition === void 0) {
-        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-        return null;
-      }
-
-      return definition;
+      return getOwnMetadata(kind.name, factory.Type) ?? null;
     }
 
     return null;
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.res[key];
-    if (resolver === void 0) {
-      resolver = this.root.res[key];
-      if (resolver === void 0) {
-        return null;
-      }
-      return resolver.resolve(this.root, this) ?? null;
-    }
-    return resolver.resolve(this, this) ?? null;
   }
 
   public dispose(): void {
@@ -486,6 +462,10 @@ export class Container implements IContainer {
       this.disposeResolvers();
     }
     this._resolvers.clear();
+    if (this.root === this) {
+      this._factories.clear();
+      this.res = {};
+    }
   }
 
   /** @internal */
@@ -533,11 +513,11 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
     currentContainer = container;
     let instance: Resolved<T>;
     try {
-        if (dynamicDependencies === void 0) {
-          instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
-        } else {
-          instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
-        }
+      if (dynamicDependencies === void 0) {
+        instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
+      } else {
+        instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
+      }
 
       if (this.transformers == null) {
         return instance;

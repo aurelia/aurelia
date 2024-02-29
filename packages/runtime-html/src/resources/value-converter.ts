@@ -102,7 +102,6 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
     defineMetadata(vcBaseName, definition, definition.Type);
-    defineMetadata(vcBaseName, definition, definition);
     appendResourceKey(Type, vcBaseName);
 
     return definition.Type as ValueConverterType<T>;

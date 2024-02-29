@@ -94,7 +94,6 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
     defineMetadata(bbBaseName, definition, definition.Type);
-    defineMetadata(bbBaseName, definition, definition);
     appendResourceKey(Type, bbBaseName);
 
     return definition.Type as BindingBehaviorType<T>;

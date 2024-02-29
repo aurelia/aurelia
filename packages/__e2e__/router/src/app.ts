@@ -12,7 +12,9 @@ export class App {
   public iframeSrc: string;
   public iframeVisible: boolean;
 
-  public constructor(@IRouter public readonly router: IRouter) { }
+  public constructor(@IRouter public readonly router: IRouter) {
+    (window as Window & { _auRouter?: IRouter })._auRouter = router;
+  }
 
   public async toggleFragmentHash() {
     const useUrlFragmentHash = !this.router.configuration.options.useUrlFragmentHash;

@@ -13,17 +13,13 @@ import { registerHostNode } from './dom';
 import { isFunction } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 
-export interface ISinglePageApp<T extends object = object> {
-  host: HTMLElement;
-  component: T | Constructable<T>;
-}
-
 export interface IAppRootConfig<T extends object = object> {
   host: HTMLElement;
   component: T | Constructable<T>;
 }
 
 export interface IAppRoot<C extends object = object> extends IDisposable {
+  readonly config: IAppRootConfig<C>;
   /**
    * The host element of an application
    */
@@ -64,7 +60,7 @@ export class AppRoot<
   }
 
   public constructor(
-    public readonly config: IAppRootConfig<T>,
+    public readonly config: IAppRootConfig<K>,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
     enhance?: boolean

@@ -77,33 +77,8 @@ export class Aurelia implements IDisposable {
       config.container ?? this.container.createChild(),
       new InstanceProvider('IAppRoot'),
       true
-    );
-    return onResolve(appRoot.activate(), () => appRoot) as IAppRoot<T> | Promise<IAppRoot<T>>;
-    // const ctn = config.container ?? this.container.createChild();
-    // const host = config.host as HTMLElement;
-    // const p = this._initPlatform(ctn, host);
-    // const comp = config.component as unknown as K;
-    // let bc: ICustomElementViewModel & K;
-    // if (isFunction(comp)) {
-    //   registerHostNode(ctn, p, host);
-    //   bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
-    // } else {
-    //   bc = comp;
-    // }
-    // registerResolver(ctn, IEventTarget, new InstanceProvider('IEventTarget', host));
-    // parentController = parentController ?? null;
-
-    // const view = Controller.$el(
-    //   ctn,
-    //   bc,
-    //   host,
-    //   null,
-    //   CustomElementDefinition.create({ name: generateElementName(), template: host, enhance: true }),
-    // );
-    // return onResolve(
-    //   view.activate(view, parentController),
-    //   () => view
-    // );
+    ) as IAppRoot<T>;
+    return onResolve(appRoot.activate(), () => appRoot);
   }
 
   public async waitForIdle(): Promise<void> {

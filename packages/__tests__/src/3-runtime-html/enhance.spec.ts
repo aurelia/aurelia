@@ -9,13 +9,10 @@ import {
   customElement,
   bindable,
   StandardConfiguration,
-  IController,
-  ICustomElementController,
-  IAurelia,
   ValueConverter,
   IAppRoot,
 } from '@aurelia/runtime-html';
-import { assert, TestContext, createFixture } from '@aurelia/testing';
+import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 import { delegateSyntax } from '@aurelia/compat-v1';
 

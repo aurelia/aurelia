@@ -46,7 +46,7 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
     componentClass = CustomElement.define('app', App);
     host.innerHTML = template;
   }
-  let component: unknown;
+  let component: object;
   switch (config.componentMode) {
     case ComponentMode.class:
       component = componentClass;
@@ -62,8 +62,8 @@ export async function startup(config: StartupConfiguration = {}): Promise<TestEx
     au.app({ host, component });
     await au.start();
   } else {
-    const controller = (await au.enhance({ host, component }));
-    $deactivate = () => controller.deactivate(controller, null);
+    const enhanceRoot = (await au.enhance({ host, component }));
+    $deactivate = () => enhanceRoot.deactivate();
   }
 
   async function tearDown() {

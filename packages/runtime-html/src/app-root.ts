@@ -1,47 +1,84 @@
+import { BrowserPlatform } from '@aurelia/platform-browser';
 import { InstanceProvider, onResolve, onResolveAll } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
-import { isElementType } from './resources/custom-element';
+import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
 import { createInterface, instanceRegistration } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
-import type { IPlatform } from './platform';
+import { IPlatform } from './platform';
 import { registerHostNode } from './dom';
+import { isFunction } from './utilities';
+import { ErrorNames, createMappedError } from './errors';
 
-export interface ISinglePageApp {
+export interface ISinglePageApp<T extends object = object> {
   host: HTMLElement;
-  component: unknown;
+  component: T | Constructable<T>;
 }
 
-export interface IAppRoot extends AppRoot {}
+export interface IAppRootConfig<T extends object = object> {
+  host: HTMLElement;
+  component: T | Constructable<T>;
+}
+
+export interface IAppRoot<C extends object = object> extends IDisposable {
+  /**
+   * The host element of an application
+   */
+  readonly host: HTMLElement;
+  /**
+   * The root container of an application
+   */
+  readonly container: IContainer;
+  /**
+   * The controller of the root custom element of an application
+   */
+  readonly controller: ICustomElementController<C>;
+  /**
+   * The platform of an application for providing globals & DOM APIs
+   */
+  readonly platform: IPlatform;
+
+  activate(): void | Promise<void>;
+  deactivate(): void | Promise<void>;
+}
 export const IAppRoot = /*@__PURE__*/createInterface<IAppRoot>('IAppRoot');
 
-export class AppRoot implements IDisposable {
-  public readonly host: HTMLElement;
-
-  public controller!: ICustomElementController;
+export class AppRoot<
+  T extends object,
+  K extends ICustomElementViewModel = T extends Constructable<infer R> ? R : T,
+> implements IAppRoot<K> {
 
   /** @internal */
   private _hydratePromise: Promise<void> | void = void 0;
 
+  /** @internal */
+  private _controller!: ICustomElementController<K>;
+
+  public readonly host: HTMLElement;
+  public readonly platform: IPlatform;
+  public get controller() {
+    return this._controller;
+  }
+
   public constructor(
-    public readonly config: ISinglePageApp,
-    public readonly platform: IPlatform,
+    public readonly config: IAppRootConfig<T>,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
+    enhance?: boolean
   ) {
-    this.host = config.host;
+    const host = this.host = config.host;
     rootProvider.prepare(this);
 
-    registerHostNode(container, platform, config.host);
+    registerHostNode(container, this.platform = this._createPlatform(container, host), host);
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
+      const childCtn = enhance ? container : container.createChild();
       const component = config.component as Constructable | ICustomElementViewModel;
-      const childCtn = container.createChild();
       let instance: object;
-      if (isElementType(component)) {
+      if (isFunction(component)) {
         instance = childCtn.invoke(component);
         instanceRegistration(component, instance);
       } else {
@@ -49,12 +86,18 @@ export class AppRoot implements IDisposable {
       }
 
       const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
-      const controller = (this.controller = Controller.$el(
+      const definition = enhance
+        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true })
+        // leave the work of figuring out the definition to the controller
+        // there's proper error messages in case of failure inside the $el() call
+        : void 0;
+      const controller = (this._controller = Controller.$el<K>(
         childCtn,
-        instance,
-        this.host,
+        instance as K,
+        host,
         hydrationInst,
-      )) as Controller;
+        definition
+      )) as Controller<K>;
 
       controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
       return onResolve(this._runAppTasks('hydrating'), () => {
@@ -70,7 +113,7 @@ export class AppRoot implements IDisposable {
   public activate(): void | Promise<void> {
     return onResolve(this._hydratePromise, () => {
       return onResolve(this._runAppTasks('activating'), () => {
-        return onResolve(this.controller.activate(this.controller, null, void 0), () => {
+        return onResolve(this._controller.activate(this._controller, null, void 0), () => {
           return this._runAppTasks('activated');
         });
       });
@@ -79,7 +122,7 @@ export class AppRoot implements IDisposable {
 
   public deactivate(): void | Promise<void> {
     return onResolve(this._runAppTasks('deactivating'), () => {
-      return onResolve(this.controller.deactivate(this.controller, null), () => {
+      return onResolve(this._controller.deactivate(this._controller, null), () => {
         return this._runAppTasks('deactivated');
       });
     });
@@ -95,7 +138,22 @@ export class AppRoot implements IDisposable {
     }, [] as (void | Promise<void>)[]));
   }
 
+  /** @internal */
+  private _createPlatform(container: IContainer, host: HTMLElement): IPlatform {
+    let p: IPlatform;
+    if (!container.has(IPlatform, false)) {
+      if (host.ownerDocument.defaultView === null) {
+        throw createMappedError(ErrorNames.invalid_platform_impl);
+      }
+      p = new BrowserPlatform(host.ownerDocument.defaultView);
+      container.register(instanceRegistration(IPlatform, p));
+    } else {
+      p = container.get(IPlatform);
+    }
+    return p;
+  }
+
   public dispose(): void {
-    this.controller?.dispose();
+    this._controller?.dispose();
   }
 }

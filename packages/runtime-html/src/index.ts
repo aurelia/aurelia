@@ -37,9 +37,15 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  /**
+   * @deprecated
+   * Use `ISinglePageAppConfig` instead
+   */
+  type ISinglePageAppConfig as ISinglePageApp,
+  type ISinglePageAppConfig,
 } from './aurelia';
 export {
-  type ISinglePageApp,
+  type IAppRootConfig,
   AppRoot,
   IAppRoot,
 } from './app-root';

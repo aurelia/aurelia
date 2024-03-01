@@ -88,7 +88,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     const au = new Aurelia(container);
     const host = ctx.createElement('div');
 
-    await au.app({ component: rootComponent, host }).start();
+    await au.app({ component: rootComponent as object, host }).start();
     return { au, container, host };
   }
 

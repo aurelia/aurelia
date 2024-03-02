@@ -199,6 +199,14 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     au.dispose();
   });
 
+  it('throws when enhancing a realmless node (without window connected document)', function () {
+    const ctx = TestContext.create();
+    assert.throws(() => new Aurelia().enhance({
+      host: new ctx.DOMParser().parseFromString('<div></div>', 'text/html').body.firstElementChild as HTMLElement,
+      component: {}
+    }));
+  });
+
   it(`enhance works on detached node`, async function () {
     @customElement({ name: 'my-element', template: '<span>${value}</span>' })
     class MyElement {

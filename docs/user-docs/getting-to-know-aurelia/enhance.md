@@ -29,7 +29,7 @@ Key Points to Understand:
 3. **Host Element:** The host is typically an existing DOM node that is not yet under Aurelia's control. It's crucial to note that `enhance ' neither detaches nor attaches the `host` to the DOM. Existing event handlers on the `host` or its descendants remain unaffected.
 4. **Controller Deactivation:** an `enhance` call results in an application root that requires manual deactivation or integration into an existing controller hierarchy for automatic framework management.
 
-Example of deactivating a controller:
+Example of deactivating an application root:
 
 ```typescript
 const root = au.enhance({ host, component });

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/babel-jest",
-  "version": "2.0.0-beta.11",
+  "version": "2.0.0-beta.12",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -44,11 +44,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.11",
-    "@aurelia/metadata": "2.0.0-beta.11",
-    "@aurelia/platform": "2.0.0-beta.11",
-    "@aurelia/plugin-conventions": "2.0.0-beta.11",
-    "@aurelia/runtime": "2.0.0-beta.11",
+    "@aurelia/kernel": "2.0.0-beta.12",
+    "@aurelia/metadata": "2.0.0-beta.12",
+    "@aurelia/platform": "2.0.0-beta.12",
+    "@aurelia/plugin-conventions": "2.0.0-beta.12",
+    "@aurelia/runtime": "2.0.0-beta.12",
     "@babel/core": "^7.18.2",
     "babel-jest": "^29.7.0"
   },

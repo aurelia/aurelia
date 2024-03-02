@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### Features:
+
+* **enhance:** call app tasks with `.enhance` API (#1916) ([4d522b2](https://github.com/aurelia/aurelia/commit/4d522b2))
+
+
+### Bug Fixes:
+
+* **di:** dont jit register resources [skip ci] ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+* ***:** tweak typings of injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** use ?? instead of || ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** typings for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** injectable token resolver ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+
+### Refactorings:
+
+* ***:** cleanup (#1912) ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* ***:** cleanup (#1908) ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **router:** use resolve ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** better type inferrence for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** simplify container has, cleanup router ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
 <a name="2.0.0-beta.11"></a>
 # 2.0.0-beta.11 (2024-02-13)
 

@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### Bug Fixes:
+
+* **router:** prevent multiple navigation at the same time (#1895) ([deed11e](https://github.com/aurelia/aurelia/commit/deed11e))
+
 <a name="2.0.0-beta.11"></a>
 # 2.0.0-beta.11 (2024-02-13)
 

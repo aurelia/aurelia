@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### BREAKING CHANGE:
+
+* **enhance:** call app tasks with `.enhance` API, return app root instead of controller (#1916) ([4d522b2](https://github.com/aurelia/aurelia/commit/4d522b2))
+* **au-compose:** always create host for non custom element composition (#1906) ([8a28e0a](https://github.com/aurelia/aurelia/commit/8a28e0a))
+
+
+### Features:
+
+* **au-compose:** ability to compose string as element name (#1913) ([06aa113](https://github.com/aurelia/aurelia/commit/06aa113))
+
+
+### Bug Fixes:
+
+* **router:** prevent multiple navigation at the same time (#1895) ([deed11e](https://github.com/aurelia/aurelia/commit/deed11e))
+* **router:** properly handle false in conditional router hooks (#1900) ([a671463](https://github.com/aurelia/aurelia/commit/a671463))
+* **di:** dont jit register resources ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+* **runtime:** tweak typings of injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+
+### Refactorings:
+
+* **runtime:** delay overriding array prototypes (#1914) ([d8be144](https://github.com/aurelia/aurelia/commit/d8be144))
+* **router:** use resolve ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **runtime:** better type inferrence for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **di:** simplify container has, cleanup router ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+### Docs:
+
+* **docs:** add JS examples using resolve for IHttpClient (#1907) ([d57c1f1](https://github.com/aurelia/aurelia/commit/d57c1f1))
+* **doc:** remove define hook from documentation (#1903) ([f684141](https://github.com/aurelia/aurelia/commit/f684141))
+
 <a name="2.0.0-beta.11"></a>
 # 2.0.0-beta.11 (2024-02-13)
 

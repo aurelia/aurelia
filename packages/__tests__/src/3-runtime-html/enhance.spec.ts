@@ -11,6 +11,7 @@ import {
   StandardConfiguration,
   ValueConverter,
   IAppRoot,
+  AppTask,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -24,15 +25,14 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     beforeHydration: (host: HTMLElement, child: ChildNode | null) => void;
   }
   class EnhanceTestExecutionContext implements TestExecutionContext<any> {
-    private _scheduler: IPlatform;
     public constructor(
       public ctx: TestContext,
       public container: IContainer,
       public host: HTMLElement,
       public app: any,
       public childNode: ChildNode | null,
+      public platform = container.get(IPlatform),
     ) { }
-    public get platform(): IPlatform { return this._scheduler ?? (this._scheduler = this.container.get(IPlatform)); }
   }
   async function testEnhance(
     testFunction: TestFunction<EnhanceTestExecutionContext>,
@@ -375,10 +375,6 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
     const container = ctx.container;
     const au = new Aurelia(container);
-    const I = DI.createInterface<I>('I');
-    interface I {
-      i_id: number;
-    }
     host.innerHTML = '<div data-id.bind="i | plus10"></div>';
     const root = await au.enhance({
       host,
@@ -395,5 +391,87 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     assert.strictEqual(host.innerHTML, '<div data-id="11"></div>');
     assert.strictEqual(container.find(ValueConverter, 'plus10'), null, 'It should register resources with child contaienr only.');
     await root.deactivate();
+  });
+
+  it('calls app tasks', function () {
+    const logs = [];
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+    const au = new Aurelia(ctx.container.register(
+      AppTask.creating(() => logs.push('Task.creating')),
+      AppTask.hydrating(() => logs.push('Task.hydrating')),
+      AppTask.hydrated(() => logs.push('Task.hydrated')),
+      AppTask.activating(() => logs.push('Task.activating')),
+      AppTask.activated(() => logs.push('Task.activated')),
+      AppTask.deactivating(() => logs.push('Task.deactivating')),
+      AppTask.deactivated(() => logs.push('Task.deactivated')),
+    ));
+    host.innerHTML = '<div>${message}</div>';
+    const root = au.enhance({ host, component: {
+      message: 'hello world',
+      created() { logs.push('created'); },
+      hydrating() { logs.push('hydrating'); },
+      hydrated() { logs.push('hydrated'); },
+      binding() { logs.push('binding'); },
+      bound() { logs.push('bound'); },
+      attaching() { logs.push('attaching'); },
+      attached() { logs.push('attached'); },
+      detaching() { logs.push('detaching'); },
+      unbinding() { logs.push('unbinding'); },
+    }});
+    assert.strictEqual(host.textContent, 'hello world');
+
+    const activationLogs = [
+      'Task.creating',
+      'Task.hydrating',
+      'hydrating',
+      'hydrated',
+      'Task.hydrated',
+      'created',
+      'Task.activating',
+      'binding',
+      'bound',
+      'attaching',
+      'attached',
+      'Task.activated',
+    ];
+    assert.deepStrictEqual(logs, activationLogs);
+
+    logs.length = 0;
+    return onResolve(root, (root) => onResolve(root.deactivate(), () => {
+      assert.deepStrictEqual(logs, [
+        'Task.deactivating',
+        'detaching',
+        'unbinding',
+        'Task.deactivated',
+      ]);
+    }));
+  });
+
+  it('does not call app task on the original container if there is app task registered on specific container', function () {
+    const logs = [];
+    const ctx = TestContext.create();
+    const host = ctx.doc.createElement('div');
+    const au = new Aurelia(ctx.container.register(
+      AppTask.creating(() => logs.push('Task.creating')),
+      AppTask.deactivating(() => logs.push('Task.deactivating')),
+    ));
+
+    return onResolve(au.enhance({
+      host,
+      component: {},
+      container: ctx.container.createChild().register(
+        AppTask.creating(() => logs.push('Task.creating (child)')),
+        AppTask.deactivating(() => logs.push('Task.deactivating (child)')),
+      )}),
+      (root) => {
+        assert.deepStrictEqual(logs, ['Task.creating (child)']);
+        return onResolve(root.deactivate(), () => {
+          assert.deepStrictEqual(logs, [
+            'Task.creating (child)',
+            'Task.deactivating (child)'
+          ]);
+        });
+      });
   });
 });

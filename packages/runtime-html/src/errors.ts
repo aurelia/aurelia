@@ -180,7 +180,7 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.root_not_found]: `Aurelia.root was accessed without a valid root.`,
   [ErrorNames.aurelia_instance_existed_in_container]: `An instance of Aurelia is already registered with the container or an ancestor of it.`,
-  [ErrorNames.invalid_platform_impl]: `Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`,
+  [ErrorNames.invalid_platform_impl]: `Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView, did you create the host from a DOMParser and forget to call adoptNode()?`,
   [ErrorNames.no_composition_root]: `Aurelia.start() was called without a composition root`,
   [ErrorNames.invalid_dispose_call]: `The aurelia instance must be fully stopped before it can be disposed`,
   [ErrorNames.not_supported_view_ref_api]: `view.ref is not supported. If you are migrating from v1, this can be understood as the controller.`,

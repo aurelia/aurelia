@@ -210,7 +210,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       return controllerLookup.get(viewModel) as unknown as ICustomElementController<C>;
     }
 
-    definition = definition ?? getElementDefinition(viewModel.constructor as Constructable);
+    if (__DEV__) {
+      if (definition == null) {
+        try {
+          definition = getElementDefinition(viewModel.constructor as Constructable);
+        } catch (ex) {
+          // eslint-disable-next-line no-console
+          console.error(`[DEV:aurelia] Custom element definition not found for creating a controller with host: <${host.nodeName} /> and component ${JSON.stringify(viewModel)}`);
+          throw ex;
+        }
+      }
+    } else {
+      definition = definition ?? getElementDefinition(viewModel.constructor as Constructable);
+    }
 
     const controller = new Controller<C>(
       /* container      */ctn,

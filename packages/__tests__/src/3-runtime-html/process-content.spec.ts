@@ -39,9 +39,9 @@ describe('3-runtime-html/process-content.spec.ts', function () {
       au.register(...registrations);
       if (enhance) {
         host.innerHTML = template;
-        const controller = await au.enhance({ host, component: CustomElement.define({ name: 'app' }, App) });
-        app = controller.viewModel;
-        stop = () => controller.deactivate(controller, null);
+        const enhanceRoot = await au.enhance({ host, component: CustomElement.define({ name: 'app' }, App) });
+        app = enhanceRoot.controller.viewModel;
+        stop = () => enhanceRoot.deactivate();
       } else {
         await au.app({ host, component: CustomElement.define({ name: 'app', template }, App) })
           .start();

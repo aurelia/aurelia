@@ -1,12 +1,7 @@
 import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
-import { BrowserPlatform } from '@aurelia/platform-browser';
-import { AppRoot, IAppRoot, ISinglePageApp } from './app-root';
-import { IEventTarget, registerHostNode } from './dom';
-import { IPlatform } from './platform';
-import { CustomElementDefinition, generateElementName } from './resources/custom-element';
-import { Controller, ICustomElementController, ICustomElementViewModel, IHydratedParentController } from './templating/controller';
-import { isFunction, isPromise } from './utilities';
-import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
+import { AppRoot, IAppRoot } from './app-root';
+import { isPromise } from './utilities';
+import { createInterface, registerResolver } from './utilities-di';
 
 import type {
   Constructable,
@@ -68,40 +63,22 @@ export class Aurelia implements IDisposable {
     return this;
   }
 
-  public app(config: ISinglePageApp): Omit<this, 'register' | 'app' | 'enhance'> {
-    this.next = new AppRoot(config, this._initPlatform(config.host), this.container, this._rootProvider);
+  public app(config: ISinglePageAppConfig<object>): Omit<this, 'register' | 'app' | 'enhance'> {
+    this.next = new AppRoot(config, this.container, this._rootProvider);
     return this;
   }
 
   /**
    * @param parentController - The owning controller of the view created by this enhance call
    */
-  public enhance<T extends ICustomElementViewModel, K extends ICustomElementViewModel = T extends Constructable<infer I extends ICustomElementViewModel> ? I : T>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController | null): ICustomElementController<K> | Promise<ICustomElementController<K>> {
-    const ctn = config.container ?? this.container.createChild();
-    const host = config.host as HTMLElement;
-    const p = this._initPlatform(host);
-    const comp = config.component as unknown as K;
-    let bc: ICustomElementViewModel & K;
-    if (isFunction(comp)) {
-      registerHostNode(ctn, p, host);
-      bc = ctn.invoke(comp as unknown as Constructable<ICustomElementViewModel & K>);
-    } else {
-      bc = comp;
-    }
-    registerResolver(ctn, IEventTarget, new InstanceProvider('IEventTarget', host));
-    parentController = parentController ?? null;
-
-    const view = Controller.$el(
-      ctn,
-      bc,
-      host,
-      null,
-      CustomElementDefinition.create({ name: generateElementName(), template: host, enhance: true }),
-    );
-    return onResolve(
-      view.activate(view, parentController),
-      () => view
-    );
+  public enhance<T extends object>(config: IEnhancementConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
+    const appRoot = new AppRoot(
+      { host: config.host as HTMLElement, component: config.component },
+      config.container ?? this.container.createChild(),
+      new InstanceProvider('IAppRoot'),
+      true
+    ) as IAppRoot<T>;
+    return onResolve(appRoot.activate(), () => appRoot);
   }
 
   public async waitForIdle(): Promise<void> {
@@ -109,21 +86,6 @@ export class Aurelia implements IDisposable {
     await platform.domWriteQueue.yield();
     await platform.domReadQueue.yield();
     await platform.taskQueue.yield();
-  }
-
-  /** @internal */
-  private _initPlatform(host: HTMLElement): IPlatform {
-    let p: IPlatform;
-    if (!this.container.has(IPlatform, false)) {
-      if (host.ownerDocument.defaultView === null) {
-        throw createMappedError(ErrorNames.invalid_platform_impl);
-      }
-      p = new BrowserPlatform(host.ownerDocument.defaultView);
-      this.container.register(instanceRegistration(IPlatform, p));
-    } else {
-      p = this.container.get(IPlatform);
-    }
-    return p;
   }
 
   /** @internal */
@@ -190,12 +152,23 @@ export class Aurelia implements IDisposable {
   }
 }
 
+export interface ISinglePageAppConfig<T = unknown> {
+  /**
+   * The host element of the app
+   */
+  host: HTMLElement;
+  /**
+   * The root component of the app
+   */
+  component: T | Constructable<T>;
+}
+
 export interface IEnhancementConfig<T> {
   host: Element;
   /**
    * The binding context of the enhancement. Will be instantiate by DI if a constructor is given
    */
-  component: T;
+  component: T | Constructable<T>;
   /**
    * A predefined container for the enhanced view.
    */

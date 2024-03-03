@@ -28,6 +28,7 @@ export type ValueConverterKind = IResourceKind<ValueConverterType, ValueConverte
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T>;
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void;
   getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K];
+  find(container: IContainer, name: string): ValueConverterDefinition | null;
 };
 
 export type ValueConverterDecorator = <T extends Constructable>(Type: T) => ValueConverterType<T>;
@@ -93,9 +94,10 @@ const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>
   prop: K,
 ): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
+const getValueConverterKeyFor = (name: string): string => `${vcBaseName}:${name}`;
 export const ValueConverter = objectFreeze<ValueConverterKind>({
   name: vcBaseName,
-  keyFrom: (name: string): string => `${vcBaseName}:${name}`,
+  keyFrom: getValueConverterKeyFor,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
     return isFunction(value) && hasOwnMetadata(vcBaseName, value);
   },
@@ -118,4 +120,9 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
   getAnnotation: getConverterAnnotation,
+  find(container, name) {
+    const key = getValueConverterKeyFor(name);
+    const Type = container.find(key);
+    return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? null;
+  },
 });

@@ -316,7 +316,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
     case NavigationInstructionType.string: {
       if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
-      const component = context.container.find(CustomElement, instruction.value);
+      const component = CustomElement.find(context.container, instruction.value);
       if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
       ceDef = component;

@@ -500,7 +500,7 @@ export class CustomElementRenderer implements IRenderer {
     const ctxContainer = renderingCtrl.container;
     switch (typeof res) {
       case 'string':
-        def = ctxContainer.find(CustomElement, res);
+        def = CustomElement.find(ctxContainer, res);
         if (def == null) {
           throw createMappedError(ErrorNames.element_res_not_found, instruction, renderingCtrl);
         }
@@ -578,7 +578,7 @@ export class CustomAttributeRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = CustomAttribute.find(ctxContainer, instruction.res);
         if (def == null) {
           throw createMappedError(ErrorNames.attribute_res_not_found, instruction, renderingCtrl);
         }
@@ -647,7 +647,7 @@ export class TemplateControllerRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = CustomAttribute.find(ctxContainer, instruction.res);
         if (def == null) {
           throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction, renderingCtrl);
         }

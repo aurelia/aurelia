@@ -18,6 +18,7 @@ export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBeha
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
   annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void;
   getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K];
+  find(container: IContainer, name: string): BindingBehaviorDefinition | null;
 };
 
 export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
@@ -83,11 +84,10 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
   prop: K,
 ): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
 
+const getBindingBehaviorKeyFor = (name: string): string => `${bbBaseName}:${name}`;
 export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
-  keyFrom(name: string): string {
-    return `${bbBaseName}:${name}`;
-  },
+  keyFrom: getBindingBehaviorKeyFor,
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
     return isFunction(value) && hasOwnMetadata(bbBaseName, value);
   },
@@ -110,4 +110,9 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
   getAnnotation: getBehaviorAnnotation,
+  find(container, name) {
+    const key = getBindingBehaviorKeyFor(name);
+    const Type = container.find(key);
+    return Type == null ? null : getOwnMetadata(bbBaseName, Type) ?? null;
+  },
 });

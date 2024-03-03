@@ -4,8 +4,8 @@ import { isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
-import { getOwnMetadata, isFunction, isString } from './utilities';
+import { type ResourceType, getAllResources, hasResources } from './resource';
+import { isFunction, isString } from './utilities';
 import {
   IContainer,
   type Key,
@@ -458,8 +458,7 @@ export class Container implements IContainer {
     }
   }
 
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
+  public find<TResType extends ResourceType>(key: string): TResType | null {
     let resolver = this.res[key];
     if (resolver == null) {
       resolver = this.root.res[key];
@@ -468,16 +467,7 @@ export class Container implements IContainer {
       }
     }
 
-    if (isFunction(resolver.getFactory)) {
-      const factory = resolver.getFactory(this);
-      if (factory == null) {
-        return null;
-      }
-
-      return getOwnMetadata(kind.name, factory.Type) ?? null;
-    }
-
-    return null;
+    return resolver.getFactory?.(this)?.Type as TResType ?? null;
   }
 
   public dispose(): void {

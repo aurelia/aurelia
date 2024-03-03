@@ -9,7 +9,7 @@ applyMetadataPolyfill(Reflect, false, false);
 import { isArrayIndex } from './functions';
 import { Container } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
-import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
+import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
 import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
@@ -87,7 +87,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
    * This is a semi private API, apps should avoid using it directly
    */
   useResources(container: IContainer): void;
-  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+  find<TResType extends ResourceType>(key: string): TResType | null;
 }
 
 export class ResolverBuilder<K> {

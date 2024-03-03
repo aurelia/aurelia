@@ -1753,14 +1753,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return CustomElement.find(this.c, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return CustomAttribute.find(this.c, name);
   }
 
   /**
@@ -1791,9 +1791,9 @@ class CompilationContext {
       return null;
     }
     let result = this._commands[name];
-    let commandDef: BindingCommandDefinition;
+    let commandDef: BindingCommandDefinition | null;
     if (result === void 0) {
-      commandDef = this.c.find(BindingCommand, name) as BindingCommandDefinition;
+      commandDef = BindingCommand.find(this.c, name);
       if (commandDef != null) {
         result = this.c.invoke(commandDef.Type);
       }

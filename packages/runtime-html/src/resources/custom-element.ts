@@ -34,12 +34,6 @@ import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtElement } from './resources-shared';
 
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    find<T extends ICustomElementViewModel>(kind: CustomElementKind, name: string): CustomElementDefinition<Constructable<T>> | null;
-  }
-}
-
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly capture?: boolean | ((attr: string) => boolean);
@@ -123,6 +117,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
     name: string,
     proto?: P,
   ): CustomElementType<Constructable<P>>;
+  find(container: IContainer, name: string): CustomElementDefinition | null;
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -581,6 +576,11 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   generateName: generateElementName,
   createInjectable: createElementInjectable,
   generateType: generateElementType,
+  find(c, name) {
+    const key = getElementKeyFrom(name);
+    const Type = c.find(key);
+    return Type == null ? null : getOwnMetadata(Type, elementBaseName) ?? null;
+  }
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;

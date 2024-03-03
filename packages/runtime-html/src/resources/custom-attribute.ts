@@ -21,12 +21,6 @@ import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtAttribute } from './resources-shared';
 
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string): CustomAttributeDefinition<Constructable<T>> | null;
-  }
-}
-
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
@@ -61,6 +55,7 @@ export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttri
   getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
+  find(c: IContainer, name: string): CustomAttributeDefinition | null;
 };
 
 export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
@@ -212,4 +207,9 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
     defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
   getAnnotation: getAttributeAnnotation,
+  find(c, name) {
+    const key = getAttributeKeyFrom(name);
+    const Type = c.find(key);
+    return Type === null ? null : getOwnMetadata(caBaseName, Type) ?? null;
+  },
 });

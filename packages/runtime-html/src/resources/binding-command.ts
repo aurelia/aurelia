@@ -75,6 +75,7 @@ export type BindingCommandKind = IResourceKind<BindingCommandType, BindingComman
   // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
   // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
+  find(container: IContainer, name: string): BindingCommandDefinition | null;
 };
 
 export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
@@ -157,6 +158,11 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     return definition.Type as BindingCommandType<T>;
   },
   getAnnotation: getCommandAnnotation,
+  find(container, name) {
+    const key = getCommandKeyFrom(name);
+    const Type = container.find(key);
+    return Type == null ? null : getOwnMetadata(cmdBaseName, Type) ?? null;
+  },
 });
 
 @bindingCommand('one-time')

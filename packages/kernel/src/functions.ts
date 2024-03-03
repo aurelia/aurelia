@@ -2,8 +2,6 @@ import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
 import { createObject } from './utilities';
 
-const isNumericLookup: Record<string, boolean> = {};
-
 /**
  * Efficiently determine whether the provided property key is numeric
  * (and thus could be an array indexer) or not.
@@ -14,33 +12,38 @@ const isNumericLookup: Record<string, boolean> = {};
  *
  * Results are cached.
  */
-export const isArrayIndex = (value: unknown): value is number | string => {
-  switch (typeof value) {
-    case 'number':
-      return value >= 0 && (value | 0) === value;
-    case 'string': {
-      const result = isNumericLookup[value];
-      if (result !== void 0) {
-        return result;
-      }
-      const length = value.length;
-      if (length === 0) {
-        return isNumericLookup[value] = false;
-      }
-      let ch = 0;
-      let i = 0;
-      for (; i < length; ++i) {
-        ch = charCodeAt(value, i);
-        if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
+export const isArrayIndex = ((isNumericLookup: Record<string, boolean>) => {
+  let result: boolean | undefined = false;
+  let length = 0;
+  let ch = 0;
+  let i = 0;
+  return (value: unknown): value is number | string => {
+    switch (typeof value) {
+      case 'number':
+        return value >= 0 && (value | 0) === value;
+      case 'string':
+        result = isNumericLookup[value];
+        if (result !== void 0) {
+          return result;
+        }
+        length = value.length;
+        if (length === 0) {
           return isNumericLookup[value] = false;
         }
-      }
-      return isNumericLookup[value] = true;
+        ch = 0;
+        i = 0;
+        for (; i < length; ++i) {
+          ch = charCodeAt(value, i);
+          if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
+            return isNumericLookup[value] = false;
+          }
+        }
+        return isNumericLookup[value] = true;
+      default:
+        return false;
     }
-    default:
-      return false;
-  }
-};
+  };
+})({});
 
 /**
  * Base implementation of camel and kebab cases

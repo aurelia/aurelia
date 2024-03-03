@@ -30,7 +30,7 @@ import {
   type IAllResolver,
   type IOptionalResolver,
 } from './di';
-import { ErrorNames, createMappedError } from './errors';
+import { ErrorNames, createMappedError, logError } from './errors';
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
@@ -365,12 +365,35 @@ export class Container implements IContainer {
   }
 
   public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
+    if (isNativeFunction(Type)) {
+      throw createMappedError(ErrorNames.no_construct_native_fn, Type);
+    }
     const previousContainer = currentContainer;
     currentContainer = this;
-    try {
-      if (isNativeFunction(Type)) {
-        throw createMappedError(ErrorNames.no_construct_native_fn, Type);
+    if (__DEV__) {
+      let resolvedDeps: unknown[];
+      let dep: Key | undefined;
+
+      try {
+        resolvedDeps = getDependencies(Type).map(_ => this.get(dep = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${Type.name}, caused by dependency: ${String(dep)}`);
+        currentContainer = previousContainer;
+        throw ex;
       }
+
+      try {
+        return dynamicDependencies === void 0
+          ? new Type(...resolvedDeps)
+          : new Type(...resolvedDeps, ...dynamicDependencies);
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${Type.name}`);
+        throw ex;
+      } finally {
+        currentContainer = previousContainer;
+      }
+    }
+    try {
       return dynamicDependencies === void 0
         ? new Type(...getDependencies(Type).map(containerGetKey, this))
         : new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
@@ -512,6 +535,37 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
     const previousContainer = currentContainer;
     currentContainer = container;
     let instance: Resolved<T>;
+    /* istanbul ignore next */
+    if (__DEV__) {
+      let resolvedDeps: unknown[];
+      let dep: Key | undefined;
+      try {
+        resolvedDeps = this.dependencies.map(_ => container.get(dep = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${this.Type.name}, caused by dependency: ${String(dep)}`);
+        currentContainer = previousContainer;
+        throw ex;
+      }
+
+      try {
+        if (dynamicDependencies === void 0) {
+          instance = new this.Type(...resolvedDeps) as Resolved<T>;
+        } else {
+          instance = new this.Type(...resolvedDeps, ...dynamicDependencies) as Resolved<T>;
+        }
+
+        if (this.transformers == null) {
+          return instance;
+        }
+
+        return this.transformers.reduce(transformInstance, instance);
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${this.Type.name}`);
+        throw ex;
+      } finally {
+        currentContainer = previousContainer;
+      }
+    }
     try {
       if (dynamicDependencies === void 0) {
         instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
@@ -577,6 +631,25 @@ export function resolve<K extends Key[]>(...keys: K): IResolvedInjection<K>;
 export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
   if (currentContainer == null) {
     throw createMappedError(ErrorNames.no_active_container_for_resolve, ...keys);
+  }
+  /* istanbul ignore next */
+  if (__DEV__) {
+    if (keys.length === 1) {
+      try {
+        return currentContainer.get(keys[0]);
+      } catch (ex) {
+        logError(`[DEV:aurelia] resolve() call error for: ${String(keys[0])}`);
+        throw ex;
+      }
+    } else {
+      let key: Key | undefined;
+      try {
+        return keys.map(_ => currentContainer!.get(key = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] resolve() call error for: ${String(key)}`);
+        throw ex;
+      }
+    }
   }
   return keys.length === 1
     ? currentContainer.get(keys[0])

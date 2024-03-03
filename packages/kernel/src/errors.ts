@@ -77,3 +77,7 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
     + `https://github.com/aurelia/aurelia/issues/new?title=${encodeURIComponent(title)}`
     + (body != null ? `&body=${encodeURIComponent(body)}` : '&template=bug_report.md');
 }
+
+/** @internal */
+// eslint-disable-next-line
+export const logError = (...args: unknown[]) => (globalThis as any).console.error(...args);

@@ -2,6 +2,9 @@ import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventi
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 export default function au(options: {
   include?: FilterPattern;
@@ -25,7 +28,7 @@ export default function au(options: {
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
     config(config) {
-      const isDev = useDev || (!useDev && config.mode !== 'production');
+      const isDev = useDev === true || (useDev == null && config.mode !== 'production');
       if (!isDev) {
         return;
       }

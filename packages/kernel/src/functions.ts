@@ -412,9 +412,8 @@ export const isNativeFunction = /*@__PURE__*/(function () {
         charCodeAt(sourceText, i - 12) === 0x74 && // t
         charCodeAt(sourceText, i - 13) === 0x61 && // a
         charCodeAt(sourceText, i - 14) === 0x6E && // n
-        charCodeAt(sourceText, i - 15) === 0x58    // [
+        charCodeAt(sourceText, i - 15) === 0x5B    // [
       );
-
       lookup.set(fn, isNative);
     }
     return isNative;

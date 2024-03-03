@@ -579,7 +579,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   find(c, name) {
     const key = getElementKeyFrom(name);
     const Type = c.find(key);
-    return Type == null ? null : getOwnMetadata(Type, elementBaseName) ?? null;
+    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? null;
   }
 });
 

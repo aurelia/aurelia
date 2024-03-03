@@ -32,6 +32,22 @@ import {
 } from './di';
 import { ErrorNames, createMappedError, logError } from './errors';
 
+/**
+ * Associate an object as a registrable, making the container recognize & use
+ * the specific given register function during the registration
+ */
+export const Registrable = /*@__PURE__*/(() => {
+  const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
+  const define = <T extends WeakKey>(object: T, register: (container: IContainer) => IContainer | void): T => {
+    map.set(object, register);
+    return object;
+  };
+  const get = <T extends WeakKey>(object: T) => map.get(object);
+  const has = <T extends WeakKey>(object: T) => map.has(object);
+
+  return { define, get, has };
+})();
+
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
 // const factoryAnnotationKey = Protocol.annotation.keyFor(factoryKey);
@@ -131,6 +147,8 @@ export class Container implements IContainer {
       }
       if (isRegistry(current)) {
         current.register(this);
+      } else if (Registrable.has(current)) {
+        Registrable.get(current)!.call(current, this);
       } else if (hasResources(current)) {
         const defs = getAllResources(current);
         if (defs.length === 1) {

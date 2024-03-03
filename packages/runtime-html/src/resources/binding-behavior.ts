@@ -4,13 +4,14 @@ import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
 
-import type { Constructable, IContainer, IResourceKind, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
+import type { Constructable, IContainer, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
+import { type IResourceKind } from './resources-shared';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
-export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
+export type BindingBehaviorKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
   define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
@@ -69,7 +70,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
       container.register(
         singletonRegistration(key, Type),
         aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(Type, BindingBehavior.keyFrom(alias))),
+        ...aliases.map(alias => aliasRegistration(Type, getBindingBehaviorKeyFor(alias))),
       );
     } /* istanbul ignore next */ else if (__DEV__) {
       // eslint-disable-next-line no-console

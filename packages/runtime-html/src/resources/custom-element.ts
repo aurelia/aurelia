@@ -17,7 +17,6 @@ import { aliasRegistration, transientRegistration } from '../utilities-di';
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceType,
   PartialResourceDefinition,
   Key,
@@ -32,7 +31,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement } from './resources-shared';
+import { dtElement, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -53,7 +52,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
-export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
+export type CustomElementKind = IResourceKind & {
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
    * parent node (including containerless) that is a custom element.

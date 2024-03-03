@@ -62,6 +62,7 @@ export {
   attributePattern,
   type AttributePatternDefinition,
   IAttributePattern,
+  type AttributePatternKind,
   AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
@@ -140,7 +141,6 @@ export {
 
 export {
   IRenderer,
-  type IInstructionTypeClassifier,
   ITemplateCompiler,
   type ICompliationInstruction,
   renderer,
@@ -165,7 +165,6 @@ export {
   SpreadElementPropBindingInstruction,
 
   isInstruction,
-  type InstructionTypeName,
   IInstruction,
   InstructionType,
 

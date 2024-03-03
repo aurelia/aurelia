@@ -12,7 +12,8 @@ import { createObject } from './utilities';
  *
  * Results are cached.
  */
-export const isArrayIndex = ((isNumericLookup: Record<string, boolean>) => {
+export const isArrayIndex = (() => {
+  const isNumericLookup: Record<string, boolean> = {};
   let result: boolean | undefined = false;
   let length = 0;
   let ch = 0;
@@ -43,7 +44,7 @@ export const isArrayIndex = ((isNumericLookup: Record<string, boolean>) => {
         return false;
     }
   };
-})({});
+})();
 
 /**
  * Base implementation of camel and kebab cases

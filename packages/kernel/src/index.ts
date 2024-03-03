@@ -46,6 +46,7 @@ export {
 export {
   resolve,
   type IResolvedInjection,
+  Registrable,
 } from './di.container';
 
 export {

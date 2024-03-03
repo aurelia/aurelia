@@ -18,7 +18,6 @@ import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceType,
   ResourceDefinition,
   PartialResourceDefinition,
@@ -28,7 +27,7 @@ import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
-import { dtElement } from './resources-shared';
+import { type IResourceKind, dtElement } from './resources-shared';
 import { ErrorNames, createMappedError } from '../errors';
 
 export const ctNone = 'None' as const;
@@ -67,7 +66,7 @@ export type BindingCommandInstance<T extends {} = {}> = {
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
-export type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
+export type BindingCommandKind = IResourceKind & {
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;

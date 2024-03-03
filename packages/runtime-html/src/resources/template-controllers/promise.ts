@@ -308,21 +308,21 @@ function getPromiseController(controller: IHydratableController) {
 
 @attributePattern({ pattern: 'promise.resolve', symbols: '' })
 export class PromiseAttributePattern {
-  public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
 
 @attributePattern({ pattern: 'then', symbols: '' })
 export class FulfilledAttributePattern {
-  public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
 
 @attributePattern({ pattern: 'catch', symbols: '' })
 export class RejectedAttributePattern {
-  public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }
 }

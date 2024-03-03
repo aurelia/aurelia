@@ -10,7 +10,6 @@ import { type BindingMode, toView } from '../binding/interfaces-bindings';
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
@@ -19,7 +18,7 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable'
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtAttribute } from './resources-shared';
+import { dtAttribute, type IResourceKind } from './resources-shared';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -44,7 +43,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
-export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;

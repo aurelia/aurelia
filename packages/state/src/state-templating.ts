@@ -25,14 +25,14 @@ import { StateDispatchBinding } from './state-dispatch-binding';
 
 @attributePattern({ pattern: 'PART.state', symbols: '.' })
 export class StateAttributePattern {
-  public 'PART.state'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.state'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'state');
   }
 }
 
 @attributePattern({ pattern: 'PART.dispatch', symbols: '.' })
 export class DispatchAttributePattern {
-  public 'PART.dispatch'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.dispatch'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'dispatch');
   }
 }

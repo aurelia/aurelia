@@ -10,17 +10,17 @@ import type {
   Constructable,
   IContainer,
   ResourceDefinition,
-  IResourceKind,
   ResourceType,
   PartialResourceDefinition,
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
+import { type IResourceKind } from './resources-shared';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
-export type ValueConverterKind = IResourceKind<ValueConverterType, ValueConverterDefinition> & {
+export type ValueConverterKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
   define<T extends Constructable>(name: string, Type: T): ValueConverterType<T>;
   define<T extends Constructable>(def: PartialValueConverterDefinition, Type: T): ValueConverterType<T>;

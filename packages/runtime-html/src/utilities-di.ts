@@ -5,13 +5,12 @@ import {
   type Key,
   type Constructable,
   type IContainer,
-  type IResourceKind,
-  type ResourceDefinition,
   type IAllResolver,
   IOptionalResolver,
   createResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
+import { IResourceKind } from './resources/resources-shared';
 
 export const resource = <T extends Key>(key: T) =>
   createResolver((key, handler, requestor) =>
@@ -75,7 +74,7 @@ export function alias(...aliases: readonly string[]) {
   };
 }
 
-export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
+export function registerAliases(aliases: readonly string[], resource: IResourceKind, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
     Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
   }

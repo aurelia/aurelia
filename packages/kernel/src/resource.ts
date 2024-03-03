@@ -77,6 +77,7 @@ const annotation = /*@__PURE__*/ objectFreeze({
 });
 
 const resBaseName = 'au:resource';
+/** @internal */
 export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
 /** @internal */
 export const getAllResources = (target: Constructable): readonly ResourceDefinition[] => {

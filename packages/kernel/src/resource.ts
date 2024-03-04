@@ -1,4 +1,3 @@
-import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { emptyArray } from './platform';
 import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze } from './utilities';
@@ -25,8 +24,6 @@ export type ResourceDefinition<
   readonly name: string;
   readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
   readonly aliases?: readonly string[];
-
-  register(container: IContainer): void;
 } & TDef;
 
 export type PartialResourceDefinition<TDef extends {} = {}> = {

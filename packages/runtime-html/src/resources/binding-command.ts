@@ -117,20 +117,6 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
-
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    if (!container.has(key, false)) {
-      container.register(
-        singletonRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed)}`);
-    }
-  }
 }
 
 const cmdBaseName = /*@__PURE__*/getResourceKeyFor('binding-command');

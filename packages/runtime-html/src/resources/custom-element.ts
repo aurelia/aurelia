@@ -356,21 +356,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     return definition;
   }
 
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    // todo: warn if alreay has key
-    if (!container.has(key, false)) {
-      container.register(
-        transientRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(Type, CustomElement.keyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed)}`);
-    }
-  }
-
   public toString() {
     return `au:ce:${this.name}`;
   }

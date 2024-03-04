@@ -365,7 +365,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     this._lifecycleHooks = LifecycleHooks.resolve(container);
     // Support Recursive Components by adding self to own context
-    definition.register(container);
+    container.register(definition.Type);
+    // definition.register(container);
 
     if (definition.injectable !== null) {
       registerResolver(

@@ -31,6 +31,7 @@ export const enum ErrorNames {
   event_aggregator_subscribe_invalid_event_name = 19,
   first_defined_no_value = 20,
   invalid_module_transform_input = 21,
+  more_than_one_registrable = 22,
 }
 _END_CONST_ENUM();
 
@@ -57,7 +58,8 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.event_aggregator_publish_invalid_event_name]: `Invalid channel name or instance: '{{0}}'.`,
   [ErrorNames.event_aggregator_subscribe_invalid_event_name]: `Invalid channel name or type: {{0}}.`,
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,
-  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`
+  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
+  [ErrorNames.more_than_one_registrable]: `More than one registrable found for key '{{0}}'.`,
   // [ErrorNames.module_loader_received_null]: `Module loader received null/undefined input. Expected Object.`,
 };
 

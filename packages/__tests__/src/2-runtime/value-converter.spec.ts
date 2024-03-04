@@ -15,7 +15,7 @@ describe(`2-runtime/value-converter.spec.ts`, function () {
   it(`should define the value converter`, function () {
     const definition = ValueConverter.getDefinition(FooValueConverter);
     assert.strictEqual(definition.name, 'foo', `definition.name`);
-    definition.register(container);
+    container.register(FooValueConverter);
     const instance = container.get(ValueConverter.keyFrom('foo'));
     assert.instanceOf(instance, FooValueConverter, `instance`);
   });

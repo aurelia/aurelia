@@ -4,7 +4,7 @@ import { isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { type ResourceType, getAllResources, hasResources } from './resource';
+import { type ResourceType } from './resource';
 import { isFunction, isString } from './utilities';
 import {
   IContainer,
@@ -39,6 +39,9 @@ import { ErrorNames, createMappedError, logError } from './errors';
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
   const define = <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
+    if (map.has(object) && map.get(object) !== register) {
+      throw createMappedError(ErrorNames.more_than_one_registrable, String(object));
+    }
     map.set(object, register);
     return object;
   };
@@ -149,19 +152,6 @@ export class Container implements IContainer {
         current.register(this);
       } else if (Registrable.has(current)) {
         Registrable.get(current)!.call(current, this);
-      } else if (hasResources(current)) {
-        const defs = getAllResources(current);
-        if (defs.length === 1) {
-          // Fast path for the very common case
-          defs[0].register(this);
-        } else {
-          j = 0;
-          jj = defs.length;
-          while (jj > j) {
-            defs[j].register(this);
-            ++j;
-          }
-        }
       } else if (isClass(current)) {
         Registration.singleton(current, current as Constructable).register(this);
       } else {
@@ -177,6 +167,8 @@ export class Container implements IContainer {
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
             value.register(this);
+          } else if (Registrable.has(value)) {
+            Registrable.get(value)!.call(value, this);
           } else {
             this.register(value);
           }

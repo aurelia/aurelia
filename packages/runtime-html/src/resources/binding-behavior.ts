@@ -61,20 +61,6 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
       BindingBehavior.keyFrom(name),
     );
   }
-
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    if (!container.has(key, false)) {
-      container.register(
-        singletonRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(Type, getBindingBehaviorKeyFor(alias))),
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_behavior_existed)}`);
-    }
-  }
 }
 
 const bbBaseName = /*@__PURE__*/getResourceKeyFor('binding-behavior');

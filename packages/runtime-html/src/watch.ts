@@ -113,9 +113,9 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
   ) {}
 }
 
-export const Watch = (() => {
+export const Watch = /*@__PURE__*/(() => {
   const watches = new WeakMap<Constructable, IWatchDefinition[]>();
-    return objectFreeze({
+  return objectFreeze({
     add(Type: Constructable, definition: IWatchDefinition): void {
       let defs = watches.get(Type);
       if (defs == null) {

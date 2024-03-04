@@ -5,7 +5,7 @@ import {
   resourceBaseName,
   getResourceKeyFor,
 } from '@aurelia/kernel';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 
@@ -15,6 +15,7 @@ import type {
   ResourceDefinition,
   ResourceType,
   PartialResourceDefinition,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
@@ -32,6 +33,7 @@ export type ValueConverterKind = IResourceKind & {
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void;
   getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K];
   find(container: IContainer, name: string): ValueConverterDefinition | null;
+  get(container: IServiceLocator, name: string): ValueConverterInstance;
 };
 
 export type ValueConverterDecorator = <T extends Constructable>(Type: T) => ValueConverterType<T>;
@@ -102,8 +104,8 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
       const { key, aliases } = definition;
       if (!container.has(key, false)) {
         container.register(
-          singletonRegistration(key, $Type),
-          aliasRegistration(key, $Type),
+          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+          aliasRegistration($Type, key),
           ...aliases.map(alias => aliasRegistration($Type, getValueConverterKeyFor(alias)))
         );
       } /* istanbul ignore next */ else if(__DEV__) {
@@ -128,5 +130,17 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     const key = getValueConverterKeyFor(name);
     const Type = container.find(key);
     return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? null;
+  },
+  get(container, name) {
+    if (__DEV__) {
+      try {
+        return container.get<ValueConverterInstance>(resource(getValueConverterKeyFor(name)));
+      } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.error('[DEV:aurelia] Cannot retrieve value converter with name', name);
+        throw ex;
+      }
+    }
+    return container.get<ValueConverterInstance>(resource(getValueConverterKeyFor(name)));
   },
 });

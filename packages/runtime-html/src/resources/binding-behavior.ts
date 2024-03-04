@@ -1,10 +1,10 @@
 import { firstDefined, getResourceKeyFor, mergeArrays, Registrable, resourceBaseName, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 
-import type { Constructable, IContainer, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
+import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IResourceKind } from './resources-shared';
 
@@ -18,6 +18,7 @@ export type BindingBehaviorKind = IResourceKind & {
   define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
   find(container: IContainer, name: string): BindingBehaviorDefinition | null;
+  get(container: IServiceLocator, name: string): BindingBehaviorInstance;
 };
 
 export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
@@ -87,9 +88,9 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
       const { key, aliases } = definition;
       if (!container.has(key, false)) {
         container.register(
-          singletonRegistration(key, $Type),
-          aliasRegistration(key, $Type),
-          ...aliases.map(alias => aliasRegistration(Type, getBindingBehaviorKeyFor(alias))),
+          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+          aliasRegistration($Type, key),
+          ...aliases.map(alias => aliasRegistration($Type, getBindingBehaviorKeyFor(alias))),
         );
       } /* istanbul ignore next */ else if (__DEV__) {
         // eslint-disable-next-line no-console
@@ -109,5 +110,17 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     const key = getBindingBehaviorKeyFor(name);
     const Type = container.find(key);
     return Type == null ? null : getOwnMetadata(bbBaseName, Type) ?? null;
+  },
+  get(container, name) {
+    if (__DEV__) {
+      try {
+        return container.get<BindingBehaviorInstance>(resource(getBindingBehaviorKeyFor(name)));
+      } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.error('[DEV:aurelia] Cannot retrieve binding behavior with name', name);
+        throw ex;
+      }
+    }
+    return container.get<BindingBehaviorInstance>(resource(getBindingBehaviorKeyFor(name)));
   },
 });

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor } from '@aurelia/kernel';
 import { IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -30,7 +30,6 @@ import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
-import { getResourceKeyFor } from '../utilities-metadata';
 import { oneTime, type BindingMode, toView, fromView, twoWay, defaultMode } from '../binding/interfaces-bindings';
 
 import type {

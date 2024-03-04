@@ -7,11 +7,13 @@ import {
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
   Registrable,
+  resourceBaseName,
+  getResourceKeyFor,
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 
@@ -408,7 +410,8 @@ export const defineElement = <C extends Constructable>(nameOrDef: string | Parti
   const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
   const $Type = definition.Type as CustomElementType<C>;
   defineMetadata(elementBaseName, definition, $Type);
-  appendResourceKey($Type, elementBaseName);
+  defineMetadata(resourceBaseName, definition, $Type);
+  // appendResourceKey($Type, elementBaseName);
 
   return Registrable.define($Type, function (container) {
     const { key, aliases } = definition;

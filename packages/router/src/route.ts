@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, Protocol, ResourceType, Writable } from '@aurelia/kernel';
+import { Constructable, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
 import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, type ReloadBehavior } from './interfaces';
 
@@ -31,7 +31,7 @@ export class Route {
   /**
    * The metadata resource key for a configured route.
    */
-  private static readonly resourceKey = Protocol.resource.keyFor('route');
+  private static readonly resourceKey = getResourceKeyFor('route');
 
   protected constructor(
     /**

@@ -27,24 +27,21 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(A.isRegistry, false, `A.isRegistry === false`);
     assert.strictEqual(A.key, 'A', `A.key === 'A'`);
     assert.strictEqual(A.value, ce_a_b_default.A, `A.value === ce_a_b_default.A`);
-    assert.strictEqual(A.definitions.length, 1, `A.definitions.length === 1`);
-    assert.strictEqual(A.definitions[0], CustomElement.getDefinition(ce_a_b_default.A), `A.definitions[0] === CustomElement.getDefinition(ce_a_b_default.A)`);
+    assert.strictEqual(A.definition, CustomElement.getDefinition(ce_a_b_default.A), `A.definition === CustomElement.getDefinition(ce_a_b_default.A)`);
 
     const B = res.items.find(x => x.key === 'B');
     assert.strictEqual(B.isConstructable, true, `B.isConstructable === true`);
     assert.strictEqual(B.isRegistry, false, `B.isRegistry === false`);
     assert.strictEqual(B.key, 'B', `B.key === 'B'`);
     assert.strictEqual(B.value, ce_a_b_default.B, `B.value === ce_a_b_default.B`);
-    assert.strictEqual(B.definitions.length, 1, `B.definitions.length === 1`);
-    assert.strictEqual(B.definitions[0], CustomElement.getDefinition(ce_a_b_default.B), `B.definitions[0] === CustomElement.getDefinition(ce_a_b_default.B)`);
+    assert.strictEqual(B.definition, CustomElement.getDefinition(ce_a_b_default.B), `B.definition === CustomElement.getDefinition(ce_a_b_default.B)`);
 
     const d = res.items.find(x => x.key === 'default');
     assert.strictEqual(d.isConstructable, true, `d.isConstructable === true`);
     assert.strictEqual(d.isRegistry, false, `d.isRegistry === false`);
     assert.strictEqual(d.key, 'default', `d.key === 'default'`);
     assert.strictEqual(d.value, ce_a_b_default.default, `d.value === ce_a_b_default.default`);
-    assert.strictEqual(d.definitions.length, 1, `d.definitions.length === 1`);
-    assert.strictEqual(d.definitions[0], CustomElement.getDefinition(ce_a_b_default.default), `d.definitions[0] === CustomElement.getDefinition(ce_a_b_default.default)`);
+    assert.strictEqual(d.definition, CustomElement.getDefinition(ce_a_b_default.default), `d.definition === CustomElement.getDefinition(ce_a_b_default.default)`);
   });
 
   it('correctly analyzes ce_a_b_defaultb', function () {
@@ -60,24 +57,21 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(A.isRegistry, false, `A.isRegistry === false`);
     assert.strictEqual(A.key, 'A', `A.key === 'A'`);
     assert.strictEqual(A.value, ce_a_b_defaultb.A, `A.value === ce_a_b_defaultb.A`);
-    assert.strictEqual(A.definitions.length, 1, `A.definitions.length === 1`);
-    assert.strictEqual(A.definitions[0], CustomElement.getDefinition(ce_a_b_defaultb.A), `A.definitions[0] === CustomElement.getDefinition(ce_a_b_defaultb.A)`);
+    assert.strictEqual(A.definition, CustomElement.getDefinition(ce_a_b_defaultb.A), `A.definition === CustomElement.getDefinition(ce_a_b_defaultb.A)`);
 
     const B = res.items.find(x => x.key === 'B');
     assert.strictEqual(B.isConstructable, true, `B.isConstructable === true`);
     assert.strictEqual(B.isRegistry, false, `B.isRegistry === false`);
     assert.strictEqual(B.key, 'B', `B.key === 'B'`);
     assert.strictEqual(B.value, ce_a_b_defaultb.B, `B.value === ce_a_b_defaultb.B`);
-    assert.strictEqual(B.definitions.length, 1, `B.definitions.length === 1`);
-    assert.strictEqual(B.definitions[0], CustomElement.getDefinition(ce_a_b_defaultb.B), `B.definitions[0] === CustomElement.getDefinition(ce_a_b_defaultb.B)`);
+    assert.strictEqual(B.definition, CustomElement.getDefinition(ce_a_b_defaultb.B), `B.definition === CustomElement.getDefinition(ce_a_b_defaultb.B)`);
 
     const d = res.items.find(x => x.key === 'default');
     assert.strictEqual(d.isConstructable, true, `d.isConstructable === true`);
     assert.strictEqual(d.isRegistry, false, `d.isRegistry === false`);
     assert.strictEqual(d.key, 'default', `d.key === 'default'`);
     assert.strictEqual(d.value, ce_a_b_defaultb.default, `d.value === ce_a_b_defaultb.default`);
-    assert.strictEqual(d.definitions.length, 1, `d.definitions.length === 1`);
-    assert.strictEqual(d.definitions[0], CustomElement.getDefinition(ce_a_b_defaultb.default), `d.definitions[0] === CustomElement.getDefinition(ce_a_b_defaultb.default)`);
+    assert.strictEqual(d.definition, CustomElement.getDefinition(ce_a_b_defaultb.default), `d.definition === CustomElement.getDefinition(ce_a_b_defaultb.default)`);
   });
 
   it('correctly analyzes ce_a_b', function () {
@@ -93,16 +87,14 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(A.isRegistry, false, `A.isRegistry === false`);
     assert.strictEqual(A.key, 'A', `A.key === 'A'`);
     assert.strictEqual(A.value, ce_a_b.A, `A.value === ce_a_b.A`);
-    assert.strictEqual(A.definitions.length, 1, `A.definitions.length === 1`);
-    assert.strictEqual(A.definitions[0], CustomElement.getDefinition(ce_a_b.A), `A.definitions[0] === CustomElement.getDefinition(ce_a_b.A)`);
+    assert.strictEqual(A.definition, CustomElement.getDefinition(ce_a_b.A), `A.definition === CustomElement.getDefinition(ce_a_b.A)`);
 
     const B = res.items.find(x => x.key === 'B');
     assert.strictEqual(B.isConstructable, true, `B.isConstructable === true`);
     assert.strictEqual(B.isRegistry, false, `B.isRegistry === false`);
     assert.strictEqual(B.key, 'B', `B.key === 'B'`);
     assert.strictEqual(B.value, ce_a_b.B, `B.value === ce_a_b.B`);
-    assert.strictEqual(B.definitions.length, 1, `B.definitions.length === 1`);
-    assert.strictEqual(B.definitions[0], CustomElement.getDefinition(ce_a_b.B), `B.definitions[0] === CustomElement.getDefinition(ce_a_b.B)`);
+    assert.strictEqual(B.definition, CustomElement.getDefinition(ce_a_b.B), `B.definition === CustomElement.getDefinition(ce_a_b.B)`);
   });
 
   it('correctly analyzes ce_default', function () {
@@ -118,8 +110,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(d.isRegistry, false, `d.isRegistry === false`);
     assert.strictEqual(d.key, 'default', `d.key === 'default'`);
     assert.strictEqual(d.value, ce_default.default, `d.value === ce_default.default`);
-    assert.strictEqual(d.definitions.length, 1, `d.definitions.length === 1`);
-    assert.strictEqual(d.definitions[0], CustomElement.getDefinition(ce_default.default), `d.definitions[0] === CustomElement.getDefinition(ce_default.default)`);
+    assert.strictEqual(d.definition, CustomElement.getDefinition(ce_default.default), `d.definition === CustomElement.getDefinition(ce_default.default)`);
   });
 
   it('correctly analyzes kitchen_sink', function () {
@@ -135,46 +126,42 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(CE.isRegistry, false, `CE.isRegistry === false`);
     assert.strictEqual(CE.key, 'CE', `CE.key === 'CE'`);
     assert.strictEqual(CE.value, kitchen_sink.CE, `CE.value === kitchen_sink.CE`);
-    assert.strictEqual(CE.definitions.length, 1, `CE.definitions.length === 1`);
-    assert.strictEqual(CE.definitions[0], CustomElement.getDefinition(kitchen_sink.CE), `CE.definitions[0] === CustomElement.getDefinition(kitchen_sink.A)`);
+    assert.strictEqual(CE.definition, CustomElement.getDefinition(kitchen_sink.CE), `CE.definition === CustomElement.getDefinition(kitchen_sink.A)`);
 
     const CA = res.items.find(x => x.key === 'CA');
     assert.strictEqual(CA.isConstructable, true, `CA.isConstructable === true`);
     assert.strictEqual(CA.isRegistry, false, `CA.isRegistry === false`);
     assert.strictEqual(CA.key, 'CA', `CA.key === 'CA'`);
     assert.strictEqual(CA.value, kitchen_sink.CA, `CA.value === kitchen_sink.CA`);
-    assert.strictEqual(CA.definitions.length, 1, `CA.definitions.length === 1`);
-    assert.strictEqual(CA.definitions[0], CustomAttribute.getDefinition(kitchen_sink.CA), `CA.definitions[0] === CustomAttribute.getDefinition(kitchen_sink.A)`);
+    assert.strictEqual(CA.definition, CustomAttribute.getDefinition(kitchen_sink.CA), `CA.definition === CustomAttribute.getDefinition(kitchen_sink.A)`);
 
     const VC = res.items.find(x => x.key === 'VC');
     assert.strictEqual(VC.isConstructable, true, `VC.isConstructable === true`);
     assert.strictEqual(VC.isRegistry, false, `VC.isRegistry === false`);
     assert.strictEqual(VC.key, 'VC', `VC.key === 'VC'`);
     assert.strictEqual(VC.value, kitchen_sink.VC, `VC.value === kitchen_sink.VC`);
-    assert.strictEqual(VC.definitions.length, 1, `VC.definitions.length === 1`);
-    assert.strictEqual(VC.definitions[0], ValueConverter.getDefinition(kitchen_sink.VC), `VC.definitions[0] === ValueConverter.getDefinition(kitchen_sink.A)`);
+    assert.strictEqual(VC.definition, ValueConverter.getDefinition(kitchen_sink.VC), `VC.definition === ValueConverter.getDefinition(kitchen_sink.A)`);
 
     const BB = res.items.find(x => x.key === 'BB');
     assert.strictEqual(BB.isConstructable, true, `BB.isConstructable === true`);
     assert.strictEqual(BB.isRegistry, false, `BB.isRegistry === false`);
     assert.strictEqual(BB.key, 'BB', `BB.key === 'BB'`);
     assert.strictEqual(BB.value, kitchen_sink.BB, `BB.value === kitchen_sink.BB`);
-    assert.strictEqual(BB.definitions.length, 1, `BB.definitions.length === 1`);
-    assert.strictEqual(BB.definitions[0], BindingBehavior.getDefinition(kitchen_sink.BB), `BB.definitions[0] === BindingBehavior.getDefinition(kitchen_sink.A)`);
+    assert.strictEqual(BB.definition, BindingBehavior.getDefinition(kitchen_sink.BB), `BB.definition === BindingBehavior.getDefinition(kitchen_sink.A)`);
 
     const X = res.items.find(x => x.key === 'X');
     assert.strictEqual(X.isConstructable, true, `BB.isConstructable === true`);
     assert.strictEqual(X.isRegistry, false, `BB.isRegistry === false`);
     assert.strictEqual(X.key, 'X', `BB.key === 'X'`);
     assert.strictEqual(X.value, kitchen_sink.X, `BB.value === kitchen_sink.X`);
-    assert.strictEqual(X.definitions.length, 0, `BB.definitions.length === 0`);
+    assert.strictEqual(X.definition, null, `BB.definition === null`);
 
     const R = res.items.find(x => x.key === 'Registry');
     assert.strictEqual(R.isConstructable, false, `BB.isConstructable === false`);
     assert.strictEqual(R.isRegistry, true, `BB.isRegistry === true`);
     assert.strictEqual(R.key, 'Registry', `BB.key === 'Registry'`);
     assert.strictEqual(R.value, kitchen_sink.Registry, `BB.value === kitchen_sink.Registry`);
-    assert.strictEqual(R.definitions.length, 0, `BB.definitions.length === 0`);
+    assert.strictEqual(R.definition, null, `BB.definition === null`);
   });
 
   it('caches the transform result', function () {
@@ -183,7 +170,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     let calls = 0;
     function transform(m: AnalyzedModule<typeof kitchen_sink>): {} {
       ++calls;
-      return m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value;
+      return m.items.find(x => x.isConstructable && CustomElement.isType(x.definition?.Type))?.value;
     }
 
     const res1 = loader.load(kitchen_sink, transform);
@@ -220,7 +207,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     let calls = 0;
     function transform(m: AnalyzedModule<typeof kitchen_sink>): {} {
       ++calls;
-      return m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value;
+      return m.items.find(x => x.isConstructable && CustomElement.isType(x.definition?.Type))?.value;
     }
 
     const res1 = loader.load(promise, transform);
@@ -246,7 +233,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     let calls = 0;
     function transform(m: AnalyzedModule<typeof kitchen_sink>): {} {
       ++calls;
-      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value);
+      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definition?.Type))?.value);
     }
 
     const res1 = loader.load(promise, transform);
@@ -272,13 +259,13 @@ describe('1-kernel/module-loader.spec.ts', function () {
     let calls1 = 0;
     function transform1(m: AnalyzedModule<typeof kitchen_sink>): {} {
       ++calls1;
-      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value);
+      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definition?.Type))?.value);
     }
 
     let calls2 = 0;
     function transform2(m: AnalyzedModule<typeof kitchen_sink>): {} {
       ++calls2;
-      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definitions[0].Type))!.value);
+      return Promise.resolve(m.items.find(x => x.isConstructable && CustomElement.isType(x.definition?.Type))?.value);
     }
 
     const res1 = loader.load(promise, transform1);

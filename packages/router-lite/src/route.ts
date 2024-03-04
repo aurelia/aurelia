@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, emptyArray, onResolve, Protocol, ResourceType, Writable, IContainer } from '@aurelia/kernel';
+import { Constructable, emptyArray, onResolve, ResourceType, Writable, IContainer, getResourceKeyFor } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, NavigationInstructionType, TypedNavigationInstruction, ViewportInstruction } from './instructions';
@@ -216,7 +216,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 }
 
 export const Route = {
-  name: Protocol.resource.keyFor('route-configuration'),
+  name: /*@__PURE__*/getResourceKeyFor('route-configuration'),
   /**
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
    */

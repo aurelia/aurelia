@@ -1,4 +1,3 @@
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor } from '../utilities-metadata';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { getOwnPropertyNames, objectFreeze, baseObjectPrototype } from '../utilities';
 
@@ -56,20 +55,17 @@ export class LifecycleHooksDefinition<T extends Constructable = Constructable> {
 export const LifecycleHooks = /*@__PURE__*/(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const containerLookup = new WeakMap<IContainer, LifecycleHooksLookup<any>>();
-  const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
+  // const lhBaseName = getAnnotationKeyFor('lifecycle-hooks');
   const definitionMap = new WeakMap<Constructable, LifecycleHooksDefinition>();
 
   return objectFreeze({
-    name: lhBaseName,
+    // name: lhBaseName,
     /**
      * @param def - Placeholder for future extensions. Currently always an empty object.
      */
     define<T extends Constructable>(def: {}, Type: T): T {
       const definition = LifecycleHooksDefinition.create(def, Type);
       const $Type = definition.Type;
-
-      defineMetadata(lhBaseName, definition, Type);
-      appendResourceKey(Type, lhBaseName);
 
       definitionMap.set($Type, definition);
 

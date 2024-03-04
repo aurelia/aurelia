@@ -1,8 +1,8 @@
-import { mergeArrays, firstDefined, Key, Registrable } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 import { type BindingMode, toView } from '../binding/interfaces-bindings';
@@ -141,7 +141,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 }
 
 /** @internal */
-export const caBaseName = getResourceKeyFor('custom-attribute');
+export const caBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
 
 /** @internal */
 export const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
@@ -167,7 +167,8 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
   const $Type = definition.Type as CustomAttributeType<T>;
 
   defineMetadata(caBaseName, definition, $Type);
-  appendResourceKey($Type, caBaseName);
+  defineMetadata(resourceBaseName, definition, $Type);
+  // appendResourceKey($Type, caBaseName);
 
   return Registrable.define($Type, container => {
     const { key, aliases } = definition;

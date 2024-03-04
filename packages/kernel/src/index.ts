@@ -93,6 +93,8 @@ export {
 } from './platform';
 
 export {
+  resourceBaseName,
+  getResourceKeyFor,
   type IResourceKind,
   type PartialResourceDefinition,
   Protocol,

@@ -1,8 +1,8 @@
-import { firstDefined, mergeArrays, Registrable, ResourceType } from '@aurelia/kernel';
+import { firstDefined, getResourceKeyFor, mergeArrays, Registrable, resourceBaseName, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 
 import type { Constructable, IContainer, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
@@ -80,7 +80,8 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
     const $Type = definition.Type as BindingBehaviorType<T>;
     defineMetadata(bbBaseName, definition, $Type);
-    appendResourceKey($Type, bbBaseName);
+    defineMetadata(resourceBaseName, definition, $Type);
+    // appendResourceKey($Type, bbBaseName);
 
     return Registrable.define($Type, container => {
       const { key, aliases } = definition;

@@ -5,7 +5,7 @@ import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
 import { type ResourceType } from './resource';
-import { isFunction, isString } from './utilities';
+import { isFunction, isString, objectFreeze } from './utilities';
 import {
   IContainer,
   type Key,
@@ -30,25 +30,27 @@ import {
   type IAllResolver,
   type IOptionalResolver,
 } from './di';
-import { ErrorNames, createMappedError, logError } from './errors';
+import { ErrorNames, createMappedError, logError, logWarn } from './errors';
 
-/**
- * Associate an object as a registrable, making the container recognize & use
- * the specific given register function during the registration
- */
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
-  const define = <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
-    if (map.has(object) && map.get(object) !== register) {
-      throw createMappedError(ErrorNames.more_than_one_registrable, String(object));
-    }
-    map.set(object, register);
-    return object;
-  };
-  const get = <T extends WeakKey>(object: T) => map.get(object);
-  const has = <T extends WeakKey>(object: T) => map.has(object);
-
-  return { define, get, has };
+  return objectFreeze({
+    /**
+     * Associate an object as a registrable, making the container recognize & use
+     * the specific given register function during the registration
+     */
+    define: <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
+      if (__DEV__) {
+        if (map.has(object) && map.get(object) !== register) {
+          logWarn(`Overriding registrable found for key:`, object);
+        }
+      }
+      map.set(object, register);
+      return object;
+    },
+    get: <T extends WeakKey>(object: T) => map.get(object),
+    has: <T extends WeakKey>(object: T) => map.has(object),
+  });
 })();
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));

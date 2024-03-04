@@ -1,5 +1,4 @@
-import { emptyArray, IContainer, resolve, Registrable } from '@aurelia/kernel';
-import { getResourceKeyFor } from '../utilities-metadata';
+import { emptyArray, IContainer, resolve, Registrable, getResourceKeyFor } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Constructable, ResourceDefinition, ResourceType } from '@aurelia/kernel';
 import { objectFreeze } from '../utilities';
@@ -465,7 +464,7 @@ export class AttributeParser implements IAttributeParser {
 
   public constructor() {
     const interpreter = this._interpreter = resolve(ISyntaxInterpreter);
-    const attrPatterns = AttributePattern.find(resolve(IContainer));
+    const attrPatterns = AttributePattern.findAll(resolve(IContainer));
     const patterns: AttributeParser['_patterns'] = this._patterns = {};
     const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
       (allDefs, attrPattern) => {
@@ -496,7 +495,7 @@ export interface AttributePatternKind {
   readonly name: string;
   define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): P;
   getPatternDefinitions(Type: Constructable): AttributePatternDefinition[];
-  find(container: IContainer): readonly IAttributePattern[];
+  findAll(container: IContainer): readonly IAttributePattern[];
 }
 
 export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T) => T {
@@ -529,7 +528,7 @@ export const AttributePattern = objectFreeze<AttributePatternKind>({
     });
   },
   getPatternDefinitions: getAllPatternDefinitions,
-  find: (container) => container.root.getAll(IAttributePattern),
+  findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
 @attributePattern(

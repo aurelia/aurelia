@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray, Registrable } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
@@ -11,7 +11,7 @@ import {
   SpreadBindingInstruction,
   MultiAttrInstruction,
 } from '../renderer';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
@@ -138,7 +138,8 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     const $Type = definition.Type as BindingCommandType<T>;
 
     defineMetadata(cmdBaseName, definition, $Type);
-    appendResourceKey($Type, cmdBaseName);
+    defineMetadata(resourceBaseName, definition, $Type);
+    // appendResourceKey($Type, cmdBaseName);
 
     return Registrable.define($Type, container => {
       const { key, aliases } = definition;

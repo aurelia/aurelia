@@ -2,10 +2,12 @@ import {
   mergeArrays,
   firstDefined,
   Registrable,
+  resourceBaseName,
+  getResourceKeyFor,
 } from '@aurelia/kernel';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 
 import type {
   Constructable,
@@ -75,7 +77,7 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const vcBaseName = getResourceKeyFor('value-converter');
+const vcBaseName = /*@__PURE__*/getResourceKeyFor('value-converter');
 const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>(
   Type: Constructable,
   prop: K,
@@ -92,8 +94,9 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
     const $Type = definition.Type as ValueConverterType<T>;
 
-    defineMetadata(vcBaseName, definition, definition.Type);
-    appendResourceKey($Type, vcBaseName);
+    defineMetadata(vcBaseName, definition, $Type);
+    defineMetadata(resourceBaseName, definition, $Type);
+    // appendResourceKey($Type, vcBaseName);
 
     return Registrable.define($Type, container => {
       const { key, aliases } = definition;

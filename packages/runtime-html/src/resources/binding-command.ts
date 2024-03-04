@@ -13,7 +13,7 @@ import {
 } from '../renderer';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -21,6 +21,7 @@ import type {
   ResourceType,
   ResourceDefinition,
   PartialResourceDefinition,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
@@ -73,6 +74,7 @@ export type BindingCommandKind = IResourceKind & {
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
   find(container: IContainer, name: string): BindingCommandDefinition | null;
+  get(container: IServiceLocator, name: string): BindingCommandInstance;
 };
 
 export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
@@ -145,9 +147,9 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
       const { key, aliases } = definition;
       if (!container.has(key, false)) {
         container.register(
-          singletonRegistration(key, $Type),
-          aliasRegistration(key, $Type),
-          ...aliases.map(alias => aliasRegistration(key, getCommandKeyFrom(alias))),
+          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+          aliasRegistration($Type, key),
+          ...aliases.map(alias => aliasRegistration($Type, getCommandKeyFrom(alias))),
         );
       } /* istanbul ignore next */ else if (__DEV__) {
         // eslint-disable-next-line no-console
@@ -160,6 +162,18 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     const key = getCommandKeyFrom(name);
     const Type = container.find(key);
     return Type == null ? null : getOwnMetadata(cmdBaseName, Type) ?? null;
+  },
+  get(container, name) {
+    if (__DEV__) {
+      try {
+        return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+      } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
+        throw ex;
+      }
+    }
+    return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
   },
 });
 

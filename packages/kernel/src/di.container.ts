@@ -471,15 +471,16 @@ export class Container implements IContainer {
   }
 
   public find<TResType extends ResourceType>(key: string): TResType | null {
-    let resolver = this.res[key];
+    let container: Container = this;
+    let resolver = container.res[key];
     if (resolver == null) {
-      resolver = this.root.res[key];
-      if (resolver == null) {
-        return null;
-      }
+      container = container.root;
+      resolver = container.res[key];
     }
-
-    return resolver.getFactory?.(this)?.Type as TResType ?? null;
+    if (resolver == null) {
+      return null;
+    }
+    return resolver.getFactory?.(container)?.Type as TResType ?? null;
   }
 
   public dispose(): void {

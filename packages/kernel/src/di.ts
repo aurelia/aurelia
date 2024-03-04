@@ -807,6 +807,13 @@ export class Resolver implements IResolver, IRegistration {
 
   private resolving: boolean = false;
 
+  /**
+   * When resolving a singleton, the internal state is changed,
+   * so cache the original constructable factory for future requests
+   * @internal
+   */
+  private _cachedFactory: IFactory | null = null;
+
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this._key, this);
   }
@@ -820,7 +827,7 @@ export class Resolver implements IResolver, IRegistration {
           throw createMappedError(ErrorNames.cyclic_dependency, this._state.name);
         }
         this.resolving = true;
-        this._state = handler.getFactory(this._state as Constructable).construct(requestor);
+        this._state = (this._cachedFactory = handler.getFactory(this._state as Constructable)).construct(requestor);
         this._strategy = ResolverStrategy.instance;
         this.resolving = false;
         return this._state;
@@ -851,6 +858,8 @@ export class Resolver implements IResolver, IRegistration {
         return container.getFactory(this._state as Constructable);
       case ResolverStrategy.alias:
         return container.getResolver(this._state)?.getFactory?.(container) ?? null;
+      case ResolverStrategy.instance:
+        return this._cachedFactory;
       default:
         return null;
     }

@@ -1793,13 +1793,10 @@ class CompilationContext {
     let commandDef: BindingCommandDefinition | null;
     if (result === void 0) {
       commandDef = BindingCommand.find(this.c, name);
-      if (commandDef != null) {
-        result = this.c.invoke(commandDef.Type);
-      }
-      if (result == null) {
+      if (commandDef == null) {
         throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
       }
-      this._commands[name] = result;
+      this._commands[name] = result = BindingCommand.get(this.c, name);
     }
     return result;
   }

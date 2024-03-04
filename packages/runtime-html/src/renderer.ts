@@ -2,11 +2,10 @@ import {
   emptyArray,
   InstanceProvider,
   type IContainer,
-  type Class,
-  type IRegistry,
   type Constructable,
   type IResolver,
   resolve,
+  Registrable,
 } from '@aurelia/kernel';
 import {
   type ExpressionType,
@@ -88,10 +87,8 @@ export const InstructionType = /*@__PURE__*/ objectFreeze({
 });
 export type InstructionType = typeof InstructionType[keyof typeof InstructionType];
 
-export type InstructionTypeName = string;
-
 export interface IInstruction {
-  readonly type: InstructionTypeName;
+  readonly type: string;
 }
 export const IInstruction = /*@__PURE__*/createInterface<IInstruction>('Instruction');
 
@@ -376,12 +373,8 @@ export interface ICompliationInstruction {
   projections: IAuSlotProjections | null;
 }
 
-export interface IInstructionTypeClassifier<TType extends string = string> {
+export interface IRenderer<TType extends string = string> {
   target: TType;
-}
-export interface IRenderer<
-  TType extends InstructionTypeName = InstructionTypeName
-> extends IInstructionTypeClassifier<TType> {
   render(
     /**
      * The controller that is current invoking this renderer
@@ -397,21 +390,15 @@ export interface IRenderer<
 
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
 
-type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
-type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
-
-type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>) => DecoratedInstructionRenderer<TType, TProto, TClass>;
-
-export function renderer<TType extends string>(targetType: TType): InstructionRendererDecorator<TType> {
-  return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
-    target.register = function (container: IContainer): void {
-      singletonRegistration(IRenderer, this).register(container);
-    };
+export function renderer<TType extends string, T extends Constructable<IRenderer<TType>>>(targetType: TType): (target: T) => T {
+  return function decorator(target) {
     def(target.prototype, 'target', {
       configurable: true,
-      get: function () { return targetType; }
+      get() { return targetType; }
     });
-    return target as DecoratedInstructionRenderer<TType, TProto, TClass>;
+    return Registrable.define(target, function (this: typeof target, container: IContainer): void {
+      singletonRegistration(IRenderer, this).register(container);
+    });
   };
 }
 
@@ -500,7 +487,7 @@ export class CustomElementRenderer implements IRenderer {
     const ctxContainer = renderingCtrl.container;
     switch (typeof res) {
       case 'string':
-        def = ctxContainer.find(CustomElement, res);
+        def = CustomElement.find(ctxContainer, res);
         if (def == null) {
           throw createMappedError(ErrorNames.element_res_not_found, instruction, renderingCtrl);
         }
@@ -578,7 +565,7 @@ export class CustomAttributeRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = CustomAttribute.find(ctxContainer, instruction.res);
         if (def == null) {
           throw createMappedError(ErrorNames.attribute_res_not_found, instruction, renderingCtrl);
         }
@@ -647,7 +634,7 @@ export class TemplateControllerRenderer implements IRenderer {
     let def: CustomAttributeDefinition | null;
     switch (typeof instruction.res) {
       case 'string':
-        def = ctxContainer.find(CustomAttribute, instruction.res);
+        def = CustomAttribute.find(ctxContainer, instruction.res);
         if (def == null) {
           throw createMappedError(ErrorNames.attribute_tc_res_not_found, instruction, renderingCtrl);
         }

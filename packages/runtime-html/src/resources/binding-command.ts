@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
@@ -11,35 +11,35 @@ import {
   SpreadBindingInstruction,
   MultiAttrInstruction,
 } from '../renderer';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceType,
   ResourceDefinition,
   PartialResourceDefinition,
+  IServiceLocator,
 } from '@aurelia/kernel';
 import type { IInstruction } from '../renderer';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
-import { dtElement } from './resources-shared';
+import { type IResourceKind, dtElement } from './resources-shared';
 import { ErrorNames, createMappedError } from '../errors';
 
-export const ctNone = 'None' as const;
-export const ctIgnoreAttr = 'IgnoreAttr' as const;
+/** @internal */ export const ctNone = 'None';
+/** @internal */ export const ctIgnoreAttr = 'IgnoreAttr';
 
 /**
  * Characteristics of a binding command.
  * - `None`: The normal process (check custom attribute -> check bindable -> command.build()) should take place.
  * - `IgnoreAttr`: The binding command wants to take over the processing of an attribute. The template compiler keeps the attribute as is in compilation, instead of executing the normal process.
  */
-export type CommandType = typeof ctNone  | typeof ctIgnoreAttr;
+export type CommandType = 'None'  | 'IgnoreAttr';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
@@ -67,14 +67,14 @@ export type BindingCommandInstance<T extends {} = {}> = {
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
-export type BindingCommandKind = IResourceKind<BindingCommandType, BindingCommandDefinition> & {
+export type BindingCommandKind = IResourceKind & {
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
-  // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
+  find(container: IContainer, name: string): BindingCommandDefinition | null;
+  get(container: IServiceLocator, name: string): BindingCommandInstance;
 };
 
 export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
@@ -119,20 +119,6 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
-
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    if (!container.has(key, false)) {
-      container.register(
-        singletonRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(key, BindingCommand.keyFrom(alias))),
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed)}`);
-    }
-  }
 }
 
 const cmdBaseName = /*@__PURE__*/getResourceKeyFor('binding-command');
@@ -151,12 +137,44 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    defineMetadata(cmdBaseName, definition, definition.Type);
-    appendResourceKey(Type, cmdBaseName);
+    const $Type = definition.Type as BindingCommandType<T>;
 
-    return definition.Type as BindingCommandType<T>;
+    defineMetadata(cmdBaseName, definition, $Type);
+    defineMetadata(resourceBaseName, definition, $Type);
+    // appendResourceKey($Type, cmdBaseName);
+
+    return Registrable.define($Type, container => {
+      const { key, aliases } = definition;
+      if (!container.has(key, false)) {
+        container.register(
+          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+          aliasRegistration($Type, key),
+          ...aliases.map(alias => aliasRegistration($Type, getCommandKeyFrom(alias))),
+        );
+      } /* istanbul ignore next */ else if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed, definition.name)}`);
+      }
+    });
   },
   getAnnotation: getCommandAnnotation,
+  find(container, name) {
+    const key = getCommandKeyFrom(name);
+    const Type = container.find(key);
+    return Type == null ? null : getOwnMetadata(cmdBaseName, Type) ?? null;
+  },
+  get(container, name) {
+    if (__DEV__) {
+      try {
+        return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+      } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
+        throw ex;
+      }
+    }
+    return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+  },
 });
 
 @bindingCommand('one-time')

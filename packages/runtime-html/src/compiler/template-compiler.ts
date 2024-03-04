@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor } from '@aurelia/kernel';
 import { IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -30,7 +30,6 @@ import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { oneTime, type BindingMode, toView, fromView, twoWay, defaultMode } from '../binding/interfaces-bindings';
 
 import type {
@@ -1753,14 +1752,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return CustomElement.find(this.c, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return CustomAttribute.find(this.c, name);
   }
 
   /**
@@ -1791,16 +1790,13 @@ class CompilationContext {
       return null;
     }
     let result = this._commands[name];
-    let commandDef: BindingCommandDefinition;
+    let commandDef: BindingCommandDefinition | null;
     if (result === void 0) {
-      commandDef = this.c.find(BindingCommand, name) as BindingCommandDefinition;
-      if (commandDef != null) {
-        result = this.c.invoke(commandDef.Type);
-      }
-      if (result == null) {
+      commandDef = BindingCommand.find(this.c, name);
+      if (commandDef == null) {
         throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
       }
-      this._commands[name] = result;
+      this._commands[name] = result = BindingCommand.get(this.c, name);
     }
     return result;
   }
@@ -1967,33 +1963,17 @@ export interface ITemplateCompilerHooks {
   compiling?(template: HTMLElement): void;
 }
 
-const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<{}>>();
-const hooksBaseName = /*@__PURE__*/getResourceKeyFor('compiler-hooks');
-
 export const TemplateCompilerHooks = objectFreeze({
-  name: hooksBaseName,
+  name: /*@__PURE__*/getResourceKeyFor('compiler-hooks'),
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
-    let def = typeToHooksDefCache.get(Type);
-    if (def === void 0) {
-      typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-      defineMetadata(hooksBaseName, def, Type);
-      appendResourceKey(Type, hooksBaseName);
-    }
-    return Type;
+    return Registrable.define(Type, function (container) {
+      singletonRegistration(ITemplateCompilerHooks, this).register(container);
+    });
+  },
+  find(container: IContainer): readonly ITemplateCompilerHooks[] {
+    return container.get(allResources(ITemplateCompilerHooks));
   }
 });
-
-class TemplateCompilerHooksDefinition<T extends {}> implements ResourceDefinition<Constructable<T>, ITemplateCompilerHooks> {
-  public get name(): string { return ''; }
-
-  public constructor(
-    public readonly Type: ResourceType<Constructable<T>, ITemplateCompilerHooks>,
-  ) {}
-
-  public register(c: IContainer) {
-    c.register(singletonRegistration(ITemplateCompilerHooks, this.Type));
-  }
-}
 
 /**
  * Decorator: Indicates that the decorated class is a template compiler hooks.
@@ -2003,10 +1983,10 @@ class TemplateCompilerHooksDefinition<T extends {}> implements ResourceDefinitio
  */
 /* eslint-disable */
 // deepscan-disable-next-line
-export const templateCompilerHooks = (target?: Function) => {
+export const templateCompilerHooks = <T extends Constructable>(target?: T) => {
   return target === void 0 ? decorator : decorator(target);
-  function decorator(t: Function): any {
-    return TemplateCompilerHooks.define(t as Constructable) as unknown as void;
+  function decorator<T extends Constructable>(t: T): any {
+    return TemplateCompilerHooks.define(t) as unknown as void;
   };
 }
 /* eslint-enable */
@@ -2055,3 +2035,13 @@ const enum Char {
   // Question       = 0x3F,
 }
 _END_CONST_ENUM();
+
+// eslint-disable-next-line
+function apiTest() {
+
+  @templateCompilerHooks()
+  @templateCompilerHooks
+  class Abc {}
+
+  return Abc;
+}

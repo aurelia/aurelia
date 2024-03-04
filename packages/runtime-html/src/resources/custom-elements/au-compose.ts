@@ -379,7 +379,7 @@ export class AuCompose {
   /** @internal */
   private _getDefinition(container: IContainer, component?: string | object | Constructable) {
     if (typeof component === 'string') {
-      const def = container.find(CustomElement, component);
+      const def = CustomElement.find(container, component);
       if (def == null) {
         throw createMappedError(ErrorNames.au_compose_component_name_not_found, component);
       }

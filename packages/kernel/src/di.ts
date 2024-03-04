@@ -9,7 +9,7 @@ applyMetadataPolyfill(Reflect, false, false);
 import { isArrayIndex } from './functions';
 import { Container } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
-import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
+import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
 import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
 import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
@@ -87,7 +87,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
    * This is a semi private API, apps should avoid using it directly
    */
   useResources(container: IContainer): void;
-  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
+  find<TResType extends ResourceType>(key: string): TResType | null;
 }
 
 export class ResolverBuilder<K> {
@@ -807,6 +807,13 @@ export class Resolver implements IResolver, IRegistration {
 
   private resolving: boolean = false;
 
+  /**
+   * When resolving a singleton, the internal state is changed,
+   * so cache the original constructable factory for future requests
+   * @internal
+   */
+  private _cachedFactory: IFactory | null = null;
+
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this._key, this);
   }
@@ -820,7 +827,7 @@ export class Resolver implements IResolver, IRegistration {
           throw createMappedError(ErrorNames.cyclic_dependency, this._state.name);
         }
         this.resolving = true;
-        this._state = handler.getFactory(this._state as Constructable).construct(requestor);
+        this._state = (this._cachedFactory = handler.getFactory(this._state as Constructable)).construct(requestor);
         this._strategy = ResolverStrategy.instance;
         this.resolving = false;
         return this._state;
@@ -851,6 +858,8 @@ export class Resolver implements IResolver, IRegistration {
         return container.getFactory(this._state as Constructable);
       case ResolverStrategy.alias:
         return container.getResolver(this._state)?.getFactory?.(container) ?? null;
+      case ResolverStrategy.instance:
+        return this._cachedFactory;
       default:
         return null;
     }

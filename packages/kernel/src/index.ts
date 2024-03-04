@@ -46,6 +46,7 @@ export {
 export {
   resolve,
   type IResolvedInjection,
+  Registrable,
 } from './di.container';
 
 export {
@@ -92,6 +93,8 @@ export {
 } from './platform';
 
 export {
+  resourceBaseName,
+  getResourceKeyFor,
   type IResourceKind,
   type PartialResourceDefinition,
   Protocol,

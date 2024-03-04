@@ -1,8 +1,8 @@
-import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 import { type BindingMode, toView } from '../binding/interfaces-bindings';
@@ -10,7 +10,6 @@ import { type BindingMode, toView } from '../binding/interfaces-bindings';
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
@@ -19,13 +18,7 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable'
 import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtAttribute } from './resources-shared';
-
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string): CustomAttributeDefinition<Constructable<T>> | null;
-  }
-}
+import { dtAttribute, type IResourceKind } from './resources-shared';
 
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -50,7 +43,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
-export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
@@ -61,6 +54,7 @@ export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttri
   getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
+  find(c: IContainer, name: string): CustomAttributeDefinition | null;
 };
 
 export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
@@ -136,23 +130,9 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
-      mergeArrays(Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(Watch.getDefinitions(Type), Type.watches),
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
     );
-  }
-
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    if (!container.has(key, false)) {
-      container.register(
-        transientRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(Type, CustomAttribute.keyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed)}`);
-    }
   }
 
   public toString() {
@@ -161,7 +141,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 }
 
 /** @internal */
-export const caBaseName = getResourceKeyFor('custom-attribute');
+export const caBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
 
 /** @internal */
 export const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
@@ -184,10 +164,25 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 /** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-  defineMetadata(caBaseName, definition, definition.Type);
-  appendResourceKey(Type, caBaseName);
+  const $Type = definition.Type as CustomAttributeType<T>;
 
-  return definition.Type as CustomAttributeType<T>;
+  defineMetadata(caBaseName, definition, $Type);
+  defineMetadata(resourceBaseName, definition, $Type);
+  // appendResourceKey($Type, caBaseName);
+
+  return Registrable.define($Type, container => {
+    const { key, aliases } = definition;
+    if (!container.has(key, false)) {
+      container.register(
+        transientRegistration(key, $Type),
+        aliasRegistration(key, $Type),
+        ...aliases.map(alias => aliasRegistration($Type, CustomAttribute.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, definition.name)}`);
+    }
+  });
 };
 
 /** @internal */
@@ -212,4 +207,9 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
     defineMetadata(getAnnotationKeyFor(prop), value, Type);
   },
   getAnnotation: getAttributeAnnotation,
+  find(c, name) {
+    const key = getAttributeKeyFrom(name);
+    const Type = c.find(key);
+    return Type === null ? null : getOwnMetadata(caBaseName, Type) ?? null;
+  },
 });

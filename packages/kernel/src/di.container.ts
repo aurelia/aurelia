@@ -4,8 +4,8 @@ import { isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
-import { getOwnMetadata, isFunction, isString } from './utilities';
+import { type ResourceType } from './resource';
+import { isFunction, isString, objectFreeze } from './utilities';
 import {
   IContainer,
   type Key,
@@ -30,7 +30,28 @@ import {
   type IAllResolver,
   type IOptionalResolver,
 } from './di';
-import { ErrorNames, createMappedError, logError } from './errors';
+import { ErrorNames, createMappedError, logError, logWarn } from './errors';
+
+export const Registrable = /*@__PURE__*/(() => {
+  const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
+  return objectFreeze({
+    /**
+     * Associate an object as a registrable, making the container recognize & use
+     * the specific given register function during the registration
+     */
+    define: <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
+      if (__DEV__) {
+        if (map.has(object) && map.get(object) !== register) {
+          logWarn(`Overriding registrable found for key:`, object);
+        }
+      }
+      map.set(object, register);
+      return object;
+    },
+    get: <T extends WeakKey>(object: T) => map.get(object),
+    has: <T extends WeakKey>(object: T) => map.has(object),
+  });
+})();
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
@@ -131,19 +152,8 @@ export class Container implements IContainer {
       }
       if (isRegistry(current)) {
         current.register(this);
-      } else if (hasResources(current)) {
-        const defs = getAllResources(current);
-        if (defs.length === 1) {
-          // Fast path for the very common case
-          defs[0].register(this);
-        } else {
-          j = 0;
-          jj = defs.length;
-          while (jj > j) {
-            defs[j].register(this);
-            ++j;
-          }
-        }
+      } else if (Registrable.has(current)) {
+        Registrable.get(current)!.call(current, this);
       } else if (isClass(current)) {
         Registration.singleton(current, current as Constructable).register(this);
       } else {
@@ -159,6 +169,8 @@ export class Container implements IContainer {
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
             value.register(this);
+          } else if (Registrable.has(value)) {
+            Registrable.get(value)!.call(value, this);
           } else {
             this.register(value);
           }
@@ -458,26 +470,17 @@ export class Container implements IContainer {
     }
   }
 
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.res[key];
+  public find<TResType extends ResourceType>(key: string): TResType | null {
+    let container: Container = this;
+    let resolver = container.res[key];
     if (resolver == null) {
-      resolver = this.root.res[key];
-      if (resolver == null) {
-        return null;
-      }
+      container = container.root;
+      resolver = container.res[key];
     }
-
-    if (isFunction(resolver.getFactory)) {
-      const factory = resolver.getFactory(this);
-      if (factory == null) {
-        return null;
-      }
-
-      return getOwnMetadata(kind.name, factory.Type) ?? null;
+    if (resolver == null) {
+      return null;
     }
-
-    return null;
+    return resolver.getFactory?.(container)?.Type as TResType ?? null;
   }
 
   public dispose(): void {

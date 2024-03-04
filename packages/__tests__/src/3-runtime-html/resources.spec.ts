@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { alias, Aurelia, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
+import { alias, Aurelia, CustomAttribute, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
 import { assert, TestContext } from "@aurelia/testing";
 
 function startAndStop(component: CustomElementType) {
@@ -52,9 +52,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
 
     assert.deepStrictEqual(
       $class['au:resource'],
-      [
-        'au:resource:custom-attribute',
-      ],
+      CustomAttribute.getDefinition(AuAttr),
       `$class['au:resource']`,
     );
 
@@ -122,9 +120,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
 
     assert.deepStrictEqual(
       $class['au:resource'],
-      [
-        'au:resource:custom-attribute',
-      ],
+      CustomAttribute.getDefinition(AuAttr),
       `$class['au:resource']`,
     );
 

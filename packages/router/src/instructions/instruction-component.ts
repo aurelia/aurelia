@@ -222,7 +222,7 @@ export class InstructionComponent {
     // if (this.isType()) {
     //   instance = ownContainer.invoke(this.type!);
     // } else {
-    //   const def = ownContainer.find(CustomElement, CustomElement.keyFrom(this.name!));
+    //   const def = CustomElement.find(ownContainer, this.name!);
     //   if (def != null) {
     //     instance = ownContainer.invoke(def.Type);
     //   }

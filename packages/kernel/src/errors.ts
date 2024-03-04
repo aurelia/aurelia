@@ -57,7 +57,7 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.event_aggregator_publish_invalid_event_name]: `Invalid channel name or instance: '{{0}}'.`,
   [ErrorNames.event_aggregator_subscribe_invalid_event_name]: `Invalid channel name or type: {{0}}.`,
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,
-  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`
+  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
   // [ErrorNames.module_loader_received_null]: `Module loader received null/undefined input. Expected Object.`,
 };
 
@@ -81,3 +81,7 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
 /** @internal */
 // eslint-disable-next-line
 export const logError = (...args: unknown[]) => (globalThis as any).console.error(...args);
+
+/** @internal */
+// eslint-disable-next-line
+export const logWarn = (...args: unknown[]) => (globalThis as any).console.warn(...args);

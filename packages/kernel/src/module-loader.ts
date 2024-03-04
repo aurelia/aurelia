@@ -1,7 +1,6 @@
 import { createInterface } from './di';
-import { emptyArray } from './platform';
-import { getAllResources } from './resource';
-import { isFunction } from './utilities';
+import { resourceBaseName } from './resource';
+import { getOwnMetadata, isFunction } from './utilities';
 
 import type { IRegistry } from './di';
 import type { Constructable, IDisposable, IIndexable } from './interfaces';
@@ -82,7 +81,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
     let value: unknown;
     let isRegistry: boolean;
     let isConstructable: boolean;
-    let definitions: readonly ResourceDefinition[];
+    let definition: ResourceDefinition | null;
     const items: ModuleItem[] = [];
 
     for (const key in m) {
@@ -93,12 +92,12 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
           }
           isRegistry = isFunction((value as IIndexable).register);
           isConstructable = false;
-          definitions = emptyArray;
+          definition = null;
           break;
         case 'function':
           isRegistry = isFunction((value as Constructable & IIndexable).register);
           isConstructable = (value as Constructable).prototype !== void 0;
-          definitions = getAllResources(value as Constructable);
+          definition = getOwnMetadata(resourceBaseName, value) ?? null;
           break;
         default:
           continue;
@@ -109,7 +108,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
         value,
         isRegistry,
         isConstructable,
-        definitions,
+        definition,
       ));
     }
 
@@ -197,7 +196,7 @@ export interface ITypedModuleItem<
   readonly value: TValue;
   readonly isRegistry: TisRegistry;
   readonly isConstructable: TisConstructable;
-  readonly definitions: readonly ResourceDefinition[];
+  readonly definition: ResourceDefinition;
 }
 export interface ITypedModuleItem_Unknown extends ITypedModuleItem<false, false, unknown> {}
 export interface ITypedModuleItem_Registry extends ITypedModuleItem<true, false, IRegistry> {}
@@ -215,6 +214,6 @@ export class ModuleItem {
     public readonly value: unknown,
     public readonly isRegistry: boolean,
     public readonly isConstructable: boolean,
-    public readonly definitions: readonly ResourceDefinition[],
+    public readonly definition: ResourceDefinition | null,
   ) {}
 }

@@ -1,7 +1,5 @@
-import { IContainer } from './di';
 import { Constructable } from './interfaces';
-import { emptyArray } from './platform';
-import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze } from './utilities';
+import { defineMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -25,8 +23,6 @@ export type ResourceDefinition<
   readonly name: string;
   readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
   readonly aliases?: readonly string[];
-
-  register(container: IContainer): void;
 } & TDef;
 
 export type PartialResourceDefinition<TDef extends {} = {}> = {
@@ -58,6 +54,7 @@ export const appendAnnotation = (target: Constructable, key: string): void => {
     keys.push(key);
   }
 };
+
 const annotation = /*@__PURE__*/ objectFreeze({
   name: 'au:annotation',
   appendTo: appendAnnotation,
@@ -76,50 +73,23 @@ const annotation = /*@__PURE__*/ objectFreeze({
   keyFor: getAnnotationKeyFor,
 });
 
-const resBaseName = 'au:resource';
-export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
-/** @internal */
-export const getAllResources = (target: Constructable): readonly ResourceDefinition[] => {
-  const keys = getOwnMetadata(resBaseName, target) as string[];
-  if (keys === void 0) {
-    return emptyArray;
-  } else {
-    return keys.map(k => getOwnMetadata(k, target));
+export const resourceBaseName = 'au:resource';
+/**
+ * Builds a resource key from the provided parts.
+ */
+export const getResourceKeyFor = (type: string, name?: string, context?: string): string => {
+  if (name == null) {
+    return `${resourceBaseName}:${type}`;
   }
+  if (context == null) {
+    return `${resourceBaseName}:${type}:${name}`;
+  }
+
+  return `${resourceBaseName}:${type}:${name}:${context}`;
 };
-
-const resource = /*@__PURE__*/ objectFreeze({
-  name: resBaseName,
-  appendTo(target: Constructable, key: string): void {
-    const keys = getOwnMetadata(resBaseName, target) as string[];
-    if (keys === void 0) {
-      defineMetadata(resBaseName, [key], target);
-    } else {
-      keys.push(key);
-    }
-  },
-  has: hasResources,
-  getAll: getAllResources,
-  getKeys(target: Constructable): readonly string[] {
-    let keys = getOwnMetadata(resBaseName, target) as string[];
-    if (keys === void 0) {
-      defineMetadata(resBaseName, keys = [], target);
-    }
-    return keys;
-  },
-  isKey: (key: string): boolean => key.startsWith(resBaseName),
-  keyFor(name: string, context?: string): string {
-    if (context === void 0) {
-      return `${resBaseName}:${name}`;
-    }
-
-    return `${resBaseName}:${name}:${context}`;
-  },
-});
 
 export const Protocol = {
   annotation,
-  resource,
 };
 
 const hasOwn = Object.prototype.hasOwnProperty;

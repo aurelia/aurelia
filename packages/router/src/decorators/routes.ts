@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, Protocol } from '@aurelia/kernel';
+import { Constructable, getResourceKeyFor } from '@aurelia/kernel';
 import { CustomElementType } from '@aurelia/runtime-html';
 import { IRoute, Route } from '../route';
 import { RouteableComponentType } from '../interfaces';
@@ -10,7 +10,7 @@ export const Routes: {
   configure<T extends CustomElementType>(configurationsOrTypes: (IRoute | RouteableComponentType)[], Type: T): T;
   getConfiguration<T extends CustomElementType>(Type: T): Route[];
 } = {
-  name: Protocol.resource.keyFor('routes'),
+  name: /*@__PURE__*/getResourceKeyFor('routes'),
   /**
    * Returns `true` if the specified type has any static routes configuration (either via static properties or a &#64;route decorator)
    */

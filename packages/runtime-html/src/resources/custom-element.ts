@@ -6,18 +6,20 @@ import {
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
+  Registrable,
+  resourceBaseName,
+  getResourceKeyFor,
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceType,
   PartialResourceDefinition,
   Key,
@@ -32,13 +34,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement } from './resources-shared';
-
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    find<T extends ICustomElementViewModel>(kind: CustomElementKind, name: string): CustomElementDefinition<Constructable<T>> | null;
-  }
-}
+import { dtElement, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -59,7 +55,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
 }>;
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
-export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDefinition> & {
+export type CustomElementKind = IResourceKind & {
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
    * parent node (including containerless) that is a custom element.
@@ -123,6 +119,7 @@ export type CustomElementKind = IResourceKind<CustomElementType, CustomElementDe
     name: string,
     proto?: P,
   ): CustomElementType<Constructable<P>>;
+  find(container: IContainer, name: string): CustomElementDefinition | null;
 };
 
 export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
@@ -305,7 +302,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
-        mergeArrays(Watch.getAnnotation(Type), Type.watches),
+        mergeArrays(Watch.getDefinitions(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
@@ -340,7 +337,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
-      mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
     );
   }
@@ -359,21 +356,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // Make sure the full definition can be retrieved from dynamically created classes as well
     defineMetadata(elementBaseName, definition, definition.Type);
     return definition;
-  }
-
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    // todo: warn if alreay has key
-    if (!container.has(key, false)) {
-      container.register(
-        transientRegistration(key, Type),
-        aliasRegistration(key, Type),
-        ...aliases.map(alias => aliasRegistration(Type, CustomElement.keyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed)}`);
-    }
   }
 
   public toString() {
@@ -426,10 +408,25 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 /** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
   const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-  defineMetadata(elementBaseName, definition, definition.Type);
-  appendResourceKey(definition.Type, elementBaseName);
+  const $Type = definition.Type as CustomElementType<C>;
+  defineMetadata(elementBaseName, definition, $Type);
+  defineMetadata(resourceBaseName, definition, $Type);
+  // appendResourceKey($Type, elementBaseName);
 
-  return definition.Type as CustomElementType<C>;
+  return Registrable.define($Type, function (container) {
+    const { key, aliases } = definition;
+    // todo: warn if alreay has key
+    if (!container.has(key, false)) {
+      container.register(
+        transientRegistration(key, $Type),
+        aliasRegistration(key, $Type),
+        ...aliases.map(alias => aliasRegistration($Type, CustomElement.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed, definition.name)}`);
+    }
+  });
 };
 
 /** @internal */
@@ -581,6 +578,11 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   generateName: generateElementName,
   createInjectable: createElementInjectable,
   generateType: generateElementType,
+  find(c, name) {
+    const key = getElementKeyFrom(name);
+    const Type = c.find(key);
+    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? null;
+  }
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;

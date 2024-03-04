@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { DI, Protocol } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 
 const O = Object;
 
@@ -76,6 +76,3 @@ export function ensureProto<T extends object, K extends keyof T>(
 /** @internal */ export const getOwnMetadata = Metadata.getOwn;
 /** @internal */ export const hasOwnMetadata = Metadata.hasOwn;
 /** @internal */ export const defineMetadata = Metadata.define;
-/** @internal */ export const getAnnotationKeyFor = Protocol.annotation.keyFor;
-/** @internal */ export const getResourceKeyFor = Protocol.resource.keyFor;
-/** @internal */ export const appendResourceKey = Protocol.resource.appendTo;

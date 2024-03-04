@@ -38,7 +38,7 @@ import { ErrorNames, createMappedError, logError } from './errors';
  */
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
-  const define = <T extends WeakKey>(object: T, register: (container: IContainer) => IContainer | void): T => {
+  const define = <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
     map.set(object, register);
     return object;
   };

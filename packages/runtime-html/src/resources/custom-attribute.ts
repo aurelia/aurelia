@@ -1,4 +1,4 @@
-import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, Registrable } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
@@ -130,7 +130,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
-      mergeArrays(Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(Watch.getDefinitions(Type), Type.watches),
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
     );
   }
@@ -178,10 +178,24 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 /** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-  defineMetadata(caBaseName, definition, definition.Type);
-  appendResourceKey(Type, caBaseName);
+  const $Type = definition.Type as CustomAttributeType<T>;
 
-  return definition.Type as CustomAttributeType<T>;
+  defineMetadata(caBaseName, definition, $Type);
+  appendResourceKey($Type, caBaseName);
+
+  return Registrable.define($Type, container => {
+    const { key, aliases } = definition;
+    if (!container.has(key, false)) {
+      container.register(
+        transientRegistration(key, $Type),
+        aliasRegistration(key, $Type),
+        ...aliases.map(alias => aliasRegistration($Type, CustomAttribute.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, definition.name)}`);
+    }
+  });
 };
 
 /** @internal */

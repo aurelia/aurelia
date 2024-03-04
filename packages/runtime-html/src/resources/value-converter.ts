@@ -1,6 +1,7 @@
 import {
   mergeArrays,
   firstDefined,
+  Registrable,
 } from '@aurelia/kernel';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { isFunction, isString, objectFreeze } from '../utilities';
@@ -103,10 +104,24 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
-    defineMetadata(vcBaseName, definition, definition.Type);
-    appendResourceKey(Type, vcBaseName);
+    const $Type = definition.Type as ValueConverterType<T>;
 
-    return definition.Type as ValueConverterType<T>;
+    defineMetadata(vcBaseName, definition, definition.Type);
+    appendResourceKey($Type, vcBaseName);
+
+    return Registrable.define($Type, container => {
+      const { key, aliases } = definition;
+      if (!container.has(key, false)) {
+        container.register(
+          singletonRegistration(key, $Type),
+          aliasRegistration(key, $Type),
+          ...aliases.map(alias => aliasRegistration($Type, getValueConverterKeyFor(alias)))
+        );
+      } /* istanbul ignore next */ else if(__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.value_converter_existed, definition.name)}`);
+      }
+    });
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
     const def = getOwnMetadata(vcBaseName, Type);

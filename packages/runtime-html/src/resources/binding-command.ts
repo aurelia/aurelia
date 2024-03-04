@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray, Registrable } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
@@ -30,15 +30,15 @@ import type { CustomElementDefinition } from './custom-element';
 import { type IResourceKind, dtElement } from './resources-shared';
 import { ErrorNames, createMappedError } from '../errors';
 
-export const ctNone = 'None' as const;
-export const ctIgnoreAttr = 'IgnoreAttr' as const;
+/** @internal */ export const ctNone = 'None';
+/** @internal */ export const ctIgnoreAttr = 'IgnoreAttr';
 
 /**
  * Characteristics of a binding command.
  * - `None`: The normal process (check custom attribute -> check bindable -> command.build()) should take place.
  * - `IgnoreAttr`: The binding command wants to take over the processing of an attribute. The template compiler keeps the attribute as is in compilation, instead of executing the normal process.
  */
-export type CommandType = typeof ctNone  | typeof ctIgnoreAttr;
+export type CommandType = 'None'  | 'IgnoreAttr';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition<{
   readonly type?: string | null;
@@ -71,8 +71,6 @@ export type BindingCommandKind = IResourceKind & {
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  // getDefinition<T extends Constructable>(Type: T): BindingCommandDefinition<T>;
-  // annotate<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, value: PartialBindingCommandDefinition[K]): void;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
   find(container: IContainer, name: string): BindingCommandDefinition | null;
 };
@@ -151,10 +149,24 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    defineMetadata(cmdBaseName, definition, definition.Type);
-    appendResourceKey(Type, cmdBaseName);
+    const $Type = definition.Type as BindingCommandType<T>;
 
-    return definition.Type as BindingCommandType<T>;
+    defineMetadata(cmdBaseName, definition, $Type);
+    appendResourceKey($Type, cmdBaseName);
+
+    return Registrable.define($Type, container => {
+      const { key, aliases } = definition;
+      if (!container.has(key, false)) {
+        container.register(
+          singletonRegistration(key, $Type),
+          aliasRegistration(key, $Type),
+          ...aliases.map(alias => aliasRegistration(key, getCommandKeyFrom(alias))),
+        );
+      } /* istanbul ignore next */ else if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed, definition.name)}`);
+      }
+    });
   },
   getAnnotation: getCommandAnnotation,
   find(container, name) {

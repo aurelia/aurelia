@@ -1,4 +1,4 @@
-import { firstDefined, mergeArrays, ResourceType } from '@aurelia/kernel';
+import { firstDefined, mergeArrays, Registrable, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
@@ -17,8 +17,6 @@ export type BindingBehaviorKind = IResourceKind & {
   define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
-  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void;
-  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K];
   find(container: IContainer, name: string): BindingBehaviorDefinition | null;
 };
 
@@ -94,10 +92,23 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
-    defineMetadata(bbBaseName, definition, definition.Type);
-    appendResourceKey(Type, bbBaseName);
+    const $Type = definition.Type as BindingBehaviorType<T>;
+    defineMetadata(bbBaseName, definition, $Type);
+    appendResourceKey($Type, bbBaseName);
 
-    return definition.Type as BindingBehaviorType<T>;
+    return Registrable.define($Type, container => {
+      const { key, aliases } = definition;
+      if (!container.has(key, false)) {
+        container.register(
+          singletonRegistration(key, $Type),
+          aliasRegistration(key, $Type),
+          ...aliases.map(alias => aliasRegistration(Type, getBindingBehaviorKeyFor(alias))),
+        );
+      } /* istanbul ignore next */ else if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_behavior_existed, definition.name)}`);
+      }
+    });
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
     const def = getOwnMetadata(bbBaseName, Type) as BindingBehaviorDefinition<T>;
@@ -107,10 +118,6 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
 
     return def;
   },
-  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, Type);
-  },
-  getAnnotation: getBehaviorAnnotation,
   find(container, name) {
     const key = getBindingBehaviorKeyFor(name);
     const Type = container.find(key);

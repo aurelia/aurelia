@@ -6,6 +6,7 @@ import {
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
+  Registrable,
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
@@ -299,7 +300,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull as () => { mode: 'open' | 'closed' } | null),
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
-        mergeArrays(Watch.getAnnotation(Type), Type.watches),
+        mergeArrays(Watch.getDefinitions(Type), Type.watches),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
@@ -334,7 +335,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
-      mergeArrays(nameOrDef.watches, Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
     );
   }
@@ -420,10 +421,24 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 /** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
   const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
-  defineMetadata(elementBaseName, definition, definition.Type);
-  appendResourceKey(definition.Type, elementBaseName);
+  const $Type = definition.Type as CustomElementType<C>;
+  defineMetadata(elementBaseName, definition, $Type);
+  appendResourceKey($Type, elementBaseName);
 
-  return definition.Type as CustomElementType<C>;
+  return Registrable.define($Type, function (container) {
+    const { key, aliases } = definition;
+    // todo: warn if alreay has key
+    if (!container.has(key, false)) {
+      container.register(
+        transientRegistration(key, $Type),
+        aliasRegistration(key, $Type),
+        ...aliases.map(alias => aliasRegistration($Type, CustomElement.keyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed, definition.name)}`);
+    }
+  });
 };
 
 /** @internal */

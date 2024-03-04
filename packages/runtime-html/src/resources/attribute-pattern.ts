@@ -494,7 +494,6 @@ export class AttributeParser implements IAttributeParser {
 
 export interface AttributePatternKind {
   readonly name: string;
-  readonly definitionAnnotationKey: string;
   define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): P;
   getPatternDefinitions(Type: Constructable): AttributePatternDefinition[];
   find(container: IContainer): readonly IAttributePattern[];
@@ -513,21 +512,16 @@ export class AttributePatternResourceDefinition implements ResourceDefinition<Co
     public Type: ResourceType<Constructable, Partial<IAttributePattern>>,
   ) { }
 
-  public register(container: IContainer): void {
-    singletonRegistration(IAttributePattern, this.Type).register(container);
-  }
+  public register(): void {/*  */}
 }
 
-const apBaseName = getResourceKeyFor('attribute-pattern');
-const annotationKey = 'attribute-pattern-definitions';
 const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePatternDefinition[] =>
   patterns.get(Type) ?? emptyArray;
 
 const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
 
 export const AttributePattern = objectFreeze<AttributePatternKind>({
-  name: apBaseName,
-  definitionAnnotationKey: annotationKey,
+  name: getResourceKeyFor('attribute-pattern'),
   define(patternDefs, Type) {
     patterns.set(Type, patternDefs);
     return Registrable.define(Type, (container: IContainer) => {
@@ -626,5 +620,5 @@ export class SpreadAttributePattern {
   // @ts-expect-error
   AttributePattern.define([{ pattern: 'abc', symbols: '.' }], class Def {});
 
-  getAllPatternDefinitions(DotSeparatedAttributePattern);
+  AttributePattern.getPatternDefinitions(DotSeparatedAttributePattern).map(c => c.pattern);
 }

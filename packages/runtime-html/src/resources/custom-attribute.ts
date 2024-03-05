@@ -168,14 +168,13 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
 
   defineMetadata(caBaseName, definition, $Type);
   defineMetadata(resourceBaseName, definition, $Type);
-  // appendResourceKey($Type, caBaseName);
 
   return Registrable.define($Type, container => {
     const { key, aliases } = definition;
     if (!container.has(key, false)) {
       container.register(
-        transientRegistration(key, $Type),
-        aliasRegistration(key, $Type),
+        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, CustomAttribute.keyFrom(alias)))
       );
     } /* istanbul ignore next */ else if (__DEV__) {

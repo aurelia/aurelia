@@ -224,6 +224,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       definition = definition ?? getElementDefinition(viewModel.constructor as Constructable);
     }
 
+    registerResolver(ctn, definition.Type, new InstanceProvider<typeof definition.Type>(definition.key, viewModel, definition.Type));
     const controller = new Controller<C>(
       /* container      */ctn,
       /* vmKind         */vmkCe,
@@ -283,6 +284,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     definition = definition ?? getAttributeDefinition(viewModel.constructor as Constructable);
+    registerResolver(ctn, definition.Type, new InstanceProvider<typeof definition.Type>(definition.key, viewModel, definition.Type));
 
     const controller = new Controller<C>(
       /* own ct         */ctn,

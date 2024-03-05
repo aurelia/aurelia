@@ -992,8 +992,9 @@ export class ParameterizedRegistry implements IRegistry {
 };
 
 export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  /** @internal */ private _instance: Resolved<K> | null = null;
+  /** @internal */ private _instance: Resolved<K> | null;
   /** @internal */ private readonly _name?: string;
+  /** @internal */ private readonly _Type: Constructable | null;
 
   public get friendlyName() {
     return this._name;
@@ -1005,12 +1006,12 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
      * if not undefined, then this is the value this provider will resolve to
      * until overridden by explicit prepare call
      */
-    instance?: Resolved<K> | null,
+    instance: Resolved<K> | null = null,
+    Type: Constructable | null = null,
   ) {
     this._name = name;
-    if (instance !== void 0) {
-      this._instance = instance;
-    }
+    this._instance = instance;
+    this._Type = Type;
   }
 
   public prepare(instance: Resolved<K>): void {
@@ -1024,6 +1025,10 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
       throw createMappedError(ErrorNames.no_instance_provided, this._name);
     }
     return this._instance;
+  }
+
+  public getFactory(container: IContainer): (K extends Constructable ? IFactory<K> : never) | null {
+    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable ? IFactory<K> : never) | null;
   }
 
   public dispose(): void {

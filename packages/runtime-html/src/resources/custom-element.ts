@@ -411,15 +411,14 @@ export const defineElement = <C extends Constructable>(nameOrDef: string | Parti
   const $Type = definition.Type as CustomElementType<C>;
   defineMetadata(elementBaseName, definition, $Type);
   defineMetadata(resourceBaseName, definition, $Type);
-  // appendResourceKey($Type, elementBaseName);
 
   return Registrable.define($Type, function (container) {
     const { key, aliases } = definition;
     // todo: warn if alreay has key
     if (!container.has(key, false)) {
       container.register(
-        transientRegistration(key, $Type),
-        aliasRegistration(key, $Type),
+        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, CustomElement.keyFrom(alias)))
       );
     } /* istanbul ignore next */ else if (__DEV__) {

@@ -12,6 +12,7 @@ import {
   ValueConverter,
   IAppRoot,
   AppTask,
+  BindingBehavior,
 } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -392,12 +393,14 @@ describe('3-runtime-html/enhance.spec.ts', function () {
           public toView(v: any) {
             return Number(v) + 10;
           }
-        })
+        }),
+        BindingBehavior.define('xoixoi', class Xoixoi {})
       )
     });
 
     assert.strictEqual(host.innerHTML, '<div data-id="11"></div>');
-    assert.strictEqual(ValueConverter.find(container, 'plus10'), null, 'It should register resources with child contaienr only.');
+    assert.strictEqual(ValueConverter.find(container, 'plus10'), null, 'It should register resources with the given container only.');
+    assert.strictEqual(BindingBehavior.find(container, 'xoixoi'), null, 'It should register resources with the given container only.');
     await root.deactivate();
   });
 

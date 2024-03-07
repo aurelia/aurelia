@@ -26,7 +26,6 @@ export {
   optional,
   ignore,
   type RegisterSelf,
-  Registration,
   type ResolveCallback,
   singleton,
   transient,
@@ -48,6 +47,10 @@ export {
   type IResolvedInjection,
   Registrable,
 } from './di.container';
+
+export {
+  Registration,
+} from './di.registration';
 
 export {
   type Class,
@@ -84,6 +87,7 @@ export {
   IModuleLoader,
   AnalyzedModule,
   ModuleItem,
+  aliasedResourcesRegistry,
 } from './module-loader';
 
 export {

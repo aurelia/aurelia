@@ -117,8 +117,8 @@ export default function au(options: {
 
 function getHmrCode(className: string, moduleNames: string = ''): string {
   const moduleText = 'import.meta';
-  const code =
-`import { Metadata as $$M } from '@aurelia/metadata';
+  const code = `
+import { Metadata as $$M } from '@aurelia/metadata';
 import {
   Controller as $$C,
   CustomElement as $$CE,

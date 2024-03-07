@@ -6,7 +6,6 @@ import {
   fromAnnotationOrTypeOrDefault,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   emptyArray,
-  Registrable,
   resourceBaseName,
   getResourceKeyFor,
 } from '@aurelia/kernel';
@@ -358,6 +357,24 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     return definition;
   }
 
+  public register(container: IContainer, aliasName?: string | undefined): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getElementKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    // todo: warn if alreay has key
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed, this.name)}`);
+    }
+  }
+
   public toString() {
     return `au:ce:${this.name}`;
   }
@@ -409,24 +426,12 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
   const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
   const $Type = definition.Type as CustomElementType<C>;
-  defineMetadata(elementBaseName, definition, $Type);
-  defineMetadata(resourceBaseName, definition, $Type);
-  // appendResourceKey($Type, elementBaseName);
 
-  return Registrable.define($Type, function (container) {
-    const { key, aliases } = definition;
-    // todo: warn if alreay has key
-    if (!container.has(key, false)) {
-      container.register(
-        transientRegistration(key, $Type),
-        aliasRegistration(key, $Type),
-        ...aliases.map(alias => aliasRegistration($Type, CustomElement.keyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed, definition.name)}`);
-    }
-  });
+  defineMetadata(elementBaseName, definition, $Type);
+  // a requirement for the resource system in kernel
+  defineMetadata(resourceBaseName, definition, $Type);
+
+  return $Type;
 };
 
 /** @internal */

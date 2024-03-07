@@ -479,7 +479,6 @@ export class CustomElementRenderer implements IRenderer {
   ): void {
     /* eslint-disable prefer-const */
     let def: CustomElementDefinition | null;
-    let Ctor: Constructable<ICustomElementViewModel>;
     let component: ICustomElementViewModel;
     let childCtrl: ICustomElementController;
     const res = instruction.res;
@@ -512,9 +511,7 @@ export class CustomElementRenderer implements IRenderer {
       /* location         */location,
       /* SlotsInfo      */projections == null ? void 0 : new AuSlotsInfo(objectKeys(projections)),
     );
-    Ctor = def.Type;
-    component = container.invoke(Ctor);
-    registerResolver(container, Ctor, new InstanceProvider<typeof Ctor>(def.key, component));
+    component = container.invoke(def.Type);
     childCtrl = Controller.$el(
       /* own container       */container,
       /* viewModel           */component,

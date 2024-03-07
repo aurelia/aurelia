@@ -11,7 +11,7 @@ import { Container } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
 import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
-import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
+import { singletonRegistration, cacheCallbackResult, transientRegistation } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
@@ -436,7 +436,7 @@ export const DI = {
    */
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function (container: IContainer): IResolver<InstanceType<T>> {
-      const registration = Registration.transient(target as T, target as T);
+      const registration = transientRegistation(target as T, target as T);
       return registration.register(container, target);
     };
     target.registerInRequestor = false;
@@ -462,7 +462,7 @@ export const DI = {
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, options: SingletonOptions = defaultSingletonOptions):
     T & RegisterSelf<T> {
     target.register = function (container: IContainer): IResolver<InstanceType<T>> {
-      const registration = Registration.singleton(target, target);
+      const registration = singletonRegistration(target, target);
       return registration.register(container, target);
     };
     target.registerInRequestor = options.scoped;
@@ -770,6 +770,8 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   return handler.getFactory(key).construct(requestor);
 };
 
+const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;
+
 let newInstanceContainer: IContainer;
 
 _START_CONST_ENUM();
@@ -877,6 +879,51 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
+export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
+  /** @internal */ private _instance: Resolved<K> | null;
+  /** @internal */ private readonly _name?: string;
+  /** @internal */ private readonly _Type: Constructable | null;
+
+  public get friendlyName() {
+    return this._name;
+  }
+
+  public constructor(
+    name?: string,
+    /**
+     * if not undefined, then this is the value this provider will resolve to
+     * until overridden by explicit prepare call
+     */
+    instance: Resolved<K> | null = null,
+    Type: Constructable | null = null,
+  ) {
+    this._name = name;
+    this._instance = instance;
+    this._Type = Type;
+  }
+
+  public prepare(instance: Resolved<K>): void {
+    this._instance = instance;
+  }
+
+  public get $isResolver(): true {return true;}
+
+  public resolve(): Resolved<K> | null {
+    if (this._instance == null) {
+      throw createMappedError(ErrorNames.no_instance_provided, this._name);
+    }
+    return this._instance;
+  }
+
+  public getFactory(container: IContainer): (K extends Constructable ? IFactory<K> : never) | null {
+    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable ? IFactory<K> : never) | null;
+  }
+
+  public dispose(): void {
+    this._instance = null;
+  }
+}
+
 /**
  * An implementation of IRegistry that delegates registration to a
  * separately registered class. The ParameterizedRegistry facilitates the
@@ -898,137 +945,3 @@ export class ParameterizedRegistry implements IRegistry {
   }
 }
 
-/**
- * you can use the resulting {@linkcode IRegistration} of any of the factory methods
- * to register with the container, e.g.
- * ```
- * class Foo {}
- * const container = DI.createContainer();
- * container.register(Registration.instance(Foo, new Foo()));
- * container.get(Foo);
- * ```
- */
- export const Registration = {
-  /**
-   * allows you to pass an instance.
-   * Every time you request this {@linkcode Key} you will get this instance back.
-   * ```
-   * Registration.instance(Foo, new Foo()));
-   * ```
-   *
-   * @param key - key to register the instance with
-   * @param value - the instance associated with the key
-   */
-  instance: instanceRegistration,
-  /**
-   * Creates an instance from the class.
-   * Every time you request this {@linkcode Key} you will get the same one back.
-   * ```
-   * Registration.singleton(Foo, Foo);
-   * ```
-   *
-   * @param key - key to register the singleton class with
-   * @param value - the singleton class to instantiate when a container resolves the associated key
-   */
-  singleton: singletonRegistration,
-  /**
-   * Creates an instance from a class.
-   * Every time you request this {@linkcode Key} you will get a new instance.
-   * ```
-   * Registration.instance(Foo, Foo);
-   * ```
-   *
-   * @param key - key to register the transient class with
-   * @param value - the class to instantiate when a container resolves the associated key
-   */
-  transient: transientRegistation,
-  /**
-   * Creates an instance from the method passed.
-   * Every time you request this {@linkcode Key} you will get a new instance.
-   * ```
-   * Registration.callback(Foo, () => new Foo());
-   * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
-   * ```
-   *
-   * @param key - key to register the callback with
-   * @param callback - the callback to invoke when a container resolves the associated key
-   */
-  callback: callbackRegistration,
-  /**
-   * Creates an instance from the method passed.
-   * On the first request for the {@linkcode Key} your callback is called and returns an instance.
-   * subsequent requests for the {@linkcode Key}, the initial instance returned will be returned.
-   * If you pass the same {@linkcode Registration} to another container the same cached value will be used.
-   * Should all references to the resolver returned be removed, the cache will expire.
-   * ```
-   * Registration.cachedCallback(Foo, () => new Foo());
-   * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
-   * ```
-   *
-   * @param key - key to register the cached callback with
-   * @param callback - the cache callback to invoke when a container resolves the associated key
-   */
-  cachedCallback: cachedCallbackRegistration,
-  /**
-   * creates an alternate {@linkcode Key} to retrieve an instance by.
-   * Returns the same scope as the original {@linkcode Key}.
-   * ```
-   * Register.singleton(Foo, Foo)
-   * Register.aliasTo(Foo, MyFoos);
-   *
-   * container.getAll(MyFoos) // contains an instance of Foo
-   * ```
-   *
-   * @param originalKey - the real key to resolve the get call from a container
-   * @param aliasKey - the key that a container allows to resolve the real key associated
-   */
-  aliasTo: aliasToRegistration,
-  /**
-   * @internal
-   * @param key - the key to register a defer registration
-   * @param params - the parameters that should be passed to the resolution of the key
-   */
-  defer: deferRegistration,
-};
-
-export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  /** @internal */ private _instance: Resolved<K> | null = null;
-  /** @internal */ private readonly _name?: string;
-
-  public get friendlyName() {
-    return this._name;
-  }
-
-  public constructor(
-    name?: string,
-    /**
-     * if not undefined, then this is the value this provider will resolve to
-     * until overridden by explicit prepare call
-     */
-    instance?: Resolved<K> | null,
-  ) {
-    this._name = name;
-    if (instance !== void 0) {
-      this._instance = instance;
-    }
-  }
-
-  public prepare(instance: Resolved<K>): void {
-    this._instance = instance;
-  }
-
-  public get $isResolver(): true {return true;}
-
-  public resolve(): Resolved<K> | null {
-    if (this._instance == null) {
-      throw createMappedError(ErrorNames.no_instance_provided, this._name);
-    }
-    return this._instance;
-  }
-
-  public dispose(): void {
-    this._instance = null;
-  }
-}
-
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;

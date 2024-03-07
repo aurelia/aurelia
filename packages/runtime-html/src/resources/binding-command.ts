@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
@@ -119,6 +119,23 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
       firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null),
     );
   }
+
+  public register(container: IContainer, aliasName?: string | undefined): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getCommandKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getCommandKeyFrom(alias))),
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed, this.name)}`);
+    }
+  }
 }
 
 const cmdBaseName = /*@__PURE__*/getResourceKeyFor('binding-command');
@@ -132,6 +149,7 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
 export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
+  // need this?
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
   //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
@@ -140,22 +158,10 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     const $Type = definition.Type as BindingCommandType<T>;
 
     defineMetadata(cmdBaseName, definition, $Type);
+    // a requirement for the resource system in kernel
     defineMetadata(resourceBaseName, definition, $Type);
-    // appendResourceKey($Type, cmdBaseName);
 
-    return Registrable.define($Type, container => {
-      const { key, aliases } = definition;
-      if (!container.has(key, false)) {
-        container.register(
-          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
-          aliasRegistration($Type, key),
-          ...aliases.map(alias => aliasRegistration($Type, getCommandKeyFrom(alias))),
-        );
-      } /* istanbul ignore next */ else if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_command_existed, definition.name)}`);
-      }
-    });
+    return $Type;
   },
   getAnnotation: getCommandAnnotation,
   find(container, name) {

@@ -289,6 +289,22 @@ To use a component within a specific template, import it using the `<import>` ta
 <import from="./path-to/some-element"></import>
 ```
 
+To use a component but with an alias, import it using the `<import>` tag, together with the `as` attribute for the new name:
+
+```html
+<import from="./path-to/some-element" as="the-element"></import>
+```
+
+To use alias for a specific resource on an import, using the `<import>` tag, together with the `{name}.as` attribute for the new name, with `{name}` being the resource name:
+
+```html
+<import from="./path-to/some-element" my-element.as="the-element"></import>
+```
+
+{% hint style="info" %}
+If there are multiple resource exports with the same resource name (an element and an attribute with the same `foo` name, for example), the alias will be applied to both of them.
+{% endhint %}
+
 ## Containerless Components
 
 Sometimes you may want to render a component without its enclosing tags, effectively making it "containerless."

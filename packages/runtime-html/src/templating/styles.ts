@@ -30,16 +30,10 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       bindables: ['value'],
       noMultiBindings: true,
     }, class CustomAttributeClass {
-      public static inject: unknown[] = [INode];
       /** @internal */
-      private readonly _accessor: ClassAttributeAccessor;
+      private readonly _accessor = new ClassAttributeAccessor(resolve(INode) as HTMLElement);
 
-      public value!: string;
-      public constructor(
-        element: INode<HTMLElement>,
-      ) {
-        this._accessor = new ClassAttributeAccessor(element);
-      }
+      public value: string = '';
 
       public binding() {
         this.valueChanged();

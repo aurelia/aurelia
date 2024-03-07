@@ -70,7 +70,7 @@ export function preprocessHtmlTemplate(
       const { __MAIN__: main, ...others } = aliases;
       const hasAliases = main != null || Object.keys(others).length > 0;
       if (hasAliases && aliasedModule++ === 0) {
-        statements.push(`import { aliasedKeysRegistry as $$akr } from '@aurelia/kernel';\n`);
+        statements.push(`import { aliasedResourcesRegistry as $$akr } from '@aurelia/kernel';\n`);
       }
       statements.push(`import * as d${i} from ${s(d)};\n`);
       if (hasAliases) {
@@ -86,7 +86,7 @@ export function preprocessHtmlTemplate(
       const { __MAIN__: main } = aliases;
       const hasAliases = main != null;
       if (hasAliases && aliasedModule++ === 0) {
-        statements.push(`import { aliasedKeysRegistry as $$akr } from '@aurelia/kernel';\n`);
+        statements.push(`import { aliasedResourcesRegistry as $$akr } from '@aurelia/kernel';\n`);
         statements.push(`function __get_el__(m) { let e; m.register({ register(el) { e = el; } }); return { default: e }; }\n`);
       }
       statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);

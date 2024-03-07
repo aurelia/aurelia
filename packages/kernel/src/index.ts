@@ -87,7 +87,7 @@ export {
   IModuleLoader,
   AnalyzedModule,
   ModuleItem,
-  aliasedKeysRegistry,
+  aliasedResourcesRegistry,
 } from './module-loader';
 
 export {

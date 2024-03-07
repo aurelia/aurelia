@@ -1,4 +1,4 @@
-import { AnalyzedModule, DI, IModuleLoader, aliasedKeysRegistry } from '@aurelia/kernel';
+import { AnalyzedModule, DI, IModuleLoader, aliasedResourcesRegistry } from '@aurelia/kernel';
 
 import * as ce_a_b_default from './modules/ce-a-b-default.js';
 import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb.js';
@@ -292,7 +292,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     assert.strictEqual(calls2, 1, `calls2 === 1`);
   });
 
-  describe('aliasedKeysRegistry', function () {
+  describe('aliasedResourcesRegistry', function () {
     let loader: ReturnType<typeof createFixture>;
     const assertElementRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(CustomElement.keyFrom(name), false), registered);
@@ -312,7 +312,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     // note that Module may not have their key in order we write them
     // so cannot use kitchen sink, as sometimes the keys are sorted alphabetically
     it('registers aliased main (first resource basically) key', function () {
-      loader.container.register(aliasedKeysRegistry(ce_a_b, 'abc'));
+      loader.container.register(aliasedResourcesRegistry(ce_a_b, 'abc'));
 
       assertElementRegistration('a', false);
       assertElementRegistration('abc', true);
@@ -320,7 +320,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers aliased non-main keys', function () {
-      loader.container.register(aliasedKeysRegistry(ce_a_b, null, { b: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(ce_a_b, null, { b: 'def' }));
 
       assertElementRegistration('a', true);
       assertElementRegistration('b', false);
@@ -328,7 +328,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers both main and non-main keys when specified', function () {
-      loader.container.register(aliasedKeysRegistry(ce_a_b, 'abc', { b: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(ce_a_b, 'abc', { b: 'def' }));
 
       assertElementRegistration('a', false);
       assertElementRegistration('abc', true);
@@ -337,7 +337,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers aliased key for custom attribute', function () {
-      loader.container.register(aliasedKeysRegistry(ca_a_b, null, { a: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(ca_a_b, null, { a: 'def' }));
 
       assertAttributeRegistration('a', false);
       assertAttributeRegistration('def', true);
@@ -345,7 +345,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers aliased key for binding behavior', function () {
-      loader.container.register(aliasedKeysRegistry(bb_multi, null, { bb: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(bb_multi, null, { bb: 'def' }));
 
       assertBindingBehaviorRegistration('bb', false);
       assertBindingBehaviorRegistration('def', true);
@@ -353,7 +353,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers aliased key for value converter', function () {
-      loader.container.register(aliasedKeysRegistry(vc_multi, null, { vc: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(vc_multi, null, { vc: 'def' }));
 
       assertValueConverterRegistration('vc', false);
       assertValueConverterRegistration('def', true);
@@ -361,7 +361,7 @@ describe('1-kernel/module-loader.spec.ts', function () {
     });
 
     it('registers aliased key for binding command', function () {
-      loader.container.register(aliasedKeysRegistry(cmd_multi, null, { cmd: 'def' }));
+      loader.container.register(aliasedResourcesRegistry(cmd_multi, null, { cmd: 'def' }));
 
       assertBindingCommandRegistration('cmd', false);
       assertBindingCommandRegistration('def', true);

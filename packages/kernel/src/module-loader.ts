@@ -221,7 +221,7 @@ export class ModuleItem {
 /**
  * Iterate through the exports of a module and register aliases for resources respectively
  */
-export const aliasedKeysRegistry = (mod: IModule, mainKeyAlias: string | null | undefined, aliases: Record<string, string> = {}): IRegistry => {
+export const aliasedResourcesRegistry = (mod: IModule, mainKeyAlias: string | null | undefined, aliases: Record<string, string> = {}): IRegistry => {
   return {
     register(container) {
       const analyzedModule = container.get(IModuleLoader).load(mod);

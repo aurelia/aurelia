@@ -11,7 +11,7 @@ import { Container } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
 import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
 import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
-import { singletonRegistration, cacheCallbackResult } from './di.registration';
+import { singletonRegistration, cacheCallbackResult, transientRegistation } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
@@ -436,7 +436,7 @@ export const DI = {
    */
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function (container: IContainer): IResolver<InstanceType<T>> {
-      const registration = singletonRegistration(target as T, target as T);
+      const registration = transientRegistation(target as T, target as T);
       return registration.register(container, target);
     };
     target.registerInRequestor = false;

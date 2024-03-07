@@ -11,8 +11,8 @@ The promise binding simplifies working with asynchronous data. It allows attribu
 ```html
 <div promise.bind="promise1">
  <template pending>The promise is not yet settled.</template>
- <template then.from-view="data">The promise is resolved with ${data}.</template>
- <template catch.from-view="err">This promise is rejected with ${err.message}.</template>
+ <template then="data">The promise is resolved with ${data}.</template>
+ <template catch="err">This promise is rejected with ${err.message}.</template>
 </div>
 
 <div promise.bind="promise2">
@@ -24,7 +24,7 @@ The promise binding simplifies working with asynchronous data. It allows attribu
 
 ## Promise Binding Using Functions
 
-The following example demonstrates a method fetchAdvice bound to the `promise.bind` attribute. It uses `then.from-view` and `catch.from-view` to handle resolved data and errors.
+The following example demonstrates a method fetchAdvice bound to the `promise.bind` attribute. It uses `then` and `catch` to handle resolved data and errors.
 
 {% tabs %}
 {% tab title="my-app.html" %}
@@ -33,12 +33,12 @@ The following example demonstrates a method fetchAdvice bound to the `promise.bi
 
 <div promise.bind="fetchAdvice(i)">
   <span pending>Fetching advice...</span>
-  <span then.from-view="data">
+  <span then="data">
     Advice id: ${data.slip.id}<br>
     ${data.slip.advice}
     <button click.trigger="i = i+1">try again</button>
   </span>
-  <span catch.from-view="err">
+  <span catch="err">
     Cannot get advice, error: ${err}
     <button click.trigger="i = i+1">try again</button>
   </span>
@@ -83,8 +83,8 @@ The `promise` template controller operates within its own scope, preventing acci
 
 ```html
 <div promise.bind="promise">
- <foo-bar then.from-view="data" foo-data.bind="data"></foo-bar>
- <fizz-buzz catch.from-view="err" fizz-err.bind="err"></fizz-buzz>
+ <foo-bar then="data" foo-data.bind="data"></foo-bar>
+ <fizz-buzz catch="err" fizz-err.bind="err"></fizz-buzz>
 </div>
 ```
 
@@ -97,11 +97,11 @@ Aurelia 2 supports nested promise bindings, allowing you to handle promises retu
 ```html
 <template promise.bind="fetchPromise">
  <template pending>Fetching...</template>
- <template then.from-view="response" promise.bind="response.json()">
-   <template then.from-view="data">${data}</template>
+ <template then="response" promise.bind="response.json()">
+   <template then="data">${data}</template>
    <template catch>Deserialization error</template>
  </template>
- <template catch.from-view="err2">Cannot fetch</template>
+ <template catch="err2">Cannot fetch</template>
 </template>
 ```
 
@@ -114,8 +114,8 @@ When using `promise.bind` within a `repeat.for`, it's recommended to use a `let`
 <template repeat.for="item of items">
   <template promise.bind="item[0] | promisify:item[1]">
     <let data.bind="null" err.bind="null"></let>
-    <span then.from-view="data">${data}</span>
-    <span catch.from-view="err">${err.message}</span>
+    <span then="data">${data}</span>
+    <span catch="err">${err.message}</span>
   </template>
 </template>
 ```

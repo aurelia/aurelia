@@ -10,7 +10,7 @@ import * as vc_multi from './modules/vc-multi.js';
 import * as cmd_multi from './modules/command-multi.js';
 import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
-import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter, BindingCommand } from '@aurelia/runtime-html';
+import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter, BindingCommand, customElement } from '@aurelia/runtime-html';
 
 describe('1-kernel/module-loader.spec.ts', function () {
   function createFixture() {
@@ -366,6 +366,17 @@ describe('1-kernel/module-loader.spec.ts', function () {
       assertBindingCommandRegistration('cmd', false);
       assertBindingCommandRegistration('def', true);
       assertBindingCommandRegistration('powershell', true);
+    });
+
+    it('registers non resource value as is', function () {
+      class A {}
+
+      @customElement({ name: 'b' })
+      class B {}
+
+      loader.container.register(aliasedResourcesRegistry({ A, B }, null));
+      assert.strictEqual(loader.container.has(A, false), true);
+      assertElementRegistration('b', true);
     });
   });
 });

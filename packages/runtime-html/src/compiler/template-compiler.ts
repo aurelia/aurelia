@@ -75,7 +75,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === TEMPLATE_NODE_NAME && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
-    const hooks = container.get(allResources(ITemplateCompilerHooks));
+    const hooks = TemplateCompilerHooks.findAll(container);
     const ii = hooks.length;
     let i = 0;
     if (ii > 0) {
@@ -1970,7 +1970,7 @@ export const TemplateCompilerHooks = objectFreeze({
       singletonRegistration(ITemplateCompilerHooks, this).register(container);
     });
   },
-  find(container: IContainer): readonly ITemplateCompilerHooks[] {
+  findAll(container: IContainer): readonly ITemplateCompilerHooks[] {
     return container.get(allResources(ITemplateCompilerHooks));
   }
 });

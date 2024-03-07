@@ -37,11 +37,13 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
     stripImport(node, (dep, aliases, ranges) => {
       if (dep) {
         deps.push(dep);
-        // when a module is imported twicce
-        // <import from="abc" as="...">
-        // <import from="abc" x.as="y" z.as="zz">
-        // or throw?
-        depsAliases[dep] = { ...depsAliases[dep], ...aliases};
+        if (aliases != null) {
+          // when a module is imported twicce
+          // <import from="abc" as="...">
+          // <import from="abc" x.as="y" z.as="zz">
+          // or throw?
+          depsAliases[dep] = { ...depsAliases[dep], ...aliases};
+        }
       }
       toRemove.push(...ranges);
     });
@@ -139,20 +141,23 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
 // <require from="./foo"></require>
 // <require from="./foo" as="bar"></require>
 // <require from="./foo" baz.as="bar"></require>
-function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, aliases: AliasedImports, ranges: [number, number][]) => void) {
+function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, aliases: AliasedImports | null, ranges: [number, number][]) => void) {
   return stripTag(node, ['import', 'require'], (attrs, ranges) => {
     const aliases: AliasedImports = { __MAIN__: null };
+    let aliasCount = 0;
     Object.keys(attrs).forEach(attr => {
       if (attr === 'from') {
         return;
       }
       if (attr === 'as') {
         aliases.__MAIN__ = attrs[attr];
+        aliasCount++;
       } else if (attr.endsWith('.as')) {
         aliases[attr.slice(0, -3)] = attrs[attr];
+        aliasCount++;
       }
     });
-    cb(attrs.from, aliases, ranges);
+    cb(attrs.from, aliasCount > 0 ? aliases : null, ranges);
   });
 }
 

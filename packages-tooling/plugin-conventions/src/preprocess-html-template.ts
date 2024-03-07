@@ -50,7 +50,7 @@ export function preprocessHtmlTemplate(
   }
 
   deps.forEach((d, i) => {
-    const aliases = depsAliases[d];
+    const aliases = depsAliases[d] ?? {};
     let ext = path.extname(d);
 
     if (!ext) {

@@ -1,11 +1,11 @@
 import { createInterface } from './di';
 import { resourceBaseName } from './resource';
 import { getOwnMetadata, isFunction } from './utilities';
+import { ErrorNames, createMappedError } from './errors';
 
 import type { IRegistry } from './di';
 import type { Constructable, IDisposable, IIndexable } from './interfaces';
 import type { ResourceDefinition } from './resource';
-import { ErrorNames, createMappedError } from './errors';
 
 export interface IModule {
   [key: string]: unknown;
@@ -196,7 +196,7 @@ export interface ITypedModuleItem<
   readonly value: TValue;
   readonly isRegistry: TisRegistry;
   readonly isConstructable: TisConstructable;
-  readonly definition: ResourceDefinition;
+  readonly definition: ResourceDefinition | null;
 }
 export interface ITypedModuleItem_Unknown extends ITypedModuleItem<false, false, unknown> {}
 export interface ITypedModuleItem_Registry extends ITypedModuleItem<true, false, IRegistry> {}
@@ -217,3 +217,91 @@ export class ModuleItem {
     public readonly definition: ResourceDefinition | null,
   ) {}
 }
+
+/**
+ * Iterate through the exports of a module and register aliases for resources respectively
+ */
+export const aliasedKeysRegistry = (mod: IModule, mainKeyAlias: string | null | undefined, aliases: Record<string, string> = {}): IRegistry => {
+  return {
+    register(container) {
+      const analyzedModule = container.get(IModuleLoader).load(mod);
+      let mainAliasRegistered = false;
+      analyzedModule.items.forEach((item) => {
+        const definition = item.definition;
+
+        if (definition == null) {
+          container.register(item.value);
+          return;
+        }
+
+        if (!mainAliasRegistered && mainKeyAlias != null) {
+          mainAliasRegistered = true;
+          definition.register(container, mainKeyAlias);
+          return;
+        }
+
+        // cannot use item.key, since it could contain an uppercase letter
+        // while if import as is used in html, then it'll be lowercase letters only
+        // using definition name, however, comes with an issue, which is that it's not guaranteed to be unique
+        //
+        // for example: a module can export both an element and an attribute with the name "foo"
+        // but if that's the case, devs can always split the exports into two modules
+        const alias = aliases[definition.name];
+        definition.register(container, alias);
+      });
+    },
+  };
+};
+
+// or extract the registry part into a class?
+//
+// class AliasModuleKeysRegistry implements IRegistry {
+//   /** @internal */ private readonly _mod: IModule;
+//   /** @internal */ private readonly _mainKeyAlias: string | null;
+//   /** @internal */ private readonly _otherAliases: Record<string, string>;
+
+//   public constructor(
+//     mod: IModule,
+//     mainKeyAlias: string | null,
+//     aliases: Record<string, string>,
+//   ) {
+//     this._mod = mod;
+//     this._mainKeyAlias = mainKeyAlias;
+//     this._otherAliases = aliases;
+//   }
+
+//   /** @internal */
+//   private _getAliasedKeyForName(key: string, name: string): string {
+//     // replace the part after the last : with the name
+//     const parts = key.split(':');
+//     parts[parts.length - 1] = name;
+//     return parts.join(':');
+//   }
+
+//   public register(container: IContainer) {
+//     const analyzedModule = container.get(IModuleLoader).load(this._mod);
+//     let mainAliasRegistered = false;
+//     analyzedModule.items.forEach((item) => {
+//       const definition = item.definition;
+
+//       if (definition == null) {
+//         container.register(item.value);
+//         return;
+//       }
+
+//       if (!mainAliasRegistered && this._mainKeyAlias != null) {
+//         mainAliasRegistered = true;
+//         aliasToRegistration(definition.key, this._mainKeyAlias).register(container);
+//         return;
+//       }
+
+//       for (const aliasedExport in this._otherAliases) {
+//         const aliasName = this._otherAliases[aliasedExport];
+//         const aliasKey = this._getAliasedKeyForName(definition.key, aliasName);
+//         if (item.key === aliasedExport) {
+//           aliasToRegistration(definition.key, aliasKey).register(container);
+//         }
+//       }
+//     });
+//   }
+// }

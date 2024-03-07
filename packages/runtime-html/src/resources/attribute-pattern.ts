@@ -1,6 +1,6 @@
 import { emptyArray, IContainer, resolve, Registrable, getResourceKeyFor } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from '../utilities-di';
-import type { Constructable, ResourceDefinition, ResourceType } from '@aurelia/kernel';
+import type { Constructable } from '@aurelia/kernel';
 import { objectFreeze } from '../utilities';
 
 export interface AttributePatternDefinition<T extends string = string> {
@@ -502,16 +502,6 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
     return AttributePattern.define(patternDefs, target);
   };
-}
-
-export class AttributePatternResourceDefinition implements ResourceDefinition<Constructable, Partial<IAttributePattern>> {
-  public name: string = (void 0)!;
-
-  public constructor(
-    public Type: ResourceType<Constructable, Partial<IAttributePattern>>,
-  ) { }
-
-  public register(): void {/*  */}
 }
 
 const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePatternDefinition[] =>

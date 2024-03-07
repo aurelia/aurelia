@@ -495,7 +495,7 @@ export {
   Bindable,
   coercer,
 
-  PartialChildrenDefinition,
+  type PartialChildrenDefinition,
   // Children,
   children,
 
@@ -583,7 +583,7 @@ export {
 
   IFlushQueue,
   FlushQueue,
-  IFlushable,
+  type IFlushable,
 
   renderer,
 
@@ -666,7 +666,7 @@ export {
 
   // Subject,
   // Compose,
-  IAuSlot,
+  type IAuSlot,
   IAuSlotsInfo,
   AuSlotsInfo,
   IAuSlotWatcher,

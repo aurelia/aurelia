@@ -1,7 +1,6 @@
 import {
   mergeArrays,
   firstDefined,
-  Registrable,
   resourceBaseName,
   getResourceKeyFor,
 } from '@aurelia/kernel';
@@ -77,6 +76,23 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
       ValueConverter.keyFrom(name),
     );
   }
+
+  public register(container: IContainer, aliasName?: string): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getValueConverterKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getValueConverterKeyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if(__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.value_converter_existed, this.name)}`);
+    }
+  }
 }
 
 const vcBaseName = /*@__PURE__*/getResourceKeyFor('value-converter');
@@ -85,10 +101,10 @@ const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>
   prop: K,
 ): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
-const getValueConverterKeyFor = (name: string): string => `${vcBaseName}:${name}`;
+const getValueConverterKeyFrom = (name: string): string => `${vcBaseName}:${name}`;
 export const ValueConverter = objectFreeze<ValueConverterKind>({
   name: vcBaseName,
-  keyFrom: getValueConverterKeyFor,
+  keyFrom: getValueConverterKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
     return isFunction(value) && hasOwnMetadata(vcBaseName, value);
   },
@@ -97,22 +113,10 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     const $Type = definition.Type as ValueConverterType<T>;
 
     defineMetadata(vcBaseName, definition, $Type);
+  // a requirement for the resource system in kernel
     defineMetadata(resourceBaseName, definition, $Type);
-    // appendResourceKey($Type, vcBaseName);
 
-    return Registrable.define($Type, container => {
-      const { key, aliases } = definition;
-      if (!container.has(key, false)) {
-        container.register(
-          container.has($Type, false) ? null : singletonRegistration($Type, $Type),
-          aliasRegistration($Type, key),
-          ...aliases.map(alias => aliasRegistration($Type, getValueConverterKeyFor(alias)))
-        );
-      } /* istanbul ignore next */ else if(__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.value_converter_existed, definition.name)}`);
-      }
-    });
+    return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
     const def = getOwnMetadata(vcBaseName, Type);
@@ -127,20 +131,20 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   },
   getAnnotation: getConverterAnnotation,
   find(container, name) {
-    const key = getValueConverterKeyFor(name);
+    const key = getValueConverterKeyFrom(name);
     const Type = container.find(key);
     return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? null;
   },
   get(container, name) {
     if (__DEV__) {
       try {
-        return container.get<ValueConverterInstance>(resource(getValueConverterKeyFor(name)));
+        return container.get<ValueConverterInstance>(resource(getValueConverterKeyFrom(name)));
       } catch (ex) {
         // eslint-disable-next-line no-console
         console.error('[DEV:aurelia] Cannot retrieve value converter with name', name);
         throw ex;
       }
     }
-    return container.get<ValueConverterInstance>(resource(getValueConverterKeyFor(name)));
+    return container.get<ValueConverterInstance>(resource(getValueConverterKeyFrom(name)));
   },
 });

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { isObject } from '@aurelia/metadata';
+import { Metadata, isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { type ResourceType } from './resource';
+import { resourceBaseName, ResourceDefinition, type ResourceType } from './resource';
 import { isFunction, isString, objectFreeze } from './utilities';
 import {
   IContainer,
@@ -13,7 +13,6 @@ import {
   type IDisposableResolver,
   ContainerConfiguration,
   type IRegistry,
-  Registration,
   Resolver,
   ResolverStrategy,
   type Transformer,
@@ -31,6 +30,7 @@ import {
   type IOptionalResolver,
 } from './di';
 import { ErrorNames, createMappedError, logError, logWarn } from './errors';
+import { singletonRegistration } from './di.registration';
 
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
@@ -145,6 +145,8 @@ export class Container implements IContainer {
     let i = 0;
     // eslint-disable-next-line
     let ii = params.length;
+    let def: ResourceDefinition;
+
     for (; i < ii; ++i) {
       current = params[i];
       if (!isObject(current)) {
@@ -154,8 +156,10 @@ export class Container implements IContainer {
         current.register(this);
       } else if (Registrable.has(current)) {
         Registrable.get(current)!.call(current, this);
+      } else if ((def = Metadata.getOwn(resourceBaseName, current)) != null) {
+        def.register(this);
       } else if (isClass(current)) {
-        Registration.singleton(current, current as Constructable).register(this);
+        singletonRegistration(current, current as Constructable).register(this);
       } else {
         keys = Object.keys(current);
         j = 0;

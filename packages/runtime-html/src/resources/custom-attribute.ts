@@ -1,4 +1,4 @@
-import { mergeArrays, firstDefined, Key, Registrable, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { getRef } from '../dom';
@@ -135,6 +135,23 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     );
   }
 
+  public register(container: IContainer, aliasName?: string | undefined): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getAttributeKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, this.name)}`);
+    }
+  }
+
   public toString() {
     return `au:ca:${this.name}`;
   }
@@ -167,21 +184,10 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
   const $Type = definition.Type as CustomAttributeType<T>;
 
   defineMetadata(caBaseName, definition, $Type);
+  // a requirement for the resource system in kernel
   defineMetadata(resourceBaseName, definition, $Type);
 
-  return Registrable.define($Type, container => {
-    const { key, aliases } = definition;
-    if (!container.has(key, false)) {
-      container.register(
-        container.has($Type, false) ? null : transientRegistration($Type, $Type),
-        aliasRegistration($Type, key),
-        ...aliases.map(alias => aliasRegistration($Type, CustomAttribute.keyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, definition.name)}`);
-    }
-  });
+  return $Type;
 };
 
 /** @internal */

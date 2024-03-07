@@ -1,3 +1,4 @@
+import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { defineMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
@@ -20,9 +21,21 @@ export type ResourceDefinition<
   TResType extends {} = {},
   TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
 > = {
+  /**
+   * Unique key to identify the resource.
+   */
+  readonly key: string;
+  /**
+   * A common name for the resource.
+   */
   readonly name: string;
   readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
   readonly aliases?: readonly string[];
+
+  /**
+   * @param aliasName - If provided, the resource will be registered with this alias key.
+   */
+  register(container: IContainer, aliasName?: string): void;
 } & TDef;
 
 export type PartialResourceDefinition<TDef extends {} = {}> = {

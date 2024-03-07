@@ -1,17 +1,21 @@
-import { AnalyzedModule, DI, IModuleLoader } from '@aurelia/kernel';
+import { AnalyzedModule, DI, IModuleLoader, aliasedKeysRegistry } from '@aurelia/kernel';
 
 import * as ce_a_b_default from './modules/ce-a-b-default.js';
 import * as ce_a_b_defaultb from './modules/ce-a-b-defaultb.js';
 import * as ce_a_b from './modules/ce-a-b.js';
 import * as ce_default from './modules/ce-default.js';
+import * as ca_a_b from './modules/ca-a-b.js';
+import * as bb_multi from './modules/bb-multi.js';
+import * as vc_multi from './modules/vc-multi.js';
+import * as cmd_multi from './modules/command-multi.js';
 import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
-import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
+import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter, BindingCommand } from '@aurelia/runtime-html';
 
 describe('1-kernel/module-loader.spec.ts', function () {
   function createFixture() {
     const container = DI.createContainer();
-    return container.get(IModuleLoader);
+    return Object.assign(container.get(IModuleLoader), { container });
   }
 
   it('correctly analyzes ce_a_b_default', function () {
@@ -286,5 +290,82 @@ describe('1-kernel/module-loader.spec.ts', function () {
 
     assert.strictEqual(calls1, 1, `calls1 === 1`);
     assert.strictEqual(calls2, 1, `calls2 === 1`);
+  });
+
+  describe('aliasedKeysRegistry', function () {
+    let loader: ReturnType<typeof createFixture>;
+    const assertElementRegistration = (name: string, registered: boolean) =>
+      assert.strictEqual(loader.container.has(CustomElement.keyFrom(name), false), registered);
+    const assertAttributeRegistration = (name: string, registered: boolean) =>
+      assert.strictEqual(loader.container.has(CustomAttribute.keyFrom(name), false), registered);
+    const assertBindingBehaviorRegistration = (name: string, registered: boolean) =>
+      assert.strictEqual(loader.container.has(BindingBehavior.keyFrom(name), false), registered);
+    const assertValueConverterRegistration = (name: string, registered: boolean) =>
+      assert.strictEqual(loader.container.has(ValueConverter.keyFrom(name), false), registered);
+    const assertBindingCommandRegistration = (name: string, registered: boolean) =>
+      assert.strictEqual(loader.container.has(BindingCommand.keyFrom(name), false), registered);
+
+    this.beforeEach(function () {
+      loader = createFixture();
+    });
+
+    // note that Module may not have their key in order we write them
+    // so cannot use kitchen sink, as sometimes the keys are sorted alphabetically
+    it('registers aliased main (first resource basically) key', function () {
+      loader.container.register(aliasedKeysRegistry(ce_a_b, 'abc'));
+
+      assertElementRegistration('a', false);
+      assertElementRegistration('abc', true);
+      assertElementRegistration('b', true);
+    });
+
+    it('registers aliased non-main keys', function () {
+      loader.container.register(aliasedKeysRegistry(ce_a_b, null, { b: 'def' }));
+
+      assertElementRegistration('a', true);
+      assertElementRegistration('b', false);
+      assertElementRegistration('def', true);
+    });
+
+    it('registers both main and non-main keys when specified', function () {
+      loader.container.register(aliasedKeysRegistry(ce_a_b, 'abc', { b: 'def' }));
+
+      assertElementRegistration('a', false);
+      assertElementRegistration('abc', true);
+      assertElementRegistration('b', false);
+      assertElementRegistration('def', true);
+    });
+
+    it('registers aliased key for custom attribute', function () {
+      loader.container.register(aliasedKeysRegistry(ca_a_b, null, { a: 'def' }));
+
+      assertAttributeRegistration('a', false);
+      assertAttributeRegistration('def', true);
+      assertAttributeRegistration('b', true);
+    });
+
+    it('registers aliased key for binding behavior', function () {
+      loader.container.register(aliasedKeysRegistry(bb_multi, null, { bb: 'def' }));
+
+      assertBindingBehaviorRegistration('bb', false);
+      assertBindingBehaviorRegistration('def', true);
+      assertBindingBehaviorRegistration('bb_b', true);
+    });
+
+    it('registers aliased key for value converter', function () {
+      loader.container.register(aliasedKeysRegistry(vc_multi, null, { vc: 'def' }));
+
+      assertValueConverterRegistration('vc', false);
+      assertValueConverterRegistration('def', true);
+      assertValueConverterRegistration('vc_c', true);
+    });
+
+    it('registers aliased key for binding command', function () {
+      loader.container.register(aliasedKeysRegistry(cmd_multi, null, { cmd: 'def' }));
+
+      assertBindingCommandRegistration('cmd', false);
+      assertBindingCommandRegistration('def', true);
+      assertBindingCommandRegistration('powershell', true);
+    });
   });
 });

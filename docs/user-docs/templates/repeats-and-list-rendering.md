@@ -33,9 +33,52 @@ for (let item of items) {
 }
 ```
 
+### Keyed iteration
+
+When working with the `repeat.for` attribute in Aurelia, the `key` attribute specifies the property that uniquely identifies each item in the collection. Aurelia uses this property to track changes in the collection and efficiently update the DOM accordingly.
+
+To use the key attribute, add it to the repeater element and bind it to a unique property of each item in the collection. You can use either literal or expression syntax:
+
+```html
+<!-- Literal syntax -->
+<ul>
+  <li repeat.for="item of items; key: id">
+    ${item.name}
+  </li>
+</ul>
+
+<!-- Expression syntax -->
+<ul>
+  <li repeat.for="item of items; key.bind: item.id">
+    ${item.name}
+  </li>
+</ul>
+```
+
+In this example, `id` is the property name Aurelia will use to uniquely identify each item in the items collection.
+
+The key attribute serves the following purposes:
+
+- Change Tracking: Aurelia tracks changes in the collection using the specified property. When an item is added, removed, or reordered, Aurelia compares the key property values to determine which items have changed.
+- Efficient DOM Updates: Aurelia can minimize the number of DOM manipulations required when updating the rendered list by tracking changes based on the key property. It can reuse existing elements and only make necessary changes.
+- Preservation of Element State: When an item's position in the collection changes, Aurelia can preserve the state of the corresponding rendered element (such as focus, scroll position, or user input) by matching the key property values.
+
+#### Choosing the key Property
+When selecting the property to use as the key, consider the following guidelines:
+
+- The property should have unique values for each item in the collection.
+- The property should be stable and not change over time for a given item.
+- Avoid using the item's index as the key unless the collection is static and the order of items does not change.
+
+Common choices for the key property include unique identifiers like ID or a combination of properties that uniquely identify an item.
+
+The key attribute in Aurelia repeaters specifies the property that uniquely identifies each collection item. By setting the key attribute, Aurelia can efficiently track changes, update the DOM, and preserve the element state when rendering dynamic lists.
+
+Choose a property that provides unique and stable values for each item in the collection to ensure optimal performance and avoid unwanted side effects.
+
 ### Index and Contextual properties inside of `repeat.for`
 
-Aurelia's binding engine makes several special properties available in your binding expressions. Some properties are available everywhere, while others are only available in a particular context.&#x20;
+Aurelia's binding engine makes several special properties available in your binding expressions. Some properties are available everywhere, while others are only available in a particular context.
 
 Below is a summary of the available contextual properties within repeats.
 
@@ -51,7 +94,7 @@ In a repeat template, the item's index is in the collection. The index is zero-i
 
 #### $first
 
-In a repeat template the `$first` variable will be `true` if this is the first iteration in the `repeat.for` loop. If the iteration is not the first iteration, then this value will be `false`.
+In a repeat template, the `$first` variable will be `true` if this is the first iteration in the `repeat.for` loop. If the iteration is not the first iteration, then this value will be `false`.
 
 ```html
 <ul>
@@ -81,7 +124,7 @@ In a repeat template the `$even` variable will be `true` if we are currently at 
 
 #### $odd
 
-In a repeat template the `$odd` variable will be `true` if we are currently at an odd-numbered index inside the `repeat.for` loop. You would use this functionality when performing conditional logic (alternate row styling on table rows and so forth).
+In a repeat template, the `$odd` variable will be `true` if we are currently at an odd-numbered index inside the `repeat.for` loop. You would use this functionality when performing conditional logic (alternate row styling on table rows).
 
 ```html
 <ul>
@@ -105,7 +148,7 @@ Explicitly accesses the outer scope from within a `repeat.for` template. In most
 
 You may need this when a property on the current scope masks a property on the outer scope. Note that this property is chainable, e.g. `$parent.$parent.foo` is supported.
 
-Inside of the `repeat.for` these can be accessed. In the following example, we display the current index value.
+These can be accessed inside the `repeat.for`. In the following example, we display the current index value.
 
 ```markup
 <ul>
@@ -117,7 +160,7 @@ You would need this functionality when dealing with multiple levels of `repeat.f
 
 ### Array Syntax
 
-In this section, see how you can iterate an array using `repeat.for` — you will notice the syntax is the same as the examples we used above, except for a view model containing the array to show you the relationship.
+In this section, see how you can iterate an array using `repeat.for`. You will notice the syntax is the same as the examples we used above, except for a view model containing the array to show you the relationship.
 
 {% code title="my-component.ts" %}
 ```typescript
@@ -137,7 +180,7 @@ class MyComponent {
 {% endcode %}
 
 {% hint style="info" %}
-Aurelia will not be able to observe changes to arrays using the `array[index] = value` syntax. To ensure that Aurelia can observe the changes on your array, use the Array methods: `Array.prototype.push`, `Array.prototype.pop`, and `Array.prototype.splice`.
+Aurelia cannot observe changes to arrays using the `array[index] = value` syntax. To ensure that Aurelia can observe the changes on your array, use the Array methods: `Array.prototype.push`, `Array.prototype.pop`, and `Array.prototype.splice`.
 {% endhint %}
 
 ### Ranges Syntax
@@ -153,7 +196,7 @@ In the following example, we generate a range of numbers up to 10. We subtract t
 
 ### Set Syntax
 
-The `repeat.for` functionality works not only with arrays (the most collection type you will be using) but also with Javascript sets. The syntax for iterating sets is the same as it is for arrays, so nothing changes in the template, only the collection type you are working with.
+The `repeat.for` functionality works with arrays (the collection type you will be using) and Javascript sets. The syntax for iterating sets is the same as for arrays, so nothing changes in the template, only the collection type you are working with.
 
 {% code title="repeater-template.ts" %}
 ```typescript
@@ -212,7 +255,7 @@ One thing to notice in the example above is the dereference operator in `[greeti
 
 ### Object Syntax
 
-In Javascript, objects are not a native collection type. However, there might be situations where you want to iterate values inside of an object. Aurelia does not provide a way of doing this, so we need to create a [Value Converter](value-converters.md) to transform our object into an iterable format.
+In Javascript, objects are not a native collection type. However, there might be situations where you want to iterate values inside of an object. Aurelia does not provide a way of doing this, so we must create a [Value Converter](value-converters.md) to transform our object into an iterable format.
 
 {% code title="repeater-template.html" %}
 ```html

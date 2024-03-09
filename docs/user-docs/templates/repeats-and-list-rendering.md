@@ -60,7 +60,7 @@ In this example, `id` is the property name Aurelia will use to uniquely identify
 The key attribute serves the following purposes:
 
 - Change Tracking: Aurelia tracks changes in the collection using the specified property. When an item is added, removed, or reordered, Aurelia compares the key property values to determine which items have changed.
-- Efficient DOM Updates: Aurelia can minimize the number of DOM manipulations required when updating the rendered list by tracking changes based on the key property. It can reuse existing elements and only make necessary changes.
+- Minimal DOM Updates: Aurelia can minimize the number of DOM manipulations required when updating the rendered list by tracking changes based on the key property. It can reuse existing elements and only make necessary changes.
 - Preservation of Element State: When an item's position in the collection changes, Aurelia can preserve the state of the corresponding rendered element (such as focus, scroll position, or user input) by matching the key property values.
 
 #### Choosing the key Property
@@ -72,7 +72,7 @@ When selecting the property to use as the key, consider the following guidelines
 
 Common choices for the key property include unique identifiers like ID or a combination of properties that uniquely identify an item.
 
-The key attribute in Aurelia repeaters specifies the property that uniquely identifies each collection item. By setting the key attribute, Aurelia can efficiently track changes, update the DOM, and preserve the element state when rendering dynamic lists.
+The key attribute in Aurelia repeaters specifies the property that uniquely identifies each collection item. By setting the key attribute, Aurelia can track changes, update the DOM, and preserve the element state when rendering dynamic lists.
 
 Choose a property that provides unique and stable values for each item in the collection to ensure optimal performance and avoid unwanted side effects.
 

@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { all, createInterface, IContainer, IRegistry, optional } from './di';
+import { createInterface, IContainer, IRegistry } from './di';
 import { instanceRegistration, singletonRegistration } from './di.registration';
 import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
@@ -7,6 +7,7 @@ import { IPlatform } from './platform';
 import { getAnnotationKeyFor } from './resource';
 import { createObject, defineMetadata, isFunction, objectFreeze } from './utilities';
 import { resolve } from './di.container';
+import { all, optional } from './di.resolvers';
 
 /** @internal */ export const trace = 0;
 /** @internal */ export const debug = 1;

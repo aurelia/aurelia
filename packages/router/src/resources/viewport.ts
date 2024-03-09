@@ -116,14 +116,13 @@ export class ViewportCustomElement implements ICustomElementViewModel {
 
   private readonly router = resolve(IRouter);
   public readonly element = resolve(INode) as HTMLElement;
-  public container: IContainer = resolve(IContainer);
+  public readonly container: IContainer = resolve(IContainer);
   private readonly ea: IEventAggregator = resolve(IEventAggregator);
   public readonly parentViewport = resolve(ParentViewport);
   private readonly instruction = resolve(IInstruction) as HydrateElementInstruction;
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
-    this.container = controller.container;
 
     // eslint-disable-next-line
     const hasDefault = this.instruction.props.filter((instr: any) => instr.to === 'default').length > 0;

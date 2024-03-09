@@ -541,9 +541,12 @@ export class Router implements IRouter {
    * @internal
    */
   public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: EndpointTypeName, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
-    const container = (connectedCE.container as IContainer & { parent: IContainer });
-    const closestEndpoint = (container.has(Router.closestEndpointKey, true) ? container.get<Endpoint>(Router.closestEndpointKey) : this.rootScope) as Endpoint;
+    const container = connectedCE.container;
+    const closestEndpoint: Endpoint = container.has(Router.closestEndpointKey, true)
+      ? container.get<Endpoint>(Router.closestEndpointKey)
+      : this.rootScope!;
     const parentScope = closestEndpoint.connectedScope;
+
     if (endpoint === null) {
       endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
       Registration.instance(Router.closestEndpointKey, endpoint).register(container);

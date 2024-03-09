@@ -3,8 +3,9 @@ import {
   firstDefined,
   resourceBaseName,
   getResourceKeyFor,
+  resource,
 } from '@aurelia/kernel';
-import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 

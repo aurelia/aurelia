@@ -98,7 +98,7 @@ export class BindingInfo {
    * @param {Element} target - The HTMLElement associated with the binding.
    * @param {Scope} scope - The binding scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
-   * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
+   * @param {(PropertyInfo | undefined)} [propertyInfo] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
   public constructor(

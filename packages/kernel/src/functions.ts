@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createObject } from './utilities';
+import { createObject, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -60,7 +60,7 @@ const baseCase = /*@__PURE__*/(function () {
   _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = Object.assign(createObject(), {
+  const isDigit = objectAssign(createObject(), {
     '0': true,
     '1': true,
     '2': true,
@@ -370,8 +370,9 @@ export function toLookup<
   obj4: T4,
   obj5: T5,
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
+/** @internal */
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return Object.assign(createObject(), ...objs);
+  return objectAssign(createObject(), ...objs);
 }
 
 /**

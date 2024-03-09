@@ -1,4 +1,4 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
+import { camelCase, mergeArrays, firstDefined, emptyArray, resourceBaseName, getResourceKeyFor, resource } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/runtime';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
@@ -13,7 +13,7 @@ import {
 } from '../renderer';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, resource, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,

@@ -11,7 +11,6 @@ import {
   type Key,
   type IResolver,
   type IDisposableResolver,
-  ContainerConfiguration,
   type IRegistry,
   Resolver,
   ResolverStrategy,
@@ -21,16 +20,10 @@ import {
   getDependencies,
   type IFactory,
   type IContainerConfiguration,
-  type IFactoryResolver,
-  type ILazyResolver,
-  type INewInstanceResolver,
-  type IResolvedFactory,
-  type IResolvedLazy,
-  type IAllResolver,
-  type IOptionalResolver,
 } from './di';
 import { ErrorNames, createMappedError, logError, logWarn } from './errors';
 import { singletonRegistration } from './di.registration';
+import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory } from './di.resolvers';
 
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
@@ -52,6 +45,39 @@ export const Registrable = /*@__PURE__*/(() => {
     has: <T extends WeakKey>(object: T) => map.has(object),
   });
 })();
+
+export const DefaultResolver = {
+  none(key: Key): IResolver {
+    throw createMappedError(ErrorNames.none_resolver_found, key);
+  },
+  singleton: (key: Key): IResolver => new Resolver(key, ResolverStrategy.singleton, key),
+  transient: (key: Key): IResolver => new Resolver(key, ResolverStrategy.transient, key),
+};
+
+export class ContainerConfiguration implements IContainerConfiguration {
+  public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
+
+  private constructor(
+    public readonly inheritParentResources: boolean,
+    public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
+  ) {}
+
+  public static from(config?: IContainerConfiguration): ContainerConfiguration {
+    if (
+      config === void 0 ||
+      config === ContainerConfiguration.DEFAULT
+    ) {
+      return ContainerConfiguration.DEFAULT;
+    }
+    return new ContainerConfiguration(
+      config.inheritParentResources ?? false,
+      config.defaultResolver ?? DefaultResolver.singleton,
+    );
+  }
+}
+
+/** @internal */
+export const createContainer = (config?: Partial<IContainerConfiguration>): IContainer => new Container(null, ContainerConfiguration.from(config));
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';

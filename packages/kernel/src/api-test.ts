@@ -94,7 +94,7 @@ function test() {
     const instance = d.get(own(I));
 
     // @ts-expect-error
-    if (instance.c);
+    if (instance.c) {/*  */}
   }
 
   function testResource() {

@@ -57,9 +57,7 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
           case 'join(!=)': value = (value as unknown[]).join('!='); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
           case 'innerError':
-            value = value == null
-              ? ''
-              : `\nDetails:\n${value}\n${(value instanceof Error) && value.cause != null ? `${String(value.cause)}\n` : ''}`;
+            value = `\nDetails:\n${value}\n${(value instanceof Error) && value.cause != null ? `${String(value.cause)}\n` : ''}`;
             break;
           default: {
             // property access

@@ -1,11 +1,16 @@
-import { resolve } from '@aurelia/kernel';
+import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 import {
   alias,
   bindable,
   customAttribute,
   INode,
   CustomAttribute,
-  IAurelia
+  IAurelia,
+  templateController,
+  IViewFactory,
+  IRenderLocation,
+  IHydratedComponentController,
+  customElement
 } from '@aurelia/runtime-html';
 import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
 
@@ -865,6 +870,64 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       component.attr._m[1].v = 'world+';
       assert.strictEqual(component.value, 'hello world+');
+    });
+  });
+
+  describe('template controller', function () {
+    interface IExample {/* */}
+    const IExample = DI.createInterface<IExample>("IExample");
+
+    @templateController({
+      name: 'example',
+      containerStrategy: 'new'
+    })
+    class ExampleTemplateController {
+      $controller: IHydratedComponentController;
+      @bindable value;
+      viewFactory = resolve(IViewFactory);
+      location = resolve(IRenderLocation);
+
+      bound() {
+        this.viewFactory.container.register(Registration.instance(IExample, this.value));
+        const view = this.viewFactory.create();
+        view.setLocation(this.location);
+        return view.activate(view, this.$controller, this.$controller.scope!);
+      }
+    }
+
+    @customAttribute('my-attr')
+    class MyAttr {
+      v = resolve(IExample);
+      host = resolve(INode) as HTMLElement;
+
+      bound() {
+        this.host.textContent = String(this.v);
+      }
+    }
+
+    const examples: IExample[] = [];
+
+    @customElement({
+      name: 'my-el',
+      template: `<div example.bind="5" my-attr></div>
+      <div example.bind="6" my-attr></div>`,
+    })
+    class MyEl {
+      c = resolve(IContainer);
+
+      attached() {
+        examples.push(...this.c.getAll(IExample, false));
+      }
+    }
+
+    it('creates new container for factory when containerStrategy is "new"', function () {
+      const { assertText } = createFixture('<my-el>',
+        class App {},
+        [ExampleTemplateController, MyAttr, MyEl]
+      );
+
+      assertText('5 6', { compact: true });
+      assert.strictEqual(examples.length, 0);
     });
   });
 });

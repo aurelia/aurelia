@@ -85,10 +85,3 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
     + `https://github.com/aurelia/aurelia/issues/new?title=${encodeURIComponent(title)}`
     + (body != null ? `&body=${encodeURIComponent(body)}` : '&template=bug_report.md');
 }
-
-/** @internal */
-export class InstantiationError extends Error {
-  public static is(obj: unknown): obj is InstantiationError {
-    return obj instanceof InstantiationError;
-  }
-}

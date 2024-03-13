@@ -40,7 +40,7 @@ describe('router/router.fallback.spec.ts', function () {
 
   this.timeout(5000);
 
-  async function $setup(App, config?, stateSpy?) {
+  async function $setup(App, config?, stateSpy?: NavigationStateCallback) {
     const ctx = TestContext.create();
 
     const { container, platform } = ctx;
@@ -83,26 +83,32 @@ describe('router/router.fallback.spec.ts', function () {
   for (const config of configs) {
     for (const fallbackAction of fallbackActions) {
       const names = ['parent', 'child', 'grandchild'];
-      const dependencies = [];
-      for (let i = 0, ii = names.length; i < ii; i++) {
-        const name = names[i];
-        const fallback = i < ii - 1 ? names[i + 1] : null;
-        const viewport = fallback ? `<au-viewport name="${name}" fallback="${fallback}" ${fallbackAction.length ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>` : '';
-        const template = `!${name}\${param ? ":" + param : ""}!${viewport}`;
-        dependencies.push(CustomElement.define({ name, template }, class {
-          public static parameters = ['id'];
-          public param: string;
-          public loading(params) {
-            if (params.id !== void 0) {
-              this.param = params.id;
+      const dependencies = names.map((name, i) => {
+        const fallback = i < names.length - 1 ? names[i + 1] : null;
+        const viewport = fallback
+          ? `<au-viewport name="${name}" fallback="${fallback}" ${fallbackAction.length ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>`
+          : '';
+
+        return CustomElement.define(
+          {
+            name,
+            template: `!${name}\${param ? ":" + param : ""}!${viewport}`
+          },
+          class {
+            public static parameters = ['id'];
+            public param: string;
+            public loading(params) {
+              if (params.id !== void 0) {
+                this.param = params.id;
+              }
             }
           }
-        }));
-      }
+        );
+      });
 
       const App = CustomElement.define({
         name: 'app',
-        template: `<au-viewport fallback="parent"  ${fallbackAction.length ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>`,
+        template: `<au-viewport fallback="parent"  ${fallbackAction !== '' ? `fallback-action="${fallbackAction}"` : ''}></au-viewport>`,
         dependencies
       });
 
@@ -185,6 +191,13 @@ describe('router/router.fallback.spec.ts', function () {
 });
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
-  await router.load(path);
+  await Promise.race([
+    router.load(path),
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        reject(new Error(`Timeout error: failed to load route ${path}.`));
+      }, 1000);
+    })
+  ]);
   platform.domWriteQueue.flush();
 };

@@ -1,8 +1,7 @@
 import { Constructable, IContainer, IResolver, Writable } from '@aurelia/kernel';
-import { Controller, CustomElement, CustomElementDefinition, IController, IHydratedController, IHydrationContext, isCustomElementViewModel } from '@aurelia/runtime-html';
+import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
-import { ErrorNames, InstantiationError, createMappedError } from '../errors';
 
 export interface IInstructionComponent extends InstructionComponent { }
 
@@ -165,7 +164,7 @@ export class InstructionComponent {
     return !this.isName() && !this.isType() && !this.isInstance() && !this.isFunction() && !this.isPromise();
   }
   public isName(): boolean {
-    return !!this.name && !this.isType() && !this.isInstance();
+    return this.name != null && this.name !== '' && !this.isType() && !this.isInstance();
   }
   public isType(): boolean {
     return this.type !== null && !this.isInstance();
@@ -221,37 +220,37 @@ export class InstructionComponent {
       return null;
     }
 
-    try {
-      const hydrationContextContainer = parentContainer.get(IHydrationContext).parent!.controller.container;
-      const container = parentContainer.createChild();
-
-      let instance: IRouteableComponent;
-      if (this.isType()) {
-        instance = container.invoke<IRouteableComponent>(this.type!);
-      } else {
-        const def = CustomElement.find(hydrationContextContainer, this.name!);
-        if (def == null) {
-          throw new InstantiationError(void 0, { cause: createMappedError(ErrorNames.element_name_not_found, this.name!) });
-        } else {
-          instance = container.invoke<IRouteableComponent>(def.Type);
-          // container.get<IRouteableComponent>(routerComponentResolver(this.name!));
-        }
+    const container = parentContainer.createChild();
+    const instance: IRouteableComponent = this.isType()
+      ? container.invoke(this.type!)
+      : container.get(routerComponentResolver(this.name!));
+    // TODO: Implement non-traversing lookup (below) based on router configuration
+    // let instance;
+    // if (this.isType()) {
+    //   instance = ownContainer.invoke(this.type!);
+    // } else {
+    //   const def = CustomElement.find(ownContainer, this.name!);
+    //   if (def != null) {
+    //     instance = ownContainer.invoke(def.Type);
+    //   }
+    // }
+    if (instance == null) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
       }
-
-      const controller = Controller.$el(
-        container,
-        instance,
-        parentElement,
-        null,
-      );
-      // TODO: Investigate if this is really necessary
-      (controller as Writable<typeof controller>).parent = parentController;
-
-      return instance;
-    } catch (ex) {
-      throw new InstantiationError(void 0, { cause: ex });
+      throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
     }
+    const controller = Controller.$el(
+      container,
+      instance,
+      parentElement,
+      null,
+    );
+    // TODO: Investigate if this is really necessary
+    (controller as Writable<typeof controller>).parent = parentController;
 
+    return instance;
   }
 
   public same(other: InstructionComponent, compareType: boolean = false): boolean {
@@ -278,9 +277,12 @@ function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
       if (requestor.root.has(key, false)) {
         return requestor.root.get(key);
       }
-      // eslint-disable-next-line no-console
-      console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
-        + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
+      // it's not always correct to consider this resolution as a traversal
+      // since sometimes it could be the work of trying a fallback configuration as component
+      // todo: cleanup the paths so that it's clearer when a fallback is being tried vs when an actual component name configuration
+      //
+      // console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
+      //   + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
       return requestor.get(key);
     }
   };

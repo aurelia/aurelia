@@ -11,7 +11,7 @@ import { EndpointContent, Parameters, RoutingScope } from '../index';
 import { IRouter } from '../router';
 import { FoundRoute } from '../found-route';
 import { FallbackAction } from '../router-options';
-import { ErrorNames, InstantiationError, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from '../errors';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -206,7 +206,7 @@ export class ViewportContent extends EndpointContent {
         this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
       } catch (e) {
         // TODO: Improve this by extracting the existance check separately
-        if (!InstantiationError.is(e)) {
+        if (!(e as Error).message.startsWith('AUR0009:')) {
           throw e;
         }
 
@@ -234,7 +234,7 @@ export class ViewportContent extends EndpointContent {
             // ...and try again.
             this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
           } catch (ee) {
-            if (!InstantiationError.is(ee)) {
+            if (!(ee as Error).message.startsWith('AUR0009:')) {
               throw ee;
             }
             const componentName = this.instruction.component.name as string;

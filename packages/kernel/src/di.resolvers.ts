@@ -201,9 +201,12 @@ export const optionalResource = /*@__PURE__*/createResolver((key, handler, reque
  * Create a resolver for resolving all registrations of a key with resource semantic (leaf + root + ignore middle layer container)
  */
 export const allResources = /*@__PURE__*/createResolver((key, handler, requestor) =>
-  requestor.has(key, false)
-    ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
-    : requestor.root.getAll(key, false)
+  // prevent duplicate retrieval
+  requestor === requestor.root
+    ? requestor.getAll(key, false)
+    : requestor.has(key, false)
+      ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
+      : requestor.root.getAll(key, false)
 ) as <T>(key: T) => IAllResolver<T>;
 
 /**

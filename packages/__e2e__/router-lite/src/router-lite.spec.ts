@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { addCoverage } from '../../playwright-coverage';
 
 test.describe('router-lite configured', () => {
@@ -73,5 +73,80 @@ test.describe('router-lite configured', () => {
       'au:router:navigation-start - 6 - \'auth\'',
       'au:router:navigation-end - 6 - \'auth\'',
     ]);
+  });
+
+  // the loop helps make the issue with duplication more visible in the router e2e
+  // so putting it here to make it easier to reproduce the issue
+  for (let i = 0; i < 5; i++) {
+    test(`ensures no duplication with load "${i}"`, async ({ page, baseURL }) => {
+      // Home
+      const proms: Promise<void>[] = [];
+      await expect(page.locator('#root-vp')).toHaveText('Home page');
+      // Flood navigation
+      for (let i = 0; i < 50; i++) {
+        switch (i % 3) {
+          case 0:
+            proms.push(page.click('#page-one-link'));
+            break;
+          case 1:
+            proms.push(page.click('#page-two-link'));
+            break;
+          case 2:
+            proms.push(page.click('#auth-link'));
+            break;
+        }
+      }
+
+      await Promise.all(proms);
+
+      // Go to "two"
+      await Promise.all([
+        page.waitForURL(`${baseURL}/two`),
+        page.click('#page-two-link'),
+      ]);
+      expect(page.url()).toBe(`${baseURL}/two`);
+      expect(await page.locator('#root-vp').textContent()).toBe('Two page');
+    });
+  }
+
+  test('ensures no duplication with back/forward', async ({ page, baseURL }) => {
+    // Home
+    await expect(page.locator('#root-vp')).toHaveText('Home page');
+
+    // Go to "one"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/one`),
+      page.click('#page-one-link'),
+    ]);
+    expect(page.url()).toBe(`${baseURL}/one`);
+    await expect(page.locator('#root-vp')).toContainText('One page');
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/two`),
+      page.click('#page-two-link'),
+    ]);
+
+    // Flood back/forward
+    const proms: Promise<unknown>[] = [];
+    for (let i = 0; i < 98; i++) {
+      if (i % 2 === 0) {
+        proms.push(page.goBack(), page.goBack());
+      } else {
+        proms.push(page.goForward(), page.goForward());
+      }
+    }
+    await Promise.all(proms);
+
+    // await _waitProcessingNav(page);
+
+    // Go to "two"
+    await Promise.all([
+      page.waitForURL(`${baseURL}/two`),
+      page.click('#page-two-link'),
+    ]);
+
+    expect(page.url()).toBe(`${baseURL}/two`);
+    expect(await page.locator('#root-vp').textContent()).toBe('Two page');
   });
 });

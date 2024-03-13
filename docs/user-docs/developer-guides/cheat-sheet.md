@@ -574,7 +574,7 @@ interface IRouteViewModel extends ICustomElementViewModel {
     params: Params,
     next: RouteNode,
     current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
-  load(
+  loading(
     params: Params,
     next: RouteNode,
     current: RouteNode | null): void | Promise<void>;
@@ -726,7 +726,7 @@ export class MyComponent {
 
 ```typescript
 export class MyComponent {
-  async load(params) {
+  async loading(params) {
     this.data = await loadData(params.id);
   }
 }
@@ -741,7 +741,7 @@ export class MyComponent {
 
 ```typescript
 export class MyComponent {
-  load(params) {
+  loading(params) {
     this.loadDataPromise = loadData(params.id).then(data => {
       this.data = data;
       this.loadDataPromise = null;
@@ -762,7 +762,7 @@ export class MyComponent {
 
 ```typescript
 export class MyComponent {
-  load(params) {
+  loading(params) {
     this.loadDataTask = PLATFORM.taskQueue.queueTask(async () => {
       this.data = await loadData(params.id);
       this.loadDataTask = null;

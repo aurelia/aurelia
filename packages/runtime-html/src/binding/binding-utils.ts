@@ -1,10 +1,10 @@
-import { type IServiceLocator, Key, type Constructable, IDisposable } from '@aurelia/kernel';
+import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
-import { createInterface, resource } from '../utilities-di';
+import { createInterface } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -77,7 +77,8 @@ export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = t
   };
 };
 
-const resourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
 class ResourceLookup {
   [key: string]: ValueConverterInstance | BindingBehaviorInstance;
 }
@@ -132,20 +133,18 @@ function evaluatorGetSignaler<T extends IHasServiceLocator>(this: T) {
   return this.l.root.get(ISignaler);
 }
 function evaluatorGetConverter<T extends IHasServiceLocator>(this: T, name: string) {
-  const key = ValueConverter.keyFrom(name);
-  let resourceLookup = resourceLookupCache.get(this);
+  let resourceLookup = converterResourceLookupCache.get(this);
   if (resourceLookup == null) {
-    resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+    converterResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
   }
-  return resourceLookup[key] ??= this.l.get<ValueConverterInstance>(resource(key));
+  return resourceLookup[name] ??= ValueConverter.get(this.l as IContainer, name);
 }
 function evaluatorGetBehavior<T extends IHasServiceLocator>(this: T, name: string) {
-  const key = BindingBehavior.keyFrom(name);
-  let resourceLookup = resourceLookupCache.get(this);
+  let resourceLookup = behaviorResourceLookupCache.get(this);
   if (resourceLookup == null) {
-    resourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+    behaviorResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
   }
-  return resourceLookup[key] ??= this.l.get<BindingBehaviorInstance>(resource(key));
+  return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
 }
 
 function flushItem(item: IFlushable, _: IFlushable, items: Set<IFlushable>) {

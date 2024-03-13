@@ -7,12 +7,13 @@ import { applyMetadataPolyfill } from '@aurelia/metadata';
 applyMetadataPolyfill(Reflect, false, false);
 
 import { isArrayIndex } from './functions';
-import { Container } from './di.container';
+import { createContainer } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
-import { appendAnnotation, getAnnotationKeyFor, IResourceKind, ResourceDefinition, ResourceType } from './resource';
-import { defineMetadata, getOwnMetadata, isFunction, isString, safeString } from './utilities';
-import { instanceRegistration, singletonRegistration, transientRegistation, callbackRegistration, cachedCallbackRegistration, aliasToRegistration, deferRegistration, cacheCallbackResult } from './di.registration';
+import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
+import { defineMetadata, getOwnMetadata, isFunction, isString } from './utilities';
+import { singletonRegistration, cacheCallbackResult, transientRegistation } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
+import type { IAllResolver, IFactoryResolver, ILazyResolver, INewInstanceResolver, IOptionalResolver, IResolvedFactory, IResolvedLazy } from './di.resolvers';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
@@ -87,8 +88,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
    * This is a semi private API, apps should avoid using it directly
    */
   useResources(container: IContainer): void;
-  find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null;
-  create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null;
+  find<TResType extends ResourceType>(key: string): TResType | null;
 }
 
 export class ResolverBuilder<K> {
@@ -177,39 +177,6 @@ export interface IContainerConfiguration {
   defaultResolver?(key: Key, handler: IContainer): IResolver;
 }
 
-export const DefaultResolver = {
-  none(key: Key): IResolver {
-    throw createMappedError(ErrorNames.none_resolver_found, key);
-  },
-  singleton: (key: Key): IResolver => new Resolver(key, ResolverStrategy.singleton, key),
-  transient: (key: Key): IResolver => new Resolver(key, ResolverStrategy.transient, key),
-};
-
-export class ContainerConfiguration implements IContainerConfiguration {
-  public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
-
-  private constructor(
-    public readonly inheritParentResources: boolean,
-    public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
-  ) {}
-
-  public static from(config?: IContainerConfiguration): ContainerConfiguration {
-    if (
-      config === void 0 ||
-      config === ContainerConfiguration.DEFAULT
-    ) {
-      return ContainerConfiguration.DEFAULT;
-    }
-    return new ContainerConfiguration(
-      config.inheritParentResources ?? false,
-      config.defaultResolver ?? DefaultResolver.singleton,
-    );
-  }
-}
-
-/** @internal */
-export const createContainer = (config?: Partial<IContainerConfiguration>): IContainer => new Container(null, ContainerConfiguration.from(config));
-
 const getAnnotationParamtypes = (Type: Constructable | Injectable): readonly Key[] | undefined => {
   const key = getAnnotationKeyFor('di:paramtypes');
   return getOwnMetadata(key, Type);
@@ -246,7 +213,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
     const inject = (Type as Injectable).inject;
     if (inject === void 0) {
       // design:paramtypes is set by tsc when emitDecoratorMetadata is enabled.
-      const designParamtypes = DI.getDesignParamtypes(Type);
+      const designParamtypes = getDesignParamtypes(Type);
       // au:annotation:di:paramtypes is set by the parameter decorator from DI.createInterface or by @inject
       const annotationParamtypes = getAnnotationParamtypes(Type);
       if (designParamtypes === void 0) {
@@ -331,6 +298,45 @@ export const createInterface = <K extends Key>(configureOrName?: string | ((buil
  return Interface;
 };
 
+export const inject = (...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void => {
+  return (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void => {
+    if (typeof descriptor === 'number') { // It's a parameter decorator.
+      const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
+      const dep = dependencies[0];
+      if (dep !== void 0) {
+        annotationParamtypes[descriptor] = dep;
+      }
+    } else if (key) { // It's a property decorator. Not supported by the container without plugins.
+      const annotationParamtypes = getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
+      const dep = dependencies[0];
+      if (dep !== void 0) {
+        annotationParamtypes[key as number] = dep;
+      }
+    } else if (descriptor) { // It's a function decorator (not a Class constructor)
+      const fn = descriptor.value;
+      const annotationParamtypes = getOrCreateAnnotationParamTypes(fn);
+      let dep: Key;
+      let i = 0;
+      for (; i < dependencies.length; ++i) {
+        dep = dependencies[i];
+        if (dep !== void 0) {
+          annotationParamtypes[i] = dep;
+        }
+      }
+    } else { // It's a class decorator.
+      const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
+      let dep: Key;
+      let i = 0;
+      for (; i < dependencies.length; ++i) {
+        dep = dependencies[i];
+        if (dep !== void 0) {
+          annotationParamtypes[i] = dep;
+        }
+      }
+    }
+  };
+};
+
 export const DI = {
   createContainer,
   getDesignParamtypes,
@@ -379,44 +385,7 @@ export const DI = {
    * - @param configureOrName - supply a string to improve error messaging
    */
   createInterface,
-  inject(...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void {
-    return (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void => {
-      if (typeof descriptor === 'number') { // It's a parameter decorator.
-        const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
-        const dep = dependencies[0];
-        if (dep !== void 0) {
-          annotationParamtypes[descriptor] = dep;
-        }
-      } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-        const annotationParamtypes = getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
-        const dep = dependencies[0];
-        if (dep !== void 0) {
-          annotationParamtypes[key as number] = dep;
-        }
-      } else if (descriptor) { // It's a function decorator (not a Class constructor)
-        const fn = descriptor.value;
-        const annotationParamtypes = getOrCreateAnnotationParamTypes(fn);
-        let dep: Key;
-        let i = 0;
-        for (; i < dependencies.length; ++i) {
-          dep = dependencies[i];
-          if (dep !== void 0) {
-            annotationParamtypes[i] = dep;
-          }
-        }
-      } else { // It's a class decorator.
-        const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
-        let dep: Key;
-        let i = 0;
-        for (; i < dependencies.length; ++i) {
-          dep = dependencies[i];
-          if (dep !== void 0) {
-            annotationParamtypes[i] = dep;
-          }
-        }
-      }
-    };
-  },
+  inject,
   /**
    * Registers the `target` class as a transient dependency; each time the dependency is resolved
    * a new instance will be created.
@@ -437,7 +406,7 @@ export const DI = {
    */
   transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> {
     target.register = function (container: IContainer): IResolver<InstanceType<T>> {
-      const registration = Registration.transient(target as T, target as T);
+      const registration = transientRegistation(target as T, target as T);
       return registration.register(container, target);
     };
     target.registerInRequestor = false;
@@ -463,7 +432,7 @@ export const DI = {
   singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, options: SingletonOptions = defaultSingletonOptions):
     T & RegisterSelf<T> {
     target.register = function (container: IContainer): IResolver<InstanceType<T>> {
-      const registration = Registration.singleton(target, target);
+      const registration = singletonRegistration(target, target);
       return registration.register(container, target);
     };
     target.registerInRequestor = options.scoped;
@@ -473,30 +442,6 @@ export const DI = {
 
 export const IContainer = /*@__PURE__*/createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
-
-export type ICallableResolver<T> = IResolver<T> & ((...args: unknown[]) => any);
-
-/**
- * ! Semi private API to avoid repetitive work creating resolvers.
- *
- * Naming isn't entirely correct, but it's good enough for internal usage.
- */
-export function createResolver<T extends Key>(getter: (key: T, handler: IContainer, requestor: IContainer) => any): ((key: T) => ICallableResolver<T>) {
-  return function (key: any) {
-    function Resolver(target: any, property?: string | number, descriptor?: PropertyDescriptor | number): void {
-      inject(Resolver)(target, property, descriptor);
-    }
-
-    Resolver.$isResolver = true;
-    Resolver.resolve = function (handler: IContainer, requestor: IContainer): any {
-      return getter(key, handler, requestor);
-    };
-
-    return Resolver as ICallableResolver<T>;
-  };
-}
-
-export const inject = DI.inject;
 
 function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>):
   T & RegisterSelf<T> {
@@ -570,198 +515,6 @@ export function singleton<T extends Constructable>(targetOrOptions?: (T & Partia
   };
 }
 
-/**
- * Create a resolver that will resolve all values of a key from resolving container
- */
-export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IAllResolver<T> => {
-  function resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
-    inject(resolver)(target, property, descriptor);
-  }
-
-  resolver.$isResolver = true;
-  resolver.resolve = (handler: IContainer, requestor: IContainer) => requestor.getAll(key, searchAncestors);
-
-  return resolver as IAllResolver<T>;
-};
-export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
-  // type only hack
-  __isAll: undefined;
-  // any for decorator
-  (...args: unknown[]): any;
-};
-
-/**
- * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
- *
- * You need to make your argument a function that returns the type, for example
- * ```ts
- * class Foo {
- *   constructor( @lazy('random') public random: () => number )
- * }
- * const foo = container.get(Foo); // instanceof Foo
- * foo.random(); // throws
- * ```
- * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
- * new [['Math.random()']] number each time.
- * ```ts
- * class Foo {
- *   constructor( @lazy('random') public random: () => random )
- * }
- * container.register(Registration.callback('random', Math.random ));
- * container.get(Foo).random(); // some random number
- * container.get(Foo).random(); // another random number
- * ```
- * `@lazy` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
- * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
- *
- * - @param key [[`Key`]]
- * see { @link DI.createInterface } on interactions with interfaces
- */
-export const lazy = /*@__PURE__*/createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
-  return () => requestor.get(key);
-}) as <K extends Key>(key: K) => ILazyResolver<K>;
-export type ILazyResolver<K extends Key = Key> = IResolver<() => K>
-  // type only hack
-  & { __isLazy: undefined }
-  // any is needed for decorator usages
-  & ((...args: unknown[]) => any);
-export type IResolvedLazy<K> = () => Resolved<K>;
-
-/**
- * Allows you to optionally inject a dependency depending on whether the [[`Key`]] is present, for example
- * ```ts
- * class Foo {
- *   constructor( @inject('mystring') public str: string = 'somestring' )
- * }
- * container.get(Foo); // throws
- * ```
- * would fail
- * ```ts
- * class Foo {
- *   constructor( @optional('mystring') public str: string = 'somestring' )
- * }
- * container.get(Foo).str // somestring
- * ```
- * if you use it without a default it will inject `undefined`, so rember to mark your input type as
- * possibly `undefined`!
- *
- * - @param key: [[`Key`]]
- *
- * see { @link DI.createInterface } on interactions with interfaces
- */
-export const optional = /*@__PURE__*/createResolver((key: Key, handler: IContainer, requestor: IContainer) =>  {
-  if (requestor.has(key, true)) {
-    return requestor.get(key);
-  } else {
-    return undefined;
-  }
-}) as <K extends Key>(key: K) => IOptionalResolver<K>;
-export type IOptionalResolver<K extends Key = Key> = IResolver<K | undefined> & {
-  // type only hack
-  __isOptional: undefined;
-  // any is needed for decorator usages
-  (...args: unknown[]): any;
-};
-
-/**
- * ignore tells the container not to try to inject a dependency
- */
-export const ignore = (target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void => {
-  inject(ignore)(target, property, descriptor);
-};
-ignore.$isResolver = true;
-ignore.resolve = () => undefined;
-
-/**
- * Inject a function that will return a resolved instance of the [[key]] given.
- * Also supports passing extra parameters to the invocation of the resolved constructor of [[key]]
- *
- * For typings, it's a function that take 0 or more arguments and return an instance. Example:
- * ```ts
- * class Foo {
- *   constructor( @factory(MyService) public createService: (...args: unknown[]) => MyService)
- * }
- * const foo = container.get(Foo); // instanceof Foo
- * const myService_1 = foo.createService('user service')
- * const myService_2 = foo.createService('content service')
- * ```
- *
- * ```ts
- * class Foo {
- *   constructor( @factory('random') public createRandomizer: () => Randomizer)
- * }
- * container.get(Foo).createRandomizer(); // create a randomizer
- * ```
- * would throw an exception because you haven't registered `'random'` before calling the method. This, would give you a
- * new instance of Randomizer each time.
- *
- * `@factory` does not manage the lifecycle of the underlying key. If you want a singleton, you have to register as a
- * `singleton`, `transient` would also behave as you would expect, providing you a new instance each time.
- *
- * - @param key [[`Key`]]
- * see { @link DI.createInterface } on interactions with interfaces
- */
-export const factory = /*@__PURE__*/createResolver((key: any, handler: IContainer, requestor: IContainer) => {
-  return (...args: unknown[]) => handler.getFactory(key).construct(requestor, args);
-}) as <K>(key: K) => IFactoryResolver<K>;
-export type IFactoryResolver<K = any> = IResolver<K>
-  // type only hack
-  & { __isFactory: undefined }
-  // any is needed for decorator usage
-  & ((...args: unknown[]) => any);
-export type IResolvedFactory<K> = (...args: unknown[]) => Resolved<K>;
-
-/**
- * Create a resolver that will resolve a new instance of a key, and register the newly created instance with the requestor container
- */
-export const newInstanceForScope = /*@__PURE__*/createResolver(
-  (key: any, handler: IContainer, requestor: IContainer) => {
-    const instance = createNewInstance(key, handler, requestor);
-    const instanceProvider = new InstanceProvider<{}>(safeString(key), instance);
-    /**
-     * By default the new instances for scope are disposable.
-     * If need be, we can always enhance the `createNewInstance` to support a 'injection' context, to make a non/disposable registration here.
-     */
-    requestor.registerResolver(key, instanceProvider, true);
-
-    return instance;
-  }) as <K>(key: K) => INewInstanceResolver<K>;
-
-/**
- * Create a resolver that will resolve a new instance of a key
- */
-export const newInstanceOf = /*@__PURE__*/createResolver(
-  (key: any, handler: IContainer, requestor: IContainer) => createNewInstance(key, handler, requestor)
-) as <K>(key: K) => INewInstanceResolver<K>;
-
-export type INewInstanceResolver<T> = IResolver<T> & {
-  // type only hack
-  __newInstance: undefined;
-  // any is needed for decorator usage
-  (...args: unknown[]): any;
-};
-
-const createNewInstance = (key: any, handler: IContainer, requestor: IContainer) => {
-  // 1. if there's a factory registration for the key
-  if (handler.hasFactory(key)) {
-    return handler.getFactory(key).construct(requestor);
-  }
-  // 2. if key is an interface
-  if (isInterface(key)) {
-    const hasDefault = isFunction((key as unknown as IRegistry).register);
-    const resolver = handler.getResolver(key, hasDefault) as IResolver<Constructable<typeof key>>;
-    const factory = resolver?.getFactory?.(handler);
-    // 2.1 and has factory
-    if (factory != null) {
-      return factory.construct(requestor);
-    }
-    // 2.2 cannot instantiate a dummy interface
-    throw createMappedError(ErrorNames.invalid_new_instance_on_interface, key);
-  }
-  // 3. jit factory, in case of newInstanceOf(SomeClass)
-  return handler.getFactory(key).construct(requestor);
-};
-
 _START_CONST_ENUM();
 /** @internal */
 export const enum ResolverStrategy {
@@ -797,6 +550,13 @@ export class Resolver implements IResolver, IRegistration {
 
   private resolving: boolean = false;
 
+  /**
+   * When resolving a singleton, the internal state is changed,
+   * so cache the original constructable factory for future requests
+   * @internal
+   */
+  private _cachedFactory: IFactory | null = null;
+
   public register(container: IContainer, key?: Key): IResolver {
     return container.registerResolver(key || this._key, this);
   }
@@ -810,7 +570,7 @@ export class Resolver implements IResolver, IRegistration {
           throw createMappedError(ErrorNames.cyclic_dependency, this._state.name);
         }
         this.resolving = true;
-        this._state = handler.getFactory(this._state as Constructable).construct(requestor);
+        this._state = (this._cachedFactory = handler.getFactory(this._state as Constructable)).construct(requestor);
         this._strategy = ResolverStrategy.instance;
         this.resolving = false;
         return this._state;
@@ -841,6 +601,8 @@ export class Resolver implements IResolver, IRegistration {
         return container.getFactory(this._state as Constructable);
       case ResolverStrategy.alias:
         return container.getResolver(this._state)?.getFactory?.(container) ?? null;
+      case ResolverStrategy.instance:
+        return this._cachedFactory;
       default:
         return null;
     }
@@ -856,6 +618,51 @@ export interface IInvoker<T extends Constructable = any> {
     staticDependencies: Key[],
     dynamicDependencies: Key[]
   ): Resolved<T>;
+}
+
+export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
+  /** @internal */ private _instance: Resolved<K> | null;
+  /** @internal */ private readonly _name?: string;
+  /** @internal */ private readonly _Type: Constructable | null;
+
+  public get friendlyName() {
+    return this._name;
+  }
+
+  public constructor(
+    name?: string,
+    /**
+     * if not undefined, then this is the value this provider will resolve to
+     * until overridden by explicit prepare call
+     */
+    instance: Resolved<K> | null = null,
+    Type: Constructable | null = null,
+  ) {
+    this._name = name;
+    this._instance = instance;
+    this._Type = Type;
+  }
+
+  public prepare(instance: Resolved<K>): void {
+    this._instance = instance;
+  }
+
+  public get $isResolver(): true {return true;}
+
+  public resolve(): Resolved<K> | null {
+    if (this._instance == null) {
+      throw createMappedError(ErrorNames.no_instance_provided, this._name);
+    }
+    return this._instance;
+  }
+
+  public getFactory(container: IContainer): (K extends Constructable ? IFactory<K> : never) | null {
+    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable ? IFactory<K> : never) | null;
+  }
+
+  public dispose(): void {
+    this._instance = null;
+  }
 }
 
 /**
@@ -878,138 +685,3 @@ export class ParameterizedRegistry implements IRegistry {
     }
   }
 }
-
-/**
- * you can use the resulting {@linkcode IRegistration} of any of the factory methods
- * to register with the container, e.g.
- * ```
- * class Foo {}
- * const container = DI.createContainer();
- * container.register(Registration.instance(Foo, new Foo()));
- * container.get(Foo);
- * ```
- */
- export const Registration = {
-  /**
-   * allows you to pass an instance.
-   * Every time you request this {@linkcode Key} you will get this instance back.
-   * ```
-   * Registration.instance(Foo, new Foo()));
-   * ```
-   *
-   * @param key - key to register the instance with
-   * @param value - the instance associated with the key
-   */
-  instance: instanceRegistration,
-  /**
-   * Creates an instance from the class.
-   * Every time you request this {@linkcode Key} you will get the same one back.
-   * ```
-   * Registration.singleton(Foo, Foo);
-   * ```
-   *
-   * @param key - key to register the singleton class with
-   * @param value - the singleton class to instantiate when a container resolves the associated key
-   */
-  singleton: singletonRegistration,
-  /**
-   * Creates an instance from a class.
-   * Every time you request this {@linkcode Key} you will get a new instance.
-   * ```
-   * Registration.instance(Foo, Foo);
-   * ```
-   *
-   * @param key - key to register the transient class with
-   * @param value - the class to instantiate when a container resolves the associated key
-   */
-  transient: transientRegistation,
-  /**
-   * Creates an instance from the method passed.
-   * Every time you request this {@linkcode Key} you will get a new instance.
-   * ```
-   * Registration.callback(Foo, () => new Foo());
-   * Registration.callback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
-   * ```
-   *
-   * @param key - key to register the callback with
-   * @param callback - the callback to invoke when a container resolves the associated key
-   */
-  callback: callbackRegistration,
-  /**
-   * Creates an instance from the method passed.
-   * On the first request for the {@linkcode Key} your callback is called and returns an instance.
-   * subsequent requests for the {@linkcode Key}, the initial instance returned will be returned.
-   * If you pass the same {@linkcode Registration} to another container the same cached value will be used.
-   * Should all references to the resolver returned be removed, the cache will expire.
-   * ```
-   * Registration.cachedCallback(Foo, () => new Foo());
-   * Registration.cachedCallback(Bar, (c: IContainer) => new Bar(c.get(Foo)));
-   * ```
-   *
-   * @param key - key to register the cached callback with
-   * @param callback - the cache callback to invoke when a container resolves the associated key
-   */
-  cachedCallback: cachedCallbackRegistration,
-  /**
-   * creates an alternate {@linkcode Key} to retrieve an instance by.
-   * Returns the same scope as the original {@linkcode Key}.
-   * ```
-   * Register.singleton(Foo, Foo)
-   * Register.aliasTo(Foo, MyFoos);
-   *
-   * container.getAll(MyFoos) // contains an instance of Foo
-   * ```
-   *
-   * @param originalKey - the real key to resolve the get call from a container
-   * @param aliasKey - the key that a container allows to resolve the real key associated
-   */
-  aliasTo: aliasToRegistration,
-  /**
-   * @internal
-   * @param key - the key to register a defer registration
-   * @param params - the parameters that should be passed to the resolution of the key
-   */
-  defer: deferRegistration,
-};
-
-export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
-  /** @internal */ private _instance: Resolved<K> | null = null;
-  /** @internal */ private readonly _name?: string;
-
-  public get friendlyName() {
-    return this._name;
-  }
-
-  public constructor(
-    name?: string,
-    /**
-     * if not undefined, then this is the value this provider will resolve to
-     * until overridden by explicit prepare call
-     */
-    instance?: Resolved<K> | null,
-  ) {
-    this._name = name;
-    if (instance !== void 0) {
-      this._instance = instance;
-    }
-  }
-
-  public prepare(instance: Resolved<K>): void {
-    this._instance = instance;
-  }
-
-  public get $isResolver(): true {return true;}
-
-  public resolve(): Resolved<K> | null {
-    if (this._instance == null) {
-      throw createMappedError(ErrorNames.no_instance_provided, this._name);
-    }
-    return this._instance;
-  }
-
-  public dispose(): void {
-    this._instance = null;
-  }
-}
-
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;

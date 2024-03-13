@@ -1,4 +1,4 @@
-import { DI, IContainer, IIndexable, Registration, resolve } from '@aurelia/kernel';
+import { DI, IIndexable, factory, resolve } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { IFetchInterceptor } from './interfaces';
 import { RetryInterceptor } from './interceptors';
@@ -16,19 +16,7 @@ export const IFetchFn = /*@__PURE__*/DI.createInterface<typeof fetch>('fetch', x
   return x.instance(fetch);
 });
 
-export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.cachedCallback((handler) => {
-  // reason for this gymnastic is because the way fetch-client is used in applications
-  // there's no registration, there's only direct usage
-  // which means application won't have the opportunity to register IHttpClient and HttpClient properly
-  // app may inject HttpClient in some places and IHttpClient in some other
-  // so we need to make sure HttpClient and IHttpClient are the same instance
-  if (handler.has(HttpClient, false)) {
-    return handler.get(HttpClient);
-  }
-  const client = handler.invoke(HttpClient);
-  handler.register(Registration.instance(HttpClient, client));
-  return client;
-}));
+export const IHttpClient = /*@__PURE__*/DI.createInterface<IHttpClient>('IHttpClient', x => x.aliasTo(HttpClient));
 
 export interface IHttpClient extends HttpClient {}
 /**
@@ -77,7 +65,7 @@ export class HttpClient {
   private _dispatcher: Node | null = null;
 
   /** @internal */
-  private readonly _container = resolve(IContainer);
+  private readonly _createConfiguration = resolve(factory(HttpClientConfiguration));
   /** @internal */
   private readonly _fetchFn = resolve(IFetchFn);
 
@@ -96,7 +84,7 @@ export class HttpClient {
       const requestInitConfiguration = { defaults: config as RequestInit };
       normalizedConfig = requestInitConfiguration as HttpClientConfiguration;
     } else if (typeof config === 'function') {
-      normalizedConfig = this._container.invoke(HttpClientConfiguration);
+      normalizedConfig = this._createConfiguration();
       normalizedConfig.baseUrl = this.baseUrl;
       normalizedConfig.defaults = { ...this.defaults };
       normalizedConfig.interceptors = this._interceptors;

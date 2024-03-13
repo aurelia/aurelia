@@ -125,6 +125,10 @@ describe('1-kernel/di.invoke.spec.ts', function () {
     assert.strictEqual(v1, 2);
   });
 
+  it('throws when invoking intrinsic types', function () {
+    assert.throws(() => container.invoke(String));
+  });
+
   describe('inheritance', function () {
     it('works with a list of keys', function () {
       let i = 0;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable import/no-extraneous-dependencies */
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
@@ -19,8 +20,8 @@ export function loader(
   contents: string,
   _preprocess = preprocess // for testing
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
-  this.cacheable && this.cacheable();
+  // eslint-disable-next-line
+  this.cacheable?.();
   // @ts-ignore TODO: fix types
   const cb = this.async() as webpack.loader.loaderCallback;
   const options = getOptions(this) as IOptionalPreprocessOptions;

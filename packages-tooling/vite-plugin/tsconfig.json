@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig-build.json",
   "compilerOptions": {
+    "module": "esnext",
     "rootDir": "src",
     "declarationDir": "dist/types",
     "outDir": "dist/cjs",

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, ResourceDefinition, ResourceType, noop, Key } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources } from '@aurelia/kernel';
 import { IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -26,11 +26,10 @@ import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
-import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand } from '../resources/binding-command';
+import { BindingCommandInstance, ICommandBuildInfo, ctIgnoreAttr, BindingCommand, BindingCommandDefinition } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, allResources, createInterface, singletonRegistration } from '../utilities-di';
+import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from '../utilities-dom';
-import { appendResourceKey, defineMetadata, getResourceKeyFor } from '../utilities-metadata';
 import { oneTime, type BindingMode, toView, fromView, twoWay, defaultMode } from '../binding/interfaces-bindings';
 
 import type {
@@ -76,7 +75,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === TEMPLATE_NODE_NAME && (template as HTMLTemplateElement).content != null;
     const content = isTemplateElement ? (template as HTMLTemplateElement).content : template;
-    const hooks = container.get(allResources(ITemplateCompilerHooks));
+    const hooks = TemplateCompilerHooks.findAll(container);
     const ii = hooks.length;
     let i = 0;
     if (ii > 0) {
@@ -92,7 +91,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
-    return CustomElementDefinition.create({
+    const compiledDef = CustomElementDefinition.create({
       ...partialDefinition,
       name: partialDefinition.name || generateElementName(),
       dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
@@ -104,6 +103,24 @@ export class TemplateCompiler implements ITemplateCompiler {
       hasSlots: context.hasSlot,
       needsCompile: false,
     });
+
+    if (context.deps != null) {
+      // if we have a template like this
+      //
+      // my-app.html
+      // <template as-custom-element="le-1">
+      //  <le-2></le-2>
+      // </template>
+      // <template as-custom-element="le-2">...</template>
+      //
+      // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
+      const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies, ...context.deps];
+      for (const localElementType of context.deps) {
+        (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType));
+      }
+    }
+
+    return compiledDef;
   }
 
   public compileSpread(
@@ -1479,7 +1496,6 @@ export class TemplateCompiler implements ITemplateCompiler {
       throw createMappedError(ErrorNames.compiler_template_only_local_template, elName);
     }
     const localTemplateNames: Set<string> = new Set();
-    const localElTypes: CustomElementType[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1527,26 +1543,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       }, {});
       class LocalTemplateType {}
       def(LocalTemplateType, 'name', { value: name });
-      localElTypes.push(LocalTemplateType);
-      context._addDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
+      context._addLocalDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
 
       root.removeChild(localTemplate);
-    }
-
-    // if we have a template like this
-    //
-    // my-app.html
-    // <template as-custom-element="le-1">
-    //  <le-2></le-2>
-    // </template>
-    // <template as-custom-element="le-2">...</template>
-    //
-    // eagerly registering depdendencies inside the loop above
-    // will make `<le-1/>` miss `<le-2/>` as its dependency
-
-    const allDeps = [...context.def.dependencies ?? emptyArray, ...localElTypes];
-    for (const Type of localElTypes) {
-      (getElementDefinition(Type).dependencies as Key[]).push(allDeps.filter(d => d !== Type));
     }
   }
 
@@ -1687,7 +1686,7 @@ class CompilationContext {
   public readonly rows: IInstruction[][];
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
-  public deps: unknown[] | undefined;
+  public deps: CustomElementType[] | undefined;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1717,9 +1716,10 @@ class CompilationContext {
     this.rows = instructions ?? [];
   }
 
-  public _addDep(dep: unknown) {
+  public _addLocalDep(dep: CustomElementType) {
     (this.root.deps ??= []).push(dep);
     this.root.c.register(dep);
+    return dep;
   }
 
   public _text(text: string) {
@@ -1752,14 +1752,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return this.c.find(CustomElement, name);
+    return CustomElement.find(this.c, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return this.c.find(CustomAttribute, name);
+    return CustomAttribute.find(this.c, name);
   }
 
   /**
@@ -1790,12 +1790,13 @@ class CompilationContext {
       return null;
     }
     let result = this._commands[name];
+    let commandDef: BindingCommandDefinition | null;
     if (result === void 0) {
-      result = this.c.create(BindingCommand, name) as BindingCommandInstance;
-      if (result === null) {
+      commandDef = BindingCommand.find(this.c, name);
+      if (commandDef == null) {
         throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
       }
-      this._commands[name] = result;
+      this._commands[name] = result = BindingCommand.get(this.c, name);
     }
     return result;
   }
@@ -1962,33 +1963,17 @@ export interface ITemplateCompilerHooks {
   compiling?(template: HTMLElement): void;
 }
 
-const typeToHooksDefCache = new WeakMap<Constructable, TemplateCompilerHooksDefinition<{}>>();
-const hooksBaseName = /*@__PURE__*/getResourceKeyFor('compiler-hooks');
-
 export const TemplateCompilerHooks = objectFreeze({
-  name: hooksBaseName,
+  name: /*@__PURE__*/getResourceKeyFor('compiler-hooks'),
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
-    let def = typeToHooksDefCache.get(Type);
-    if (def === void 0) {
-      typeToHooksDefCache.set(Type, def = new TemplateCompilerHooksDefinition(Type));
-      defineMetadata(hooksBaseName, def, Type);
-      appendResourceKey(Type, hooksBaseName);
-    }
-    return Type;
+    return Registrable.define(Type, function (container) {
+      singletonRegistration(ITemplateCompilerHooks, this).register(container);
+    });
+  },
+  findAll(container: IContainer): readonly ITemplateCompilerHooks[] {
+    return container.get(allResources(ITemplateCompilerHooks));
   }
 });
-
-class TemplateCompilerHooksDefinition<T extends {}> implements ResourceDefinition<Constructable<T>, ITemplateCompilerHooks> {
-  public get name(): string { return ''; }
-
-  public constructor(
-    public readonly Type: ResourceType<Constructable<T>, ITemplateCompilerHooks>,
-  ) {}
-
-  public register(c: IContainer) {
-    c.register(singletonRegistration(ITemplateCompilerHooks, this.Type));
-  }
-}
 
 /**
  * Decorator: Indicates that the decorated class is a template compiler hooks.
@@ -1998,10 +1983,10 @@ class TemplateCompilerHooksDefinition<T extends {}> implements ResourceDefinitio
  */
 /* eslint-disable */
 // deepscan-disable-next-line
-export const templateCompilerHooks = (target?: Function) => {
+export const templateCompilerHooks = <T extends Constructable>(target?: T) => {
   return target === void 0 ? decorator : decorator(target);
-  function decorator(t: Function): any {
-    return TemplateCompilerHooks.define(t as Constructable) as unknown as void;
+  function decorator<T extends Constructable>(t: T): any {
+    return TemplateCompilerHooks.define(t) as unknown as void;
   };
 }
 /* eslint-enable */
@@ -2050,3 +2035,13 @@ const enum Char {
   // Question       = 0x3F,
 }
 _END_CONST_ENUM();
+
+// eslint-disable-next-line
+function apiTest() {
+
+  @templateCompilerHooks()
+  @templateCompilerHooks
+  class Abc {}
+
+  return Abc;
+}

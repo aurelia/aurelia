@@ -1,7 +1,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
 import { isFunction, objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
@@ -114,19 +113,18 @@ class WatchDefinition<T extends object> implements IWatchDefinition<T> {
   ) {}
 }
 
-const noDefinitions: IWatchDefinition[] = emptyArray;
-const watchBaseName = getAnnotationKeyFor('watch');
-
-export const Watch = objectFreeze({
-  name: watchBaseName,
-  add(Type: Constructable, definition: IWatchDefinition): void {
-    let watchDefinitions: IWatchDefinition[] = getOwnMetadata(watchBaseName, Type);
-    if (watchDefinitions == null) {
-      defineMetadata(watchBaseName, watchDefinitions = [], Type);
+export const Watch = /*@__PURE__*/(() => {
+  const watches = new WeakMap<Constructable, IWatchDefinition[]>();
+  return objectFreeze({
+    add(Type: Constructable, definition: IWatchDefinition): void {
+      let defs = watches.get(Type);
+      if (defs == null) {
+        watches.set(Type, defs = []);
+      }
+      defs.push(definition);
+    },
+    getDefinitions(Type: Constructable): IWatchDefinition[] {
+      return watches.get(Type) ?? emptyArray;
     }
-    watchDefinitions.push(definition);
-  },
-  getAnnotation(Type: Constructable): IWatchDefinition[] {
-    return getOwnMetadata(watchBaseName, Type) ?? noDefinitions;
-  },
-});
+  });
+})();

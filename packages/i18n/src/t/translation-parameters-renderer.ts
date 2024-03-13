@@ -29,7 +29,7 @@ const attribute = 't-params.bind';
 
 @attributePattern({ pattern: attribute, symbols: '' })
 export class TranslationParametersAttributePattern {
-  public [attribute](rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
+  public [attribute](rawName: string, rawValue: string): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, '', attribute);
   }
 }

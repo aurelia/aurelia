@@ -5,7 +5,9 @@
  *
  */
 /**
- * @internal - Shouldn't be used directly
+ * Shouldn't be used directly
+ *
+ * @internal
  */
 export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: T[]) => boolean): T[] {
   const removed: T[] = [];
@@ -24,6 +26,9 @@ export function arrayUnique<T>(arr: T[], includeNullish = false): T[] {
   return arr.filter((item, i, arrAgain) => (includeNullish || item != null) && arrAgain.indexOf(item) === i);
 }
 
+/**
+ * @internal
+ */
 export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callback?: (value: T) => T): T | Promise<T> {
   // If we've got a Promise, wait for it's resolve
   if (value instanceof Promise) {
@@ -41,10 +46,13 @@ export function resolvePossiblePromise<T = unknown>(value: T | Promise<T>, callb
   return value;
 }
 
+/** @internal */
 export function deprecationWarning(oldFeature: string, newFeature: string) {
+  // eslint-disable-next-line no-console
   console.warn(`[Deprecated] The ${oldFeature} has been deprecated. Please use the ${newFeature} instead.`);
 }
 
+/** @internal */
 export function tryStringify(value: unknown): string {
   try {
     return JSON.stringify(value);

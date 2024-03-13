@@ -260,7 +260,7 @@ export class Viewport extends Endpoint {
     const nextContent = new ViewportContent(this.router, this, this.owningScope, this.scope.hasScope, !this.clear ? instruction : void 0, navigation, this.connectedCE ?? null);
     this.contents.push(nextContent);
 
-    nextContent.fromHistory = nextContent.componentInstance !== null && navigation.navigation
+    nextContent.fromHistory = nextContent.componentInstance !== null && navigation.navigation != null
       ? !!navigation.navigation.back || !!navigation.navigation.forward
       : false;
 
@@ -312,8 +312,7 @@ export class Viewport extends Endpoint {
     // ReloadBehavior is now 'default'
 
     // Requires updated parameters if viewport stateful
-    if (this.options.stateful &&
-      content.equalParameters(nextContent)) {
+    if (this.options.stateful && content.equalParameters(nextContent)) {
       nextContent.delete();
       this.contents.splice(this.contents.indexOf(nextContent), 1);
       return this.transitionAction = 'skip';
@@ -354,22 +353,31 @@ export class Viewport extends Endpoint {
       this.clearState();
       this.connectedCE = connectedCE;
       this.options.apply(options);
-      if (this.connectionResolve != null) {
-        this.connectionResolve();
-      }
+      this.connectionResolve?.();
     }
 
     const parentDefaultRoute = (this.scope.parent?.endpoint.getRoutes() ?? [])
       .filter(route => (Array.isArray(route.path) ? route.path : [route.path]).includes(''))
       .length > 0;
-    if (this.getContent().componentInstance === null && this.getNextContent()?.componentInstance == null && (this.options.default || parentDefaultRoute)) {
+
+    if (this.getContent().componentInstance === null
+      && this.getNextContent()?.componentInstance == null
+      && (this.options.default || parentDefaultRoute)
+    ) {
       const instructions = RoutingInstruction.parse(this.router, this.options.default ?? '');
+
       if (instructions.length === 0 && parentDefaultRoute) {
-        const foundRoute = this.scope.parent?.findInstructions([RoutingInstruction.create('') as RoutingInstruction], false, this.router.configuration.options.useConfiguredRoutes);
+        const foundRoute = this.scope.parent?.findInstructions(
+          [RoutingInstruction.create('') as RoutingInstruction],
+          false,
+          this.router.configuration.options.useConfiguredRoutes
+        );
+
         if (foundRoute?.foundConfiguration) {
           instructions.push(...foundRoute.instructions);
         }
       }
+
       for (const instruction of instructions) {
         // Set to name to be delayed one turn (refactor: not sure why, so changed it)
         instruction.endpoint.set(this);
@@ -1070,7 +1078,12 @@ export class Viewport extends Endpoint {
     const owningScope = this.owningScope;
     const hasScope = this.scope.hasScope;
     this.getContent().delete();
-    this.contents.shift(); if (this.contents.length < 1) { throw new Error('no content!'); }
+    this.contents.shift();
+
+    if (this.contents.length < 1) {
+      throw new Error('no content!');
+    }
+
     this.contents.push(new ViewportContent(this.router, this, owningScope, hasScope));
     this.cache = [];
   }

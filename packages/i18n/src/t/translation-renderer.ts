@@ -25,11 +25,11 @@ import { etIsProperty, ctNone, bmToView } from '../utils';
 export const TranslationInstructionType = 'tt';
 
 export class TranslationAttributePattern {
-  [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
+  [key: string]: ((rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax);
 
   public static registerAlias(alias: string) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    this.prototype[alias] = function (rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    this.prototype[alias] = function (rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
       return new AttrSyntax(rawName, rawValue, '', alias);
     };
   }
@@ -89,11 +89,11 @@ export class TranslationBindingRenderer implements IRenderer {
 export const TranslationBindInstructionType = 'tbt';
 
 export class TranslationBindAttributePattern {
-  [key: string]: ((rawName: string, rawValue: string, parts: string[]) => AttrSyntax);
+  [key: string]: ((rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax);
 
   public static registerAlias(alias: string) {
     const bindPattern = `${alias}.bind`;
-    this.prototype[bindPattern] = function (rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+    this.prototype[bindPattern] = function (rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
       return new AttrSyntax(rawName, rawValue, parts[1], bindPattern);
     };
   }

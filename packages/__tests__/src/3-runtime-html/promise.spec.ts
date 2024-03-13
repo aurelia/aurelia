@@ -458,7 +458,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
     for (const [pattribute, fattribute, rattribute] of [
       ['promise.bind', 'then.from-view', 'catch.from-view'],
       // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-      // ['promise.resolve', 'then', 'catch']
+      ['promise.resolve', 'then', 'catch']
     ]) {
       const templateDiv = `
       <div ${pattribute}="promise">

@@ -123,7 +123,8 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     input: inputFile,
     external: Object.keys(pkg.dependencies ?? {})
       .concat(Object.keys(pkg.devDependencies ?? {}))
-      .concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream'),
+      .concat('os', 'path', 'fs', 'http', 'https', 'http2', 'url', 'stream')
+      .concat('node:module', 'node:path'),
     output: [
       {
         file: esmDist,

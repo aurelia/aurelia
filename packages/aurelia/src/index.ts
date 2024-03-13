@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, IHydratedParentController, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import type { ISinglePageApp, IEnhancementConfig } from '@aurelia/runtime-html';
 
@@ -23,19 +23,19 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageApp<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
-  public static enhance<T extends ICustomElementViewModel>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController): ReturnType<$Aurelia['enhance']> {
-    return new Aurelia().enhance(config, parentController);
+  public static enhance<T extends ICustomElementViewModel>(config: IEnhancementConfig<T>): ReturnType<$Aurelia['enhance']> {
+    return new Aurelia().enhance(config);
   }
 
   public static register(...params: readonly unknown[]): Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageApp<object> | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config);
@@ -495,7 +495,7 @@ export {
   Bindable,
   coercer,
 
-  PartialChildrenDefinition,
+  type PartialChildrenDefinition,
   // Children,
   children,
 
@@ -546,7 +546,6 @@ export {
   // IIteratorBindingInstruction,
   // ILetBindingInstruction,
   // IInstructionRow,
-  // InstructionTypeName,
   // IPropertyBindingInstruction,
   // IRefBindingInstruction,
   // ISetPropertyInstruction,
@@ -584,7 +583,7 @@ export {
 
   IFlushQueue,
   FlushQueue,
-  IFlushable,
+  type IFlushable,
 
   renderer,
 
@@ -667,7 +666,7 @@ export {
 
   // Subject,
   // Compose,
-  IAuSlot,
+  type IAuSlot,
   IAuSlotsInfo,
   AuSlotsInfo,
   IAuSlotWatcher,
@@ -683,7 +682,6 @@ export {
   // CompiledTemplate,
   ChildrenBinding,
   // IRenderer,
-  // IInstructionTypeClassifier,
   // IRenderingEngine,
   // ITemplate,
   ITemplateCompiler,

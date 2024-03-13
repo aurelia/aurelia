@@ -1,6 +1,6 @@
 import { FoundRoute } from '../found-route';
 import { IRoutingInstruction } from '../interfaces';
-import { IDisposable, IEventAggregator } from '@aurelia/kernel';
+import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler';
 import { IRouter, RouterNavigationEndEvent } from '../router';
@@ -27,16 +27,11 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   private routerNavigationSubscription!: IDisposable;
 
-  private readonly activeClass: string;
-
-  public constructor(
-    @INode private readonly element: INode<Element>,
-    @IRouter private readonly router: IRouter,
-    @ILinkHandler private readonly linkHandler: ILinkHandler,
-    @IEventAggregator private readonly ea: IEventAggregator,
-  ) {
-    this.activeClass = this.router.configuration.options.indicators.loadActive;
-  }
+  private readonly element = resolve(INode) as HTMLElement;
+  private readonly router = resolve(IRouter);
+  private readonly linkHandler = resolve(ILinkHandler);
+  private readonly ea = resolve(IEventAggregator);
+  private readonly activeClass = this.router.configuration.options.indicators.loadActive;
 
   public binding(): void {
     if (this.value == null) {
@@ -101,8 +96,8 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     const found = this._findRoute(routeValue as IRoute);
     const instructions = found.foundConfiguration
       ? found.instructions
-      : getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
-    const element = getLoadIndicator(this.element as HTMLElement);
+      : getConsideredActiveInstructions(this.router, controller, this.element, this.value);
+    const element = getLoadIndicator(this.element);
 
     element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
   }

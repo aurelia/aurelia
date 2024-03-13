@@ -1,4 +1,4 @@
-import { IDisposable, IEventAggregator } from '@aurelia/kernel';
+import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
 import { customAttribute, INode, bindable, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router';
 import { LoadCustomAttribute } from '../index';
@@ -16,16 +16,12 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   private routerNavigationSubscription?: IDisposable;
-  private readonly activeClass: string;
 
-  public constructor(
-    @INode private readonly element: INode<Element>,
-    @IRouter private readonly router: IRouter,
-    @ILinkHandler private readonly linkHandler: ILinkHandler,
-    @IEventAggregator private readonly ea: IEventAggregator,
-  ) {
-    this.activeClass = this.router.configuration.options.indicators.loadActive;
-  }
+  private readonly element = resolve(INode) as HTMLElement;
+  private readonly router = resolve(IRouter);
+  private readonly linkHandler = resolve(ILinkHandler);
+  private readonly ea = resolve(IEventAggregator);
+  private readonly activeClass = this.router.configuration.options.indicators.loadActive;
 
   public binding(): void {
     if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
@@ -56,8 +52,8 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   private updateActive(): void {
     if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
       const controller = CustomAttribute.for(this.element, 'href')!.parent!;
-      const instructions = getConsideredActiveInstructions(this.router, controller, this.element as HTMLElement, this.value);
-      const element = getLoadIndicator(this.element as HTMLElement);
+      const instructions = getConsideredActiveInstructions(this.router, controller, this.element, this.value);
+      const element = getLoadIndicator(this.element);
 
       element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
     }

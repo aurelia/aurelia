@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, resolve } from '@aurelia/kernel';
 import { IWindow, CustomAttribute } from '@aurelia/runtime-html';
 import { LoadCustomAttribute } from './load';
 import { IRouter } from '../router';
@@ -11,10 +11,8 @@ export interface ILinkHandler extends LinkHandler { }
  * Class responsible for handling interactions that should trigger navigation.
  */
 export class LinkHandler implements EventListenerObject {
-  public constructor(
-    @IWindow private readonly window: IWindow,
-    @IRouter private readonly router: IRouter,
-  ) { }
+  private readonly window = resolve(IWindow);
+  private readonly router = resolve(IRouter);
 
   public handleEvent(e: Event): void {
     this.handleClick(e as MouseEvent);

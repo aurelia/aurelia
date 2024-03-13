@@ -145,7 +145,11 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     }
   }
 
-  /** @internal */
+  /**
+   * Entry trigger for when the view value gets changed, either from user input or view model prop changes
+   *
+   * @internal
+   */
   public _onUpdateSource() {
     this.isDirty = true;
     const event = this.triggerEvent;

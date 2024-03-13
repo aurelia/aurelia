@@ -13,7 +13,7 @@ The `au-compose` element can render any custom element given to its `component` 
 A basic example is:
 
 {% code title="my-app.html" %}
-```markup
+```html
 <au-compose component.bind="MyField"></au-compose>
 ```
 {% endcode %}
@@ -33,7 +33,27 @@ export class App {
 
 {% hint style="info" %}
 With a custom element as a view model, all standard lifecycles and `activate` will be called during the composition.
+
+`activate` will be called right after `constructor`, before all other lifecycles.
 {% endhint %}
+
+### Composition with string as custom element name
+
+When using a string value for `component` binding on `<au-compose>`, the value will be understood as a custom element name, and will be used to lookup the actual element definition.
+If there's no element definition found either locally or globally, an error will be thrown.
+
+The following usages are valid:
+
+```html
+<import from="./my-input"></import>
+
+<au-compose component="my-input">
+```
+
+or, suppose `my-input` is a globally available custom element:
+```html
+<au-compose component="my-input">
+```
 
 ## Composing Without a Custom Element
 
@@ -41,7 +61,7 @@ Composing using a custom element definition is not always necessary or convenien
 
 An example of template-only composition:
 
-```markup
+```html
 <au-compose template="<p>Hello world</p>"></au-compose>
 ```
 
@@ -49,27 +69,60 @@ We use the `<au-compose>` element inside our template and pass through a view to
 
 During a composition, this HTML string is processed by the Aurelia template compiler to produce necessary parts for UI composition and renders it inside the `<au-compose>` element.
 
-Combining simple view and literal object as view model, we can also have powerful rendering without boilerplate:
+Combining simple template and literal object as the component instance, we can also have powerful rendering without boilerplate:
 
-```markup
+```html
 <au-compose repeat.for="i of 5" component.bind="{ value: i }" template="<div>\\${value}</div>"></au-compose>
 ```
 
 {% hint style="info" %}
-When composing without a custom element as a view model, the result component will use the parent scope as its scope unless `scope-behavior` is set to `scoped`
+When composing without a custom element as a the component view model, the resulted component will use the parent scope as its scope unless `scope-behavior` is set to `scoped`
 {% endhint %}
+
+### Customized host element
+
+When composing a custom element as component, a host element will be created based on the custom element name (e.g `my-input` results in `<my-input>`).
+For non custom element composition, a comment will be created as the host, like in the following example:
+
+{% code title="my-component.html" %}
+```html
+<au-compose template="<input class='input-field' value.bind='value'">
+```
+{% endcode %}
+
+The rendered HTML will be:
+
+```html
+<!--au-start--><input class='input-field'><!--au-end-->
+```
+
+the comments `<!--au-start-->` and `<!--au-end-->` are the boundary of the composed html. Though sometimes it's desirable to have a real HTML element as the host. This can be achieved via the `tag` bindable property on the `<au-compose>` element. For example, in the same scenario above, we want to wrap the `<input class='input-field'>` in a `<div>` element with class `form-field`:
+
+{% code title="my-component.html" %}
+```html
+<au-compose tag='div' class='form-field' template="<input class='input-field' value.bind='value'">
+```
+{% endcode %}
+
+The rendered HTML will be:
+
+```html
+<div class='form-field'><input class='input-field'></div>
+```
+
+This behavior can be used to switch between different host elements when necessary, all bindings declared on `<au-compose>` will be transferred to the newly created host element if there is one.
 
 ## Passing Data Through `model.bind`
 
 `activate` method on the view model, regardless of whether a custom element or a plain object is provided, will be called during the first composition and subsequent changes of the `model` property on the `<au-compose>` element.
 
-```HTML
+```html
 <au-compose model.bind="myObject"></au-compose>
 ```
 
 You can also pass an object inline from the template:
 
-```HTML
+```html
 <au-compose model.bind="{myProp: 'value', test: 'something'}"></au-compose>
 ```
 
@@ -84,7 +137,7 @@ export class MyComponent {
 ```
 ## When to Use Dynamic Composition Over Components
 
-Dynamic composition in Aurelia is a powerful feature allowing greater flexibility in rendering components or views dynamically based on runtime conditions. However, it's important to understand when using dynamic composition (<au-compose>) over standard components is more appropriate. Here are some scenarios where dynamic composition can be particularly advantageous:
+Dynamic composition in Aurelia is a powerful feature allowing greater flexibility in rendering components or views dynamically based on runtime conditions. However, it's important to understand when using dynamic composition (`<au-compose>`) over standard components is more appropriate. Here are some scenarios where dynamic composition can be particularly advantageous:
 
 ### Dynamic Content Based on User Input or State
 When the content of your application needs to change dynamically based on user interactions or application state, dynamic composition is a great fit. For example, in a dashboard application where different widgets must be displayed based on user preferences, `<au-compose>` can dynamically load these widgets.
@@ -104,12 +157,11 @@ In scenarios where passing numerous parameters to a component could make its int
 ### Decoupling of Component Logic
 Dynamic composition can help decouple the logic of which component to display from the display logic itself. This separation of concerns can make your codebase more maintainable and easier to test.
 
-## Accessing the view model
-In some scenarios, you may want to access the view model of the rendered component using `<au-compose>`. We can achieve this by adding the `component.ref`(known as `view-model.ref` in v1) binding to our compose element.
-
 ### Reduce Initial Load Time
 If your application is large and you want to reduce the initial load time, dynamic composition can be used to load components on demand. This lazy loading of components can significantly improve performance, especially for single-page applications with many features.
 
+## Accessing the view model
+In some scenarios, you may want to access the view model of the rendered component using `<au-compose>`. We can achieve this by adding the `component.ref`(known as `view-model.ref` in v1) binding to our compose element.
 
 ```html
 <au-compose component.ref="myCompose"></au-compose>
@@ -182,18 +234,17 @@ If you still want a view supporting a dynamically loaded module, you can create 
 The above value converter will load the URL and return the text response. For view models, something similar can be achieved where an object or class can be returned.
 
 3. In Aurelia 2, all bindings are transferred to the underlying custom element composition. Therefore, `component.ref` no longer signifies obtaining a reference to the composer but rather to the composed view model.
-4. 
-### Scope-breaking changes
+4. Scope-breaking changes
 
-By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when no custom element is composed. This means the outer scope will be used when composing only a view or plain object as the view model.
+    By default, when composing, the outer scope will not be inherited. The parent scope will only be inherited when no custom element is composed. This means the outer scope will be used when composing only a view or plain object as the view model.
 
-You can disable this behaviour using the `scope-behavior` attribute.
+    You can disable this behaviour using the `scope-behavior` attribute.
 
-```markup
-  <au-compose scope-behavior="scoped">
-```
+    ```html
+      <au-compose scope-behavior="scoped">
+    ```
 
-**Possible values are:**
+    **Possible values are:**
 
-* auto: in view only composition: inherit the parent scope
-* scoped: never inherit parent scope even in view only composition
+    * auto: in view only composition: inherit the parent scope
+    * scoped: never inherit parent scope even in view only composition

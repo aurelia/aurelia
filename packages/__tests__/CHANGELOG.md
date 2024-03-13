@@ -3,6 +3,58 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### Features:
+
+* **enhance:** call app tasks with `.enhance` API (#1916) ([4d522b2](https://github.com/aurelia/aurelia/commit/4d522b2))
+* **au-compose:** ability to compose string as element name (#1913) ([06aa113](https://github.com/aurelia/aurelia/commit/06aa113))
+
+
+### Bug Fixes:
+
+* **router:** prevent multiple navigation at the same time (#1895) ([deed11e](https://github.com/aurelia/aurelia/commit/deed11e))
+* **router:** properly handle false in conditional router hooks (#1900) ([a671463](https://github.com/aurelia/aurelia/commit/a671463))
+* **di:** dont jit register resources [skip ci] ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+* ***:** tweak typings of injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** use ?? instead of || ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** typings for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** injectable token resolver ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+
+### Refactorings:
+
+* ***:** cleanup (#1912) ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* ***:** cleanup (#1908) ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **router:** use resolve ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** better type inferrence for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* ***:** simplify container has, cleanup router ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **au-compose:** always create host for non custom element composition (#1906) ([8a28e0a](https://github.com/aurelia/aurelia/commit/8a28e0a))
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Features:
+
+* **event:** ability to add modifier (#1891) ([67a3c22](https://github.com/aurelia/aurelia/commit/67a3c22))
+* **runtime:** impl 'this' / AccessBoundary (#1892) ([6d3d250](https://github.com/aurelia/aurelia/commit/6d3d250))
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* **i18n:** ability to unsubscribe locale change ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+* **templating:** custom element takes priority over custom attribute (#1897) ([e8b2c80](https://github.com/aurelia/aurelia/commit/e8b2c80))
+* ***:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Refactorings:
+
+* **fetch-client:** cleanup, add tests, tweak doc & prepare cache interceptor (#1756) ([a931dac](https://github.com/aurelia/aurelia/commit/a931dac))
+* **controller:** remove define lifecycle hook (#1899) ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

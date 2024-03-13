@@ -22,7 +22,7 @@ export function preprocessHtmlTemplate(
 ): ModifyCodeResult {
   const name = resourceName(unit.path);
   const stripped = stripMetaData(unit.contents);
-  const { html, deps, containerless, hasSlot, bindables, aliases, capture } = stripped;
+  const { html, deps, depsAliases, containerless, hasSlot, bindables, aliases, capture } = stripped;
   let { shadowMode } = stripped;
 
   if (unit.filePair) {
@@ -43,12 +43,14 @@ export function preprocessHtmlTemplate(
   const cssDeps: string[] = [];
   const statements: string[] = [];
   let registrationImported = false;
+  let aliasedModule = 0;
 
   if (shadowMode === null && hasSlot) {
     // todo: what here? need to combine information with custom element before warning/throwing
   }
 
   deps.forEach((d, i) => {
+    const aliases = depsAliases[d] ?? {};
     let ext = path.extname(d);
 
     if (!ext) {
@@ -65,13 +67,35 @@ export function preprocessHtmlTemplate(
 
     // All known resource types
     if (!ext || ext === '.js' || ext === '.ts') {
+      const { __MAIN__: main, ...others } = aliases;
+      const hasAliases = main != null || Object.keys(others).length > 0;
+      if (hasAliases && aliasedModule++ === 0) {
+        statements.push(`import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';\n`);
+      }
       statements.push(`import * as d${i} from ${s(d)};\n`);
-      viewDeps.push(`d${i}`);
+      if (hasAliases) {
+        viewDeps.push(`$$arr(d${i}, ${JSON.stringify(main)}${Object.keys(others).length > 0 ? `, ${JSON.stringify(others)}` : ''})`);
+      } else {
+        viewDeps.push(`d${i}`);
+      }
       return;
     }
+
+    // <import from="some.html">
     if (options.templateExtensions.includes(ext)) {
+      const { __MAIN__: main } = aliases;
+      const hasAliases = main != null;
+      if (hasAliases && aliasedModule++ === 0) {
+        statements.push(`import { aliasedResourcesRegistry as $$arr } from '@aurelia/kernel';\n`);
+        statements.push(`function __get_el__(m) { let e; m.register({ register(el) { e = el; } }); return { default: e }; }\n`);
+      }
       statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);
-      viewDeps.push(`d${i}`);
+
+      if (hasAliases) {
+        viewDeps.push(`$$arr(__get_el__(d${i}), ${JSON.stringify(main)})`);
+      } else {
+        viewDeps.push(`d${i}`);
+      }
       return;
     }
 

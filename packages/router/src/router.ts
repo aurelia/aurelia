@@ -5,7 +5,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol } from '@aurelia/kernel';
+import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol, ILogger, resolve } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces';
 import { Navigator, NavigatorNavigateEvent } from './navigator';
@@ -183,6 +183,21 @@ export class Router implements IRouter {
   private navigatorStateChangeEventSubscription!: IDisposable;
   private navigatorNavigateEventSubscription!: IDisposable;
 
+  /**
+   * Is processing navigation
+   *
+   * @internal
+   */
+  private _isProcessingNav: boolean = false;
+  /**
+   * Pending navigation
+   *
+   * @internal
+   */
+  private _pendingNavigation?: NavigatorNavigateEvent;
+  /** @internal */
+  private readonly _logger = resolve(ILogger);
+
   public constructor(
     /**
      * @internal
@@ -320,12 +335,45 @@ export class Router implements IRouter {
    * @internal
    */
   public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
-    // Instructions extracted from queue, one at a time
-    this.processNavigation(event.navigation).catch(error => {
-      // event.navigation.reject?.();
-      throw error;
-    });
+    void this._handleNavigatorNavigateEvent(event);
   };
+
+  /** @internal */
+  private async _handleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
+    if (this._isProcessingNav) {
+      // We prevent multiple navigation at the same time, but we store the last navigation requested.
+      if (this._pendingNavigation) {
+        // This pending navigation is cancelled
+        this._pendingNavigation.navigation.process?.resolve(false);
+      }
+      this._pendingNavigation = event;
+      return;
+    }
+    this._isProcessingNav = true;
+
+    try {
+      await this.processNavigation(event.navigation);
+    } catch (error) {
+      event.navigation.process?.reject(error);
+    } finally {
+      this._isProcessingNav = false;
+    }
+
+    if (this._pendingNavigation) {
+      const pending = this._pendingNavigation;
+      this._pendingNavigation = undefined;
+      await this._handleNavigatorNavigateEvent(pending);
+    }
+  }
+
+  /**
+   * Is processing navigation
+   *
+   * @internal
+   */
+  public get isProcessingNav(): boolean {
+    return this._isProcessingNav || this._pendingNavigation != null;
+  }
 
   /**
    * Handle the navigator's state change event.
@@ -493,9 +541,12 @@ export class Router implements IRouter {
    * @internal
    */
   public connectEndpoint(endpoint: Viewport | ViewportScope | null, type: EndpointTypeName, connectedCE: IConnectedCustomElement, name: string, options?: IViewportOptions): Viewport | ViewportScope {
-    const container = (connectedCE.container as IContainer & { parent: IContainer });
-    const closestEndpoint = (container.has(Router.closestEndpointKey, true) ? container.get<Endpoint>(Router.closestEndpointKey) : this.rootScope) as Endpoint;
+    const container = connectedCE.container;
+    const closestEndpoint: Endpoint = container.has(Router.closestEndpointKey, true)
+      ? container.get<Endpoint>(Router.closestEndpointKey)
+      : this.rootScope!;
     const parentScope = closestEndpoint.connectedScope;
+
     if (endpoint === null) {
       endpoint = parentScope.addEndpoint(type, name, connectedCE, options);
       Registration.instance(Router.closestEndpointKey, endpoint).register(container);
@@ -675,7 +726,7 @@ export class Router implements IRouter {
   public unresolvedInstructionsError(navigation: Navigation, instructions: RoutingInstruction[]): void {
     this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.create(navigation));
     this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(navigation));
-    throw createUnresolvedinstructionsError(instructions);
+    throw createUnresolvedinstructionsError(instructions, this._logger);
   }
 
   /**
@@ -814,6 +865,7 @@ export class Router implements IRouter {
     if ((navigation.title ?? null) === null) {
       const title = await Title.getTitle(instructions, navigation, this.configuration.options.title);
       if (title !== null) {
+        // eslint-disable-next-line require-atomic-updates
         navigation.title = title;
       }
     }
@@ -887,12 +939,16 @@ interface UnresolvedInstructionsError extends Error {
   remainingInstructions: RoutingInstruction[];
 }
 
-function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[]): UnresolvedInstructionsError {
+function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[], logger: ILogger): UnresolvedInstructionsError {
   // TODO: Improve error message, including suggesting solutions
   const error: Partial<UnresolvedInstructionsError> =
     new Error(`${remainingInstructions.length} remaining instructions after 100 iterations; there is likely an infinite loop.`);
   error.remainingInstructions = remainingInstructions;
-  console.log(error, error.remainingInstructions);
+  logger.warn(error, error.remainingInstructions);
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(error, error.remainingInstructions);
+  }
   return error as UnresolvedInstructionsError;
 }
 

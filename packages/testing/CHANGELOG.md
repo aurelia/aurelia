@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### Features:
+
+* **au-compose:** ability to compose string as element name (#1913) ([06aa113](https://github.com/aurelia/aurelia/commit/06aa113))
+
+
+### Bug Fixes:
+
+* **di:** dont jit register resources [skip ci] ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+
+
+### Refactorings:
+
+* ***:** cleanup (#1912) ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Features:
+
+* **event:** ability to add modifier (#1891) ([67a3c22](https://github.com/aurelia/aurelia/commit/67a3c22))
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* ***:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

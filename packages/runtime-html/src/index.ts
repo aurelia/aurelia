@@ -37,9 +37,15 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  /**
+   * @deprecated
+   * Use `ISinglePageAppConfig` instead
+   */
+  type ISinglePageAppConfig as ISinglePageApp,
+  type ISinglePageAppConfig,
 } from './aurelia';
 export {
-  type ISinglePageApp,
+  type IAppRootConfig,
   AppRoot,
   IAppRoot,
 } from './app-root';
@@ -56,6 +62,7 @@ export {
   attributePattern,
   type AttributePatternDefinition,
   IAttributePattern,
+  type AttributePatternKind,
   AttributePattern,
   Interpretation,
   ISyntaxInterpreter,
@@ -134,7 +141,6 @@ export {
 
 export {
   IRenderer,
-  type IInstructionTypeClassifier,
   ITemplateCompiler,
   type ICompliationInstruction,
   renderer,
@@ -159,7 +165,6 @@ export {
   SpreadElementPropBindingInstruction,
 
   isInstruction,
-  type InstructionTypeName,
   IInstruction,
   InstructionType,
 
@@ -273,15 +278,13 @@ export {
 export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
-export type {
-  DefinitionType,
-} from './resources/resources-shared';
 
 export {
   capture,
   containerless,
   customElement,
   CustomElement,
+  type InjectableToken,
   type CustomElementDecorator,
   type CustomElementKind,
   type CustomElementType,
@@ -338,10 +341,6 @@ export {
   TemplateCompilerHooks,
   templateCompilerHooks,
 } from './compiler/template-compiler';
-
-export {
-  allResources,
-} from './utilities-di';
 
 export {
   type PartialChildrenDefinition,

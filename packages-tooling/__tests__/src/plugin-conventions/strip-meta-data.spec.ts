@@ -9,6 +9,7 @@ describe('stripMetaData', function () {
       html: ' ',
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -33,6 +34,7 @@ describe('stripMetaData', function () {
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -61,6 +63,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a', 'b', './c.css'],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -85,6 +88,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a'],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -113,6 +117,49 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: ['./a', 'foo', 'b', './c.css'],
+      depsAliases: {},
+      containerless: false,
+      hasSlot: false,
+      capture: false,
+      bindables: {}
+    });
+  });
+
+  it('strips import/require tags with alias', function () {
+    const html = `<import from="./a" as="b"/>
+<template><p></p></template>
+`;
+    const expected = `
+<template><p></p></template>
+`;
+
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: ['./a'],
+      depsAliases: { './a': { __MAIN__: 'b' }},
+      containerless: false,
+      hasSlot: false,
+      capture: false,
+      bindables: {}
+    });
+  });
+
+  it('strips import/require tags with named alias', function () {
+    const html = `<import from="./a" a.as="b"/>
+<template><p></p></template>
+`;
+    const expected = `
+<template><p></p></template>
+`;
+
+    assert.deepEqual(stripMetaData(html), {
+      aliases: [],
+      html: expected,
+      shadowMode: null,
+      deps: ['./a'],
+      depsAliases: { './a': { __MAIN__: null, a: 'b' }},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -134,6 +181,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'open',
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -159,6 +207,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
+      depsAliases: {},
       containerless: false,
       capture: false,
       hasSlot: true,
@@ -178,6 +227,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'open',
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -199,6 +249,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: 'closed',
       deps: ['./a'],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -220,6 +271,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: true,
       capture: false,
       hasSlot: false,
@@ -241,6 +293,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: true,
       capture: false,
       hasSlot: false,
@@ -260,6 +313,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: true,
       capture: false,
       hasSlot: false,
@@ -316,6 +370,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -345,6 +400,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -370,6 +426,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -389,6 +446,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -410,6 +468,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -430,6 +489,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -449,6 +509,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -468,6 +529,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -487,6 +549,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -506,6 +569,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -525,6 +589,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -544,6 +609,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,
@@ -565,6 +631,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       capture: false,
       hasSlot: true,
@@ -592,6 +659,7 @@ ${'  ' /* leading space is untouched */}
       html: expected,
       shadowMode: null,
       deps: [],
+      depsAliases: {},
       containerless: false,
       hasSlot: false,
       capture: false,

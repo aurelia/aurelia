@@ -5,41 +5,9 @@ import {
   type Key,
   type Constructable,
   type IContainer,
-  type IResourceKind,
-  type ResourceDefinition,
-  type IAllResolver,
-  IOptionalResolver,
-  createResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-
-export const resource = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) =>
-    requestor.has(key, false)
-      ? requestor.get(key)
-      : requestor.root.get(key))(key);
-
-export const optionalResource = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) =>
-    (requestor.has(key, false)
-      ? requestor.get(key)
-      : requestor.root.has(key, false)
-        ? requestor.root.get(key)
-        : void 0))(key) as IOptionalResolver<T>;
-/**
- * A resolver builder for resolving all registrations of a key
- * with resource semantic (leaf + root + ignore middle layer container)
- */
-export const allResources = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) => {
-    if (/* is root? */requestor.root === requestor) {
-      return requestor.getAll(key, false);
-    }
-
-    return requestor.has(key, false)
-      ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
-      : requestor.root.getAll(key, false);
-  })(key) as IAllResolver<T>;
+import { IResourceKind } from './resources/resources-shared';
 
 /** @internal */
 export const createInterface = DI.createInterface;
@@ -75,7 +43,7 @@ export function alias(...aliases: readonly string[]) {
   };
 }
 
-export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
+export function registerAliases(aliases: readonly string[], resource: IResourceKind, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
     Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
   }

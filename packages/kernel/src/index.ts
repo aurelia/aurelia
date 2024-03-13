@@ -3,14 +3,6 @@ export {
 } from './platform';
 
 export {
-  createResolver,
-  all,
-  factory,
-  type IAllResolver,
-  type IFactoryResolver,
-  type IOptionalResolver,
-  type IResolvedFactory,
-  type INewInstanceResolver,
   DI,
   IContainer,
   type IFactory,
@@ -20,13 +12,7 @@ export {
   type IResolver,
   IServiceLocator,
   type Key,
-  lazy,
-  type ILazyResolver,
-  type IResolvedLazy,
-  optional,
-  ignore,
   type RegisterSelf,
-  Registration,
   type ResolveCallback,
   singleton,
   transient,
@@ -36,17 +22,43 @@ export {
   InstanceProvider,
   type Resolved,
   type Transformer,
-  newInstanceForScope,
-  newInstanceOf,
-  ContainerConfiguration,
-  DefaultResolver,
   type IContainerConfiguration,
 } from './di';
 
 export {
   resolve,
   type IResolvedInjection,
+  Registrable,
+  ContainerConfiguration,
+  DefaultResolver,
 } from './di.container';
+
+export {
+  Registration,
+} from './di.registration';
+
+export {
+  createResolver,
+  all,
+  factory,
+  type IAllResolver,
+  type IFactoryResolver,
+  type IOptionalResolver,
+  type IResolvedFactory,
+  type INewInstanceResolver,
+  lazy,
+  type ILazyResolver,
+  type IResolvedLazy,
+  optional,
+  ignore,
+  newInstanceForScope,
+  newInstanceOf,
+  type ICallableResolver,
+  allResources,
+  optionalResource,
+  own,
+  resource,
+} from './di.resolvers';
 
 export {
   type Class,
@@ -83,6 +95,7 @@ export {
   IModuleLoader,
   AnalyzedModule,
   ModuleItem,
+  aliasedResourcesRegistry,
 } from './module-loader';
 
 export {
@@ -92,6 +105,8 @@ export {
 } from './platform';
 
 export {
+  resourceBaseName,
+  getResourceKeyFor,
   type IResourceKind,
   type PartialResourceDefinition,
   Protocol,

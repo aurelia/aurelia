@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Class, DI } from '@aurelia/kernel';
 import { IsBindingBehavior, IExpressionParser } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
@@ -15,8 +16,8 @@ export interface IValidationRule<TValue = any, TObject extends IValidateable = I
   /**
    * Core rule execution.
    *
-   * @param {TValue} value - value to validate
-   * @param {TObject} [object] - target object
+   * @param value - value to validate
+   * @param object - target object
    * @returns {(boolean | Promise<boolean>)} - `true | Promise<true>` if the validation is successful, else `false | Promise<false>`.
    */
   execute(value: TValue, object?: TObject): boolean | Promise<boolean>;

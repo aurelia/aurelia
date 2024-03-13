@@ -4,42 +4,50 @@ import * as path from 'path';
 
 test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
-  const contentMap = new Map<string, string>();
-
   test.beforeEach(async ({ page, baseURL }) => {
     test.setTimeout(15000);
     await page.goto(baseURL!, { waitUntil: 'domcontentloaded' });
   });
 
-  let appFilePath: string;
-  let inputFilePath: string;
-  let textFilePath: string;
+  test.describe('normal usage', function () {
 
-  [
-    appFilePath = '../src/app.ts',
-    inputFilePath = '../src/components/my-input.ts',
-    textFilePath = '../src/components/my-text.html',
-  ].forEach(file => {
-    const filePath = path.resolve(__dirname, file);
-    const originalContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
-
-    contentMap.set(filePath, originalContent);
+    test('import aliasing with [as] works', async function ({ page }) {
+      await expect(page.locator('text=42')).toBeVisible();
+    });
   });
 
-  test.afterEach(() => {
-    for (const [filePath, originalContent] of contentMap) {
-      fs.writeFileSync(filePath, originalContent, { encoding: 'utf-8' });
-    }
-  });
+  test.describe('with hmr', function () {
+    const contentMap = new Map<string, string>();
 
-  test(`rerenders without flushing <input> state`, async function ({ page }) {
-    page.on('console', msg => console.log(msg.text()));
+    let appFilePath: string;
+    let inputFilePath: string;
+    let textFilePath: string;
 
-    await expect(page.locator('app > div')).toHaveText('Hello World!');
-    await page.type('input', 'abc');
-    await expect(page.locator('input')).toHaveValue('abc');
+    [
+      appFilePath = '../src/app.ts',
+      inputFilePath = '../src/components/my-input.ts',
+      textFilePath = '../src/components/my-text.html',
+    ].forEach(file => {
+      const filePath = path.resolve(__dirname, file);
+      const originalContent = fs.readFileSync(filePath, { encoding: 'utf-8' });
 
-    const newContent = `import { IEventAggregator } from '@aurelia/kernel';
+      contentMap.set(filePath, originalContent);
+    });
+
+    test.afterEach(() => {
+      for (const [filePath, originalContent] of contentMap) {
+        fs.writeFileSync(filePath, originalContent, { encoding: 'utf-8' });
+      }
+    });
+
+    test(`rerenders without flushing <input> state`, async function ({ page }) {
+      page.on('console', msg => console.log(msg.text()));
+
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
+      await page.type('input', 'abc');
+      await expect(page.locator('input')).toHaveValue('abc');
+
+      const newContent = `import { IEventAggregator } from '@aurelia/kernel';
 
     export class App {
       public message = ''
@@ -52,45 +60,45 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       }
     }
     `;
-    fs.writeFileSync(path.resolve(__dirname, appFilePath), newContent, { encoding: 'utf-8' });
+      fs.writeFileSync(path.resolve(__dirname, appFilePath), newContent, { encoding: 'utf-8' });
 
-    await new Promise(r => setTimeout(r, 10000));
-    expect(await page.evaluate('window.app?.id')).toEqual(1);
+      await new Promise(r => setTimeout(r, 10000));
+      expect(await page.evaluate('window.app?.id')).toEqual(1);
 
-    await expect(page.locator('app > div')).toHaveText('Hello World!');
-    await expect(page.locator('input')).toHaveValue('abc');
-  });
+      await expect(page.locator('app > div')).toHaveText('Hello World!');
+      await expect(page.locator('input')).toHaveValue('abc');
+    });
 
-  test('retains bindable values', async function ({ page }) {
-    await expect(page.locator('app p')).toHaveText('Hello 2!');
+    test('retains bindable values', async function ({ page }) {
+      await expect(page.locator('app p')).toHaveText('Hello 2!');
 
-    const newContent = `import { bindable } from 'aurelia';
+      const newContent = `import { bindable } from 'aurelia';
 
     export class MyInput {
         @bindable value = 'hello';
     }
     `;
-    fs.writeFileSync(path.resolve(__dirname, inputFilePath), newContent, { encoding: 'utf-8' });
+      fs.writeFileSync(path.resolve(__dirname, inputFilePath), newContent, { encoding: 'utf-8' });
 
-    await expect(page.locator('app p')).toHaveText('Hello 2!');
-    await expect(page.locator('textarea')).toHaveValue('Hello 2!');
+      await expect(page.locator('app p')).toHaveText('Hello 2!');
+      await expect(page.locator('textarea')).toHaveValue('Hello 2!');
+    });
+
+    test.skip('reloads html only module', async function ({ page }) {
+      await expect(page.locator('my-text')).toHaveText('Hello 2!');
+      const newContent = `<bindable name="text"></bindable>new: \${text}`;
+      await fs.promises.writeFile(path.resolve(__dirname, textFilePath), newContent, { encoding: 'utf-8' });
+
+      // it should, but it's not working in test
+      // doing normal app development works???
+      await expect(page.locator('my-text')).toHaveText('new: Hello 2!');
+    });
+
+    test.skip('invokes binding lifecycle', function () {/* empty */ });
+    test.skip('invokes bound lifecycle', function () {/* empty */ });
+    test.skip('invokes attaching lifecycle', function () {/* empty */ });
+    test.skip('invokes attached lifecycle', function () {/* empty */ });
+    test.skip('invokes detaching lifecycle', function () {/* empty */ });
+    test.skip('invokes unbinding lifecycle', function () {/* empty */ });
   });
-
-  test.skip('reloads html only module', async function ({ page }) {
-    await expect(page.locator('my-text')).toHaveText('Hello 2!');
-    const newContent =`<bindable name="text"></bindable>new: \${text}`;
-    await fs.promises.writeFile(path.resolve(__dirname, textFilePath), newContent, { encoding: 'utf-8' });
-
-    // it should, but it's not working in test
-    // doing normal app development works???
-    await expect(page.locator('my-text')).toHaveText('new: Hello 2!');
-  });
-
-  test.skip('invokes binding lifecycle', function () {/* empty */});
-  test.skip('invokes bound lifecycle', function () {/* empty */});
-  test.skip('invokes attaching lifecycle', function () {/* empty */});
-  test.skip('invokes attached lifecycle', function () {/* empty */});
-  test.skip('invokes detaching lifecycle', function () {/* empty */});
-  test.skip('invokes unbinding lifecycle', function () {/* empty */});
 });
-

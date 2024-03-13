@@ -1,23 +1,24 @@
-import { firstDefined, mergeArrays, ResourceType } from '@aurelia/kernel';
+import { firstDefined, getResourceKeyFor, mergeArrays, resource, resourceBaseName, ResourceType } from '@aurelia/kernel';
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, singletonRegistration } from '../utilities-di';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 
-import type { Constructable, IContainer, IResourceKind, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
+import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
+import { type IResourceKind } from './resources-shared';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
-export type BindingBehaviorKind = IResourceKind<BindingBehaviorType, BindingBehaviorDefinition> & {
+export type BindingBehaviorKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
   define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
-  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void;
-  getAnnotation<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K): PartialBindingBehaviorDefinition[K];
+  find(container: IContainer, name: string): BindingBehaviorDefinition | null;
+  get(container: IServiceLocator, name: string): BindingBehaviorInstance;
 };
 
 export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
@@ -62,11 +63,21 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
     );
   }
 
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    singletonRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, BindingBehavior, key, container);
+  public register(container: IContainer, aliasName?: string | undefined): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getBindingBehaviorKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getBindingBehaviorKeyFrom(alias))),
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.binding_behavior_existed, this.name)}`);
+    }
   }
 }
 
@@ -76,21 +87,22 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
   prop: K,
 ): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
 
+const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
-  keyFrom(name: string): string {
-    return `${bbBaseName}:${name}`;
-  },
+  keyFrom: getBindingBehaviorKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
     return isFunction(value) && hasOwnMetadata(bbBaseName, value);
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
-    defineMetadata(bbBaseName, definition, definition.Type);
-    defineMetadata(bbBaseName, definition, definition);
-    appendResourceKey(Type, bbBaseName);
+    const $Type = definition.Type as BindingBehaviorType<T>;
 
-    return definition.Type as BindingBehaviorType<T>;
+    defineMetadata(bbBaseName, definition, $Type);
+  // a requirement for the resource system in kernel
+    defineMetadata(resourceBaseName, definition, $Type);
+
+    return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
     const def = getOwnMetadata(bbBaseName, Type) as BindingBehaviorDefinition<T>;
@@ -100,8 +112,21 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
 
     return def;
   },
-  annotate<K extends keyof PartialBindingBehaviorDefinition>(Type: Constructable, prop: K, value: PartialBindingBehaviorDefinition[K]): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, Type);
+  find(container, name) {
+    const key = getBindingBehaviorKeyFrom(name);
+    const Type = container.find(key);
+    return Type == null ? null : getOwnMetadata(bbBaseName, Type) ?? null;
   },
-  getAnnotation: getBehaviorAnnotation,
+  get(container, name) {
+    if (__DEV__) {
+      try {
+        return container.get<BindingBehaviorInstance>(resource(getBindingBehaviorKeyFrom(name)));
+      } catch (ex) {
+        // eslint-disable-next-line no-console
+        console.error('[DEV:aurelia] Cannot retrieve binding behavior with name', name);
+        throw ex;
+      }
+    }
+    return container.get<BindingBehaviorInstance>(resource(getBindingBehaviorKeyFrom(name)));
+  },
 });

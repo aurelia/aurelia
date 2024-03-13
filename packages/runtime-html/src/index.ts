@@ -343,10 +343,6 @@ export {
 } from './compiler/template-compiler';
 
 export {
-  allResources,
-} from './utilities-di';
-
-export {
   type PartialChildrenDefinition,
   children,
   ChildrenBinding,

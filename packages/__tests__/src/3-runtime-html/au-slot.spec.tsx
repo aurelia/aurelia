@@ -2109,6 +2109,60 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     assertHtml('p > a', 'hello');
   });
 
+  describe('with multi layers of repeaters', function () {
+    // au-slot creates a layer of scope
+    // making $parent from the inner repeater not reaching to the outer repeater
+    // but to this au-slot scope layer
+    // doing $parent.$parent will reach to the outer repeater
+    // it could be confusing, but maybe the doc can do a decent job explaining this,
+    // since this intermediate scope layer of au-slot is necessary to support $host
+    it('works with 2 layers of repeaters', function () {
+      const { assertText } = createFixture('<my-el>', class App {}, [
+        CustomElement.define({
+          name: 'my-el',
+          template: `<div repeat.for="i of 1">
+            <my-child-el>
+              <div repeat.for="i of 1">
+                \${$parent.$parent.$index}-\${$index}
+              </div>
+            </my-child-el>
+          </div>`
+        }),
+        CustomElement.define({
+          name: 'my-child-el',
+          template: `<au-slot>`
+        }),
+      ]);
+
+      assertText('0-0', { compact: true });
+    });
+
+    it('works with 3 or more layers of repeaters + au slot', function () {
+      const { assertText } = createFixture('<my-el>', class App {}, [
+        CustomElement.define({
+          name: 'my-el',
+          template: `<div repeat.for="i of 1">
+            <my-child-el>
+              <div repeat.for="i of 1">
+                <my-child-el>
+                  <div repeat.for="i of 1">
+                    \${$parent.$parent.$parent.$parent.$index}-\${$parent.$parent.$index}-\${$index}
+                  </div>
+                </my-child-el>
+              </div>
+            </my-child-el>
+          </div>`
+        }),
+        CustomElement.define({
+          name: 'my-child-el',
+          template: `<au-slot>`
+        }),
+      ]);
+
+      assertText('0-0-0', { compact: true });
+    });
+  });
+
   describe('with dependency injection', function () {
 
     it('injects the right parent component', async function () {

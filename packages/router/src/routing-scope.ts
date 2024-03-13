@@ -11,7 +11,7 @@ import { IViewportOptions } from './endpoints/viewport-options';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Runner, Step } from './utilities/runner';
 import { IRoute, Route } from './route';
-import { Endpoint, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint';
+import { Endpoint, EndpointTypeName, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint';
 import { EndpointMatcher } from './endpoint-matcher';
 import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement } from './index';
 import { IContainer } from '@aurelia/kernel';
@@ -654,10 +654,11 @@ export class RoutingScope {
     return { matchedInstructions: allMatchedInstructions, remainingInstructions: allRemainingInstructions };
   }
 
-  public addEndpoint(type: string, name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions | IViewportScopeOptions = {}): Viewport | ViewportScope {
+  public addEndpoint(type: EndpointTypeName, name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions | IViewportScopeOptions = {}): Viewport | ViewportScope {
     let endpoint: Endpoint | null = this.getOwnedScopes()
       .find(scope => scope.type === type &&
         scope.endpoint.name === name)?.endpoint ?? null;
+
     // Each endpoint element has its own Endpoint
     if (connectedCE != null && endpoint?.connectedCE != null && endpoint.connectedCE !== connectedCE) {
       endpoint = this.getOwnedScopes(true)
@@ -666,6 +667,7 @@ export class RoutingScope {
           scope.endpoint.connectedCE === connectedCE)?.endpoint
         ?? null;
     }
+
     if (endpoint == null) {
       endpoint = type === 'Viewport'
         ? new Viewport(this.router, name, connectedCE, this.scope, !!(options as IViewportOptions).scope, options)

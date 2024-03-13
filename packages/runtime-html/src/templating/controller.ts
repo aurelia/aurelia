@@ -9,6 +9,7 @@ import {
   onResolve,
   onResolveAll,
   optional,
+  optionalResource,
 } from '@aurelia/kernel';
 import { isObject } from '@aurelia/metadata';
 import {
@@ -23,7 +24,7 @@ import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
 import { CustomElementDefinition, elementBaseName, findElementControllerFor, getElementDefinition, isElementType } from '../resources/custom-element';
 import { etIsProperty, getOwnPropertyNames, isFunction, isPromise, isString, objectFreeze } from '../utilities';
-import { createInterface, optionalResource, registerResolver } from '../utilities-di';
+import { createInterface, registerResolver } from '../utilities-di';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';
 import { IShadowDOMGlobalStyles, IShadowDOMStyles } from './styles';

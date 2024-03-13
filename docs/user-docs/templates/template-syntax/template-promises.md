@@ -28,7 +28,7 @@ The following example demonstrates a method fetchAdvice bound to the `promise.bi
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <let i.bind="0"></let>
 
 <div promise.bind="fetchAdvice(i)">
@@ -109,7 +109,7 @@ Aurelia 2 supports nested promise bindings, allowing you to handle promises retu
 
 When using `promise.bind` within a `repeat.for`, it's recommended to use a `let` binding to create a scoped context.
 
-```HTML
+```html
 <let items.bind="[[42, true], ['foo-bar', false], ['forty-two', true], ['fizz-bazz', false]]"></let>
 <template repeat.for="item of items">
   <template promise.bind="item[0] | promisify:item[1]">

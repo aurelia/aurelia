@@ -1,7 +1,8 @@
 import { Constructable, IContainer, IResolver, Writable } from '@aurelia/kernel';
-import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
+import { Controller, CustomElement, CustomElementDefinition, IController, IHydratedController, IHydrationContext, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
+import { ErrorNames, InstantiationError, createMappedError } from '../errors';
 
 export interface IInstructionComponent extends InstructionComponent { }
 
@@ -136,8 +137,8 @@ export class InstructionComponent {
     if (!(this.promise instanceof Promise)) {
       return;
     }
-    // TODO(alpha): Fix the type here
-    return (this.promise as any).then((component: ComponentAppellation): void => {
+
+    return this.promise.then((component: ComponentAppellation): void => {
       // TODO(alpha): Fix the issues with import/module here
       if (InstructionComponent.isAppelation(component)) {
         this.set(component);
@@ -203,6 +204,12 @@ export class InstructionComponent {
     }
     return null;
   }
+
+  /**
+   * Returns the component instance of this instruction.
+   *
+   * Throws instantiation error if there was an error during instantiation.
+   */
   public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null {
     // TODO: Allow instantiation from a promise here, but awaiting resolve?
     void this.resolve(instruction);
@@ -213,37 +220,38 @@ export class InstructionComponent {
     if (parentContainer == null) {
       return null;
     }
-    const container = parentContainer.createChild();
-    const instance = this.isType()
-      ? container.invoke<IRouteableComponent>(this.type!)
-      : container.get<IRouteableComponent>(routerComponentResolver(this.name!));
-    // TODO: Implement non-traversing lookup (below) based on router configuration
-    // let instance;
-    // if (this.isType()) {
-    //   instance = ownContainer.invoke(this.type!);
-    // } else {
-    //   const def = CustomElement.find(ownContainer, this.name!);
-    //   if (def != null) {
-    //     instance = ownContainer.invoke(def.Type);
-    //   }
-    // }
-    if (instance == null) {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to create instance when trying to resolve component', this.name, this.type, '=>', instance);
-      }
-      throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
-    }
-    const controller = Controller.$el(
-      container,
-      instance,
-      parentElement,
-      null,
-    );
-    // TODO: Investigate if this is really necessary
-    (controller as Writable<typeof controller>).parent = parentController;
 
-    return instance;
+    try {
+      const hydrationContextContainer = parentContainer.get(IHydrationContext).parent!.controller.container;
+      const container = parentContainer.createChild();
+
+      let instance: IRouteableComponent;
+      if (this.isType()) {
+        instance = container.invoke<IRouteableComponent>(this.type!);
+      } else {
+        const def = CustomElement.find(hydrationContextContainer, this.name!);
+        if (def == null) {
+          throw new InstantiationError(void 0, { cause: createMappedError(ErrorNames.element_name_not_found, this.name!) });
+        } else {
+          instance = container.invoke<IRouteableComponent>(def.Type);
+          // container.get<IRouteableComponent>(routerComponentResolver(this.name!));
+        }
+      }
+
+      const controller = Controller.$el(
+        container,
+        instance,
+        parentElement,
+        null,
+      );
+      // TODO: Investigate if this is really necessary
+      (controller as Writable<typeof controller>).parent = parentController;
+
+      return instance;
+    } catch (ex) {
+      throw new InstantiationError(void 0, { cause: ex });
+    }
+
   }
 
   public same(other: InstructionComponent, compareType: boolean = false): boolean {
@@ -263,6 +271,7 @@ function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
   return {
     $isResolver: true,
     resolve(_, requestor) {
+      // const container = requestor.get(IHydrationContext).parent!.controller.container;
       if (requestor.has(key, false)) {
         return requestor.get(key);
       }

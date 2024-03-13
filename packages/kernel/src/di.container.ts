@@ -419,7 +419,7 @@ export class Container implements IContainer {
       try {
         resolvedDeps = getDependencies(Type).map(_ => this.get(dep = _));
       } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${Type.name}, caused by dependency: ${String(dep)}`);
+        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}, caused by dependency: ${String(dep)}`);
         currentContainer = previousContainer;
         throw ex;
       }
@@ -429,7 +429,7 @@ export class Container implements IContainer {
           ? new Type(...resolvedDeps)
           : new Type(...resolvedDeps, ...dynamicDependencies);
       } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${Type.name}`);
+        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}`);
         throw ex;
       } finally {
         currentContainer = previousContainer;
@@ -575,7 +575,7 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
       try {
         resolvedDeps = this.dependencies.map(_ => container.get(dep = _));
       } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${this.Type.name}, caused by dependency: ${String(dep)}`);
+        logError(`[DEV:aurelia] Error during construction of ${!this.Type.name ? `(Anonymous) ${String(this.Type)}` : this.Type.name}, caused by dependency: ${String(dep)}`);
         currentContainer = previousContainer;
         throw ex;
       }
@@ -593,7 +593,7 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
 
         return this.transformers.reduce(transformInstance, instance);
       } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${this.Type.name}`);
+        logError(`[DEV:aurelia] Error during construction of ${!this.Type.name ? `(Anonymous) ${String(this.Type)}` : this.Type.name}`);
         throw ex;
       } finally {
         currentContainer = previousContainer;

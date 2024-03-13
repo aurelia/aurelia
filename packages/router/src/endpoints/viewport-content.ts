@@ -11,6 +11,7 @@ import { EndpointContent, Parameters, RoutingScope } from '../index';
 import { IRouter } from '../router';
 import { FoundRoute } from '../found-route';
 import { FallbackAction } from '../router-options';
+import { ErrorNames, InstantiationError, createMappedError } from '../errors';
 
 /**
  * The viewport content encapsulates the component loaded into a viewport
@@ -205,12 +206,14 @@ export class ViewportContent extends EndpointContent {
         this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
       } catch (e) {
         // TODO: Improve this by extracting the existance check separately
-        if (!(e as Error).message.startsWith('AUR0009:')) {
+        if (!InstantiationError.is(e)) {
           throw e;
         }
+
         if (__DEV__) {
+          const componentName = this.instruction.component.name as string;
           // eslint-disable-next-line no-console
-          console.warn(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+          console.warn(createMappedError(ErrorNames.instantiation_error, componentName, e));
         }
 
         // If there's a fallback component...
@@ -231,13 +234,17 @@ export class ViewportContent extends EndpointContent {
             // ...and try again.
             this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
           } catch (ee) {
-            if (!(ee as Error).message.startsWith('AUR0009:')) {
+            if (!InstantiationError.is(ee)) {
               throw ee;
             }
-            throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+            const componentName = this.instruction.component.name as string;
+            throw createMappedError(ErrorNames.instantiation_error, componentName, ee);
+            // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }
         } else {
-          throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+          const componentName = this.instruction.component.name as string;
+          throw createMappedError(ErrorNames.instantiation_error, componentName);
+          // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
         }
       }
     }
@@ -267,7 +274,7 @@ export class ViewportContent extends EndpointContent {
     const parameters = this.instruction.typeParameters(this.router);
     const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
 
-    const hooks = this.getLifecycleHooks(instance, 'canLoad')
+    const hooks = this._getLifecycleHooks(instance, 'canLoad')
       .map(hook => ((innerStep: Step | null) => {
         if (innerStep?.previousValue === false) {
           return false;
@@ -326,7 +333,7 @@ export class ViewportContent extends EndpointContent {
       });
     }
 
-    const hooks = this.getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
+    const hooks = this._getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
       if (innerStep?.previousValue === false) {
         return false;
       }
@@ -381,10 +388,10 @@ export class ViewportContent extends EndpointContent {
         const parameters = this.instruction.typeParameters(this.router);
         const merged = { ...this.navigation.parameters, ...parentParameters, ...parameters };
 
-        const hooks = this.getLifecycleHooks(instance, 'loading').map(hook =>
+        const hooks = this._getLifecycleHooks(instance, 'loading').map(hook =>
           () => hook(instance, merged, this.instruction, this.navigation));
 
-        hooks.push(...this.getLifecycleHooks(instance, 'load').map(hook =>
+        hooks.push(...this._getLifecycleHooks(instance, 'load').map(hook =>
           () => {
             // eslint-disable-next-line no-console
             console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
@@ -442,10 +449,10 @@ export class ViewportContent extends EndpointContent {
       });
     }
 
-    const hooks = this.getLifecycleHooks(instance, 'unloading').map(hook =>
+    const hooks = this._getLifecycleHooks(instance, 'unloading').map(hook =>
       () => hook(instance, this.instruction, navigation));
 
-    hooks.push(...this.getLifecycleHooks(instance, 'unload').map(hook =>
+    hooks.push(...this._getLifecycleHooks(instance, 'unload').map(hook =>
       () => {
         // eslint-disable-next-line no-console
         console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
@@ -662,19 +669,19 @@ export class ViewportContent extends EndpointContent {
 
   /** @internal */
   // TODO: Move this elsewhere and fix the typings
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'canLoad'): LifecycleHook<IRouteableComponent, 'canLoad'>[];
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'loading'): LifecycleHook<IRouteableComponent, 'loading'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'canLoad'): LifecycleHook<IRouteableComponent, 'canLoad'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'loading'): LifecycleHook<IRouteableComponent, 'loading'>[];
   /**
    * @deprecated
    */
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'load'): LifecycleHook<IRouteableComponent, 'loading'>[];
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'canUnload'): LifecycleHook<IRouteableComponent, 'canUnload'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'load'): LifecycleHook<IRouteableComponent, 'loading'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'canUnload'): LifecycleHook<IRouteableComponent, 'canUnload'>[];
   /**
    * @deprecated
    */
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'unload'): LifecycleHook<IRouteableComponent, 'unloading'>[];
-  private getLifecycleHooks(instance: IRouteableComponent, name: 'unloading'): LifecycleHook<IRouteableComponent, 'unloading'>[];
-  private getLifecycleHooks(instance: IRouteableComponent, name: LifecycleNames): unknown[] {
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'unload'): LifecycleHook<IRouteableComponent, 'unloading'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: 'unloading'): LifecycleHook<IRouteableComponent, 'unloading'>[];
+  private _getLifecycleHooks(instance: IRouteableComponent, name: LifecycleNames): unknown[] {
     const hooks = (instance.$controller!.lifecycleHooks as LifecycleHooksLookup<IRouteableComponentDeprecated>)[name] ?? [];
     return hooks.map(hook => ((hook.instance as ILifecycleHooks<IRouteableComponentDeprecated>)[name]).bind(hook.instance));
   }

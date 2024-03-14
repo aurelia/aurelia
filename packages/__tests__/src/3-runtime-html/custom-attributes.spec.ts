@@ -895,39 +895,71 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    @customAttribute('my-attr')
-    class MyAttr {
-      v = resolve(IExample);
-      host = resolve(INode) as HTMLElement;
-
-      bound() {
-        this.host.textContent = String(this.v);
-      }
-    }
-
-    const examples: IExample[] = [];
-
-    @customElement({
-      name: 'my-el',
-      template: `<div example.bind="5" my-attr></div>
-      <div example.bind="6" my-attr></div>`,
-    })
-    class MyEl {
-      c = resolve(IContainer);
-
-      attached() {
-        examples.push(...this.c.getAll(IExample, false));
-      }
-    }
-
     it('creates new container for factory when containerStrategy is "new"', function () {
-      const { assertText } = createFixture('<my-el>',
+
+      @customAttribute('my-attr')
+      class MyAttr {
+        v = resolve(IExample);
+        host = resolve(INode) as HTMLElement;
+
+        bound() {
+          this.host.textContent = String(this.v);
+        }
+      }
+
+      let examples: IExample[];
+
+      @customElement({
+        name: 'my-el',
+        template: `<div example.bind="5" my-attr></div>
+        <div example.bind="6" my-attr></div>`,
+      })
+      class MyEl {
+        c = resolve(IContainer);
+
+        attached() {
+          examples = this.c.getAll(IExample, false);
+        }
+      }
+
+      const { assertText } = createFixture(
+        '<my-el>',
         class App {},
         [ExampleTemplateController, MyAttr, MyEl]
       );
 
       assertText('5 6', { compact: true });
-      assert.strictEqual(examples.length, 0);
+      assert.deepStrictEqual(examples, []);
+    });
+
+    it('new container strategy does not get affected by nesting', function () {
+      @customElement('my-ce')
+      class MyCe {
+        e = resolve(IExample);
+        host = resolve(INode) as HTMLElement;
+
+        attached() {
+          this.host.textContent = String(this.e);
+        }
+      }
+
+      const { getAllBy } = createFixture(
+        `<div example.bind="1">
+          <my-ce></my-ce>
+          <div example.bind="2">
+            <my-ce></my-ce>
+            <my-ce></my-ce>
+          </div>
+          <my-ce />
+        </div>`,
+        class App {},
+        [ExampleTemplateController, MyCe]
+      );
+
+      assert.deepStrictEqual(
+        getAllBy('my-ce').map(el => el.textContent),
+        ['1', '2', '2', '1']
+      );
     });
   });
 });

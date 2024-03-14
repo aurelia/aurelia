@@ -591,7 +591,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
-export type ProcessContentHook = (node: HTMLElement, platform: IPlatform, metadata: Record<PropertyKey, unknown>) => boolean | void;
+export type ProcessContentHook = (node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
 const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;

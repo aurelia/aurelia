@@ -325,7 +325,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
         assert.notEqual(actualInstruction, void 0, 'instruction');
 
         const slotFallback = actualInstruction.projections?.default;
-        assert.deepStrictEqual((slotFallback?.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
+        assert.deepStrictEqual((slotFallback?.template as HTMLElement)?.outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
         assert.deepStrictEqual(slotFallback?.needsCompile, false, 'needsCompile');
       }
 

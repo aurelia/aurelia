@@ -20,8 +20,8 @@ let emptyTemplate: CustomElementDefinition;
   name: 'au-slot',
   template: null,
   containerless: true,
-  processContent(el, p, metadata) {
-    metadata.name = el.getAttribute('name') ?? defaultSlotName;
+  processContent(el, p, data) {
+    data.name = el.getAttribute('name') ?? defaultSlotName;
 
     let node: Node | null = el.firstChild;
     let next: Node | null = null;
@@ -73,16 +73,16 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     const location = resolve(IRenderLocation);
     const instruction = resolve(IInstruction) as HydrateElementInstruction<{ name: string}>;
     const rendering = resolve(IRendering);
+    const slotName = this.name = instruction.data.name;
     // when <au-slot> is empty, there's not even projections
     // hence ?. operator is used
     // for fallback, there's only default slot used
     const fallback = instruction.projections?.[defaultSlotName];
-    const projection = hdrContext.instruction?.projections?.[instruction.data.name];
+    const projection = hdrContext.instruction?.projections?.[slotName];
     const contextContainer = hdrContext.controller.container;
     let factory: IViewFactory;
     let container: IContainer;
 
-    this.name = instruction.data.name;
     if (projection == null) {
       container = contextContainer.createChild({ inheritParentResources: true });
       factory = rendering.getViewFactory(fallback ?? (emptyTemplate ??= CustomElementDefinition.create({
@@ -128,14 +128,18 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       registerResolver(container, IHydrationContext, new InstanceProvider(void 0, hdrContext.parent));
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === this.name) ?? emptyArray;
+      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotName) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
     this.view = factory.create().setLocation(this._location = location);
   }
 
+  // all the following properties (name, nodes, _subs, subscribe & unsubscribe) are relevant to the slot watcher feature
+  // so grouping them here for better readability
+
   public readonly name: string;
+
   public get nodes() {
     const nodes = [];
     const location = this._location;
@@ -148,7 +152,6 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     }
     return nodes;
   }
-
   /** @internal */
   private readonly _subs = new Set<IAuSlotSubscriber>();
 

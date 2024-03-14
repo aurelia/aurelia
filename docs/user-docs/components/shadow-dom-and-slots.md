@@ -162,7 +162,7 @@ static content
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <!-- Usage without projection -->
 <my-element></my-element>
 <!-- Rendered (simplified): -->
@@ -207,7 +207,7 @@ In the example above, the `my-element` custom element defines two slots: one def
 Similar to native shadow DOM and `<slot/>`/`[slot]` pair, `[au-slot]` attribute is not mandatory if you are targeting the default slot. All content without explicit `[au-slot]` is treated as targeting the default slot. Having no `[au-slot]` is also equal to having explicit `au-slot` on the content:
 
 {% code title="my-app.html" %}
-```markup
+```html
 <template as-custom-element="my-element">
   <au-slot>dfb</au-slot>
 </template>
@@ -226,7 +226,7 @@ Similar to native shadow DOM and `<slot/>`/`[slot]` pair, `[au-slot]` attribute 
 Another important point to note is that the usage of `[au-slot]` attribute is supported only on the direct children elements of a custom element. This means that the following examples do not work.
 
 {% code title="my-app.html" %}
-```markup
+```html
 <!-- Do NOT work. -->
 
 <div au-slot></div>
@@ -247,7 +247,7 @@ It is possible to inject an instance of `IAuSlotsInfo` in a custom element view 
 
 {% tabs %}
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot>dfb</au-slot>
 <au-slot name="s1">s1fb</au-slot>
 <au-slot name="s2">s2fb</au-slot>
@@ -269,7 +269,7 @@ class MyElement {
 {% endtab %}
 
 {% tab title="my-app.html" %}
-```markup
+```html
 <!-- my_element_instance_1 -->
 <my-element>
   <div au-slot="default">dp</div>
@@ -283,7 +283,7 @@ class MyElement {
 
 The followingrk would be logged to the console for the instances of `my-element`.
 
-```markup
+```html
 // my_element_instance_1
 ['default', 's1']
 
@@ -309,7 +309,7 @@ Let's consider the following example with interpolation.
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element>
   <div au-slot="s1">${message}</div>
 </my-element>
@@ -331,7 +331,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
@@ -349,7 +349,7 @@ Although the `my-element` has a `message` property, but as `my-app` projects to 
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element>
   <foo-bar au-slot="s1" foo.bind="message"></foo-bar>
 </my-element>
@@ -371,7 +371,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
@@ -385,7 +385,7 @@ export class MyElement {
 {% endtab %}
 
 {% tab title="foo-bar.html" %}
-```markup
+```html
 ${foo}
 ```
 {% endtab %}
@@ -405,7 +405,7 @@ Let's consider the following example with interpolation. This is the same exampl
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element></my-element>
 <!-- Rendered (simplified): -->
 <!--
@@ -425,7 +425,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1">${message}</au-slot>
 ```
 {% endtab %}
@@ -443,7 +443,7 @@ Note that in the absence of projection, the fallback content uses the scope of `
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element></my-element>
 <!-- Rendered (simplified): -->
 <!--
@@ -463,7 +463,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1">
   <foo-bar foo.bind="message"></foo-bar>
 </au-slot>
@@ -479,7 +479,7 @@ export class MyElement {
 {% endtab %}
 
 {% tab title="foo-bar.html" %}
-```markup
+```html
 ${foo}
 ```
 {% endtab %}
@@ -499,7 +499,7 @@ The outer custom element can access the inner custom element's scope using the `
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element>
   <div au-slot="s1">${$host.message}</div>
   <div au-slot="s2">${message}</div>
@@ -523,7 +523,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1"></au-slot>
 <au-slot name="s2"></au-slot>
 ```
@@ -542,7 +542,7 @@ Note that using the `$host.message` expression, `MyApp` can access the `MyElemen
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <my-element>
   <foo-bar au-slot="s1" foo.bind="$host.message"></foo-bar>
 </my-element>
@@ -564,7 +564,7 @@ export class MyApp {
 {% endtab %}
 
 {% tab title="my-element.html" %}
-```markup
+```html
 <au-slot name="s1"></au-slot>
 ```
 {% endtab %}
@@ -578,7 +578,7 @@ export class MyElement {
 {% endtab %}
 
 {% tab title="foo-bar.html" %}
-```markup
+```html
 ${foo}
 ```
 {% endtab %}
@@ -596,7 +596,7 @@ Let's consider another example of `$host` which highlights the communication bet
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <template as-custom-element="my-element">
   <bindable name="people"></bindable>
   <au-slot name="grid">
@@ -680,7 +680,7 @@ It is possible to provide multiple projections to a single slot.
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <my-element>
   <div au-slot="s2">p20</div>
   <div au-slot="s1">p11</div>
@@ -710,7 +710,7 @@ This is useful for many cases. One evident example would a 'tabs' custom element
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <my-tabs>
   <h3 au-slot="header">Tab1</h3>
   <div au-slot="content">Tab1 content</div>
@@ -743,7 +743,7 @@ Having more than one `<au-slot>` with the same name is also supported. This lets
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <person-card>
   <span au-slot="name"> John Doe </span>
   <span au-slot="role"> Role1 </span>

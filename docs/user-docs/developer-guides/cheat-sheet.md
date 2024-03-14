@@ -26,7 +26,7 @@ Note: you can copy-paste the markup below into an html file and open it directly
 
 **index.html**
 
-```markup
+```html
 <!DOCTYPE html>
 <html>
 <head></head>
@@ -55,7 +55,7 @@ Note: you can copy-paste the markup below into an html file and open it directly
 
 **index.html**
 
-```markup
+```html
 <!DOCTYPE html>
 <html>
 <head><title>${title}</title></head>
@@ -426,7 +426,7 @@ export class BananaInBox {
 
 ## Templating syntax
 
-```markup
+```html
 <!-- Render the 'firstName' and 'lastName' properties interpolated with some static text (reactive) -->
 <div>Hello, ${firstName} ${lastName}</div>
 <!-- Render the 'bgColor' property as a class name, interpolated with some static text (reactive) -->
@@ -481,7 +481,7 @@ export class BananaInBox {
 
 ## Built-in custom attributes & template controllers (AKA directives)
 
-```markup
+```html
 <!-- Conditionally render this nav-link (element is not created and will not exist in DOM if false) -->
 <nav-link if.bind="isLoggedIn">
 <!-- Conditionally display this nav-link (element is only hidden via CSS if false, and will always be created and exist in DOM) -->
@@ -720,7 +720,7 @@ export class MyComponent {
 
 #### Example that blocks rendering (but is simplest to develop)
 
-```markup
+```html
 <div>${data}</div>
 ```
 
@@ -734,7 +734,7 @@ export class MyComponent {
 
 #### Example that does not block rendering and avoids race conditions (without task queue)
 
-```markup
+```html
 <div if.bind="loadDataPromise">Loading...</div>
 <div else>...</div>
 ```
@@ -755,7 +755,7 @@ export class MyComponent {
 
 #### Example that does not block rendering and avoids race conditions (_with_ task queue)
 
-```markup
+```html
 <div if.bind="loadDataTask">Loading...</div>
 <div else>...</div>
 ```

@@ -64,7 +64,7 @@ export class NameComponent {
 {% endtab %}
 
 {% tab title="name-component.html" %}
-```markup
+```html
 <p>Hello ${firstName} ${lastName}. How are you today?</p>
 ```
 {% endtab %}
@@ -190,7 +190,7 @@ In some cases, you want to make an impact on the value that is binding. For such
 
 Suppose you have a `carousel` component in which you want to enable `navigator` feature for it.
 
-```markup
+```html
 <!-- Enable -->
 <my-carousel navigator.bind="true">
 <my-carousel navigator="true">
@@ -566,7 +566,7 @@ export class FormInput {
 
 with the template
 
-```markup
+```html
 <label>${label}
   <input value.bind="value">
 </label>
@@ -589,7 +589,7 @@ export class FormInput {
 
 And the usage of our component would look like this:
 
-```markup
+```html
 <form-input
   label.bind="label"
   value.bind="message"
@@ -599,7 +599,7 @@ And the usage of our component would look like this:
 
 to be repeated like this inside:
 
-```markup
+```html
 <label>${label}
   <input value.bind tooltip.bind validation.bind min.bind max.bind>
 </label>
@@ -607,7 +607,7 @@ to be repeated like this inside:
 
 To juggle all the relevant pieces for such a task isn't difficult, but somewhat tedious. With attribute transferring, which is roughly close to object spreading in JavaScript, the above template should be as simple as:
 
-```markup
+```html
 <label>${label}
   <input ...$attrs>
 </label>
@@ -659,7 +659,7 @@ Using the ellipsis syntax which you might be accustomed to from Javascript, we c
 
 In case you want to spread all attributes while explicitly overriding individual ones, make sure these come after the spread operator.
 
-```markup
+```html
 <input value.bind="..." ...$attrs> spread wins
 <input ...$attrs value.bind="..."> explicit wins
 ```
@@ -672,7 +672,7 @@ It's recommended that this feature should not be overused in multi-level capturi
 
 Aurelia conventions enable the setting of `capture` metadata from the template via `<capture>` tag, like the following example:
 
-```markup
+```html
 <capture>
 
 <input ...$attrs>
@@ -705,7 +705,7 @@ export class FormInput {
 A usage example is as follows:
 
 {% code title="my-app.html" %}
-```markup
+```html
 <form-input
   if.bind="needsComment"
   label.bind="label"
@@ -736,7 +736,7 @@ This means `.bind` command will work as expected when it's transferred from some
 
 It also means that spreading onto a custom element will also work: if a captured attribute targets a bindable property of the applied custom element. An example:
 
-```markup
+```html
 app.html
 <input-field value.bind="message">
 

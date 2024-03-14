@@ -13,7 +13,7 @@ Aurelia supports working with different types of data. Array, Set, and Map are a
 
 You can use the `repeat.for` binding to iterate over data collections in your templates. Think of `repeat.for` as a for loop. It can iterate arrays, maps and sets.
 
-```markup
+```html
 <ul>
     <li repeat.for="item of items">${item.name}</li>
 </ul>
@@ -150,7 +150,7 @@ You may need this when a property on the current scope masks a property on the o
 
 These can be accessed inside the `repeat.for`. In the following example, we display the current index value.
 
-```markup
+```html
 <ul>
     <li repeat.for="item of items">${$parent.$index}</li>
 </ul>
@@ -189,7 +189,7 @@ The `repeat.for` functionality doesn't just allow you to work with collections. 
 
 In the following example, we generate a range of numbers up to 10. We subtract the value from the index inside to create a reverse countdown.
 
-```markup
+```html
 <p repeat.for="i of 10">${10-i}</p>
 <p>Blast Off!<p>
 ```

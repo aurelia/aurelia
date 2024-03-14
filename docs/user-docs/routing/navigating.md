@@ -95,7 +95,7 @@ The router also allows you to decorate links and buttons in your application usi
 
 If you have routes defined on a root level (inside of `my-app.ts`) you will need to add a forward slash in front of any routes you attempt to load. The following would work in the case of an application using configured routes.
 
-```markup
+```html
 <a load="/products/12">Product #12</a>
 ```
 

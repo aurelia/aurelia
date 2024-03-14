@@ -313,7 +313,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
       type HEI = HydrateElementInstruction;
       const allInstructions = compiledDefinition.instructions.flat();
-      // console.log(allInstructions.map(i => (i as any).projections));
+
       for (const expectedSlotInfo of expectedSlotInfos) {
         const actualInstruction = allInstructions.find((i) =>
           i.type === InstructionType.hydrateElement
@@ -323,9 +323,10 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
           && expectedSlotInfo.slotName === (i as HEI).data.name
         ) as HydrateElementInstruction;
         assert.notEqual(actualInstruction, void 0, 'instruction');
+
         const slotFallback = actualInstruction.projections?.default;
-        assert.deepStrictEqual((slotFallback.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
-        assert.deepStrictEqual(slotFallback.needsCompile, false, 'needsCompile');
+        assert.deepStrictEqual((slotFallback?.template as HTMLElement).outerHTML, `<template>${expectedSlotInfo.content}</template>`, 'content');
+        assert.deepStrictEqual(slotFallback?.needsCompile, false, 'needsCompile');
       }
 
       // for each element instruction found

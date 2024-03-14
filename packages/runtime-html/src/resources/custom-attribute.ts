@@ -40,6 +40,17 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly noMultiBindings?: boolean;
   readonly watches?: IWatchDefinition[];
   readonly dependencies?: readonly Key[];
+  /**
+   * **Only used by template controller custom attributes.**
+   *
+   * Container strategy for the view factory of this template controller.
+   *
+   * By default, the view factory will be reusing the container of the parent view (controller),
+   * as this container has information about the resources registered.
+   *
+   * Specify `'new'` to create a new container for the view factory.
+   */
+  readonly containerStrategy?: 'reuse' | 'new';
 }>;
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
@@ -105,6 +116,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly dependencies: Key[],
+    public readonly containerStrategy: 'reuse' | 'new',
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -132,6 +144,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getDefinitions(Type), Type.watches),
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
+      firstDefined(getAttributeAnnotation(Type, 'containerStrategy'), def.containerStrategy, Type.containerStrategy, 'reuse'),
     );
   }
 

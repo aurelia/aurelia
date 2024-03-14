@@ -35,7 +35,7 @@ Once the creation process has finished, you will be presented with instructions 
 
 We now have a barebones Aurelia application. Let's tweak some of the markup to support the structure of our contact manager application.
 
-```markup
+```html
 <nav class="navbar navbar-light bg-light border-bottom" role="navigation">
     <a class="navbar-brand" href="#">
         <i class="fa fa-user"></i>
@@ -79,7 +79,7 @@ Aurelia
 
 We then have to add a viewport into our `my-app.html` file which is the root of our application. This is where our contact details and whatnot will be rendered. Let's replace the placeholder text with the `<au-viewport>` element where contacts will be rendered.
 
-```markup
+```html
 <div class="container">
 
     <div class="row">
@@ -103,7 +103,7 @@ As you can see, we already have this from the previous sections of this tutorial
 
 **Create a new folder called `components` inside of the `src` directory and create a file called `no-selection.html`**
 
-```markup
+```html
 <div class="text-center">
     <h1>No contact selected</h1>
 </div>
@@ -111,7 +111,7 @@ As you can see, we already have this from the previous sections of this tutorial
 
 **Now, let's update our `my-app.html` file and import the `no-selection` component**
 
-```markup
+```html
 <import from="./components/no-selection.html"></import>
 
 <div class="container mt-3">

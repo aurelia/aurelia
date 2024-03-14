@@ -10,7 +10,7 @@ When `if.bind` is passed `false` Aurelia will remove the element all of its chil
 
 In the following example, we are passing a value called `isLoading` which is populated whenever something is loading from the server. We will use it to show a loading message in our view.
 
-```markup
+```html
 <div if.bind="isLoading">Loading...</div>
 ```
 
@@ -24,7 +24,7 @@ When `show.bind` is passed `false` the element will be hidden, but unlike `if.bi
 
 In the following example, we are passing a value called `isLoading` which is populated whenever something is loading from the server. We will use it to show a loading message in our view.
 
-```markup
+```html
 <div show.bind="isLoading">Loading...</div>
 ```
 
@@ -34,7 +34,7 @@ When `isLoading` is a truthy value, the element will be visible. When `isLoading
 
 In Javascript we have the ability to use `switch/case` statements which act as neater `if` statements. We can use `switch.bind` to achieve the same thing within our templates.
 
-```markup
+```html
 <p switch.bind="selectedAction">
   <span case="mask">You are more protected from aerosol particles, and others are protected from you.</span>
   <span case="sanitizer">You are making sure viruses won't be spreaded easily.</span>
@@ -52,23 +52,23 @@ When working with promises in Aurelia, previously in version 1 you had to resolv
 
 The `promise.bind` template controller allows you to use `then`, `pending` and `catch` in your views removing unnecessary boilerplate.
 
-In the following example, notice how we have a parent `div` with the `promise.bind` binding and then a method called `fetchAdvice`? Followed by other attributes inside `then.from-view` and `catch.from-view` which handle both the resolved value as well as any errors.
+In the following example, notice how we have a parent `div` with the `promise.bind` binding and then a method called `fetchAdvice`? Followed by other attributes inside `then` and `catch` which handle both the resolved value as well as any errors.
 
 Ignore the `i` variable being incremented, this is only there to make Aurelia fire off a call to our `fetchAdvice` method as it sees the parameter value has changed.
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <let i.bind="0"></let>
 
 <div promise.bind="fetchAdvice(i)">
   <span pending>Fetching advice...</span>
-  <span then.from-view="data">
+  <span then="data">
     Advice id: ${data.slip.id}<br>
     ${data.slip.advice}
     <button click.trigger="i = i+1">try again</button>
   </span>
-  <span catch.from-view="err">
+  <span catch="err">
     Cannot get an addvice, error: ${err}
     <button click.trigger="i = i+1">try again</button>
   </span>
@@ -97,7 +97,7 @@ To see live examples of `repeat.for` being used, you can consult the examples pa
 
 You can use the `repeat.for` binding to iterate over collections of data in your templates. Think of `repeat.for` as a for loop, it can iterate arrays, maps and sets.
 
-```markup
+```html
 <ul>
     <li repeat.for="item of items">${item.name}</li>
 </ul>
@@ -123,7 +123,7 @@ The `repeat.for` functionality doesn't just allow you to work with collections, 
 
 In the following example, we generate a range of numbers to 10. We subtract the value from the index inside to create a reverse countdown.
 
-```markup
+```html
 <p repeat.for="i of 10">${10-i}</p>
 <p>Blast Off!<p>
 ```
@@ -142,7 +142,7 @@ Aurelia's binding engine makes several special properties available to you in yo
 
 Inside of the `repeat.for` these can be accessed. In the following example we display the current index value.
 
-```markup
+```html
 <ul>
     <li repeat.for="item of items">${$index}</li>
 </ul>

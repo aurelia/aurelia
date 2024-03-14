@@ -646,7 +646,16 @@ export class TemplateControllerRenderer implements IRenderer {
       default:
         def = instruction.res;
     }
-    const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
+    // const viewFactory = this._rendering.getViewFactory(
+    //   instruction.def,
+    //   ctxContainer
+    // );
+    const viewFactory = this._rendering.getViewFactory(
+      instruction.def,
+      def.containerStrategy === 'new'
+        ? ctxContainer.createChild({ inheritParentResources: true })
+        : ctxContainer
+    );
     const renderLocation = convertToRenderLocation(target);
     const results = invokeAttribute(
       /* platform         */platform,

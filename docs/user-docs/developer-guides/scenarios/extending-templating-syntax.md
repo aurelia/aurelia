@@ -10,7 +10,7 @@ description: >-
 
 Sometimes you will see the following template in an Aurelia application:
 
-```markup
+```html
 <input value.bind="message">
 ```
 
@@ -29,7 +29,7 @@ You may sometimes come across some custom input element in a component library, 
 
 Regardless of the lib choice an application takes, what is needed in common is the ability to have a concise syntax to describe the two way binding intention with those custom elements. Some examples for the above custom input elements:
 
-```markup
+```html
 <fast-text-field value.bind="message">
 <ion-input value.bind="message">
 <paper-input value.bind="message">
@@ -37,7 +37,7 @@ Regardless of the lib choice an application takes, what is needed in common is t
 
 should be treated as:
 
-```markup
+```html
 <fast-text-field value.two-way="message">
 <ion-input value.two-way="message">
 <paper-input value.two-way="message">
@@ -161,7 +161,7 @@ Aurelia
 
 And with the above, your Aurelia application will get two way binding flow seamlessly:
 
-```markup
+```html
 <fast-text-field value.bind="message"></fast-text-field>
 <fast-text-area value.bind="description"></fast-text-area>
 <fast-slider value.bind="fontSize"></fast-slider>

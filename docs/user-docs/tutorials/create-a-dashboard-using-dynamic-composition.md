@@ -121,19 +121,19 @@ Inside of the `fetchDog` method we are doing the following:
 
 Now, we create a `dog-component.html` file inside of the `components` directory:
 
-```markup
+```html
 <div class="component dog-component" promise.bind="fetchDog()">
     <template pending>Fetching doggo...</template>
-    <template then.from-view="dog">
+    <template then="dog">
         <img src.bind="dog.url" loading="lazy">
     </template>
-    <template catch.from-view="err">
+    <template catch="err">
         <p>${err}</p>
     </template>
 </div>
 ```
 
-If you have [read up on the promise controller](../templates/template-syntax.md#using-promise-bindings-inside-of-a-repeat.for), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then.from-view` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch.from-view` will be triggered and pass our error.
+If you have [read up on the promise controller](../templates/template-syntax.md#using-promise-bindings-inside-of-a-repeat.for), this syntax will be familiar to you. We make the call to our `fetchDog` method while we wait for it to resolve, the `pending` attribute will show the element it is used on. Once the promise resolves on `then` we get the return object, we can work with it. We then bind the returned URL `src` attribute of the image. If there is an error, the `catch` will be triggered and pass our error.
 
 ## Base styling
 
@@ -260,7 +260,7 @@ export class MyApp {
 
 The missing piece is now adding the actual dynamic composition to our view. Open `my-app.html` and add in the following:
 
-```markup
+```html
 <div class="container">
     <template repeat.for="component of components">
         <au-compose containerless component.bind="component"></au-compose>
@@ -305,17 +305,17 @@ We actually don't need to explain what is happening here. This is pretty much a 
 
 Now, let's create the view for our geoip component. Create an HTML file called `geoip-component.html` in the `src/components` directory:
 
-```markup
+```html
 <div class="component geoip-component" promise.bind="getUserInfo()">
     <template pending><p>Getting details...</p></template>
 
-    <ul then.from-view="details">
+    <ul then="details">
         <li><h3>IP address:</h3> <span> ${details.ip}</span></li>
         <li><h3>Country:</h3> <span> ${details.country_name}</span></li>
         <li><h3>Timezone:</h3> <span> ${details.time_zone}</span></li>
     </ul>
 
-    <template catch.from-view="err">
+    <template catch="err">
         <p>${err}</p>
     </template>
 </div>
@@ -384,7 +384,7 @@ export class NotesComponent {
 
 We now need the markup for our component. Create a new file called `notes-component.html` alongside our `notes-component.ts` file and add the following:
 
-```markup
+```html
 <div class="component notes-component">
 
     <textarea value.bind="note" spellcheck="false"></textarea><br>
@@ -468,10 +468,10 @@ Like component 4 and component 2, the code is basically the same (the method nam
 
 Now, we create the view for our component `exchange-component.html`
 
-```markup
+```html
 <div class="component exchange-component" promise.bind="getExchangeData()">
     <template pending><p>Fetching data...</p></template>
-    <template then.from-view="data">
+    <template then="data">
         <h3>$1 USD equals:</h3>
         <ul class="amounts-list">
             <li>$${data.rates.AUD} Australian Dollars (AUD)</li>
@@ -480,13 +480,13 @@ Now, we create the view for our component `exchange-component.html`
             <li>£${data.rates.GBP} British Pounds (GBP)</li>
         </ul>
     </template>
-    <template catch.from-view="err">
+    <template catch="err">
         <p>${err}</p>
     </template>
 </div>
 ```
 
-Like the other promise-based examples before this one (component 4 and component 2), we use the promise controller syntax. Inside  `then.from-view` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
+Like the other promise-based examples before this one (component 4 and component 2), we use the promise controller syntax. Inside  `then` we assign the response to a variable called `data` and then we can access the properties. In our case, we are accessing exchange rates.
 
 Now, let's create the accompanying CSS file for our component of the same name, `exchange-component.css`
 
@@ -567,7 +567,7 @@ export class DogComponent {
 
 Inside of `dog-component.html` replace the existing `promise.bind` with this one:
 
-```markup
+```html
 promise.bind="api.fetchData('https://random.dog/woof.json', 'Unable to fetch doggo :(')"
 ```
 
@@ -587,7 +587,7 @@ export class ExchangeComponent {
 
 Once more, inside of `exchange-component.html` we replace the existing `promise.bind` with this one:
 
-```markup
+```html
 promise.bind="api.fetchData('https://api.exchangerate-api.com/v4/latest/USD')"
 ```
 

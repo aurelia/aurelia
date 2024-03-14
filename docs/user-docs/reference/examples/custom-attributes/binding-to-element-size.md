@@ -100,7 +100,7 @@ RectSize.ResizeObserver = ResizeObserver;
 
 For the above implementation, the usage would be:
 
-```markup
+```html
 <form rectsize.bind="formSize">
   ...
 </form>

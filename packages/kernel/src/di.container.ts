@@ -365,7 +365,7 @@ export class Container implements IContainer {
     throw createMappedError(ErrorNames.unable_resolve_key, key);
   }
 
-  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
+  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): Resolved<K>[] {
     validateKey(key);
 
     const previousContainer = currentContainer;
@@ -637,7 +637,7 @@ function containerGetKey(this: IContainer, d: Key) {
 
 export type IResolvedInjection<K extends Key> =
   K extends IAllResolver<infer R>
-    ? readonly Resolved<R>[]
+    ? Resolved<R>[]
     : K extends INewInstanceResolver<infer R>
       ? Resolved<R>
       : K extends ILazyResolver<infer R>

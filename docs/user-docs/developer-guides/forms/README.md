@@ -29,7 +29,7 @@ Creating forms in Aurelia requires no special configuration or treatment. Simply
 Firstly, let's create the markup for our login form:
 
 {% code title="login-component.html" %}
-```markup
+```html
 <form submit.trigger="handleLogin()">
     <div>
         <label for="email">Email:</label>
@@ -79,7 +79,7 @@ Binding to text inputs uses similar syntax to that of binding to other elements 
 
 ### Text Input
 
-```markup
+```html
 <form>
   <label>User value</label><br>
   <input type="text" value.bind="userValue" />
@@ -88,7 +88,7 @@ Binding to text inputs uses similar syntax to that of binding to other elements 
 
 You can even bind to other attributes on form elements such as the `placeholder` attribute.
 
-```markup
+```html
 <form>
   <label>User value</label><br>
   <input type="text" value.bind="userValue" placeholder.bind="myPlaceholder" />
@@ -99,7 +99,7 @@ You can even bind to other attributes on form elements such as the `placeholder`
 
 A textarea element is just like any other form element. It allows you to bind to its value and by default `value.bind` will be two-way binding \(meaning changes flow from out of the view into the view-model and changes in the view-model flow back to the view\).
 
-```markup
+```html
 <form role="form">
   <textarea value.bind="textAreaValue"></textarea>
 </form>
@@ -121,7 +121,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -156,7 +156,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -193,7 +193,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -227,7 +227,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -271,7 +271,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -309,7 +309,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -342,7 +342,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -371,7 +371,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -414,7 +414,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Do you like cake?</h4>
@@ -452,7 +452,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <form>
     <h4>Products</h4>
@@ -496,7 +496,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select product:<br>
@@ -528,7 +528,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select product:<br>
@@ -565,7 +565,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select product:<br>
@@ -592,7 +592,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Do you like tacos?:
@@ -617,7 +617,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select product:<br>
@@ -649,7 +649,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select products:
@@ -680,7 +680,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select products:
@@ -710,7 +710,7 @@ export class App {
 }
 ```
 
-```markup
+```html
 <template>
   <label>
     Select products:
@@ -731,7 +731,7 @@ export class App {
 
 Most of the time, a `<form>` element should be used to group one or many controls in a form, it acts a container for those controls, and can also be used for layout purposes with CSS. Normally, HTML forms can be submitted without involving any JavaScript, via the `action` and `method` attributes on a `<form>`. Though it's also common in applications that forms are driven by JavaScript. In Aurelia, driving form via script can be achieved via `submit` event on the form, with the basic usage looks like the following example:
 
-```markup
+```html
 <form submit.trigger="submitMyForm()">
   ...
 </form>

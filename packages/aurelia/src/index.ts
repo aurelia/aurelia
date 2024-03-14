@@ -403,7 +403,6 @@ export {
   // IController,
   // IContainer,
   // IViewCache,
-  // IViewFactory,
   // MountStrategy,
 
   // AccessorOrObserver,
@@ -566,10 +565,10 @@ export {
   // IViewModel,
   type ICustomAttributeViewModel,
   type ICustomElementViewModel,
-  // IController,
+  IController,
   // IContainer,
   // IViewCache,
-  // IViewFactory,
+  IViewFactory,
   // MountStrategy,
 
   // AccessorOrObserver,

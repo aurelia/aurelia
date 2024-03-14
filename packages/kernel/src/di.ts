@@ -57,9 +57,9 @@ export interface IServiceLocator {
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;
   get<K extends Key>(key: K | Key): Resolved<K>;
-  getAll<K extends Key>(key: K, searchAncestors?: boolean): readonly Resolved<K>[];
-  getAll<K extends Key>(key: Key, searchAncestors?: boolean): readonly Resolved<K>[];
-  getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): readonly Resolved<K>[];
+  getAll<K extends Key>(key: K, searchAncestors?: boolean): Resolved<K>[];
+  getAll<K extends Key>(key: Key, searchAncestors?: boolean): Resolved<K>[];
+  getAll<K extends Key>(key: K | Key, searchAncestors?: boolean): Resolved<K>[];
 }
 
 export interface IRegistry {
@@ -523,7 +523,7 @@ export const enum ResolverStrategy {
   transient = 2,
   callback = 3,
   array = 4,
-  alias = 5
+  alias = 5,
 }
 _END_CONST_ENUM();
 
@@ -536,6 +536,11 @@ export class Resolver implements IResolver, IRegistration {
   /** @internal */
   public _state: any;
 
+  public get $isResolver(): true { return true; }
+
+  /** @internal */
+  private _resolving: boolean = false;
+
   public constructor(
     key: Key,
     strategy: ResolverStrategy,
@@ -545,10 +550,6 @@ export class Resolver implements IResolver, IRegistration {
     this._strategy = strategy;
     this._state = state;
   }
-
-  public get $isResolver(): true { return true; }
-
-  private resolving: boolean = false;
 
   /**
    * When resolving a singleton, the internal state is changed,
@@ -566,13 +567,13 @@ export class Resolver implements IResolver, IRegistration {
       case ResolverStrategy.instance:
         return this._state;
       case ResolverStrategy.singleton: {
-        if (this.resolving) {
+        if (this._resolving) {
           throw createMappedError(ErrorNames.cyclic_dependency, this._state.name);
         }
-        this.resolving = true;
+        this._resolving = true;
         this._state = (this._cachedFactory = handler.getFactory(this._state as Constructable)).construct(requestor);
         this._strategy = ResolverStrategy.instance;
-        this.resolving = false;
+        this._resolving = false;
         return this._state;
       }
       case ResolverStrategy.transient: {

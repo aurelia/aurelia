@@ -68,13 +68,13 @@ This is to make terminologies consistent as we are moving towards component orie
 
 * The primary property of `If` has been renamed from `condition` to `value`. If you are using `if.bind`, you are not affected. If you are using the multi prop binding syntax, the template looks like this:
 
-```markup
+```html
 <div if="condition.bind: yes">
 ```
 
 Change it to:
 
-```markup
+```html
 <div if="value.bind: yes">
 ```
 

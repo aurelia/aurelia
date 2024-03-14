@@ -79,7 +79,7 @@ export class MyApp {
 
 Go to your view and add emotion custom attribute to an HTML tag.
 
-```markup
+```html
 <div class="message" emotion.bind="cssObject">${message}</div>
 ```
 

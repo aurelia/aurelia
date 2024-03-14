@@ -8,6 +8,11 @@ import { def, objectAssign, safeString } from '../utilities';
 import { ErrorNames, createMappedError } from '../errors';
 import { isElement } from '../utilities-dom';
 
+/** @internal */
+export const defaultSlotName = 'default';
+/** @internal */
+export const auslotAttr = 'au-slot';
+
 export type PartialSlottedDefinition = {
   callback?: PropertyKey;
   slotName?: string;

@@ -290,6 +290,7 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
+  type ProcessContentHook,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';

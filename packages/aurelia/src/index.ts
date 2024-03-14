@@ -1,7 +1,7 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
 import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import type { ISinglePageApp, IEnhancementConfig } from '@aurelia/runtime-html';
+import type { ISinglePageAppConfig, IEnhancementConfig } from '@aurelia/runtime-html';
 
 export const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
 export { IPlatform };
@@ -23,7 +23,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().start(root);
   }
 
-  public static app(config: ISinglePageApp<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
@@ -35,7 +35,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp<object> | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config);
@@ -56,24 +56,6 @@ export class Aurelia extends $Aurelia {
 }
 
 export default Aurelia;
-
-export {
-  type IFetchInterceptor,
-  IFetchFn,
-  // RetryConfiguration,
-  // RetryableRequest,
-  // ValidInterceptorMethodName,
-
-  json,
-
-  // retryStrategy,
-  // RetryInterceptor,
-
-  HttpClientConfiguration,
-
-  HttpClient,
-  IHttpClient,
-} from '@aurelia/fetch-client';
 
 export {
   Metadata,
@@ -97,8 +79,7 @@ export {
   all,
   DI,
   IContainer,
-  // IDefaultableInterfaceSymbol,
-  // IFactory,
+  type IFactory,
   inject,
   resolve,
   type IRegistration,
@@ -107,10 +88,14 @@ export {
   IServiceLocator,
   type Key,
   lazy,
+  factory,
+  newInstanceOf,
+  newInstanceForScope,
   optional,
-  // RegisterSelf,
+  resource,
+  allResources,
+  ignore,
   Registration,
-  // ResolveCallback,
   singleton,
   transient,
   // Injectable,
@@ -509,7 +494,7 @@ export {
 
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
-  // ISinglePageApp,
+  type ISinglePageAppConfig,
   IAppRoot,
 
   // IfRegistration,

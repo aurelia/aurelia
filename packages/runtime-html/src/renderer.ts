@@ -154,13 +154,8 @@ export class MultiAttrInstruction {
   ) {}
 }
 
-export class HydrateElementInstruction {
+export class HydrateElementInstruction<T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>> {
   public readonly type = hydrateElement;
-
-  /**
-   * A special property that can be used to store <au-slot/> usage information
-   */
-  public auSlot: { name: string; fallback: CustomElementDefinition } | null = null;
 
   public constructor(
     /**
@@ -169,7 +164,6 @@ export class HydrateElementInstruction {
     // in theory, Constructor of resources should be accepted too
     // though it would be unnecessary right now
     public res: string | /* Constructable |  */CustomElementDefinition,
-    public alias: string | undefined,
     /**
      * Bindable instructions for the custom element instance
      */
@@ -186,6 +180,10 @@ export class HydrateElementInstruction {
      * A list of captured attr syntaxes
      */
     public captures: AttrSyntax[] | undefined,
+    /**
+     * Any data associated with this instruction
+     */
+    public readonly data: T,
   ) {
   }
 }

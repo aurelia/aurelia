@@ -477,13 +477,13 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [
           MyElement,
         ],
-        { 'my-element': [`<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div>`, new AuSlotsInfo([])] },
+        { 'my-element': [`<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div>`, new AuSlotsInfo([])] },
         async function ({ app, host, platform }) {
           app.people.push(new Person('Jane', 'Doe', []));
           platform.domWriteQueue.flush();
           assert.html.innerEqual(
             'my-element',
-            `<h4>First Name</h4> <h4>Last Name</h4> <div>John</div> <div>Doe</div> <div>Max</div> <div>Mustermann</div> <div>Jane</div> <div>Doe</div>`,
+            `<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div> <div>Jane</div><div>Doe</div>`,
             'my-element.innerHTML',
             host);
         }
@@ -1079,7 +1079,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
+        { 'my-element': ['<h4>First Name</h4><h4>Last Name</h4><h4>Pets</h4> <div>John</div><div>Doe</div><coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div><div>Mustermann</div><coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo([])] },
       );
 
       yield new TestData(
@@ -1098,7 +1098,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           MyElement,
         ],
         { 'my-element': [
-          '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+          '<h4>First Name</h4><h4>Last Name</h4><h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
           new AuSlotsInfo(['content'])
         ]},
       );
@@ -1119,7 +1119,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
+        { 'my-element': ['<h4>First Name</h4><h4>Last Name</h4><h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>', new AuSlotsInfo(['content'])] },
       );
 
       yield new TestData(
@@ -1140,7 +1140,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         ],
         {
           'my-element': [
-            '<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
+            '<h4>First Name</h4><h4>Last Name</h4><h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><ul><li>Browny</li><li>Smokey</li></ul></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><ul><li>Sea biscuit</li><li>Swift Thunder</li></ul></coll-vwr>',
             new AuSlotsInfo(['content'])
           ],
         }
@@ -1156,7 +1156,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           CollVwr,
           MyElement,
         ],
-        { 'my-element': ['<h4>First Name</h4> <h4>Last Name</h4> <h4>Pets</h4> <div>John</div> <div>Doe</div> <coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div> <div>Mustermann</div> <coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
+        { 'my-element': ['<h4>First Name</h4><h4>Last Name</h4><h4>Pets</h4> <div>John</div><div>Doe</div><coll-vwr><div>Browny</div><div>Smokey</div></coll-vwr> <div>Max</div><div>Mustermann</div><coll-vwr><div>Sea biscuit</div><div>Swift Thunder</div></coll-vwr>', new AuSlotsInfo(['colleslawt'])] },
       );
 
       yield new TestData(

@@ -1,23 +1,46 @@
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { bindable } from '../../bindable';
-import { customElement } from '../custom-element';
+import { CustomElementDefinition, customElement } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
-import { createMutationObserver } from '../../utilities-dom';
+import { createMutationObserver, isElement } from '../../utilities-dom';
 
 import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
-import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher } from '../../templating/controller.projection';
+import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, auslotAttr } from '../../templating/controller.projection';
+
+let emptyTemplate: CustomElementDefinition;
 
 @customElement({
   name: 'au-slot',
   template: null,
-  containerless: true
+  containerless: true,
+  processContent(el, p, metadata) {
+    metadata.name = el.getAttribute('name') ?? defaultSlotName;
+
+    let node: Node | null = el.firstChild;
+    let next: Node | null = null;
+    while (node !== null) {
+      next = node.nextSibling;
+      if (isElement(node) && node.hasAttribute(auslotAttr)) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[DEV:aurelia] detected [au-slot] attribute on a child node`,
+            `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
+            `This element will be ignored and removed`
+          );
+        }
+        el.removeChild(node);
+      }
+      node = next;
+    }
+  },
 })
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
   public readonly view: ISyntheticView;
@@ -48,18 +71,25 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   public constructor() {
     const hdrContext = resolve(IHydrationContext);
     const location = resolve(IRenderLocation);
-    const instruction = resolve(IInstruction) as HydrateElementInstruction;
+    const instruction = resolve(IInstruction) as HydrateElementInstruction<{ name: string}>;
     const rendering = resolve(IRendering);
-    const slotInfo = instruction.auSlot!;
-    const projection = hdrContext.instruction?.projections?.[slotInfo.name];
+    // when <au-slot> is empty, there's not even projections
+    // hence ?. operator is used
+    // for fallback, there's only default slot used
+    const fallback = instruction.projections?.[defaultSlotName];
+    const projection = hdrContext.instruction?.projections?.[instruction.data.name];
     const contextContainer = hdrContext.controller.container;
     let factory: IViewFactory;
     let container: IContainer;
 
-    this.name = slotInfo.name;
+    this.name = instruction.data.name;
     if (projection == null) {
       container = contextContainer.createChild({ inheritParentResources: true });
-      factory = rendering.getViewFactory(slotInfo.fallback, container);
+      factory = rendering.getViewFactory(fallback ?? (emptyTemplate ??= CustomElementDefinition.create({
+        name: 'au-slot-empty-template',
+        template: '',
+        needsCompile: false,
+      })), container);
       this._hasProjection = false;
     } else {
       // projection could happen within a projection, example:
@@ -98,7 +128,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       registerResolver(container, IHydrationContext, new InstanceProvider(void 0, hdrContext.parent));
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
+      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === this.name) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;

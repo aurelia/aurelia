@@ -878,10 +878,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       type: TT.hydrateElement,
       res: tagNameOrDef,
       props: childInstructions as IInstruction[],
-      auSlot: null,
       containerless: false,
       projections: null,
       captures: [],
+      data: {},
     };
     const def = typeof tagNameOrDef === 'string'
       ? CustomElement.find(ctx.container, tagNameOrDef)

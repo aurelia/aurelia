@@ -552,7 +552,9 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
         (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
         (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
       }
-      : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+      : key extends 'component'
+        ? <K>(comp: Constructable<K> | K) => CreateBuilder<K, Exclude<Availables, 'component'>>
+        : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
 } & ('html' extends Availables ? {} : { build(): IFixture<T> });
 
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
@@ -577,7 +579,7 @@ class FixtureBuilder<T> {
 
   public deps(...args: unknown[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>> {
     this._args = args;
-    return this;
+    return this as CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>>;
   }
 
   public build() {
@@ -655,6 +657,8 @@ function testBuilderTypings() {
     { a: [1, 2] }
   );
   const C1: IsType<{ a: number[] }, typeof component> = 1;
+  
+  const a9 = createFixture.html``.component(class Abc { a = 1 }).build().component.a;
 }
 /* eslint-enable */
 

@@ -206,7 +206,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
   const seedPromise = DI.createInterface<Promise<unknown>>();
   const delaySeedPromise = DI.createInterface<DelayPromise>();
-  async function testPromise<TApp>(
+  async function testPromise<TApp extends object>(
     testFunction: TestFunction<PromiseTestExecutionContext<TApp>>,
     {
       template,

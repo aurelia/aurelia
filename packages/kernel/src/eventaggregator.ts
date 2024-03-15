@@ -20,35 +20,73 @@ class Handler<T extends Constructable> {
 }
 
 export const IEventAggregator = /*@__PURE__*/createInterface<IEventAggregator>('IEventAggregator', x => x.singleton(EventAggregator));
-export interface IEventAggregator extends EventAggregator {}
-
-/**
- * Enables loosely coupled publish/subscribe messaging.
- */
-export class EventAggregator {
-  /** @internal */
-  public readonly eventLookup: Record<string, ((message: unknown, channel: string) => void)[]> = {};
-  /** @internal */
-  public readonly messageHandlers: Handler<Constructable>[] = [];
-
+export interface IEventAggregator {
   /**
    * Publishes a message.
    *
    * @param channel - The channel to publish to.
    * @param message - The message to publish on the channel.
    */
-  public publish<T, C extends string>(
-    channel: C,
-    message: T,
-  ): void;
+  publish<C extends string>(channel: C, message?: unknown): void;
   /**
    * Publishes a message.
    *
    * @param instance - The instance to publish.
    */
-  public publish<T extends Constructable>(
-    instance: InstanceType<T>,
-  ): void;
+  publish<T extends Constructable>(instance: InstanceType<T>): void;
+
+  /**
+   * Subscribes to a message channel.
+   *
+   * @param channel - The event channel.
+   * @param callback - The callback to be invoked when the specified message is published.
+   */
+  subscribe<T, C extends string = string>(
+    channel: C,
+    callback: (message: T, channel: C) => void,
+  ): IDisposable;
+  /**
+   * Subscribes to a message type.
+   *
+   * @param type - The event message type.
+   * @param callback - The callback to be invoked when the specified message is published.
+   */
+  subscribe<T extends Constructable>(
+    type: T,
+    callback: (message: InstanceType<T>) => void,
+  ): IDisposable;
+
+  /**
+   * Subscribes to a message channel, then disposes the subscription automatically after the first message is received.
+   *
+   * @param channel - The event channel.
+   * @param callback - The callback to be invoked when the specified message is published.
+   */
+  subscribeOnce<T, C extends string>(
+    channel: C,
+    callback: (message: T, channel: C) => void,
+  ): IDisposable;
+  /**
+   * Subscribes to a message type, then disposes the subscription automatically after the first message is received.
+   *
+   * @param type - The event message type.
+   * @param callback - The callback to be invoked when the specified message is published.
+   */
+  subscribeOnce<T extends Constructable>(
+    type: T,
+    callback: (message: InstanceType<T>) => void,
+  ): IDisposable;
+}
+
+/**
+ * Enables loosely coupled publish/subscribe messaging.
+ */
+export class EventAggregator implements IEventAggregator {
+  /** @internal */
+  public readonly eventLookup: Record<string, ((message: unknown, channel: string) => void)[]> = {};
+  /** @internal */
+  public readonly messageHandlers: Handler<Constructable>[] = [];
+
   public publish<T extends Constructable | string>(
     channelOrInstance: T extends Constructable ? InstanceType<T> : T,
     message?: unknown,
@@ -78,26 +116,6 @@ export class EventAggregator {
     }
   }
 
-  /**
-   * Subscribes to a message channel.
-   *
-   * @param channel - The event channel.
-   * @param callback - The callback to be invoked when the specified message is published.
-   */
-  public subscribe<T, C extends string>(
-    channel: C,
-    callback: (message: T, channel: C) => void,
-  ): IDisposable;
-  /**
-   * Subscribes to a message type.
-   *
-   * @param type - The event message type.
-   * @param callback - The callback to be invoked when the specified message is published.
-   */
-  public subscribe<T extends Constructable>(
-    type: T,
-    callback: (message: InstanceType<T>) => void,
-  ): IDisposable;
   public subscribe(
     channelOrType: string | Constructable,
     callback: (...args: unknown[]) => void,
@@ -134,26 +152,6 @@ export class EventAggregator {
     };
   }
 
-  /**
-   * Subscribes to a message channel, then disposes the subscription automatically after the first message is received.
-   *
-   * @param channel - The event channel.
-   * @param callback - The callback to be invoked when the specified message is published.
-   */
-  public subscribeOnce<T, C extends string>(
-    channel: C,
-    callback: (message: T, channel: C) => void,
-  ): IDisposable;
-  /**
-   * Subscribes to a message type, then disposes the subscription automatically after the first message is received.
-   *
-   * @param type - The event message type.
-   * @param callback - The callback to be invoked when the specified message is published.
-   */
-  public subscribeOnce<T extends Constructable>(
-    type: T,
-    callback: (message: InstanceType<T>) => void,
-  ): IDisposable;
   public subscribeOnce(
     channelOrType: string | Constructable,
     callback: (...args: unknown[]) => void,

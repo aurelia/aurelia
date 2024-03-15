@@ -8,7 +8,7 @@ import { TestContext } from './test-context';
 import { getVisibleText } from './specialized-assertions';
 
 const fixtureHooks = new EventAggregator();
-export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown) => {
+export const onFixtureCreated = <T extends object>(callback: (fixture: IFixture<T>) => unknown) => {
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);

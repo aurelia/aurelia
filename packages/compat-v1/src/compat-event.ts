@@ -1,19 +1,29 @@
-import { DI, IContainer, IIndexable } from '@aurelia/kernel';
+import { DI, IContainer } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
-import { AppTask, bindingCommand, BindingCommandInstance, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { AppTask, bindingCommand, BindingCommandInstance, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform, IListenerBindingOptions } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 
-const registeredSymbol = Symbol('.delegate');
-
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-export const delegateSyntax = {
+const preventDefaultRegisteredContainer = new WeakSet<IContainer>();
+export const eventPreventDefaultBehavior = {
+  /* istanbul ignore next */
   register(container: IContainer) {
-    /* istanbul ignore next */
-    if (!(container as unknown as IIndexable)[registeredSymbol]) {
-      /* istanbul ignore next */
-      (container as unknown as IIndexable)[registeredSymbol] = true;
+    if (preventDefaultRegisteredContainer.has(container)) {
+      return;
+    }
+    preventDefaultRegisteredContainer.add(container);
+    container.get(IListenerBindingOptions).prevent = true;
+  }
+};
+
+const delegateRegisteredContainer = new WeakSet<IContainer>();
+
+export const delegateSyntax = {
+  /* istanbul ignore next */
+  register(container: IContainer) {
+    if (!delegateRegisteredContainer.has(container)) {
+      delegateRegisteredContainer.add(container);
       container.register(
         IEventDelegator,
         DelegateBindingCommand,
@@ -31,7 +41,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
     return new DelegateBindingInstruction(
       exprParser.parse(info.attr.rawValue, etIsFunction),
       info.attr.target,
-      false
+      true,
     );
   }
 }

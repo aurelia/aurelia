@@ -23,6 +23,22 @@ An quickest way to get an application in v1 up an running in v2 is to include th
 
 ## BREAKING CHANGES
 
+### Event
+
+In v2, `preventDefault` is no longer called by default. This breaking change could show up in unexpected places:
+- click events: in v1, clicking on a button inside a form will not submit the form, while it will in v2, as the click event default behavior is no longer prevented
+- drag events: in v1, implementing drag/drop will have `preventDefault` called automatically, but in v2, they will need to be explicitly called by the application
+
+Sometimes, if it's desirable to call `preventDefault` in an event binding, use `prevent` modifier, like the following example:
+
+```html
+<button click.trigger:prevent="doWork()">Submit manually</button>
+
+<div dragstart.trigger="prepareDragdrop()" drop.trigger:prevent="onDrop()">
+```
+
+Read more about modifiers in [event modifier doc here](../../templates/template-syntax/event-binding.md#event-modifiers)
+
 ### Scope selection
 
 In v2, when trying to bind with a non-existent property, the closest boundary scope will be selected, instead of the immediate scope of the binding (v1 behavior).

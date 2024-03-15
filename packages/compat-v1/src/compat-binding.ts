@@ -2,7 +2,7 @@
 import { IsExpressionOrStatement, Unparser } from '@aurelia/runtime';
 import { AttributeBinding, ContentBinding, InterpolationPartBinding, LetBinding, ListenerBinding, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
 import { CallBinding } from './compat-call';
-import { DelegateListenerBinding } from './compat-delegate';
+import { DelegateListenerBinding } from './compat-event';
 
 let defined = false;
 export const defineBindingMethods = () => {

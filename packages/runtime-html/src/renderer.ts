@@ -251,7 +251,6 @@ export class ListenerBindingInstruction {
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
-    public preventDefault: boolean,
     public capture: boolean,
     public modifier: string | null,
   ) {}
@@ -845,6 +844,19 @@ export class TextBindingRenderer implements IRenderer {
   }
 }
 
+/**
+ * An interface describing configuration for listener bindings
+ */
+export interface IListenerBindingOptions {
+  /**
+   * Indicate whether listener should by default call preventDefault on all the events
+   */
+  prevent: boolean;
+}
+export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.instance({
+  prevent: false,
+}));
+
 @renderer(listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
@@ -852,6 +864,8 @@ export class ListenerBindingRenderer implements IRenderer {
 
   /** @internal */
   private readonly _modifierHandler = resolve(IEventModifier);
+  /** @internal */
+  private readonly _defaultOptions = resolve(IListenerBindingOptions);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -865,7 +879,7 @@ export class ListenerBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
-      new ListenerBindingOptions(instruction.preventDefault, instruction.capture),
+      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
     ));
   }

@@ -1062,8 +1062,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         ] as ((ctx: TestContext) => [string])[],
         [
           (_ctx) => ['foo', 'foo', 'bar'],
-          // (_ctx) => ['foo.bar', 'foo', 'bar'],
-          // (_ctx) => ['foo.bind', 'foo', 'bar'],
           (_ctx) => ['value', 'value', 'value']
         ] as ((ctx: TestContext, $1: [string]) => [string, string, string])[],
         [
@@ -1073,9 +1071,9 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           (ctx, $1, [attr, to, value]) => [`${attr}.one-time`, value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.oneTime, }],
           (ctx, $1, [attr, to, value]) => [`${attr}.from-view`, value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.fromView, }],
           (ctx, $1, [attr, to, value]) => [`${attr}.two-way`, value, { type: TT.propertyBinding, from: new AccessScopeExpression(value), to, mode: BindingMode.twoWay, }],
-          (ctx, $1, [attr, to, value]) => [`${attr}.trigger`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: true, capture: false, modifier: null }],
-          (ctx, $1, [attr, to, value]) => [`${attr}.delegate`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false }],
-          (ctx, $1, [attr, to, value]) => [`${attr}.capture`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: false, capture: true, modifier: null }],
+          (ctx, $1, [attr, to, value]) => [`${attr}.trigger`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, capture: false, modifier: null }],
+          (ctx, $1, [attr, to, value]) => [`${attr}.delegate`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, preventDefault: true }],
+          (ctx, $1, [attr, to, value]) => [`${attr}.capture`, value, { type: HTT.listenerBinding, from: new AccessScopeExpression(value), to, capture: true, modifier: null }],
         ] as ((ctx: TestContext, $1: [string], $2: [string, string, string]) => [string, string, any])[]
       ], (ctx, [el], $2, [n1, v1, i1]) => {
         const markup = `<${el} plain data-attr="value" ${n1}="${v1}"></${el}>`;

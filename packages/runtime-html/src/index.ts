@@ -171,6 +171,7 @@ export {
   PropertyBindingRenderer,
   TextBindingRenderer,
   ListenerBindingRenderer,
+  IListenerBindingOptions,
   LetElementRenderer,
   TemplateControllerRenderer,
   AttributeBindingRenderer,

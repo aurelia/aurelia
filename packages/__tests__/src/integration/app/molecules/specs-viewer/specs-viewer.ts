@@ -15,7 +15,7 @@ export class SpecsViewer {
         case thing instanceof Camera: return CameraSpecsViewer;
         case thing instanceof Laptop: return LaptopSpecsViewer;
         case thing instanceof Thing: return ThingViewer;
-        default: throw new Error(`Unsupported type ${thing.constructor.prototype}`);
+        default: throw new Error(`Unsupported type ${(thing as object).constructor.prototype}`);
       }
     };
     this.pairs = this.things.map((thing) => ({ thing, vm: toVm(thing) }));
@@ -29,7 +29,7 @@ export class ViewerValueConverter {
       case thing instanceof Camera: return CameraSpecsViewer;
       case thing instanceof Laptop: return LaptopSpecsViewer;
       case thing instanceof Thing: return ThingViewer;
-      default: throw new Error(`Unsupported type ${thing.constructor.prototype}`);
+      default: throw new Error(`Unsupported type ${(thing as object).constructor.prototype}`);
     }
   }
 }

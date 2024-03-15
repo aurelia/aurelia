@@ -54,7 +54,7 @@
   "devDependencies": {
     "@types/node": "^14.18.14",
     "@types/vinyl": "^2.0.6",
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

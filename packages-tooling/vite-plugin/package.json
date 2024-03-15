@@ -57,7 +57,7 @@
     "@types/loader-utils": "^2.0.3",
     "@types/node": "^14.18.14",
     "@types/webpack": "^4.41.30",
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

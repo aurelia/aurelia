@@ -53,7 +53,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

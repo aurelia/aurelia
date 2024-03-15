@@ -1,4 +1,4 @@
-import { Registration, toArray, newInstanceForScope, DI } from '@aurelia/kernel';
+import { Registration, toArray, newInstanceForScope, DI, resolve, IContainer } from '@aurelia/kernel';
 import { IPlatform, CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { PLATFORM, assert, ISpy, TestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
@@ -25,15 +25,14 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
       public person: Person = new Person((void 0)!, (void 0)!);
       public controllerValidateSpy: ISpy;
 
-      public constructor(
-        @IPlatform public readonly platform: IPlatform,
-        @newInstanceForScope(IValidationController) public controller: ValidationController,
-        @IValidationResultPresenterService public presenterService: ValidationResultPresenterService,
-        @IValidationRules private readonly validationRules: IValidationRules,
-      ) {
-        this.controllerValidateSpy = createSpy(controller, 'validate', true);
-        controller.addSubscriber(presenterService);
-        validationRules
+      public readonly platform: IPlatform = resolve(IPlatform);
+      public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
+      public presenterService: ValidationResultPresenterService = resolve(IValidationResultPresenterService) as ValidationResultPresenterService;
+      private readonly validationRules: IValidationRules = resolve(IValidationRules);
+      public constructor() {
+        this.controllerValidateSpy = createSpy(this.controller, 'validate', true);
+        this.controller.addSubscriber(this.presenterService);
+        this.validationRules
           .on(this.person)
 
           .ensure('name')
@@ -64,11 +63,11 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
     }
     interface TestSetupContext {
       template: string;
-      presenterService?: $IValidationResultPresenterService;
+      presenterServiceFactory?: (container: IContainer) => $IValidationResultPresenterService;
     }
     async function runTest(
       testFunction: TestFunction<TestExecutionContext<App>>,
-      { template, presenterService }: TestSetupContext
+      { template, presenterServiceFactory }: TestSetupContext
     ) {
       const ctx = TestContext.create();
       const container = ctx.container;
@@ -77,12 +76,13 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
       const au = new Aurelia(container);
       await au
         .register(
+          Registration.instance(IPlatform, PLATFORM),
           ValidationHtmlConfiguration,
           ToNumberValueConverter,
           CustomValidationContainer,
           Registration.cachedCallback(
             IValidationResultPresenterService,
-            (x) => presenterService ?? x.get($IValidationResultPresenterService)
+            (x) => presenterServiceFactory?.(x) ?? x.get($IValidationResultPresenterService)
           ),
         )
         .app({
@@ -362,7 +362,7 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
         assert.equal(getVisibleText(validationContainer2.shadowRoot.querySelector('small'), true), '');
       },
       {
-        presenterService: new CustomPresenterService(PLATFORM),
+        presenterServiceFactory(x) { return x.invoke(CustomPresenterService); },
         template: `
         <custom-validation-container>
           <input id="target1" type="text" value.two-way="person.name & validate">
@@ -425,11 +425,11 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
         assert.equal(showResultsArgs.length, 0);
       },
       {
-        presenterService: new (
-          class extends ValidationResultPresenterService {
+        presenterServiceFactory(x) {
+          return x.invoke(class extends ValidationResultPresenterService {
             public getValidationMessageContainer() { return null; }
-          }
-        )(PLATFORM),
+          });
+        },
         template: `
         <div>
           <input id="target1" type="text" value.two-way="person.name & validate">

@@ -2,12 +2,13 @@ import {
   DI,
   inject,
   Registration,
+  resolve,
   singleton,
   transient,
 } from '@aurelia/kernel';
 import { _, assert, createSpy, ISpy } from '@aurelia/testing';
 
-function decorator(): ClassDecorator { return (target: any) => target; }
+function decorator() { return (target: any, _context: ClassDecoratorContext) => target; }
 
 describe('1-kernel/di.spec.ts', function () {
   describe(`The DI object`, function () {
@@ -313,7 +314,11 @@ describe('1-kernel/di.spec.ts', function () {
         getDesignParamtypes.restore();
       });
 
-      it(`uses getDesignParamtypes() if the static inject property does not exist`, function () {
+      // TODO: Enable those tests once the decorator metadata is emitted by TS.
+      // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+      // The following tests are dependent on that and hence cannot be successfully run.
+      // Refer: https://github.com/microsoft/TypeScript/issues/55788
+      it.skip(`uses getDesignParamtypes() if the static inject property does not exist`, function () {
         class Bar {}
         @decorator()
         // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -321,7 +326,11 @@ describe('1-kernel/di.spec.ts', function () {
         DI.getDependencies(Foo);
       });
 
-      it(`uses getDesignParamtypes() if the static inject property is undefined`, function () {
+      // TODO: Enable those tests once the decorator metadata is emitted by TS.
+      // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+      // The following tests are dependent on that and hence cannot be successfully run.
+      // Refer: https://github.com/microsoft/TypeScript/issues/55788
+      it.skip(`uses getDesignParamtypes() if the static inject property is undefined`, function () {
         class Bar {}
         @decorator()
         // eslint-disable-next-line @typescript-eslint/no-useless-constructor
@@ -427,8 +436,19 @@ describe('1-kernel/di.spec.ts', function () {
     //   assert.deepStrictEqual(Foo['inject'], [Dep1, Dep2, Dep3], `Foo['inject']`);
     // });
 
-    it(`can decorate constructor parameters explicitly`, function () {
-      class Foo { public constructor(@inject(Dep1)_dep1, @inject(Dep2)_dep2, @inject(Dep3)_dep3) { /* empty */ } }
+    // TODO: Enable those tests once the decorator metadata is emitted by TS.
+    // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+    // The following tests are dependent on that and hence cannot be successfully run.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    it.skip(`can decorate constructor parameters explicitly`, function () {
+      class Foo {
+      // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+      public constructor(
+        _dep1 = resolve(Dep1),
+        _dep2 = resolve(Dep2),
+        _dep3 = resolve(Dep3),
+      ) { /* empty */ }
+    }
 
       assert.deepStrictEqual(DI.getDependencies(Foo), [Dep1, Dep2, Dep3], `Foo['inject']`);
     });
@@ -444,12 +464,17 @@ describe('1-kernel/di.spec.ts', function () {
       // @ts-ignore
       class Foo { @inject(Dep1)public dep1; @inject(Dep2)public dep2; @inject(Dep3)public dep3; }
 
-      assert.strictEqual(DI.getDependencies(Foo)['dep1'], Dep1, `Foo['inject'].dep1`);
-      assert.strictEqual(DI.getDependencies(Foo)['dep2'], Dep2, `Foo['inject'].dep2`);
-      assert.strictEqual(DI.getDependencies(Foo)['dep3'], Dep3, `Foo['inject'].dep3`);
+      const metadata = Foo[Symbol.metadata]['au:annotation:di:paramtypes'];
+      assert.strictEqual(metadata['dep1'], Dep1, `Foo['inject'].dep1`);
+      assert.strictEqual(metadata['dep2'], Dep2, `Foo['inject'].dep2`);
+      assert.strictEqual(metadata['dep3'], Dep3, `Foo['inject'].dep3`);
     });
 
-    it(`cannot decorate properties implicitly`, function () {
+    // TODO: Enable those tests once the decorator metadata is emitted by TS.
+    // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+    // The following tests are dependent on that and hence cannot be successfully run.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    it.skip(`cannot decorate properties implicitly`, function () {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       class Foo { @inject()public dep1: Dep1; @inject()public dep2: Dep2; @inject()public dep3: Dep3; }

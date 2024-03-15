@@ -9,11 +9,12 @@ import {
   IHydratableController,
   IRenderer,
   renderer,
-  attributePattern,
   AttrSyntax,
   IPlatform,
   IAttrMapper,
   ICommandBuildInfo,
+  AttributePattern,
+  BindingCommand,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -27,12 +28,12 @@ export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
-@attributePattern({ pattern: attribute, symbols: '' })
 export class TranslationParametersAttributePattern {
   public [attribute](rawName: string, rawValue: string): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, '', attribute);
   }
 }
+AttributePattern.define([{ pattern: attribute, symbols: '' }], TranslationParametersAttributePattern);
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
@@ -66,8 +67,8 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, etIsProperty), target);
   }
 }
+BindingCommand.define(attribute, TranslationParametersBindingCommand);
 
-@renderer(TranslationParametersInstructionType)
 export class TranslationParametersBindingRenderer implements IRenderer {
   public target!: typeof TranslationParametersInstructionType;
   public render(
@@ -90,3 +91,4 @@ export class TranslationParametersBindingRenderer implements IRenderer {
     });
   }
 }
+renderer(TranslationParametersInstructionType)(TranslationParametersBindingRenderer, null!);

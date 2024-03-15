@@ -1,7 +1,8 @@
 import { DI } from '@aurelia/kernel';
 import i18next, { i18n } from 'i18next';
 
-export const I18nWrapper = /*@__PURE__*/DI.createInterface<I18nextWrapper>('I18nextWrapper');
+export interface II18nextWrapper extends I18nextWrapper {}
+export const II18nextWrapper = /*@__PURE__*/DI.createInterface<II18nextWrapper>('II18nextWrapper');
 
 /**
  * A wrapper class over i18next to facilitate the easy testing and DI.

@@ -1,4 +1,4 @@
-import { ConsoleSink, LoggerConfiguration, LogLevel } from '@aurelia/kernel';
+import { ConsoleSink, LoggerConfiguration, LogLevel, resolve } from '@aurelia/kernel';
 import { ISignaler } from '@aurelia/runtime';
 import { customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
@@ -30,9 +30,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
       public input: number = 0;
       public factor: number = 1;
 
-      public constructor(
-        @ISignaler private readonly signaler: ISignaler,
-      ) {}
+      private readonly signaler: ISignaler = resolve(ISignaler);
 
       public increment(): void {
         this.signaler.dispatchSignal('increment');
@@ -98,9 +96,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         class App {
           public items: number[] = items;
 
-          public constructor(
-            @ISignaler private readonly signaler: ISignaler,
-          ) {}
+          private readonly signaler: ISignaler = resolve(ISignaler);
 
           public updateItem(): void {
             this.signaler.dispatchSignal('updateItem');

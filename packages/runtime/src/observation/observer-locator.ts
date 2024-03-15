@@ -57,13 +57,9 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
 
 export type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get?: ObservableGetter;
-  set?: ObservableSetter;
 };
 export type ObservableGetter = PropertyDescriptor['get'] & {
-  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
-};
-export type ObservableSetter = PropertyDescriptor['set'] & {
-  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+  getObserver?(obj: unknown): IObserver;
 };
 
 export class ObserverLocator {
@@ -165,7 +161,7 @@ export class ObserverLocator {
     if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
       let obs: IObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
-        obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this);
+        obs = (pd.get?.getObserver)?.(obj);
       }
 
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

@@ -1,10 +1,9 @@
 import { IDisposable, IIndexable, resolve } from '@aurelia/kernel';
 import {
-  customAttribute,
-  bindable,
   ICustomAttributeViewModel,
   INode,
   CustomElement,
+  defineAttribute,
 } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
@@ -14,7 +13,6 @@ import { IRouterEvents } from '../router-events';
 import { ILocationManager } from '../location-manager';
 import { bmFromView, bmToView } from '../util';
 
-@customAttribute('load')
 export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   /** @internal */ private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
@@ -23,22 +21,14 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
   /** @internal */ private readonly _events: IRouterEvents = resolve(IRouterEvents);
   /** @internal */ private readonly _locationMgr: ILocationManager = resolve(ILocationManager);
 
-  @bindable({ mode: bmToView, primary: true, callback: 'valueChanged' })
   public route: unknown;
-
-  @bindable({ mode: bmToView, callback: 'valueChanged' })
   public params?: Params;
-
-  @bindable({ mode: bmToView })
   public attribute: string = 'href';
-
-  @bindable({ mode: bmFromView })
   public active: boolean = false;
 
   /**
    * When not bound, it defaults to the injected instance of the router context.
    */
-  @bindable({ mode: bmToView, callback: 'valueChanged' })
   public context?: IRouteContext;
 
   /** @internal */ private _href: string | null = null;
@@ -136,3 +126,13 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     void this._router.load(this._instructions, { context: this.context });
   };
 }
+defineAttribute({
+  name: 'load',
+  bindables: {
+    route: { mode: bmToView, primary: true, callback: 'valueChanged' },
+    params: { mode: bmToView, callback: 'valueChanged' },
+    attribute: { mode: bmToView },
+    active: { mode: bmFromView },
+    context: { mode: bmToView, callback: 'valueChanged' }
+  }
+}, LoadCustomAttribute);

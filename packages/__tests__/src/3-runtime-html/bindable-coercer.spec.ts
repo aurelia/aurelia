@@ -63,7 +63,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
   function getTypeSpecification(type: unknown) {
     return type === undefined ? 'implicit type from TS metadata' : 'explicit type';
   }
-  for (const type of [undefined, Number]) {
+  // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+  // Refer: https://github.com/microsoft/TypeScript/issues/55788
+  for (const type of [/* undefined, */ Number]) {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
@@ -171,8 +173,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
       }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
   }
-
-  for (const type of [undefined, String]) {
+  // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+  // Refer: https://github.com/microsoft/TypeScript/issues/55788
+  for (const type of [/* undefined,  */String]) {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
@@ -272,7 +275,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
   }
 
-  for (const type of [undefined, Boolean]) {
+  // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+  // Refer: https://github.com/microsoft/TypeScript/issues/55788
+  for (const type of [/* undefined,  */Boolean]) {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
@@ -400,7 +405,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     }
   }
 
-  for (const type of [undefined, BigInt]) {
+  // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+  // Refer: https://github.com/microsoft/TypeScript/issues/55788
+  for (const type of [/* undefined, */ BigInt]) {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
@@ -531,7 +538,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     class Person1 extends Person {
       public static coerce = createPerson.bind(Person1);
     }
-    for (const type of [undefined, Person1]) {
+    // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    for (const type of [/* undefined,  */Person1]) {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
         @bindable({ type }) public person: Person1;
@@ -630,7 +639,9 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
       @coercer
       public static createPerson(value: unknown) { return createPerson.bind(Person2)(value) as Person2; }
     }
-    for (const type of [undefined, Person2]) {
+    // Implicit type from TS metadata won't work, because with TC39 decorator proposal, TS does not emit the design metadata.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    for (const type of [/* undefined, */ Person2]) {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
         @bindable({ type }) public person: Person2;
@@ -726,7 +737,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
-        @bindable public person: Person2;
+        @bindable({ type: Person2 }) public person: Person2;
       }
       class App {
         public readonly myEl!: MyEl;
@@ -755,7 +766,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
     {
       @customElement({ name: 'my-el', template: 'irrelevant' })
       class MyEl {
-        @bindable public person: Person2;
+        @bindable({ type: Person2 }) public person: Person2;
       }
       class App {
         public readonly myEl!: MyEl;
@@ -857,7 +868,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
   {
     @customAttribute({ name: 'my-attr' })
     class MyAttr {
-      @bindable public value: number;
+      @bindable({ type: Number }) public value: number;
     }
     class App { }
 

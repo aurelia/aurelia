@@ -17,8 +17,8 @@ export interface IWatchDefinition<T extends object = object> {
 }
 
 type AnyMethod<R = unknown> = (...args: unknown[]) => R;
-type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K) => void;
-type WatchMethodDecorator<T> = (target: T, key: string | symbol, descriptor: PropertyDescriptor) => PropertyDescriptor;
+type WatchClassDecorator<T extends object> = <K extends Constructable<T>>(target: K, context: ClassDecoratorContext<K>) => void;
+type WatchMethodDecorator<T, TV extends AnyMethod> = (target: TV, context: ClassMethodDecoratorContext<T, TV>) => void;
 type MethodsOf<Type> = {
   [Key in keyof Type]: Type[Key] extends AnyMethod ? Key : never
 }[keyof Type];
@@ -50,58 +50,65 @@ export function watch<T extends object, D = unknown>(
 //    @watch(a => ...)
 //    method() {...}
 // }
-export function watch<T extends object = object, D = unknown>(
+export function watch<T extends object = object, D = unknown, TV extends AnyMethod = AnyMethod>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<T, D>
-): WatchMethodDecorator<T>;
+): WatchMethodDecorator<T, TV>;
 
-export function watch<T extends object = object>(
+export function watch<T extends object = object, TV extends AnyMethod = AnyMethod>(
   expressionOrPropertyAccessFn: PropertyKey | IDepCollectionFn<object>,
   changeHandlerOrCallback?: PropertyKey | IWatcherCallback<T>,
-): WatchClassDecorator<T> | WatchMethodDecorator<T> {
+): WatchClassDecorator<T> | WatchMethodDecorator<T, TV> {
   if (expressionOrPropertyAccessFn == null) {
     throw createMappedError(ErrorNames.watch_null_config);
   }
 
-  return function decorator(
-    target: Constructable<T>,
-    key?: PropertyKey,
-    descriptor?: PropertyDescriptor,
-  ): void {
-    const isClassDecorator = key == null;
-    const Type = isClassDecorator ? target : target.constructor as Constructable;
-    const watchDef = new WatchDefinition<T>(
-      expressionOrPropertyAccessFn,
-      isClassDecorator ? changeHandlerOrCallback : descriptor!.value
-    );
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  return function decorator(target: Function | IWatcherCallback<T>, context: ClassDecoratorContext<Constructable<T>> | ClassMethodDecoratorContext<T>): void {
+    const isClassDecorator = context.kind === 'class';
 
     // basic validation
     if (isClassDecorator) {
       if (!isFunction(changeHandlerOrCallback)
-        && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in Type.prototype))
+        && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in target.prototype))
       ) {
-        throw createMappedError(ErrorNames.watch_invalid_change_handler, `${safeString(changeHandlerOrCallback)}@${Type.name}}`);
+        throw createMappedError(ErrorNames.watch_invalid_change_handler, `${safeString(changeHandlerOrCallback)}@${target.name}}`);
       }
-    } else if (!isFunction(descriptor?.value)) {
-      throw createMappedError(ErrorNames.watch_non_method_decorator_usage, key);
+    } else if (!isFunction(target)) {
+      throw createMappedError(ErrorNames.watch_non_method_decorator_usage, context.name);
     }
 
-    Watch.add(Type, watchDef as IWatchDefinition);
+    const watchDef = new WatchDefinition<T>(
+      expressionOrPropertyAccessFn,
+      (isClassDecorator ? changeHandlerOrCallback : target) as IWatcherCallback<T>
+    );
 
-    // if the code looks like this:
-    // @watch(...)
-    // @customAttribute(...)
-    // class Abc {}
-    //
-    // then @watch is called after @customAttribute
-    // which means the attribute definition won't have the watch definition
-    //
-    // temporarily works around this order sensitivity by manually add the watch def
-    // manual
-    if (isAttributeType(Type)) {
-      getAttributeDefinition(Type).watches.push(watchDef as IWatchDefinition);
+    if (isClassDecorator) {
+      core(target as Constructable);
+    } else {
+      context.addInitializer(function (this: T) {
+        core(this.constructor as Constructable);
+      });
     }
-    if (isElementType(Type)) {
-      getElementDefinition(Type).watches.push(watchDef as IWatchDefinition);
+
+    function core(type: Constructable) {
+      Watch.add(type, watchDef as IWatchDefinition);
+
+      // if the code looks like this:
+      // @watch(...)
+      // @customAttribute(...)
+      // class Abc {}
+      //
+      // then @watch is called after @customAttribute
+      // which means the attribute definition won't have the watch definition
+      //
+      // temporarily works around this order sensitivity by manually add the watch def
+      // manual
+      if (isAttributeType(type)) {
+        getAttributeDefinition(type).watches.push(watchDef as IWatchDefinition);
+      }
+      if (isElementType(type)) {
+        getElementDefinition(type).watches.push(watchDef as IWatchDefinition);
+      }
     }
   };
 }

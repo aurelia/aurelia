@@ -15,7 +15,7 @@ import {
   ISyntheticView
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
-import { attributePattern, AttrSyntax } from '../attribute-pattern';
+import { AttrSyntax } from '../attribute-pattern';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
@@ -335,21 +335,18 @@ function getPromiseController(controller: IHydratableController) {
   throw createMappedError(ErrorNames.promise_invalid_usage);
 }
 
-@attributePattern({ pattern: 'promise.resolve', symbols: '' })
 export class PromiseAttributePattern {
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
 
-@attributePattern({ pattern: 'then', symbols: '' })
 export class FulfilledAttributePattern {
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
 
-@attributePattern({ pattern: 'catch', symbols: '' })
 export class RejectedAttributePattern {
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');

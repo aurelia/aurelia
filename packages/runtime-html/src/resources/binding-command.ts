@@ -11,7 +11,7 @@ import {
   SpreadBindingInstruction,
   MultiAttrInstruction,
 } from '../renderer';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getMetadata } from '../utilities-metadata';
 import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
@@ -65,21 +65,24 @@ export type BindingCommandInstance<T extends {} = {}> = {
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export type BindingCommandKind = IResourceKind & {
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
-  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
+  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
+  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
+  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, context: DecoratorContext | null): PartialBindingCommandDefinition[K] | undefined;
   find(container: IContainer, name: string): BindingCommandDefinition | null;
   get(container: IServiceLocator, name: string): BindingCommandInstance;
 };
 
-export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
+export type BindingCommandDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => BindingCommandType<T>;
 
 export function bindingCommand(name: string): BindingCommandDecorator;
 export function bindingCommand(definition: PartialBindingCommandDefinition): BindingCommandDecorator;
 export function bindingCommand(nameOrDefinition: string | PartialBindingCommandDefinition): BindingCommandDecorator {
-  return function (target) {
-    return BindingCommand.define(nameOrDefinition, target);
+  return function <T extends Constructable>(target: T, context: ClassDecoratorContext): BindingCommandType<T> {
+    context.addInitializer(function (this) {
+      BindingCommand.define(nameOrDefinition, target);
+    });
+    return target as BindingCommandType<T>;
   };
 }
 
@@ -138,8 +141,8 @@ const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
 const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
-): PartialBindingCommandDefinition[K] =>
-  getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingCommandDefinition[K];
+): PartialBindingCommandDefinition[K] | undefined =>
+  getMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type);
 
 export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
@@ -151,9 +154,8 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
     const $Type = definition.Type as BindingCommandType<T>;
 
-    defineMetadata(cmdBaseName, definition, $Type);
-    // a requirement for the resource system in kernel
-    defineMetadata(resourceBaseName, definition, $Type);
+    // registration of resource name is a requirement for the resource system in kernel (module-loader)
+    defineMetadata(definition, $Type, cmdBaseName, resourceBaseName);
 
     return $Type;
   },
@@ -162,7 +164,7 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
     const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
     return Type == null
       ? null
-      : getOwnMetadata(cmdBaseName, Type) ?? getDefinitionFromStaticAu(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
+      : getMetadata<BindingCommandDefinition>(cmdBaseName, Type) ?? getDefinitionFromStaticAu<BindingCommandDefinition, BindingCommandType>(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
   },
   get(container, name) {
     if (__DEV__) {
@@ -206,6 +208,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, oneTime);
   }
 }
+BindingCommand.define('one-time', OneTimeBindingCommand);
 
 export class ToViewBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -234,6 +237,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, toView);
   }
 }
+BindingCommand.define('to-view', ToViewBindingCommand);
 
 export class FromViewBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -262,6 +266,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, fromView);
   }
 }
+BindingCommand.define('from-view', FromViewBindingCommand);
 
 export class TwoWayBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -290,6 +295,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, twoWay);
   }
 }
+BindingCommand.define('two-way', TwoWayBindingCommand);
 
 export class DefaultBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -328,6 +334,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, mode);
   }
 }
+BindingCommand.define('bind', DefaultBindingCommand);
 
 export class ForBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -359,6 +366,7 @@ export class ForBindingCommand implements BindingCommandInstance {
     return new IteratorBindingInstruction(forOf, target, props);
   }
 }
+BindingCommand.define('for', ForBindingCommand);
 
 export class TriggerBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -376,6 +384,7 @@ export class TriggerBindingCommand implements BindingCommandInstance {
     );
   }
 }
+BindingCommand.define('trigger', TriggerBindingCommand);
 
 export class CaptureBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -393,6 +402,7 @@ export class CaptureBindingCommand implements BindingCommandInstance {
     );
   }
 }
+BindingCommand.define('capture', CaptureBindingCommand);
 
 /**
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
@@ -408,6 +418,7 @@ export class AttrBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
+BindingCommand.define('attr', AttrBindingCommand);
 
 /**
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
@@ -423,6 +434,7 @@ export class StyleBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
+BindingCommand.define('style', StyleBindingCommand);
 
 /**
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
@@ -438,6 +450,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
+BindingCommand.define('class', ClassBindingCommand);
 
 /**
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
@@ -453,6 +466,7 @@ export class RefBindingCommand implements BindingCommandInstance {
     return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
+BindingCommand.define('ref', RefBindingCommand);
 
 export class SpreadBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -465,3 +479,4 @@ export class SpreadBindingCommand implements BindingCommandInstance {
     return new SpreadBindingInstruction();
   }
 }
+BindingCommand.define('...$attrs', SpreadBindingCommand);

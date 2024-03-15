@@ -25,6 +25,7 @@ const mapping = {
   _setter: 'S',
   _useProxy: 'up',
   _value: 'v',
+  _validationSubscriber: 'vs'
 };
 
 (function () {

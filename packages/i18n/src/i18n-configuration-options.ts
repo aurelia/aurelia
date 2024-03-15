@@ -1,5 +1,6 @@
 import { Class, DI } from '@aurelia/kernel';
 import { InitOptions, Module, ThirdPartyModule } from 'i18next';
+import { II18nextWrapper } from './i18next-wrapper';
 
 export type I18nModule = Module | ThirdPartyModule;
 
@@ -23,4 +24,5 @@ export interface I18nInitOptions extends InitOptions {
 export interface I18nConfigurationOptions {
   initOptions?: I18nInitOptions;
   translationAttributeAliases?: string[];
+  i18nextWrapper?: II18nextWrapper;
 }

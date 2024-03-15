@@ -1,12 +1,12 @@
-import { I18nService, NumberFormatValueConverter } from '@aurelia/i18n';
-import { EventAggregator } from '@aurelia/kernel';
-import { assert, MockSignaler } from '@aurelia/testing';
-import i18next from 'i18next';
+import { I18N, NumberFormatValueConverter } from '@aurelia/i18n';
+import { assert } from '@aurelia/testing';
+import { createI18NContainer } from '../util.js';
 
 describe('i18n/nf/number-format-value-converter.spec.ts', function () {
   function createFixture() {
-    const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
-    const sut = new NumberFormatValueConverter(i18n);
+    const container = createI18NContainer();
+    const i18n = container.get(I18N);
+    const sut = container.invoke(NumberFormatValueConverter);
     return { i18n, sut };
   }
 

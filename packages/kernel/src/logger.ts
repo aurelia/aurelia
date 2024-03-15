@@ -1,11 +1,10 @@
-import { Metadata } from '@aurelia/metadata';
 import { createInterface, IContainer, IRegistry } from './di';
 import { instanceRegistration, singletonRegistration } from './di.registration';
 import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
 import { IPlatform } from './platform';
 import { getAnnotationKeyFor } from './resource';
-import { createObject, defineMetadata, isFunction, objectFreeze } from './utilities';
+import { createObject, defineMetadata, getMetadata, isFunction, objectFreeze } from './utilities';
 import { resolve } from './di.container';
 import { all, optional } from './di.resolvers';
 
@@ -176,18 +175,19 @@ interface SinkDefinition {
 
 export const LoggerSink = /*@__PURE__*/objectFreeze({
   key: getAnnotationKeyFor('logger-sink-handles'),
-  define<TSink extends ISink>(target: Constructable<TSink>, definition: SinkDefinition) {
-    defineMetadata(this.key, definition.handles, target.prototype);
-    return target;
+  define<TSink extends Constructable<ISink>>(target: TSink, definition: SinkDefinition) {
+    defineMetadata(definition.handles, target, this.key);
   },
-  getHandles<TSink extends ISink>(target: Constructable<TSink> | TSink) {
-    return Metadata.get(this.key, target) as LogLevel[] | undefined;
+  getHandles<TSink extends ISink>(target: TSink): Exclude<LogLevel, typeof none>[] | undefined {
+    return getMetadata(this.key, target.constructor);
   },
 });
 
 export const sink = (definition: SinkDefinition) => {
-  return <TSink extends ISink>(target: Constructable<TSink>): Constructable<TSink> =>
-    LoggerSink.define(target, definition);
+  return <TSink extends Constructable<ISink>>(_target: TSink, context: ClassDecoratorContext<TSink>): void =>
+    context.addInitializer(function (this) {
+      LoggerSink.define(this, definition);
+    });
 };
 
 export interface IConsoleLike {

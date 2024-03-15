@@ -49,7 +49,6 @@ export class DelegateBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer('dl')
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
 
@@ -75,6 +74,7 @@ export class ListenerBindingRenderer implements IRenderer {
     ));
   }
 }
+renderer('dl')(ListenerBindingRenderer, null!);
 
 export class DelegateBindingInstruction {
   public readonly type = InstructionType.listenerBinding;

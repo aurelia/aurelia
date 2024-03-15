@@ -1,6 +1,6 @@
 import { createInterface } from './di';
 import { resourceBaseName } from './resource';
-import { getOwnMetadata, isFunction } from './utilities';
+import { getMetadata, isFunction } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 
 import type { IRegistry } from './di';
@@ -97,7 +97,7 @@ class ModuleTransformer<TMod extends IModule = IModule, TRet = AnalyzedModule<TM
         case 'function':
           isRegistry = isFunction((value as Constructable & IIndexable).register);
           isConstructable = (value as Constructable).prototype !== void 0;
-          definition = getOwnMetadata(resourceBaseName, value) ?? null;
+          definition = getMetadata(resourceBaseName, value) ?? null;
           break;
         default:
           continue;

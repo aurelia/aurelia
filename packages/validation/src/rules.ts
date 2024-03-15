@@ -1,5 +1,4 @@
-import { Metadata } from '@aurelia/metadata';
-import { Constructable, Protocol, Class, DI, toArray } from '@aurelia/kernel';
+import { Constructable, Class, DI, toArray } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import {
   IValidateable,
@@ -13,6 +12,7 @@ import {
   IValidationVisitor,
   ValidationDisplayNameAccessor,
 } from './rule-interfaces';
+import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 
 /**
  * Retrieves validation messages and property display names.
@@ -47,14 +47,13 @@ export interface ValidationRuleDefinition {
 }
 export type RuleType<TRule extends IValidationRule> = Class<TRule, { $TYPE: string }>;
 export const ValidationRuleAliasMessage = Object.freeze({
-  aliasKey: Protocol.annotation.keyFor('validation-rule-alias-message'),
-  define<TRule extends IValidationRule>(target: RuleType<TRule>, definition: ValidationRuleDefinition): RuleType<TRule> {
-    ValidationRuleAliasMessage.setDefaultMessage(target, definition);
-    return target;
+  aliasKey: getAnnotationKeyFor('validation-rule-alias-message'),
+  define<TRule extends IValidationRule>(target: RuleType<TRule>, definition: ValidationRuleDefinition, append: boolean): void {
+    this.setDefaultMessage(target, definition, append);
   },
-  setDefaultMessage<TRule extends IValidationRule>(rule: Constructable<TRule>, { aliases }: ValidationRuleDefinition, append: boolean = true) {
+  setDefaultMessage<TRule extends IValidationRule>(rule: Constructable<TRule> | TRule, { aliases }: ValidationRuleDefinition, append: boolean) {
     // conditionally merge
-    const defaultMessages = append ? Metadata.getOwn(this.aliasKey, rule.prototype) as ValidationRuleAlias[] : void 0;
+    const defaultMessages = append ? getMetadata<ValidationRuleAlias[]>(this.aliasKey, rule) : void 0;
     if (defaultMessages !== void 0) {
       // TODO: have polyfill for `Object.fromEntries` as IE does not yet support it
       const allMessages: Record<string, string> = {
@@ -63,23 +62,25 @@ export const ValidationRuleAliasMessage = Object.freeze({
       };
       aliases = toArray(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
     }
-    Metadata.define(ValidationRuleAliasMessage.aliasKey, aliases, rule instanceof Function ? rule.prototype : rule);
+    defineMetadata(aliases, rule instanceof Function ? rule : rule.constructor, this.aliasKey);
   },
   getDefaultMessages<TRule extends IValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
-    return Metadata.get(this.aliasKey, rule instanceof Function ? rule.prototype : rule);
+    return getMetadata(this.aliasKey, rule instanceof Function ? rule : rule.constructor)!;
   }
 });
 
 export function validationRule(definition: ValidationRuleDefinition) {
-  return function <TRule extends IValidationRule>(target: RuleType<TRule>) {
-    return ValidationRuleAliasMessage.define(target, definition);
+  return function <TRule extends IValidationRule>(target: RuleType<TRule>, context: ClassDecoratorContext<RuleType<TRule>>) {
+    context.addInitializer(function (this) {
+      ValidationRuleAliasMessage.define(this, definition, false);
+    });
+    return target;
   };
 }
 
 /**
  * Abstract validation rule.
  */
-@validationRule({ aliases: [{ name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }] })
 export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
@@ -101,7 +102,6 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
  *
  * @see PropertyRule#required
  */
-@validationRule({ aliases: [{ name: 'required', defaultMessage: `\${$displayName} is required.` }] })
 export class RequiredRule extends BaseValidationRule implements IRequiredRule {
   public static readonly $TYPE: string = 'RequiredRule';
   public constructor() { super('required'); }
@@ -122,12 +122,6 @@ export class RequiredRule extends BaseValidationRule implements IRequiredRule {
  * @see PropertyRule#matches
  * @see PropertyRule#email
  */
-@validationRule({
-  aliases: [
-    { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
-    { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
-  ]
-})
 export class RegexRule extends BaseValidationRule<string> implements IRegexRule {
   public static readonly $TYPE: string = 'RegexRule';
   public constructor(public readonly pattern: RegExp, messageKey: string = 'matches') {
@@ -151,12 +145,6 @@ export class RegexRule extends BaseValidationRule<string> implements IRegexRule 
  * @see PropertyRule#minLength
  * @see PropertyRule#maxLength
  */
-@validationRule({
-  aliases: [
-    { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-    { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
-  ]
-})
 export class LengthRule extends BaseValidationRule<string> implements ILengthRule {
   public static readonly $TYPE: string = 'LengthRule';
   public constructor(public readonly length: number, public readonly isMax: boolean) {
@@ -180,12 +168,6 @@ export class LengthRule extends BaseValidationRule<string> implements ILengthRul
  * @see PropertyRule#minItems
  * @see PropertyRule#maxItems
  */
-@validationRule({
-  aliases: [
-    { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-    { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
-  ]
-})
 export class SizeRule extends BaseValidationRule<unknown[]> implements ISizeRule {
   public static readonly $TYPE: string = 'SizeRule';
   public constructor(public readonly count: number, public readonly isMax: boolean) {
@@ -215,14 +197,6 @@ type Range = {
  * @see PropertyRule#range
  * @see PropertyRule#between
  */
-@validationRule({
-  aliases: [
-    { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
-    { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
-    { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
-    { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
-  ]
-})
 export class RangeRule extends BaseValidationRule<number> implements IRangeRule {
   public static readonly $TYPE: string = 'RangeRule';
   public readonly min: number = Number.NEGATIVE_INFINITY;
@@ -254,11 +228,6 @@ export class RangeRule extends BaseValidationRule<number> implements IRangeRule 
  *
  * @see PropertyRule#equals
  */
-@validationRule({
-  aliases: [
-    { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
-  ]
-})
 export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   public static readonly $TYPE: string = 'EqualsRule';
   public constructor(public readonly expectedValue: unknown) { super('equals'); }
@@ -272,3 +241,53 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
     return visitor.visitEqualsRule(this);
   }
 }
+
+// #region definitions
+ValidationRuleAliasMessage.define(EqualsRule, {
+  aliases: [
+    { name: 'equals', defaultMessage: `\${$displayName} must be \${$rule.expectedValue}.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(RangeRule, {
+  aliases: [
+    { name: 'min', defaultMessage: `\${$displayName} must be at least \${$rule.min}.` },
+    { name: 'max', defaultMessage: `\${$displayName} must be at most \${$rule.max}.` },
+    { name: 'range', defaultMessage: `\${$displayName} must be between or equal to \${$rule.min} and \${$rule.max}.` },
+    { name: 'between', defaultMessage: `\${$displayName} must be between but not equal to \${$rule.min} and \${$rule.max}.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(SizeRule, {
+  aliases: [
+    { name: 'minItems', defaultMessage: `\${$displayName} must contain at least \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+    { name: 'maxItems', defaultMessage: `\${$displayName} cannot contain more than \${$rule.count} item\${$rule.count === 1 ? '' : 's'}.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(LengthRule, {
+  aliases: [
+    { name: 'minLength', defaultMessage: `\${$displayName} must be at least \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+    { name: 'maxLength', defaultMessage: `\${$displayName} cannot be longer than \${$rule.length} character\${$rule.length === 1 ? '' : 's'}.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(RegexRule, {
+  aliases: [
+    { name: 'matches', defaultMessage: `\${$displayName} is not correctly formatted.` },
+    { name: 'email', defaultMessage: `\${$displayName} is not a valid email.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(RequiredRule, {
+  aliases: [
+    { name: 'required', defaultMessage: `\${$displayName} is required.` },
+  ]
+}, false);
+
+ValidationRuleAliasMessage.define(BaseValidationRule, {
+  aliases: [
+    { name: (void 0)!, defaultMessage: `\${$displayName} is invalid.` }
+  ]
+}, false);
+// #endregion

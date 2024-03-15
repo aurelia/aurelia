@@ -54,7 +54,7 @@ export function createFixture<T extends object>(
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
-      Metadata.define(anno, CustomElement.getAnnotation($class as Constructable<T>, anno), $$class);
+      Metadata.defineMetadata(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, anno);
     });
   }
 
@@ -668,7 +668,7 @@ function testBuilderTypings() {
     { a: [1, 2] }
   );
   const C1: IsType<{ a: number[] }, typeof component> = 1;
-  
+
   const a9 = createFixture.html``.component(class Abc { a = 1 }).build().component.a;
 }
 /* eslint-enable */

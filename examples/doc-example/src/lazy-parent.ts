@@ -1,6 +1,7 @@
 import { IRouter } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { Slow } from './slow';
+import { resolve } from '@aurelia/kernel';
 
 @customElement({
   name: 'lazy-parent',
@@ -28,7 +29,7 @@ export class LazyParent {
   public LazySibling = import('./lazy-sibling');
   public Slow = Slow;
 
-  public constructor(@IRouter private readonly router: IRouter) { }
+  private readonly router: IRouter = resolve(IRouter);
 
   public created(): void {
     const _this = this;

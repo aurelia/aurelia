@@ -1,3 +1,4 @@
+import { resolve } from '@aurelia/kernel';
 import { BindingBehaviorInstance, Scope, IBinding } from '@aurelia/runtime';
 import {
   bindingBehavior,
@@ -47,7 +48,7 @@ describe('3-runtime-html/binding-behavior.spec.ts', function () {
     class FooAttr5 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -59,7 +60,7 @@ describe('3-runtime-html/binding-behavior.spec.ts', function () {
     class FooAttr4 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);

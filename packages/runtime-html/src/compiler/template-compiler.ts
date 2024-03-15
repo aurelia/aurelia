@@ -1857,13 +1857,12 @@ export const IBindablesInfoResolver = /*@__PURE__*/createInterface<IBindablesInf
             primary = bindable;
           }
 
-          attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
+          attrs[attr] = BindableDefinition.create(prop, bindable);
         }
         if (bindable == null && def.kind === 'attribute') {
           // if no bindables are present, default to "value"
           primary = attrs.value = BindableDefinition.create(
             'value',
-            def.Type,
             { mode: def.defaultBindingMode != null ? def.defaultBindingMode : defaultMode }
           );
         }
@@ -2018,7 +2017,7 @@ export const TemplateCompilerHooks = objectFreeze({
  */
 /* eslint-disable */
 // deepscan-disable-next-line
-export const templateCompilerHooks = <T extends Constructable>(target?: T) => {
+export const templateCompilerHooks = <T extends Constructable>(target?: T, _context?: ClassDecoratorContext) => {
   return target === void 0 ? decorator : decorator(target);
   function decorator<T extends Constructable>(t: T): any {
     return TemplateCompilerHooks.define(t) as unknown as void;

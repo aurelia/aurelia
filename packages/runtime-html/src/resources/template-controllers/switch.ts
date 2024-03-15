@@ -316,7 +316,7 @@ export class Case implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }

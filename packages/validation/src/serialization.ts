@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IContainer, IServiceLocator } from '@aurelia/kernel';
+import { IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { IExpressionParser, Scope, IAstEvaluator, astEvaluate } from '@aurelia/runtime';
 import { mixinAstEvaluator } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
@@ -93,10 +93,12 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
     return deserializer.hydrate(raw, validationRules);
   }
   public readonly astDeserializer: Deserializer = new Deserializer();
+
+  // we need here optional parameters as the ctor is used by the static deserialize method.
   public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-    @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
-    @IExpressionParser public readonly parser: IExpressionParser
+    private readonly locator: IServiceLocator = resolve(IServiceLocator),
+    public readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider),
+    public readonly parser: IExpressionParser = resolve(IExpressionParser),
   ) { }
 
   public hydrate(raw: any, validationRules: IValidationRules): any {
@@ -194,12 +196,9 @@ interface ModelPropertyRule<TRuleConfig extends { tag?: string; messageKey?: str
 export interface ModelValidationExpressionHydrator extends IAstEvaluator {}
 export class ModelValidationExpressionHydrator implements IValidationExpressionHydrator {
   public readonly astDeserializer: Deserializer = new Deserializer();
-  public constructor(
-    /** @internal */
-    @IServiceLocator public readonly l: IServiceLocator,
-    @IValidationMessageProvider public readonly messageProvider: IValidationMessageProvider,
-    @IExpressionParser public readonly parser: IExpressionParser
-  ) { }
+  public readonly l: IServiceLocator = resolve(IServiceLocator);
+  public readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
+  public readonly parser: IExpressionParser = resolve(IExpressionParser);
 
   public hydrate(_raw: any, _validationRules: IValidationRules) {
     throw new Error('Method not implemented.');

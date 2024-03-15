@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
+import { Class, DI, Protocol, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
@@ -473,10 +473,10 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
   public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-    @IValidationExpressionHydrator private readonly deserializer: IValidationExpressionHydrator,
+    private readonly locator: IServiceLocator = resolve(IServiceLocator),
+    private readonly parser: IExpressionParser = resolve(IExpressionParser),
+    private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider),
+    private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator),
   ) { }
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
@@ -608,9 +608,9 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap();
 
   public constructor(
-    @IExpressionParser public parser: IExpressionParser,
-    @ILogger logger: ILogger,
-    @ICustomMessages customMessages: ICustomMessage[],
+    public parser: IExpressionParser = resolve(IExpressionParser),
+    logger: ILogger = resolve(ILogger),
+    customMessages: ICustomMessage[] = resolve(ICustomMessages),
   ) {
     this.logger = logger.scopeTo(ValidationMessageProvider.name);
     for (const { rule, aliases } of customMessages) {

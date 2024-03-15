@@ -387,7 +387,17 @@ export interface IRenderer<TType extends string = string> {
 
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
 
-export function renderer<TType extends string, T extends Constructable<IRenderer<TType>>>(targetType: TType): (target: T) => T {
+// type DecoratableInstructionRenderer<TType extends string, TProto, TClass> = Class<TProto & Partial<IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>>, TClass> & Partial<IRegistry>;
+// type DecoratedInstructionRenderer<TType extends string, TProto, TClass> =  Class<TProto & IInstructionTypeClassifier<TType> & Pick<IRenderer, 'render'>, TClass> & IRegistry;
+
+// type InstructionRendererDecorator<TType extends string> = <TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>, context: ClassDecoratorContext) => DecoratedInstructionRenderer<TType, TProto, TClass>;
+
+// export function renderer<TType extends string>(targetType: TType): InstructionRendererDecorator<TType> {
+//   return function decorator<TProto, TClass>(target: DecoratableInstructionRenderer<TType, TProto, TClass>): DecoratedInstructionRenderer<TType, TProto, TClass> {
+//     target.register = function (container: IContainer): void {
+//       singletonRegistration(IRenderer, this).register(container);
+//     };
+export function renderer<TType extends string, T extends Constructable<IRenderer<TType>>>(targetType: TType): (target: T, context: ClassDecoratorContext) => T {
   return function decorator(target) {
     def(target.prototype, 'target', {
       configurable: true,

@@ -6,8 +6,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "importHelpers": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": false,
     "rootDir": ".",
 
     "declaration": true,

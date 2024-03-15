@@ -4,7 +4,7 @@ import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
 import { I18nConfigurationOptions, I18nInitOptions } from './i18n-configuration-options';
-import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
+import { I18nextWrapper, II18nextWrapper } from './i18next-wrapper';
 import { NumberFormatBindingBehavior } from './nf/number-format-binding-behavior';
 import { NumberFormatValueConverter } from './nf/number-format-value-converter';
 import { RelativeTimeBindingBehavior } from './rt/relative-time-binding-behavior';
@@ -68,10 +68,13 @@ function coreComponents(options: I18nConfigurationOptions) {
 
   return {
     register(container: IContainer) {
+      const wrapperRegistration = options.i18nextWrapper != null && typeof options.i18nextWrapper === 'object'
+        ? Registration.instance(II18nextWrapper, options.i18nextWrapper)
+        : Registration.singleton(II18nextWrapper, I18nextWrapper);
       return container.register(
         Registration.callback(I18nInitOptions, () => options.initOptions),
         AppTask.activating(I18N, i18n => i18n.initPromise),
-        Registration.singleton(I18nWrapper, I18nextWrapper),
+        wrapperRegistration,
         Registration.singleton(I18N, I18nService),
 
         ...renderers,

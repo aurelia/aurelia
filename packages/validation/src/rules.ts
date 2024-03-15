@@ -71,7 +71,7 @@ export const ValidationRuleAliasMessage = Object.freeze({
 });
 
 export function validationRule(definition: ValidationRuleDefinition) {
-  return function <TRule extends IValidationRule>(target: RuleType<TRule>) {
+  return function <TRule extends IValidationRule>(target: RuleType<TRule>, _context: ClassDecoratorContext) {
     return ValidationRuleAliasMessage.define(target, definition);
   };
 }

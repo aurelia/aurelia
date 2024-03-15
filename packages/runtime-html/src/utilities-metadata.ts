@@ -1,9 +1,9 @@
-import { Metadata } from '@aurelia/metadata';
+import { SimplerMetadata } from '@aurelia/metadata';
 import { Protocol } from '@aurelia/kernel';
 
-/** @internal */ export const getOwnMetadata = Metadata.getOwn;
-/** @internal */ export const hasOwnMetadata = Metadata.hasOwn;
-/** @internal */ export const defineMetadata = Metadata.define;
+/** @internal */ export const getOwnMetadata = SimplerMetadata.getMetadata;
+/** @internal */ export const hasOwnMetadata = SimplerMetadata.hasMetadata;
+/** @internal */ export const defineMetadata = SimplerMetadata.defineMetadata;
 
 const { annotation } = Protocol;
 /** @internal */ export const getAnnotationKeyFor = annotation.keyFor;

@@ -17,9 +17,10 @@ function test() {
     const ii = d.get(all(I));
     ii.forEach(i => i.c);
 
-    class Def {
-      public constructor(@all(I) private readonly i: I) {}
-    }
+    // Not yet supported by TS, as the method-parameter decorator proposal is not in Stage 4 yet
+    // class Def {
+    //   public constructor(@all(I) private readonly i: I) {}
+    // }
 
     @inject(all(I))
     class G {}
@@ -31,12 +32,14 @@ function test() {
       // good
     }
 
-    class Def {
-      public constructor(@lazy(I) private readonly i: I) {}
-    }
+    // Not yet supported by TS, as the method-parameter decorator proposal is not in Stage 4 yet
+    // class Def {
+    //   public constructor(@lazy(I) private readonly i: I) {}
+    // }
 
     @inject(lazy(I))
     class G {
+      private readonly foo = lazy(I);
       public i = resolve(lazy(I));
       public b: I = this.i();
     }
@@ -50,9 +53,10 @@ function test() {
       // good
     }
 
-    class Def {
-      public constructor(@optional(I) private readonly i: I) { }
-    }
+   // Not yet supported by TS, as the method-parameter decorator proposal is not in Stage 4 yet
+    // class Def {
+    //   public constructor(@optional(I) private readonly i: I) { }
+    // }
 
     @inject(optional(I))
     class G {
@@ -73,12 +77,13 @@ function test() {
       // good
     }
 
-    class Def {
-      public constructor(
-        @newInstanceOf(I) private readonly i: I,
-        @newInstanceForScope(I) private readonly j: I,
-      ) { }
-    }
+    // Not yet supported by TS, as the method-parameter decorator proposal is not in Stage 4 yet
+    // class Def {
+    //   public constructor(
+    //     @newInstanceOf(I) private readonly i: I,
+    //     @newInstanceForScope(I) private readonly j: I,
+    //   ) { }
+    // }
 
     @inject(newInstanceOf(I))
     class G {

@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
@@ -71,9 +71,7 @@ describe('router/viewport.spec.ts', function () {
   it('loads component with correct container', async function () {
     let testContainer, testController;
     class OneClass {
-      public constructor(@IContainer private readonly container: IContainer) {
-        testContainer = container;
-      }
+      private readonly container: IContainer = testContainer = resolve(IContainer);
       created(controller) {
         testController = controller;
       }

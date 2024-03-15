@@ -200,7 +200,7 @@ export class PropertyBinding implements IBinding {
 
 mixinUseScope(PropertyBinding);
 mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
-connectable(PropertyBinding);
+connectable(PropertyBinding, null!);
 mixinAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;

@@ -37,4 +37,4 @@ export class DebounceBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-bindingBehavior('debounce')(DebounceBindingBehavior);
+bindingBehavior('debounce')(DebounceBindingBehavior, null!);

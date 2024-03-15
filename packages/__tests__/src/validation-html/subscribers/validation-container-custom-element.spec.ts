@@ -1,4 +1,4 @@
-import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
+import { newInstanceForScope, newInstanceOf, resolve, toArray } from '@aurelia/kernel';
 import { assert, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
@@ -21,9 +21,9 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
       public controllerRemoveSubscriberSpy: ISpy;
 
       public constructor(
-        @IPlatform public readonly platform: IPlatform,
-        @newInstanceForScope(IValidationController) public controller: ValidationController,
-        @IValidationRules private readonly validationRules: IValidationRules,
+        public readonly platform: IPlatform = resolve(IPlatform),
+        public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController,
+        private readonly validationRules: IValidationRules = resolve(IValidationRules),
       ) {
         this.controllerValidateSpy = createSpy(controller, 'validate', true);
         this.controllerRemoveSubscriberSpy = createSpy(controller, 'removeSubscriber', true);
@@ -273,8 +273,8 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
         public controllerValidateSpy: ISpy;
 
         public constructor(
-          @newInstanceOf(IValidationController) public readonly controller: ValidationController,
-          @IValidationRules private readonly validationRules: IValidationRules,
+          public readonly controller: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController,
+          private readonly validationRules: IValidationRules = resolve(IValidationRules),
         ) {
           this.controllerValidateSpy = createSpy(controller, 'validate', true);
 

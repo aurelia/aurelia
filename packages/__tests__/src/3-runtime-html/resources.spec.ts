@@ -43,14 +43,6 @@ describe('3-runtime-html/resources.spec.ts', function () {
     const $proto = getMetadataAsObject(AuAttr.prototype);
 
     assert.deepStrictEqual(
-      $class['au:annotation'],
-      [
-        'au:annotation:di:dependencies',
-      ],
-      `$class['au:annotation']`,
-    );
-
-    assert.deepStrictEqual(
       $class['au:resource'],
       CustomAttribute.getDefinition(AuAttr),
       `$class['au:resource']`,
@@ -63,6 +55,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
           name: 'au-name',
         },
         AuAttr,
+        null,
       ),
       `$class['au:resource:custom-attribute']`,
     );
@@ -110,13 +103,6 @@ describe('3-runtime-html/resources.spec.ts', function () {
     const $class = getMetadataAsObject(AuAttr);
     const $proto = getMetadataAsObject(AuAttr.prototype);
 
-    assert.deepStrictEqual(
-      $class['au:annotation'],
-      [
-        'au:annotation:di:dependencies',
-      ],
-      `$class['au:annotation']`,
-    );
 
     assert.deepStrictEqual(
       $class['au:resource'],
@@ -131,6 +117,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
           name: 'au-name',
         },
         AuAttr,
+        null,
       ),
       `$class['au:resource:custom-attribute']`,
     );
@@ -158,7 +145,9 @@ describe('3-runtime-html/resources.spec.ts', function () {
     assert.strictEqual(created, true, 'created');
   });
 
-  it('works with aliases static property', function () {
+  // The following won't work with TC39 decorators due to the timing when the decorators are executed.
+  // When the decorator customAttribute is executed, the static property aliases is not yet defined.
+  it.skip('works with aliases static property', function () {
     let created = false;
 
     @customAttribute('au-name')

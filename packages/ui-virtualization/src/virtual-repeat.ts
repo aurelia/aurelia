@@ -52,6 +52,14 @@ const noScrollInfo: IScrollerInfo = {
 
 export interface VirtualRepeat extends ICustomAttributeViewModel {}
 
+@customAttribute({
+  isTemplateController: true,
+  name: 'virtual-repeat',
+  bindables: {
+    local: { name: 'local' },
+    items: { name: 'items', primary: true }
+  }
+})
 export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   // bindable
   public local: string;
@@ -516,16 +524,6 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     return view;
   }
 }
-
-// avoid excessive code generation, if it doesn't affect readability too much
-customAttribute({
-  isTemplateController: true,
-  name: 'virtual-repeat',
-  bindables: {
-    local: { name: 'local' },
-    items: { name: 'items', primary: true }
-  }
-})(VirtualRepeat);
 
 class CollectionObservationMediator {
   /** @internal */ private _collection!: Collection;

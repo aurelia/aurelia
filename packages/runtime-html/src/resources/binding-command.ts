@@ -69,21 +69,21 @@ export type BindingCommandInstance<T extends {} = {}> = {
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export type BindingCommandKind = IResourceKind & {
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
-  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
+  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
   getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
   find(container: IContainer, name: string): BindingCommandDefinition | null;
   get(container: IServiceLocator, name: string): BindingCommandInstance;
 };
 
-export type BindingCommandDecorator = <T extends Constructable>(Type: T) => BindingCommandType<T>;
+export type BindingCommandDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => BindingCommandType<T>;
 
 export function bindingCommand(name: string): BindingCommandDecorator;
 export function bindingCommand(definition: PartialBindingCommandDefinition): BindingCommandDecorator;
 export function bindingCommand(nameOrDefinition: string | PartialBindingCommandDefinition): BindingCommandDecorator {
-  return function (target) {
-    return BindingCommand.define(nameOrDefinition, target);
+  return function (target, context) {
+    return BindingCommand.define(nameOrDefinition, target, context);
   };
 }
 
@@ -144,7 +144,7 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
 ): PartialBindingCommandDefinition[K] =>
-  getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingCommandDefinition[K];
+  getOwnMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type);
 
 export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
@@ -153,13 +153,12 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
   //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
-  define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
+  define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): T & BindingCommandType<T> {
     const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
     const $Type = definition.Type as BindingCommandType<T>;
 
-    defineMetadata(cmdBaseName, definition, $Type);
-    // a requirement for the resource system in kernel
-    defineMetadata(resourceBaseName, definition, $Type);
+    // registration of resource name is a requirement for the resource system in kernel (module-loader)
+    defineMetadata(definition, $Type, decoratorContext, cmdBaseName, resourceBaseName);
 
     return $Type;
   },

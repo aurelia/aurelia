@@ -1,4 +1,4 @@
-import { all, Constructable, DI, factory, IContainer, inject, resolve, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
+import { all, Constructable, DI, factory, IContainer, resolve, IResolvedFactory, lazy, newInstanceForScope, newInstanceOf, optional, Registration, singleton, transient } from '@aurelia/kernel';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/di.get.spec.ts', function () {
@@ -17,7 +17,7 @@ describe('1-kernel/di.get.spec.ts', function () {
 
     }
     class Foo {
-      public constructor(@lazy(Bar) public readonly provider: () => Bar) {}
+      public readonly provider: () => Bar = resolve(lazy(Bar));
     }
     it('@singleton', function () {
       const bar0 = container.get(Foo).provider();
@@ -126,7 +126,7 @@ describe('1-kernel/di.get.spec.ts', function () {
   describe('@optional', function () {
     it('with default', function () {
       class Foo {
-        public constructor(@optional('key') public readonly test: string = 'hello') {}
+        public readonly test: string = resolve(optional('key')) ?? 'hello';
       }
 
       assert.strictEqual(container.get(Foo).test, 'hello');
@@ -134,7 +134,7 @@ describe('1-kernel/di.get.spec.ts', function () {
 
     it('no default, but param allows undefined', function () {
       class Foo {
-        public constructor(@optional('key') public readonly test?: string) {}
+        public readonly test?: string = resolve(optional('key'));
       }
 
       assert.strictEqual(container.get(Foo).test, undefined);
@@ -142,7 +142,7 @@ describe('1-kernel/di.get.spec.ts', function () {
 
     it('no default, param does not allow undefind', function () {
       class Foo {
-        public constructor(@optional('key') public readonly test: string) {}
+        public readonly test: string = resolve(optional('key'))!;
       }
 
       assert.strictEqual(container.get(Foo).test, undefined);
@@ -151,7 +151,7 @@ describe('1-kernel/di.get.spec.ts', function () {
     it('interface with default', function () {
       const Strings = DI.createInterface<string[]>(x => x.instance([]));
       class Foo {
-        public constructor(@optional(Strings) public readonly test: string[]) {}
+        public readonly test: string[] = resolve(optional(Strings))!;
       }
 
       assert.deepStrictEqual(container.get(Foo).test, undefined);
@@ -160,7 +160,7 @@ describe('1-kernel/di.get.spec.ts', function () {
     it('interface with default and default in constructor', function () {
       const MyStr = DI.createInterface<string>(x => x.instance('hello'));
       class Foo {
-        public constructor(@optional(MyStr) public readonly test: string = 'test') {}
+        public readonly test: string = resolve(optional(MyStr)) ?? 'test';
       }
 
       assert.deepStrictEqual(container.get(Foo).test, 'test');
@@ -170,7 +170,7 @@ describe('1-kernel/di.get.spec.ts', function () {
       const MyStr = DI.createInterface<string>(x => x.instance('hello'));
       container.register(MyStr);
       class Foo {
-        public constructor(@optional(MyStr) public readonly test: string = 'test') {}
+        public readonly test: string = resolve(optional(MyStr)) ?? 'test';
       }
 
       assert.deepStrictEqual(container.get(Foo).test, 'hello');
@@ -179,7 +179,11 @@ describe('1-kernel/di.get.spec.ts', function () {
 
   describe('intrinsic', function () {
 
-    describe('bad', function () {
+    // TODO: Enable those tests once the decorator metadata is emitted by TS.
+    // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+    // The following tests are dependent on that and hence cannot be successfully run.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    describe.skip('bad', function () {
 
       it('Array', function () {
         @singleton
@@ -187,7 +191,7 @@ describe('1-kernel/di.get.spec.ts', function () {
           public constructor(private readonly test: string[]) {
           }
         }
-        assert.throws(() => container.get(Foo));
+        assert.throws(() => console.log(container.get(Foo)));
       });
 
       it('ArrayBuffer', function () {
@@ -508,15 +512,13 @@ describe('1-kernel/di.get.spec.ts', function () {
     describe('good', function () {
       it('@all()', function () {
         class Foo {
-          public constructor(@all('test') public readonly test: string[]) {
-          }
+          public readonly test: string[] = resolve(all('test')) as string[];
         }
         assert.deepStrictEqual(container.get(Foo).test, []);
       });
       it('@optional()', function () {
         class Foo {
-          public constructor(@optional('test') public readonly test: string = null) {
-          }
+          public readonly test: string = (resolve(optional('test')) ?? null)!;
         }
         assert.strictEqual(container.get(Foo).test, null);
       });
@@ -524,13 +526,16 @@ describe('1-kernel/di.get.spec.ts', function () {
       it('undef instance, with constructor default', function () {
         container.register(Registration.instance('test', undefined));
         class Foo {
-          public constructor(@inject('test') public readonly test: string[] = []) {
-          }
+          public readonly test: string[] = resolve<string[]>('test') ?? [];
         }
         assert.deepStrictEqual(container.get(Foo).test, []);
       });
 
-      it('can inject if registered', function () {
+      // TODO: Enable those tests once the decorator metadata is emitted by TS.
+      // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+      // The following tests are dependent on that and hence cannot be successfully run.
+      // Refer: https://github.com/microsoft/TypeScript/issues/55788
+      it.skip('can inject if registered', function () {
         container.register(Registration.instance(String, 'test'));
         @singleton
         class Foo {
@@ -752,9 +757,7 @@ describe('1-kernel/di.get.spec.ts', function () {
         }
       }
       class MyClassBuilder {
-        public constructor(
-          @factory(MyClass) public readonly myClassFactory: IResolvedFactory<MyClass>
-        ) {}
+        public readonly myClassFactory: IResolvedFactory<MyClass> = resolve(factory(MyClass));
 
         public build() {
           return this.myClassFactory();
@@ -772,17 +775,15 @@ describe('1-kernel/di.get.spec.ts', function () {
       const container = DI.createContainer();
       class MyClass {
         public params: unknown[];
-        public constructor(...params: unknown[]) {
+        public constructor(...params: any[]) {
           callCount++;
           this.params = params;
         }
       }
       class MyClassBuilder {
-        public constructor(
-          @factory(MyClass) public readonly myClassFactory: IResolvedFactory<MyClass>
-        ) {}
+        public readonly myClassFactory: IResolvedFactory<typeof MyClass> = resolve(factory(MyClass));
 
-        public build(...args: unknown[]) {
+        public build(...args: unknown[]): MyClass {
           return this.myClassFactory(...args);
         }
       }
@@ -838,8 +839,8 @@ describe('1-kernel/di.get.spec.ts', function () {
       let id = 0;
       class Model { id = ++id; }
       const { a, b } = container.get(class A {
-        a = resolve(transient(Model));
-        b = resolve(transient(Model));
+        a = resolve(transient(Model, null!));
+        b = resolve(transient(Model, null!));
       });
 
       assert.deepStrictEqual([a.id, b.id], [1, 2]);

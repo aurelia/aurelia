@@ -8,6 +8,7 @@ import { bindable, customElement } from '@aurelia/runtime-html';
 import { NavRoute } from '../nav-route.js';
 import { Nav } from '../nav.js';
 import { IRouter } from '../router.js';
+import { resolve } from '@aurelia/kernel';
 
 export interface INavClasses {
   nav?: string;
@@ -43,7 +44,7 @@ export class NavCustomElement {
   @bindable public level: number = 0;
   @bindable public classes: INavClasses = {};
 
-  public constructor(@IRouter private readonly router: IRouter) { }
+  private readonly router: IRouter = resolve(IRouter);
 
   public get navRoutes(): NavRoute[] {
     const nav = Nav.navs.get(this.name!);

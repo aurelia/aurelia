@@ -25,8 +25,8 @@ export function enableComposeCompat() {
   if (!addedMetadata) {
     addedMetadata = true;
     const def = CustomElement.getDefinition(AuCompose);
-    const viewModelBindable = def.bindables.viewModel = BindableDefinition.create('viewModel', AuCompose);
-    const viewBindable = def.bindables.view = BindableDefinition.create('view', AuCompose);
+    const viewModelBindable = def.bindables.viewModel = BindableDefinition.create('viewModel');
+    const viewBindable = def.bindables.view = BindableDefinition.create('view');
 
     const bindableInfo = BindablesInfo.from(def as any, false);
     // when <au-compose/> is used some where before the enable compat call is invoked

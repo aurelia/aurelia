@@ -1839,11 +1839,11 @@ export class BindablesInfo<T extends 0 | 1 = 0> {
           primary = bindable;
         }
 
-        attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
+        attrs[attr] = BindableDefinition.create(prop, bindable);
       }
       if (bindable == null && isAttr) {
         // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
+        primary = attrs.value = BindableDefinition.create('value', { mode: defaultBindingMode });
       }
 
       bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
@@ -1935,7 +1935,7 @@ export const TemplateCompilerHooks = objectFreeze({
  */
 /* eslint-disable */
 // deepscan-disable-next-line
-export const templateCompilerHooks = <T extends Constructable>(target?: T) => {
+export const templateCompilerHooks = <T extends Constructable>(target?: T, _context?: ClassDecoratorContext) => {
   return target === void 0 ? decorator : decorator(target);
   function decorator<T extends Constructable>(t: T): any {
     return TemplateCompilerHooks.define(t) as unknown as void;

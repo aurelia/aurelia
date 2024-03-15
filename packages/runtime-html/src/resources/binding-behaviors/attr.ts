@@ -14,4 +14,4 @@ export class AttrBindingBehavior implements BindingBehaviorInstance {
     binding.useTargetObserver(attrAccessor);
   }
 }
-bindingBehavior('attr')(AttrBindingBehavior);
+bindingBehavior('attr')(AttrBindingBehavior, null!);

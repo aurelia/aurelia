@@ -10,6 +10,7 @@ import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
 import { ErrorNames, createMappedError } from '../../errors';
 
+@templateController('if')
 export class If implements ICustomAttributeViewModel {
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
@@ -121,8 +122,8 @@ export class If implements ICustomAttributeViewModel {
     }
   }
 }
-templateController('if')(If);
 
+@templateController('else')
 export class Else implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
 
@@ -143,4 +144,3 @@ export class Else implements ICustomAttributeViewModel {
     }
   }
 }
-templateController({ name: 'else' })(Else);

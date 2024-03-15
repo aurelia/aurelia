@@ -40,6 +40,7 @@ const wrappedExprs = [
   'ValueConverter',
 ];
 
+@templateController('repeat')
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
   /** @internal */ protected static inject = [IInstruction, IExpressionParser, IRenderLocation, IController, IViewFactory];
 
@@ -621,7 +622,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 }
-templateController('repeat')(Repeat);
 
 let maxLen = 16;
 let prevIndices = new Int32Array(maxLen);

@@ -1,5 +1,5 @@
-import { IContainer, Key, Registration } from '@aurelia/kernel';
-import { CustomAttribute, CustomElement, IHydratedComponentController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
+import { IContainer, Registration } from '@aurelia/kernel';
+import { IHydratedComponentController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { IStore } from './interfaces';
 import { StateGetterBinding } from './state-getter-binding';
 
@@ -14,34 +14,29 @@ import { StateGetterBinding } from './state-getter-binding';
  * }
  * ```
  */
-export function fromState<T, K = unknown>(getValue: (state: T) => K): PropertyDecorator {
+export function fromState<T, K = unknown>(
+  getValue: (state: T) => K
+): ((target: unknown, context: ClassFieldDecoratorContext<unknown, K> | ClassSetterDecoratorContext<unknown, K>) => void) {
   return function (
-    target: any,
-    key: PropertyKey,
-    desc?: PropertyDescriptor
+    target: unknown,
+    context: ClassFieldDecoratorContext<unknown,K> | ClassSetterDecoratorContext<unknown, K>,
   ) {
-    if (typeof target === 'function') {
-      throw new Error(`Invalid usage. @state can only be used on a field`);
-    }
-    if (typeof desc?.value !== 'undefined') {
-      throw new Error(`Invalid usage. @state can only be used on a field`);
+    if (!((target === void 0 && context.kind === 'field') || (typeof target === 'function' && context.kind === 'setter'))) {
+      throw new Error(`Invalid usage. @state can only be used on a field ${target} - ${context.kind}`);
     }
 
-    target = (target as object).constructor;
-
-    let dependencies = CustomElement.getAnnotation(target, dependenciesKey) as Key[] | undefined;
+    const key = context.name;
+    let dependencies = context.metadata[dependenciesKey] as unknown[];
     if (dependencies == null) {
-      CustomElement.annotate(target, dependenciesKey, dependencies = []);
+      dependencies = context.metadata[dependenciesKey] = [];
     }
-    dependencies.push(new HydratingLifecycleHooks(getValue, key));
-
-    dependencies = CustomAttribute.getAnnotation(target, dependenciesKey) as Key[] | undefined;
-    if (dependencies == null) {
-      CustomElement.annotate(target, dependenciesKey, dependencies = []);
-    }
-    dependencies.push(new CreatedLifecycleHooks(getValue, key));
+    dependencies.push(
+      new HydratingLifecycleHooks(getValue, key),
+        new CreatedLifecycleHooks(getValue, key)
+    );
   };
 }
+
 const dependenciesKey = 'dependencies';
 
 @lifecycleHooks()

@@ -1,4 +1,4 @@
-import { Registration, Writable, DI } from '@aurelia/kernel';
+import { Registration, Writable, DI, resolve } from '@aurelia/kernel';
 import {
   Aurelia,
   customElement,
@@ -1790,9 +1790,7 @@ class NotifierManager {
   public readonly fullNotifyHistory: string[] = [];
   public prefix: string = '';
 
-  public constructor(
-    @IPlatform public readonly p: IPlatform,
-  ) {}
+  public readonly p: IPlatform = resolve(IPlatform);
 
   public readonly binding: Notifier = new Notifier(this, 'binding');
   public readonly bound: Notifier = new Notifier(this, 'bound');

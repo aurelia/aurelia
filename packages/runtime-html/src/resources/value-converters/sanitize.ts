@@ -38,4 +38,4 @@ export class SanitizeValueConverter {
   }
 }
 
-valueConverter('sanitize')(SanitizeValueConverter);
+valueConverter('sanitize')(SanitizeValueConverter, null!);

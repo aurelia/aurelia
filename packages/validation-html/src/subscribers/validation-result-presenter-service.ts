@@ -1,4 +1,4 @@
-import { DI } from '@aurelia/kernel';
+import { DI, resolve } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
 import { ValidationResult } from '@aurelia/validation';
 import { ValidationEvent, ValidationResultsSubscriber, ValidationResultTarget } from '../validation-controller';
@@ -11,7 +11,7 @@ export const IValidationResultPresenterService = /*@__PURE__*/DI.createInterface
 
 export class ValidationResultPresenterService implements ValidationResultsSubscriber {
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform = resolve(IPlatform),
   ) {}
 
   public handleValidationEvent(event: ValidationEvent): void {

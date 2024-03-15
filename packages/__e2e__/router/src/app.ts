@@ -1,4 +1,5 @@
 import { IRouter } from '@aurelia/router';
+import { resolve } from 'aurelia';
 
 export class App {
 

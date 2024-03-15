@@ -14,8 +14,8 @@ export type ICallableResolver<T> = IResolver<T> & ((...args: unknown[]) => any);
  */
 export function createResolver<T extends Key>(getter: (key: T, handler: IContainer, requestor: IContainer) => any): ((key: T) => ICallableResolver<T>) {
   return function (key: any) {
-    function Resolver(target: any, property?: string | number, descriptor?: PropertyDescriptor | number): void {
-      inject(Resolver)(target, property, descriptor);
+    function Resolver(target: any, context: DecoratorContext): void {
+      inject(Resolver)(target, context);
     }
 
     Resolver.$isResolver = true;
@@ -31,8 +31,8 @@ export function createResolver<T extends Key>(getter: (key: T, handler: IContain
  * Create a resolver that will resolve all values of a key from resolving container
  */
 export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IAllResolver<T> => {
-  function resolver(target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void {
-    inject(resolver)(target, property, descriptor);
+  function resolver(decorated: unknown, context: DecoratorContext): void {
+    inject(resolver)(decorated, context);
   }
 
   resolver.$isResolver = true;
@@ -40,11 +40,11 @@ export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IA
 
   return resolver as IAllResolver<T>;
 };
-export type IAllResolver<T> = IResolver<Resolved<T>[]> & {
+export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
   // type only hack
-  __isAll: undefined;
+  __isAll?: undefined;
   // any for decorator
-  (...args: unknown[]): any;
+  (decorated: unknown, context: DecoratorContext): any;
 };
 
 /**
@@ -123,9 +123,11 @@ export type IOptionalResolver<K extends Key = Key> = IResolver<K | undefined> & 
 /**
  * ignore tells the container not to try to inject a dependency
  */
-export const ignore: IResolver<undefined> = /*@__PURE__*/objectAssign((target: Injectable, property?: string | number, descriptor?: PropertyDescriptor | number): void => {
-  inject(ignore)(target, property, descriptor);
-}, { $isResolver: true, resolve: () => void 0 } as const);
+export const ignore = (decorated: unknown, context: DecoratorContext): void => {
+  inject(ignore)(decorated, context);
+};
+ignore.$isResolver = true;
+ignore.resolve = () => undefined;
 
 /**
  * Inject a function that will return a resolved instance of the [[key]] given.
@@ -270,6 +272,6 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isFunction(key) && key.$isInterface === true;
+const isInterface = <K>(key: any): key is InterfaceSymbol<K> => key.$isInterface === true;
 
 let newInstanceContainer: IContainer;

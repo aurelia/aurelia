@@ -1,6 +1,6 @@
-import { DI, newInstanceForScope, resolve } from '@aurelia/kernel';
-import { Aurelia, bindable, BindingBehavior, customElement, CustomElement, IHydratedCustomElementViewModel, InjectableToken, ValueConverter } from '@aurelia/runtime-html';
-import { assert, createFixture, TestContext } from '@aurelia/testing';
+import { DI, InterfaceSymbol, newInstanceForScope, resolve } from '@aurelia/kernel';
+import { Aurelia, BindingBehavior, CustomElement, IHydratedCustomElementViewModel, ValueConverter, bindable, customElement } from '@aurelia/runtime-html';
+import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/di-resolutions.spec.ts', function () {
   describe('@newInstanceForScope', function () {
@@ -87,7 +87,7 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
 
   describe('definition.injectable', function () {
     it('resolves injectable', function () {
-      const InjectableParent = DI.createInterface('injectable') as InjectableToken;
+      const InjectableParent = DI.createInterface('injectable') as InterfaceSymbol;
       @customElement({
         name: 'child',
       })
@@ -116,8 +116,8 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
   describe('CustomElement.createInjectable', function () {
     it('properly links parent-child', async function () {
       const IRoot = CustomElement.createInjectable();
-      const IParent = CustomElement.createInjectable();
-      const IChild = CustomElement.createInjectable();
+      const IParent = CustomElement.createInjectable<Parent>();
+      const IChild = CustomElement.createInjectable<Child>();
 
       @customElement({
         name: 'root',
@@ -137,8 +137,8 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
         public id: number = ++parentId;
 
         public constructor(
-          @IRoot public readonly root: Root | null,
-          @IParent public readonly parent: Parent | null,
+          public readonly root: Root | null = resolve(IRoot),
+          public readonly parent: Parent | null = resolve<InterfaceSymbol<Parent>>(IParent),
         ) {
           assert.instanceOf(root, Root);
           if (parent !== null) {
@@ -158,9 +158,9 @@ describe('3-runtime-html/di-resolutions.spec.ts', function () {
         public id: number = ++childId;
 
         public constructor(
-          @IRoot public readonly root: Root | null,
-          @IParent public readonly parent: Parent | null,
-          @IChild public readonly child: Child | null,
+          public readonly root: Root | null = resolve(IRoot),
+          public readonly parent: Parent | null = resolve<InterfaceSymbol<Parent>>(IParent),
+          public readonly child: Child | null = resolve<InterfaceSymbol<Child>>(IChild),
         ) {
           assert.instanceOf(root, Root);
           assert.instanceOf(parent, Parent);

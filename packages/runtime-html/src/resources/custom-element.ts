@@ -1,5 +1,4 @@
 import {
-  DI,
   mergeArrays,
   fromDefinitionOrDefault,
   pascalCase,
@@ -13,7 +12,7 @@ import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
-import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
+import { def, isFunction, isString, isSymbol, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
 
 import type {
@@ -25,6 +24,7 @@ import type {
   ResourceDefinition,
   IResolver,
   Writable,
+  InterfaceSymbol,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
@@ -41,7 +41,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly template?: null | string | Node;
   readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
-  readonly injectable?: InjectableToken | null;
+  readonly injectable?: InterfaceSymbol | null;
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
@@ -113,7 +113,7 @@ export type CustomElementKind = IResourceKind & {
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
   getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
   generateName(): string;
-  createInjectable<T extends Key = Key>(): InjectableToken<T>;
+  createInjectable<T extends Key = Key>(): InterfaceSymbol<T>;
   generateType<P extends {} = {}>(
     name: string,
     proto?: P,
@@ -121,7 +121,7 @@ export type CustomElementKind = IResourceKind & {
   find(container: IContainer, name: string): CustomElementDefinition | null;
 };
 
-export type CustomElementDecorator = <T extends Constructable>(Type: T) => CustomElementType<T>;
+export type CustomElementDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => CustomElementType<T>;
 
 /**
  * Decorator: Indicates that the decorated class is a custom element.
@@ -130,8 +130,8 @@ export function customElement(definition: PartialCustomElementDefinition): Custo
 export function customElement(name: string): CustomElementDecorator;
 export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator;
 export function customElement(nameOrDef: string | PartialCustomElementDefinition): CustomElementDecorator {
-  return function (target) {
-    return defineElement(nameOrDef, target);
+  return function (target, context) {
+    return defineElement(nameOrDef, target, context);
   };
 }
 
@@ -164,12 +164,12 @@ export function useShadowDOM(targetOrOptions?: Constructable | ShadowOptions): v
 /**
  * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-export function containerless(target: Constructable): void;
+export function containerless(target: Constructable, context: ClassDecoratorContext): void;
 /**
  * Decorator: Indicates that the custom element should be rendered without its element container.
  */
-export function containerless(): (target: Constructable) => void;
-export function containerless(target?: Constructable): void | ((target: Constructable) => void) {
+export function containerless(): (target: Constructable, context: ClassDecoratorContext) => void;
+export function containerless(target?: Constructable, _context?: ClassDecoratorContext): void | ((target: Constructable, context: ClassDecoratorContext) => void) {
   if (target === void 0) {
     return function ($target: Constructable) {
       markContainerless($target);
@@ -181,7 +181,7 @@ export function containerless(target?: Constructable): void | ((target: Construc
 
 /** Manipulates the `containerless` property of the custom element definition for the type, when present else it annotates the type. */
 function markContainerless(target: Constructable) {
-  const def = getOwnMetadata(elementBaseName, target) as CustomElementDefinition;
+  const def = getOwnMetadata<CustomElementDefinition>(elementBaseName, target);
   if(def === void 0) {
     annotateElementMetadata(target, 'containerless', true);
     return;
@@ -203,7 +203,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly template: null | string | Node,
     public readonly instructions: readonly (readonly IInstruction[])[],
     public readonly dependencies: readonly Key[],
-    public readonly injectable: InjectableToken<C> | null,
+    public readonly injectable: InterfaceSymbol<C> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly IInstruction[],
     public readonly bindables: Record<string, BindableDefinition>,
@@ -221,19 +221,24 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   public static create(
     def: PartialCustomElementDefinition,
     Type?: null,
+    metadata?: Record<PropertyKey, unknown> | null,
   ): CustomElementDefinition;
   public static create(
     name: string,
     Type: CustomElementType,
+    metadata?: Record<PropertyKey, unknown> | null,
   ): CustomElementDefinition;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,
     Type?: CustomElementType<T> | null,
+    metadata?: Record<PropertyKey, unknown> | null,
   ): CustomElementDefinition<T>;
   public static create(
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
+    metadata: Record<PropertyKey, unknown> | null = null,
   ): CustomElementDefinition {
+    // TODO(Sayan): aggregate the info from decorator metadata instead of using the Reflect API
     if (Type === null) {
       const def = nameOrDef;
       if (isString(def)) {
@@ -260,11 +265,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('capture', def, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
-        mergeArrays(def.dependencies),
+        mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies, metadata?.['dependencies'] as Key[]),
         fromDefinitionOrDefault('injectable', def, returnNull),
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
-        Bindable.from(Type, def.bindables),
+        Bindable.from(metadata, def.bindables),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
@@ -287,12 +292,12 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
-        mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies),
-        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InjectableToken | null),
+        mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies, metadata?.['dependencies'] as Key[]),
+        fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InterfaceSymbol | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
         mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
         Bindable.from(
-          Type,
+          metadata,
           ...Bindable.getAll(Type),
           getElementAnnotation(Type, 'bindables'),
           Type.bindables,
@@ -321,12 +326,12 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
       mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
-      mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies),
+      mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies, metadata?.['dependencies'] as Key[]),
       fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
       mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
-        Type,
+        metadata,
         ...Bindable.getAll(Type),
         getElementAnnotation(Type, 'bindables'),
         Type.bindables,
@@ -353,7 +358,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     const definition = CustomElementDefinition.create(partialDefinition);
     definitionLookup.set(partialDefinition, definition);
     // Make sure the full definition can be retrieved from dynamically created classes as well
-    defineMetadata(elementBaseName, definition, definition.Type);
+    defineMetadata(definition, definition.Type, null, elementBaseName);
     return definition;
   }
 
@@ -379,15 +384,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     return `au:ce:${this.name}`;
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type InjectableToken<K = any> = ((target: Constructable, property: string | symbol | undefined, index: number) => void) & {
-  readonly __resolved__: K | null;
-};
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type InternalInjectableToken<K = any> = InjectableToken<K> & {
-  register?(container: IContainer): IResolver<K>;
-};
 
 type ForOpts = {
   name?: string;
@@ -419,17 +415,17 @@ export const generateElementName = /*@__PURE__*/(() => {
 })();
 
 const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
-  defineMetadata(getAnnotationKeyFor(prop), value, Type);
+  defineMetadata(value, Type, null, getAnnotationKeyFor(prop));
 };
 
 /** @internal */
-export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null): CustomElementType<C> => {
-  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null);
+export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null, decoratorContext?: DecoratorContext): CustomElementType<C> => {
+  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null, decoratorContext?.metadata);
   const $Type = definition.Type as CustomElementType<C>;
 
-  defineMetadata(elementBaseName, definition, $Type);
-  // a requirement for the resource system in kernel
-  defineMetadata(resourceBaseName, definition, $Type);
+  // this is the case, where the APi is invoked directly without a decorator
+  // registration of resource name is a requirement for the resource system in kernel (module-loader)
+  defineMetadata(definition, $Type, decoratorContext, elementBaseName, resourceBaseName);
 
   return $Type;
 };
@@ -507,7 +503,7 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
+  const def = getOwnMetadata<CustomElementDefinition<C>>(elementBaseName, Type);
   if (def === void 0) {
     throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
@@ -516,24 +512,28 @@ export const getElementDefinition = <C extends Constructable>(Type: C | Function
 };
 
 /** @internal */
-export const createElementInjectable = <K extends Key = Key>(): InjectableToken<K> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const $injectable = function (target, property, index): any {
-    const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target);
-    annotationParamtypes[index] = $injectable;
-    return target;
-  } as InternalInjectableToken<K>;
-
-  $injectable.register = (): IResolver => ({
-    $isResolver: true,
-    resolve(container, requestor) {
-      if (requestor.has($injectable, true)) {
-        return requestor.get($injectable);
-      } else {
-        return null;
-      }
+export const createElementInjectable = <K extends Key = Key>(): InterfaceSymbol<K> => {
+  const $injectable = {
+    // Old code is kept around. Needs to be refactored when TC39 supports argument decorator.
+    // function(target: Injectable | AbstractInjectable, property: string | symbol | undefined, index?: number): Injectable | AbstractInjectable {
+    //   const annotationParamtypes = DI.getOrCreateAnnotationParamTypes(target as Constructable);
+    //   annotationParamtypes[index!] = $injectable;
+    //   return target;
+    // },
+    $isInterface: false,
+    register(): IResolver {
+      return {
+        $isResolver: true,
+        resolve(container, requestor) {
+          if (requestor.has($injectable, true)) {
+            return requestor.get($injectable);
+          } else {
+            return null;
+          }
+        }
+      };
     }
-  });
+  };
 
   return $injectable;
 };
@@ -590,51 +590,47 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   }
 });
 
-type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
+// eslint-disable-next-line @typescript-eslint/ban-types
+type DecoratorFactoryMethod = (target: Function, context: ClassMethodDecoratorContext) => void;
 export type ProcessContentHook = (node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
 const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
-export function processContent(hook: ProcessContentHook): CustomElementDecorator;
-export function processContent<TClass>(): DecoratorFactoryMethod<TClass>;
-export function processContent<TClass extends {}>(hook?: ProcessContentHook): CustomElementDecorator | DecoratorFactoryMethod<TClass> {
+export function processContent(hook: ProcessContentHook | string | symbol): CustomElementDecorator;
+export function processContent(): DecoratorFactoryMethod;
+export function processContent<TClass extends Constructable>(hook?: ProcessContentHook | string | symbol): CustomElementDecorator | DecoratorFactoryMethod {
   return hook === void 0
-    ? function (target: Constructable<TClass>, propertyKey: string, _descriptor: PropertyDescriptor) {
-      defineMetadata(pcHookMetadataProperty, ensureHook(target, propertyKey), target);
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    ? function (target: Function, context: ClassMethodDecoratorContext) {
+        if (!context.static || context.kind !== 'method') throw createMappedError(ErrorNames.invalid_process_content_hook, target);
+        context.metadata[pcHookMetadataProperty] = target;
     }
-    : function (target: Constructable<TClass>) {
-      hook = ensureHook(target, hook!);
-      const def = getOwnMetadata(elementBaseName, target) as CustomElementDefinition<Constructable<TClass>>;
-      if (def !== void 0) {
-        (def as Writable<CustomElementDefinition<Constructable<TClass>>>).processContent = hook;
-      } else {
-        defineMetadata(pcHookMetadataProperty, hook, target);
-      }
-      return target;
-    };
-}
+    : function (target: TClass, context: ClassDecoratorContext<TClass>) {
+        if (isString(hook) || isSymbol(hook)) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
+          hook = (target as any)[hook] as ProcessContentHook;
+        }
+        if (!isFunction(hook)) throw createMappedError(ErrorNames.invalid_process_content_hook, hook);
 
-function ensureHook<TClass>(target: Constructable<TClass>, hook: string | ProcessContentHook): ProcessContentHook {
-  if (isString(hook)) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-explicit-any
-    hook = (target as any)[hook] as ProcessContentHook;
-  }
-
-  if (!isFunction(hook)) {
-    throw createMappedError(ErrorNames.invalid_process_content_hook, hook);
-  }
-  return hook;
+        const def = getOwnMetadata<CustomElementDefinition>(elementBaseName, target);
+        if (def !== void 0) {
+          (def as Writable<CustomElementDefinition>).processContent = hook;
+        } else {
+          context.metadata[pcHookMetadataProperty] = target;
+        }
+        return target as CustomElementType<TClass>;
+    } as CustomElementDecorator;
 }
 
 /**
  * Decorator: Indicates that the custom element should capture all attributes and bindings that are not template controllers or bindables
  */
-export function capture(filter: (attr: string) => boolean): ((target: Constructable) => void);
+export function capture(filter: (attr: string) => boolean): (target: Constructable, context: ClassDecoratorContext) => void;
 /**
  * Decorator: Indicates that the custom element should be rendered with the strict binding option. undefined/null -> 0 or '' based on type
  */
-export function capture(): (target: Constructable) => void ;
-export function capture(targetOrFilter?: (attr: string) => boolean): ((target: Constructable) => void) {
-  return function ($target: Constructable) {
+export function capture(): (target: Constructable, context: ClassDecoratorContext) => void ;
+export function capture(targetOrFilter?: (attr: string) => boolean): ((target: Constructable, context: ClassDecoratorContext) => void) {
+  return function ($target: Constructable, _context: ClassDecoratorContext) {
     const value = isFunction(targetOrFilter) ? targetOrFilter : true;
     annotateElementMetadata($target, 'capture', value);
 

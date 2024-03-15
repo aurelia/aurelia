@@ -1,18 +1,18 @@
 import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 import {
+  CustomAttribute,
+  IAurelia,
+  IHydratedComponentController,
+  INode,
+  IRenderLocation,
+  IViewFactory,
   alias,
   bindable,
   customAttribute,
-  INode,
-  CustomAttribute,
-  IAurelia,
-  templateController,
-  IViewFactory,
-  IRenderLocation,
-  IHydratedComponentController,
-  customElement
+  customElement,
+  templateController
 } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
+import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-attributes.spec.ts', function () {
   // custom elements
@@ -23,7 +23,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class Fooatt5 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -35,7 +35,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class Fooatt4 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -48,7 +48,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class FooMultipleAlias {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -140,7 +140,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       @bindable public b: string;
       public aResult: boolean;
       public bResult: string;
-      public constructor(@INode private readonly element: INode<Element>) {
+      public constructor(private readonly element: INode<Element> = resolve(INode) as INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {
@@ -165,7 +165,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       @bindable({ primary: true }) public b: string;
       public aResult: boolean;
       public bResult: string;
-      public constructor(@INode private readonly element: INode<Element>) {
+      public constructor(private readonly element: INode<Element> = resolve(INode) as INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {

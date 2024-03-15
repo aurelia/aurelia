@@ -32,11 +32,11 @@ export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver)
   ctn.registerResolver(key, resolver);
 
 export function alias(...aliases: readonly string[]) {
-  return function (target: Constructable) {
+  return function (target: Constructable, context: ClassDecoratorContext) {
     const key = getAnnotationKeyFor('aliases');
-    const existing = getOwnMetadata(key, target) as string[] | undefined;
+    const existing = getOwnMetadata<string[] | undefined>(key, target, context);
     if (existing === void 0) {
-      defineMetadata(key, aliases, target);
+      defineMetadata(aliases, target, context, key);
     } else {
       existing.push(...aliases);
     }

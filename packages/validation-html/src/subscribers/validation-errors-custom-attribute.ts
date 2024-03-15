@@ -1,7 +1,7 @@
 import { BindingMode, bindable, customAttribute, INode } from '@aurelia/runtime-html';
 import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
-import { optional } from '@aurelia/kernel';
+import { InterfaceSymbol, optional, resolve } from '@aurelia/kernel';
 
 /**
  * A validation errors subscriber in form of a custom attribute.
@@ -30,10 +30,9 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
   public errors: ValidationResultTarget[] = [];
 
   private readonly errorsInternal: ValidationResultTarget[] = [];
-  public constructor(
-    @INode private readonly host: INode<HTMLElement>,
-    @optional(IValidationController) private readonly scopedController: IValidationController
-  ) {}
+
+  private readonly host: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
+  private readonly scopedController: IValidationController = resolve(optional(IValidationController)) as IValidationController;
 
   public handleValidationEvent(event: ValidationEvent) {
     for (const { result } of event.removedResults) {

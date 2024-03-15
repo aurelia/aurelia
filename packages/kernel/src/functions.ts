@@ -239,22 +239,22 @@ export const toArray = <T = unknown>(input: ArrayLike<T>): T[] => {
 /**
  * Decorator. (lazily) bind the method to the class instance on first call.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const bound = <T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> => {
-  return {
-    configurable: true,
-    enumerable: descriptor.enumerable,
-    get(): T {
-      const boundFn = descriptor.value!.bind(this) as TypedPropertyDescriptor<T>;
-      Reflect.defineProperty(this, key, {
-        value: boundFn,
-        writable: true,
-        configurable: true,
-        enumerable: descriptor.enumerable,
-      });
-      return boundFn as T;
-    },
-  };
+export const bound = <
+  TThis extends object,
+  TArgs extends unknown[],
+  TReturn>(
+  originalMethod: (this: TThis, ...args: TArgs) => TReturn,
+  context: ClassMethodDecoratorContext<TThis, (this: TThis, ...args: TArgs) => TReturn>,
+): void => {
+  const methodName = context.name as string;
+  context.addInitializer(function (this: TThis) {
+    Reflect.defineProperty(this, methodName, {
+      value: originalMethod.bind(this),
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
+  });
 };
 
 export const mergeArrays = <T>(...arrays: (readonly T[] | undefined)[]): T[] => {

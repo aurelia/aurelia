@@ -1,4 +1,4 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities';
+import { $ClassDecorator, def, defineHiddenProp, ensureProto } from '../utilities';
 
 import type {
   Collection,
@@ -13,9 +13,9 @@ import { addValueBatch, batching } from './subscriber-batch';
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
 /* eslint-disable @typescript-eslint/ban-types */
-export function subscriberCollection(): ClassDecorator;
+export function subscriberCollection(): $ClassDecorator;
 export function subscriberCollection(target: Function): void;
-export function subscriberCollection(target?: Function): ClassDecorator | void {
+export function subscriberCollection(target?: Function): $ClassDecorator | void {
   return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
 }
 

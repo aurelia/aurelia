@@ -36,4 +36,4 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-bindingBehavior('signal')(SignalBindingBehavior);
+bindingBehavior('signal')(SignalBindingBehavior, null!);

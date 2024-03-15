@@ -351,7 +351,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   }
 }
 
-connectable()(ValidatitionConnector);
+connectable(ValidatitionConnector, null!);
 mixinAstEvaluator(true)(ValidatitionConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
@@ -397,5 +397,5 @@ export class BindingMediator<K extends string> {
   }
 }
 
-connectable()(BindingMediator);
+connectable(BindingMediator, null!);
 mixinAstEvaluator(true)(BindingMediator);

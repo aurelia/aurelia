@@ -6,6 +6,7 @@ import { bindable } from '../../bindable';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { resolve } from '@aurelia/kernel';
 
+@templateController('with')
 export class With implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
@@ -56,5 +57,3 @@ export class With implements ICustomAttributeViewModel {
     }
   }
 }
-
-templateController('with')(With);

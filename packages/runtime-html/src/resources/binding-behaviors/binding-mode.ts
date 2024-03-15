@@ -36,7 +36,7 @@ export class TwoWayBindingBehavior extends BindingModeBehavior {
   public get mode(): typeof BindingMode.twoWay { return twoWay; }
 }
 
-bindingBehavior('oneTime')(OneTimeBindingBehavior);
-bindingBehavior('toView')(ToViewBindingBehavior);
-bindingBehavior('fromView')(FromViewBindingBehavior);
-bindingBehavior('twoWay')(TwoWayBindingBehavior);
+bindingBehavior('oneTime')(OneTimeBindingBehavior, null!);
+bindingBehavior('toView')(ToViewBindingBehavior, null!);
+bindingBehavior('fromView')(FromViewBindingBehavior, null!);
+bindingBehavior('twoWay')(TwoWayBindingBehavior, null!);

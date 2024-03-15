@@ -128,8 +128,53 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         }
       );
     }
+    // The following tests don't work. Refer: https://github.com/microsoft/TypeScript/issues/57366
+    // {
+    //   @processContent(MyElement.processContent)
+    //   @customElement({
+    //     name: 'my-element',
+    //     template: `<div><au-slot></au-slot></div>`,
+    //   })
+    //   class MyElement {
+    //     public static hookInvoked: boolean = false;
+    //     public static processContent(_node: INode, _p: IPlatform) {
+    //       this.hookInvoked = true;
+    //     }
+    //   }
+    //   yield new TestData(
+    //     'processContent hook can be configured using class-level decorator - function - order 1',
+    //     `<my-element normal="foo" bold="bar"></my-element>`,
+    //     [MyElement],
+    //     {},
+    //     () => {
+    //       assert.strictEqual(MyElement.hookInvoked, true);
+    //     }
+    //   );
+    // }
+    // {
+    //   @customElement({
+    //     name: 'my-element',
+    //     template: `<div><au-slot></au-slot></div>`,
+    //   })
+    //   @processContent(MyElement.processContent)
+    //   class MyElement {
+    //     public static hookInvoked: boolean = false;
+    //     public static processContent(_node: INode, _p: IPlatform) {
+    //       this.hookInvoked = true;
+    //     }
+    //   }
+    //   yield new TestData(
+    //     'processContent hook can be configured using class-level decorator - function - order 2',
+    //     `<my-element normal="foo" bold="bar"></my-element>`,
+    //     [MyElement],
+    //     {},
+    //     () => {
+    //       assert.strictEqual(MyElement.hookInvoked, true);
+    //     }
+    //   );
+    // }
     {
-      @processContent(MyElement.processContent)
+      @processContent('processContent')
       @customElement({
         name: 'my-element',
         template: `<div><au-slot></au-slot></div>`,
@@ -141,7 +186,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         }
       }
       yield new TestData(
-        'processContent hook can be configured using class-level decorator - function - order 1',
+        'processContent hook can be configured using class-level decorator - function name - order 1',
         `<my-element normal="foo" bold="bar"></my-element>`,
         [MyElement],
         {},
@@ -155,7 +200,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         name: 'my-element',
         template: `<div><au-slot></au-slot></div>`,
       })
-      @processContent(MyElement.processContent)
+      @processContent('processContent')
       class MyElement {
         public static hookInvoked: boolean = false;
         public static processContent(_node: INode, _p: IPlatform) {
@@ -163,7 +208,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         }
       }
       yield new TestData(
-        'processContent hook can be configured using class-level decorator - function - order 2',
+        'processContent hook can be configured using class-level decorator - function name - order 2',
         `<my-element normal="foo" bold="bar"></my-element>`,
         [MyElement],
         {},
@@ -205,7 +250,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         public static hookInvoked: boolean = false;
 
         @processContent()
-        public static processContent(_node: INode, _p: IPlatform) {
+        public static processContent(_node: INode, _p: IPlatform, _data: Record<PropertyKey, unknown>) {
           this.hookInvoked = true;
         }
       }
@@ -540,7 +585,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
     @customElement({
       name: 'tabs',
       template: '<div class="header"><au-slot name="header"></au-slot></div><div class="content"><au-slot name="content"></au-slot></div>',
-      processContent: Tabs.processTabs
+      // processContent: Tabs.processTabs // <- this won't work; refer: https://github.com/microsoft/TypeScript/issues/57366
     })
     class Tabs {
       @bindable public activeTabId: string;
@@ -548,6 +593,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
         this.activeTabId = tabId;
       }
 
+      @processContent()
       public static processTabs(node: INode, p: IPlatform) {
         const el = node as Element;
         const headerTemplate = p.document.createElement('template');

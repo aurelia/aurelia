@@ -26,9 +26,9 @@ export type PartialValueConverterDefinition = PartialResourceDefinition;
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): ValueConverterType<T>;
-  define<T extends Constructable>(def: PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T>;
+  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): ValueConverterType<T>;
+  define<T extends Constructable>(def: PartialValueConverterDefinition, Type: T, decoratorContext?: DecoratorContext): ValueConverterType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialValueConverterDefinition, Type: T, decoratorContext?: DecoratorContext): ValueConverterType<T>;
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T>;
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void;
   getAnnotation<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K): PartialValueConverterDefinition[K];
@@ -36,14 +36,14 @@ export type ValueConverterKind = IResourceKind & {
   get(container: IServiceLocator, name: string): ValueConverterInstance;
 };
 
-export type ValueConverterDecorator = <T extends Constructable>(Type: T) => ValueConverterType<T>;
+export type ValueConverterDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => ValueConverterType<T>;
 
 export function valueConverter(definition: PartialValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(name: string): ValueConverterDecorator;
 export function valueConverter(nameOrDef: string | PartialValueConverterDefinition): ValueConverterDecorator;
 export function valueConverter(nameOrDef: string | PartialValueConverterDefinition): ValueConverterDecorator {
-  return function (target) {
-    return ValueConverter.define(nameOrDef, target);
+  return function (target, context) {
+    return ValueConverter.define(nameOrDef, target, context);
   };
 }
 
@@ -109,18 +109,17 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
     return isFunction(value) && hasOwnMetadata(vcBaseName, value);
   },
-  define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
+  define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T, decoratorContext?: DecoratorContext): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
     const $Type = definition.Type as ValueConverterType<T>;
 
-    defineMetadata(vcBaseName, definition, $Type);
-  // a requirement for the resource system in kernel
-    defineMetadata(resourceBaseName, definition, $Type);
+    // registration of resource name is a requirement for the resource system in kernel (module-loader)
+    defineMetadata(definition, $Type, decoratorContext, vcBaseName, resourceBaseName);
 
     return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    const def = getOwnMetadata(vcBaseName, Type);
+    const def = getOwnMetadata<ValueConverterDefinition<T>>(vcBaseName, Type);
     if (def === void 0) {
       throw createMappedError(ErrorNames.value_converter_def_not_found, Type);
     }
@@ -128,7 +127,7 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     return def;
   },
   annotate<K extends keyof PartialValueConverterDefinition>(Type: Constructable, prop: K, value: PartialValueConverterDefinition[K]): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, Type);
+    defineMetadata(value, Type, null, getAnnotationKeyFor(prop));
   },
   getAnnotation: getConverterAnnotation,
   find(container, name) {

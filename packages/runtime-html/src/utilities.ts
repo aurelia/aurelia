@@ -46,6 +46,7 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 /** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
+/** @internal */ export const isSymbol = (v: unknown): v is string => typeof v === 'symbol';
 /** @internal */ export const isNumber = (v: unknown): v is number => typeof v === 'number';
 /** @internal */ export const rethrow = (err: unknown) => { throw err; };
 /** @internal */ export const areEqual = O.is;

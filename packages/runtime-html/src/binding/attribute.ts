@@ -206,5 +206,5 @@ export class AttributeBinding implements IBinding {
 
 mixinUseScope(AttributeBinding);
 mixingBindingLimited(AttributeBinding, () => 'updateTarget');
-connectable(AttributeBinding);
+connectable(AttributeBinding, null!);
 mixinAstEvaluator(true)(AttributeBinding);

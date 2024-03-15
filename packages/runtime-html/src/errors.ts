@@ -21,6 +21,10 @@ export const enum ErrorNames {
   binding_behavior_existed = 156,
   binding_command_existed = 157,
 
+  invalid_bindable_decorator_usage_symbol = 227,
+  invalid_bindable_decorator_usage_class_without_configuration = 228,
+  invalid_bindable_decorator_usage_class_without_property_name_configuration = 229,
+
   controller_cached_not_found = 500,
   controller_no_shadow_on_containerless = 501,
   controller_activating_disposed = 502,
@@ -131,6 +135,10 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
   [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
   [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,
+
+  [ErrorNames.invalid_bindable_decorator_usage_symbol]: `@bindable is not supported for properties that uses a symbol for name. Use a string for the property name instead.`,
+  [ErrorNames.invalid_bindable_decorator_usage_class_without_configuration]: `@bindable cannot be used as a class decorator when no configuration object is supplied.`,
+  [ErrorNames.invalid_bindable_decorator_usage_class_without_property_name_configuration]: `@bindable cannot be used as a class decorator when no property name is supplied in the configuration object.`,
 
   [ErrorNames.controller_cached_not_found]: `There is no cached controller for the provided ViewModel: {{0}}`,
   [ErrorNames.controller_no_shadow_on_containerless]: `Invalid combination: cannot combine the containerless custom element option with Shadow DOM.`,

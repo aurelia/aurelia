@@ -1,4 +1,4 @@
-import { Registration, toArray, newInstanceForScope, DI } from '@aurelia/kernel';
+import { Registration, toArray, newInstanceForScope, DI, resolve } from '@aurelia/kernel';
 import { IPlatform, CustomElement, customElement, Aurelia } from '@aurelia/runtime-html';
 import { PLATFORM, assert, ISpy, TestContext, createSpy, getVisibleText } from '@aurelia/testing';
 import {
@@ -26,10 +26,10 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
       public controllerValidateSpy: ISpy;
 
       public constructor(
-        @IPlatform public readonly platform: IPlatform,
-        @newInstanceForScope(IValidationController) public controller: ValidationController,
-        @IValidationResultPresenterService public presenterService: ValidationResultPresenterService,
-        @IValidationRules private readonly validationRules: IValidationRules,
+        public readonly platform: IPlatform = resolve(IPlatform),
+        public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController,
+        public presenterService: ValidationResultPresenterService = resolve(IValidationResultPresenterService) as ValidationResultPresenterService,
+        private readonly validationRules: IValidationRules = resolve(IValidationRules),
       ) {
         this.controllerValidateSpy = createSpy(controller, 'validate', true);
         controller.addSubscriber(presenterService);

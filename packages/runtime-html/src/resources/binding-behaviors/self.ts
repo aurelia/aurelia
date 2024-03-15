@@ -18,4 +18,4 @@ export class SelfBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-bindingBehavior('self')(SelfBindingBehavior);
+bindingBehavior('self')(SelfBindingBehavior, null!);

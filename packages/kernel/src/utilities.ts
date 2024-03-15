@@ -1,11 +1,11 @@
-import { Metadata } from '@aurelia/metadata';
+import { SimplerMetadata } from '@aurelia/metadata';
 
 /** @internal */ export const objectFreeze = Object.freeze;
 /** @internal */ export const objectAssign = Object.assign;
 /** @internal */ export const safeString = String;
-/** @internal */ export const getOwnMetadata = Metadata.getOwn;
-/** @internal */ export const hasOwnMetadata = Metadata.hasOwn;
-/** @internal */ export const defineMetadata = Metadata.define;
+/** @internal */ export const getMetadata = SimplerMetadata.getMetadata;
+/** @internal */ export const hasMetadata = SimplerMetadata.hasMetadata;
+/** @internal */ export const defineMetadata = SimplerMetadata.defineMetadata;
 
 /** @internal */ export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
 

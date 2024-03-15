@@ -9,6 +9,7 @@ import { resolve } from '@aurelia/kernel';
 /**
  * Focus attribute for element focus binding
  */
+@customAttribute('focus')
 export class Focus implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
@@ -118,5 +119,3 @@ export class Focus implements ICustomAttributeViewModel {
     return this._element === this._platform.document.activeElement;
   }
 }
-
-customAttribute('focus')(Focus);

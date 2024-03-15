@@ -43,4 +43,4 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-bindingBehavior('throttle')(ThrottleBindingBehavior);
+bindingBehavior('throttle')(ThrottleBindingBehavior, null!);

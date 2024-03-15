@@ -3,7 +3,7 @@ import { Server, createServer, IncomingMessage, ServerResponse, RequestListener 
 import * as https from 'https';
 import { Http2Server as $Http2Server, createSecureServer, Http2ServerRequest, Http2ServerResponse } from 'http2';
 
-import { ILogger, bound, all, IContainer } from '@aurelia/kernel';
+import { ILogger, bound, all, IContainer, resolve } from '@aurelia/kernel';
 import { IHttpServer, IHttpServerOptions, IRequestHandler, StartOutput, IHttp2FileServer } from './interfaces';
 import { AddressInfo } from 'net';
 import { HTTPStatusCode, readBuffer } from './http-utils';
@@ -12,18 +12,10 @@ import { HttpContext } from './http-context';
 export class HttpServer implements IHttpServer {
   private server: Server | null = null;
 
-  public constructor(
-    @ILogger
-    private readonly logger: ILogger,
-    @IHttpServerOptions
-    private readonly opts: IHttpServerOptions,
-    @IContainer
-    private readonly container: IContainer,
-    @all(IRequestHandler)
-    private readonly handlers: readonly IRequestHandler[],
-  ) {
-    this.logger = logger.root.scopeTo('HttpServer');
-  }
+  private readonly logger: ILogger = resolve(ILogger).root.scopeTo('HttpServer');
+  private readonly opts: IHttpServerOptions = resolve(IHttpServerOptions);
+  private readonly container: IContainer = resolve(IContainer);
+  private readonly handlers: readonly IRequestHandler[] = resolve(all(IRequestHandler));
 
   public async start(): Promise<StartOutput> {
     this.logger.debug(`start()`);
@@ -73,18 +65,10 @@ export class HttpServer implements IHttpServer {
 export class Http2Server implements IHttpServer {
   private server: $Http2Server | null = null;
 
-  public constructor(
-    @ILogger
-    private readonly logger: ILogger,
-    @IHttpServerOptions
-    private readonly opts: IHttpServerOptions,
-    @IContainer
-    private readonly container: IContainer,
-    @IHttp2FileServer
-    private readonly http2FileServer: IHttp2FileServer,
-  ) {
-    this.logger = logger.root.scopeTo('Http2Server');
-  }
+  private readonly logger: ILogger = resolve(ILogger).root.scopeTo('Http2Server');
+  private readonly opts: IHttpServerOptions = resolve(IHttpServerOptions);
+  private readonly container: IContainer = resolve(IContainer);
+  private readonly http2FileServer: IHttp2FileServer = resolve(IHttp2FileServer);
 
   public async start(): Promise<StartOutput> {
     this.logger.debug(`start()`);

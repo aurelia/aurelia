@@ -9,16 +9,22 @@ applyMetadataPolyfill(Reflect, false, false);
 import { isArrayIndex } from './functions';
 import { createContainer } from './di.container';
 import { Constructable, IDisposable } from './interfaces';
-import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource';
-import { defineMetadata, getOwnMetadata, isFunction, isString } from './utilities';
+import { getAnnotationKeyFor, ResourceType } from './resource';
+import { defineMetadata, getMetadata, isFunction, isString } from './utilities';
 import { singletonRegistration, cacheCallbackResult, transientRegistation } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
 import type { IAllResolver, IFactoryResolver, ILazyResolver, INewInstanceResolver, IOptionalResolver, IResolvedFactory, IResolvedLazy } from './di.resolvers';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type InterfaceSymbol<K = any> = (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index?: number) => void;
+export interface InterfaceSymbol<K = any> {
+  // We can activate decorator if the argument decorator proposal will be standardized by TC39 (https://github.com/tc39/proposal-class-method-parameter-decorators)
+  // (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index?: number): void;
+  $isInterface: boolean;
+  friendlyName?: string;
+  register?(container: IContainer, key?: K): IResolver<K>;
+  toString?(): string;
+}
 
 // This interface exists only to break a circular type referencing issue in the IServiceLocator interface.
 // Otherwise IServiceLocator references IResolver, which references IContainer, which extends IServiceLocator.
@@ -177,22 +183,16 @@ export interface IContainerConfiguration {
   defaultResolver?(key: Key, handler: IContainer): IResolver;
 }
 
+const diParamTypesKeys = getAnnotationKeyFor('di:paramtypes');
 const getAnnotationParamtypes = (Type: Constructable | Injectable): readonly Key[] | undefined => {
-  const key = getAnnotationKeyFor('di:paramtypes');
-  return getOwnMetadata(key, Type);
+  return Type[Symbol.metadata]?.[diParamTypesKeys] as Key[] | undefined;
 };
 
 const getDesignParamtypes = (Type: Constructable | Injectable): readonly Key[] | undefined =>
-  getOwnMetadata('design:paramtypes', Type);
+  getMetadata('design:paramtypes', Type);
 
-const getOrCreateAnnotationParamTypes = (Type: Constructable | Injectable): Key[] => {
-  const key = getAnnotationKeyFor('di:paramtypes');
-  let annotationParamtypes = getOwnMetadata(key, Type);
-  if (annotationParamtypes === void 0) {
-    defineMetadata(key, annotationParamtypes = [], Type);
-    appendAnnotation(Type, key);
-  }
-  return annotationParamtypes;
+const getOrCreateAnnotationParamTypes = (context: DecoratorContext): Key[] => {
+  return (context.metadata[diParamTypesKeys] ??= []) as Key[];
 };
 
 /** @internal */
@@ -202,7 +202,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
   // Preferably, only make changes to the dependency resolution process via a RFC.
 
   const key = getAnnotationKeyFor('di:dependencies');
-  let dependencies = getOwnMetadata(key, Type) as Key[] | undefined;
+  let dependencies = getMetadata<Key[] | undefined>(key, Type);
   if (dependencies === void 0) {
     // Type.length is the number of constructor parameters. If this is 0, it could mean the class has an empty constructor
     // but it could also mean the class has no constructor at all (in which case it inherits the constructor from the prototype).
@@ -262,8 +262,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
       dependencies = cloneArrayWithPossibleProps(inject);
     }
 
-    defineMetadata(key, dependencies, Type);
-    appendAnnotation(Type, key);
+    defineMetadata(dependencies, Type, null, key);
   }
 
   return dependencies;
@@ -275,64 +274,62 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
  * @param configureOrName - Use for improving error messaging
  */
 export const createInterface = <K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> => {
- const configure = isFunction(configureOrName) ? configureOrName : configuror;
- const friendlyName = (isString(configureOrName) ? configureOrName : undefined) ?? '(anonymous)';
+  const configure = isFunction(configureOrName) ? configureOrName : configuror;
+  const friendlyName = (isString(configureOrName) ? configureOrName : undefined) ?? '(anonymous)';
 
- const Interface = function (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index: number | undefined): void {
-   if (target == null || new.target !== undefined) {
-    throw createMappedError(ErrorNames.no_registration_for_interface, friendlyName);
-   }
-   const annotationParamtypes = getOrCreateAnnotationParamTypes(target as Injectable);
-   annotationParamtypes[index!] = Interface;
- };
- Interface.$isInterface = true;
- Interface.friendlyName = friendlyName;
+  const Interface: InterfaceSymbol<K> = {
+    // Old code kept with the hope that the argument decorator proposal will be standardized by TC39 (https://github.com/tc39/proposal-class-method-parameter-decorators)
+    // function(_target: Injectable | AbstractInjectable, _property: string | symbol | undefined, _index: number | undefined): void {
+    //    if (target == null || new.target !== undefined) {
+    //     throw createMappedError(ErrorNames.no_registration_for_interface, friendlyName);
+    //    }
+    //    const annotationParamtypes = getOrCreateAnnotationParamTypes(target as Injectable);
+    //    annotationParamtypes[index!] = Interface;
+    // },
+    $isInterface: true,
+    friendlyName: friendlyName,
+  };
 
- if (configure != null) {
-   Interface.register = (container: IContainer, key?: Key): IResolver<K> =>
-     configure(new ResolverBuilder(container, key ?? Interface));
- }
+  if (configure != null) {
+    Interface.register = (container: IContainer, key?: Key): IResolver<K> =>
+      configure(new ResolverBuilder(container, key ?? Interface));
+  }
 
- Interface.toString = (): string => `InterfaceSymbol<${friendlyName}>`;
+  Interface.toString = (): string => `InterfaceSymbol<${friendlyName}>`;
 
- return Interface;
+  return Interface;
 };
 
-export const inject = (...dependencies: Key[]): (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number) => void => {
-  return (target: Injectable, key?: string | number, descriptor?: PropertyDescriptor | number): void => {
-    if (typeof descriptor === 'number') { // It's a parameter decorator.
-      const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
-      const dep = dependencies[0];
-      if (dep !== void 0) {
-        annotationParamtypes[descriptor] = dep;
-      }
-    } else if (key) { // It's a property decorator. Not supported by the container without plugins.
-      const annotationParamtypes = getOrCreateAnnotationParamTypes((target as unknown as { constructor: Injectable }).constructor);
-      const dep = dependencies[0];
-      if (dep !== void 0) {
-        annotationParamtypes[key as number] = dep;
-      }
-    } else if (descriptor) { // It's a function decorator (not a Class constructor)
-      const fn = descriptor.value;
-      const annotationParamtypes = getOrCreateAnnotationParamTypes(fn);
-      let dep: Key;
-      let i = 0;
-      for (; i < dependencies.length; ++i) {
-        dep = dependencies[i];
-        if (dep !== void 0) {
-          annotationParamtypes[i] = dep;
+export const inject = (...dependencies: Key[]): (decorated: unknown, context: DecoratorContext) => void => {
+  return (decorated: unknown, context: DecoratorContext): void => {
+    switch (context.kind) {
+      case 'class': {
+        const annotationParamtypes = getOrCreateAnnotationParamTypes(context);
+        let dep: Key;
+        let i = 0;
+        for (; i < dependencies.length; ++i) {
+          dep = dependencies[i];
+          if (dep !== void 0) {
+            annotationParamtypes[i] = dep;
+          }
         }
+        break;
       }
-    } else { // It's a class decorator.
-      const annotationParamtypes = getOrCreateAnnotationParamTypes(target);
-      let dep: Key;
-      let i = 0;
-      for (; i < dependencies.length; ++i) {
-        dep = dependencies[i];
+      case 'field': {
+        // TODO(sayan): make the container get the dependencies from the context.metadata.
+        const annotationParamtypes: any = getOrCreateAnnotationParamTypes(context);
+        const dep = dependencies[0];
         if (dep !== void 0) {
-          annotationParamtypes[i] = dep;
+          annotationParamtypes[context.name] = dep;
         }
+        break;
       }
+      // TODO(sayan): support getter injection - new feature
+      // TODO:
+      //    support method parameter injection when the class-method-parameter-decorators proposal (https://github.com/tc39/proposal-class-method-parameter-decorators)
+      //    reaches stage 4 and/or implemented by TS.
+      default:
+        throw createMappedError(ErrorNames.invalid_inject_decorator_usage, String(context.name), context.kind);
     }
   };
 };
@@ -340,8 +337,8 @@ export const inject = (...dependencies: Key[]): (target: Injectable, key?: strin
 export const DI = {
   createContainer,
   getDesignParamtypes,
-  getAnnotationParamtypes,
-  getOrCreateAnnotationParamTypes,
+  // getAnnotationParamtypes,
+  // getOrCreateAnnotationParamTypes,
   getDependencies: getDependencies,
   /**
    * creates a decorator that also matches an interface and can be used as a {@linkcode Key}.
@@ -443,7 +440,7 @@ export const DI = {
 export const IContainer = /*@__PURE__*/createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
-function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>):
+function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, _context: ClassDecoratorContext):
   T & RegisterSelf<T> {
   return DI.transient(target);
 }
@@ -469,18 +466,16 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  * class Foo { }
  * ```
  */
-export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> | typeof transientDecorator {
-  return target == null ? transientDecorator : transientDecorator(target);
+export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, context: ClassDecoratorContext): T & RegisterSelf<T>;
+export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, _context?: ClassDecoratorContext): T & RegisterSelf<T> | typeof transientDecorator {
+  return  target == null ? transientDecorator : transientDecorator(target, _context!);
 }
 
 type SingletonOptions = { scoped: boolean };
 const defaultSingletonOptions = { scoped: false };
 const decorateSingleton = DI.singleton;
 
-const singletonDecorator = <T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T> => {
-  return decorateSingleton(target);
-};
+type SingletonDecorator = <T extends Constructable>(target: T & Partial<RegisterSelf<T>>, _context: ClassDecoratorContext) => T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
@@ -491,9 +486,9 @@ const singletonDecorator = <T extends Constructable>(target: T & Partial<Registe
  * ```
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function singleton<T extends Constructable>(): typeof singletonDecorator;
+export function singleton<T extends Constructable>(): SingletonDecorator;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function singleton<T extends Constructable>(options?: SingletonOptions): typeof singletonDecorator;
+export function singleton<T extends Constructable>(options?: SingletonOptions): SingletonDecorator;
 /**
  * Registers the `target` class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.
@@ -505,14 +500,14 @@ export function singleton<T extends Constructable>(options?: SingletonOptions): 
  * class Foo { }
  * ```
  */
-export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>): T & RegisterSelf<T>;
-export function singleton<T extends Constructable>(targetOrOptions?: (T & Partial<RegisterSelf<T>>) | SingletonOptions): T & RegisterSelf<T> | typeof singletonDecorator {
-  if (isFunction(targetOrOptions)) {
-    return decorateSingleton(targetOrOptions);
-  }
-  return function <T extends Constructable>($target: T) {
-    return decorateSingleton($target, targetOrOptions);
-  };
+export function singleton<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, context: ClassDecoratorContext): T & RegisterSelf<T>;
+export function singleton<T extends Constructable>(targetOrOptions?: (T & Partial<RegisterSelf<T>>) | SingletonOptions, _context?: ClassDecoratorContext): T & RegisterSelf<T> | SingletonDecorator {
+  return isFunction(targetOrOptions)
+    // The decorator is applied without options. Example: `@singleton()` or `@singleton`
+    ? decorateSingleton(targetOrOptions)
+    : function <T extends Constructable>($target: T, _ctx: ClassDecoratorContext) {
+      return decorateSingleton($target, targetOrOptions);
+    };
 }
 
 _START_CONST_ENUM();

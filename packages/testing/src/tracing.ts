@@ -155,7 +155,7 @@ export function stopRecordingCalls<TProto extends object>(
 }
 
 export function trace(calls: CallCollection) {
-  return function (ctor: Class<any>) {
+  return function (ctor: Class<any>, _context: ClassDecoratorContext) {
     recordCalls(ctor, calls);
   };
 }

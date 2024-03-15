@@ -293,7 +293,11 @@ describe('1-kernel/metadata.spec.ts', function () {
       assert.strictEqual(actual, void 0);
     });
 
-    describe('real class', function () {
+    // TODO: Enable those tests once the decorator metadata is emitted by TS.
+    // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+    // The following tests are dependent on that and hence cannot be successfully run.
+    // Refer: https://github.com/microsoft/TypeScript/issues/55788
+    describe.skip('real class', function () {
 
       it('string param', function () {
         @singleton

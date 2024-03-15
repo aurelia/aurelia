@@ -45,4 +45,4 @@ export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
   }
 }
 
-bindingBehavior('updateTrigger')(UpdateTriggerBindingBehavior);
+bindingBehavior('updateTrigger')(UpdateTriggerBindingBehavior, null!);

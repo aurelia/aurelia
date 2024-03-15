@@ -239,7 +239,7 @@ export const Route = {
 };
 
 export type RouteType<T extends Constructable = Constructable> = ResourceType<T, InstanceType<T>, IRouteConfig>;
-export type RouteDecorator = <T extends Constructable>(Type: T) => T;
+export type RouteDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => T;
 
 /**
  * Associate a static route configuration with this type.
@@ -271,7 +271,7 @@ export function route(configOrPath: IRouteConfig | string | string[]): RouteDeco
 
 /** @internal */
 export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteConfig | Promise<RouteConfig> {
-  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null/* , false */);
+  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
 

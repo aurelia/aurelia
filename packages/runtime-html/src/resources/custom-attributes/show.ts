@@ -11,6 +11,8 @@ import type { HydrateAttributeInstruction } from '../../renderer';
 import { alias } from '../../utilities-di';
 import { resolve } from '@aurelia/kernel';
 
+@customAttribute('show')
+@alias('hide')
 export class Show implements ICustomAttributeViewModel {
   @bindable public value: unknown;
 
@@ -72,6 +74,3 @@ export class Show implements ICustomAttributeViewModel {
     }
   };
 }
-
-alias('hide')(Show);
-customAttribute('show')(Show);

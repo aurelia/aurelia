@@ -48,7 +48,7 @@ export const Routes: {
   },
 };
 
-export type RoutesDecorator = <T extends Constructable>(Type: T) => T;
+export type RoutesDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => T;
 
 /**
  * Associate a static routes configuration with this type.

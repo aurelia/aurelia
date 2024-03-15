@@ -1,4 +1,16 @@
 /**
+ * TODO: add description.
+ * References:
+ * - https://github.com/tc39/proposal-decorator-metadata
+ * - https://github.com/microsoft/TypeScript/issues/55788
+ */
+export function initializeTC39Metadata() {
+  // We need the any-coercion here because the metadata in Symbol is marked as unique symbol.
+  // And the symbol we are creating here is not assignable to the unique symbol.
+  // More info: https://github.com/Microsoft/TypeScript/issues/23388
+  (Symbol as any).metadata ??= Symbol.for("Symbol.metadata");
+}
+/**
  * Determine whether a value is an object.
  *
  * Uses `typeof` to guarantee this works cross-realm, which is where `instanceof Object` might fail.
@@ -1044,6 +1056,7 @@ export const applyMetadataPolyfill = (
   writable: boolean = true,
   configurable: boolean = true,
 ): void => {
+  initializeTC39Metadata();
   if (hasInternalSlot(reflect)) {
     if (reflect[internalSlotName] === metadataInternalSlot) {
       return;
@@ -1083,3 +1096,31 @@ export const applyMetadataPolyfill = (
 
 const createError = (message: string) => new Error(message);
 const getPrototype = Object.getPrototypeOf;
+
+// TODO(sayan): use better name
+export const SimplerMetadata = {
+  getMetadata<T>(key: string, type: any, context?: DecoratorContext): T {
+    return context?.metadata[key] ?? type[Symbol.metadata]?.[key];
+  },
+  defineMetadata(value: any, type: any, context: DecoratorContext | null | undefined, ...keys: string[]): void {
+    const metadata = context?.metadata ?? (type[Symbol.metadata] ??= Object.create(null));
+    const length = keys.length;
+    switch (length) {
+      case 0: throw new Error('At least one key must be provided');
+      case 1: metadata[keys[0]] = value; return;
+      case 2: metadata[keys[0]] = metadata[keys[1]] = value; return;
+      default: {
+        for (let i = 0; i < length; ++i) {
+          metadata[keys[i]] = value;
+        }
+        return;
+      }
+    }
+  },
+  hasMetadata(key: string, type: any, context?: DecoratorContext): boolean {
+    const metadata = context?.metadata ?? type[Symbol.metadata];
+    return metadata == null
+      ? false
+      : key in metadata;
+  }
+};

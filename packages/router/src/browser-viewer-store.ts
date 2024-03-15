@@ -1,4 +1,4 @@
-import { EventAggregator, IEventAggregator } from '@aurelia/kernel';
+import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { QueueTask, TaskQueue } from './utilities/task-queue';
@@ -41,7 +41,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
   /**
    * State changes that have been triggered but not yet processed.
    */
-  private readonly pendingCalls: TaskQueue<IAction>;
+  private readonly pendingCalls: TaskQueue<IAction> = new TaskQueue<IAction>();
 
   /**
    * Whether the BrowserViewerStore is started or not.
@@ -59,15 +59,11 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
    */
   private forwardedState: IForwardedState = { eventTask: null, suppressPopstate: false };
 
-  public constructor(
-    @IPlatform private readonly platform: IPlatform,
-    @IWindow private readonly window: IWindow,
-    @IHistory private readonly history: IHistory,
-    @ILocation private readonly location: ILocation,
-    @IEventAggregator private readonly ea: EventAggregator,
-  ) {
-    this.pendingCalls = new TaskQueue<IAction>();
-  }
+  private readonly platform: IPlatform = resolve(IPlatform);
+  private readonly window: IWindow = resolve(IWindow);
+  private readonly history: IHistory = resolve(IHistory);
+  private readonly location: ILocation = resolve(ILocation);
+  private readonly ea: EventAggregator = resolve(IEventAggregator);
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {

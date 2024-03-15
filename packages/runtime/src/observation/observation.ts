@@ -158,4 +158,4 @@ class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
   }
 }
 
-connectable(RunEffect);
+connectable(RunEffect, null!);

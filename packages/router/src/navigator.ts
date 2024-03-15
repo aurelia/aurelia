@@ -1,4 +1,4 @@
-import { EventAggregator, IContainer, IEventAggregator } from '@aurelia/kernel';
+import { EventAggregator, IContainer, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IRouteableComponent } from './interfaces';
 import { RoutingInstruction } from './instructions/routing-instruction';
 import { Navigation, IStoredNavigation, INavigation, NavigationFlags } from './navigation';
@@ -135,20 +135,15 @@ export class Navigator {
    * An uninitialized navigation that's used before the
    * navigator is started and before first navigation is made
    */
-  private readonly uninitializedNavigation: Navigation;
+  private readonly uninitializedNavigation: Navigation = Navigation.create({
+    instruction: 'NAVIGATOR UNINITIALIZED',
+    fullStateInstruction: '',
+    index: 0,
+    completed: true,
+  });
 
-  public constructor(
-    @IEventAggregator private readonly ea: EventAggregator,
-    @IContainer private readonly container: IContainer,
-  ) {
-    this.uninitializedNavigation = Navigation.create({
-      instruction: 'NAVIGATOR UNINITIALIZED',
-      fullStateInstruction: '',
-      index: 0,
-      completed: true,
-    });
-    this.lastNavigationIndex = -1;
-  }
+  private readonly ea: EventAggregator = resolve(IEventAggregator);
+  private readonly container: IContainer = resolve(IContainer);
 
   public start(options?: INavigatorOptions): void {
     if (this.isActive) {

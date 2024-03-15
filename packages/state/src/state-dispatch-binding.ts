@@ -96,6 +96,6 @@ export class StateDispatchBinding implements IBinding {
   }
 }
 
-connectable(StateDispatchBinding);
+connectable(StateDispatchBinding, null!);
 mixinAstEvaluator(true)(StateDispatchBinding);
 mixingBindingLimited(StateDispatchBinding, () => 'callSource');

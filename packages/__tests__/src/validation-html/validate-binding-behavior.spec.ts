@@ -1,5 +1,5 @@
 import { callSyntax, delegateSyntax } from '@aurelia/compat-v1';
-import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration } from '@aurelia/kernel';
+import { DI, INewInstanceResolver, InterfaceSymbol, IServiceLocator, newInstanceForScope, newInstanceOf, Registration, resolve } from '@aurelia/kernel';
 import {
   ArrayObserver,
   BindingBehaviorInstance,
@@ -60,13 +60,13 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       private readonly obj: any;
 
       public constructor(
-        @newInstanceForScope(IValidationController) public readonly controller: ValidationController,
-        @newInstanceOf(IValidationController) public readonly controller2: ValidationController,
-        @IPlatform public readonly platform: IPlatform,
-        @IValidationRules private readonly validationRules: IValidationRules,
-        @IObserverLocator observerLocator: IObserverLocator,
-        @IServiceLocator serviceLocator: IServiceLocator,
-        @IObserveCollection observeCollection = false,
+        public readonly controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController,
+        public readonly controller2: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController,
+        public readonly platform: IPlatform = resolve(IPlatform),
+        private readonly validationRules: IValidationRules = resolve(IValidationRules),
+        observerLocator: IObserverLocator = resolve(IObserverLocator),
+        serviceLocator: IServiceLocator = resolve(IServiceLocator),
+        observeCollection = resolve(IObserveCollection) ?? false,
       ) {
         this.controllerRegisterBindingSpy = createSpy(controller, 'registerBinding', true);
         this.controllerUnregisterBindingSpy = createSpy(controller, 'unregisterBinding', true);
@@ -208,7 +208,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       @bindable public value: unknown;
       @bindable public triggeringEvents: string[];
 
-      public constructor(@INode private readonly node: INode<Element>) {}
+      private readonly node: INode<Element> = resolve(INode) as INode<Element>;
 
       public binding() {
         for (const event of this.triggeringEvents) {
@@ -236,7 +236,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     @customElement({ name: 'editor', template: `<au-slot name="content"></au-slot><div>static content</div>` })
     class Editor {
       public readonly person = new Person(void 0, void 0);
-      public constructor(@IValidationRules validationRules: IValidationRules) {
+      public constructor(validationRules: IValidationRules = resolve(IValidationRules)) {
         validationRules
           .on(this.person)
           .ensure('name')
@@ -247,7 +247,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     @customElement({ name: 'editor1', template: `<au-slot name="content"><input id="target" value.bind="person.name & validate"></au-slot>` })
     class Editor1 {
       public readonly person = new Person(void 0, void 0);
-      public constructor(@IValidationRules validationRules: IValidationRules) {
+      public constructor(validationRules: IValidationRules = resolve(IValidationRules)) {
         validationRules
           .on(this.person)
           .ensure('name')
@@ -1391,8 +1391,8 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         public controllerValidateSpy: ISpy;
 
         public constructor(
-          @newInstanceOf(IValidationController) public readonly controller: ValidationController,
-          @IValidationRules private readonly validationRules: IValidationRules,
+          public readonly controller: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController,
+          private readonly validationRules: IValidationRules = resolve(IValidationRules),
         ) {
           this.controllerRegisterBindingSpy = createSpy(controller, 'registerBinding', true);
           this.controllerUnregisterBindingSpy = createSpy(controller, 'unregisterBinding', true);
@@ -1456,8 +1456,8 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         public person: Person = new Person((void 0)!, (void 0)!);
 
         public constructor(
-          @newInstanceOf(IValidationController) public readonly controller: ValidationController,
-          @IValidationRules private readonly validationRules: IValidationRules,
+          public readonly controller: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController,
+          private readonly validationRules: IValidationRules = resolve(IValidationRules),
         ) {
           validationRules
             .on(this.person)

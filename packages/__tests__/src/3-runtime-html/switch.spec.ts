@@ -8,6 +8,7 @@ import {
   LogLevel,
   pascalCase,
   Registration,
+  resolve,
   sink,
 } from '@aurelia/kernel';
 import {
@@ -85,14 +86,13 @@ describe('3-runtime-html/switch.spec.ts', function () {
       public readonly $controller: ICustomElementController<this>;
       @bindable
       private readonly ceId: unknown = null;
-      public constructor(
-        @IConfig private readonly config: Config,
-        @ILogger private readonly $logger: ILogger,
-        @INode node: INode,
-      ) {
+      private readonly config: Config = resolve(IConfig);
+      private readonly $logger: ILogger = resolve(ILogger);
+      public constructor() {
+        const node = resolve(INode);
         const ceId = (node as HTMLElement).dataset.ceId;
         if (ceId) {
-          (this.logger = $logger.scopeTo(`${name}-${ceId}`)).debug('ctor');
+          (this.logger = resolve(ILogger).scopeTo(`${name}-${ceId}`)).debug('ctor');
           delete (node as HTMLElement).dataset.ceId;
         }
       }
@@ -334,10 +334,8 @@ describe('3-runtime-html/switch.spec.ts', function () {
     public status1: Status = Status.received;
     public status2: Status = Status.processing;
     public statuses: Status[] = [Status.received, Status.processing];
-    public constructor(
-      @InitialStatus public status: Status,
-      @InitialStatusNum public statusNum: StatusNum,
-    ) { }
+    public status: Status = resolve(InitialStatus);
+    public statusNum: StatusNum = resolve(InitialStatusNum);
   }
 
   function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {

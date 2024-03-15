@@ -31,6 +31,11 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 // <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
 // <au-component template.bind="<string>" model.bind="" />
 //
+@customElement({
+  name: 'au-compose',
+  capture: true,
+  containerless: true,
+})
 export class AuCompose {
   /* determine what template used to compose the component */
   @bindable
@@ -105,7 +110,7 @@ export class AuCompose {
   /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly _rendering = resolve(IRendering);
   /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
-  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
+  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory, null!));
   /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
   /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
@@ -413,12 +418,6 @@ export class AuCompose {
     );
   }
 }
-
-customElement({
-  name: 'au-compose',
-  capture: true,
-  containerless: true,
-})(AuCompose);
 
 class EmptyComponent { }
 

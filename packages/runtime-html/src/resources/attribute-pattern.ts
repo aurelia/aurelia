@@ -1,4 +1,4 @@
-import { emptyArray, IContainer, resolve, Registrable, getResourceKeyFor } from '@aurelia/kernel';
+import { Class, emptyArray, IContainer, resolve, Registrable, getResourceKeyFor } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Constructable } from '@aurelia/kernel';
 import { objectFreeze } from '../utilities';
@@ -498,7 +498,7 @@ export interface AttributePatternKind {
   findAll(container: IContainer): readonly IAttributePattern[];
 }
 
-export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T) => T {
+export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext) => T {
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
     return AttributePattern.define(patternDefs, target);
   };

@@ -51,7 +51,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       }
       assert.notStrictEqual(error, void 0);
       // assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
-      assert.includes((error as Error).message, 'AUR0012:IDialogGlobalSettings');
+      assert.includes((error as Error).message, 'AUR0009:InterfaceSymbol<IDialogGlobalSettings>');
     });
 
     it('reuses previous registration', async function () {

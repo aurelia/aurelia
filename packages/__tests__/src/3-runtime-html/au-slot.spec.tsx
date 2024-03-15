@@ -84,13 +84,12 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       public readonly only: boolean = false,
     ) { }
   }
-  function *getTestData() {
+  function* getTestData() {
     const createMyElement = (template: string, containerless = false) => {
       class MyElement {
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
       return CustomElement.define({ name: 'my-element', template, bindables: { people: { mode: BindingMode.default } }, containerless }, MyElement);
@@ -197,10 +196,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     {
       class MyElement {
         public readonly message: string = 'inner';
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -219,10 +217,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     {
       class MyElement {
         public readonly message: string = 'inner';
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
       yield new TestData(
@@ -244,9 +241,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       @customElement({ name: 'my-element', template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot name="s2">s2</au-slot>` })
       class MyElement {
         @bindable public showS1: boolean = true;
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
       yield new TestData(
         'works with template controller - if',
@@ -271,9 +266,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       @customElement({ name: 'my-element', template: `static <au-slot>default</au-slot> <au-slot name="s1" if.bind="showS1">s1</au-slot> <au-slot else name="s2">s2</au-slot>` })
       class MyElement {
         @bindable public showS1: boolean = true;
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
       yield new TestData(
         'works with template controller - if-else',
@@ -305,9 +298,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       @customElement({ name: 'my-element', template: `<ul if.bind="someCondition"><au-slot></au-slot></ul> <div else><au-slot></au-slot></div>` })
       class MyElement {
         @bindable public someCondition: boolean = true;
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
       yield new TestData(
         'works with template controller - if-else - same slot name',
@@ -331,7 +322,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+        { 'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
       );
 
       yield new TestData(
@@ -340,7 +331,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot if.bind="true"><li>1</li><li>2</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
+        { 'my-element': [`<ul><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
       );
 
       yield new TestData(
@@ -349,7 +340,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template au-slot repeat.for="i of 3"><li>\${i}</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+        { 'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
       );
 
       yield new TestData(
@@ -358,7 +349,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         <my-element><template repeat.for="i of 3" au-slot><li>\${i}</li></template></my-element>
         `,
         [createMyElement('<ul><au-slot></au-slot></ul>')],
-        {'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])]},
+        { 'my-element': [`<ul><li>0</li><li>1</li><li>2</li></ul>`, new AuSlotsInfo(['default'])] },
       );
     }
 
@@ -368,7 +359,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'works with [containerless] + child (normal element + [au-slot])',
         `<my-element><div au-slot>Hello</div></my-element>`,
         [createMyElement('<au-slot></au-slot>', /* containerless */true)],
-        { },
+        {},
         (ctx) => {
           assert.html.innerEqual(ctx.host, '<div>Hello</div>');
         },
@@ -383,7 +374,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>', /* containerless */true),
           CustomElement.define({ name: 'my-child', template: 'hello' })
         ],
-        { },
+        {},
         (ctx) => {
           assert.html.innerEqual(ctx.host, '<my-child>hello</my-child>');
         },
@@ -395,7 +386,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'works with [containerless] + ([repeat] + normal element + [au-slot])',
         `<my-element><template au-slot repeat.for="i of 3"><li>\${i}</li></template></my-element>`,
         [createMyElement('<ul><au-slot></au-slot></ul>', /* containerless */true)],
-        { },
+        {},
         (ctx) => {
           assert.html.innerEqual(ctx.host, '<ul><li>0</li><li>1</li><li>2</li></ul>');
         },
@@ -410,7 +401,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>', /* containerless */true),
           CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] }),
         ],
-        { },
+        {},
         (ctx) => {
           assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
@@ -425,7 +416,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>', /* containerless */true),
           CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] })
         ],
-        { },
+        {},
         async (ctx) => {
           assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
@@ -440,7 +431,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           createMyElement('<au-slot></au-slot>', /* containerless */true),
           CustomElement.define({ name: 'my-child', template: `\${value}`, bindables: ['value'] })
         ],
-        { },
+        {},
         async (ctx) => {
           assert.html.innerEqual(ctx.host, '<my-child>0</my-child><my-child>1</my-child><my-child>2</my-child>');
         },
@@ -466,9 +457,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       </au-slot>` })
       class MyElement {
         @bindable public people: Person[];
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
 
       yield new TestData(
@@ -640,9 +629,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         </au-slot>` })
         class MyElement {
           @bindable public people: Person[];
-          public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-          ) { }
+          public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
         }
 
         yield new TestData(
@@ -661,18 +648,18 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           [
             MyElement,
           ],
-          { 'my-element': [
-            `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 </div> <div>Doe</div> <div>John</div> <div>index: 1 </div> <div>Mustermann</div> <div>Max</div>`,
-            new AuSlotsInfo(['header', 'content'])
-          ]},
+          {
+            'my-element': [
+              `<h4>Meta</h4> <h4>Surname</h4> <h4>Given name</h4> <div>index: 0 </div> <div>Doe</div> <div>John</div> <div>index: 1 </div> <div>Mustermann</div> <div>Max</div>`,
+              new AuSlotsInfo(['header', 'content'])
+            ]
+          },
         );
       }
 
       {
         class MyElement {
-          public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-          ) { }
+          public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
         }
         yield new TestData(
           'works with table',
@@ -932,9 +919,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             ListBox, Assignee, ItemRow
           ],
           {
-            'item-row': ['<div><assignee><list-box><div> 0 </div></list-box></assignee></div>',null],
-            'item-row+item-row': ['<div><assignee><list-box><div> 1 </div></list-box></assignee></div>',null],
-            'item-row+item-row+item-row': ['<div><assignee><list-box><div> 2 </div></list-box></assignee></div>',null],
+            'item-row': ['<div><assignee><list-box><div> 0 </div></list-box></assignee></div>', null],
+            'item-row+item-row': ['<div><assignee><list-box><div> 1 </div></list-box></assignee></div>', null],
+            'item-row+item-row+item-row': ['<div><assignee><list-box><div> 2 </div></list-box></assignee></div>', null],
           },
         );
       }
@@ -1068,9 +1055,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       </au-slot>` })
       class MyElement {
         @bindable public people: Person[];
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
       yield new TestData(
         'simple nesting',
@@ -1222,9 +1207,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
         class MyElement {
           public readonly message: string = 'inner';
-          public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-          ) { }
+          public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
         }
         yield new TestData(
           'CE[au-slot] works - $host',
@@ -1436,9 +1419,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         };
 
         class MyElement {
-          public constructor(
-            @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-          ) { }
+          public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
         }
 
         for (let i = 1; i < 11; i++) {
@@ -1492,9 +1473,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
         for (let i = 1; i < 11; i++) {
           class MyElement {
-            public constructor(
-              @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-            ) { }
+            public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
           }
           yield new TestData(
             `projection works for all non-nested <au-slot>; count: ${i}`,
@@ -1604,9 +1583,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     {
       class MyElement {
         public foo: string = "foo";
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
       yield new TestData(
         'works with input value binding - $host',
@@ -1723,9 +1700,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
     {
       class Base {
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) { }
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
       }
 
       @customElement({
@@ -1760,10 +1735,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         template: '<au-slot>dfb</au-slot><au-slot name="s1">s1fb</au-slot>',
       })
       class CeOne {
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1771,10 +1745,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         template: 'ce two',
       })
       class CeTwo {
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
       @customElement({
@@ -1782,10 +1755,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         template: '<au-slot name="s1">s1fb</au-slot><ce-one><span au-slot>dp</span></ce-one><ce-two></ce-two>',
       })
       class CeThree {
-        public constructor(
-          @IAuSlotsInfo public readonly slots: IAuSlotsInfo,
-        ) {
-          assert.instanceOf(slots, AuSlotsInfo);
+        public readonly slots: IAuSlotsInfo = resolve(IAuSlotsInfo);
+        public constructor() {
+          assert.instanceOf(this.slots, AuSlotsInfo);
         }
       }
 
@@ -1882,8 +1854,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'works with 3 layers of slot[default] pass through, no projections',
         `<mdc></mdc><mdc></mdc>`,
         [
-          CustomElement.define({ name: 'mdc', template:
-          `<mdc-tab-bar
+          CustomElement.define({
+            name: 'mdc', template:
+              `<mdc-tab-bar
             ><template au-slot
               ><mdc-tab id="mdc-\${id}" click.trigger="increase()">\${count}</mdc-tab>`
           }, class Mdc {
@@ -1894,9 +1867,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               this.count++;
             }
           }),
-            CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
-            CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
-            CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
+          CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
+          CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><template au-slot><au-slot></au-slot></template></mdc-tab-scroller>' }),
+          CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
         ],
         {
           '#mdc-0': ['<button>0Tab</button>', undefined],
@@ -1921,8 +1894,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         'works with 3 layers of slot[default] pass through + template controller',
         `<mdc></mdc><mdc></mdc>`,
         [
-          CustomElement.define({ name: 'mdc', template:
-          `<mdc-tab-bar
+          CustomElement.define({
+            name: 'mdc', template:
+              `<mdc-tab-bar
             ><mdc-tab au-slot repeat.for="i of 3" id="mdc-\${id}-\${i}" click.trigger="increase()">\${count + i}</mdc-tab>`
           }, class Mdc {
             public static id = 0;
@@ -1932,9 +1906,9 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
               this.count++;
             }
           }),
-            CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
-            CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><au-slot au-slot></au-slot></mdc-tab-scroller>' }),
-            CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
+          CustomElement.define({ name: 'mdc-tab-scroller', template: '<au-slot>' }),
+          CustomElement.define({ name: 'mdc-tab-bar', template: '<mdc-tab-scroller><au-slot au-slot></au-slot></mdc-tab-scroller>' }),
+          CustomElement.define({ name: 'mdc-tab', template: '<button><au-slot></au-slot>Tab</button>' }),
         ],
         {
           '#mdc-0-0': ['<button>0Tab</button>', undefined],
@@ -2078,7 +2052,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     name: 'my-el',
     template: '<p>my-el content: <au-slot></au-slot></p>'
   })
-  class El {}
+  class El { }
 
   it('treats CE content without slot as default slotting', async function () {
     const { assertText } = await createFixture
@@ -2270,7 +2244,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             </ce-l2>
           </template>
         </ce-l1>`,
-        class {},
+        class { },
         [CeL1, CeL2, CeL3],
       );
 

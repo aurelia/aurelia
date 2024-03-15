@@ -14,6 +14,7 @@ type ResolvedTarget = Element;
 
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
+@templateController('portal')
 export class Portal implements ICustomAttributeViewModel {
 
   public readonly $controller!: ICustomAttributeController<this>;
@@ -302,5 +303,3 @@ export class Portal implements ICustomAttributeViewModel {
     }
   }
 }
-
-templateController('portal')(Portal);

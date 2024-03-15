@@ -2,6 +2,7 @@ import { I18N, Signals } from '@aurelia/i18n';
 import { ISignaler } from '@aurelia/runtime';
 import { customElement } from '@aurelia/runtime-html';
 import { Locale } from './translation-resources';
+import { resolve } from '@aurelia/kernel';
 
 @customElement('sut-i18n')
 export class SutI18N {
@@ -12,10 +13,9 @@ export class SutI18N {
   public translations: { [key: string]: string | number };
   private readonly myDate: Date;
   private locale: Locale;
-  public constructor(
-    @I18N private readonly i18n: I18N,
-    @ISignaler private readonly signaler: ISignaler
-  ) {
+  private readonly i18n: I18N = resolve(I18N);
+  private readonly signaler: ISignaler = resolve(ISignaler);
+  public constructor() {
     this.locale = this.i18n.getLocale() as Locale;
     this.myDate = new Date();
     this.myDate.setHours(this.myDate.getHours() - 2);

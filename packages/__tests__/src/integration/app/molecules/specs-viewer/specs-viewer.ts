@@ -10,7 +10,7 @@ export class SpecsViewer {
   private pairs: { vm: typeof ThingViewer; thing: Thing }[];
 
   public binding(): void {
-    const toVm = (thing: Thing) => {
+    const toVm = (thing: unknown) => {
       switch (true) {
         case thing instanceof Camera: return CameraSpecsViewer;
         case thing instanceof Laptop: return LaptopSpecsViewer;
@@ -24,7 +24,7 @@ export class SpecsViewer {
 
 @valueConverter('viewer')
 export class ViewerValueConverter {
-  public toView(thing: Thing) {
+  public toView(thing: unknown) {
     switch (true) {
       case thing instanceof Camera: return CameraSpecsViewer;
       case thing instanceof Laptop: return LaptopSpecsViewer;

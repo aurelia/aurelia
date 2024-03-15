@@ -1,4 +1,4 @@
-import { Class, DI, IDisposable, LogLevel, noop } from '@aurelia/kernel';
+import { Class, DI, IDisposable, LogLevel, noop, resolve } from '@aurelia/kernel';
 import { IRouter, IRouterEvents, Params, pathUrlParser, RouterConfiguration, route } from '@aurelia/router-lite';
 import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
@@ -36,7 +36,8 @@ describe('router-lite/events.spec.ts', function () {
   class RouterEventLoggerService implements IDisposable {
     private readonly subscriptions: IDisposable[];
     public log: string[] = [];
-    public constructor(@IRouterEvents events: IRouterEvents) {
+    public constructor() {
+      const events = resolve(IRouterEvents);
       this.subscriptions = [
         events.subscribe('au:router:navigation-start', (event) => {
           this.log.push(`${event.name} - ${event.id} - '${event.instructions.toUrl(false, pathUrlParser)}'`);

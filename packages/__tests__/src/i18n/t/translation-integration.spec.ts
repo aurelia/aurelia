@@ -64,7 +64,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         attr: 'simple attribute'
       },
       status: 'status is unknown',
-      status_dispatched: 'dispatched on {{val}}',
+      status_dispatched: 'dispatched on {{date}}',
       status_delivered: 'delivered on {{date}}',
       custom_interpolation_brace: 'delivered on {date}',
       custom_interpolation_es6_syntax: `delivered on \${date}`,
@@ -458,7 +458,12 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, `span#a`, translation.simple.text);
       assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
       assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
-      assertTextContent(host, `span#d`, 'dispatched on ');
+      // v20 and before of i18next, non existing params will be relaced with empty string
+      // though it seems v21+ is leaving it as is
+      // so the next assertion works with before, now it doesn't
+      //
+      // assertTextContent(host, `span#d`, 'dispatched on ');
+      assertTextContent(host, `span#d`, 'dispatched on {{date}}');
     }, { component: App });
   }
   {

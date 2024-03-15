@@ -58,7 +58,7 @@
     "@aurelia/platform": "2.0.0-beta.13",
     "@aurelia/runtime": "2.0.0-beta.13",
     "@aurelia/runtime-html": "2.0.0-beta.13",
-    "i18next": "^20.6.1"
+    "i18next": "^23.10.1"
   },
   "devDependencies": {
     "typescript": "5.4.2"

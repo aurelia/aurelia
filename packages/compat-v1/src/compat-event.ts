@@ -13,7 +13,7 @@ export const eventPreventDefaultBehavior = {
       return;
     }
     preventDefaultRegisteredContainer.add(container);
-    container.get(IListenerBindingOptions).prevent = false;
+    container.get(IListenerBindingOptions).prevent = true;
   }
 };
 

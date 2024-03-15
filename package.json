@@ -126,7 +126,7 @@
     "fancy-log": "2.0.0",
     "http-server": "14.1.1",
     "husky": "8.0.3",
-    "i18next": "^23.10.1",
+    "i18next": ">= 17.3.1",
     "rimraf": "3.0.2",
     "rollup": "4.9.6",
     "rollup-plugin-esbuild": "6.1.1",

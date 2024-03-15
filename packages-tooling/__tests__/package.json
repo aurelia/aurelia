@@ -41,7 +41,7 @@
     "@babel/core": "^7.18.2",
     "@jest/transform": "^29.7.0",
     "@jest/types": "^29.1.0",
-    "i18next": "^23.10.1",
+    "i18next": "^20.6.1",
     "jsdom": "22.1.0",
     "typescript": "5.4.2",
     "vinyl": "^2.2.0",

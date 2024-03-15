@@ -18,7 +18,7 @@ import {
   type IHydratableController,
   type INode
 } from '@aurelia/runtime-html';
-import i18next from 'i18next';
+import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';

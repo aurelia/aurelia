@@ -30,10 +30,10 @@
     "ts-loader": "^9.3.0",
     "typescript": "5.4.2",
     "url-loader": "^4.1.1",
-    "webpack": "^5.72.0",
-    "webpack-bundle-analyzer": "^4.5.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^3.11.2"
+    "webpack": "^5.90.3",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.3"
   },
   "scripts": {
     "lint:js": "eslint src test --ext .js,.ts",

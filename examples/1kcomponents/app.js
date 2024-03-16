@@ -1,5 +1,5 @@
 // @ts-check
-import { Aurelia, CustomElement, IPlatform, ValueConverter, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, IPlatform, ValueConverter, SVGAnalyzer, StandardConfiguration } from '@aurelia/runtime-html';
 import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
 import { interpolateViridis } from 'd3-scale-chromatic';
 
@@ -243,7 +243,7 @@ const App = CustomElement.define(
   }
 );
 
-void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+void new Aurelia().register(StandardConfiguration, SVGAnalyzer).app(
   {
     host: document.getElementById('app'),
     component: App,

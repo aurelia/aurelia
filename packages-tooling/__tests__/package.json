@@ -42,7 +42,7 @@
     "@jest/transform": "^29.7.0",
     "@jest/types": "^29.1.0",
     "i18next": ">= 17.3.1",
-    "jsdom": "21.1.2",
+    "jsdom": "24.0.0",
     "typescript": "5.4.2",
     "vinyl": "^2.2.0",
     "ts-jest": "^29.1.2"

@@ -44,7 +44,7 @@ export const IAppRoot = /*@__PURE__*/createInterface<IAppRoot>('IAppRoot');
 
 export class AppRoot<
   T extends object,
-  K extends ICustomElementViewModel = T extends Constructable<infer R> ? R : T,
+  K extends ICustomElementViewModel = ICustomElementViewModel & (T extends Constructable<infer R> ? R : T),
 > implements IAppRoot<K> {
 
   /** @internal */

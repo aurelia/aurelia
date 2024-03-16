@@ -15,30 +15,12 @@
     "@aurelia/runtime-html": "2.0.0-beta.13"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.13",
-    "@aurelia/webpack-loader": "2.0.0-beta.13",
-    "@types/node": "^14.18.14",
-    "babel-eslint": "^10.1.0",
-    "css-loader": "^6.7.1",
-    "html-webpack-plugin": "^5.5.0",
-    "rimraf": "^3.0.0",
-    "style-loader": "^3.3.1",
-    "ts-loader": "^9.3.0",
-    "typescript": "5.2.2",
-    "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.8.1"
+    "@aurelia/vite-plugin": "2.0.0-beta.13",
+    "typescript": "5.4.2"
   },
   "scripts": {
-    "start": "webpack-dev-server",
-    "build": "rimraf dist && webpack --mode=production",
-    "watch": "webpack-dev-server",
-    "serve": "node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
-    "build-serve": "rimraf dist && webpack --mode=production && node ./node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
-    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
-  },
-  "engines": {
-    "node": ">=14.15.0",
-    "npm": ">=6.14.8"
+    "start": "vite",
+    "build": "vite build",
+    "now": "rimraf dist && vite build && cd dist && now && cd .."
   }
 }

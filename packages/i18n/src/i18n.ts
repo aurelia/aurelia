@@ -1,6 +1,6 @@
 import { DI, IEventAggregator } from '@aurelia/kernel';
 import { ISignaler, nowrap } from '@aurelia/runtime';
-import i18nextCore from 'i18next';
+import type * as i18next from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { Signals } from './utils';
@@ -35,7 +35,7 @@ export class I18nKeyEvaluationResult {
 }
 
 export interface I18N {
-  i18next: i18nextCore.i18n;
+  i18next: i18next.i18n;
   readonly initPromise: Promise<void>;
   /**
    * Evaluates the `keyExpr` to translated values.
@@ -48,8 +48,8 @@ export interface I18N {
    *    {key: 'key3', attributes:['attr1', 'attr2'], value: 'translated_value_of_key3'}
    *  ]
    */
-  evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[];
-  tr(key: string | string[], options?: i18nextCore.TOptions): string;
+  evaluate(keyExpr: string, options?: i18next.TOptions): I18nKeyEvaluationResult[];
+  tr(key: string | string[], options?: i18next.TOptions): string;
   getLocale(): string;
   setLocale(newLocale: string): Promise<void>;
   /**
@@ -109,7 +109,7 @@ export interface ILocalChangeSubscriber {
  */
 export class I18nService implements I18N {
   @nowrap
-  public i18next: i18nextCore.i18n;
+  public i18next: i18next.i18n;
   /**
    * This is used for i18next initialization and awaited for before the bind phase.
    * If need be (usually there is none), this can be awaited for explicitly in client code.
@@ -130,7 +130,7 @@ export class I18nService implements I18N {
     this._signaler = signaler;
   }
 
-  public evaluate(keyExpr: string, options?: i18nextCore.TOptions): I18nKeyEvaluationResult[] {
+  public evaluate(keyExpr: string, options?: i18next.TOptions): I18nKeyEvaluationResult[] {
     const parts = keyExpr.split(';');
     const results: I18nKeyEvaluationResult[] = [];
     for (const part of parts) {
@@ -139,6 +139,7 @@ export class I18nService implements I18N {
       const translation = this.tr(key, options);
       if (this.options.skipTranslationOnMissingKey && translation === key) {
         // TODO change this once the logging infra is there.
+        // eslint-disable-next-line no-console
         console.warn(`Couldn't find translation for key: ${key}`);
       } else {
         result.value = translation;
@@ -148,7 +149,7 @@ export class I18nService implements I18N {
     return results;
   }
 
-  public tr(key: string | string[], options?: i18nextCore.TOptions): string {
+  public tr(key: string | string[], options?: i18next.TOptions): string {
     return this.i18next.t(key, options);
   }
 
@@ -165,6 +166,7 @@ export class I18nService implements I18N {
   }
 
   public createNumberFormat(options?: Intl.NumberFormatOptions, locales?: string | string[]): Intl.NumberFormat {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return Intl.NumberFormat(locales || this.getLocale(), options);
   }
 
@@ -173,6 +175,7 @@ export class I18nService implements I18N {
   }
 
   public createDateTimeFormat(options?: Intl.DateTimeFormatOptions, locales?: string | string[]): Intl.DateTimeFormat {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return Intl.DateTimeFormat(locales || this.getLocale(), options);
   }
 
@@ -204,6 +207,7 @@ export class I18nService implements I18N {
   }
 
   public createRelativeTimeFormat(options?: Intl.RelativeTimeFormatOptions, locales?: string | string[]): Intl.RelativeTimeFormat {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     return new Intl.RelativeTimeFormat(locales || this.getLocale(), options);
   }
 

@@ -61,9 +61,9 @@
   },
   "devDependencies": {
     "@types/mocha": "10.0.0",
-    "jsdom": "22.1.0",
+    "jsdom": "24.0.0",
     "mocha": "10.0.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

@@ -37,18 +37,13 @@ export class EventAggregator {
    * @param channel - The channel to publish to.
    * @param message - The message to publish on the channel.
    */
-  public publish<T, C extends string>(
-    channel: C,
-    message: T,
-  ): void;
+  public publish<C extends string>(channel: C, message?: unknown): void;
   /**
    * Publishes a message.
    *
    * @param instance - The instance to publish.
    */
-  public publish<T extends Constructable>(
-    instance: InstanceType<T>,
-  ): void;
+  public publish<T extends Constructable>(instance: InstanceType<T>): void;
   public publish<T extends Constructable | string>(
     channelOrInstance: T extends Constructable ? InstanceType<T> : T,
     message?: unknown,
@@ -84,7 +79,7 @@ export class EventAggregator {
    * @param channel - The event channel.
    * @param callback - The callback to be invoked when the specified message is published.
    */
-  public subscribe<T, C extends string>(
+  public subscribe<T, C extends string = string>(
     channel: C,
     callback: (message: T, channel: C) => void,
   ): IDisposable;

@@ -1,4 +1,4 @@
-import { Class, DI, noop, Registration } from '@aurelia/kernel';
+import { Constructable, DI, noop, Registration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, customAttribute, CustomAttribute, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, PLATFORMRegistration, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
@@ -7,12 +7,12 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
   interface TestSetupContext<TApp> {
     template: string;
     registrations: any[];
-    app: Class<TApp>;
+    app: Constructable<TApp>;
     enableCoercion: boolean;
     coerceNullish: boolean;
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
-  async function testRepeatForCustomElement<TApp>(
+  async function testRepeatForCustomElement<TApp extends object>(
     this: Mocha.Context,
     testFunction: TestFunction<TestExecutionContext<TApp>>,
     {
@@ -37,6 +37,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
       Registration.instance(TestContext, ctx),
       ...registrations,
     );
+
     if (container.has(IPlatform, true) === false) {
       container.register(PLATFORMRegistration);
     }

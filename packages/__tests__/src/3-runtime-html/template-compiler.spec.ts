@@ -56,7 +56,7 @@ export function createAttribute(name: string, value: string): Attr {
   return attr;
 }
 
-type AttrDef<T> = CustomAttributeDefinition<Constructable<T>>;
+type AttrDef<T extends object> = CustomAttributeDefinition<Constructable<T>>;
 
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {

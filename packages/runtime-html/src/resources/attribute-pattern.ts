@@ -505,7 +505,7 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
 }
 
 const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePatternDefinition[] =>
-  patterns.get(Type) ?? emptyArray;
+  patterns.get(Type as Constructable<IAttributePattern>) ?? emptyArray;
 
 const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
 

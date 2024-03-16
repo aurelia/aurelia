@@ -1,9 +1,6 @@
-import { Aurelia, CustomElement, ValueConverter, SVGAnalyzerRegistration, StandardConfiguration } from '@aurelia/runtime-html';
-import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
+import { Aurelia, CustomElement, ValueConverter, SVGAnalyzer, StandardConfiguration } from '@aurelia/runtime-html';
+import 'perf-monitor/component';
 import { SierpinskiTriangle } from './triangle';
-
-startFPSMonitor();
-startMemMonitor();
 
 export const clock = {
   seconds: 0,
@@ -12,7 +9,7 @@ export const clock = {
   },
 };
 
-void new Aurelia().register(StandardConfiguration, SVGAnalyzerRegistration).app(
+void new Aurelia().register(StandardConfiguration, SVGAnalyzer).app(
   {
     host: document.getElementById('app'),
     component: CustomElement.define(

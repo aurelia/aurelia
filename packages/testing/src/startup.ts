@@ -8,7 +8,7 @@ import { TestContext } from './test-context';
 import { getVisibleText } from './specialized-assertions';
 
 const fixtureHooks = new EventAggregator();
-export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown) => {
+export const onFixtureCreated = <T extends object>(callback: (fixture: IFixture<T>) => unknown) => {
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);
@@ -19,12 +19,12 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   });
 };
 
-export type ObjectType<T> = T extends Constructable<infer U> ? U : T;
+export type ObjectType<T> = T extends Constructable<infer U extends object> ? U : T;
 
 // eslint-disable-next-line max-lines-per-function
 export function createFixture<T extends object>(
   template: string | Node,
-  $class?: T,
+  $class?: T | Constructable<T>,
   registrations: unknown[] = [],
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
@@ -53,12 +53,12 @@ export function createFixture<T extends object>(
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
-      Metadata.define(anno, CustomElement.getAnnotation($class as unknown as Constructable<K>, anno), $$class);
+      Metadata.define(anno, CustomElement.getAnnotation($class as Constructable<T>, anno), $$class);
     });
   }
 
   const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
-  const App = CustomElement.define<Constructable<K>>({
+  const App = CustomElement.define({
     ...existingDefs,
     name: existingDefs.name ?? 'app',
     template,

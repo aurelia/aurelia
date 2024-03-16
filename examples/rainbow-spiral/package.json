@@ -8,8 +8,8 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js",
+    "build": "rollup -c",
+    "serve": "npx http-server",
     "build:kernel": "cd ../../packages/kernel && npm run build",
     "build:runtime": "cd ../../packages/runtime && npm run build",
     "build:runtime-html": "cd ../../packages/runtime-html && npm run build",
@@ -23,11 +23,6 @@
     "@aurelia/platform-browser": "2.0.0-beta.13",
     "@aurelia/runtime-html": "2.0.0-beta.13",
     "@aurelia/runtime": "2.0.0-beta.13",
-    "perf-monitor": "latest"
-  },
-  "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.13",
-    "webpack-cli": "^4.9.2",
-    "webpack": "^5.72.0"
+    "perf-monitor": "0.6.0"
   }
 }

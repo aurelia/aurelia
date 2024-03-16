@@ -6,7 +6,7 @@ export default {
     input: './app.js',
     output: {
         file: 'dist/bundle.js',
-        sourcemap: true
+        format: 'esm'
     },
     plugins: [nodeResolve(), terser()]
 }

@@ -8,8 +8,9 @@
   },
   "version": "0.8.0",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "serve": "node ../../node_modules/@aurelia/http-server/dist/esm/cli.js au.conf.js"
+    "start": "concurrently \"npm run build -- --watch\" 'npm:serve'",
+    "build": "rollup -c",
+    "serve": "npx http-server"
   },
   "dependencies": {
     "@aurelia/kernel": "2.0.0-beta.13",
@@ -19,11 +20,5 @@
     "@aurelia/runtime-html": "2.0.0-beta.13",
     "@aurelia/runtime": "2.0.0-beta.13",
     "perf-monitor": "0.6.0"
-  },
-  "devDependencies": {
-    "@aurelia/http-server": "2.0.0-beta.13",
-    "webpack-cli": "^5.1.4",
-    "webpack": "^5.90.3",
-    "webpack-bundle-analyzer": "^4.10.1"
   }
 }

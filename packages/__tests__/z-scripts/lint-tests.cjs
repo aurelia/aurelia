@@ -43,7 +43,8 @@ const invalidFiles = findByExt('./src', /\.spec\.tsx?$/).filter(testFile => {
 });
 
 if (invalidFiles.length > 0) {
+  console.log('\n', '-'.repeat(80), '\n');
   console.log('There are files that does not have root test suit describing the file name. This is necessary to generate time based junit report for circleCI');
-  console.log(`These files are:\n    - ${invalidFiles.map(filepath => resolve(__dirname, '..', filepath)).join('\n    - ')}`);
+  console.log(`These files are:\n    - ${invalidFiles.map(filepath => resolve(__dirname, '..', filepath)).join('\n    - ')}\n\n`);
   process.exit(1);
 }

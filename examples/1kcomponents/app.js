@@ -1,10 +1,7 @@
 // @ts-check
 import { Aurelia, CustomElement, IPlatform, ValueConverter, SVGAnalyzer, StandardConfiguration } from '@aurelia/runtime-html';
-import { startFPSMonitor, startMemMonitor } from 'perf-monitor';
+import 'perf-monitor/component';
 import { interpolateViridis } from 'd3-scale-chromatic';
-
-startFPSMonitor();
-startMemMonitor();
 
 const { sqrt, PI, cos, sin, min } = Math;
 

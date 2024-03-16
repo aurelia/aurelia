@@ -25,7 +25,7 @@ When we start an Aurelia app, the compilation pipeline JIT compiles the template
 
 Most of the bindings also contain expressions.
 
-```markup
+```html
 <!-- interpolation binding -->
 ${firstName}
 

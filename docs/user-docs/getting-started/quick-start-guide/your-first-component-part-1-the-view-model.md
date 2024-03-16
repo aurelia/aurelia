@@ -18,7 +18,7 @@ export class MyApp {
 
 The class property `message` contains a string and within our view, we are displaying it using interpolation.
 
-```markup
+```html
 <div class="message">${message}</div>
 ```
 

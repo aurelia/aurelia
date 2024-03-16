@@ -275,7 +275,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
     assert(au: Aurelia, platform: IPlatform, host: HTMLElement, component: IApp, ruleCase: [string, string, string, boolean?, string?], testCase): void | Promise<void>;
   }
 
-  function $createFixture<T>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
+  function $createFixture<T extends object>(template: string | Node, $class: Constructable<T> | null, ...registrations: any[]) {
     const ctx = TestContext.create();
     const { container, observerLocator, platform } = ctx;
     container.register(...registrations);

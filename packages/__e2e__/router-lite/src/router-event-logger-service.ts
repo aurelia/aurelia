@@ -1,12 +1,13 @@
 import { IRouterEvents, pathUrlParser } from '@aurelia/router-lite';
-import { DI, IDisposable } from 'aurelia';
+import { DI, IDisposable, resolve } from 'aurelia';
 
 export const IRouterEventLoggerService = /*@__PURE__*/DI.createInterface<IRouterEventLoggerService>('ISomeService', x => x.singleton(RouterEventLoggerService));
 export interface IRouterEventLoggerService extends RouterEventLoggerService { }
 export class RouterEventLoggerService implements IDisposable {
   private readonly subscriptions: IDisposable[];
   public log: string[] = [];
-  public constructor(@IRouterEvents events: IRouterEvents) {
+  public constructor() {
+    const events = resolve(IRouterEvents);
     this.subscriptions = [
       events.subscribe('au:router:location-change', (event) => {
         this.log.push(`${event.name} - '${event.url}'`);

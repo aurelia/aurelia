@@ -53,7 +53,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly processContent?: ProcessContentHook | null;
 }>;
 
-export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : {}), PartialCustomElementDefinition>;
+export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : object), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind & {
   /**
    * Returns the closest controller that is associated with either this node (if it is a custom element) or the first
@@ -591,7 +591,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
 });
 
 type DecoratorFactoryMethod<TClass> = (target: Constructable<TClass>, propertyKey: string, descriptor: PropertyDescriptor) => void;
-type ProcessContentHook = (node: INode, platform: IPlatform) => boolean | void;
+export type ProcessContentHook = (node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
 const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook): CustomElementDecorator;

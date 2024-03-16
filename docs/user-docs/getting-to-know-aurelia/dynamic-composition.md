@@ -218,7 +218,7 @@ The composition in Aurelia 2 is fundamentally different from Aurelia 1. The same
 If you still want a view supporting a dynamically loaded module, you can create a value converter that achieves this.
 
 {% code title="my-component.html" %}
-```markup
+```html
   <au-compose template="https://my-server.com/templates/${componentName} | loadTemplate">
 ```
 {% endcode %}

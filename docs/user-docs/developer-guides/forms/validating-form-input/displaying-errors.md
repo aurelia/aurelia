@@ -6,7 +6,7 @@ description: How to display validation errors in your UI.
 
 The validation controller maintains the active list of validation results which can be iterated to display the errors in UI.
 
-```markup
+```html
 <ul>
   <li repeat.for="result of validationController.results">
     <template if.bind="!result.valid">${result}</template>
@@ -22,7 +22,7 @@ There are also some out-of-the-box components that can be used to display the er
 
 This custom attribute can be used to bind the errors for children the target elements.
 
-```markup
+```html
 <div validation-errors.from-view="nameErrors"> <!--binds all errors for name to the "nameErrors" property-->
   <input value.bind="person.name & validate">
   <div>
@@ -43,7 +43,7 @@ Note that this in itself does not show any error, unless errors are iterated to 
 
 A point to note is that multiple validation targets can also be used for a single `validation-errors` custom attribute, and the errors for multiple targets will be captured the same way.
 
-```markup
+```html
 <div validation-errors.from-view="errors"> <!--binds all errors for name, and age to the "errors" property-->
   <input value.bind="person.name & validate">
   <input value.bind="person.age & validate">
@@ -74,7 +74,7 @@ This is useful if you have a custom attribute of the same name, and want to use 
 
 The `validation-container`custom element also has similar goal of capturing the validation errors for the children target elements. Additionally, it provides a template to display the errors as well. This helps in reducing the boilerplate created by the `validation-errors` custom attribute. For example, using this custom element, displaying the errors reduces to the following.
 
-```markup
+```html
 <validation-container>
   <input value.bind="person.name & validate">
 </validation-container>
@@ -87,7 +87,7 @@ The `validation-container`custom element also has similar goal of capturing the 
 
 There are couple of important points to note about the examples shown above. The first validation target shown in the example uses the default template of the custom element. This custom element template is based on two `slot`s as shown below.
 
-```markup
+```html
 <slot>
   <!--meant for validation target-->
 </slot>

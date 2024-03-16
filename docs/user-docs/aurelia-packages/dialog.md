@@ -392,7 +392,7 @@ The Dialog host element is the target where an application chooses to add the di
 
 An example of the html structure when document body is the dialog host:
 
-```markup
+```html
 <body>
   <au-dialog-container> <!-- wrapper -->
     <au-dialog-overlay> <!-- overlay -->

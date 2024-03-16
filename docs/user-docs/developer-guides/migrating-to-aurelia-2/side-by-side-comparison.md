@@ -8,7 +8,7 @@ The first entry point of an Aurelia application is the main HTML page-loading an
 
 {% tabs %}
 {% tab title="Aurelia 1" %}
-```markup
+```html
 <!-- index.ejs -->
 ​
 <!DOCTYPE html>
@@ -28,7 +28,7 @@ The first entry point of an Aurelia application is the main HTML page-loading an
 {% endtab %}
 
 {% tab title="Aurelia 2" %}
-```markup
+```html
 <!-- index.ejs -->
 ​
 <!DOCTYPE html>
@@ -180,7 +180,7 @@ The root of any Aurelia application is a `single` component, which contains ever
 
 {% tabs %}
 {% tab title="Aurelia 1" %}
-```markup
+```html
 <!-- View -->
 <!-- src/app.html -->
 ​
@@ -207,7 +207,7 @@ export class App {
 {% endtab %}
 
 {% tab title="Aurelia 2" %}
-```markup
+```html
 <!-- View -->
 <!-- src/my-app.html -->
 ​
@@ -249,7 +249,7 @@ a:hover {
 * Unlike version 1, There is a convention for loading your CSS file when the name is the same as the component,  just like `my-app.css`, so you don't need to import it manually.
 * To import any style, component or etc you should use `import`. An alternative to `require` in version 1. By default, the components you create aren't global. What that means is that you can't use a component within another component, unless that component has been imported.
 
-```markup
+```html
 <import from="./name-tag">
 ​
 <h2>${message} <name-tag name.bind="to"></name-tag>!</h2>

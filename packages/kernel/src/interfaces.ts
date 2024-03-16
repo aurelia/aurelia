@@ -2,7 +2,7 @@ export interface IDisposable {
   dispose(): void;
 }
 
-export type Constructable<T = {}> = {
+export type Constructable<T = object> = {
   // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
   new(...args: any[]): T;
 };

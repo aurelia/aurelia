@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
-import { IEventManager, RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from '@aurelia/router';
-import { IDisposable, IEventAggregator } from '@aurelia/kernel';
+import { RouterStartEvent, RouterStopEvent, RouterNavigationStartEvent, RouterNavigationEndEvent, RouterNavigationCancelEvent, RouterNavigationCompleteEvent, RouterNavigationErrorEvent, RouterConfiguration, IRouter, } from '@aurelia/router';
+import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
 
 import { Slow } from './slow';
 import { Fast } from './fast';
@@ -165,47 +165,53 @@ export class MyApp {
   public root = Fast;
 
   private readonly subscriptions: IDisposable[] = [];
+  private readonly em = resolve(IEventAggregator);
+  private readonly router = resolve(IRouter);
+  private readonly config = resolve(RouterConfiguration);
 
-  public constructor(@IEventManager private readonly em: IEventManager, @IRouter private readonly router: IRouter) {
-    RouterConfiguration.addHook((...args) => {
+  public constructor(
+  ) {
+    this.config.addHook((...args) => {
       console.log('Hook', args);
       return true;
     });
   }
 
   public binding(): void {
-    for (const eventName of [
-      RouterStartEvent.eventName,
-      RouterStopEvent.eventName,
-      RouterNavigationStartEvent.eventName,
-      RouterNavigationEndEvent.eventName,
-      RouterNavigationCancelEvent.eventName,
-      RouterNavigationCompleteEvent.eventName,
-      RouterNavigationErrorEvent.eventName,
-    ]) {
-      // this.subscriptions.push(this.em.subscribe(eventName, this.eventHandler));
-      this.em.subscribe(this, eventName, this.eventHandler);
-    }
-    this.em.subscribe(this, RouterNavigationStartEvent.eventName, (event: RouterNavigationStartEvent) => { console.log('event', event.eventName); });
+    this.subscriptions.push(
+      ...[
+        RouterStartEvent.eventName,
+        RouterStopEvent.eventName,
+        RouterNavigationStartEvent.eventName,
+        RouterNavigationEndEvent.eventName,
+        RouterNavigationCancelEvent.eventName,
+        RouterNavigationCompleteEvent.eventName,
+        RouterNavigationErrorEvent.eventName,
+      ].map(eventName =>
+        // this.subscriptions.push(this.em.subscribe(eventName, this.eventHandler));
+        this.em.subscribe(eventName, this.eventHandler)
+      ),
+      this.em.subscribe(RouterNavigationStartEvent.eventName, (event: RouterNavigationStartEvent) => { console.log('event', event.eventName); }),
+    );
   }
   public unbinding(): void {
     for (const subscription of this.subscriptions) {
       subscription.dispose();
     }
-    this.em.unsubscribe(this);
+    this.subscriptions.length = 0;
   }
 
   public get sync(): boolean {
-    return RouterConfiguration.options.navigationSyncStates.includes('bound');
+    return this.config.options.navigationSyncStates.includes('bound');
   }
   public set sync(value: boolean) {
     if (this.sync !== value) {
       if (value) {
         this.root = Slow;
-        RouterConfiguration.options.navigationSyncStates.push('bound');
+        this.config.options.navigationSyncStates.push('bound');
       } else {
         this.root = Fast;
-        RouterConfiguration.options.navigationSyncStates.splice(RouterConfiguration.options.navigationSyncStates.indexOf('bound'), 1);
+        this.config.options.navigationSyncStates.splice(this.config.options.navigationSyncStates.indexOf('bound'), 1);
       }
     }
   }

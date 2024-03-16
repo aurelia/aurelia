@@ -360,7 +360,6 @@ export class TriggerBindingCommand implements BindingCommandInstance {
     return new ListenerBindingInstruction(
       exprParser.parse(info.attr.rawValue, etIsFunction),
       info.attr.target,
-      true,
       false,
       info.attr.parts?.[2] ?? null
     );
@@ -375,7 +374,6 @@ export class CaptureBindingCommand implements BindingCommandInstance {
     return new ListenerBindingInstruction(
       exprParser.parse(info.attr.rawValue, etIsFunction),
       info.attr.target,
-      false,
       true,
       info.attr.parts?.[2] ?? null
     );

@@ -110,7 +110,7 @@ export class AwesomeComponent {
 
 Inside our HTML, we use the `validate` binding behavior to signal to Aurelia that we want to validate these bindings. You might notice that both `name` and `age` appear in our view model above where we set some rules up.
 
-```markup
+```html
 <form submit.delegate="submit()">
   <input value.bind="person.name & validate">
   <input value.bind="person.age & validate">

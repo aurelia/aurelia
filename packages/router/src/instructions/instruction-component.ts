@@ -7,12 +7,17 @@ export interface IInstructionComponent extends InstructionComponent { }
 
 /**
  * Public API - The routing instructions are the core of the router's navigations. The component
- * part of a routing instruction can be specified as a component name, a custom element definition,
- * a custom element type or a custom element instance. The instruction component isn't limited to
- * routing instructions, but can be found in for example load instructions as well. The instruction
- * components are resolved "non-early" to support dynamic, local resolutions.
+ * part of a routing instruction can be specified as
+ * - a component name, or
+ * - a custom element definition, or
+ * - a custom element class, or
+ * - a custom element instance.
+ *
+ * The instruction component isn't limited to routing instructions, but can be found in for example load instructions as well.
+ * The instruction components are resolved "non-early" to support dynamic, local resolutions.
  */
 
+/** */
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | CustomElementDefinition | Constructable;
 export type ComponentAppellationFunction = (instruction?: RoutingInstruction) => ComponentAppellation | Promise<ComponentAppellation>;
 

@@ -17,7 +17,7 @@ export class MyApp {
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <p>Hello, my name is ${myName}</p>
 ```
 {% endcode %}
@@ -47,7 +47,7 @@ export class MyApp {
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <p>Behold mathematics, 6 + 1 = ${adder(6, 1)}</p>
 ```
 {% endcode %}

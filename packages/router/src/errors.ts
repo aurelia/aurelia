@@ -9,20 +9,32 @@ export const createMappedError: CreateError = __DEV__
 _START_CONST_ENUM();
 /** @internal */
 export const enum ErrorNames {
-  instantiation_error = 2000,
-  element_name_not_found = 2001,
-  router_error_3 = 2002,
-  router_error_4 = 2003,
-  router_error_5 = 2004,
-  router_error_6 = 2005,
-  router_error_7 = 2006,
-  router_error_8 = 2007,
-  router_error_9 = 2008,
-  router_error_10 = 2009,
+  router_started = 2000,
+  router_not_started,
+  router_remove_endpoint_failure,
+  router_check_activate_string_error,
+  router_failed_appending_routing_instructions,
+  router_failed_finding_viewport_when_updating_viewer_path,
+  instantiation_error,
+  element_name_not_found,
+  router_error_3,
+  router_error_4,
+  router_error_5,
+  router_error_6,
+  router_error_7,
+  router_error_8,
+  router_error_9,
+  router_error_10,
 }
 _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string>  = {
+  [ErrorNames.router_started]: `Router.start() called while the it has already been started.`,
+  [ErrorNames.router_not_started]: 'Router.stop() has been called while it has not been started',
+  [ErrorNames.router_remove_endpoint_failure]: "Router failed to remove endpoint: {{0}}",
+  [ErrorNames.router_check_activate_string_error]: `Parameter instructions to checkActivate can not be a string ('{{0}}')!`,
+  [ErrorNames.router_failed_appending_routing_instructions]: 'Router failed to append routing instructions to coordinator',
+  [ErrorNames.router_failed_finding_viewport_when_updating_viewer_path]: 'Router failed to find viewport when updating viewer paths.',
   [ErrorNames.instantiation_error]: `There was an error durating the instantiation of "{{0}}".`
     + ` "{{0}}" did not match any configured route or registered component name`
     + ` - did you forget to add the component "{{0}}" to the dependencies or to register it as a global dependency?\n`
@@ -66,13 +78,11 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
               for (let j = 0; j < paths.length && value != null; ++j) {
                 value = value[paths[j]];
               }
-            } else {
-              value = String(value);
             }
           }
         }
       }
-      cooked = cooked.slice(0, matches.index) + value + cooked.slice(regex.lastIndex);
+      cooked = cooked.slice(0, matches.index) + String(value) + cooked.slice(regex.lastIndex);
       matches = regex.exec(cooked);
     }
   }

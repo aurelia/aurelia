@@ -197,8 +197,6 @@ export class RouteContext {
     container.registerResolver(IRouteContext, ctxProvider);
     container.registerResolver(RouteContext, ctxProvider);
 
-    container.register(config);
-
     this._recognizer = new RouteRecognizer();
 
     if (_router.options.useNavigationModel) {
@@ -390,7 +388,7 @@ export class RouteContext {
 
     this._hostControllerProvider.prepare(hostController);
     const container = this.container;
-    const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
+    const componentInstance = container.invoke<IRouteViewModel>(routeNode.component.Type);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     const task: Promise<void> | void = this._childRoutesConfigured
       ? void 0

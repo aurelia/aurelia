@@ -253,7 +253,7 @@ Go to the `src` folder of `bootstrap-v5` package, create a `button` folder then 
 
 Create `bs-button.html` file.
 
-```markup
+```html
 <button class="btn btn-primary btn-${size}" ref="bsButtonTemplate">
     Primary Button
 </button>
@@ -387,7 +387,7 @@ We support configuration so we should introduce it to `register` method too.
 
 Now, You are able to use your `bs-button` inside `src/my-app.html`.
 
-```markup
+```html
 <bs-button></bs-button>
 <bs-button size="lg"></bs-button>
 ```

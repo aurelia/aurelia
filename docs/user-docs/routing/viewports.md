@@ -6,7 +6,7 @@ The `<au-viewport>` element is where all of the routing magic happens, the outle
 
 The router allows you to add multiple viewports to your application and render components into each viewport element by their name. The `<au-viewport>` element supports a name attribute, which you'll want to use if you have more than one.
 
-```markup
+```html
 <main>
     <au-viewport name="main"></au-viewport>
 </main>

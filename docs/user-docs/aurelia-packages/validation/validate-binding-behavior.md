@@ -6,7 +6,7 @@ This is how the validation controller comes to know of the bindings that need to
 
 You must have noticed plenty examples of the `validate` binding behavior in the demos so far. For completeness, this can be used as follows.
 
-```markup
+```html
 <html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
 ```
 

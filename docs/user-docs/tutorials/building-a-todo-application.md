@@ -145,7 +145,7 @@ Believe it or not, this view model code forms the basis for adding and deleting 
 
 The view is the most simple part of our application. Inside of `todo-component.html` add in the following HTML, and then we'll explain what is going on.
 
-```markup
+```html
 <import from="./todo-item.html"></import>
 
 <div class="todo">
@@ -229,7 +229,7 @@ We have created our main todo component, but you might have noticed we were impo
 
 For this component, we are going to be creating an HTML-only component. It means it'll just be HTML. No view model needed:
 
-```markup
+```html
 <bindable name="todo"></bindable>
 <bindable name="index"></bindable>
 <bindable name="deleteTodo"></bindable>
@@ -301,7 +301,7 @@ Create a new file `todo-item.css` in the `components` directory and add the foll
 
 To round it all off, let's open up `my-app.html` and add the following:
 
-```markup
+```html
 <import from="./components/todo-component"></import>
 
 <todo-component></todo-component>

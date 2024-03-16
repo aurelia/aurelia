@@ -50,7 +50,7 @@ Be mindful that `if.bind` modifies the DOM structure, which can trigger reflow a
 
 The `show.bind` directive offers an alternative approach to conditional rendering. Instead of adding or removing elements from the DOM, it toggles their visibility. This is akin to applying `display: none;` in CSS—the element remains in the DOM but is not visible to the user.
 
-```markup
+```html
 <div show.bind="isDataLoaded">Data loaded successfully!</div>
 ```
 

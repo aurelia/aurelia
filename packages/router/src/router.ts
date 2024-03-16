@@ -5,7 +5,7 @@
  * In its current state, it is NOT a good source for learning about the inner workings and design of the router.
  *
  */
-import { DI, IContainer, Registration, Key, EventAggregator, IEventAggregator, IDisposable, Protocol, ILogger, resolve } from '@aurelia/kernel';
+import { DI, IContainer, Registration, IEventAggregator, IDisposable, Protocol, ILogger, resolve } from '@aurelia/kernel';
 import { CustomElementType, ICustomElementViewModel, IAppRoot, ICustomElementController } from '@aurelia/runtime-html';
 import { LoadInstruction } from './interfaces';
 import { Navigator, NavigatorNavigateEvent } from './navigator';
@@ -24,6 +24,7 @@ import { Title } from './title';
 import { RoutingHook } from './routing-hook';
 import { FoundRoute } from './found-route';
 import { IRouterConfiguration } from './index';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -59,7 +60,7 @@ import { IRouterConfiguration } from './index';
  */
 
 /**
- * The load options.
+ * Options for loading new routing instructions.
  */
 export interface ILoadOptions {
   /**
@@ -139,7 +140,6 @@ export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => 
 export interface IRouter extends Router { }
 
 export class Router implements IRouter {
-  public static get inject(): Key[] { return [IContainer, IEventAggregator, Navigator, BrowserViewerStore, BrowserViewerStore, IRouterConfiguration]; }
 
   public static readonly closestEndpointKey = Protocol.annotation.keyFor('closest-endpoint');
 
@@ -180,8 +180,10 @@ export class Router implements IRouter {
    */
   private loadedFirst: boolean = false;
 
-  private navigatorStateChangeEventSubscription!: IDisposable;
-  private navigatorNavigateEventSubscription!: IDisposable;
+  /** @internal */
+  private _navigatorStateChangeEventSubscription!: IDisposable;
+  /** @internal */
+  private _navigatorNavigateEventSubscription!: IDisposable;
 
   /**
    * Is processing navigation
@@ -198,35 +200,33 @@ export class Router implements IRouter {
   /** @internal */
   private readonly _logger = resolve(ILogger);
 
-  public constructor(
-    /**
-     * @internal
-     */
-    public readonly container: IContainer,
-    private readonly ea: EventAggregator,
+  /**
+   * @internal
+   */
+  public readonly container = resolve(IContainer);
+  private readonly ea = resolve(IEventAggregator);
 
-    /**
-     * The navigator that manages navigation queue and history
-     *
-     * @internal
-     */
-    public navigator: Navigator,
+  /**
+   * The navigator that manages navigation queue and history
+   *
+   * @internal
+   */
+  public navigator = resolve(Navigator);
 
-    /**
-     * The viewer (browser) that displays url, navigation buttons
-     */
-    public viewer: BrowserViewerStore,
+  /**
+   * The viewer (browser) that displays url, navigation buttons
+   */
+  public viewer = resolve(BrowserViewerStore);
 
-    /**
-     * The store (browser) that stores navigations
-     */
-    public store: BrowserViewerStore,
+  /**
+   * The store (browser) that stores navigations
+   */
+  public store = resolve(BrowserViewerStore);
 
-    /**
-     * The router configuration
-     */
-    public configuration: IRouterConfiguration,
-  ) { }
+  /**
+   * The router configuration
+   */
+  public configuration = resolve(IRouterConfiguration);
 
   /**
    * Whether the router is currently navigating.
@@ -261,7 +261,7 @@ export class Router implements IRouter {
    */
   public start(): void {
     if (this.isActive) {
-      throw new Error('Router has already been started');
+      throw createMappedError(ErrorNames.router_started);
     }
     this.isActive = true;
 
@@ -287,8 +287,8 @@ export class Router implements IRouter {
       statefulHistoryLength: this.configuration.options.statefulHistoryLength,
     });
 
-    this.navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
-    this.navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
+    this._navigatorStateChangeEventSubscription = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
+    this._navigatorNavigateEventSubscription = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
     this.viewer.start({ useUrlFragmentHash: this.configuration.options.useUrlFragmentHash });
 
     this.ea.publish(RouterStartEvent.eventName, RouterStartEvent.create());
@@ -299,14 +299,14 @@ export class Router implements IRouter {
    */
   public stop(): void {
     if (!this.isActive) {
-      throw new Error('Router has not been started');
+      throw createMappedError(ErrorNames.router_not_started);
     }
     this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
     this.navigator.stop();
     this.viewer.stop();
 
-    this.navigatorStateChangeEventSubscription.dispose();
-    this.navigatorNavigateEventSubscription.dispose();
+    this._navigatorStateChangeEventSubscription.dispose();
+    this._navigatorNavigateEventSubscription.dispose();
   }
 
   /**
@@ -334,12 +334,12 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  public handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
-    void this._handleNavigatorNavigateEvent(event);
+  private readonly handleNavigatorNavigateEvent = (event: NavigatorNavigateEvent): void => {
+    void this._doHandleNavigatorNavigateEvent(event);
   };
 
   /** @internal */
-  private async _handleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
+  private async _doHandleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
     if (this._isProcessingNav) {
       // We prevent multiple navigation at the same time, but we store the last navigation requested.
       if (this._pendingNavigation) {
@@ -362,7 +362,7 @@ export class Router implements IRouter {
     if (this._pendingNavigation) {
       const pending = this._pendingNavigation;
       this._pendingNavigation = undefined;
-      await this._handleNavigatorNavigateEvent(pending);
+      await this._doHandleNavigatorNavigateEvent(pending);
     }
   }
 
@@ -382,7 +382,7 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  public handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
+  private readonly handleNavigatorStateChangeEvent = (event: NavigatorStateChangeEvent): void => {
     // It's already a proper navigation (browser history or cache), go
     // directly to navigate
     if (event.state?.navigationIndex != null) {
@@ -564,7 +564,7 @@ export class Router implements IRouter {
    */
   public disconnectEndpoint(step: Step | null, endpoint: Viewport | ViewportScope, connectedCE: IConnectedCustomElement): void {
     if (!endpoint.connectedScope.parent!.removeEndpoint(step, endpoint, connectedCE)) {
-      throw new Error("Router failed to remove endpoint: " + endpoint.name);
+      throw createMappedError(ErrorNames.router_remove_endpoint_failure, endpoint.name);
     }
   }
 
@@ -612,10 +612,10 @@ export class Router implements IRouter {
    *
    * @param loadInstructions - The instructions to load
    * @param options - The load options to apply when loading the instructions
-   * @param keepString - Whether the load instructions should remain as a
-   * string (if it's a string)
+   * @param keepString - Whether the load instructions should remain as a string (if it's a string)
+   *
    */
-  public applyLoadOptions(loadInstructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
+  public applyLoadOptions(loadInstructions: LoadInstruction | LoadInstruction[], options: ILoadOptions, keepString = true): { instructions: string | RoutingInstruction[]; scope: RoutingScope | null } {
     options = options ?? {};
     if ('origin' in options && !('context' in options)) {
       options.context = options.origin;
@@ -689,7 +689,7 @@ export class Router implements IRouter {
   public checkActive(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): boolean {
     // TODO: Look into allowing strings/routes as well
     if (typeof instructions === 'string') {
-      throw new Error(`Parameter instructions to checkActivate can not be a string ('${instructions}')!`);
+      throw createMappedError(ErrorNames.router_check_activate_string_error, instructions);
     }
     options = options ?? {};
 
@@ -770,7 +770,7 @@ export class Router implements IRouter {
       if (!this.loadedFirst) {
         this.appendedInstructions.push(...instructions);
       } else {
-        throw Error('Router failed to append routing instructions to coordinator');
+        throw createMappedError(ErrorNames.router_failed_appending_routing_instructions);
       }
     }
     coordinator?.enqueueAppendedInstructions(instructions);
@@ -796,7 +796,7 @@ export class Router implements IRouter {
     while (matchedInstructions.length > 0) {
       // Guard against endless loop
       if (guard-- === 0) {
-        throw new Error('Router failed to find viewport when updating viewer paths.');
+        throw createMappedError(ErrorNames.router_failed_finding_viewport_when_updating_viewer_path);
       }
       matchedInstructions = matchedInstructions.map(instruction => {
         const { matchedInstructions } = instruction.endpoint.instance!.scope.matchEndpoints(instruction.nextScopeInstructions ?? [], [], true);
@@ -880,6 +880,8 @@ export class Router implements IRouter {
    * @param options - The options containing the fragment
    *
    * TODO: Review query extraction; different pos for path and fragment
+   *
+   * @internal
    */
   private extractFragment(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
     // If instructions is a string and contains a fragment, extract it
@@ -899,6 +901,8 @@ export class Router implements IRouter {
    * @param options - The options containing query and/or parameters
    *
    * TODO: Review query extraction; different pos for path and fragment
+   *
+   * @internal
    */
   private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
     // If instructions is a string and contains a query string, extract it

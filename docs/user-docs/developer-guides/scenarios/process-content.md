@@ -21,7 +21,7 @@ First is the `node` argument.
 It is the DOM tree on the usage-side for the custom element.
 For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
 
-```markup
+```html
 <my-element>
  <foo></foo>
  <bar></bar>
@@ -92,7 +92,7 @@ Let us say that we want to create a custom elements that behaves as a tabs contr
 That is this custom element shows different sets of information grouped under a set of headers, and when the header is clicked the associated content is shown.
 To this end, we can conceptualize the markup for this custom element as follows.
 
-```markup
+```html
 <!--tabs.html-->
 <div class="header">
   <au-slot name="header"></au-slot>
@@ -110,7 +110,7 @@ If you are unfamiliar with the `au-slot` then visit the [documentation](#au-slot
 'processContent' can be very potent with `au-slot`.
 {% endhint %}
 
-```markup
+```html
 <!--app.html-->
 <tabs>
   <tab header="Tab one">

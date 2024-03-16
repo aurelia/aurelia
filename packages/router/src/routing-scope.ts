@@ -59,9 +59,10 @@ export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
  */
 
 export class RoutingScope {
-  public static lastId = 0;
+  /** @internal */
+  private static lastId = 0;
 
-  public id = -1;
+  public id = ++RoutingScope.lastId;
 
   /**
    * The parent of the routing scope (parent/child hierarchy)
@@ -72,31 +73,50 @@ export class RoutingScope {
    */
   public children: RoutingScope[] = [];
 
-  // public path: string | null = null;
+  public readonly router: IRouter;
+  /**
+   * Whether the routing scope has a scope and can own other scopes
+   */
+  public readonly hasScope: boolean;
+
+  /**
+   * The routing scope that owns this routing scope (owner/owning hierarchy)
+   */
+  public owningScope: RoutingScope | null;
+
+  /**
+   * The endpoint content the routing scope is connected to
+   */
+  public endpointContent: EndpointContent;
 
   public constructor(
-    public readonly router: IRouter,
+    router: IRouter,
     /**
      * Whether the routing scope has a scope and can own other scopes
      */
-    public readonly hasScope: boolean,
+    hasScope: boolean,
 
     /**
      * The routing scope that owns this routing scope (owner/owning hierarchy)
      */
-    public owningScope: RoutingScope | null,
+    owningScope: RoutingScope | null,
 
     /**
      * The endpoint content the routing scope is connected to
      */
-    public endpointContent: EndpointContent,
+    endpointContent: EndpointContent,
   ) {
-    this.id = ++RoutingScope.lastId;
+    this.router = router;
+    this.hasScope = hasScope;
     this.owningScope = owningScope ?? this;
-    // console.log('Created RoutingScope', this.id, this);
+    this.endpointContent = endpointContent;
   }
 
-  public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null, instruction?: string): { scope: RoutingScope | null; instruction: string | undefined } {
+  public static for(
+    origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null,
+    instruction?: string
+  ): { scope: RoutingScope | null; instruction: string | undefined } {
+
     if (origin == null) {
       return { scope: null, instruction };
     }
@@ -275,7 +295,7 @@ export class RoutingScope {
         && !foundRoute.foundInstructions) {
         // ...call unknownRoute hook if we didn't...
         // TODO: Add unknownRoute hook here and put possible result in instructions
-        this.unknownRoute(nonRouteInstructions);
+        throw this.createUnknownRouteError(nonRouteInstructions);
       }
       // ...and use any already found and the newly found routing instructions.
       instructions = [...instructions.filter(instruction => instruction.route instanceof Route), ...foundRoute.instructions];
@@ -531,22 +551,23 @@ export class RoutingScope {
    *
    * @param instructions - The failing instructions
    */
-  private unknownRoute(instructions: RoutingInstruction[]) {
+  private createUnknownRouteError(instructions: RoutingInstruction[]) {
     const options = this.router.configuration.options;
     const route = RoutingInstruction.stringify(this.router, instructions);
     // TODO: Add missing/unknown route handling
+    //       shouldn't this check all routes, instead of only the first one?
     if (instructions[0].route != null) {
       if (!options.useConfiguredRoutes) {
-        throw new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");
+        return new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");
       } else {
-        throw new Error("No matching configured route found for '" + route + "'.");
+        return new Error("No matching configured route found for '" + route + "'.");
       }
     } else if (options.useConfiguredRoutes && options.useDirectRouting) {
-      throw new Error("No matching configured route or component found for '" + route + "'.");
+      return new Error("No matching configured route or component found for '" + route + "'.");
     } else if (options.useConfiguredRoutes) {
-      throw new Error("No matching configured route found for '" + route + "'.");
+      return new Error("No matching configured route found for '" + route + "'.");
     } else {
-      throw new Error("No matching route/component found for '" + route + "'.");
+      return new Error("No matching route/component found for '" + route + "'.");
     }
   }
 

@@ -40,7 +40,7 @@ export const all = <T extends Key>(key: T, searchAncestors: boolean = false): IA
 
   return resolver as IAllResolver<T>;
 };
-export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> & {
+export type IAllResolver<T> = IResolver<Resolved<T>[]> & {
   // type only hack
   __isAll: undefined;
   // any for decorator

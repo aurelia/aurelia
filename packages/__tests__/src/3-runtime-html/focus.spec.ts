@@ -1,6 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, Aurelia, Focus } from '@aurelia/runtime-html';
-import { PLATFORM, assert, eachCartesianJoin, TestContext } from '@aurelia/testing';
+import { PLATFORM, assert, eachCartesianJoin, TestContext, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/focus.spec.ts', function () {
@@ -26,7 +25,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
 
     describe('with non-focusable element', function () {
       it('focuses when there is tabindex attribute', async function () {
-        const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
+        const { appHost, component, ctx } = createFixture(
           `<template>
             <div focus.two-way="hasFocus" id="blurred" tabindex="-1"></div>
           </template>`,
@@ -34,27 +33,24 @@ describe('3-runtime-html/focus.spec.ts', function () {
             public hasFocus = true;
           }
         );
-        await startPromise;
 
         const activeElement = ctx.doc.activeElement;
-        const div = testHost.querySelector('app div');
+        const div = appHost.querySelector('app div');
         assert.notEqual(div, null, '<app/> <div/> not null');
         assert.equal(activeElement.tagName, 'DIV', 'activeElement === <div/>');
         assert.equal(activeElement, div, 'activeElement === <div/>');
         assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
-
-        await dispose();
       });
     });
 
-    it('invokes focus when there is **NO** tabindex attribute', async function () {
+    it('invokes focus when there is **NO** tabindex attribute', function () {
       let callCount = 0;
       PLATFORM.window.HTMLDivElement.prototype.focus = function () {
         callCount++;
         return PLATFORM.HTMLElement.prototype.focus.call(this);
       };
 
-      const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
+      const { testHost, component, ctx } = createFixture(
         `<template>
           <div focus.two-way="hasFocus" id="blurred"></div>
         </template>`,
@@ -62,7 +58,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
           public hasFocus = true;
         }
       );
-      await startPromise;
 
       const activeElement = ctx.doc.activeElement;
       const div = testHost.querySelector('app div');
@@ -74,8 +69,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
 
       // focus belongs to HTMLElement class
       delete PLATFORM.window.HTMLDivElement.prototype.focus;
-
-      await dispose();
     });
 
     const specs = [
@@ -91,8 +84,8 @@ describe('3-runtime-html/focus.spec.ts', function () {
     }
     for (const [desc, template] of specs) {
       describe(`with ${desc}`, function () {
-        it('Works in basic scenario', async function () {
-          const { startPromise, testHost, dispose, component, ctx } = createFixture<IApp>(
+        it('Works in basic scenario', function () {
+          const { testHost, component, ctx } = createFixture(
             `<template>
               ${template}
             </template>`,
@@ -100,7 +93,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
               public hasFocus = true;
             }
           );
-          await startPromise;
 
           const elName = desc.replace(/^<|\/>.*$/g, '');
           const activeElement = ctx.doc.activeElement;
@@ -109,8 +101,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
           assert.equal(activeElement.tagName, elName.toUpperCase());
           assert.equal(activeElement, focusable);
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
-
-          await dispose();
         });
       });
     }
@@ -154,12 +144,13 @@ describe('3-runtime-html/focus.spec.ts', function () {
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== 'undefined' || ceProp.contentEditable);
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
-          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function () {
-            const { testHost, start, dispose, component, ctx } = createFixture<IApp>(
+          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, function () {
+            const { testHost, start, component, ctx } = createFixture<IApp>(
               `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {
                 public hasFocus = true;
               },
+              [],
               false/* autoStart? */
             );
             const CustomEl = defineCustomElement(ctx, ceName, ceTemplate, { tabIndex: 1 }, shadowMode);
@@ -184,7 +175,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
                 }
               }
             });
-            await start();
+            void start();
 
             const activeElement = ctx.doc.activeElement;
             const ceEl = testHost.querySelector(`app ${ceName}`);
@@ -203,8 +194,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
               }
             }
             assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
-
-            await dispose();
           });
         }
       );
@@ -316,9 +305,10 @@ describe('3-runtime-html/focus.spec.ts', function () {
       [focusAttrs, templates],
       (command, { title, template, getFocusable, app, assertionFn }: IFocusTestCase) => {
         it(title(command), async function () {
-          const { testHost, start, dispose, component, ctx } = createFixture<IApp>(
+          const { testHost, start, component, ctx } = createFixture<IApp>(
             template(command),
             app,
+            [],
             false
           );
 
@@ -336,7 +326,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
           assert.equal(activeElement, focusable, '@setup -> document.activeElement === focusable');
           assert.equal(component.hasFocus, true, 'It should not have affected component.hasFocus');
           await assertionFn(ctx, testHost, component, focusable);
-          await dispose();
         });
       }
     );
@@ -349,44 +338,6 @@ describe('3-runtime-html/focus.spec.ts', function () {
       title(focusAttr: string): string;
     }
   });
-
-  function createFixture<T>(template: string | Node, $class: Constructable<T>, autoStart: boolean = true, ...registrations: any[]) {
-    const ctx = TestContext.create();
-    const { container, observerLocator } = ctx;
-    container.register(...registrations, Focus);
-    const testHost = ctx.doc.body.appendChild(ctx.doc.createElement('div'));
-    const appHost = testHost.appendChild(ctx.createElement('app'));
-    const au = new Aurelia(container);
-    const App = CustomElement.define({ name: 'app', template }, $class);
-    const component = new App();
-
-    let startPromise: Promise<void> | void;
-    if (autoStart) {
-      au.app({ host: appHost, component });
-      startPromise = au.start();
-    }
-
-    return {
-      startPromise,
-      ctx,
-      container,
-      testHost,
-      appHost,
-      au,
-      component,
-      observerLocator,
-      start: async () => {
-        au.app({ host: appHost, component });
-        await au.start();
-      },
-      dispose: async () => {
-        await au.stop();
-        testHost.remove();
-
-        au.dispose();
-      }
-    };
-  }
 
   function defineCustomElement(ctx: TestContext, name: string, template: string, props: Record<string, any> = null, mode: 'open' | 'closed' | null = 'open') {
     class CustomEl extends ctx.HTMLElement {

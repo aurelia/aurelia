@@ -109,8 +109,8 @@ test.describe('i18n', () => {
       suts: [
         {
           selector: `#i18n-items-plural-0`,
-          expected: en.itemWithCount_plural.replace('{{count}}', '0'),
-          expectedDe: de.itemWithCount_plural.replace('{{count}}', '0')
+          expected: en.itemWithCount_other.replace('{{count}}', '0'),
+          expectedDe: de.itemWithCount_other.replace('{{count}}', '0')
         },
         {
           selector: `#i18n-items-plural-1`,
@@ -119,8 +119,8 @@ test.describe('i18n', () => {
         },
         {
           selector: `#i18n-items-plural-10`,
-          expected: en.itemWithCount_plural.replace('{{count}}', '10'),
-          expectedDe: de.itemWithCount_plural.replace('{{count}}', '10'),
+          expected: en.itemWithCount_other.replace('{{count}}', '10'),
+          expectedDe: de.itemWithCount_other.replace('{{count}}', '10'),
         },
       ]
     },
@@ -305,7 +305,7 @@ test.describe('i18n', () => {
     });
 
     test('should support params', async ({ page }) => {
-      await assertContent(page, '[data-test-id=\'custom-element-with-params\'] div', en.itemWithCount_plural.replace('{{count}}', '0'));
+      await assertContent(page, '[data-test-id=\'custom-element-with-params\'] div', en.itemWithCount_other.replace('{{count}}', '0'));
     });
 
     test('should support locale changes', async ({ page }) => {

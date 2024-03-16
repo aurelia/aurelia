@@ -41,7 +41,7 @@ import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
-import type { IAuSlotProjections } from '../templating/controller.projection';
+import { auslotAttr, defaultSlotName, type IAuSlotProjections } from '../templating/controller.projection';
 import { ErrorNames, createMappedError } from '../errors';
 
 export class TemplateCompiler implements ITemplateCompiler {
@@ -591,8 +591,6 @@ export class TemplateCompiler implements ITemplateCompiler {
     //    plain attrs with bindings -> list 3
     //    el bindables              -> list 4
     // 2. ensure element instruction is present
-    //    2.1.
-    //      if element is an <au-slot/> compile its content into auSlot property of the element instruction created
     // 3. sort instructions:
     //    hydrate custom element instruction
     //    hydrate custom attribute instructions
@@ -676,6 +674,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let hasContainerless = false;
     let canCapture = false;
     let needsMarker = false;
+    let elementMetadata: Record<PropertyKey, unknown>;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -684,9 +683,10 @@ export class TemplateCompiler implements ITemplateCompiler {
       context.root.hasSlot = true;
     }
     if (isCustomElement) {
+      elementMetadata = {};
       // todo: this is a bit ... powerful
       // maybe do not allow it to process its own attributes
-      processContentResult = elDef.processContent?.call(elDef.Type, el, context.p);
+      processContentResult = elDef.processContent?.call(elDef.Type, el as HTMLElement, context.p, elementMetadata);
       // might have changed during the process
       attrs = el.attributes;
       ii = attrs.length;
@@ -725,7 +725,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        canCapture = realAttrTarget !== AU_SLOT && realAttrTarget !== 'slot';
+        canCapture = realAttrTarget !== auslotAttr && realAttrTarget !== 'slot';
         if (canCapture) {
           bindablesInfo = BindablesInfo.from(elDef, false);
           // if capture is on, capture everything except:
@@ -934,60 +934,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         //       example: AOT/runtime can use def.Type, but there are situation
         //       where instructions need to be serialized, def.name should be used
         this.resolveResources ? elDef : elDef.name,
-        void 0,
         (elBindableInstructions ?? emptyArray) as IInstruction[],
         null,
         hasContainerless,
         captures,
+        elementMetadata!,
       );
-
-      // 2.1 prepare fallback content for <au-slot/>
-      if (elName === AU_SLOT) {
-        const slotName = el.getAttribute('name') || /* name="" is the same with no name */DEFAULT_SLOT_NAME;
-        const template = context.t();
-        const fallbackContentContext = context._createChild();
-        let node: Node | null = el.firstChild;
-        let count = 0;
-        while (node !== null) {
-          // a special case:
-          // <au-slot> doesn't have its own template
-          // so anything attempting to project into it is discarded
-          // doing so during compilation via removing the node,
-          // instead of considering it as part of the fallback view
-          if (isElement(node) && node.hasAttribute(AU_SLOT)) {
-            if (__DEV__) {
-              // eslint-disable-next-line no-console
-              console.warn(
-                `[DEV:aurelia] detected [au-slot] attribute on a child node`,
-                `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
-                `This element will be ignored and removed`
-              );
-            }
-            el.removeChild(node);
-          } else {
-            appendToTemplate(template, node);
-            count++;
-          }
-          node = el.firstChild;
-        }
-
-        if (count > 0) {
-          this._compileNode(template.content, fallbackContentContext);
-        }
-
-        elementInstruction.auSlot = {
-          name: slotName,
-          fallback: CustomElementDefinition.create({
-            name: generateElementName(),
-            template,
-            instructions: fallbackContentContext.rows,
-            needsCompile: false,
-          }),
-        };
-        // todo: shouldn't have to eagerly replace everything like this
-        // this is a leftover refactoring work from the old binder
-        // el = this._replaceByMarker(el, context);
-      }
     }
 
     // 3. merge and sort all instructions into a single list
@@ -1073,18 +1025,18 @@ export class TemplateCompiler implements ITemplateCompiler {
       let isEmptyTextNode = false;
       if (processContentResult !== false) {
         while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(AU_SLOT) : null;
+          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
           hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
           childEl = child.nextSibling as Element;
           if (hasAuSlot) {
             if (!isCustomElement) {
               throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
-            (child as Element).removeAttribute?.(AU_SLOT);
+            (child as Element).removeAttribute?.(auslotAttr);
             // ignore all whitespace
             isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
             if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
+              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
             }
             el.removeChild(child);
           }
@@ -1263,18 +1215,18 @@ export class TemplateCompiler implements ITemplateCompiler {
       //  </my-el>
       if (processContentResult !== false) {
         while (child !== null) {
-          targetSlot = isElement(child) ? child.getAttribute(AU_SLOT) : null;
+          targetSlot = isElement(child) ? child.getAttribute(auslotAttr) : null;
           hasAuSlot = targetSlot !== null || isCustomElement && !isShadowDom;
           childEl = child.nextSibling as Element;
           if (hasAuSlot) {
             if (!isCustomElement) {
               throw createMappedError(ErrorNames.compiler_au_slot_on_non_element, targetSlot, elName);
             }
-            (child as Element).removeAttribute?.(AU_SLOT);
+            (child as Element).removeAttribute?.(auslotAttr);
             // ignore all whitespace
             isEmptyTextNode = isTextNode(child) && child.textContent!.trim() === '';
             if (!isEmptyTextNode) {
-              ((slotTemplateRecord ??= {})[targetSlot || DEFAULT_SLOT_NAME] ??= []).push(child);
+              ((slotTemplateRecord ??= {})[targetSlot || defaultSlotName] ??= []).push(child);
             }
             el.removeChild(child);
           }
@@ -1990,9 +1942,6 @@ export const templateCompilerHooks = <T extends Constructable>(target?: T) => {
   };
 }
 /* eslint-enable */
-
-const DEFAULT_SLOT_NAME = 'default';
-const AU_SLOT = 'au-slot';
 
 _START_CONST_ENUM();
 const enum Char {

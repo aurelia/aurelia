@@ -53,7 +53,7 @@ function eventPropertiesShallowClone<T extends Event>(e: T): T & { instance: T; 
   } as any;
 }
 
-describe('3-runtime-html/event-manager.spec.ts', function () {
+describe('compat-v1/event-delegator.spec.ts', function () {
   describe('ListenerTracker', function () {
     function createFixture(eventName: string, listener: EventListenerOrEventListenerObject, capture: boolean, bubbles: boolean) {
       const ctx = TestContext.create();

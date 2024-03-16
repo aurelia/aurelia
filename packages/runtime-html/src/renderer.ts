@@ -154,13 +154,8 @@ export class MultiAttrInstruction {
   ) {}
 }
 
-export class HydrateElementInstruction {
+export class HydrateElementInstruction<T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>> {
   public readonly type = hydrateElement;
-
-  /**
-   * A special property that can be used to store <au-slot/> usage information
-   */
-  public auSlot: { name: string; fallback: CustomElementDefinition } | null = null;
 
   public constructor(
     /**
@@ -169,7 +164,6 @@ export class HydrateElementInstruction {
     // in theory, Constructor of resources should be accepted too
     // though it would be unnecessary right now
     public res: string | /* Constructable |  */CustomElementDefinition,
-    public alias: string | undefined,
     /**
      * Bindable instructions for the custom element instance
      */
@@ -186,6 +180,10 @@ export class HydrateElementInstruction {
      * A list of captured attr syntaxes
      */
     public captures: AttrSyntax[] | undefined,
+    /**
+     * Any data associated with this instruction
+     */
+    public readonly data: T,
   ) {
   }
 }
@@ -253,7 +251,6 @@ export class ListenerBindingInstruction {
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
-    public preventDefault: boolean,
     public capture: boolean,
     public modifier: string | null,
   ) {}
@@ -646,7 +643,16 @@ export class TemplateControllerRenderer implements IRenderer {
       default:
         def = instruction.res;
     }
-    const viewFactory = this._rendering.getViewFactory(instruction.def, ctxContainer);
+    // const viewFactory = this._rendering.getViewFactory(
+    //   instruction.def,
+    //   ctxContainer
+    // );
+    const viewFactory = this._rendering.getViewFactory(
+      instruction.def,
+      def.containerStrategy === 'new'
+        ? ctxContainer.createChild({ inheritParentResources: true })
+        : ctxContainer
+    );
     const renderLocation = convertToRenderLocation(target);
     const results = invokeAttribute(
       /* platform         */platform,
@@ -838,6 +844,19 @@ export class TextBindingRenderer implements IRenderer {
   }
 }
 
+/**
+ * An interface describing configuration for listener bindings
+ */
+export interface IListenerBindingOptions {
+  /**
+   * Indicate whether listener should by default call preventDefault on all the events
+   */
+  prevent: boolean;
+}
+export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.instance({
+  prevent: false,
+}));
+
 @renderer(listenerBinding)
 /** @internal */
 export class ListenerBindingRenderer implements IRenderer {
@@ -845,6 +864,8 @@ export class ListenerBindingRenderer implements IRenderer {
 
   /** @internal */
   private readonly _modifierHandler = resolve(IEventModifier);
+  /** @internal */
+  private readonly _defaultOptions = resolve(IListenerBindingOptions);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -858,7 +879,7 @@ export class ListenerBindingRenderer implements IRenderer {
       ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
-      new ListenerBindingOptions(instruction.preventDefault, instruction.capture),
+      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
     ));
   }

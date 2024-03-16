@@ -1,5 +1,5 @@
 import { valueConverter } from '@aurelia/runtime-html';
-import i18next from 'i18next';
+import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 import { Signals, ValueConverters } from '../utils';
 

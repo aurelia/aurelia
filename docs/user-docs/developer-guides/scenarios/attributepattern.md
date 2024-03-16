@@ -47,7 +47,7 @@ export class AngularTwoWayBindingAttributePattern {
 }
 ```
 
-```markup
+```html
 <!-- Angular two-way binding usage -->
 <input [(value)]="message">
 ```
@@ -79,7 +79,7 @@ export class SharpRefAttributePattern {
 
 Given the above example and the implementation, the parameters would have values like the following:
 
-```markup
+```html
 <!-- #uploadInput="" -->
 <input type="file" #uploadInput/>
 ```

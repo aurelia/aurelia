@@ -4,7 +4,7 @@ The `validate` binding behavior, as the name suggests adds the validation behavi
 
 You must have noticed plenty example of the `validate` binding behavior in the demos so far. For completeness, this can be used as follows.
 
-```markup
+```html
 <html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
 ```
 

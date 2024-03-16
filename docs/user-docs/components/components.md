@@ -39,7 +39,7 @@ export class AppLoader {
 {% endtab %}
 
 {% tab title="app-loader.html" %}
-```markup
+```html
 <p>Loading...</p>
 ```
 {% endtab %}

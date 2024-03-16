@@ -65,7 +65,7 @@ export class MyApp {
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <p style="color: ${textColor}; font-weight: bold; background: ${backgroundColor};">Hello there</p>
 
 ```
@@ -89,7 +89,7 @@ export class MyApp {
 {% endcode %}
 
 {% code title="my-app.html" %}
-```markup
+```html
 <p style.bind="styleObject">Hello there</p>
 
 ```

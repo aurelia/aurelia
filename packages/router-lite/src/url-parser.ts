@@ -40,7 +40,7 @@ export class ParsedUrl {
     }
     return new ParsedUrl(
       value,
-      queryParams != null ? queryParams : emptyQuery,
+      queryParams ?? emptyQuery,
       fragment,
     );
   }

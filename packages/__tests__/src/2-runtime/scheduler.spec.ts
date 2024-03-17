@@ -94,7 +94,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
       sut: platform.taskQueue,
       name: 'taskQueue',
     },
-  ];
+  ] as any[];
 
   for (const reusable of [true, false]) {
     for (const { sut, name } of prioritySpecs) {

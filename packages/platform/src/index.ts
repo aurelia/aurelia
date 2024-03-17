@@ -450,14 +450,14 @@ export class TaskQueue {
 }
 
 export class TaskAbortError<T = any> extends Error {
-  public constructor(public task: Task<T>) {
+  public constructor(public task: ITask<T>) {
     super('Task was canceled.');
   }
 }
 
 let id: number = 0;
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
+export type UnwrapPromise<T> = T extends Promise<infer R> ? UnwrapPromise<R> : T;
 
 export interface ITask<T = any> {
   readonly result: Promise<UnwrapPromise<T>>;
@@ -708,10 +708,10 @@ export class Task<T = any> implements ITask {
   public dispose(): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'dispose'); }
 
-    this.callback = (void 0)!;
-    this._resolve = void 0;
-    this._reject = void 0;
-    this._result = void 0;
+    this.callback
+      = this._resolve
+      = this._reject
+      = this._result = (void 0)!;
   }
 }
 
@@ -822,6 +822,7 @@ const createExposedPromise = <T>(): ExposedPromise<T> => {
   const p = new Promise<T>(executor) as ExposedPromise<T>;
   p.resolve = $resolve;
   p.reject = $reject;
+  $resolve = $reject = (void 0)!;
   return p;
 };
 
@@ -856,5 +857,5 @@ export const reportTaskQueue = (taskQueue: TaskQueue) => {
  */
 export const ensureEmpty = (taskQueue: TaskQueue) => {
   taskQueue.flush();
-  taskQueue._pending.forEach((x: ITask) => x.cancel());
+  taskQueue._pending?.forEach((x: ITask) => x.cancel());
 };

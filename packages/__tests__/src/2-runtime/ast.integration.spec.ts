@@ -63,7 +63,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           { state: 0 },
           container,
           observerLocator,
-          container.get(IPlatform).domWriteQueue,
+          container.get(IPlatform).domWriteQueue as any,
           conditionalExpr,
           target,
           'value',

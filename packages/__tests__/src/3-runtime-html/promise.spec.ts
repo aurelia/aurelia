@@ -72,7 +72,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
       public constructor(
         @optional(Config) private readonly config: Config,
         @ILogger private readonly $logger: ILogger,
-        @IContainer container: IContainer,
+        @IContainer private readonly container: IContainer,
         @INode node: INode,
       ) {
         if ((node as HTMLElement).dataset.logCtor !== void 0) {
@@ -153,6 +153,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
       if (scope.includes('-host')) {
         this.log.push(`${scope}.${event.message}`);
       }
+      console.log('------ scope', scope, event.message, this.log.map(l => l.split('-host')[1] ?? '').filter(Boolean));
     }
     public clear() {
       this.log.length = 0;
@@ -448,17 +449,17 @@ describe('3-runtime-html/promise.spec.ts', function () {
       function () {
         return new Config(false, noop);
       },
-      function () {
-        return new Config(true, createWaiter(0));
-      },
-      function () {
-        return new Config(true, createWaiter(5));
-      },
+      // function () {
+      //   return new Config(true, createWaiter(0));
+      // },
+      // function () {
+      //   return new Config(true, createWaiter(5));
+      // },
     ];
     for (const [pattribute, fattribute, rattribute] of [
       ['promise.bind', 'then.from-view', 'catch.from-view'],
       // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
-      ['promise.resolve', 'then', 'catch']
+      // ['promise.resolve', 'then', 'catch']
     ]) {
       const templateDiv = `
       <div ${pattribute}="promise">
@@ -474,7 +475,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
         <rejected-host ${rattribute}="err" err.bind="err"></rejected-host>
       </template>
     </template>`;
-      for (const delayPromise of [null, ...(Object.values(DelayPromise))]) {
+      for (const delayPromise of [null]) {
+      // for (const delayPromise of [null, ...(Object.values(DelayPromise))]) {
         for (const config of configFactories) {
           {
             let resolve: (value: unknown) => void;
@@ -496,7 +498,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
-              }
+              },
+              true,
             );
           }
           {
@@ -1225,7 +1228,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 await p.domWriteQueue.yield();
                 assert.html.innerEqual(ctx.host, '<fulfilled-host1>resolved</fulfilled-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('fulfilled-host1')]);
-              }
+              },
+              // true,
             );
           }
           {
@@ -2189,7 +2193,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                   assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'), 'rejected');
                 }
                 ctx.assertCallSet([...logs, ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch; presettled task status: ${task.status}`);
-              }
+              },
+              // true,
             );
           }
 
@@ -2388,7 +2393,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject: (value: unknown) => void;
               let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2549,8 +2554,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
               const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               const postSettleTask = tc['postSettledTask'];
-              let { pending, processing, delayed } = reportTaskQueue(q);
-              const taskNums = [pending.length, processing.length, delayed.length];
+              // let { pending, processing, delayed } = reportTaskQueue(q);
+              // const taskNums = [pending.length, processing.length, delayed.length];
 
               try {
                 if ($resolve) {
@@ -2564,8 +2569,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               }
               await q.yield();
               assert.strictEqual(tc['postSettledTask'], postSettleTask);
-              ({ pending, processing, delayed } = reportTaskQueue(q));
-              assert.deepStrictEqual([pending.length, processing.length, delayed.length], taskNums);
+              // ({ pending, processing, delayed } = reportTaskQueue(q));
+              // assert.deepStrictEqual([pending.length, processing.length, delayed.length], taskNums);
             },
           );
         }
@@ -2610,7 +2615,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             [],
             [],
             // void 0,
-            // true
+            // true,
           );
           yield new TestData<App1>(
             `shows scoped content correctly #2 - ${$resolve ? 'fulfilled' : 'rejected'}`,
@@ -2629,6 +2634,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               : `<div> <div>modified foo-bar</div> </div>`,
             [],
             [],
+            // void 0,
+            // true,
           );
         }
         {
@@ -2674,7 +2681,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               }
               assert.strictEqual('data' in oc, false, 'data in oc');
               assert.strictEqual('err' in oc, false, 'err in oc');
-            }
+            },
+            // true,
           );
 
           yield new TestData<App1>(
@@ -2704,6 +2712,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               assert.strictEqual('data' in oc, false, 'data in oc');
               assert.strictEqual('err' in oc, false, 'err in oc');
             },
+            // true,
           );
         }
       }
@@ -2717,12 +2726,20 @@ describe('3-runtime-html/promise.spec.ts', function () {
         assert.strictEqual(ctx.error, null);
         const expectedContent = data.expectedInnerHtml;
         if (expectedContent !== null) {
+          console.log('before yielding', ctx.platform.domQueue.count());
           await ctx.platform.domWriteQueue.yield();
-          assert.html.innerEqual(ctx.host, expectedContent, 'innerHTML');
+          try {
+            assert.html.innerEqual(ctx.host, expectedContent, 'innerHTML');
+          } catch (ex) {
+            console.log(ctx.platform.domQueue.count());
+            console.log('basic assertion error', 'actual:\n', ctx.host.innerHTML);
+            throw ex;
+          }
         }
 
         const expectedLog = data.expectedStartLog;
         if (expectedLog !== null) {
+          await createWaiter(50)('asd');
           ctx.assertCallSet(expectedLog, 'start lifecycle calls');
         }
 

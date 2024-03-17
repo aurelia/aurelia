@@ -1,4 +1,4 @@
-import { Task, TaskAbortError } from '@aurelia/platform';
+import { ITask, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { bindable } from '../../bindable';
@@ -33,8 +33,8 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   public rejected?: RejectedTemplateController;
 
   private viewScope!: Scope;
-  private preSettledTask: Task<void | Promise<void>> | null = null;
-  private postSettledTask: Task<void | Promise<void>> | null = null;
+  private preSettledTask: ITask<void> | null = null;
+  private postSettledTask: ITask<void> | null = null;
   private postSettlePromise!: Promise<void>;
 
   /** @internal */ private readonly _factory = resolve(IViewFactory);
@@ -75,14 +75,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
       }
       return;
     }
-    const q = this._platform.domWriteQueue;
+    const q = this._platform.domQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
     const pending = this.pending;
     const s = this.viewScope;
 
     let preSettlePromise: Promise<void>;
-    const defaultQueuingOptions = { reusable: false };
     const $swap = () => {
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
@@ -90,12 +89,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
         // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
         // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
         preSettlePromise = (this.preSettledTask = q.queueTask(() => {
+          console.log('presetting run', fulfilled !== null, rejected !== null, pending !== null);
           return onResolveAll(
             fulfilled?.deactivate(initiator),
             rejected?.deactivate(initiator),
             pending?.activate(initiator, s)
           );
-        }, defaultQueuingOptions)).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
+        })).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
         value
           .then(
             (data) => {
@@ -105,11 +105,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               const fulfill = () => {
                 // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
+                  /* fulfilling */
                   pending?.deactivate(initiator),
                   rejected?.deactivate(initiator),
                   fulfilled?.activate(initiator, s, data),
-                ), defaultQueuingOptions)).result;
+                ))).result;
               };
+
               if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(fulfill);
               } else {
@@ -124,11 +126,13 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
               const reject = () => {
                 // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
                 this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(
+                  /* rejecting */
                   pending?.deactivate(initiator),
                   fulfilled?.deactivate(initiator),
                   rejected?.activate(initiator, s, err),
-                ), defaultQueuingOptions)).result;
+                ))).result;
               };
+
               if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(reject);
               } else {
@@ -160,45 +164,45 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-function createCancelablePromise<T>(promise: () => Promise<T>) {
-  let started = false;
-  let running = false;
-  let resolve: (value: unknown) => void;
-  let reject: (reason: unknown) => void;
-  const wrapped = new Promise<unknown>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
+// function createCancelablePromise<T>(promise: () => Promise<T>) {
+//   let started = false;
+//   let running = false;
+//   let resolve: (value: unknown) => void;
+//   let reject: (reason: unknown) => void;
+//   const wrapped = new Promise<unknown>((res, rej) => {
+//     resolve = res;
+//     reject = rej;
+//   });
 
-  const cancel = () => {
-    started = true;
-    resolve(null);
-    return wrapped;
-  };
+//   const cancel = () => {
+//     started = true;
+//     resolve(null);
+//     return wrapped;
+//   };
 
-  const run = async () => {
-    if (!started) {
-      started = true;
-      try {
-        running = true;
-        resolve(promise());
-      } catch (err) {
-        reject(err);
-      } finally {
-        running = false;
-      }
-    }
-    return wrapped;
-  };
+//   const run = async () => {
+//     if (!started) {
+//       started = true;
+//       try {
+//         running = true;
+//         resolve(promise());
+//       } catch (err) {
+//         reject(err);
+//       } finally {
+//         running = false;
+//       }
+//     }
+//     return wrapped;
+//   };
 
-  return Object.assign(wrapped, {
-    promise: wrapped,
-    get started() { return started; },
-    get running() { return running; },
-    run,
-    cancel
-  });
-}
+//   return Object.assign(wrapped, {
+//     promise: wrapped,
+//     get started() { return started; },
+//     get running() { return running; },
+//     run,
+//     cancel
+//   });
+// }
 
 @templateController(tsPending)
 export class PendingTemplateController implements ICustomAttributeViewModel {

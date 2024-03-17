@@ -21,7 +21,8 @@ import {
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import type { ITask } from '@aurelia/platform';
+import type { DomQueue } from '@aurelia/platform-browser';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import type {
   Scope,
@@ -58,10 +59,6 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IAstEvaluator, IConnectableBinding { }
 
 const forOpts = { optional: true } as const;
-const taskQueueOpts: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
-};
 
 export class TranslationBinding implements IConnectableBinding {
 
@@ -126,7 +123,7 @@ export class TranslationBinding implements IConnectableBinding {
   private readonly _platform: IPlatform;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: DomQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */
@@ -156,7 +153,7 @@ export class TranslationBinding implements IConnectableBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.domWriteQueue;
+    this._taskQueue = platform.domQueue;
   }
 
   public bind(_scope: Scope): void {
@@ -263,7 +260,7 @@ export class TranslationBinding implements IConnectableBinding {
         if (shouldQueueContent) {
           this._updateContent(content);
         }
-      }, taskQueueOpts);
+      });
     }
     task?.cancel();
   }

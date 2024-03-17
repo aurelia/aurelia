@@ -1,6 +1,6 @@
 
 import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
-import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import { ITask } from '@aurelia/platform';
 import {
   astEvaluate,
   connectable,
@@ -17,6 +17,7 @@ import {
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
+import { DomQueue } from '@aurelia/platform-browser';
 
 const atLayout = AccessorType.Layout;
 const stateActivating = State.activating;
@@ -41,7 +42,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
   private readonly targetProperty: PropertyKey;
 
   /** @internal */ private _task: ITask | null = null;
-  /** @internal */ private readonly _taskQueue: TaskQueue;
+  /** @internal */ private readonly _taskQueue: DomQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private _targetObserver!: IAccessor;
@@ -60,7 +61,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: DomQueue,
     ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
@@ -156,7 +157,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
       this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
         this._task = null;
-      }, updateTaskOpts);
+      });
       task?.cancel();
       task = null;
     } else {
@@ -191,7 +192,7 @@ export class StateBinding implements IBinding, IStoreSubscriber<object> {
       this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(value);
         this._task = null;
-      }, updateTaskOpts);
+      });
       task?.cancel();
     } else {
       this.updateTarget(this._value);
@@ -220,11 +221,6 @@ type SubscribableValue = {
 
 type Unsubscribable = {
   unsubscribe(): void;
-};
-
-const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
-  preempt: true,
 };
 
 connectable(StateBinding);

@@ -810,10 +810,10 @@ const areTaskQueuesEmpty = (function () {
 
     let isEmpty = true;
     let message = '';
-    if (!domWriteQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
-      isEmpty = false;
-    }
+    // if (!domWriteQueue.isEmpty) {
+    //   message += `\n${$reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
+    //   isEmpty = false;
+    // }
     if (!taskQueue.isEmpty) {
       message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
       isEmpty = false;

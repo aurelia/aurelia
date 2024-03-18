@@ -8,7 +8,7 @@ A custom attribute allows you to create special properties to enhance and decora
 
 ## Creating custom attributes
 
-On a simplistic level, custom attributes resemble [components](broken-reference) quite a lot. They can have [bindable properties](../components/bindable-properties.md), and they use classes for their definitions.
+On a simplistic level, custom attributes resemble [components](../components/components.md) quite a lot. They can have [bindable properties](../components/bindable-properties.md), and they use classes for their definitions.
 
 A basic custom attribute looks something like this:
 
@@ -22,10 +22,11 @@ If you were to replace `CustomAttribute` with `CustomElement`, it would be a com
 Let's create a custom attribute that adds a red background and height to any dom element it is used on:
 
 ```typescript
-  import { INode } from 'aurelia';
+  import { INode, resolve } from 'aurelia';
   
   export class RedSquareCustomAttribute {
-    constructor(@INode private element: HTMLElement){
+    private element = resolve(INode) as HTMLElement;
+    constructor(){
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
@@ -51,11 +52,13 @@ The `customAttribute` decorator allows you to create custom attributes, includin
 You can explicitly name the custom attribute using the `name` configuration property.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia';
+  import { customAttribute, INode, resolve } from 'aurelia';
   
   @customAttribute({ name: 'red-square' }) 
   export class RedSquare {
-    constructor(@INode private element: HTMLElement){
+    private element = resolve(INode) as HTMLElement;
+
+    constructor(){
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
@@ -67,11 +70,13 @@ You can explicitly name the custom attribute using the `name` configuration prop
 The `customAttribute` allows you to create one or more aliases that this attribute can go by.
 
 ```typescript
-  import { customAttribute, INode } from 'aurelia';
+  import { customAttribute, INode, resolve } from 'aurelia';
   
   @customAttribute({ name: 'red-square', aliases: ['redify', 'redbox'] }) 
   export class RedSquare {
-    constructor(@INode private element: HTMLElement){
+    private element = resolve(INode) as HTMLElement;
+
+    constructor() {
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
@@ -91,12 +96,13 @@ We can now use our custom attribute using the registered name `red-square` as we
 Sometimes, you want a custom attribute with only one bindable property. You don't need to define the bindable property explicitly to do this, as Aurelia supports custom attributes with single-value bindings.
 
 ```typescript
-  import { INode } from 'aurelia';
+  import { INode, resolve } from 'aurelia';
 
   export class RedSquareCustomAttribute {
+    private element = resolve(INode) as HTMLElement;
     private value;
     
-    constructor(@INode private element: HTMLElement){
+    constructor() {
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
@@ -112,12 +118,14 @@ The `value` property is automatically populated if a value is supplied to a cust
 When the value is changed, we can access it like this:
 
 ```typescript
-  import { bindable, INode } from 'aurelia';
+  import { bindable, INode, resolve } from 'aurelia';
   
   export class RedSquareCustomAttribute {
+    private element = resolve(INode) as HTMLElement;
+
     @bindable() private value;
     
-    constructor(@INode private element: HTMLElement){
+    constructor() {
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
@@ -140,13 +148,15 @@ When using the custom attribute on a dom element, there are instances where you 
   import { INode } from 'aurelia';
   
   export class RedSquareCustomAttribute {
-    constructor(@INode private element: HTMLElement){
-
-    }
+    private element = resolve(INode) as HTMLElement;
   }
 ```
 
 The code above was lifted from the first example, allowing us to access the element itself on the class using `this.element` This is how we can set CSS values and perform other modifications, such as initialising third-party libraries like jQuery and other libraries.
+
+{% hint style="info" %}
+You can also use `resolve(Element)` or `resolve(HTMLElement)` to get the host element, just like `INode`. However, using `INode` makes it safer when used in Nodejs environment since there will not be a global `Element` or `HTMLElement`. If you are not planning to run your application in Nodejs environment, you can also just use `Element` or `HTMLElement`, like this: `resolve(Element)` or `resolve(HTMLElement)`.
+{% endhint %}
 
 ### Custom attributes with bindable properties
 
@@ -283,7 +293,9 @@ When you have more than one bindable property, you might want to specify which p
     @bindable( {primary: true} ) color: string = 'red';
     @bindable() size: string = '100px';
   
-    constructor(@INode private element: HTMLElement){
+    private element = resolve(INode) as HTMLElement;
+
+    constructor() {
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
@@ -317,4 +329,42 @@ Or, you can bind the value itself to the attribute:
 <import from="./color-square"></import>
 
 <div color-square.bind="myColour"></div>
+```
+
+## Finding a custom attribute from the DOM
+
+Sometimes, custom attributes are developed in a group of 2 or more, e.g attributes for a dropdown + toggle button inside it, and it's necessary to retrieve the "parent" attribute from a child attribute.
+One way to do this is to use `CustomAttribute.closest` function for walking the DOM and finding a particular custom attribute, based on either name, or the constructor.
+The name `closest` mimics the DOM API `Element.prototype.closest`.
+
+An example of the `CustomAttribute.closest` is as follow:
+
+```html
+<div foo="1">
+  <div bar="2">
+  </div>
+</div>
+```
+
+```typescript
+import { CustomAttribute, resolve, INode } from 'aurelia';
+
+@customAttribute('bar')
+export class Bar {
+  host = resolve(INode);
+  parent = CustomAttribute.closest(this.host, 'foo');
+}
+```
+
+Or the following also works if you want to search using the constructor:
+
+```typescript
+import { CustomAttribute, resolve, INode } from 'aurelia';
+import { Foo } from './foo';
+
+@customAttribute('bar')
+export class Bar {
+  host = resolve(INode);
+  parent = CustomAttribute.closest(this.host, Foo); // <--- use constructor instead of string 'foo'
+}
 ```

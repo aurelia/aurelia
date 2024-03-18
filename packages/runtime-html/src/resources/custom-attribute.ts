@@ -56,8 +56,8 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
-  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>, TType2 extends TType = TType>(node: Node, Type: CustomAttributeType<TType2>): ICustomAttributeController<InstanceType<TType2>> | null;
-  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>, TType2 extends TType = TType>(node: Node, name: string): ICustomAttributeController<InstanceType<TType2>> | null;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, Type: CustomAttributeType<TType>): ICustomAttributeController<InstanceType<TType>> | null;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, name: string): ICustomAttributeController<InstanceType<TType>> | null;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -219,17 +219,13 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
 const findClosestControllerByName = (node: Node, attrNameOrType: string | CustomAttributeType): ICustomAttributeController | null => {
   let key = '';
   let attrName = '';
-  if (typeof attrNameOrType === 'string') {
+  if (isString(attrNameOrType)) {
     key = getAttributeKeyFrom(attrNameOrType);
     attrName = attrNameOrType;
   } else {
-    try {
-      const definition = getAttributeDefinition(attrNameOrType);
-      key = definition.key;
-      attrName = definition.name;
-    } catch (ex) {
-      throw createMappedError(ErrorNames.attribute_def_not_found, attrNameOrType);
-    }
+    const definition = getAttributeDefinition(attrNameOrType);
+    key = definition.key;
+    attrName = definition.name;
   }
   let cur = node as INode | null;
   while (cur !== null) {

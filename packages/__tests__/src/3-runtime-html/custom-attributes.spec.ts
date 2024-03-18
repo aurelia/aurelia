@@ -968,6 +968,14 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       host = resolve(INode);
       value: any;
     });
+    const Baz = CustomAttribute.define('baz', class Baz {
+      host = resolve(INode);
+      value: any;
+      parent = CustomAttribute.closest<typeof Foo>(this.host, 'foo')?.viewModel;
+      bound() {
+        this.host.textContent = this.parent?.value ?? this.value;
+      }
+    });
     const Bar = CustomAttribute.define('bar', class Bar {
       host = resolve(INode);
       value: any;
@@ -978,7 +986,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     });
 
     it('finds closest custom attribute using string', function () {
-      const { assertText } = createFixture(`<div foo="1"><div bar="2"></div></div>`, class App {}, [Foo, Bar]);
+      const { assertText } = createFixture(`<div foo="1"><div baz="2"></div></div>`, class App {}, [Foo, Baz]);
       assertText('1');
     });
 
@@ -993,8 +1001,9 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       `
         <div foo="1"></div>
         <div bar="2"></div>
-      `, class App {}, [Foo, Bar]);
-      assertText('2', { compact: true });
+        <div baz="3"></div>
+      `, class App {}, [Foo, Bar, Baz]);
+      assertText('2 3', { compact: true });
     });
 
     it('finds closest custom attribute when nested multiple dom layers', function () {
@@ -1002,13 +1011,14 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         <div foo="1">
           <center>
             <div bar="2"></div>
+            <div baz="3"></div>
           </center>
         </div>
         `,
         class App {},
-        [Foo, Bar]
+        [Foo, Bar, Baz]
       );
-      assertText('1', { compact: true });
+      assertText('1 1', { compact: true });
     });
 
     it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', function () {
@@ -1018,13 +1028,14 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             <div foo="3">
               <div bar="2"></div>
             </div>
+            <div baz="4"></div>
           </center>
         </div>
         `,
         class App {},
-        [Foo, Bar]
+        [Foo, Bar, Baz]
       );
-      assertText('3', { compact: true });
+      assertText('3 1', { compact: true });
     });
 
     it('throws when theres no attribute definition associated with the type', function () {

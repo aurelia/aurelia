@@ -27,7 +27,7 @@ describe('1-kernel/di.get.spec.ts', function () {
     container.registerTransformer(MyModel, i => { id = 1; return i; });
     container.register(Registration.aliasTo(MyModel, MyModel2));
     container.get(MyModel2);
-    assert.strictEqual(id, 0);
+    assert.strictEqual(id, 1);
   });
 
   describe('@lazy', function () {

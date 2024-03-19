@@ -1201,7 +1201,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         const controller = app.controller;
         const person = app.person;
         person.address = { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' };
-        await platform.domReadQueue.yield();
+        // await platform.domReadQueue.yield();
 
         const target: HTMLInputElement = host.querySelector('#target');
         assertControllerBinding(controller, 'person.address.pin|toNumber', target, app.controllerRegisterBindingSpy);
@@ -1242,7 +1242,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         const controller = app.controller;
         const org = app.org;
         org.employees.push(new Person((void 0)!, (void 0)!, { pin: 'foobar' as unknown as number, city: 'foobar', line1: 'foobar' }));
-        await platform.domReadQueue.yield();
+        // await platform.domReadQueue.yield();
 
         const target: HTMLInputElement = host.querySelector('#target');
         assertControllerBinding(controller, 'org.employees[(0)].address.pin|toNumber', target, app.controllerRegisterBindingSpy);

@@ -35,6 +35,7 @@ import type {
   IContainer,
   IDisposable,
   IServiceLocator,
+  ResourceDefinition,
   Writable,
 } from '@aurelia/kernel';
 import type {
@@ -1106,11 +1107,9 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public is(name: string): boolean {
     switch (this.vmKind) {
-      case vmkCa: {
-        return getAttributeDefinition(this._vm!.constructor).name === name;
-      }
+      case vmkCa:
       case vmkCe: {
-        return getElementDefinition(this._vm!.constructor).name === name;
+        return (this.definition as ResourceDefinition).name === name;
       }
       case vmkSynth:
         return this.viewFactory!.name === name;

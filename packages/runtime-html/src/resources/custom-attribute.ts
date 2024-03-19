@@ -1,7 +1,7 @@
 import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
-import { getRef } from '../dom';
+import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, transientRegistration } from '../utilities-di';
@@ -15,7 +15,7 @@ import type {
   ResourceType,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
-import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
+import type { ICustomAttributeViewModel, ICustomAttributeController, Controller } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtAttribute, type IResourceKind } from './resources-shared';
@@ -56,6 +56,8 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, Type: CustomAttributeType<TType>): ICustomAttributeController<InstanceType<TType>> | null;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, name: string): ICustomAttributeController<InstanceType<TType>> | null;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -214,11 +216,36 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
   return def;
 };
 
+const findClosestControllerByName = (node: Node, attrNameOrType: string | CustomAttributeType): ICustomAttributeController | null => {
+  let key = '';
+  let attrName = '';
+  if (isString(attrNameOrType)) {
+    key = getAttributeKeyFrom(attrNameOrType);
+    attrName = attrNameOrType;
+  } else {
+    const definition = getAttributeDefinition(attrNameOrType);
+    key = definition.key;
+    attrName = definition.name;
+  }
+  let cur = node as INode | null;
+  while (cur !== null) {
+    const controller = getRef(cur, key) as Controller | null;
+    if (controller?.is(attrName)) {
+      return controller as ICustomAttributeController;
+    }
+
+    cur = getEffectiveParentNode(cur);
+  }
+
+  return null;
+};
+
 export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   name: caBaseName,
   keyFrom: getAttributeKeyFrom,
   isType: isAttributeType,
   for: findAttributeControllerFor,
+  closest: findClosestControllerByName,
   define: defineAttribute,
   getDefinition: getAttributeDefinition,
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void {

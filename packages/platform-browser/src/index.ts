@@ -45,8 +45,9 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
 
     this.flushDomRead = this.flushDomRead.bind(this);
     this.flushDomWrite = this.flushDomWrite.bind(this);
-    this.domReadQueue = new TaskQueue(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
     this.domWriteQueue = new TaskQueue(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
+    this.domReadQueue = this.domWriteQueue;
+    // this.domReadQueue = new TaskQueue(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(

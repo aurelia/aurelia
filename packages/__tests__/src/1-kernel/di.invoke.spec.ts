@@ -141,4 +141,23 @@ describe('1-kernel/di.invoke.spec.ts', function () {
       assert.strictEqual(v1, 2);
     });
   });
+
+  it('applies transformer', function () {
+    class MyModel {
+      id = 0;
+    }
+
+    container.registerTransformer(MyModel, i => { i.id = 1; return i; });
+    assert.strictEqual(container.invoke(MyModel).id, 1);
+  });
+
+  it('applies multiple transformers', function () {
+    class MyModel {
+      id = 0;
+    }
+
+    container.registerTransformer(MyModel, i => { i.id = 1; return i; });
+    container.registerTransformer(MyModel, i => { i.id = 20; return i; });
+    assert.strictEqual(container.invoke(MyModel).id, 20);
+  });
 });

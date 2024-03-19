@@ -25,7 +25,7 @@ export type InterfaceSymbol<K = any> = (target: Injectable | AbstractInjectable,
 interface IResolverLike<C, K = any> {
   readonly $isResolver: true;
   resolve(handler: C, requestor: C): Resolved<K>;
-  getFactory?(container: C): (K extends Constructable ? IFactory<K> : never) | null;
+  getFactory?(container: C): (K extends Constructable<infer T> ? IFactory<Constructable<object & T>> : never)  | null;
 }
 
 export interface IResolver<K = any> extends IResolverLike<IContainer, K> { }
@@ -37,9 +37,9 @@ export interface IRegistration<K = any> {
   register(container: IContainer, key?: Key): IResolver<K>;
 }
 
-export type Transformer<K> = (instance: Resolved<K>) => Resolved<K>;
+export type Transformer<K> = <T extends Resolved<K>>(instance: T) => T;
 
-export interface IFactory<T extends Constructable = any> {
+export interface IFactory<T extends Constructable = Constructable> {
   readonly Type: T;
   registerTransformer(transformer: Transformer<T>): void;
   construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T>;
@@ -73,10 +73,10 @@ export interface IContainer extends IServiceLocator, IDisposable {
   register(...params: any[]): IContainer;
   registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
   // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
-  registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
+  registerTransformer<K extends Key>(key: K, transformer: Transformer<Constructable<Resolved<K>>>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
-  invoke<T extends {}, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
+  invoke<T extends Constructable, TDeps extends unknown[] = unknown[]>(key: T, dynamicDependencies?: TDeps): Resolved<T>;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasFactory<T extends Constructable>(key: any): boolean;
   getFactory<T extends Constructable>(key: T): IFactory<T>;
@@ -276,7 +276,7 @@ export const getDependencies = (Type: Constructable | Injectable): Key[] => {
  */
 export const createInterface = <K extends Key>(configureOrName?: string | ((builder: ResolverBuilder<K>) => IResolver<K>), configuror?: (builder: ResolverBuilder<K>) => IResolver<K>): InterfaceSymbol<K> => {
  const configure = isFunction(configureOrName) ? configureOrName : configuror;
- const friendlyName = (isString(configureOrName) ? configureOrName : undefined) ?? '(anonymous)';
+ const friendlyName = isString(configureOrName) ? configureOrName : '(anonymous)';
 
  const Interface = function (target: Injectable | AbstractInjectable, property: string | symbol | undefined, index: number | undefined): void {
    if (target == null || new.target !== undefined) {
@@ -657,8 +657,8 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
     return this._instance;
   }
 
-  public getFactory(container: IContainer): (K extends Constructable ? IFactory<K> : never) | null {
-    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable ? IFactory<K> : never) | null;
+  public getFactory(container: IContainer): (K extends Constructable<infer T> ? IFactory<Constructable<object & T>> : never) | null {
+    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable<infer T> ? IFactory<Constructable<object & T>> : never) | null;
   }
 
   public dispose(): void {

@@ -12,6 +12,24 @@ describe('1-kernel/di.get.spec.ts', function () {
     assert.throws(() => resolve(class Abc{}));
   });
 
+  it('applies transformer', function () {
+    let id = 0;
+    class MyModel {}
+    container.registerTransformer(MyModel, i => { id = 1; return i; });
+    container.get(MyModel);
+    assert.strictEqual(id, 1);
+  });
+
+  it('applies transformer even when aliased', function () {
+    let id = 0;
+    class MyModel {}
+    class MyModel2 {}
+    container.registerTransformer(MyModel, i => { id = 1; return i; });
+    container.register(Registration.aliasTo(MyModel, MyModel2));
+    container.get(MyModel2);
+    assert.strictEqual(id, 0);
+  });
+
   describe('@lazy', function () {
     class Bar {
 

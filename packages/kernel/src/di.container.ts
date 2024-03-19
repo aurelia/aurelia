@@ -23,7 +23,7 @@ import {
 } from './di';
 import { ErrorNames, createMappedError, logError, logWarn } from './errors';
 import { singletonRegistration } from './di.registration';
-import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory } from './di.resolvers';
+import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory, ICallableResolver } from './di.resolvers';
 
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
@@ -264,29 +264,20 @@ export class Container implements IContainer {
   //     delete this.res[key];
   //   }
   // }
-  public registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean {
+  public registerTransformer<K extends Key>(key: K, transformer: Transformer<Constructable<Resolved<K>>>): boolean {
     const resolver = this.getResolver(key);
 
     if (resolver == null) {
       return false;
     }
 
-    if (resolver.getFactory) {
-      const factory = resolver.getFactory(this);
-
-      if (factory == null) {
-        return false;
-      }
-
-      // This type cast is a bit of a hacky one, necessary due to the duplicity of IResolverLike.
-      // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
-      // type Constructable. So the return type of that optional method has this additional constraint, which
-      // seems to confuse the type checker.
-      factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
-      return true;
+    const factory = resolver.getFactory?.(this);
+    if (factory == null) {
+      return false;
     }
 
-    return false;
+    factory.registerTransformer(transformer);
+    return true;
   }
 
   public getResolver<K extends Key, T = K>(key: K | Key, autoRegister: boolean = true): IResolver<T> | null {
@@ -406,39 +397,14 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
-  public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
+  public invoke<T extends Constructable, TDeps extends unknown[] = unknown[]>(Type: T, dynamicDependencies?: TDeps): Resolved<T> {
     if (isNativeFunction(Type)) {
       throw createMappedError(ErrorNames.no_construct_native_fn, Type);
     }
     const previousContainer = currentContainer;
     currentContainer = this;
-    if (__DEV__) {
-      let resolvedDeps: unknown[];
-      let dep: Key | undefined;
-
-      try {
-        resolvedDeps = getDependencies(Type).map(_ => this.get(dep = _));
-      } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}, caused by dependency: ${String(dep)}`);
-        currentContainer = previousContainer;
-        throw ex;
-      }
-
-      try {
-        return dynamicDependencies === void 0
-          ? new Type(...resolvedDeps)
-          : new Type(...resolvedDeps, ...dynamicDependencies);
-      } catch (ex) {
-        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}`);
-        throw ex;
-      } finally {
-        currentContainer = previousContainer;
-      }
-    }
     try {
-      return dynamicDependencies === void 0
-        ? new Type(...getDependencies(Type).map(containerGetKey, this))
-        : new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
+      return this.getFactory(Type).construct(this, dynamicDependencies);
     } finally {
       currentContainer = previousContainer;
     }
@@ -646,7 +612,7 @@ export type IResolvedInjection<K extends Key> =
           ? Resolved<R> | undefined
           : K extends IFactoryResolver<infer R>
             ? IResolvedFactory<R>
-            : K extends IResolver<infer R>
+            : K extends IResolver<infer R> | ICallableResolver<infer R>
               ? Resolved<R>
               : K extends [infer R1 extends Key, ...infer R2]
                 ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]

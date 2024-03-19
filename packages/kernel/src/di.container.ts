@@ -397,14 +397,14 @@ export class Container implements IContainer {
     return emptyArray;
   }
 
-  public invoke<T extends Constructable, TDeps extends unknown[] = unknown[]>(Type: T, dynamicDependencies?: TDeps): Resolved<T> {
+  public invoke<T extends object, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
     if (isNativeFunction(Type)) {
       throw createMappedError(ErrorNames.no_construct_native_fn, Type);
     }
     const previousContainer = currentContainer;
     currentContainer = this;
     try {
-      return this.getFactory(Type).construct(this, dynamicDependencies);
+      return this.getFactory(Type).construct(this, dynamicDependencies) as T;
     } finally {
       currentContainer = previousContainer;
     }

@@ -76,7 +76,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   registerTransformer<K extends Key>(key: K, transformer: Transformer<Constructable<Resolved<K>>>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
   registerFactory<T extends Constructable>(key: T, factory: IFactory<T>): void;
-  invoke<T extends Constructable, TDeps extends unknown[] = unknown[]>(key: T, dynamicDependencies?: TDeps): Resolved<T>;
+  invoke<T extends object, TDeps extends unknown[] = unknown[]>(key: Constructable<T>, dynamicDependencies?: TDeps): T;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   hasFactory<T extends Constructable>(key: any): boolean;
   getFactory<T extends Constructable>(key: T): IFactory<T>;

@@ -105,7 +105,7 @@ export class Unparser implements IVisitor<void> {
     }
   }
 
-  public visitAccessBoundary(expr: AccessBoundaryExpression): void {
+  public visitAccessBoundary(_expr: AccessBoundaryExpression): void {
     this.text += 'this';
   }
 

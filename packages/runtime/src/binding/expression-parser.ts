@@ -1652,7 +1652,7 @@ const unexpectedOfKeyword = () => createMappedError(ErrorNames.parse_unexpected_
 
 const unexpectedImportKeyword = () => createMappedError(ErrorNames.parse_unexpected_keyword_import, $input);
 
-const invalidLHSBindingIdentifierInForOf = (kind: any) => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input, kind);
+const invalidLHSBindingIdentifierInForOf = (kind: unknown) => createMappedError(ErrorNames.parse_invalid_identifier_in_forof, $input, kind);
 
 const invalidPropDefInObjLiteral = () => createMappedError(ErrorNames.parse_invalid_identifier_object_literal_key, $input);
 

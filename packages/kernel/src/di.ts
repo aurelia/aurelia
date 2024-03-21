@@ -13,7 +13,7 @@ import { appendAnnotation, getAnnotationKeyFor, ResourceType } from './resource'
 import { defineMetadata, getOwnMetadata, isFunction, isString } from './utilities';
 import { singletonRegistration, cacheCallbackResult, transientRegistation } from './di.registration';
 import { ErrorNames, createMappedError } from './errors';
-import type { IAllResolver, IFactoryResolver, ILazyResolver, INewInstanceResolver, IOptionalResolver, IResolvedFactory, IResolvedLazy } from './di.resolvers';
+import type { IAllResolver, ICallableResolver, IFactoryResolver, ILazyResolver, INewInstanceResolver, IOptionalResolver, IResolvedFactory, IResolvedLazy } from './di.resolvers';
 
 export type ResolveCallback<T = any> = (handler: IContainer, requestor: IContainer, resolver: IResolver<T>) => T;
 
@@ -48,11 +48,12 @@ export interface IFactory<T extends Constructable = any> {
 export interface IServiceLocator {
   readonly root: IServiceLocator;
   has<K extends Key>(key: K | Key, searchAncestors: boolean): boolean;
-  get<K extends Key>(key: IAllResolver<K>): readonly Resolved<K>[];
+  get<K extends Key>(key: IAllResolver<K>): Resolved<K>[];
   get<K extends Key>(key: INewInstanceResolver<K>): Resolved<K>;
   get<K extends Key>(key: ILazyResolver<K>): IResolvedLazy<K>;
   get<K extends Key>(key: IOptionalResolver<K>): Resolved<K> | undefined;
   get<K extends Key>(key: IFactoryResolver<K>): IResolvedFactory<K>;
+  get<K extends Key>(key: ICallableResolver<K>): Resolved<K>;
   get<K extends Key>(key: IResolver<K>): Resolved<K>;
   get<K extends Key>(key: K): Resolved<K>;
   get<K extends Key>(key: Key): Resolved<K>;

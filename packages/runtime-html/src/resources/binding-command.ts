@@ -199,7 +199,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === dtElement) {
+      if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -224,7 +224,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === dtElement) {
+      if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -249,7 +249,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === dtElement) {
+      if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -274,7 +274,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === dtElement) {
+      if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -304,7 +304,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === dtElement) {
+      if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
       defaultMode = (info.def as CA).defaultBindingMode;

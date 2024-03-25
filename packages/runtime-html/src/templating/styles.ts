@@ -78,7 +78,7 @@ export class ShadowDOMRegistry implements IRegistry {
   }
 }
 
-class AdoptedStyleSheetsStylesFactory {
+class AdoptedStyleSheetsStylesFactory implements IShadowDOMStyleFactory {
   private readonly p = resolve(IPlatform);
   private readonly cache = new Map<string, CSSStyleSheet>();
 
@@ -87,7 +87,7 @@ class AdoptedStyleSheetsStylesFactory {
   }
 }
 
-class StyleElementStylesFactory {
+class StyleElementStylesFactory implements IShadowDOMStyleFactory {
   private readonly p = resolve(IPlatform);
 
   public createStyles(localStyles: string[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
@@ -125,8 +125,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
         if (sheet === void 0) {
           sheet = new p.CSSStyleSheet();
-          // eslint-disable-next-line
-          (sheet as any).replaceSync(x);
+          sheet.replaceSync(x);
           styleSheetCache.set(x, sheet);
         }
       }

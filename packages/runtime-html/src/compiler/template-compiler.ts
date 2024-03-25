@@ -396,11 +396,13 @@ export class TemplateCompiler implements ITemplateCompiler {
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(realAttrValue, primaryBindable.name)
-                : new InterpolationInstruction(expr, primaryBindable.name)
-            ];
+            attrBindableInstructions = expr === null
+              ? realAttrValue === ''
+                // when the attribute usage is <div attr>
+                // it's considered as no bindings
+                ? []
+                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
+              : [new InterpolationInstruction(expr, primaryBindable.name)];
           } else {
             // custom attribute with binding command:
             // my-attr.bind="..."
@@ -835,11 +837,13 @@ export class TemplateCompiler implements ITemplateCompiler {
           // my-attr="${}"
           if (bindingCommand === null) {
             expr = exprParser.parse(realAttrValue, etInterpolation);
-            attrBindableInstructions = [
-              expr === null
-                ? new SetPropertyInstruction(realAttrValue, primaryBindable.name)
-                : new InterpolationInstruction(expr, primaryBindable.name)
-            ];
+            attrBindableInstructions = expr === null
+              ? realAttrValue === ''
+                // when the attribute usage is <div attr>
+                // it's considered as no bindings
+                ? []
+                : [new SetPropertyInstruction(realAttrValue, primaryBindable.name)]
+              : [new InterpolationInstruction(expr, primaryBindable.name)];
           } else {
             // custom attribute with binding command:
             // my-attr.bind="..."

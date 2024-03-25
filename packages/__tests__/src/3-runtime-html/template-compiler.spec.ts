@@ -760,11 +760,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         mode: BindingMode.toView,
       }];
     } else {
-      return [{
-        type: TT.setProperty,
-        to: 'value',
-        value
-      }];
+      return value.length > 0
+        ? [{
+          type: TT.setProperty,
+          to: 'value',
+          value
+        }]
+        : [];
     }
   }
 
@@ -1208,7 +1210,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           (_ctx) => BindingMode.twoWay
         ] as ((ctx: TestContext) => BindingMode | undefined)[],
         [
-          (ctx, [, , to], [attr, value]) => [`${attr}`, { type: TT.setProperty, to, value }],
+          (ctx, [, , to], [attr, value]) => [`${attr}`, value.length > 0 ? { type: TT.setProperty, to, value } : null],
           (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
           (ctx, [, , to], [attr, value]) => [`${attr}.to-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
           (ctx, [, , to], [attr, value]) => [`${attr}.one-time`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
@@ -1231,7 +1233,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             const instruction: Partial<HydrateAttributeInstruction> = {
               type: TT.hydrateAttribute,
               res: resolveResources ? CustomAttribute.getDefinition($def) : attr,
-              props: [childInstruction],
+              props: childInstruction == null ? [] : [childInstruction],
             };
             const expected = {
               ...defaultCustomElementDefinitionProperties,

@@ -1,4 +1,4 @@
-import { Metadata } from '@aurelia/metadata';
+import { SimplerMetadata } from '@aurelia/metadata';
 import { Class, DI } from '@aurelia/kernel';
 
 export type $ClassDecorator = <T extends Class<unknown>>(value: T, context: ClassDecoratorContext) => void | T;
@@ -76,6 +76,6 @@ export function ensureProto<T extends object, K extends keyof T>(
 
 /** @internal */ export const createLookup = <T>(): Record<string, T> => O.create(null) as Record<string, T>;
 
-/** @internal */ export const getOwnMetadata = Metadata.getOwn;
-/** @internal */ export const hasOwnMetadata = Metadata.hasOwn;
-/** @internal */ export const defineMetadata = Metadata.define;
+/** @internal */ export const getOwnMetadata = SimplerMetadata.getMetadata;
+/** @internal */ export const hasOwnMetadata = SimplerMetadata.hasMetadata;
+/** @internal */ export const defineMetadata = SimplerMetadata.defineMetadata;

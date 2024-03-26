@@ -1099,7 +1099,7 @@ const getPrototype = Object.getPrototypeOf;
 
 // TODO(sayan): use better name
 export const SimplerMetadata = {
-  getMetadata<T>(key: string, type: any, context?: DecoratorContext): T {
+  getMetadata<T>(key: string, type: any, context?: DecoratorContext | null): T {
     return context?.metadata[key] ?? type[Symbol.metadata]?.[key];
   },
   defineMetadata(value: any, type: any, context: DecoratorContext | null | undefined, ...keys: string[]): void {

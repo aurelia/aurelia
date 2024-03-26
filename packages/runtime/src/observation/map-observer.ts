@@ -133,7 +133,7 @@ const observationEnabledKey = '__au_map_on__';
 export function enableMapObservation(): void {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!(getOwnMetadata(observationEnabledKey, Map) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Map);
+    defineMetadata(true, Map, null, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         def(proto, method, { ...descriptorProps, value: observe[method] });

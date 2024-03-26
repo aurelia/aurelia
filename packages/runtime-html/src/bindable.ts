@@ -70,7 +70,6 @@ export function bindable(
   | ((target: Function, context: ClassGetterDecoratorContext) => void) {
 
   let configOrProp: PartialBindableDefinition | string | undefined = void 0;
-  // TODO(Sayan): refactor the error messages for the bundle size
   function decorator(_target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext): void {
     let $prop: string;
 
@@ -127,12 +126,12 @@ export function bindable(
   return decorator;
 }
 
-const baseName = /*@__PURE__*/getAnnotationKeyFor('bindable');
+const baseName = /*@__PURE__*/getAnnotationKeyFor('bindables');
 
 export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(metadata: Record<PropertyKey, unknown> | null, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+  from(...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
@@ -153,11 +152,6 @@ export const Bindable = objectFreeze({
       } else if (maybeList !== void 0) {
         objectKeys(maybeList).forEach(name => addDescription(name, maybeList[name]));
       }
-    }
-
-    if (metadata != null) {
-      const bindableMetadata = metadata[baseName] as Record<PropertyKey, BindableDefinition>;
-      if (bindableMetadata != null) bindableLists = [bindableMetadata, ...bindableLists];
     }
 
     bindableLists.forEach(addList);

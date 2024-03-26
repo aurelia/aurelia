@@ -1,5 +1,5 @@
 import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
-import { Metadata } from '@aurelia/metadata';
+import { SimplerMetadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
@@ -53,7 +53,7 @@ export function createFixture<T extends object>(
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
-      Metadata.define(anno, CustomElement.getAnnotation($class as Constructable<T>, anno), $$class);
+      SimplerMetadata.defineMetadata(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, null, anno);
     });
   }
 
@@ -657,7 +657,7 @@ function testBuilderTypings() {
     { a: [1, 2] }
   );
   const C1: IsType<{ a: number[] }, typeof component> = 1;
-  
+
   const a9 = createFixture.html``.component(class Abc { a = 1 }).build().component.a;
 }
 /* eslint-enable */

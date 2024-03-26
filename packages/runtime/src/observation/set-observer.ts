@@ -113,7 +113,7 @@ const observationEnabledKey = '__au_set_on__';
 export function enableSetObservation(): void {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!(getOwnMetadata(observationEnabledKey, Set) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Set);
+    defineMetadata(true, Set, null, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         def(proto, method, { ...descriptorProps, value: observe[method] });

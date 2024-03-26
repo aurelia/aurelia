@@ -43,6 +43,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialBindingBehaviorDefinition,
     Type: BindingBehaviorType<T>,
+    context: DecoratorContext | undefined,
   ): BindingBehaviorDefinition<T> {
 
     let name: string;
@@ -57,8 +58,8 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
 
     return new BindingBehaviorDefinition(
       Type,
-      firstDefined(getBehaviorAnnotation(Type, 'name'), name),
-      mergeArrays(getBehaviorAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getBehaviorAnnotation(Type, 'name', context), name),
+      mergeArrays(getBehaviorAnnotation(Type, 'aliases', context), def.aliases, Type.aliases),
       BindingBehavior.keyFrom(name),
     );
   }
@@ -85,7 +86,8 @@ const bbBaseName = /*@__PURE__*/getResourceKeyFor('binding-behavior');
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(
   Type: Constructable,
   prop: K,
-): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+  context: DecoratorContext | undefined
+): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type, context);
 
 const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
@@ -95,7 +97,7 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     return isFunction(value) && hasOwnMetadata(bbBaseName, value);
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T> {
-    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
+    const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>, decoratorContext);
     const $Type = definition.Type as BindingBehaviorType<T>;
 
     // registration of resource name is a requirement for the resource system in kernel (module-loader)

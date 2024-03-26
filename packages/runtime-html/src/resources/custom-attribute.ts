@@ -66,7 +66,7 @@ export type CustomAttributeKind = IResourceKind & {
   // eslint-disable-next-line
   getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
-  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
+  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, context: DecoratorContext | undefined | null): PartialCustomAttributeDefinition[K];
   find(c: IContainer, name: string): CustomAttributeDefinition | null;
 };
 
@@ -125,7 +125,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomAttributeDefinition,
     Type: CustomAttributeType<T>,
-    metadata: Record<PropertyKey, unknown> | null,
+    context: DecoratorContext | null,
   ): CustomAttributeDefinition<T> {
     let name: string;
     let def: PartialCustomAttributeDefinition;
@@ -139,16 +139,16 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
     return new CustomAttributeDefinition(
       Type,
-      firstDefined(getAttributeAnnotation(Type, 'name'), name),
-      mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getAttributeAnnotation(Type, 'name', context), name),
+      mergeArrays(getAttributeAnnotation(Type, 'aliases', context), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView),
-      firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      Bindable.from(metadata, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
-      firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
+      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode', context), def.defaultBindingMode, Type.defaultBindingMode, toView),
+      firstDefined(getAttributeAnnotation(Type, 'isTemplateController', context), def.isTemplateController, Type.isTemplateController, false),
+      Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables', context), Type.bindables, def.bindables),
+      firstDefined(getAttributeAnnotation(Type, 'noMultiBindings', context), def.noMultiBindings, Type.noMultiBindings, false),
       mergeArrays(Watch.getDefinitions(Type), Type.watches),
-      mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies, metadata?.['dependencies'] as Key[]),
-      firstDefined(getAttributeAnnotation(Type, 'containerStrategy'), def.containerStrategy, Type.containerStrategy, 'reuse'),
+      mergeArrays(getAttributeAnnotation(Type, 'dependencies', context), def.dependencies, Type.dependencies),
+      firstDefined(getAttributeAnnotation(Type, 'containerStrategy', context), def.containerStrategy, Type.containerStrategy, 'reuse'),
     );
   }
 
@@ -183,7 +183,8 @@ export const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${na
 const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
   Type: Constructable,
   prop: K,
-): PartialCustomAttributeDefinition[K] =>getOwnMetadata(getAnnotationKeyFor(prop), Type);
+  context: DecoratorContext | undefined | null
+): PartialCustomAttributeDefinition[K] =>getOwnMetadata(getAnnotationKeyFor(prop), Type, context);
 
 /** @internal */
 export const isAttributeType = <T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) => {
@@ -198,7 +199,7 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 // TODO(sayan): use TC39 metadata
 /** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T, decoratorContext?: DecoratorContext): CustomAttributeType<T> => {
-  const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable, decoratorContext?.metadata ?? null);
+  const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable, decoratorContext ?? null);
   const $Type = definition.Type as CustomAttributeType<T>;
 
   // this is the case, where the APi is invoked directly without a decorator

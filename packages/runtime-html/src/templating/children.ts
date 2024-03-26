@@ -1,6 +1,6 @@
-import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable, Constructable } from '@aurelia/kernel';
+import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable } from '@aurelia/kernel';
 import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
-import { CustomElement, findElementControllerFor } from '../resources/custom-element';
+import { findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
@@ -9,6 +9,7 @@ import { createMutationObserver, isElement } from '../utilities-dom';
 
 import type { INode } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
+import { getAnnotationKeyFor } from '../utilities-metadata';
 
 export type PartialChildrenDefinition = {
   callback?: PropertyKey;
@@ -46,7 +47,7 @@ export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinitio
   }
   let config: PartialChildrenDefinition;
 
-  const dependenciesKey = 'dependencies';
+  const dependenciesKey = getAnnotationKeyFor('dependencies');
   function decorator(_target: undefined, context: ClassFieldDecoratorContext): void {
     switch (context.kind) {
       case 'field':

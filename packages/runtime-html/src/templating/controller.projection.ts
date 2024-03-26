@@ -10,6 +10,7 @@ import type { IContainer, IIndexable, IServiceLocator, Key } from '@aurelia/kern
 import type { ISubscribable, ISubscriberCollection } from '@aurelia/runtime';
 import type { CustomElementDefinition } from '../resources/custom-element';
 import type { ICustomElementController, ICustomElementViewModel } from './controller';
+import { getAnnotationKeyFor } from '../utilities-metadata';
 
 /** @internal */
 export const defaultSlotName = 'default';
@@ -229,7 +230,7 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
     subscriberCollection(AuSlotWatcherBinding);
     lifecycleHooks()(SlottedLifecycleHooks, null!);
   }
-  const dependenciesKey = 'dependencies';
+  const dependenciesKey = getAnnotationKeyFor('dependencies');
 
   // function decorator($target: {}, $prop: symbol | string, desc?: PropertyDecorator): void {
   function decorator(_: undefined, context: ClassFieldDecoratorContext): void {

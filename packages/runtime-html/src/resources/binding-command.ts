@@ -72,7 +72,7 @@ export type BindingCommandKind = IResourceKind & {
   define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
-  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K];
+  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, context: DecoratorContext | null): PartialBindingCommandDefinition[K];
   find(container: IContainer, name: string): BindingCommandDefinition | null;
   get(container: IServiceLocator, name: string): BindingCommandInstance;
 };
@@ -99,6 +99,7 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialBindingCommandDefinition,
     Type: BindingCommandType<T>,
+    context: DecoratorContext | null | undefined,
   ): BindingCommandDefinition<T> {
 
     let name: string;
@@ -113,10 +114,10 @@ export class BindingCommandDefinition<T extends Constructable = Constructable> i
 
     return new BindingCommandDefinition(
       Type,
-      firstDefined(getCommandAnnotation(Type, 'name'), name),
-      mergeArrays(getCommandAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
+      firstDefined(getCommandAnnotation(Type, 'name', context), name),
+      mergeArrays(getCommandAnnotation(Type, 'aliases', context), def.aliases, Type.aliases),
       getCommandKeyFrom(name),
-      firstDefined(getCommandAnnotation(Type, 'type'), def.type, Type.type, null),
+      firstDefined(getCommandAnnotation(Type, 'type', context), def.type, Type.type, null),
     );
   }
 
@@ -143,8 +144,9 @@ const getCommandKeyFrom = (name: string): string => `${cmdBaseName}:${name}`;
 const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
+  context: DecoratorContext | null | undefined,
 ): PartialBindingCommandDefinition[K] =>
-  getOwnMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type);
+  getOwnMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type, context);
 
 export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
@@ -154,7 +156,7 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
   define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): T & BindingCommandType<T> {
-    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
+    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>, decoratorContext);
     const $Type = definition.Type as BindingCommandType<T>;
 
     // registration of resource name is a requirement for the resource system in kernel (module-loader)

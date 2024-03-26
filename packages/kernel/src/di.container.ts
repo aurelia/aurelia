@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { Metadata, isObject } from '@aurelia/metadata';
+import { isObject } from '@aurelia/metadata';
 import {
   IContainer,
   InterfaceSymbol,

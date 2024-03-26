@@ -369,7 +369,7 @@ export function enableArrayObservation(): void {
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!(getOwnMetadata(observationEnabledKey, Array) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Array);
+    defineMetadata(true, Array, null, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         defineHiddenProp(proto, method, observe![method]);

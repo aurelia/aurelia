@@ -111,7 +111,7 @@ export type CustomElementKind = IResourceKind & {
   // eslint-disable-next-line
   getDefinition<C extends Constructable>(Type: Function): CustomElementDefinition<C>;
   annotate<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void;
-  getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K): PartialCustomElementDefinition[K];
+  getAnnotation<K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, context: DecoratorContext | null): PartialCustomElementDefinition[K];
   generateName(): string;
   createInjectable<T extends Key = Key>(): InterfaceSymbol<T>;
   generateType<P extends {} = {}>(
@@ -221,22 +221,22 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
   public static create(
     def: PartialCustomElementDefinition,
     Type?: null,
-    metadata?: Record<PropertyKey, unknown> | null,
+    context?: DecoratorContext | null,
   ): CustomElementDefinition;
   public static create(
     name: string,
     Type: CustomElementType,
-    metadata?: Record<PropertyKey, unknown> | null,
+    context?: DecoratorContext | null,
   ): CustomElementDefinition;
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialCustomElementDefinition,
     Type?: CustomElementType<T> | null,
-    metadata?: Record<PropertyKey, unknown> | null,
+    context?: DecoratorContext | null,
   ): CustomElementDefinition<T>;
   public static create(
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
-    metadata: Record<PropertyKey, unknown> | null = null,
+    context: DecoratorContext | null = null,
   ): CustomElementDefinition {
     // TODO(Sayan): aggregate the info from decorator metadata instead of using the Reflect API
     if (Type === null) {
@@ -265,11 +265,11 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('capture', def, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
-        mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies, metadata?.['dependencies'] as Key[]),
+        mergeArrays(getElementAnnotation(Type, 'dependencies', context), def.dependencies),
         fromDefinitionOrDefault('injectable', def, returnNull),
         fromDefinitionOrDefault('needsCompile', def, returnTrue),
         mergeArrays(def.surrogates),
-        Bindable.from(metadata, def.bindables),
+        Bindable.from(getElementAnnotation(Type, 'bindables', context), def.bindables),
         fromDefinitionOrDefault('containerless', def, returnFalse),
         fromDefinitionOrDefault('shadowOptions', def, returnNull),
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
@@ -286,20 +286,19 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       return new CustomElementDefinition(
         Type,
         nameOrDef,
-        mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
+        mergeArrays(getElementAnnotation(Type, 'aliases', context), Type.aliases),
         getElementKeyFrom(nameOrDef),
         fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
-        mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
-        mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies, metadata?.['dependencies'] as Key[]),
+        mergeArrays(getElementAnnotation(Type, 'instructions', context), Type.instructions),
+        mergeArrays(getElementAnnotation(Type, 'dependencies', context), Type.dependencies),
         fromAnnotationOrTypeOrDefault('injectable', Type, returnNull as () => InterfaceSymbol | null),
         fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue),
-        mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates),
+        mergeArrays(getElementAnnotation(Type, 'surrogates', context), Type.surrogates),
         Bindable.from(
-          metadata,
           ...Bindable.getAll(Type),
-          getElementAnnotation(Type, 'bindables'),
+          getElementAnnotation(Type, 'bindables', context),
           Type.bindables,
         ),
         fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse),
@@ -320,20 +319,19 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     return new CustomElementDefinition(
       Type,
       name,
-      mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
+      mergeArrays(getElementAnnotation(Type, 'aliases', context), nameOrDef.aliases, Type.aliases),
       getElementKeyFrom(name),
       fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
       fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
-      mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
-      mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies, metadata?.['dependencies'] as Key[]),
+      mergeArrays(getElementAnnotation(Type, 'instructions', context), nameOrDef.instructions, Type.instructions),
+      mergeArrays(getElementAnnotation(Type, 'dependencies', context), nameOrDef.dependencies, Type.dependencies),
       fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull),
       fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue),
-      mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates),
+      mergeArrays(getElementAnnotation(Type, 'surrogates', context), nameOrDef.surrogates, Type.surrogates),
       Bindable.from(
-        metadata,
         ...Bindable.getAll(Type),
-        getElementAnnotation(Type, 'bindables'),
+        getElementAnnotation(Type, 'bindables', context),
         Type.bindables,
         nameOrDef.bindables,
       ),
@@ -420,7 +418,7 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 
 /** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type?: C | null, decoratorContext?: DecoratorContext): CustomElementType<C> => {
-  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null, decoratorContext?.metadata);
+  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable | null, decoratorContext);
   const $Type = definition.Type as CustomElementType<C>;
 
   // this is the case, where the APi is invoked directly without a decorator
@@ -497,8 +495,9 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
 
 const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
   Type: Constructable,
-  prop: K
-): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
+  prop: K,
+  context: DecoratorContext | null
+): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type, context);
 
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types

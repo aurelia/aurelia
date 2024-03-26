@@ -1,4 +1,4 @@
-import { type InterfaceSymbol, resolve } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 import { BindingBehaviorInstance, Scope, IBinding } from '@aurelia/runtime';
 import {
   bindingBehavior,

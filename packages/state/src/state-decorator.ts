@@ -1,4 +1,4 @@
-import { IContainer, Registration } from '@aurelia/kernel';
+import { IContainer, Protocol, Registration } from '@aurelia/kernel';
 import { IHydratedComponentController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { IStore } from './interfaces';
 import { StateGetterBinding } from './state-getter-binding';
@@ -37,7 +37,7 @@ export function fromState<T, K = unknown>(
   };
 }
 
-const dependenciesKey = 'dependencies';
+const dependenciesKey = Protocol.annotation.keyFor('dependencies');
 
 @lifecycleHooks()
 class HydratingLifecycleHooks {

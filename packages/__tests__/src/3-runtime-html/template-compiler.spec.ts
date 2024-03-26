@@ -69,7 +69,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       ctx = TestContext.create();
       container = ctx.container;
       sut = ctx.templateCompiler;
-      container.registerResolver(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
+      sut.resolveResources = false;
+      container.register(CustomAttribute.define('foo', class {}));
     });
 
     describe('compileElement()', function () {
@@ -196,16 +197,24 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             });
           });
 
+          it('does not create a prop binding when attribute value is an empty string', function () {
+            const { instructions, surrogates } = compileWith(`<template foo>hello</template>`);
+            console.log(surrogates);
+            verifyInstructions(instructions, [], 'normal');
+            verifyInstructions(surrogates, [
+              { toVerify: ['type', 'to', 'res', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [] }
+            ], 'surrogate');
+          });
+
           it('compiles surrogate with interpolation binding + custom attribute', function () {
-            const { instructions, surrogates } = compileWith(
-              `<template foo="\${bar}"></template>`,
-              [CustomAttribute.define('foo', class {})]
-            );
+            const { instructions, surrogates } = compileWith(`<template foo="\${bar}">hello</template>`);
             verifyInstructions(instructions, [], 'normal');
             verifyInstructions(
               surrogates,
               [
-                { toVerify: ['type', 'to'], type: TT.interpolation, to: 'foo' }
+                { toVerify: ['type', 'to', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [
+                  new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bar')]), 'value')
+                ]}
               ],
               'surrogate'
             );
@@ -260,7 +269,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const rootInstructions = actual.instructions[0];
           const expectedRootInstructions = [
-            { toVerify: ['type', 'res'], type: TT.hydrateElement, res: CustomElement.getDefinition(El) }
+            { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
           ];
           verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -403,7 +412,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               verifyInstructions(instructions[0], [
                 {
                   toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv)
+                  type: TT.hydrateElement, res: 'not-div'
                 }
               ]);
             });
@@ -425,7 +434,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions(instructions[0], [
                   {
                     toVerify: ['type', 'res', 'to'],
-                    type: TT.hydrateTemplateController, res: CustomAttribute.find(container, 'if')
+                    type: TT.hydrateTemplateController, res: 'if'
                   }
                 ]);
                 const templateControllerInst = instructions[0][0] as HydrateTemplateController;
@@ -439,7 +448,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions([hydrateNotDivInstruction], [
                   {
                     toVerify: ['type', 'res'],
-                    type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv)
+                    type: TT.hydrateElement, res: 'not-div'
                   }
                 ]);
                 verifyInstructions(hydrateNotDivInstruction.props, []);

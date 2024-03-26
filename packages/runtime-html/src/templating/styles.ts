@@ -105,6 +105,9 @@ class AdoptedStyleSheetsStylesFactory implements IShadowDOMStyleFactory {
   }
 }
 
+// not really needed nowadays since all browsers support adopted style sheet
+// though keep it here for a bit longer before removing
+/* istanbul ignore next */
 class StyleElementStylesFactory implements IShadowDOMStyleFactory {
   private readonly p = resolve(IPlatform);
 

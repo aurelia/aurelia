@@ -42,6 +42,7 @@ import {
   InterpolationInstruction,
   InstructionType,
   DefaultBindingSyntax,
+  TemplateCompilerHooks,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -68,10 +69,35 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       ctx = TestContext.create();
       container = ctx.container;
       sut = ctx.templateCompiler;
-      container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
+      container.registerResolver(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
     });
 
     describe('compileElement()', function () {
+
+      describe('with compilation hooks', function () {
+        it('invokes hook before compilation', function () {
+          let i = 0;
+          container.register(TemplateCompilerHooks.define(class {
+            compiling() {
+              i = 1;
+            }
+          }));
+          sut.compile({ template: '<template>' } as any, container, null);
+          assert.strictEqual(i, 1);
+        });
+
+        it('does not do anything if needsCompile is false', function () {
+          let i = 0;
+          container.register(TemplateCompilerHooks.define(class {
+            compiling() {
+              i = 1;
+            }
+          }));
+          sut.compile({ template: '<template>', needsCompile: false } as any, container, null);
+          assert.strictEqual(i, 0);
+        });
+      });
+
       describe('with <slot/>', function () {
         it('set hasSlots to true', function () {
           const definition = compileWith('<template><slot></slot></template>', [], true);
@@ -92,6 +118,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         it('does not recognize slot in <template> without template controller', function () {
           const definition = compileWith('<template><template ><slot></slot></template></template>', [], true);
           assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
+        });
+
+        it('throws when <slot> is used without shadow dom', function () {
+          assert.throws(() => compileWith('<template><slot></slot></template>', [], false));
         });
       });
 
@@ -164,6 +194,21 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 /(Attribute id is invalid on surrogate)|(AUR0702:id)/,
               );
             });
+          });
+
+          it('compiles surrogate with interpolation binding + custom attribute', function () {
+            const { instructions, surrogates } = compileWith(
+              `<template foo="\${bar}"></template>`,
+              [CustomAttribute.define('foo', class {})]
+            );
+            verifyInstructions(instructions, [], 'normal');
+            verifyInstructions(
+              surrogates,
+              [
+                { toVerify: ['type', 'to'], type: TT.interpolation, to: 'foo' }
+              ],
+              'surrogate'
+            );
           });
         });
 
@@ -540,6 +585,24 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           }
         }
       }
+    });
+
+    describe('compileSpread', function () {
+      it('throws when spreading a template controller', function () {
+        @customAttribute({ name: 'bar', isTemplateController: true })
+        class Bar {}
+
+        container.register(Bar);
+
+        assert.throws(() => sut.compileSpread(
+          CustomElementDefinition.create({ name: 'el', template: '<template></template>' }),
+          [
+            { command: null, target: 'bar', rawValue: '', parts: [], rawName: 'bar' }
+          ],
+          container,
+          ctx.doc.createElement('div'),
+        ));
+      });
     });
   });
 
@@ -1499,8 +1562,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       for (const [otherAttrPosition, appTemplate] of [
         ['before', '<div a.bind="b" foo bar>'],
         ['middle', '<div foo a.bind="b" bar>'],
-        ['after', '<div foo bar a.bind="b">']]
-      ) {
+        ['after', '<div foo bar a.bind="b">'],
+      ]) {
         it(`compiles 2 template controller on an elements with another attribute in ${otherAttrPosition}`, function () {
           const { createProp, result: { template, instructions } } = compileWith(appTemplate, Foo, Bar);
           const [[{

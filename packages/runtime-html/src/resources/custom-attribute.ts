@@ -105,7 +105,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get type(): 'attribute' { return dtAttribute; }
+  public get kind(): 'attribute' { return dtAttribute; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,
@@ -173,10 +173,10 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 }
 
 /** @internal */
-export const caBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
+const caBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
 
 /** @internal */
-export const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
+const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
 
 const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
   Type: Constructable,

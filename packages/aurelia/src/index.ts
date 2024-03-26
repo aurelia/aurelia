@@ -356,15 +356,7 @@ export {
 
   observable,
 
-  // IfRegistration,
-  // ElseRegistration,
-  // RepeatRegistration,
-  // ReplaceableRegistration,
-  // WithRegistration,
-
   // DefaultResources as RuntimeDefaultResources,
-  // IObserverLocatorRegistration,
-  // IRendererRegistration,
   // RuntimeConfiguration,
 
   // ExpressionKind,
@@ -497,27 +489,7 @@ export {
   type ISinglePageAppConfig,
   IAppRoot,
 
-  // IfRegistration,
-  // ElseRegistration,
-  // RepeatRegistration,
-  // ReplaceableRegistration,
-  // WithRegistration,
-
-  // SanitizeValueConverterRegistration,
-
-  // DebounceBindingBehaviorRegistration,
-  // OneTimeBindingBehaviorRegistration,
-  // ToViewBindingBehaviorRegistration,
-  // FromViewBindingBehaviorRegistration,
-  // SignalBindingBehaviorRegistration,
-  // ThrottleBindingBehaviorRegistration,
-  // TwoWayBindingBehaviorRegistration,
-
-  // CallBindingRendererRegistration,
-
   // DefaultResources as RuntimeDefaultResources,
-  // IObserverLocatorRegistration,
-  // IRendererRegistration,
   // RuntimeConfiguration,
 
   // AttributeInstruction,
@@ -656,11 +628,6 @@ export {
   IAuSlotWatcher,
   slotted,
 
-  // IProjectorLocatorRegistration,
-  // ITargetAccessorLocatorRegistration,
-  // ITargetObserverLocatorRegistration,
-  // ITemplateFactoryRegistration,
-
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,
@@ -720,31 +687,11 @@ export {
   type IEnhancementConfig,
   type IHydratedParentController,
 
-  // IExpressionParserRegistration,
-
   // DefaultComponents as JitDefaultComponents,
-
-  // RefAttributePatternRegistration,
-  // DotSeparatedAttributePatternRegistration,
 
   // DefaultBindingSyntax,
 
-  // AtPrefixedTriggerAttributePatternRegistration,
-  // ColonPrefixedBindAttributePatternRegistration,
-
   ShortHandBindingSyntax,
-
-  // CallBindingCommandRegistration,
-  // DefaultBindingCommandRegistration,
-  // ForBindingCommandRegistration,
-  // FromViewBindingCommandRegistration,
-  // OneTimeBindingCommandRegistration,
-  // ToViewBindingCommandRegistration,
-  // TwoWayBindingCommandRegistration,
-
-  // SelfBindingBehaviorRegistration,
-  // UpdateTriggerBindingBehaviorRegistration,
-  // ComposeRegistration,
 
   // DefaultResources as RuntimeHtmlDefaultResources,
 
@@ -801,18 +748,9 @@ export {
   // ClassBindingCommand,
   // StyleBindingCommand,
 
-  // ITemplateCompilerRegistration,
-  // ITemplateElementFactoryRegistration,
   // IAttrSyntaxTransformerRegistation,
 
   // DefaultComponents as JitHtmlDefaultComponents,
-
-  // TriggerBindingCommandRegistration,
-  // DelegateBindingCommandRegistration,
-  // CaptureBindingCommandRegistration,
-  // AttrBindingCommandRegistration,
-  // ClassBindingCommandRegistration,
-  // StyleBindingCommandRegistration,
 
   // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
 

@@ -42,6 +42,7 @@ import {
   InterpolationInstruction,
   InstructionType,
   DefaultBindingSyntax,
+  TemplateCompilerHooks,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -68,10 +69,36 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       ctx = TestContext.create();
       container = ctx.container;
       sut = ctx.templateCompiler;
-      container.registerResolver<string>(CustomAttribute.keyFrom('foo'), { getFactory: () => ({ Type: { description: {} } }) } as any);
+      sut.resolveResources = false;
+      container.register(CustomAttribute.define('foo', class {}));
     });
 
     describe('compileElement()', function () {
+
+      describe('with compilation hooks', function () {
+        it('invokes hook before compilation', function () {
+          let i = 0;
+          container.register(TemplateCompilerHooks.define(class {
+            compiling() {
+              i = 1;
+            }
+          }));
+          sut.compile({ template: '<template>' } as any, container, null);
+          assert.strictEqual(i, 1);
+        });
+
+        it('does not do anything if needsCompile is false', function () {
+          let i = 0;
+          container.register(TemplateCompilerHooks.define(class {
+            compiling() {
+              i = 1;
+            }
+          }));
+          sut.compile({ template: '<template>', needsCompile: false } as any, container, null);
+          assert.strictEqual(i, 0);
+        });
+      });
+
       describe('with <slot/>', function () {
         it('set hasSlots to true', function () {
           const definition = compileWith('<template><slot></slot></template>', [], true);
@@ -92,6 +119,10 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         it('does not recognize slot in <template> without template controller', function () {
           const definition = compileWith('<template><template ><slot></slot></template></template>', [], true);
           assert.strictEqual(definition.hasSlots, false, `definition.hasSlots`);
+        });
+
+        it('throws when <slot> is used without shadow dom', function () {
+          assert.throws(() => compileWith('<template><slot></slot></template>', [], false));
         });
       });
 
@@ -165,6 +196,29 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               );
             });
           });
+
+          it('does not create a prop binding when attribute value is an empty string', function () {
+            const { instructions, surrogates } = compileWith(`<template foo>hello</template>`);
+            console.log(surrogates);
+            verifyInstructions(instructions, [], 'normal');
+            verifyInstructions(surrogates, [
+              { toVerify: ['type', 'to', 'res', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [] }
+            ], 'surrogate');
+          });
+
+          it('compiles surrogate with interpolation binding + custom attribute', function () {
+            const { instructions, surrogates } = compileWith(`<template foo="\${bar}">hello</template>`);
+            verifyInstructions(instructions, [], 'normal');
+            verifyInstructions(
+              surrogates,
+              [
+                { toVerify: ['type', 'to', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [
+                  new InterpolationInstruction(new Interpolation(['', ''], [new AccessScopeExpression('bar')]), 'value')
+                ]}
+              ],
+              'surrogate'
+            );
+          });
         });
 
         it('understands attr precendence: element prop > custom attr', function () {
@@ -215,7 +269,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           );
           const rootInstructions = actual.instructions[0];
           const expectedRootInstructions = [
-            { toVerify: ['type', 'res'], type: TT.hydrateElement, res: CustomElement.getDefinition(El) }
+            { toVerify: ['type', 'res'], type: TT.hydrateElement, res: 'el' }
           ];
           verifyInstructions(rootInstructions, expectedRootInstructions);
 
@@ -358,7 +412,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               verifyInstructions(instructions[0], [
                 {
                   toVerify: ['type', 'res'],
-                  type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv)
+                  type: TT.hydrateElement, res: 'not-div'
                 }
               ]);
             });
@@ -380,7 +434,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions(instructions[0], [
                   {
                     toVerify: ['type', 'res', 'to'],
-                    type: TT.hydrateTemplateController, res: CustomAttribute.find(container, 'if')
+                    type: TT.hydrateTemplateController, res: 'if'
                   }
                 ]);
                 const templateControllerInst = instructions[0][0] as HydrateTemplateController;
@@ -394,7 +448,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 verifyInstructions([hydrateNotDivInstruction], [
                   {
                     toVerify: ['type', 'res'],
-                    type: TT.hydrateElement, res: CustomElement.getDefinition(NotDiv)
+                    type: TT.hydrateElement, res: 'not-div'
                   }
                 ]);
                 verifyInstructions(hydrateNotDivInstruction.props, []);
@@ -540,6 +594,24 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           }
         }
       }
+    });
+
+    describe('compileSpread', function () {
+      it('throws when spreading a template controller', function () {
+        @customAttribute({ name: 'bar', isTemplateController: true })
+        class Bar {}
+
+        container.register(Bar);
+
+        assert.throws(() => sut.compileSpread(
+          CustomElementDefinition.create({ name: 'el', template: '<template></template>' }),
+          [
+            { command: null, target: 'bar', rawValue: '', parts: [], rawName: 'bar' }
+          ],
+          container,
+          ctx.doc.createElement('div'),
+        ));
+      });
     });
   });
 
@@ -760,11 +832,13 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         mode: BindingMode.toView,
       }];
     } else {
-      return [{
-        type: TT.setProperty,
-        to: 'value',
-        value
-      }];
+      return value.length > 0
+        ? [{
+          type: TT.setProperty,
+          to: 'value',
+          value
+        }]
+        : [];
     }
   }
 
@@ -1208,7 +1282,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           (_ctx) => BindingMode.twoWay
         ] as ((ctx: TestContext) => BindingMode | undefined)[],
         [
-          (ctx, [, , to], [attr, value]) => [`${attr}`, { type: TT.setProperty, to, value }],
+          (ctx, [, , to], [attr, value]) => [`${attr}`, value.length > 0 ? { type: TT.setProperty, to, value } : null],
           (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
           (ctx, [, , to], [attr, value]) => [`${attr}.to-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
           (ctx, [, , to], [attr, value]) => [`${attr}.one-time`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
@@ -1231,7 +1305,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             const instruction: Partial<HydrateAttributeInstruction> = {
               type: TT.hydrateAttribute,
               res: resolveResources ? CustomAttribute.getDefinition($def) : attr,
-              props: [childInstruction],
+              props: childInstruction == null ? [] : [childInstruction],
             };
             const expected = {
               ...defaultCustomElementDefinitionProperties,
@@ -1497,8 +1571,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       for (const [otherAttrPosition, appTemplate] of [
         ['before', '<div a.bind="b" foo bar>'],
         ['middle', '<div foo a.bind="b" bar>'],
-        ['after', '<div foo bar a.bind="b">']]
-      ) {
+        ['after', '<div foo bar a.bind="b">'],
+      ]) {
         it(`compiles 2 template controller on an elements with another attribute in ${otherAttrPosition}`, function () {
           const { createProp, result: { template, instructions } } = compileWith(appTemplate, Foo, Bar);
           const [[{

@@ -74,7 +74,7 @@ export function preprocessHtmlTemplate(
       }
       statements.push(`import * as d${i} from ${s(d)};\n`);
       if (hasAliases) {
-        viewDeps.push(`$$arr(d${i}, ${JSON.stringify(main)}${Object.keys(others).length > 0 ? `, ${JSON.stringify(others)}` : ''})`);
+        viewDeps.push(`$$arr(d${i}, ${s(main)}${Object.keys(others).length > 0 ? `, ${s(others)}` : ''})`);
       } else {
         viewDeps.push(`d${i}`);
       }
@@ -92,7 +92,7 @@ export function preprocessHtmlTemplate(
       statements.push(`import * as d${i} from ${s((options.transformHtmlImportSpecifier ?? (s => s))(d))};\n`);
 
       if (hasAliases) {
-        viewDeps.push(`$$arr(__get_el__(d${i}), ${JSON.stringify(main)})`);
+        viewDeps.push(`$$arr(__get_el__(d${i}), ${s(main)})`);
       } else {
         viewDeps.push(`d${i}`);
       }
@@ -200,7 +200,7 @@ export function register(container) {
   return { code, map };
 }
 
-function s(str: string) {
-  return JSON.stringify(str);
+function s(input: unknown) {
+  return JSON.stringify(input);
 }
 

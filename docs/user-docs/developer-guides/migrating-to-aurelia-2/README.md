@@ -140,6 +140,12 @@ Read more about dynamic composition in v2 in this [dynamic composition doc](../.
 
 ## General changes
 
+* Custom attributes are no longer considered to have a binding to the primary bindable when their template usage is with an empty string, like the following examples:
+    ```html
+    <div my-attr>
+    <div my-attr="">
+    ```
+    Both of the above usages will be considered as "plain" usage, to avoid overriding the defaul value in the custom attribute component instance.
 * Templates no longer need to have `<template>` tags as the start and ending tags. Templates can be pure HTML with enhanced Aurelia markup but `<template>` doesn't need to be explicitly defined.
 * `PLATFORM.moduleName` is gone. This was to address a limitation in Aurelia 1. Aurelia 2 now works well with all bundlers and does not require the addition of this code to use code splitting or tell the bundler where template code is.
 * Better intellisense support for TypeScript applications. Using the new injection interfaces, you can now inject strongly typed Aurelia packages such as Fetch Client, Router or Internationalization. These packages are prefixed with an "I" such as `IHttpClient`, `IRouter` and so on.

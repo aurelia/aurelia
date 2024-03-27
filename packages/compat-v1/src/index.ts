@@ -1,7 +1,6 @@
 import { IContainer, IRegistry } from '@aurelia/kernel';
 import { defineAstMethods } from './compat-ast';
 import { defineBindingMethods } from './compat-binding';
-import { PreventFormActionlessSubmit } from './compat-form';
 import { delegateSyntax, eventPreventDefaultBehavior } from './compat-event';
 import { callSyntax } from './compat-call';
 import { enableComposeCompat } from './compat-au-compose';
@@ -17,16 +16,11 @@ export const compatRegistration: IRegistry = {
     defineBindingMethods();
     enableComposeCompat();
     container.register(
-      PreventFormActionlessSubmit,
       eventPreventDefaultBehavior,
       delegateSyntax,
       callSyntax,
     );
   }
-};
-
-export {
-  PreventFormActionlessSubmit,
 };
 
 export {

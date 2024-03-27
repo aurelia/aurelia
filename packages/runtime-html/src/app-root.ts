@@ -16,6 +16,13 @@ import { ErrorNames, createMappedError } from './errors';
 export interface IAppRootConfig<T extends object = object> {
   host: HTMLElement;
   component: T | Constructable<T>;
+  /**
+   * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
+   * This is not desirable for SPA applications, so by default, this behavior is prevented.
+   *
+   * This option re-enables the default behavior of HTML forms.
+   */
+  allowActionlessForm?: boolean;
 }
 
 export interface IAppRoot<C extends object = object> extends IDisposable {
@@ -71,6 +78,17 @@ export class AppRoot<
     registerHostNode(container, this.platform = this._createPlatform(container, host), host);
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
+      if (!config.allowActionlessForm !== false) {
+        host.addEventListener('submit', (e: Event) => {
+          const target = e.target as HTMLFormElement;
+          const hasAction = (target.getAttribute('action')?.length ?? 0) > 0;
+
+          if (target.tagName === 'FORM' && !hasAction) {
+            e.preventDefault();
+          }
+        }, false);
+      }
+
       const childCtn = enhance ? container : container.createChild();
       const component = config.component as Constructable | ICustomElementViewModel;
       let instance: object;

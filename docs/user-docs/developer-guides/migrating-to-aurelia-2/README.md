@@ -27,9 +27,10 @@ An quickest way to get an application in v1 up an running in v2 is to include th
 
 In v2, `preventDefault` is no longer called by default. This breaking change could show up in unexpected places:
 - click events: in v1, clicking on a button inside a form will not submit the form, while it will in v2, as the click event default behavior is no longer prevented
-  {% hint style="info" %}
-  Even though clicking default behavior is not prevented, form submission without an action will not reload the page as this default behavior is still prevented in v2, so you don't need to add `:prevent` to every button `click`, or form `submit` listener.
-  {% endhint %}
+    {% hint style="info" %}
+    Even though clicking default behavior is not prevented, form submission without an action will not reload the page as this default behavior is still prevented in v2, so you don't need to add `:prevent` to every button `click`, or form `submit` listener.
+    {% endhint %}
+
 - drag events: in v1, implementing drag/drop will have `preventDefault` called automatically, but in v2, they will need to be explicitly called by the application
 
 Sometimes, if it's desirable to call `preventDefault` in an event binding, use `prevent` modifier, like the following example:
@@ -44,7 +45,7 @@ Read more about modifiers in [event modifier doc here](../../templates/template-
 
 ### Scope selection
 
-In v2, when trying to bind with a non-existent property, the closest boundary scope will be selected, instead of the immediate scope of the binding (v1 behavior).
+In v2, when trying to bind with a non-existent property, the closest boundary scope (scope of the owning custom element) will be selected, instead of the immediate scope of the binding (v1 behavior).
 
 ### Internal binding property `observeProperty` has been renamed to `observe`
 

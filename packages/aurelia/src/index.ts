@@ -1,5 +1,5 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, CustomElementType, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import type { ISinglePageAppConfig, IEnhancementConfig } from '@aurelia/runtime-html';
 
@@ -17,10 +17,6 @@ function createContainer(): IContainer {
 export class Aurelia extends $Aurelia {
   public constructor(container: IContainer = createContainer()) {
     super(container);
-  }
-
-  public static start(root: IAppRoot | undefined): void | Promise<void> {
-    return new Aurelia().start(root);
   }
 
   public static app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {

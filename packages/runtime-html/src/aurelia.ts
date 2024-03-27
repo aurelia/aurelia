@@ -161,6 +161,13 @@ export interface ISinglePageAppConfig<T = unknown> {
    * The root component of the app
    */
   component: T | Constructable<T>;
+  /**
+   * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
+   * This is not desirable for SPA applications, so by default, this behavior is prevented.
+   *
+   * This option re-enables the default behavior of HTML forms.
+   */
+  allowActionlessForm?: boolean;
 }
 
 export interface IEnhancementConfig<T> {
@@ -173,4 +180,11 @@ export interface IEnhancementConfig<T> {
    * A predefined container for the enhanced view.
    */
   container?: IContainer;
+  /**
+   * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
+   * This is not desirable for SPA applications, so by default, this behavior is prevented.
+   *
+   * This option re-enables the default behavior of HTML forms.
+   */
+  allowActionlessForm?: boolean;
 }

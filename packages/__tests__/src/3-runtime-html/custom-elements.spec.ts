@@ -1,4 +1,4 @@
-import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
+import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAppRoot, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
@@ -386,6 +386,65 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
       assert.strictEqual(prevented, true);
       assert.strictEqual(stopped, true);
+    });
+
+    it('does not alter dispatchEvent working', function () {
+      const { ctx, getBy } = createFixture(
+        '<div some-event.trigger="handleEvent($event)"><center>',
+        {
+          handleEvent: (e: Event) => {
+            e.preventDefault();
+          }
+        },
+      );
+      const center = getBy('center');
+      const event = new ctx.CustomEvent('some-event', { bubbles: true, cancelable: true });
+      // when there's nothing cancelling the event behavior, it's considered proceeded
+      // so name it something close to make the behavior easier to understand
+      const isProceeded = center.dispatchEvent(event);
+      assert.strictEqual(isProceeded, false);
+
+      const event2 = new ctx.CustomEvent('some-event', { bubbles: true, cancelable: false });
+      const isProceeded2 = center.dispatchEvent(event2);
+      assert.strictEqual(isProceeded2, true);
+    });
+
+    it('does not calls prevent default on actionless form submission', function () {
+      let e: SubmitEvent;
+      const { trigger } = createFixture('<div submit.trigger="onSubmit($event)"><form><button>', {
+        onSubmit: (_e: SubmitEvent) => {
+          e = _e;
+        }
+      });
+
+      trigger.click('button');
+      // cannot use a variable inside `onSubmit` handler above
+      // as the prevent default submission happens at the application root element level
+      assert.strictEqual(e?.defaultPrevented, true);
+    });
+
+    it('allows actionless form submission when allowActionlessForm is set to true', function () {
+      let e: SubmitEvent;
+      const { testHost, trigger } = createFixture(
+        '<div submit.trigger="onSubmit($event)"><form><button>',
+        {
+          onSubmit: (_e: SubmitEvent) => {
+            e = _e;
+          },
+        },
+        [AppTask.creating(IAppRoot, root => root.config.allowActionlessForm = true)]
+      );
+
+      let e2: SubmitEvent;
+      let isPrevented = false;
+      testHost.addEventListener('submit', e => {
+        e2 = e;
+        isPrevented = e.defaultPrevented;
+        e.preventDefault();
+      });
+      trigger.click('button');
+      assert.strictEqual(isPrevented, false);
+      assert.strictEqual(e, e2);
     });
   });
 

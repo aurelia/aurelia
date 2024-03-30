@@ -1,7 +1,7 @@
 import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
-import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
@@ -28,6 +28,7 @@ export function createFixture<T extends object>(
   registrations: unknown[] = [],
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
+  appConfig: IFixtureConfig =  {},
 ): IFixture<ICustomElementViewModel & ObjectType<T>> {
   type K = ObjectType<T>;
   const { container } = ctx;
@@ -76,7 +77,7 @@ export function createFixture<T extends object>(
   function startFixtureApp() {
     if (autoStart) {
       try {
-        au.app({ host: host, component });
+        au.app({ host: host, component, ...appConfig });
         fixture.startPromise = startPromise = au.start();
       } catch (ex) {
         try {
@@ -542,9 +543,10 @@ export interface IFixtureBuilderBase<T, E = {}> {
   html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
   component(comp: T): this & E;
   deps(...args: unknown[]): this & E;
+  config(config: IFixtureConfig): this & E;
 }
 
-type BuilderMethodNames = 'html' | 'component' | 'deps';
+type BuilderMethodNames = 'html' | 'component' | 'deps' | 'config';
 type CreateBuilder<T, Availables extends BuilderMethodNames> = {
   [key in Availables]:
     key extends 'html'
@@ -560,11 +562,14 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
 type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
 
+export type IFixtureConfig = Pick<IAppRootConfig, 'allowActionlessForm'>;
+
 class FixtureBuilder<T> {
   private _html?: string | TemplateStringsArray;
   private _htmlArgs?: TemplateValues<T>[];
   private _comp?: T;
   private _args?: unknown[];
+  private _config?: IFixtureConfig;
 
   public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> {
     this._html = html;
@@ -580,6 +585,11 @@ class FixtureBuilder<T> {
   public deps(...args: unknown[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>> {
     this._args = args;
     return this as CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>>;
+  }
+
+  public config(config: IFixtureConfig): CreateBuilder<T, Exclude<BuilderMethodNames, 'config'>> {
+    this._config = config;
+    return this as CreateBuilder<T, Exclude<BuilderMethodNames, 'config'>>;
   }
 
   public build() {
@@ -605,6 +615,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
 createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values);
 createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
+createFixture.config = <T = Record<PropertyKey, any>>(config: IFixtureConfig) => new FixtureBuilder<T>().config(config);
 
 /* eslint-disable */
 function testBuilderTypings() {

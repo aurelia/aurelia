@@ -408,15 +408,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     const logs = [];
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
-    const au = new Aurelia(ctx.container.register(
-      AppTask.creating(() => logs.push('Task.creating')),
-      AppTask.hydrating(() => logs.push('Task.hydrating')),
-      AppTask.hydrated(() => logs.push('Task.hydrated')),
-      AppTask.activating(() => logs.push('Task.activating')),
-      AppTask.activated(() => logs.push('Task.activated')),
-      AppTask.deactivating(() => logs.push('Task.deactivating')),
-      AppTask.deactivated(() => logs.push('Task.deactivated')),
-    ));
+    const au = new Aurelia();
     host.innerHTML = '<div>${message}</div>';
     const root = au.enhance({ host, component: {
       message: 'hello world',
@@ -429,7 +421,15 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       attached() { logs.push('attached'); },
       detaching() { logs.push('detaching'); },
       unbinding() { logs.push('unbinding'); },
-    }});
+    }, container: ctx.container.createChild().register(
+      AppTask.creating(() => logs.push('Task.creating')),
+      AppTask.hydrating(() => logs.push('Task.hydrating')),
+      AppTask.hydrated(() => logs.push('Task.hydrated')),
+      AppTask.activating(() => logs.push('Task.activating')),
+      AppTask.activated(() => logs.push('Task.activated')),
+      AppTask.deactivating(() => logs.push('Task.deactivating')),
+      AppTask.deactivated(() => logs.push('Task.deactivated')),
+    )});
     assert.strictEqual(host.textContent, 'hello world');
 
     const activationLogs = [
@@ -459,7 +459,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     }));
   });
 
-  it('does not call app task on the original container if there is app task registered on specific container', function () {
+  it('does not call app task on the original container', function () {
     const logs = [];
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
@@ -468,20 +468,12 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       AppTask.deactivating(() => logs.push('Task.deactivating')),
     ));
 
-    return onResolve(au.enhance({
-      host,
-      component: {},
-      container: ctx.container.createChild().register(
-        AppTask.creating(() => logs.push('Task.creating (child)')),
-        AppTask.deactivating(() => logs.push('Task.deactivating (child)')),
-      )}),
+    return onResolve(
+      au.enhance({ host, component: {} }),
       (root) => {
-        assert.deepStrictEqual(logs, ['Task.creating (child)']);
+        assert.deepStrictEqual(logs, []);
         return onResolve(root.deactivate(), () => {
-          assert.deepStrictEqual(logs, [
-            'Task.creating (child)',
-            'Task.deactivating (child)'
-          ]);
+          assert.deepStrictEqual(logs, []);
         });
       });
   });

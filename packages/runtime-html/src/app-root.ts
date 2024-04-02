@@ -60,6 +60,9 @@ export class AppRoot<
   /** @internal */
   private _controller!: ICustomElementController<K>;
 
+  /** @internal */
+  private readonly _useOwnAppTasks: boolean;
+
   public readonly host: HTMLElement;
   public readonly platform: IPlatform;
   public get controller() {
@@ -70,8 +73,9 @@ export class AppRoot<
     public readonly config: IAppRootConfig<K>,
     public readonly container: IContainer,
     rootProvider: InstanceProvider<IAppRoot>,
-    enhance?: boolean
+    enhance: boolean = false,
   ) {
+    this._useOwnAppTasks = enhance;
     const host = this.host = config.host;
     rootProvider.prepare(this);
 
@@ -144,7 +148,11 @@ export class AppRoot<
 
   /** @internal */
   private _runAppTasks(slot: TaskSlot): void | Promise<void> {
-    return onResolveAll(...this.container.getAll(IAppTask).reduce((results, task) => {
+    const container = this.container;
+    const appTasks = this._useOwnAppTasks && !container.has(IAppTask, false)
+      ? []
+      : container.getAll(IAppTask);
+    return onResolveAll(...appTasks.reduce((results, task) => {
       if (task.slot === slot) {
         results.push(task.run());
       }

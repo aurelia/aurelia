@@ -337,11 +337,13 @@ export {
   ITemplateElementFactory
 } from './compiler/template-element-factory';
 export {
-  BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,
   templateCompilerHooks,
+  type IAttributeBindablesInfo,
+  type IElementBindablesInfo,
+  IBindablesInfoResolver as IBindablesResolver,
 } from './compiler/template-compiler';
 
 export {

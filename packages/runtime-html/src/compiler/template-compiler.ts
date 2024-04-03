@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources, resolve } from '@aurelia/kernel';
 import { IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
@@ -47,9 +47,12 @@ export class TemplateCompiler implements ITemplateCompiler {
   public static register(container: IContainer): void {
     container.register(
       singletonRegistration(this, this),
-      aliasRegistration(this, ITemplateCompiler)
+      aliasRegistration(this, ITemplateCompiler),
     );
   }
+
+  /** @internal */
+  private readonly _bindableResolver = resolve(IBindablesResolver);
 
   public debug: boolean = false;
   public resolveResources: boolean = true;
@@ -136,8 +139,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let attrInstructions: (HydrateAttributeInstruction | HydrateTemplateController)[] | undefined;
     let attrBindableInstructions: IInstruction[];
-    // eslint-disable-next-line
-    let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
+    let bindablesInfo: IAttributeBindablesInfo | IElementBindablesInfo;
     let bindable: BindableDefinition;
     let primaryBindable: BindableDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
@@ -175,7 +177,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.no_spread_template_controller, attrTarget);
         }
-        bindablesInfo = BindablesInfo.from(attrDef, true);
+        bindablesInfo = this._bindableResolver.get(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -234,7 +236,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
         if (isCustomElement) {
-          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindablesInfo = this._bindableResolver.get(elDef);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
             expr = exprParser.parse(attrValue, etInterpolation);
@@ -277,7 +279,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (isCustomElement) {
           // if the element is a custom element
           // - prioritize bindables on a custom element before plain attributes
-          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindablesInfo = this._bindableResolver.get(elDef);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
             commandBuildInfo.node = target;
@@ -324,8 +326,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let attrDef: CustomAttributeDefinition | null = null;
     let attrInstructions: HydrateAttributeInstruction[] | undefined;
     let attrBindableInstructions: IInstruction[];
-    // eslint-disable-next-line
-    let bindableInfo: BindablesInfo<0> | BindablesInfo<1>;
+    let bindableInfo: IElementBindablesInfo | IAttributeBindablesInfo;
     let primaryBindable: BindableDefinition;
     let bindingCommand: BindingCommandInstance | null = null;
     let expr: AnyBindingExpression;
@@ -369,7 +370,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
         }
-        bindableInfo = BindablesInfo.from(attrDef, true);
+        bindableInfo = this._bindableResolver.get(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -662,8 +663,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let expr: AnyBindingExpression;
     let elementInstruction: HydrateElementInstruction | undefined;
     let bindingCommand: BindingCommandInstance | null = null;
-    // eslint-disable-next-line
-    let bindablesInfo: BindablesInfo<0> | BindablesInfo<1>;
+    let bindablesInfo: IElementBindablesInfo | IAttributeBindablesInfo;
     let primaryBindable: BindableDefinition;
     let realAttrTarget: string;
     let realAttrValue: string;
@@ -724,7 +724,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         canCapture = realAttrTarget !== auslotAttr && realAttrTarget !== 'slot';
         if (canCapture) {
-          bindablesInfo = BindablesInfo.from(elDef, false);
+          bindablesInfo = this._bindableResolver.get(elDef);
           // if capture is on, capture everything except:
           // - as-element
           // - containerless
@@ -763,7 +763,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (isCustomElement) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
-        bindablesInfo = BindablesInfo.from(elDef, false);
+        bindablesInfo = this._bindableResolver.get(elDef);
         bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
           if (bindingCommand === null) {
@@ -810,7 +810,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // check for custom attributes before plain attributes
       attrDef = context._findAttr(realAttrTarget);
       if (attrDef !== null) {
-        bindablesInfo = BindablesInfo.from(attrDef, true);
+        bindablesInfo = this._bindableResolver.get(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -1353,7 +1353,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
     // my-attr="prop1.bind: ...; prop2.bind: ..."
     // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-    const bindableAttrsInfo = BindablesInfo.from(attrDef, true);
+    const bindableAttrsInfo = this._bindableResolver.get(attrDef);
     const valueLength = attrRawValue.length;
     const instructions: IInstruction[] = [];
 
@@ -1800,62 +1800,83 @@ const orderSensitiveInputType: Record<string, number> = {
   // todo: range is also sensitive to order, for min/max
 };
 
-const bindableAttrsInfoCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
-export class BindablesInfo<T extends 0 | 1 = 0> {
-  public static from(def: CustomAttributeDefinition, isAttr: true): BindablesInfo<1>;
-  // eslint-disable-next-line
-  public static from(def: CustomElementDefinition, isAttr: false): BindablesInfo<0>;
-  public static from(def: CustomElementDefinition | CustomAttributeDefinition, isAttr: boolean): BindablesInfo<1 | 0> {
-    let info = bindableAttrsInfoCache.get(def);
-    if (info == null) {
-      type CA = CustomAttributeDefinition;
-      const bindables = def.bindables;
-      const attrs = createLookup<BindableDefinition>();
-      const defaultBindingMode: BindingMode = isAttr
-        ? (def as CA).defaultBindingMode === void 0
-          ? defaultMode
-          : (def as CA).defaultBindingMode
-        : defaultMode;
-      let bindable: BindableDefinition | undefined;
-      let prop: string;
-      let hasPrimary: boolean = false;
-      let primary: BindableDefinition | undefined;
-      let attr: string;
+export interface IAttributeBindablesInfo {
+  readonly attrs: Record<string, BindableDefinition>;
+  readonly bindables: Record<string, BindableDefinition>;
+  readonly primary: BindableDefinition;
+}
 
-      // from all bindables, pick the first primary bindable
-      // if there is no primary, pick the first bindable
-      // if there's no bindables, create a new primary with property value
-      for (prop in bindables) {
-        bindable = bindables[prop];
-        attr = bindable.attribute;
-        if (bindable.primary === true) {
-          if (hasPrimary) {
-            throw createMappedError(ErrorNames.compiler_primary_already_existed, def);
+export interface IElementBindablesInfo {
+  readonly attrs: Record<string, BindableDefinition>;
+  readonly bindables: Record<string, BindableDefinition>;
+  readonly primary: null;
+}
+
+export interface IBindablesInfoResolver {
+  get(def: CustomAttributeDefinition): IAttributeBindablesInfo;
+  get(def: CustomElementDefinition): IElementBindablesInfo;
+}
+
+export const IBindablesResolver = /*@__PURE__*/createInterface<IBindablesInfoResolver>('IBindablesInfoResolver', x => {
+  class BindablesInfoResolver implements IBindablesInfoResolver {
+    /** @internal */
+    private readonly _cache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
+    public get(def: CustomAttributeDefinition): IAttributeBindablesInfo;
+    public get(def: CustomElementDefinition): IElementBindablesInfo;
+    public get(def: CustomAttributeDefinition | CustomElementDefinition): IAttributeBindablesInfo | IElementBindablesInfo {
+      let info = this._cache.get(def);
+      if (info == null) {
+        const bindables = def.bindables;
+        const attrs = createLookup<BindableDefinition>();
+        let bindable: BindableDefinition | undefined;
+        let prop: string;
+        let hasPrimary: boolean = false;
+        let primary: BindableDefinition | undefined;
+        let attr: string;
+
+        // from all bindables, pick the first primary bindable
+        // if there is no primary, pick the first bindable
+        // if there's no bindables, create a new primary with property value
+        for (prop in bindables) {
+          bindable = bindables[prop];
+          attr = bindable.attribute;
+          if (bindable.primary === true) {
+            if (hasPrimary) {
+              throw createMappedError(ErrorNames.compiler_primary_already_existed, def);
+            }
+            hasPrimary = true;
+            primary = bindable;
+          } else if (!hasPrimary && primary == null) {
+            primary = bindable;
           }
-          hasPrimary = true;
-          primary = bindable;
-        } else if (!hasPrimary && primary == null) {
-          primary = bindable;
+
+          attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
+        }
+        if (bindable == null && def.kind === 'attribute') {
+          // if no bindables are present, default to "value"
+          primary = attrs.value = BindableDefinition.create(
+            'value',
+            def.Type,
+            { mode: def.defaultBindingMode != null ? def.defaultBindingMode : defaultMode }
+          );
         }
 
-        attrs[attr] = BindableDefinition.create(prop, def.Type, bindable);
+        this._cache.set(def, info = new BindablesInfo(attrs, bindables, primary ?? null));
       }
-      if (bindable == null && isAttr) {
-        // if no bindables are present, default to "value"
-        primary = attrs.value = BindableDefinition.create('value', def.Type, { mode: defaultBindingMode });
-      }
-
-      bindableAttrsInfoCache.set(def, info = new BindablesInfo(attrs, bindables, primary));
+      return info;
     }
-    return info;
   }
 
-  protected constructor(
-    public readonly attrs: Record<string, BindableDefinition>,
-    public readonly bindables: Record<string, BindableDefinition>,
-    public readonly primary: T extends 1 ? BindableDefinition : BindableDefinition | undefined,
-  ) {}
-}
+  class BindablesInfo {
+    public constructor(
+      public readonly attrs: Record<string, BindableDefinition>,
+      public readonly bindables: Record<string, BindableDefinition>,
+      public readonly primary: BindableDefinition | null,
+    ) {}
+  }
+
+  return x.singleton(BindablesInfoResolver);
+});
 
 _START_CONST_ENUM();
 const enum LocalTemplateBindableAttributes {

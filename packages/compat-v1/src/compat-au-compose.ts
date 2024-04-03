@@ -1,5 +1,5 @@
 import { IIndexable } from '@aurelia/kernel';
-import { AuCompose, BindableDefinition, BindablesInfo, CustomElement } from '@aurelia/runtime-html';
+import { AuCompose, BindableDefinition, CustomElement } from '@aurelia/runtime-html';
 import { defineHiddenProp } from './utilities';
 
 let compatEnabled = false;
@@ -25,18 +25,8 @@ export function enableComposeCompat() {
   if (!addedMetadata) {
     addedMetadata = true;
     const def = CustomElement.getDefinition(AuCompose);
-    const viewModelBindable = def.bindables.viewModel = BindableDefinition.create('viewModel', AuCompose);
-    const viewBindable = def.bindables.view = BindableDefinition.create('view', AuCompose);
-
-    const bindableInfo = BindablesInfo.from(def as any, false);
-    // when <au-compose/> is used some where before the enable compat call is invoked
-    // BindableInfo of AuCompose definition has already been cached
-    // and thus will not be updated with view/viewmodel information
-    // so need to add it there too
-    if (!('view' in bindableInfo.attrs)) {
-      bindableInfo.attrs.view = bindableInfo.bindables.view = viewBindable;
-      bindableInfo.attrs['view-model'] = bindableInfo.bindables.viewModel = viewModelBindable;
-    }
+    def.bindables.viewModel = BindableDefinition.create('viewModel', AuCompose);
+    def.bindables.view = BindableDefinition.create('view', AuCompose);
   }
 
   defineHiddenProp(prototype, 'viewModelChanged', function (this: AuCompose, value: unknown) {
@@ -79,14 +69,6 @@ export function disableComposeCompat() {
     const def = CustomElement.getDefinition(AuCompose);
     delete def.bindables.viewModel;
     delete def.bindables.view;
-
-    const bindableInfo = BindablesInfo.from(def as any, false);
-    if (('view' in bindableInfo.attrs)) {
-      delete bindableInfo.attrs.view;
-      delete bindableInfo.bindables.view;
-      delete bindableInfo.attrs['view-model'];
-      delete bindableInfo.bindables.viewModel;
-    }
   }
   compatEnabled = false;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

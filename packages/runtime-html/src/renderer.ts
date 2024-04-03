@@ -171,7 +171,7 @@ export class HydrateElementInstruction<T extends Record<PropertyKey, unknown> = 
     /**
      * Indicates what projections are associated with the element usage
      */
-    public projections: Record<string, CustomElementDefinition> | null,
+    public projections: Record<string, PartialCustomElementDefinition> | null,
     /**
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */

@@ -3,6 +3,7 @@ import {
   ITemplateCompiler,
   IInstruction,
   InstructionType as TT,
+  CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -46,7 +47,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
-        { name: '', template, surrogates: [], instructions: [] },
+        CustomElementDefinition.create({ name: '', template, surrogates: [], instructions: [] }),
         ctx.container,
         null,
       );
@@ -94,7 +95,7 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       const compiler = ctx.container.get(ITemplateCompiler);
       const template = `<${el} ${bindingAttr}.bind="value" ${elAttrsStr}></${el}>`;
       const { instructions: rootInstructions } = compiler.compile(
-        { name: '', template, surrogates: [], instructions: [] },
+        CustomElementDefinition.create({ name: '', template, surrogates: [], instructions: [] }),
         ctx.container,
         null,
       );

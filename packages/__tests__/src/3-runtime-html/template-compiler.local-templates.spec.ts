@@ -4,8 +4,14 @@ import {
 import {
   BindingMode,
   Aurelia, bindable,
-  BindableDefinition, CustomAttributeDefinition, customElement,
-  CustomElement, CustomElementDefinition, HydrateElementInstruction
+  BindableDefinition,
+  CustomAttributeDefinition,
+  customElement,
+  CustomElement,
+  CustomElementDefinition,
+  HydrateElementInstruction,
+  PartialCustomElementDefinition,
+  ICompliationInstruction,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -204,7 +210,17 @@ function $$createFixture() {
   const ctx = TestContext.create();
   const container = ctx.container;
   container.register(LoggerConfiguration.create({ sinks: [EventLog] }));
-  const sut = ctx.templateCompiler;
+  const sut = {
+    get resolveResources() {
+      return ctx.templateCompiler.resolveResources;
+    },
+    set resolveResources(v) {
+      ctx.templateCompiler.resolveResources = v;
+    },
+    compile(def: PartialCustomElementDefinition, container: IContainer, instruction: ICompliationInstruction) {
+      return ctx.templateCompiler.compile(CustomElementDefinition.create(def), container, instruction);
+    }
+  };
   return { ctx, container, sut };
 }
 

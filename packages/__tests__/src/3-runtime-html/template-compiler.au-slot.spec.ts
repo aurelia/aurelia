@@ -1,6 +1,16 @@
 import { IExpressionParser } from '@aurelia/runtime';
 import {
-  BindingMode, AuSlot, CustomElement, CustomElementDefinition, CustomElementType, HydrateElementInstruction, InstructionType, PartialCustomElementDefinition, IInstruction, DefaultBindingSyntax, PropertyBindingInstruction, TextBindingInstruction
+  BindingMode,
+  AuSlot,
+  CustomElement,
+  CustomElementDefinition,
+  CustomElementType,
+  HydrateElementInstruction,
+  InstructionType,
+  IInstruction,
+  DefaultBindingSyntax,
+  PropertyBindingInstruction,
+  TextBindingInstruction,
 } from '@aurelia/runtime-html';
 import {
   assert, TestContext
@@ -358,13 +368,13 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     const { container, sut } = createFixture();
     container.register(DefaultBindingSyntax, ...registrations);
 
-    const templateDefinition = {
+    const templateDefinition = CustomElementDefinition.create({
       name: 'ano',
       template,
       instructions: [],
       surrogates: [],
       shadowOptions: { mode: 'open' },
-    } satisfies PartialCustomElementDefinition;
+    });
     const parser = container.get(IExpressionParser);
 
     return {

@@ -62,13 +62,13 @@ type AttrDef<T extends object> = CustomAttributeDefinition<Constructable<T>>;
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {
     let ctx: TestContext;
-    let sut: ITemplateCompiler;
+    let sut: IWrappedTemplateCompiler;
     let container: IContainer;
 
     beforeEach(function () {
       ctx = TestContext.create();
       container = ctx.container;
-      sut = ctx.templateCompiler;
+      sut = createCompilerWrapper(ctx.templateCompiler);
       sut.resolveResources = false;
       container.register(CustomAttribute.define('foo', class {}));
     });
@@ -1122,7 +1122,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     function createFixture(ctx: TestContext, ...globals: any[]) {
       const container = ctx.container;
       container.register(...globals, delegateSyntax);
-      const sut = ctx.templateCompiler;
+      const sut = createCompilerWrapper(ctx.templateCompiler);
       return { container, sut };
     }
 
@@ -1689,7 +1689,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       function compileWith(markup: string | Element, ...extraResources: any[]) {
         const ctx = TestContext.create();
         const container = ctx.container;
-        const sut = ctx.templateCompiler;
+        const sut = createCompilerWrapper(ctx.templateCompiler);
         container.register(...extraResources);
         const templateDefinition: PartialCustomElementDefinition = {
           template: markup,
@@ -2137,4 +2137,25 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       expected
     );
   }
+
+  interface IWrappedTemplateCompiler extends ITemplateCompiler {
+    compile(def: PartialCustomElementDefinition, container: IContainer, instruction: any): CustomElementDefinition;
+  }
+
+  function createCompilerWrapper(compiler: ITemplateCompiler): IWrappedTemplateCompiler {
+    return {
+      get resolveResources() { return compiler.resolveResources; },
+      set resolveResources(value: boolean) { compiler.resolveResources = value; },
+      get debug() { return compiler.debug; },
+      set debug(value: boolean) { compiler.debug = value; },
+      compile(definition: PartialCustomElementDefinition, container: IContainer, instruction: any) {
+        return compiler.compile(CustomElementDefinition.create(definition), container, instruction);
+      },
+      compileSpread(...args: any[]) {
+        // eslint-disable-next-line prefer-spread
+        return compiler.compileSpread.apply(compiler, args);
+      }
+    };
+  }
+
 });

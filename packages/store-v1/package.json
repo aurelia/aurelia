@@ -21,7 +21,8 @@
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aurelia/aurelia"
+    "url": "https://github.com/aurelia/aurelia.git",
+    "directory": "packages/store-v1"
   },
   "bugs": {
     "url": "https://github.com/aurelia/aurelia/issues"

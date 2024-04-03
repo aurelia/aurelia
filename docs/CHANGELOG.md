@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.14"></a>
+# 2.0.0-beta.14 (2024-04-03)
+
+### Features:
+
+* **custom-attribute:** ability to find closest attr by name or ctor (#1928) ([ab28585](https://github.com/aurelia/aurelia/commit/ab28585))
+* **i18n:** support multiple versions of i18next (#1927) ([0789ee5](https://github.com/aurelia/aurelia/commit/0789ee5))
+
+
+### Bug Fixes:
+
+* **enhance:** dont call app tasks from parent container (#1933) ([e7119ec](https://github.com/aurelia/aurelia/commit/e7119ec))
+* **form:** prevent actionless submission (#1931) ([1fc74d4](https://github.com/aurelia/aurelia/commit/1fc74d4))
+
+
+### Refactorings:
+
+* **attr:** treat empty string as no binding (#1930) ([8fc5275](https://github.com/aurelia/aurelia/commit/8fc5275))
+
 <a name="2.0.0-beta.13"></a>
 # 2.0.0-beta.13 (2024-03-15)
 

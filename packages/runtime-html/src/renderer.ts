@@ -332,7 +332,7 @@ export interface ITemplateCompiler {
    */
   resolveResources: boolean;
   compile(
-    partialDefinition: PartialCustomElementDefinition,
+    partialDefinition: CustomElementDefinition,
     context: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition;
@@ -346,7 +346,7 @@ export interface ITemplateCompiler {
    * @param host - the host element where the attributes are spreaded on
    */
   compileSpread(
-    requestor: PartialCustomElementDefinition,
+    requestor: CustomElementDefinition,
     attrSyntaxes: AttrSyntax[],
     container: IContainer,
     target: Element,

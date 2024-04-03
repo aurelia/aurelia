@@ -39,7 +39,6 @@ import type {
 } from '@aurelia/kernel';
 import type { AnyBindingExpression } from '@aurelia/runtime';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
-import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import { auslotAttr, defaultSlotName, type IAuSlotProjections } from '../templating/controller.projection';
 import { ErrorNames, createMappedError } from '../errors';
@@ -56,21 +55,17 @@ export class TemplateCompiler implements ITemplateCompiler {
   public resolveResources: boolean = true;
 
   public compile(
-    partialDefinition: PartialCustomElementDefinition,
+    definition: CustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
-    const definition = CustomElementDefinition.getOrCreate(partialDefinition);
-    if (definition.template === null || definition.template === void 0) {
-      return definition;
-    }
-    if (definition.needsCompile === false) {
+    if (definition.template == null || definition.needsCompile === false) {
       return definition;
     }
     compilationInstruction ??= emptyCompilationInstructions;
 
-    const context = new CompilationContext(partialDefinition, container, compilationInstruction, null, null, void 0);
-    const template = isString(definition.template) || !partialDefinition.enhance
+    const context = new CompilationContext(definition, container, compilationInstruction, null, null, void 0);
+    const template = isString(definition.template) || !definition.enhance
       ? context._templateFactory.createTemplate(definition.template)
       : definition.template as HTMLElement;
     const isTemplateElement = template.nodeName === TEMPLATE_NODE_NAME && (template as HTMLTemplateElement).content != null;
@@ -92,9 +87,9 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileNode(content, context);
 
     const compiledDef = CustomElementDefinition.create({
-      ...partialDefinition,
-      name: partialDefinition.name || generateElementName(),
-      dependencies: (partialDefinition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
+      ...definition,
+      name: definition.name || generateElementName(),
+      dependencies: (definition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
       instructions: context.rows,
       surrogates: isTemplateElement
         ? this._compileSurrogate(template, context)
@@ -1630,7 +1625,7 @@ const isMarker = (el: Node): el is Comment =>
 class CompilationContext {
   public readonly root: CompilationContext;
   public readonly parent: CompilationContext | null;
-  public readonly def: PartialCustomElementDefinition;
+  public readonly def: CustomElementDefinition;
   public readonly ci: ICompliationInstruction;
   public readonly _templateFactory: ITemplateElementFactory;
   public readonly _logger: ILogger;
@@ -1648,7 +1643,7 @@ class CompilationContext {
   private readonly c: IContainer;
 
   public constructor(
-    def: PartialCustomElementDefinition,
+    def: CustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction,
     parent: CompilationContext | null,

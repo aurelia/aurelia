@@ -22,7 +22,7 @@ import {
   type IContainerConfiguration,
 } from './di';
 import { ErrorNames, createMappedError, logError, logWarn } from './errors';
-import { singletonRegistration } from './di.registration';
+import { aliasToRegistration, singletonRegistration } from './di.registration';
 import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory } from './di.resolvers';
 
 export const Registrable = /*@__PURE__*/(() => {
@@ -184,8 +184,23 @@ export class Container implements IContainer {
         Registrable.get(current)!.call(current, this);
       } else if ((def = Metadata.getOwn(resourceBaseName, current)) != null) {
         def.register(this);
-      } else if (isClass(current)) {
-        singletonRegistration(current, current as Constructable).register(this);
+      } else if (isClass<{ $res: { type: string; name: string } }>(current)) {
+        if (isString((current).$res?.type)) {
+          const key = `${resourceBaseName}:${(current).$res.type}:${(current).$res.name}`;
+          if (!this.has(current, false)) {
+            singletonRegistration(current, current).register(this);
+          }
+          if (!this.has(key, false)) {
+            aliasToRegistration(current, key).register(this);
+          }
+          // this.register(
+          //   this.has(current, false) ? null : singletonRegistration(current, current),
+          //   aliasToRegistration(current, key),
+          //   // ...aliases.map(alias => aliasToRegistration(current, getElementKeyFrom(alias)))
+          // );
+        } else {
+          singletonRegistration(current, current as Constructable).register(this);
+        }
       } else {
         keys = Object.keys(current);
         j = 0;
@@ -500,7 +515,10 @@ export class Container implements IContainer {
     }
   }
 
-  public find<TResType extends ResourceType>(key: string): TResType | null {
+  public find<TResType extends ResourceType>(kind: string, name: string): TResType | null;
+  public find<TResType extends ResourceType>(key: string): TResType | null;
+  public find<TResType extends ResourceType>(keyOrKind: string, name?: string): TResType | null {
+    const key = isString(name) ? `${resourceBaseName}:${keyOrKind}:${name}` : keyOrKind;
     let container: Container = this;
     let resolver = container.res[key];
     if (resolver == null) {
@@ -722,8 +740,8 @@ const isSelfRegistry = <T extends Constructable>(obj: RegisterSelf<T>): obj is R
 const isRegisterInRequester = <T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> =>
   isSelfRegistry(obj) && obj.registerInRequestor;
 
-const isClass = <T extends { prototype?: any }>(obj: T): obj is Class<any, T> =>
-  obj.prototype !== void 0;
+const isClass = <T>(obj: unknown): obj is Class<any, T> =>
+  (obj as { prototype: object }).prototype !== void 0;
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;

@@ -113,8 +113,8 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     return def;
   },
   find(container, name) {
-    const key = getBindingBehaviorKeyFrom(name);
-    const Type = container.find(key);
+    // const key = getBindingBehaviorKeyFrom(name);
+    const Type = container.find('binding-behavior', name);
     return Type == null ? null : getOwnMetadata(bbBaseName, Type) ?? null;
   },
   get(container, name) {

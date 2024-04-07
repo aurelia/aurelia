@@ -253,8 +253,8 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   },
   getAnnotation: getAttributeAnnotation,
   find(c, name) {
-    const key = getAttributeKeyFrom(name);
-    const Type = c.find(key);
+    // const key = getAttributeKeyFrom(name);
+    const Type = c.find('custom-attribute', name);
     return Type === null ? null : getOwnMetadata(caBaseName, Type) ?? null;
   },
 });

@@ -132,8 +132,8 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   },
   getAnnotation: getConverterAnnotation,
   find(container, name) {
-    const key = getValueConverterKeyFrom(name);
-    const Type = container.find(key);
+    // const key = getValueConverterKeyFrom(name);
+    const Type = container.find('value-converter', name);
     return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? null;
   },
   get(container, name) {

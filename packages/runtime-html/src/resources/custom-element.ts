@@ -584,8 +584,9 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   createInjectable: createElementInjectable,
   generateType: generateElementType,
   find(c, name) {
-    const key = getElementKeyFrom(name);
-    const Type = c.find(key);
+    // return c.find('element', name);
+    // const key = getElementKeyFrom(name);
+    const Type = c.find('custom-element', name);
     return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? null;
   }
 });

@@ -25,6 +25,7 @@ import type {
   ResourceDefinition,
   IResolver,
   Writable,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
@@ -504,11 +505,21 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
   prop: K
 ): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
+const staticResourceDefinitionMetadataKey = 'static:resource-definition:metadata';
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
-  if (def === void 0) {
+  let def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
+  if (def == null) {
+    def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomElementDefinition<C>;
+    if (def == null) {
+      if (isString((Type as StaticResourceType).$au?.type)) {
+        def = CustomElementDefinition.create((Type as StaticResourceType).$au as PartialCustomElementDefinition, Type as CustomElementType<C>);
+        defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
+      }
+    }
+  }
+  if (def == null) {
     throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
 

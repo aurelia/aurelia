@@ -4,7 +4,7 @@ import { Metadata, isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { resourceBaseName, ResourceDefinition, type ResourceType } from './resource';
+import { resourceBaseName, ResourceDefinition, StaticResourceType, type ResourceType } from './resource';
 import { isFunction, isString, objectFreeze } from './utilities';
 import {
   IContainer,
@@ -184,20 +184,22 @@ export class Container implements IContainer {
         Registrable.get(current)!.call(current, this);
       } else if ((def = Metadata.getOwn(resourceBaseName, current)) != null) {
         def.register(this);
-      } else if (isClass<{ $res: { type: string; name: string } }>(current)) {
-        if (isString((current).$res?.type)) {
-          const key = `${resourceBaseName}:${(current).$res.type}:${(current).$res.name}`;
+      } else if (isClass<StaticResourceType>(current)) {
+        if (isString((current).$au?.type)) {
+          const { $au, aliases = emptyArray } = current;
+          let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
           if (!this.has(current, false)) {
             singletonRegistration(current, current).register(this);
           }
           if (!this.has(key, false)) {
             aliasToRegistration(current, key).register(this);
           }
-          // this.register(
-          //   this.has(current, false) ? null : singletonRegistration(current, current),
-          //   aliasToRegistration(current, key),
-          //   // ...aliases.map(alias => aliasToRegistration(current, getElementKeyFrom(alias)))
-          // );
+          j = 0;
+          jj = aliases.length;
+          for (; j < jj; ++j) {
+            key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
+            aliasToRegistration(current, key).register(this);
+          }
         } else {
           singletonRegistration(current, current as Constructable).register(this);
         }

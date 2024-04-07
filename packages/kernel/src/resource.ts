@@ -2,6 +2,14 @@ import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { defineMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
+export type StaticResourceType = {
+  readonly aliases?: string[];
+  readonly $au?: {
+    type: string;
+    name: string;
+  };
+};
+
 export type ResourceType<
   TUserType extends Constructable = Constructable,
   TResInstance extends {} = {},
@@ -10,9 +18,7 @@ export type ResourceType<
 > = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (...args: any[]) => TResInstance & TUserInstance
-) & {
-  readonly aliases?: readonly string[];
-} & TResType & TUserType;
+) & StaticResourceType & TResType & TUserType;
 
 export type ResourceDefinition<
   TUserType extends Constructable = Constructable,

@@ -1627,6 +1627,7 @@ class CompilationContext {
   public readonly parent: CompilationContext | null;
   public readonly def: CustomElementDefinition;
   public readonly ci: ICompliationInstruction;
+  public readonly _resourceResolver: IResourceResolver;
   public readonly _templateFactory: ITemplateElementFactory;
   public readonly _logger: ILogger;
   public readonly _attrParser: IAttributeParser;
@@ -1656,6 +1657,7 @@ class CompilationContext {
     this.def = def;
     this.ci = compilationInstruction;
     this.parent = parent;
+    this._resourceResolver = hasParent ? parent._resourceResolver : container.get(IResourceResolver);
     this._templateFactory = hasParent ? parent._templateFactory : container.get(ITemplateElementFactory);
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
     this._attrParser = hasParent ? parent._attrParser : container.get(IAttributeParser);
@@ -1703,14 +1705,14 @@ class CompilationContext {
    * Find the custom element definition of a given name
    */
   public _findElement(name: string): CustomElementDefinition | null {
-    return CustomElement.find(this.c, name);
+    return this._resourceResolver.el(this.c, name);
   }
 
   /**
    * Find the custom attribute definition of a given name
    */
   public _findAttr(name: string): CustomAttributeDefinition | null {
-    return CustomAttribute.find(this.c, name);
+    return this._resourceResolver.attr(this.c, name);
   }
 
   /**
@@ -1720,11 +1722,11 @@ class CompilationContext {
     return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
   }
 
-  // todo: ideally binding command shouldn't have to be cached
-  // it can just be a singleton where it' retrieved
-  // the resources semantic should be defined by the resource itself,
-  // rather than baked in the container
-  private readonly _commands: Record<string, BindingCommandInstance | null | undefined> = createLookup();
+  // // todo: ideally binding command shouldn't have to be cached
+  // // it can just be a singleton where it' retrieved
+  // // the resources semantic should be defined by the resource itself,
+  // // rather than baked in the container
+  // private readonly _commands: Record<string, BindingCommandInstance | null | undefined> = createLookup();
   /**
    * Retrieve a binding command resource instance.
    *
@@ -1733,23 +1735,28 @@ class CompilationContext {
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
   public _createCommand(syntax: AttrSyntax): BindingCommandInstance | null {
-    if (this.root !== this) {
-      return this.root._createCommand(syntax);
-    }
     const name = syntax.command;
     if (name === null) {
       return null;
     }
-    let result = this._commands[name];
-    let commandDef: BindingCommandDefinition | null;
-    if (result === void 0) {
-      commandDef = BindingCommand.find(this.c, name);
-      if (commandDef == null) {
-        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
-      }
-      this._commands[name] = result = BindingCommand.get(this.c, name);
-    }
-    return result;
+    return this._resourceResolver.command(this.c, name);
+  //   if (this.root !== this) {
+  //     return this.root._createCommand(syntax);
+  //   }
+  //   const name = syntax.command;
+  //   if (name === null) {
+  //     return null;
+  //   }
+  //   let result = this._commands[name];
+  //   let commandDef: BindingCommandDefinition | null;
+  //   if (result === void 0) {
+  //     commandDef = BindingCommand.find(this.c, name);
+  //     if (commandDef == null) {
+  //       throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
+  //     }
+  //     this._commands[name] = result = BindingCommand.get(this.c, name);
+  //   }
+  //   return result;
   }
 }
 
@@ -1877,6 +1884,62 @@ export const IBindablesResolver = /*@__PURE__*/createInterface<IBindablesInfoRes
 
   return x.singleton(BindablesInfoResolver);
 });
+
+export interface IResourceResolver {
+  el(c: IContainer, name: string): CustomElementDefinition | null;
+  attr(c: IContainer, name: string): CustomAttributeDefinition | null;
+  command(c: IContainer, name: string): BindingCommandInstance | null;
+}
+
+export const IResourceResolver = /*@__PURE__*/createInterface<IResourceResolver>('IResourceResolver', x => x.singleton(ResourceResolver));
+
+class ResourceResolver implements IResourceResolver {
+  private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();
+  private readonly _commandCache = new WeakMap<IContainer, Record<string, BindingCommandInstance | null>>();
+
+  public el(c: IContainer, name: string): CustomElementDefinition | null {
+    let record = this._resourceCache.get(c);
+    if (record == null) {
+      this._resourceCache.set(c, record = new RecordCache());
+    }
+    return name in record.element ? record.element[name] : (record.element[name] = CustomElement.find(c, name));
+  }
+
+  public attr(c: IContainer, name: string): CustomAttributeDefinition | null {
+    let record = this._resourceCache.get(c);
+    if (record == null) {
+      this._resourceCache.set(c, record = new RecordCache());
+    }
+    return name in record.attr ? record.attr[name] : (record.attr[name] = CustomAttribute.find(c, name));
+  }
+
+  public command(c: IContainer, name: string): BindingCommandInstance | null {
+    let commandInstanceCache = this._commandCache.get(c);
+    if (commandInstanceCache == null) {
+      this._commandCache.set(c, commandInstanceCache = createLookup());
+    }
+    let result = commandInstanceCache[name];
+    if (result === void 0) {
+      let record = this._resourceCache.get(c);
+      if (record == null) {
+        this._resourceCache.set(c, record = new RecordCache());
+      }
+
+      const commandDef = name in record.command ? record.command[name] : (record.command[name] = BindingCommand.find(c, name));
+      if (commandDef == null) {
+        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
+      }
+      commandInstanceCache[name] = result = BindingCommand.get(c, name);
+    }
+    return result;
+  }
+}
+
+class RecordCache {
+  public element = createLookup<CustomElementDefinition | null>();
+  public attr = createLookup<CustomAttributeDefinition | null>();
+  public command = createLookup<BindingCommandDefinition | null>();
+}
 
 _START_CONST_ENUM();
 const enum LocalTemplateBindableAttributes {

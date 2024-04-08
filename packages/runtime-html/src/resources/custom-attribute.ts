@@ -4,7 +4,7 @@ import { Watch } from '../watch';
 import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration, transientRegistration } from '../utilities-di';
 import { type BindingMode, toView } from '../binding/interfaces-bindings';
 
 import type {
@@ -157,7 +157,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 
     if (!container.has(key, false)) {
       container.register(
-        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
         aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
       );

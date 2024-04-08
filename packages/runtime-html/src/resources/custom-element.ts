@@ -14,7 +14,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration, transientRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -366,7 +366,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // todo: warn if alreay has key
     if (!container.has(key, false)) {
       container.register(
-        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
         aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
       );

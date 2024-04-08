@@ -4,10 +4,9 @@ import { defineMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
 export type StaticResourceType = {
   readonly aliases?: string[];
-  readonly $au?: {
+  readonly $au?: PartialResourceDefinition<{
     type: string;
-    name: string;
-  };
+  }>;
 };
 
 export type ResourceType<

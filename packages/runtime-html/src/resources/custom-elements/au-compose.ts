@@ -8,7 +8,7 @@ import { Controller, HydrationContext, IController, ICustomElementController, IH
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
-import { CustomElement, CustomElementDefinition } from '../custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
@@ -33,7 +33,7 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 //
 export class AuCompose {
   /** @internal */
-  public static readonly $au = {
+  public static readonly $au: CustomElementStaticAuDefinition = {
     type: 'custom-element',
     name: 'au-compose',
     capture: true,

@@ -186,19 +186,24 @@ export class Container implements IContainer {
         def.register(this);
       } else if (isClass<StaticResourceType>(current)) {
         if (isString((current).$au?.type)) {
-          const { $au, aliases = emptyArray } = current;
+          const $au = current.$au;
+          const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
           let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
-          if (!this.has(current, false)) {
-            singletonRegistration(current, current).register(this);
-          }
           if (!this.has(key, false)) {
             aliasToRegistration(current, key).register(this);
-          }
-          j = 0;
-          jj = aliases.length;
-          for (; j < jj; ++j) {
-            key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
-            aliasToRegistration(current, key).register(this);
+            if (!this.has(current, false)) {
+              singletonRegistration(current, current).register(this);
+            }
+            j = 0;
+            jj = aliases.length;
+            for (; j < jj; ++j) {
+              key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
+              if (!this.has(key, false)) {
+                aliasToRegistration(current, key).register(this);
+              }
+            }
+          } else {
+            // dev message for registering static resources that the key already registered
           }
         } else {
           singletonRegistration(current, current as Constructable).register(this);

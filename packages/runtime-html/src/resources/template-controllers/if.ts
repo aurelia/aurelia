@@ -2,8 +2,6 @@
 import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
-// import { templateController } from '../custom-attribute';
-import { bindable } from '../../bindable';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
@@ -15,7 +13,13 @@ export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
     name: 'if',
-    isTemplateController: true
+    isTemplateController: true,
+    bindables: {
+      value: true,
+      cache: {
+        set: v => v === '' || !!v && v !== 'false',
+      }
+    }
   };
 
   public elseFactory?: IViewFactory = void 0;
@@ -25,13 +29,10 @@ export class If implements ICustomAttributeViewModel {
 
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable public value: unknown = false;
+  public value: unknown = false;
   /**
    * `false` to always dispose the existing `view` whenever the value of if changes to false
    */
-  @bindable({
-    set: v => v === '' || !!v && v !== 'false'
-  })
   public cache: boolean = true;
   private pending: void | Promise<void> = void 0;
   /** @internal */ private _wantsDeactivate: boolean = false;

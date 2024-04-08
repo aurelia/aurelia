@@ -54,6 +54,10 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly processContent?: ProcessContentHook | null;
 }>;
 
+export type CustomElementStaticAuDefinition = PartialCustomElementDefinition & {
+  type: 'custom-element';
+};
+
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : object), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind & {
   /**
@@ -406,8 +410,9 @@ const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
+const elementTypeName = 'custom-element';
 /** @internal */
-export const elementBaseName = /*@__PURE__*/getResourceKeyFor('custom-element');
+export const elementBaseName = /*@__PURE__*/getResourceKeyFor(elementTypeName);
 
 /** @internal */
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
@@ -439,7 +444,7 @@ export const defineElement = <C extends Constructable>(nameOrDef: string | Parti
 export const isElementType = <C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) => {
   return isFunction(value)
     && (hasOwnMetadata(elementBaseName, value)
-      || (value as StaticResourceType).$au?.type === 'element'
+      || (value as StaticResourceType).$au?.type === elementTypeName
     );
 };
 
@@ -524,7 +529,7 @@ export const getElementDefinition = <C extends Constructable>(Type: C | Function
 const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
   let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomElementDefinition<C>;
   if (def == null) {
-    if ((Type as StaticResourceType).$au?.type === 'custom-element') {
+    if ((Type as StaticResourceType).$au?.type === elementTypeName) {
       def = CustomElementDefinition.create((Type as StaticResourceType).$au as PartialCustomElementDefinition, Type as CustomElementType<C>);
       defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
     }
@@ -601,9 +606,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   createInjectable: createElementInjectable,
   generateType: generateElementType,
   find(c, name) {
-    // return c.find('element', name);
-    // const key = getElementKeyFrom(name);
-    const Type = c.find('custom-element', name);
+    const Type = c.find(elementTypeName, name);
     return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
   }
 });

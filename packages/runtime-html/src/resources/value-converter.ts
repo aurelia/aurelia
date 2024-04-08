@@ -16,6 +16,7 @@ import type {
   ResourceType,
   PartialResourceDefinition,
   IServiceLocator,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
@@ -96,18 +97,34 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const vcBaseName = /*@__PURE__*/getResourceKeyFor('value-converter');
+const converterTypeName = 'value-converter';
+const vcBaseName = /*@__PURE__*/getResourceKeyFor(converterTypeName);
 const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>(
   Type: Constructable,
   prop: K,
 ): PartialValueConverterDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
 const getValueConverterKeyFrom = (name: string): string => `${vcBaseName}:${name}`;
+
+const staticResourceDefinitionMetadataKey = 'static:resource:definition';
+// eslint-disable-next-line @typescript-eslint/ban-types
+const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): ValueConverterDefinition<C> => {
+  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as ValueConverterDefinition<C>;
+  if (def == null) {
+    if ((Type as StaticResourceType).$au?.type === converterTypeName) {
+      def = ValueConverterDefinition.create((Type as StaticResourceType).$au as PartialValueConverterDefinition, Type as ValueConverterType<C>);
+      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
+    }
+  }
+  return def;
+};
+
 export const ValueConverter = objectFreeze<ValueConverterKind>({
   name: vcBaseName,
   keyFrom: getValueConverterKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never) {
-    return isFunction(value) && hasOwnMetadata(vcBaseName, value);
+    return isFunction(value)
+      && (hasOwnMetadata(vcBaseName, value) || (value as StaticResourceType).$au?.type === converterTypeName);
   },
   define<T extends Constructable<ValueConverterInstance>>(nameOrDef: string | PartialValueConverterDefinition, Type: T): ValueConverterType<T> {
     const definition = ValueConverterDefinition.create(nameOrDef, Type as Constructable<ValueConverterInstance>);
@@ -120,7 +137,7 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    const def = getOwnMetadata(vcBaseName, Type);
+    const def = getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type);
     if (def === void 0) {
       throw createMappedError(ErrorNames.value_converter_def_not_found, Type);
     }
@@ -132,9 +149,8 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   },
   getAnnotation: getConverterAnnotation,
   find(container, name) {
-    // const key = getValueConverterKeyFrom(name);
-    const Type = container.find('value-converter', name);
-    return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? null;
+    const Type = container.find(converterTypeName, name);
+    return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
   },
   get(container, name) {
     if (__DEV__) {

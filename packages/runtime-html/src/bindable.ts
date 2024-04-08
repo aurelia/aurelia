@@ -96,7 +96,7 @@ const baseName = /*@__PURE__*/getAnnotationKeyFor('bindable');
 export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
+  from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'property'> | true> | readonly string[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
@@ -105,11 +105,13 @@ export const Bindable = objectFreeze({
       bindables[name] = BindableDefinition.create(name, type);
     }
 
-    function addDescription(name: string, def: PartialBindableDefinition): void {
-      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, type, def);
+    function addDescription(name: string, def: Exclude<PartialBindableDefinition, 'property'> | true): void {
+      bindables[name] = def instanceof BindableDefinition
+        ? def
+        : BindableDefinition.create(name, type, def === true ? { } : def);
     }
 
-    function addList(maybeList: BindableDefinition | Record<string, PartialBindableDefinition> | readonly string[] | undefined): void {
+    function addList(maybeList: BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'property'> | true> | readonly string[] | undefined): void {
       if (isArray(maybeList)) {
         maybeList.forEach(addName);
       } else if (maybeList instanceof BindableDefinition) {

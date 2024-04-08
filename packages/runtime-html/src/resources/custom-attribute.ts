@@ -24,7 +24,7 @@ import { dtAttribute, type IResourceKind } from './resources-shared';
 export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
-  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
+  readonly bindables?: Record<string, Exclude<PartialBindableDefinition, 'property'> | true> | readonly string[];
   /**
    * A config that can be used by template compliler to change attr value parsing mode
    * `true` to always parse as a single value, mostly will be string in URL scenario
@@ -177,10 +177,8 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   }
 }
 
-/** @internal */
-const attributeBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
-
-/** @internal */
+const attrTypeName = 'custom-attribute';
+const attributeBaseName = /*@__PURE__*/getResourceKeyFor(attrTypeName);
 const getAttributeKeyFrom = (name: string): string => `${attributeBaseName}:${name}`;
 
 const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
@@ -192,7 +190,7 @@ const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition
 export const isAttributeType = <T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) => {
   return isFunction(value) && (
     hasOwnMetadata(attributeBaseName, value)
-    || (value as StaticResourceType).$au?.type === 'custom-attribute'
+    || (value as StaticResourceType).$au?.type === attrTypeName
   );
 };
 
@@ -275,8 +273,7 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   },
   getAnnotation: getAttributeAnnotation,
   find(c, name) {
-    // const key = getAttributeKeyFrom(name);
-    const Type = c.find('custom-attribute', name);
+    const Type = c.find(attrTypeName, name);
     return Type === null ? null : getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
   },
 });

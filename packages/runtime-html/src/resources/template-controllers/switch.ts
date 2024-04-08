@@ -11,9 +11,8 @@ import {
   type Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { templateController } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
-import { bindable } from '../../bindable';
 import { oneTime } from '../../binding/interfaces-bindings';
 import { isArray } from '../../utilities';
 
@@ -22,12 +21,18 @@ import type { INode } from '../../dom';
 import type { IInstruction } from '../../renderer';
 import { createMappedError, ErrorNames } from '../../errors';
 
-@templateController('switch')
 export class Switch implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'switch',
+    isTemplateController: true,
+    bindables: ['value'],
+  };
+
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView;
 
-  @bindable public value: unknown;
+  public value: unknown;
 
   /** @internal */
   public readonly cases: Case[] = [];
@@ -233,23 +238,25 @@ export class Switch implements ICustomAttributeViewModel {
 }
 
 let caseId = 0;
-@templateController('case')
 export class Case implements ICustomAttributeViewModel {
-  /** @internal */ public readonly id: number = ++caseId;
-  public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
-
-  @bindable public value: unknown;
-  @bindable({
-    set: v => {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'case',
+    isTemplateController: true,
+    bindables: ['value', { name: 'fallThrough', mode: oneTime, set(v: unknown): boolean {
       switch (v) {
         case 'true': return true;
         case 'false': return false;
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
       }
-    },
-    mode: oneTime
-  })
+    }}]
+  };
+
+  /** @internal */ public readonly id: number = ++caseId;
+  public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
+
+  public value: unknown;
   public fallThrough: boolean = false;
 
   public view: ISyntheticView | undefined = void 0;
@@ -347,8 +354,12 @@ export class Case implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('default-case')
 export class DefaultCase extends Case {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    ...super.$au,
+    name: 'default-case',
+    bindables: ['value']
+  };
 
   protected linkToSwitch($switch: Switch): void {
     if ($switch.defaultCase !== void 0) {

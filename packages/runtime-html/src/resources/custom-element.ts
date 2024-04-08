@@ -45,7 +45,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly injectable?: InjectableToken | null;
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
-  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
+  readonly bindables?: Record<string, true | Omit<PartialBindableDefinition, 'name'>> | (string | PartialBindableDefinition & { name: string })[];
   readonly containerless?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;

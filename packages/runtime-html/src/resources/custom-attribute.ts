@@ -21,10 +21,10 @@ import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtAttribute, type IResourceKind } from './resources-shared';
 
-export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
+export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
   readonly isTemplateController?: boolean;
-  readonly bindables?: Record<string, Exclude<PartialBindableDefinition, 'property'> | true> | readonly string[];
+  readonly bindables?: (Record<TBindables, true | Exclude<PartialBindableDefinition, 'name'>>) | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   /**
    * A config that can be used by template compliler to change attr value parsing mode
    * `true` to always parse as a single value, mostly will be string in URL scenario
@@ -54,7 +54,7 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly containerStrategy?: 'reuse' | 'new';
 }>;
 
-export type CustomAttributeStaticAuDefinition = PartialCustomAttributeDefinition & {
+export type CustomAttributeStaticAuDefinition<TBindables extends string = string> = PartialCustomAttributeDefinition<TBindables> & {
   type: 'custom-attribute';
 };
 

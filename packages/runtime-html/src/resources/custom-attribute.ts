@@ -4,7 +4,7 @@ import { Watch } from '../watch';
 import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { type BindingMode, toView } from '../binding/interfaces-bindings';
 
 import type {
@@ -13,6 +13,7 @@ import type {
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { ICustomAttributeViewModel, ICustomAttributeController, Controller } from '../templating/controller';
@@ -52,6 +53,10 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
    */
   readonly containerStrategy?: 'reuse' | 'new';
 }>;
+
+export type CustomAttributeStaticAuDefinition = PartialCustomAttributeDefinition & {
+  type: 'custom-attribute';
+};
 
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
 export type CustomAttributeKind = IResourceKind & {
@@ -173,10 +178,10 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
 }
 
 /** @internal */
-const caBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
+const attributeBaseName = /*@__PURE__*/getResourceKeyFor('custom-attribute');
 
 /** @internal */
-const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
+const getAttributeKeyFrom = (name: string): string => `${attributeBaseName}:${name}`;
 
 const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
   Type: Constructable,
@@ -185,7 +190,10 @@ const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition
 
 /** @internal */
 export const isAttributeType = <T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) => {
-  return isFunction(value) && hasOwnMetadata(caBaseName, value);
+  return isFunction(value) && (
+    hasOwnMetadata(attributeBaseName, value)
+    || (value as StaticResourceType).$au?.type === 'custom-attribute'
+  );
 };
 
 /** @internal */
@@ -198,7 +206,7 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
   const $Type = definition.Type as CustomAttributeType<T>;
 
-  defineMetadata(caBaseName, definition, $Type);
+  defineMetadata(attributeBaseName, definition, $Type);
   // a requirement for the resource system in kernel
   defineMetadata(resourceBaseName, definition, $Type);
 
@@ -208,11 +216,25 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getAttributeDefinition = <T extends Constructable>(Type: T | Function): CustomAttributeDefinition<T> => {
-  const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
+  const def: CustomAttributeDefinition<T> = getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type);
   if (def === void 0) {
     throw createMappedError(ErrorNames.attribute_def_not_found, Type);
   }
 
+  return def;
+};
+
+const staticResourceDefinitionMetadataKey = 'static:resource-definition:metadata';
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomAttributeDefinition<C> => {
+  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomAttributeDefinition<C>;
+  if (def == null) {
+    if ((Type as StaticResourceType).$au?.type === 'custom-attribute') {
+      def = CustomAttributeDefinition.create((Type as StaticResourceType).$au as PartialCustomAttributeDefinition, Type as CustomAttributeType<C>);
+      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
+    }
+  }
   return def;
 };
 
@@ -241,7 +263,7 @@ const findClosestControllerByName = (node: Node, attrNameOrType: string | Custom
 };
 
 export const CustomAttribute = objectFreeze<CustomAttributeKind>({
-  name: caBaseName,
+  name: attributeBaseName,
   keyFrom: getAttributeKeyFrom,
   isType: isAttributeType,
   for: findAttributeControllerFor,
@@ -255,6 +277,6 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   find(c, name) {
     // const key = getAttributeKeyFrom(name);
     const Type = c.find('custom-attribute', name);
-    return Type === null ? null : getOwnMetadata(caBaseName, Type) ?? null;
+    return Type === null ? null : getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
   },
 });

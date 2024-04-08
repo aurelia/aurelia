@@ -1,7 +1,7 @@
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { bindable } from '../../bindable';
-import { CustomElementDefinition, customElement } from '../custom-element';
+import { CustomElementDefinition } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
@@ -13,36 +13,39 @@ import type { ControllerVisitor, ICustomElementController, ICustomElementViewMod
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
 import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, auslotAttr } from '../../templating/controller.projection';
+import { IPlatform } from '../../platform';
 
 let emptyTemplate: CustomElementDefinition;
 
-@customElement({
-  name: 'au-slot',
-  template: null,
-  containerless: true,
-  processContent(el, p, data) {
-    data.name = el.getAttribute('name') ?? defaultSlotName;
-
-    let node: Node | null = el.firstChild;
-    let next: Node | null = null;
-    while (node !== null) {
-      next = node.nextSibling;
-      if (isElement(node) && node.hasAttribute(auslotAttr)) {
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            `[DEV:aurelia] detected [au-slot] attribute on a child node`,
-            `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
-            `This element will be ignored and removed`
-          );
-        }
-        el.removeChild(node);
-      }
-      node = next;
-    }
-  },
-})
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
+  public static readonly $au = {
+    type: 'custom-element',
+    name: 'au-slot',
+    template: null,
+    containerless: true,
+    processContent(el: HTMLElement, p: IPlatform, data: Record<string, unknown>) {
+      data.name = el.getAttribute('name') ?? defaultSlotName;
+
+      let node: Node | null = el.firstChild;
+      let next: Node | null = null;
+      while (node !== null) {
+        next = node.nextSibling;
+        if (isElement(node) && node.hasAttribute(auslotAttr)) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `[DEV:aurelia] detected [au-slot] attribute on a child node`,
+              `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
+              `This element will be ignored and removed`
+            );
+          }
+          el.removeChild(node);
+        }
+        node = next;
+      }
+    },
+  };
+
   public readonly view: ISyntheticView;
   /** @internal */
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed

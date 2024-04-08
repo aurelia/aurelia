@@ -52,7 +52,7 @@ export class TemplateCompiler implements ITemplateCompiler {
   }
 
   /** @internal */
-  private readonly _bindableResolver = resolve(IBindablesResolver);
+  private readonly _bindableResolver = resolve(IBindablesInfoResolver);
 
   public debug: boolean = false;
   public resolveResources: boolean = true;
@@ -1824,7 +1824,7 @@ export interface IBindablesInfoResolver {
   get(def: CustomElementDefinition): IElementBindablesInfo;
 }
 
-export const IBindablesResolver = /*@__PURE__*/createInterface<IBindablesInfoResolver>('IBindablesInfoResolver', x => {
+export const IBindablesInfoResolver = /*@__PURE__*/createInterface<IBindablesInfoResolver>('IBindablesInfoResolver', x => {
   class BindablesInfoResolver implements IBindablesInfoResolver {
     /** @internal */
     private readonly _cache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();

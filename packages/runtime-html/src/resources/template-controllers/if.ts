@@ -2,15 +2,22 @@
 import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
+// import { templateController } from '../custom-attribute';
 import { bindable } from '../../bindable';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
 import { ErrorNames, createMappedError } from '../../errors';
+import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
 
 export class If implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'if',
+    isTemplateController: true
+  };
+
   public elseFactory?: IViewFactory = void 0;
   public elseView?: ISyntheticView = void 0;
   public ifView?: ISyntheticView = void 0;
@@ -121,9 +128,14 @@ export class If implements ICustomAttributeViewModel {
     }
   }
 }
-templateController('if')(If);
 
 export class Else implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'else',
+    isTemplateController: true,
+  };
+
   /** @internal */ private readonly _factory = resolve(IViewFactory);
 
   public link(
@@ -143,4 +155,4 @@ export class Else implements ICustomAttributeViewModel {
     }
   }
 }
-templateController({ name: 'else' })(Else);
+// templateController({ name: 'else' })(Else);

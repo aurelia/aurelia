@@ -14,7 +14,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -437,7 +437,10 @@ export const defineElement = <C extends Constructable>(nameOrDef: string | Parti
 
 /** @internal */
 export const isElementType = <C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) => {
-  return isFunction(value) && hasOwnMetadata(elementBaseName, value);
+  return isFunction(value)
+    && (hasOwnMetadata(elementBaseName, value)
+      || (value as StaticResourceType).$au?.type === 'element'
+    );
 };
 
 /** @internal */
@@ -509,20 +512,23 @@ const staticResourceDefinitionMetadataKey = 'static:resource-definition:metadata
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  let def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
-  if (def == null) {
-    def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomElementDefinition<C>;
-    if (def == null) {
-      if (isString((Type as StaticResourceType).$au?.type)) {
-        def = CustomElementDefinition.create((Type as StaticResourceType).$au as PartialCustomElementDefinition, Type as CustomElementType<C>);
-        defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
-      }
-    }
-  }
+  const def: CustomElementDefinition<C> = getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type);
   if (def == null) {
     throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
 
+  return def;
+};
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
+  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomElementDefinition<C>;
+  if (def == null) {
+    if ((Type as StaticResourceType).$au?.type === 'custom-element') {
+      def = CustomElementDefinition.create((Type as StaticResourceType).$au as PartialCustomElementDefinition, Type as CustomElementType<C>);
+      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
+    }
+  }
   return def;
 };
 
@@ -598,7 +604,7 @@ export const CustomElement = objectFreeze<CustomElementKind>({
     // return c.find('element', name);
     // const key = getElementKeyFrom(name);
     const Type = c.find('custom-element', name);
-    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? null;
+    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
   }
 });
 

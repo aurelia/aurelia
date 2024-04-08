@@ -8,7 +8,7 @@ import { Controller, HydrationContext, IController, ICustomElementController, IH
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
-import { CustomElement, customElement, CustomElementDefinition } from '../custom-element';
+import { CustomElement, CustomElementDefinition } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
@@ -32,6 +32,14 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 // <au-component template.bind="<string>" model.bind="" />
 //
 export class AuCompose {
+  /** @internal */
+  public static readonly $au = {
+    type: 'custom-element',
+    name: 'au-compose',
+    capture: true,
+    containerless: true,
+  };
+
   /* determine what template used to compose the component */
   @bindable
   public template?: string | Promise<string>;
@@ -413,12 +421,6 @@ export class AuCompose {
     );
   }
 }
-
-customElement({
-  name: 'au-compose',
-  capture: true,
-  containerless: true,
-})(AuCompose);
 
 class EmptyComponent { }
 

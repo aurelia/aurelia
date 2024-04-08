@@ -343,7 +343,7 @@ export {
   templateCompilerHooks,
   type IAttributeBindablesInfo,
   type IElementBindablesInfo,
-  IBindablesInfoResolver as IBindablesResolver,
+  IBindablesInfoResolver,
 } from './compiler/template-compiler';
 
 export {

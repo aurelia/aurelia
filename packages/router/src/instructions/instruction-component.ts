@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IResolver, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
@@ -161,6 +161,7 @@ export class InstructionComponent {
       }
       const key = keys[0];
       // TODO(alpha): Fix type here
+      // eslint-disable-next-line
       this.set((component as any)[key] as ComponentAppellation);
     }) as Promise<ComponentAppellation>;
   }
@@ -274,25 +275,25 @@ export class InstructionComponent {
   }
 }
 
-function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
-  const key = CustomElement.keyFrom(name);
-  return {
-    $isResolver: true,
-    resolve(_, requestor) {
-      // const container = requestor.get(IHydrationContext).parent!.controller.container;
-      if (requestor.has(key, false)) {
-        return requestor.get(key);
-      }
-      if (requestor.root.has(key, false)) {
-        return requestor.root.get(key);
-      }
-      // it's not always correct to consider this resolution as a traversal
-      // since sometimes it could be the work of trying a fallback configuration as component
-      // todo: cleanup the paths so that it's clearer when a fallback is being tried vs when an actual component name configuration
-      //
-      // console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
-      //   + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
-      return requestor.get(key);
-    }
-  };
-}
+// function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
+//   const key = CustomElement.keyFrom(name);
+//   return {
+//     $isResolver: true,
+//     resolve(_, requestor) {
+//       // const container = requestor.get(IHydrationContext).parent!.controller.container;
+//       if (requestor.has(key, false)) {
+//         return requestor.get(key);
+//       }
+//       if (requestor.root.has(key, false)) {
+//         return requestor.root.get(key);
+//       }
+//       // it's not always correct to consider this resolution as a traversal
+//       // since sometimes it could be the work of trying a fallback configuration as component
+//       // todo: cleanup the paths so that it's clearer when a fallback is being tried vs when an actual component name configuration
+//       //
+//       // console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
+//       //   + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
+//       return requestor.get(key);
+//     }
+//   };
+// }

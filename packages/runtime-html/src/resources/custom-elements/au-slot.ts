@@ -1,6 +1,5 @@
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { bindable } from '../../bindable';
 import { CustomElementDefinition, CustomElementStaticAuDefinition } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
@@ -13,7 +12,6 @@ import type { ControllerVisitor, ICustomElementController, ICustomElementViewMod
 import type { IViewFactory } from '../../templating/view';
 import type { HydrateElementInstruction } from '../../renderer';
 import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, auslotAttr } from '../../templating/controller.projection';
-import { IPlatform } from '../../platform';
 
 let emptyTemplate: CustomElementDefinition;
 
@@ -23,7 +21,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     name: 'au-slot',
     template: null,
     containerless: true,
-    processContent(el: HTMLElement, p: IPlatform, data: Record<string, unknown>) {
+    processContent(el, p, data) {
       data.name = el.getAttribute('name') ?? defaultSlotName;
 
       let node: Node | null = el.firstChild;
@@ -44,6 +42,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
         node = next;
       }
     },
+    bindables: ['expose', 'slotchange'],
   };
 
   public readonly view: ISyntheticView;
@@ -62,13 +61,11 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /**
    * The binding context that will be exposed to slotted content
    */
-  @bindable
   public expose: object | null = null;
 
   /**
    * A callback that will be called when the content of this slot changed
    */
-  @bindable
   public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
   public constructor() {

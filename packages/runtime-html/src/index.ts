@@ -242,6 +242,7 @@ export {
   type CustomAttributeKind,
   type CustomAttributeType,
   type PartialCustomAttributeDefinition,
+  type CustomAttributeStaticAuDefinition,
   templateController,
 } from './resources/custom-attribute';
 export {
@@ -292,6 +293,7 @@ export {
   CustomElementDefinition,
   type PartialCustomElementDefinition,
   type ProcessContentHook,
+  type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';

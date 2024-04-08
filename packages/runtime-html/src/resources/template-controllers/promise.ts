@@ -16,11 +16,10 @@ import {
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
-import { CustomAttributeStaticAuDefinition, templateController } from '../custom-attribute';
-import { isPromise, safeString, tsPending, tsRunning } from '../../utilities';
+import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
-@templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',
@@ -166,7 +165,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController(tsPending)
 export class PendingTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
     type: 'custom-attribute',

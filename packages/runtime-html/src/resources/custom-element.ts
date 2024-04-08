@@ -36,7 +36,7 @@ import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtElement, type IResourceKind } from './resources-shared';
 
-export type PartialCustomElementDefinition = PartialResourceDefinition<{
+export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly capture?: boolean | ((attr: string) => boolean);
   readonly template?: null | string | Node;
@@ -45,7 +45,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly injectable?: InjectableToken | null;
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
-  readonly bindables?: Record<string, true | Omit<PartialBindableDefinition, 'name'>> | (string | PartialBindableDefinition & { name: string })[];
+  readonly bindables?: Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>> | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   readonly containerless?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
@@ -54,7 +54,7 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly processContent?: ProcessContentHook | null;
 }>;
 
-export type CustomElementStaticAuDefinition = PartialCustomElementDefinition & {
+export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {
   type: 'custom-element';
 };
 

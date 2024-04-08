@@ -1,18 +1,23 @@
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { customAttribute } from '../custom-attribute';
-import { bindable } from '../../bindable';
+import { type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import { IInstruction } from '../../renderer';
 
 import type { ITask } from '@aurelia/platform';
 
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import type { HydrateAttributeInstruction } from '../../renderer';
-import { alias } from '../../utilities-di';
 import { resolve } from '@aurelia/kernel';
 
 export class Show implements ICustomAttributeViewModel {
-  @bindable public value: unknown;
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'show',
+    bindables: ['value'],
+    aliases: ['hide']
+  };
+
+  public value: unknown;
 
   private readonly el = resolve(INode) as INode<HTMLElement>;
   private readonly p = resolve(IPlatform);
@@ -72,6 +77,3 @@ export class Show implements ICustomAttributeViewModel {
     }
   };
 }
-
-alias('hide')(Show);
-customAttribute('show')(Show);

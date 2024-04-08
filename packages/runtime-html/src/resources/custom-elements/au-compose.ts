@@ -1,6 +1,5 @@
 import { Constructable, IContainer, InstanceProvider, MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
-import { bindable } from '../../bindable';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';
@@ -33,15 +32,31 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 //
 export class AuCompose {
   /** @internal */
-  public static readonly $au: CustomElementStaticAuDefinition = {
+  public static readonly $au: CustomElementStaticAuDefinition<keyof Pick<
+    AuCompose,
+    'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'
+  >> = {
     type: 'custom-element',
     name: 'au-compose',
     capture: true,
     containerless: true,
+    bindables: [
+      'template',
+      'component',
+      'model',
+      { name: 'scopeBehavior', set: v => {
+        if (v === 'scoped' || v === 'auto') {
+          return v;
+        }
+        throw createMappedError(ErrorNames.au_compose_invalid_scope_behavior, v);
+      }},
+      { name: 'composing', mode: fromView},
+      { name: 'composition', mode: fromView },
+      'tag'
+    ]
   };
 
   /* determine what template used to compose the component */
-  @bindable
   public template?: string | Promise<string>;
 
   /**
@@ -55,11 +70,9 @@ export class AuCompose {
    * - When a null/undefined is given as a value, the component will be composed as a template-only composition with an empty component instance.
    * - When a promise is given as a value, the promise will be awaited and the resolved value will be used as the value.
    */
-  @bindable
   public component?: string | Constructable | object | Promise<string | Constructable | object>;
 
   /* the model used to pass to activate lifecycle of the component */
-  @bindable
   public model?: unknown;
 
   /**
@@ -69,30 +82,16 @@ export class AuCompose {
    * auto = inherit parent scope
    * scoped = do not inherit parent scope
    */
-  @bindable({
-    set: v => {
-      if (v === 'scoped' || v === 'auto') {
-        return v;
-      }
-      throw createMappedError(ErrorNames.au_compose_invalid_scope_behavior, v);
-    }
-  })
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
 
   /** @internal */
   private _composing?: Promise<void> | void;
-  @bindable({
-    mode: fromView
-  })
   public get composing(): Promise<void> | void {
     return this._composing;
   }
 
   /** @internal */
   private _composition: ICompositionController | undefined = void 0;
-  @bindable({
-    mode: fromView
-  })
   public get composition(): ICompositionController | undefined {
     return this._composition;
   }
@@ -102,7 +101,6 @@ export class AuCompose {
    *
    * `null`/`undefined` means containerless
    */
-  @bindable
   public tag: string | null | undefined = null;
 
   /** @internal */ public readonly $controller!: ICustomElementController<AuCompose>;

@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import { createInterface } from '../../utilities-di';
-import { valueConverter } from '../value-converter';
+import { ValueConverterStaticAuDefinition } from '../value-converter';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export interface ISanitizer {
@@ -22,6 +22,11 @@ export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer',
  * Simple html sanitization converter to preserve whitelisted elements and attributes on a bound property containing html.
  */
 export class SanitizeValueConverter {
+  public static readonly $au: ValueConverterStaticAuDefinition = {
+    type: 'value-converter',
+    name: 'sanitize',
+  };
+
   /** @internal */ private readonly _sanitizer = resolve(ISanitizer);
 
   /**
@@ -37,5 +42,3 @@ export class SanitizeValueConverter {
     return this._sanitizer.sanitize(untrustedMarkup);
   }
 }
-
-valueConverter('sanitize')(SanitizeValueConverter);

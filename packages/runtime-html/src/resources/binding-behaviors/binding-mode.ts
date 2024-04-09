@@ -1,10 +1,11 @@
 import { BindingBehaviorInstance, IBinding } from '@aurelia/runtime';
 import { fromView, oneTime, toView, twoWay, type BindingMode } from '../../binding/interfaces-bindings';
-import { bindingBehavior } from '../binding-behavior';
+import { type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 
 import type { Scope } from '@aurelia/runtime';
 
 const originalModesMap = new Map<IBinding & { mode: BindingMode }, BindingMode>();
+const createConfig = (name: string): BindingBehaviorStaticAuDefinition => ({ type: 'binding-behavior', name });
 
 export abstract class BindingModeBehavior implements BindingBehaviorInstance {
   public abstract readonly mode: BindingMode;
@@ -21,22 +22,21 @@ export abstract class BindingModeBehavior implements BindingBehaviorInstance {
 }
 
 export class OneTimeBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = createConfig('oneTime');
   public get mode(): typeof BindingMode.oneTime { return oneTime; }
 }
 
 export class ToViewBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = createConfig('toView');
   public get mode(): typeof BindingMode.toView { return toView; }
 }
 
 export class FromViewBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = createConfig('fromView');
   public get mode(): typeof BindingMode.fromView { return fromView; }
 }
 
 export class TwoWayBindingBehavior extends BindingModeBehavior {
+  public static readonly $au = createConfig('twoWay');
   public get mode(): typeof BindingMode.twoWay { return twoWay; }
 }
-
-bindingBehavior('oneTime')(OneTimeBindingBehavior);
-bindingBehavior('toView')(ToViewBindingBehavior);
-bindingBehavior('fromView')(FromViewBindingBehavior);
-bindingBehavior('twoWay')(TwoWayBindingBehavior);

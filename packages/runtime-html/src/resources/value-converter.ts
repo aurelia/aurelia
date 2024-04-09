@@ -23,6 +23,9 @@ import { ErrorNames, createMappedError } from '../errors';
 import { type IResourceKind } from './resources-shared';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
+export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition & {
+  type: 'value-converter';
+};
 
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterKind = IResourceKind & {

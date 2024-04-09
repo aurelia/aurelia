@@ -9,6 +9,9 @@ import { createMappedError, ErrorNames } from '../errors';
 import { type IResourceKind } from './resources-shared';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
+export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition & {
+  type: 'binding-behavior';
+};
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind & {

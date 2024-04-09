@@ -1,11 +1,15 @@
 import { ISignaler } from '@aurelia/runtime';
-import { bindingBehavior } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 import { addSignalListener, removeSignalListener } from '../../utilities';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {
+  public static readonly $au: BindingBehaviorStaticAuDefinition = {
+    type: 'binding-behavior',
+    name: 'signal',
+  };
   /** @internal */
   private readonly _lookup: Map<IBinding, string[]> = new Map();
   /** @internal */
@@ -35,5 +39,3 @@ export class SignalBindingBehavior implements BindingBehaviorInstance {
     }
   }
 }
-
-bindingBehavior('signal')(SignalBindingBehavior);

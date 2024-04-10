@@ -19,7 +19,7 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable'
 import type { ICustomAttributeViewModel, ICustomAttributeController, Controller } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtAttribute, staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
+import { dtAttribute, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -214,23 +214,12 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getAttributeDefinition = <T extends Constructable>(Type: T | Function): CustomAttributeDefinition<T> => {
-  const def: CustomAttributeDefinition<T> = getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type);
+  const def: CustomAttributeDefinition<T> = getOwnMetadata(attributeBaseName, Type)
+    ?? getDefinitionFromStaticAu(Type as CustomAttributeType<T>, attrTypeName, CustomAttributeDefinition.create);
   if (def === void 0) {
     throw createMappedError(ErrorNames.attribute_def_not_found, Type);
   }
 
-  return def;
-};
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomAttributeDefinition<C> => {
-  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomAttributeDefinition<C>;
-  if (def == null) {
-    if ((Type as StaticResourceType).$au?.type === 'custom-attribute') {
-      def = CustomAttributeDefinition.create((Type as StaticResourceType).$au as PartialCustomAttributeDefinition, Type as CustomAttributeType<C>);
-      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
-    }
-  }
   return def;
 };
 
@@ -271,7 +260,9 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
   },
   getAnnotation: getAttributeAnnotation,
   find(c, name) {
-    const Type = c.find(attrTypeName, name);
-    return Type === null ? null : getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
+    const Type = c.find<CustomAttributeType>(attrTypeName, name);
+    return Type === null
+      ? null
+      : getOwnMetadata(attributeBaseName, Type) ?? getDefinitionFromStaticAu(Type, attrTypeName, CustomAttributeDefinition.create) ?? null;
   },
 });

@@ -20,7 +20,7 @@ import type {
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
-import { staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
+import { getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition & {
@@ -109,18 +109,6 @@ const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>
 
 const getValueConverterKeyFrom = (name: string): string => `${vcBaseName}:${name}`;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): ValueConverterDefinition<C> => {
-  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as ValueConverterDefinition<C>;
-  if (def == null) {
-    if ((Type as StaticResourceType).$au?.type === converterTypeName) {
-      def = ValueConverterDefinition.create((Type as StaticResourceType).$au as PartialValueConverterDefinition, Type as ValueConverterType<C>);
-      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
-    }
-  }
-  return def;
-};
-
 export const ValueConverter = objectFreeze<ValueConverterKind>({
   name: vcBaseName,
   keyFrom: getValueConverterKeyFrom,
@@ -139,7 +127,7 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
     return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): ValueConverterDefinition<T> {
-    const def = getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type);
+    const def = getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type as ValueConverterType, converterTypeName, ValueConverterDefinition.create);
     if (def === void 0) {
       throw createMappedError(ErrorNames.value_converter_def_not_found, Type);
     }
@@ -151,8 +139,10 @@ export const ValueConverter = objectFreeze<ValueConverterKind>({
   },
   getAnnotation: getConverterAnnotation,
   find(container, name) {
-    const Type = container.find(converterTypeName, name);
-    return Type == null ? null : getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
+    const Type = container.find<ValueConverterType>(converterTypeName, name);
+    return Type == null
+      ? null
+      : getOwnMetadata(vcBaseName, Type) ?? getDefinitionFromStaticAu(Type, converterTypeName, ValueConverterDefinition.create) ?? null;
   },
   get(container, name) {
     if (__DEV__) {

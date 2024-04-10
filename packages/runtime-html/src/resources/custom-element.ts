@@ -34,7 +34,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement, staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
+import { dtElement, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -411,8 +411,7 @@ const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
 /** @internal */ export const elementTypeName = 'custom-element';
-/** @internal */
-export const elementBaseName = /*@__PURE__*/getResourceKeyFor(elementTypeName);
+/** @internal */ export const elementBaseName = /*@__PURE__*/getResourceKeyFor(elementTypeName);
 
 /** @internal */
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
@@ -516,23 +515,12 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  const def: CustomElementDefinition<C> = getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type);
+  const def: CustomElementDefinition<C> = getOwnMetadata(elementBaseName, Type)
+    ?? getDefinitionFromStaticAu(Type as CustomElementType, elementTypeName, CustomElementDefinition.create);
   if (def == null) {
     throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
 
-  return def;
-};
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as CustomElementDefinition<C>;
-  if (def == null) {
-    if ((Type as StaticResourceType).$au?.type === elementTypeName) {
-      def = CustomElementDefinition.create((Type as StaticResourceType).$au as PartialCustomElementDefinition, Type as CustomElementType<C>);
-      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
-    }
-  }
   return def;
 };
 
@@ -605,8 +593,10 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   createInjectable: createElementInjectable,
   generateType: generateElementType,
   find(c, name) {
-    const Type = c.find(elementTypeName, name);
-    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
+    const Type = c.find<CustomElementType>(elementTypeName, name);
+    return Type == null
+      ? null
+      : getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type, elementTypeName, CustomElementDefinition.create) ?? null;
   }
 });
 

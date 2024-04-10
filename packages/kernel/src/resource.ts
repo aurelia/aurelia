@@ -2,11 +2,11 @@ import { IContainer } from './di';
 import { Constructable } from './interfaces';
 import { defineMetadata, getOwnMetadata, objectFreeze } from './utilities';
 
-export type StaticResourceType = {
+export type StaticResourceType<TDef extends object = object> = {
   readonly aliases?: string[];
   readonly $au?: PartialResourceDefinition<{
     type: string;
-  }>;
+  } & TDef>;
 };
 
 export type ResourceType<
@@ -43,7 +43,7 @@ export type ResourceDefinition<
   register(container: IContainer, aliasName?: string): void;
 } & TDef;
 
-export type PartialResourceDefinition<TDef extends {} = {}> = {
+export type PartialResourceDefinition<TDef extends object = object> = {
   readonly name: string;
   readonly aliases?: readonly string[];
 } & TDef;

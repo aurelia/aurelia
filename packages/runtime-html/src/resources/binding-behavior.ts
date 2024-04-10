@@ -6,7 +6,7 @@ import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } f
 
 import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
-import { staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
+import { getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition & {
@@ -93,18 +93,6 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
 
 const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): BindingBehaviorDefinition<C> => {
-  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as BindingBehaviorDefinition<C>;
-  if (def == null) {
-    if ((Type as StaticResourceType).$au?.type === behaviorTypeName) {
-      def = BindingBehaviorDefinition.create((Type as StaticResourceType).$au as PartialBindingBehaviorDefinition, Type as BindingBehaviorType<C>);
-      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
-    }
-  }
-  return def;
-};
-
 export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom: getBindingBehaviorKeyFrom,
@@ -122,7 +110,8 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
-    const def: BindingBehaviorDefinition<T> = getOwnMetadata(bbBaseName, Type) ?? getDefinitionFromStaticAu(Type);
+    const def: BindingBehaviorDefinition<T> = getOwnMetadata(bbBaseName, Type)
+      ?? getDefinitionFromStaticAu(Type as BindingBehaviorType<T>, behaviorTypeName, BindingBehaviorDefinition.create);
     if (def === void 0) {
       throw createMappedError(ErrorNames.binding_behavior_def_not_found, Type);
     }
@@ -130,9 +119,10 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     return def;
   },
   find(container, name) {
-    // const key = getBindingBehaviorKeyFrom(name);
-    const Type = container.find(behaviorTypeName, name);
-    return Type == null ? null : getOwnMetadata(bbBaseName, Type) ?? getDefinitionFromStaticAu(Type) ?? null;
+    const Type = container.find<BindingBehaviorType>(behaviorTypeName, name);
+    return Type == null
+      ? null
+      : getOwnMetadata(bbBaseName, Type) ?? getDefinitionFromStaticAu(Type, behaviorTypeName, BindingBehaviorDefinition.create) ?? null;
   },
   get(container, name) {
     if (__DEV__) {

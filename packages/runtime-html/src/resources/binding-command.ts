@@ -28,7 +28,7 @@ import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import type { BindableDefinition } from '../bindable';
 import type { CustomAttributeDefinition } from './custom-attribute';
 import type { CustomElementDefinition } from './custom-element';
-import { type IResourceKind, dtElement } from './resources-shared';
+import { type IResourceKind, dtElement, getDefinitionFromStaticAu } from './resources-shared';
 import { ErrorNames, createMappedError } from '../errors';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition;
@@ -144,7 +144,6 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
 export const BindingCommand = objectFreeze<BindingCommandKind>({
   name: cmdBaseName,
   keyFrom: getCommandKeyFrom,
-  // need this?
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
   //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
   // },
@@ -160,9 +159,10 @@ export const BindingCommand = objectFreeze<BindingCommandKind>({
   },
   getAnnotation: getCommandAnnotation,
   find(container, name) {
-    const key = getCommandKeyFrom(name);
-    const Type = container.find(key);
-    return Type == null ? null : getOwnMetadata(cmdBaseName, Type) ?? null;
+    const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
+    return Type == null
+      ? null
+      : getOwnMetadata(cmdBaseName, Type) ?? getDefinitionFromStaticAu(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
   },
   get(container, name) {
     if (__DEV__) {
@@ -299,7 +299,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   public get ignoreAttr() { return false; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
-    type CA = CustomAttributeDefinition;
     const attr = info.attr;
     const bindable = info.bindable;
     let defaultMode: BindingMode;
@@ -318,7 +317,7 @@ export class DefaultBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.kind === dtElement) {
         value = camelCase(target);
       }
-      defaultMode = (info.def as CA).defaultBindingMode;
+      defaultMode = (info.def as CustomAttributeDefinition).defaultBindingMode;
       mode = bindable.mode === $defaultMode || bindable.mode == null
         ? defaultMode == null || defaultMode === $defaultMode
           ? toView
@@ -458,7 +457,7 @@ export class RefBindingCommand implements BindingCommandInstance {
 export class SpreadBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
     type: bindingCommandTypeName,
-    name: 'spread',
+    name: '...$attrs',
   };
   public get ignoreAttr() { return true; }
 

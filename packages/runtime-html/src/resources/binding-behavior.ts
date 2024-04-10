@@ -6,7 +6,7 @@ import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } f
 
 import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
-import { type IResourceKind } from './resources-shared';
+import { staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition & {
@@ -84,7 +84,7 @@ export class BindingBehaviorDefinition<T extends Constructable = Constructable> 
   }
 }
 
-const behaviorTypeName = 'binding-behavior';
+/** @internal */ export const behaviorTypeName = 'binding-behavior';
 const bbBaseName = /*@__PURE__*/getResourceKeyFor(behaviorTypeName);
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(
   Type: Constructable,
@@ -93,7 +93,6 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
 
 const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 
-const staticResourceDefinitionMetadataKey = 'static:resource:definition';
 // eslint-disable-next-line @typescript-eslint/ban-types
 const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): BindingBehaviorDefinition<C> => {
   let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as BindingBehaviorDefinition<C>;

@@ -1,6 +1,6 @@
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { CustomElementDefinition, CustomElementStaticAuDefinition } from '../custom-element';
+import { CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
@@ -17,7 +17,7 @@ let emptyTemplate: CustomElementDefinition;
 
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
   public static readonly $au: CustomElementStaticAuDefinition = {
-    type: 'custom-element',
+    type: elementTypeName,
     name: 'au-slot',
     template: null,
     containerless: true,

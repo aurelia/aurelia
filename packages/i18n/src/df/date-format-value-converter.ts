@@ -1,9 +1,13 @@
-import { valueConverter } from '@aurelia/runtime-html';
+import { ValueConverterStaticAuDefinition } from '@aurelia/runtime-html';
 import { I18N } from '../i18n';
-import { Signals, ValueConverters } from '../utils';
+import { Signals, ValueConverters, valueConverterTypeName } from '../utils';
 
-@valueConverter(ValueConverters.dateFormatValueConverterName)
 export class DateFormatValueConverter {
+  public static readonly $au: ValueConverterStaticAuDefinition = {
+    type: valueConverterTypeName,
+    name: ValueConverters.dateFormatValueConverterName,
+  };
+
   public readonly signals: string[] = [Signals.I18N_SIGNAL];
 
   public constructor(

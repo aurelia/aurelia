@@ -4,11 +4,11 @@ import { attrAccessor } from '../../observation/data-attribute-accessor';
 import type { Scope } from '@aurelia/runtime';
 import { PropertyBinding } from '../../binding/property-binding';
 import { ErrorNames, createMappedError } from '../../errors';
-import { BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 export class AttrBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {
-    type: 'binding-behavior',
+    type: behaviorTypeName,
     name: 'attr',
   };
 

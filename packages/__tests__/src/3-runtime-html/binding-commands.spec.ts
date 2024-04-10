@@ -74,7 +74,7 @@ describe('3-runtime-html/binding-commands.spec.ts', function () {
     @bindingCommand({ name: 'woot1', aliases: ['woot13'] })
     @alias(...['woot11', 'woot12'])
     class WootCommand implements BindingCommandInstance {
-      public readonly type: 'None' = 'None';
+      public readonly ignoreAttr = false;
       public name = 'woot1';
 
       public static inject = [OneTimeBindingCommand];
@@ -88,7 +88,7 @@ describe('3-runtime-html/binding-commands.spec.ts', function () {
     @bindingCommand({ name: 'woot2', aliases: ['woot23'] })
     @alias('woot21', 'woot22')
     class WootCommand2 implements BindingCommandInstance {
-      public readonly type: 'None' = 'None';
+      public readonly ignoreAttr = false;
       public name = 'woot2';
 
       public static inject = [OneTimeBindingCommand];

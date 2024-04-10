@@ -7,11 +7,11 @@ import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewMo
 import type { IInstruction } from '../../renderer';
 import type { INode } from '../../dom';
 import { ErrorNames, createMappedError } from '../../errors';
-import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 
 export class If implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'if',
     isTemplateController: true,
     bindables: {

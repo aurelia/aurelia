@@ -34,7 +34,7 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement, type IResourceKind } from './resources-shared';
+import { dtElement, staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly cache?: '*' | number;
@@ -410,7 +410,7 @@ const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
-const elementTypeName = 'custom-element';
+/** @internal */ export const elementTypeName = 'custom-element';
 /** @internal */
 export const elementBaseName = /*@__PURE__*/getResourceKeyFor(elementTypeName);
 
@@ -513,7 +513,6 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
   prop: K
 ): PartialCustomElementDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type);
 
-const staticResourceDefinitionMetadataKey = 'static:resource-definition:metadata';
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {

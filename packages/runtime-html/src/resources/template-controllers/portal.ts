@@ -2,7 +2,7 @@ import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
-import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, isString, rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -18,7 +18,7 @@ export class Portal implements ICustomAttributeViewModel {
     Portal,
     'target' | 'position' | 'renderContext' | 'strict' | 'deactivating' | 'deactivated' | 'activated' | 'activating' | 'callbackContext'
   >> = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'portal',
     isTemplateController: true,
     bindables: [

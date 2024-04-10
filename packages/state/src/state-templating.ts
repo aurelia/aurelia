@@ -8,8 +8,6 @@ import {
 import {
   attributePattern,
   AttrSyntax,
-  bindingCommand,
-  type CommandType,
   IAttrMapper,
   IHydratableController,
   IPlatform,
@@ -17,7 +15,8 @@ import {
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
-  type IRenderer
+  type IRenderer,
+  BindingCommandStaticAuDefinition
 } from '@aurelia/runtime-html';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
@@ -37,10 +36,13 @@ export class DispatchAttributePattern {
   }
 }
 
-@bindingCommand('state')
 export class StateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return 'None'; }
-  public get name(): string { return 'state'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'state',
+  };
+
+  public get ignoreAttr() { return false; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): IInstruction {
     const attr = info.attr;
@@ -63,10 +65,12 @@ export class StateBindingCommand implements BindingCommandInstance {
   }
 }
 
-@bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return 'IgnoreAttr'; }
-  public get name(): string { return 'dispatch'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'dispatch',
+  };
+  public get ignoreAttr() { return true; }
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;

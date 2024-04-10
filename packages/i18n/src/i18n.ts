@@ -5,6 +5,7 @@ import { I18nInitOptions } from './i18n-configuration-options';
 import { I18nextWrapper, I18nWrapper } from './i18next-wrapper';
 import { Signals } from './utils';
 
+_START_CONST_ENUM();
 const enum TimeSpan {
   Second = 1000,
   Minute = Second * 60,
@@ -14,6 +15,7 @@ const enum TimeSpan {
   Month = Day * 30,
   Year = Day * 365
 }
+_END_CONST_ENUM();
 
 export class I18nKeyEvaluationResult {
   public key: string;

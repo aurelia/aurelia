@@ -1,7 +1,7 @@
 import { IBinding, INodeObserverLocator, IObserverLocator, type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { fromView } from '../../binding/interfaces-bindings';
 import { NodeObserverLocator } from '../../observation/observer-locator';
-import { type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { behaviorTypeName, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 
 import { PropertyBinding } from '../../binding/property-binding';
 import { resolve } from '@aurelia/kernel';
@@ -9,7 +9,7 @@ import { ErrorNames, createMappedError } from '../../errors';
 
 export class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {
-    type: 'binding-behavior',
+    type: behaviorTypeName,
     name: 'updateTrigger',
   };
 

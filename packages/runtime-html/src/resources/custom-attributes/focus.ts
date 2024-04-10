@@ -1,7 +1,7 @@
 import { twoWay } from '../../binding/interfaces-bindings';
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { type CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 import { resolve } from '@aurelia/kernel';
 
@@ -10,7 +10,7 @@ import { resolve } from '@aurelia/kernel';
  */
 export class Focus implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'focus',
     bindables: {
       value: { mode: twoWay },

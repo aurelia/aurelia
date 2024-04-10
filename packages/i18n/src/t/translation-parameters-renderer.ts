@@ -11,7 +11,6 @@ import {
   renderer,
   attributePattern,
   AttrSyntax,
-  bindingCommand,
   IPlatform,
   IAttrMapper,
   ICommandBuildInfo,
@@ -20,8 +19,9 @@ import {
 import type {
   BindingMode,
   BindingCommandInstance,
+  BindingCommandStaticAuDefinition,
 } from '@aurelia/runtime-html';
-import { bmToView, ctNone, etIsProperty } from '../utils';
+import { bmToView, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
@@ -44,10 +44,13 @@ export class TranslationParametersBindingInstruction {
   ) {}
 }
 
-@bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: 'None' = ctNone;
-  public get name() { return attribute; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: attribute,
+  };
+
+  public readonly ignoreAttr = false;
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationParametersBindingInstruction {
     const attr = info.attr;

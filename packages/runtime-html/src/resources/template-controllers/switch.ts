@@ -11,7 +11,7 @@ import {
   type Scope,
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { attrTypeName, CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
 import { oneTime } from '../../binding/interfaces-bindings';
 import { isArray } from '../../utilities';
@@ -23,7 +23,7 @@ import { createMappedError, ErrorNames } from '../../errors';
 
 export class Switch implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'switch',
     isTemplateController: true,
     bindables: ['value'],

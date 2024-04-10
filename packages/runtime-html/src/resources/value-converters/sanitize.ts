@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
 import { createInterface } from '../../utilities-di';
-import { ValueConverterStaticAuDefinition } from '../value-converter';
+import { ValueConverterStaticAuDefinition, converterTypeName } from '../value-converter';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export interface ISanitizer {
@@ -23,7 +23,7 @@ export const ISanitizer = /*@__PURE__*/createInterface<ISanitizer>('ISanitizer',
  */
 export class SanitizeValueConverter {
   public static readonly $au: ValueConverterStaticAuDefinition = {
-    type: 'value-converter',
+    type: converterTypeName,
     name: 'sanitize',
   };
 

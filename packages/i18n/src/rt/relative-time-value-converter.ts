@@ -1,9 +1,13 @@
-import { valueConverter } from '@aurelia/runtime-html';
+import { type ValueConverterStaticAuDefinition } from '@aurelia/runtime-html';
 import { I18N } from '../i18n';
-import { Signals, ValueConverters } from '../utils';
+import { Signals, ValueConverters, valueConverterTypeName } from '../utils';
 
-@valueConverter(ValueConverters.relativeTimeValueConverterName)
 export class RelativeTimeValueConverter {
+  public static readonly $au: ValueConverterStaticAuDefinition = {
+    type: valueConverterTypeName,
+    name: ValueConverters.relativeTimeValueConverterName,
+  };
+
   public readonly signals: string[] = [Signals.I18N_SIGNAL, Signals.RT_SIGNAL];
 
   public constructor(

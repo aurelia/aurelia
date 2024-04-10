@@ -20,7 +20,7 @@ import type {
 } from '@aurelia/kernel';
 import { ValueConverterInstance } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
-import { type IResourceKind } from './resources-shared';
+import { staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition;
 export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition & {
@@ -100,7 +100,7 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
   }
 }
 
-const converterTypeName = 'value-converter';
+/** @internal */ export const converterTypeName = 'value-converter';
 const vcBaseName = /*@__PURE__*/getResourceKeyFor(converterTypeName);
 const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>(
   Type: Constructable,
@@ -109,7 +109,6 @@ const getConverterAnnotation = <K extends keyof PartialValueConverterDefinition>
 
 const getValueConverterKeyFrom = (name: string): string => `${vcBaseName}:${name}`;
 
-const staticResourceDefinitionMetadataKey = 'static:resource:definition';
 // eslint-disable-next-line @typescript-eslint/ban-types
 const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): ValueConverterDefinition<C> => {
   let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as ValueConverterDefinition<C>;

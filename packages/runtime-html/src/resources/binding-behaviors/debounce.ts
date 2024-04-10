@@ -1,5 +1,5 @@
 import { IDisposable, IPlatform, emptyArray, resolve } from '@aurelia/kernel';
-import { BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 import { type BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
 import { isString } from '../../utilities';
@@ -9,7 +9,7 @@ const defaultDelay = 200;
 
 export class DebounceBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {
-    type: 'binding-behavior',
+    type: behaviorTypeName,
     name: 'debounce',
   };
   /** @internal */

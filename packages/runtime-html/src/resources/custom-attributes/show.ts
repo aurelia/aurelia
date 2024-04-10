@@ -1,6 +1,6 @@
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { type CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import { IInstruction } from '../../renderer';
 
 import type { ITask } from '@aurelia/platform';
@@ -11,7 +11,7 @@ import { resolve } from '@aurelia/kernel';
 
 export class Show implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'show',
     bindables: ['value'],
     aliases: ['hide']

@@ -1,12 +1,12 @@
 import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { ListenerBinding } from '../../binding/listener-binding';
-import { BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class SelfBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {
-    type: 'binding-behavior',
+    type: behaviorTypeName,
     name: 'self',
   };
 

@@ -1,5 +1,5 @@
 import { ISignaler } from '@aurelia/runtime';
-import { BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 import { addSignalListener, removeSignalListener } from '../../utilities';
 import type { BindingBehaviorInstance, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
@@ -7,7 +7,7 @@ import { ErrorNames, createMappedError } from '../../errors';
 
 export class SignalBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {
-    type: 'binding-behavior',
+    type: behaviorTypeName,
     name: 'signal',
   };
   /** @internal */

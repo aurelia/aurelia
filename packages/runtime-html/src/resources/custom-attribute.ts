@@ -19,7 +19,7 @@ import type { BindableDefinition, PartialBindableDefinition } from '../bindable'
 import type { ICustomAttributeViewModel, ICustomAttributeController, Controller } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtAttribute, type IResourceKind } from './resources-shared';
+import { dtAttribute, staticResourceDefinitionMetadataKey, type IResourceKind } from './resources-shared';
 
 export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly defaultBindingMode?: BindingMode;
@@ -177,7 +177,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   }
 }
 
-const attrTypeName = 'custom-attribute';
+/** @internal */ export const attrTypeName = 'custom-attribute';
 const attributeBaseName = /*@__PURE__*/getResourceKeyFor(attrTypeName);
 const getAttributeKeyFrom = (name: string): string => `${attributeBaseName}:${name}`;
 
@@ -221,8 +221,6 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
 
   return def;
 };
-
-const staticResourceDefinitionMetadataKey = 'static:resource-definition:metadata';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const getDefinitionFromStaticAu = <C extends Constructable>(Type: C | Function): CustomAttributeDefinition<C> => {

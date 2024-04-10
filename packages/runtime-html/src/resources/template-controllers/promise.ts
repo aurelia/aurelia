@@ -16,13 +16,13 @@ import {
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
 import { attributePattern, AttrSyntax } from '../attribute-pattern';
-import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class PromiseTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'promise',
     isTemplateController: true,
     bindables: ['value'],

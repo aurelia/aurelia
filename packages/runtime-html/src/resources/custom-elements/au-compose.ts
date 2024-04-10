@@ -7,7 +7,7 @@ import { Controller, HydrationContext, IController, ICustomElementController, IH
 import { IRendering } from '../../templating/rendering';
 import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
-import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition } from '../custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
@@ -36,7 +36,7 @@ export class AuCompose {
     AuCompose,
     'template' | 'component' | 'model' | 'scopeBehavior' | 'composing' | 'composition' | 'tag'
   >> = {
-    type: 'custom-element',
+    type: elementTypeName,
     name: 'au-compose',
     capture: true,
     containerless: true,

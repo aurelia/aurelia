@@ -19,7 +19,7 @@ import {
 } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
-import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
@@ -41,7 +41,7 @@ const wrappedExprs = [
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'repeat',
     isTemplateController: true,
     bindables: ['items'],

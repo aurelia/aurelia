@@ -2,8 +2,7 @@ import { onResolve, resolve } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
-import { bindable } from '../../bindable';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, isString, rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
@@ -15,34 +14,55 @@ type ResolvedTarget = Element;
 export type PortalLifecycleCallback = (target: PortalTarget, view: ISyntheticView) => void | Promise<void>;
 
 export class Portal implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition<keyof Pick<
+    Portal,
+    'target' | 'position' | 'renderContext' | 'strict' | 'deactivating' | 'deactivated' | 'activated' | 'activating' | 'callbackContext'
+  >> = {
+    type: attrTypeName,
+    name: 'portal',
+    isTemplateController: true,
+    bindables: [
+      { name: 'target', primary: true },
+      'position',
+      'activated',
+      'activating',
+      'callbackContext',
+      { name: 'renderContext', callback: 'targetChanged' },
+      'strict',
+      'deactivated',
+      'deactivating'
+    ],
+    // bindables: {
+    //   target: { primary: true },
+    //   position: true,
+    //   renderContext: { callback: 'targetChanged' },
+    //   activated: true,
+    //   activating: true,
+    //   callbackContext: true,
+    //   deactivated: true,
+    //   deactivating: true,
+    //   strict: true
+    // }
+  };
 
   public readonly $controller!: ICustomAttributeController<this>;
 
-  @bindable({ primary: true })
   public target: PortalTarget;
 
-  @bindable()
   public position: InsertPosition = 'beforeend';
 
-  @bindable({ callback: 'targetChanged' })
   public renderContext: PortalTarget;
 
-  @bindable()
   public strict: boolean = false;
 
-  @bindable()
   public deactivating?: PortalLifecycleCallback;
 
-  @bindable()
   public activating?: PortalLifecycleCallback;
 
-  @bindable()
   public deactivated?: PortalLifecycleCallback;
 
-  @bindable()
   public activated?: PortalLifecycleCallback;
 
-  @bindable()
   public callbackContext: unknown;
 
   public view: ISyntheticView;
@@ -303,4 +323,4 @@ export class Portal implements ICustomAttributeViewModel {
   }
 }
 
-templateController('portal')(Portal);
+// templateController('portal')(Portal);

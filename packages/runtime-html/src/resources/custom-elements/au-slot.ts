@@ -1,7 +1,6 @@
 import { Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
-import { bindable } from '../../bindable';
-import { CustomElementDefinition, customElement } from '../custom-element';
+import { CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { IInstruction } from '../../renderer';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
@@ -16,33 +15,36 @@ import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, 
 
 let emptyTemplate: CustomElementDefinition;
 
-@customElement({
-  name: 'au-slot',
-  template: null,
-  containerless: true,
-  processContent(el, p, data) {
-    data.name = el.getAttribute('name') ?? defaultSlotName;
-
-    let node: Node | null = el.firstChild;
-    let next: Node | null = null;
-    while (node !== null) {
-      next = node.nextSibling;
-      if (isElement(node) && node.hasAttribute(auslotAttr)) {
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.warn(
-            `[DEV:aurelia] detected [au-slot] attribute on a child node`,
-            `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
-            `This element will be ignored and removed`
-          );
-        }
-        el.removeChild(node);
-      }
-      node = next;
-    }
-  },
-})
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
+  public static readonly $au: CustomElementStaticAuDefinition = {
+    type: elementTypeName,
+    name: 'au-slot',
+    template: null,
+    containerless: true,
+    processContent(el, p, data) {
+      data.name = el.getAttribute('name') ?? defaultSlotName;
+
+      let node: Node | null = el.firstChild;
+      let next: Node | null = null;
+      while (node !== null) {
+        next = node.nextSibling;
+        if (isElement(node) && node.hasAttribute(auslotAttr)) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `[DEV:aurelia] detected [au-slot] attribute on a child node`,
+              `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
+              `This element will be ignored and removed`
+            );
+          }
+          el.removeChild(node);
+        }
+        node = next;
+      }
+    },
+    bindables: ['expose', 'slotchange'],
+  };
+
   public readonly view: ISyntheticView;
   /** @internal */
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
@@ -59,13 +61,11 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /**
    * The binding context that will be exposed to slotted content
    */
-  @bindable
   public expose: object | null = null;
 
   /**
    * A callback that will be called when the content of this slot changed
    */
-  @bindable
   public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
   public constructor() {

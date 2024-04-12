@@ -183,6 +183,24 @@ The `CustomElement.define` method allows for a syntax similar to the `@customEle
 While it's useful to know about this API, it's typically unnecessary to define custom elements within Aurelia applications. This method is more relevant for writing tests, which you can learn about [here](../developer-guides/testing.md).
 {% endhint %}
 
+## Components declaration with static property `$au`
+
+Beside the custom element and `CustomElement.define` usages, it's also possible to to delcare a components using static `$au` property, like the following example:
+
+```typescript
+export class AppLoader {
+  static $au = {
+    type: 'custom-element',
+    name: 'app-loader',
+    dependencies: [...]
+  }
+  // Component logic goes here
+}
+```
+{% hint style="info" %}
+Similar to custom element components, custom attributes, binding behaviors and value converters can also be declared using the static property `$au`.
+{% endhint %}
+
 ## HTML-Only Components
 
 It's possible to create components in Aurelia using only HTML without a corresponding view model.

@@ -57,7 +57,12 @@ export class Rendering {
       const compiler = container.get(ITemplateCompiler);
       let compiled = compiledMap.get(definition);
       if (compiled == null) {
-        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
+        // const fullDefinition = CustomElementDefinition.getOrCreate(definition);
+        compiledMap.set(definition, compiled = compiler.compile(
+          CustomElementDefinition.getOrCreate(definition),
+          container,
+          compilationInstruction
+        ));
       } else {
         // todo:
         // should only register if the compiled def resolution is string

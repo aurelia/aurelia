@@ -13,7 +13,6 @@ import {
   astEvaluate,
 } from '@aurelia/runtime';
 import {
-  customAttribute,
   IInstruction,
   IController,
   IViewFactory,
@@ -24,6 +23,7 @@ import {
   ISyntheticView,
   IRenderLocation,
   IPlatform,
+  CustomAttributeStaticAuDefinition,
 } from '@aurelia/runtime-html';
 import {
   unwrapExpression,
@@ -53,6 +53,16 @@ const noScrollInfo: IScrollerInfo = {
 export interface VirtualRepeat extends ICustomAttributeViewModel {}
 
 export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'virtual-repeat',
+    isTemplateController: true,
+    bindables: {
+      local: true,
+      items: { primary: true }
+    }
+  };
+
   // bindable
   public local: string;
 
@@ -516,16 +526,6 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     return view;
   }
 }
-
-// avoid excessive code generation, if it doesn't affect readability too much
-customAttribute({
-  isTemplateController: true,
-  name: 'virtual-repeat',
-  bindables: {
-    local: { name: 'local' },
-    items: { name: 'items', primary: true }
-  }
-})(VirtualRepeat);
 
 class CollectionObservationMediator {
   /** @internal */ private _collection!: Collection;

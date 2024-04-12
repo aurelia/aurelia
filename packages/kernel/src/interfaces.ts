@@ -7,7 +7,7 @@ export type Constructable<T = object> = {
   new(...args: any[]): T;
 };
 
-export type Class<T, C = {}> = C & {
+export type Class<T, TStaticProps = {}> = TStaticProps & {
   readonly prototype: T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new(...args: any[]): T;

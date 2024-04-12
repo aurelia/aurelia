@@ -1,11 +1,11 @@
 import {
-  customAttribute,
-  bindable,
-  ICustomAttributeViewModel,
-  ICustomAttributeController,
+  type ICustomAttributeViewModel,
+  type ICustomAttributeController,
   INode,
   IWindow,
-  getRef, CustomAttribute
+  getRef,
+  CustomAttribute,
+  type CustomAttributeStaticAuDefinition
 } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
@@ -27,14 +27,20 @@ import { bmToView } from '../util';
  * Therefore, till the template compiler can handle that correctly, introduction of a bindable context is intentionally omitted.
  */
 
-@customAttribute({ name: 'href', noMultiBindings: true })
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'href',
+    noMultiBindings: true,
+    bindables: {
+      value: { mode: bmToView }
+    }
+  };
 
   /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
   /** @internal */private readonly _router: IRouter = resolve(IRouter);
   /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
 
-  @bindable({ mode: bmToView })
   public value: unknown;
 
   /** @internal */private _isInitialized: boolean = false;

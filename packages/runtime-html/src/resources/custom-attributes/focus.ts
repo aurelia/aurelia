@@ -1,8 +1,7 @@
 import { twoWay } from '../../binding/interfaces-bindings';
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
-import { customAttribute } from '../custom-attribute';
-import { bindable } from '../../bindable';
+import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';
 import { resolve } from '@aurelia/kernel';
 
@@ -10,9 +9,16 @@ import { resolve } from '@aurelia/kernel';
  * Focus attribute for element focus binding
  */
 export class Focus implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'focus',
+    bindables: {
+      value: { mode: twoWay },
+    }
+  };
+
   public readonly $controller!: ICustomAttributeController<this>;
 
-  @bindable({ mode: twoWay })
   public value: unknown;
 
   /**
@@ -118,5 +124,3 @@ export class Focus implements ICustomAttributeViewModel {
     return this._element === this._platform.document.activeElement;
   }
 }
-
-customAttribute('focus')(Focus);

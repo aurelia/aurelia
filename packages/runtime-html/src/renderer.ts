@@ -171,7 +171,7 @@ export class HydrateElementInstruction<T extends Record<PropertyKey, unknown> = 
     /**
      * Indicates what projections are associated with the element usage
      */
-    public projections: Record<string, CustomElementDefinition> | null,
+    public projections: Record<string, PartialCustomElementDefinition> | null,
     /**
      * Indicates whether the usage of the custom element was with a containerless attribute or not
      */
@@ -332,7 +332,7 @@ export interface ITemplateCompiler {
    */
   resolveResources: boolean;
   compile(
-    partialDefinition: PartialCustomElementDefinition,
+    partialDefinition: CustomElementDefinition,
     context: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition;
@@ -346,7 +346,7 @@ export interface ITemplateCompiler {
    * @param host - the host element where the attributes are spreaded on
    */
   compileSpread(
-    requestor: PartialCustomElementDefinition,
+    requestor: CustomElementDefinition,
     attrSyntaxes: AttrSyntax[],
     container: IContainer,
     target: Element,

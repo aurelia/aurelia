@@ -1,5 +1,5 @@
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
-import { CustomElement, type CustomElementDefinition } from '../resources/custom-element';
+import { CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
 import { createInterface, instanceRegistration } from '../utilities-di';
 import { type ISubscribable, type ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
 import { type Constructable, emptyArray, type Key, type IContainer, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
@@ -23,7 +23,7 @@ export type PartialSlottedDefinition = {
   // map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown;
 };
 
-export type IAuSlotProjections = Record<string, CustomElementDefinition>;
+export type IAuSlotProjections = Record<string, PartialCustomElementDefinition>;
 
 export interface IAuSlotsInfo {
   /**

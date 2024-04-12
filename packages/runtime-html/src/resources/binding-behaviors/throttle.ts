@@ -1,13 +1,17 @@
 import { IPlatform, type IDisposable, emptyArray, resolve } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
 import { BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
-import { bindingBehavior } from '../binding-behavior';
+import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 import { isString } from '../../utilities';
 
 const bindingHandlerMap: WeakMap<IBinding, IDisposable> = new WeakMap();
 const defaultDelay = 200;
 
 export class ThrottleBindingBehavior implements BindingBehaviorInstance {
+  public static readonly $au: BindingBehaviorStaticAuDefinition = {
+    type: behaviorTypeName,
+    name: 'throttle',
+  };
   /** @internal */
   private readonly _now: () => number;
   /** @internal */
@@ -42,5 +46,3 @@ export class ThrottleBindingBehavior implements BindingBehaviorInstance {
     bindingHandlerMap.delete(binding);
   }
 }
-
-bindingBehavior('throttle')(ThrottleBindingBehavior);

@@ -11,6 +11,7 @@ export {
   BindingBehavior,
   BindingBehaviorDefinition,
   type PartialBindingBehaviorDefinition,
+  type BindingBehaviorStaticAuDefinition,
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
   type BindingBehaviorType,
@@ -76,10 +77,11 @@ export {
   type ICommandBuildInfo,
   BindingCommand ,
   type BindingCommandInstance,
+  type PartialBindingCommandDefinition,
+  type BindingCommandStaticAuDefinition,
   BindingCommandDefinition,
   type BindingCommandKind,
   type BindingCommandType,
-  type CommandType,
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -242,6 +244,7 @@ export {
   type CustomAttributeKind,
   type CustomAttributeType,
   type PartialCustomAttributeDefinition,
+  type CustomAttributeStaticAuDefinition,
   templateController,
 } from './resources/custom-attribute';
 export {
@@ -292,6 +295,7 @@ export {
   CustomElementDefinition,
   type PartialCustomElementDefinition,
   type ProcessContentHook,
+  type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';
@@ -305,6 +309,7 @@ export {
   ValueConverter,
   ValueConverterDefinition,
   type PartialValueConverterDefinition,
+  type ValueConverterStaticAuDefinition,
   type ValueConverterKind,
   type ValueConverterDecorator,
   type ValueConverterType,
@@ -337,11 +342,13 @@ export {
   ITemplateElementFactory
 } from './compiler/template-element-factory';
 export {
-  BindablesInfo,
   TemplateCompiler,
   ITemplateCompilerHooks,
   TemplateCompilerHooks,
   templateCompilerHooks,
+  type IAttributeBindablesInfo,
+  type IElementBindablesInfo,
+  IBindablesInfoResolver,
 } from './compiler/template-compiler';
 
 export {

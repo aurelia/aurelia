@@ -1,17 +1,15 @@
-import { camelCase, IIndexable, type IContainer, type IServiceLocator } from '@aurelia/kernel';
+import { camelCase, type IContainer, type IServiceLocator } from '@aurelia/kernel';
 import { astBind, astEvaluate, astUnbind, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { bindingCommand, BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
 import { ensureExpression, etIsFunction } from './utilities';
+import { BindingCommandStaticAuDefinition } from '@aurelia/runtime-html/dist/types/resources/binding-command';
 
-const registeredSymbol = Symbol('.call');
+const callRegisteredContainer = new WeakSet<IContainer>();
 
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 export const callSyntax = {
   register(container: IContainer) {
-    /* istanbul ignore next */
-    if (!(container as unknown as IIndexable)[registeredSymbol]) {
-      /* istanbul ignore next */
-      (container as unknown as IIndexable)[registeredSymbol] = true;
+    if (!callRegisteredContainer.has(container)) {
+      callRegisteredContainer.add(container);
       container.register(
         CallBindingCommand,
         CallBindingRenderer,
@@ -31,9 +29,13 @@ export class CallBindingInstruction {
   ) { }
 }
 
-@bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'call',
+  };
+
+  public get ignoreAttr() { return false; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null

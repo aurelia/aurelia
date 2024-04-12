@@ -111,6 +111,7 @@ export {
   type PartialResourceDefinition,
   Protocol,
   type ResourceDefinition,
+  type StaticResourceType,
   type ResourceType,
   fromAnnotationOrDefinitionOrTypeOrDefault,
   fromAnnotationOrTypeOrDefault,

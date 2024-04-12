@@ -14,7 +14,7 @@ import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
 import { def, isFunction, isString, objectAssign, objectFreeze } from '../utilities';
-import { aliasRegistration, transientRegistration } from '../utilities-di';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {
   Constructable,
@@ -25,6 +25,7 @@ import type {
   ResourceDefinition,
   IResolver,
   Writable,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import type { INode } from '../dom';
@@ -33,18 +34,21 @@ import type { IPlatform } from '../platform';
 import type { IInstruction } from '../renderer';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtElement, type IResourceKind } from './resources-shared';
+import { dtElement, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
-export type PartialCustomElementDefinition = PartialResourceDefinition<{
+export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<{
   readonly cache?: '*' | number;
   readonly capture?: boolean | ((attr: string) => boolean);
   readonly template?: null | string | Node;
   readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
   readonly injectable?: InjectableToken | null;
+  /**
+   * An semi internal property used to signal the rendering process not to try to compile the template again
+   */
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
-  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
+  readonly bindables?: Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>> | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   readonly containerless?: boolean;
   readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
   readonly hasSlots?: boolean;
@@ -52,6 +56,10 @@ export type PartialCustomElementDefinition = PartialResourceDefinition<{
   readonly watches?: IWatchDefinition[];
   readonly processContent?: ProcessContentHook | null;
 }>;
+
+export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {
+  type: 'custom-element';
+};
 
 export type CustomElementType<C extends Constructable = Constructable> = ResourceType<C, ICustomElementViewModel & (C extends Constructable<infer P> ? P : object), PartialCustomElementDefinition>;
 export type CustomElementKind = IResourceKind & {
@@ -365,7 +373,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // todo: warn if alreay has key
     if (!container.has(key, false)) {
       container.register(
-        container.has($Type, false) ? null : transientRegistration($Type, $Type),
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
         aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
       );
@@ -405,18 +413,14 @@ const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;
 
-/** @internal */
-export const elementBaseName = /*@__PURE__*/getResourceKeyFor('custom-element');
+/** @internal */ export const elementTypeName = 'custom-element';
+/** @internal */ export const elementBaseName = /*@__PURE__*/getResourceKeyFor(elementTypeName);
 
 /** @internal */
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
 
 /** @internal */
-export const generateElementName = /*@__PURE__*/(() => {
-  let id = 0;
-
-  return () => `unnamed-${++id}`;
-})();
+export const generateElementName = /*@__PURE__*/(id => () => `unnamed-${++id}`)(0);
 
 const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
   defineMetadata(getAnnotationKeyFor(prop), value, Type);
@@ -436,7 +440,10 @@ export const defineElement = <C extends Constructable>(nameOrDef: string | Parti
 
 /** @internal */
 export const isElementType = <C>(value: C): value is (C extends Constructable ? CustomElementType<C> : never) => {
-  return isFunction(value) && hasOwnMetadata(elementBaseName, value);
+  return isFunction(value)
+    && (hasOwnMetadata(elementBaseName, value)
+      || (value as StaticResourceType).$au?.type === elementTypeName
+    );
 };
 
 /** @internal */
@@ -507,8 +514,9 @@ const getElementAnnotation = <K extends keyof PartialCustomElementDefinition>(
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getElementDefinition = <C extends Constructable>(Type: C | Function): CustomElementDefinition<C> => {
-  const def = getOwnMetadata(elementBaseName, Type) as CustomElementDefinition<C>;
-  if (def === void 0) {
+  const def: CustomElementDefinition<C> = getOwnMetadata(elementBaseName, Type)
+    ?? getDefinitionFromStaticAu(Type as CustomElementType, elementTypeName, CustomElementDefinition.create);
+  if (def == null) {
     throw createMappedError(ErrorNames.element_def_not_found, Type);
   }
 
@@ -584,9 +592,10 @@ export const CustomElement = objectFreeze<CustomElementKind>({
   createInjectable: createElementInjectable,
   generateType: generateElementType,
   find(c, name) {
-    const key = getElementKeyFrom(name);
-    const Type = c.find(key);
-    return Type == null ? null : getOwnMetadata(elementBaseName, Type) ?? null;
+    const Type = c.find<CustomElementType>(elementTypeName, name);
+    return Type == null
+      ? null
+      : getOwnMetadata(elementBaseName, Type) ?? getDefinitionFromStaticAu(Type, elementTypeName, CustomElementDefinition.create) ?? null;
   }
 });
 

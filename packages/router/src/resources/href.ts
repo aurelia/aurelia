@@ -1,16 +1,20 @@
 import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
-import { customAttribute, INode, bindable, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute } from '@aurelia/runtime-html';
+import { INode, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute, CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
 import { IRouter, RouterNavigationEndEvent } from '../router';
 import { LoadCustomAttribute } from '../index';
 import { ILinkHandler } from './link-handler';
 import { bmToView, getConsideredActiveInstructions, getLoadIndicator } from './utils';
 
-@customAttribute({
-  name: 'href',
-  noMultiBindings: true
-})
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
-  @bindable({ mode: bmToView })
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'href',
+    noMultiBindings: true,
+    bindables: {
+      value: { mode: bmToView }
+    }
+  };
+
   public value: string | undefined;
 
   public readonly $controller!: ICustomAttributeController<this>;

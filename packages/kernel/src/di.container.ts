@@ -4,7 +4,7 @@ import { Metadata, isObject } from '@aurelia/metadata';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { resourceBaseName, ResourceDefinition, type ResourceType } from './resource';
+import { resourceBaseName, ResourceDefinition, StaticResourceType, type ResourceType } from './resource';
 import { isFunction, isString, objectFreeze } from './utilities';
 import {
   IContainer,
@@ -22,7 +22,7 @@ import {
   type IContainerConfiguration,
 } from './di';
 import { ErrorNames, createMappedError, logError, logWarn } from './errors';
-import { singletonRegistration } from './di.registration';
+import { aliasToRegistration, singletonRegistration } from './di.registration';
 import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory } from './di.resolvers';
 
 export const Registrable = /*@__PURE__*/(() => {
@@ -184,8 +184,30 @@ export class Container implements IContainer {
         Registrable.get(current)!.call(current, this);
       } else if ((def = Metadata.getOwn(resourceBaseName, current)) != null) {
         def.register(this);
-      } else if (isClass(current)) {
-        singletonRegistration(current, current as Constructable).register(this);
+      } else if (isClass<StaticResourceType>(current)) {
+        if (isString((current).$au?.type)) {
+          const $au = current.$au;
+          const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
+          let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
+          if (!this.has(key, false)) {
+            aliasToRegistration(current, key).register(this);
+            if (!this.has(current, false)) {
+              singletonRegistration(current, current).register(this);
+            }
+            j = 0;
+            jj = aliases.length;
+            for (; j < jj; ++j) {
+              key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
+              if (!this.has(key, false)) {
+                aliasToRegistration(current, key).register(this);
+              }
+            }
+          } else {
+            // dev message for registering static resources that the key already registered
+          }
+        } else {
+          singletonRegistration(current, current as Constructable).register(this);
+        }
       } else {
         keys = Object.keys(current);
         j = 0;
@@ -500,7 +522,10 @@ export class Container implements IContainer {
     }
   }
 
-  public find<TResType extends ResourceType>(key: string): TResType | null {
+  public find<TResType extends ResourceType>(kind: string, name: string): TResType | null;
+  public find<TResType extends ResourceType>(key: string): TResType | null;
+  public find<TResType extends ResourceType>(keyOrKind: string, name?: string): TResType | null {
+    const key = isString(name) ? `${resourceBaseName}:${keyOrKind}:${name}` : keyOrKind;
     let container: Container = this;
     let resolver = container.res[key];
     if (resolver == null) {
@@ -722,8 +747,8 @@ const isSelfRegistry = <T extends Constructable>(obj: RegisterSelf<T>): obj is R
 const isRegisterInRequester = <T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> =>
   isSelfRegistry(obj) && obj.registerInRequestor;
 
-const isClass = <T extends { prototype?: any }>(obj: T): obj is Class<any, T> =>
-  obj.prototype !== void 0;
+const isClass = <T>(obj: unknown): obj is Class<any, T> =>
+  (obj as { prototype: object }).prototype !== void 0;
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;

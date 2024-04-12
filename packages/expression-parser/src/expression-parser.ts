@@ -56,18 +56,18 @@ import { createLookup, objectAssign } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 import { DI } from '@aurelia/kernel';
 
-export interface IExpressionParser {
+export interface IExpressionParser<TCustom extends CustomExpression = CustomExpression> {
   parse(expression: string, expressionType: 'IsIterator'): ForOfStatement;
   parse(expression: string, expressionType: 'Interpolation'): Interpolation;
   parse(expression: string, expressionType: Exclude<ExpressionType, 'IsIterator' | 'Interpolation'>): IsBindingBehavior;
-  parse(expression: string, expressionType: ExpressionType): AnyBindingExpression;
+  parse(expression: string, expressionType: ExpressionType): AnyBindingExpression<TCustom>;
 }
 export const IExpressionParser = /*@__PURE__*/DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
 /**
  * A default implementation of the IExpressionParser interface
  */
-export class ExpressionParser implements IExpressionParser {
+export class ExpressionParser<TCustom extends CustomExpression = CustomExpression> implements IExpressionParser<TCustom> {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
   /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
   /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();

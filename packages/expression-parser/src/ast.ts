@@ -84,7 +84,7 @@ export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | Acces
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
-export type AnyBindingExpression = Interpolation | ForOfStatement | CustomExpression | IsBindingBehavior;
+export type AnyBindingExpression<TCustom extends CustomExpression = CustomExpression> = Interpolation | ForOfStatement | TCustom | IsBindingBehavior;
 
 export class CustomExpression {
   public readonly $kind = ekCustom;

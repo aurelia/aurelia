@@ -182,7 +182,7 @@ export class Deserializer implements IExpressionHydrator {
   }
 }
 export class Serializer implements AST.IVisitor<string> {
-  public static serialize(expr: AST.IsExpressionOrStatement): string {
+  public static serialize(expr: AST.IsExpressionOrStatement | AST.CustomExpression): string {
     const visitor = new Serializer();
     if (expr == null) {
       return `${expr}`;

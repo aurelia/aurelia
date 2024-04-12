@@ -32,9 +32,6 @@ export {
   DestructuringAssignmentRestExpression,
   ArrowFunction,
 
-  astVisit,
-  Unparser,
-
   // ast typing helpers
   type AnyBindingExpression,
   type IsPrimary,
@@ -49,14 +46,20 @@ export {
   type IsAssignable,
   type IsExpression,
   type IsExpressionOrStatement,
-  type IVisitor,
   type BinaryOperator,
   type BindingIdentifierOrPattern,
   type UnaryOperator,
 } from './ast';
 
 export {
+  astVisit,
+  type IVisitor,
+  Unparser
+} from './ast.visitor';
+
+export {
   IExpressionParser,
   ExpressionParser,
-  ExpressionType
+  ExpressionType,
+  parseExpression,
 } from './expression-parser';

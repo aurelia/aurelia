@@ -1,5 +1,4 @@
-import { IExpressionParser } from '@aurelia/expression-parser';
-import type { ExpressionType } from '@aurelia/runtime';
+import { IExpressionParser, type ExpressionType } from '@aurelia/expression-parser';
 
 /** @internal */ export const createLookup = <T = unknown>() => Object.create(null) as Record<string, T>;
 

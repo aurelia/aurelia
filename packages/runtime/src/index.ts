@@ -68,11 +68,11 @@ export {
   connectable,
   BindingObserverRecord,
 } from './binding/connectable';
-export {
-  IExpressionParser,
-  type ExpressionType,
-  parseExpression,
-} from './binding/expression-parser';
+// export {
+//   IExpressionParser,
+//   type ExpressionType,
+//   parseExpression,
+// } from './binding/expression-parser';
 
 export {
   ArrayObserver,

@@ -1,5 +1,5 @@
 import { camelCase, resolve } from '@aurelia/kernel';
-import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/runtime';
+import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
 } from '@aurelia/runtime';

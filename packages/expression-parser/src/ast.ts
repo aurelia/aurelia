@@ -2,12 +2,6 @@
 import { emptyArray } from '@aurelia/kernel';
 import type { IVisitor } from './ast.visitor';
 
-export {
-  astVisit,
-  IVisitor,
-  Unparser
-} from './ast.visitor';
-
 /** @internal */ export const ekAccessThis = 'AccessThis';
 /** @internal */ export const ekAccessBoundary = 'AccessBoundary';
 /** @internal */ export const ekAccessGlobal = 'AccessGlobal';

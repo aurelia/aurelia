@@ -48,6 +48,7 @@
     "@aurelia/fetch-client": "2.0.0-beta.14",
     "@aurelia/i18n": "2.0.0-beta.14",
     "@aurelia/kernel": "2.0.0-beta.14",
+    "@aurelia/expression-parser": "2.0.0-beta.14",
     "@aurelia/metadata": "2.0.0-beta.14",
     "@aurelia/platform": "2.0.0-beta.14",
     "@aurelia/platform-browser": "2.0.0-beta.14",

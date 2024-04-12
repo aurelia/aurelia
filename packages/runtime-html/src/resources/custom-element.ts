@@ -43,6 +43,9 @@ export type PartialCustomElementDefinition<TBindables extends string = string> =
   readonly instructions?: readonly (readonly IInstruction[])[];
   readonly dependencies?: readonly Key[];
   readonly injectable?: InjectableToken | null;
+  /**
+   * An semi internal property used to signal the rendering process not to try to compile the template again
+   */
   readonly needsCompile?: boolean;
   readonly surrogates?: readonly IInstruction[];
   readonly bindables?: Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>> | (TBindables | PartialBindableDefinition & { name: TBindables })[];
@@ -417,11 +420,7 @@ const returnEmptyArray = () => emptyArray;
 export const getElementKeyFrom = (name: string): string => `${elementBaseName}:${name}`;
 
 /** @internal */
-export const generateElementName = /*@__PURE__*/(() => {
-  let id = 0;
-
-  return () => `unnamed-${++id}`;
-})();
+export const generateElementName = /*@__PURE__*/(id => () => `unnamed-${++id}`)(0);
 
 const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>(Type: Constructable, prop: K, value: PartialCustomElementDefinition[K]): void => {
   defineMetadata(getAnnotationKeyFor(prop), value, Type);

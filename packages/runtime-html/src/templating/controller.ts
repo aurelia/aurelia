@@ -12,10 +12,10 @@ import {
   optionalResource,
 } from '@aurelia/kernel';
 import { isObject } from '@aurelia/metadata';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   AccessScopeExpression,
   ICoercionConfiguration,
-  IExpressionParser,
   IObserverLocator,
   Scope,
 } from '@aurelia/runtime';

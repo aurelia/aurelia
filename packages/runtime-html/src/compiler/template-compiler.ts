@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources, resolve } from '@aurelia/kernel';
-import { IExpressionParser, IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {

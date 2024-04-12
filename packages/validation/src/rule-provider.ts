@@ -3,9 +3,11 @@ import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
-  IsBindingBehavior,
+  type IsBindingBehavior,
   PrimitiveLiteralExpression,
   AccessScopeExpression,
+} from '@aurelia/expression-parser';
+import {
   Scope,
   IAstEvaluator,
   astEvaluate,
@@ -78,7 +80,7 @@ export const validationRulesRegistrar = Object.freeze({
     return Metadata.get(key, target) ?? Metadata.getOwn(key, target.constructor);
   },
   unset(target: IValidateable, tag?: string): void {
-    const keys = Metadata.getOwn(Protocol.annotation.name, target);
+    const keys: string | string[] = Metadata.getOwn(Protocol.annotation.name, target);
     if (!Array.isArray(keys)) return;
     for (const key of keys.slice(0)) {
       if (key.startsWith(validationRulesRegistrar.name) && (tag === void 0 || key.endsWith(tag))) {

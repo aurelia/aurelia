@@ -7,9 +7,9 @@ import {
   resolve,
   Registrable,
 } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   type ExpressionType,
-  IExpressionParser,
   IObserverLocator,
   type Interpolation,
   type IsBindingBehavior,

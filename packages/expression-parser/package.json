@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/i18n",
+  "name": "@aurelia/expression-parser",
   "version": "2.0.0-beta.14",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
@@ -22,14 +22,15 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/aurelia/aurelia.git",
-    "directory": "packages/i18n"
+    "directory": "packages/expression-parser"
   },
   "bugs": {
     "url": "https://github.com/aurelia/aurelia/issues"
   },
   "keywords": [
     "aurelia",
-    "i18n"
+    "expression-parser",
+    "store"
   ],
   "files": [
     "dist",
@@ -38,7 +39,6 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "sideEffects": false,
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
@@ -54,13 +54,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.14",
-    "@aurelia/metadata": "2.0.0-beta.14",
-    "@aurelia/platform": "2.0.0-beta.14",
-    "@aurelia/runtime": "2.0.0-beta.14",
-    "@aurelia/expression-parser": "2.0.0-beta.14",
-    "@aurelia/runtime-html": "2.0.0-beta.14",
-    "i18next": ">= 17.3.1"
+    "@aurelia/kernel": "2.0.0-beta.14"
   },
   "devDependencies": {
     "typescript": "5.4.2"

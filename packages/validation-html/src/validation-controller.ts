@@ -10,6 +10,8 @@ import {
 import {
   BindingBehaviorExpression,
   IExpressionParser,
+} from '@aurelia/expression-parser';
+import {
   astEvaluate,
   // IsBindingBehavior
 } from '@aurelia/runtime';

@@ -2,10 +2,10 @@ import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
   CustomExpression,
-  IExpressionParser,
   IObserverLocator,
   type IsBindingBehavior,
 } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IRenderer,
   renderer,

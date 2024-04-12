@@ -1,9 +1,7 @@
 import { camelCase, resolve } from '@aurelia/kernel';
+import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/runtime';
 import {
-  type ExpressionType,
-  IExpressionParser,
   IObserverLocator,
-  type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
   attributePattern,

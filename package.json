@@ -55,7 +55,8 @@
     "examples/realworld-advanced",
     "examples/router-animation",
     "examples/state-plugin",
-    "examples/sierpinski-triangle"
+    "examples/sierpinski-triangle",
+    "packages/expression-parser"
   ],
   "license": "MIT",
   "engines": {

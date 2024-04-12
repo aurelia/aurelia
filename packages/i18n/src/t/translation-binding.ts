@@ -23,10 +23,10 @@ import { I18N } from '../i18n';
 
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import type {
   Scope,
   IsExpression,
-  IExpressionParser,
   IObserverLocator,
   IAccessor,
 } from '@aurelia/runtime';

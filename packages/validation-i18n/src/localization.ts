@@ -1,6 +1,6 @@
 import { I18N, Signals } from '@aurelia/i18n';
 import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
-import { IExpressionParser, Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { IExpressionParser, Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';

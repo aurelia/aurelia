@@ -15,8 +15,8 @@ import {
   astEvaluate,
   astAssign,
   createIndexMap,
-  IExpressionParser,
 } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';

@@ -2,6 +2,7 @@ export {
   type ExpressionKind,
   // Ast nodes
   CallFunctionExpression,
+  CallGlobalExpression,
   CustomExpression,
   BindingBehaviorExpression,
   ValueConverterExpression,

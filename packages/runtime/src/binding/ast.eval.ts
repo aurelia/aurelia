@@ -11,12 +11,15 @@ import {
   DestructuringAssignmentSingleExpression,
   CustomExpression,
 } from '@aurelia/expression-parser';
+import { IConnectableBinding } from './connectable';
+import { ErrorNames, createMappedError } from '../errors';
+import { ISignaler } from '../observation/signaler';
 import {
-  type IAstEvaluator,
   ekAccessThis,
   ekAccessBoundary,
-  ekAccessGlobal,
   ekAccessScope,
+  ekAccessGlobal,
+  ekCallGlobal,
   ekArrayLiteral,
   ekObjectLiteral,
   ekPrimitiveLiteral,
@@ -25,30 +28,48 @@ import {
   ekCallScope,
   ekCallMember,
   ekCallFunction,
-  ekCallGlobal,
+  ekArrowFunction,
   ekAccessMember,
   ekAccessKeyed,
   ekTaggedTemplate,
   ekBinary,
   ekConditional,
   ekAssign,
-  ekArrowFunction,
   ekValueConverter,
   ekBindingBehavior,
-  ekArrayBindingPattern,
-  ekObjectBindingPattern,
   ekBindingIdentifier,
   ekForOfStatement,
   ekInterpolation,
-  ekArrayDestructuring,
-  ekObjectDestructuring,
   ekDestructuringAssignmentLeaf,
-  ekCustom,
-} from './ast';
-import { IConnectableBinding } from './connectable';
-import { ErrorNames, createMappedError } from '../errors';
+  ekArrayDestructuring,
+  ekArrayBindingPattern,
+  ekObjectBindingPattern,
+  ekObjectDestructuring,
+  ekCustom } from './expression-types';
 
 const getContext = Scope.getContext;
+
+// -----------------------------------
+// this interface causes issues to sourcemap mapping in devtool
+// chuck it at the bottom to avoid such issue
+/**
+ * An interface describing the object that can evaluate Aurelia AST
+ */
+export interface IAstEvaluator {
+  /** describe whether the evaluator wants to evaluate in strict mode */
+  strict?: boolean;
+  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
+  boundFn?: boolean;
+  /** describe whether the evaluator wants to evaluate the function call in strict mode */
+  strictFnCall?: boolean;
+  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
+  getSignaler?(): ISignaler;
+  /** Allow an AST to retrieve a value converter that it needs */
+  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
+  /** Allow an AST to retrieve a binding behavior that it needs */
+  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
+}
+
 // eslint-disable-next-line max-lines-per-function
 export function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
   switch (ast.$kind) {

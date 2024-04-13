@@ -424,6 +424,32 @@ export class FooBarBindingCommand {}
     );
     assert.equal(result.code, expected);
   });
+
+  it('merges $au - custom element', function () {
+    const code = `
+export class FooBar {
+  static $au = { type: 'custom-element', name: 'foo-bar', bindables: ['x'] };
+  x: string;
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+
+export class FooBar {
+    static $au = { ...__au2ViewDef, type: "custom-element", name: "foo-bar", bindables: ["x"] };
+    x: string;
+}
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
 });
 
 describe('preprocessResource for complex resource', function () {

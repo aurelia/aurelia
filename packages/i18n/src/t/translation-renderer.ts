@@ -1,11 +1,9 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
-  CustomExpression,
   IObserverLocator,
-  type IsBindingBehavior,
 } from '@aurelia/runtime';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { IExpressionParser, CustomExpression, IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IRenderer,
   renderer,
@@ -40,7 +38,7 @@ export class TranslationBindingInstruction {
   public mode: typeof BindingMode.toView = bmToView;
 
   public constructor(
-    public from: IsBindingBehavior,
+    public from: CustomExpression | IsBindingBehavior,
     public to: string,
   ) { }
 }
@@ -58,7 +56,7 @@ export class TranslationBindingCommand implements BindingCommandInstance {
     } else {
       target = info.bindable.name;
     }
-    return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue) as IsBindingBehavior, target);
+    return new TranslationBindingInstruction(new CustomExpression(info.attr.rawValue), target);
   }
 }
 

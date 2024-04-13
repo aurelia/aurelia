@@ -69,7 +69,7 @@
     "init": "npm ci && npm run build",
     "rebuild": "npm run clean && npm run build",
     "build": "turbo build --filter=@aurelia/* --filter=aurelia --filter=au",
-    "build:release": "cross-env RELEASE_BUILD=true turbo rollup --filter=aurelia --filter=au --filter=@aurelia/*",
+    "build:release": "cross-env RELEASE_BUILD=true turbo rollup --continue --filter=aurelia --filter=au --filter=@aurelia/*",
     "postbuild:release": "npm run clean:tsconfig-build-cache",
     "build:release:full": "npm run build:release && npm run change-tsconfigs:invert && npm run build:release && npm run change-tsconfigs:restore",
     "build:release-script": "tsc --project scripts/tsconfig.release-script.json",

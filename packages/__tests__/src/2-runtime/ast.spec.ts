@@ -20,10 +20,8 @@ import {
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
-  IConnectableBinding,
   // IsBinary,
   IsBindingBehavior,
-  Scope,
   IsLeftHandSide,
   // IsPrimary,
   // IsUnary,
@@ -38,13 +36,10 @@ import {
   DestructuringAssignmentExpression,
   ArrowFunction,
   BindingIdentifier,
-  IAstEvaluator,
   Unparser,
-  astEvaluate,
-  astAssign,
-  astBind,
   AccessBoundaryExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
+import { IAstEvaluator, IConnectableBinding, Scope, astAssign, astEvaluate, astBind } from '@aurelia/runtime';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;

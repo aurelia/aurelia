@@ -2,7 +2,7 @@ import {
   BindingBehaviorExpression,
   IsBindingBehavior,
   ValueConverterExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 
 export function unwrapExpression(expression: IsBindingBehavior) {
   let unwrapped = false;

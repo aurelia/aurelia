@@ -3,8 +3,6 @@ import type { ITask } from '@aurelia/platform';
 import {
   Scope,
   BindingIdentifier,
-  IsBindingBehavior,
-  ForOfStatement,
   Collection,
   getCollectionObserver,
   IndexMap,
@@ -42,6 +40,7 @@ import type {
   IVirtualRepeater
 } from "./interfaces";
 import { calcOuterHeight, calcScrollerViewportHeight, getDistanceToScroller } from "./utilities-dom";
+import { IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 
 const noScrollInfo: IScrollerInfo = {
   height: 0,

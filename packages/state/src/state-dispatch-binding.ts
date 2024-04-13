@@ -3,7 +3,6 @@ import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
   type IOverrideContext,
   Scope,
-  type IsBindingBehavior,
   connectable,
   astEvaluate,
   astBind,
@@ -17,6 +16,7 @@ import {
   type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object

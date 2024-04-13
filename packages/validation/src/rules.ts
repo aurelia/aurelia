@@ -1,6 +1,6 @@
 import { Metadata } from '@aurelia/metadata';
 import { Constructable, Protocol, Class, DI, toArray } from '@aurelia/kernel';
-import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
   IValidateable,
   IValidationRule,

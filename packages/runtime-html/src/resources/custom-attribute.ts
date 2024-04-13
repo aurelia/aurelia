@@ -209,8 +209,6 @@ export const defineAttribute = <T extends Constructable>(nameOrDef: string | Par
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
   const $Type = definition.Type as CustomAttributeType<T>;
 
-  // this is the case, where the APi is invoked directly without a decorator
-  // registration of resource name is a requirement for the resource system in kernel (module-loader)
   defineMetadata(definition, $Type, attributeBaseName, resourceBaseName);
 
   return $Type;
@@ -268,6 +266,8 @@ export const CustomAttribute = objectFreeze<CustomAttributeKind>({
     const Type = c.find<CustomAttributeType>(attrTypeName, name);
     return Type === null
       ? null
-      : getMetadata<CustomAttributeDefinition>(attributeBaseName, Type) ?? getDefinitionFromStaticAu<CustomAttributeDefinition>(Type, attrTypeName, CustomAttributeDefinition.create) ?? null;
+      : getMetadata<CustomAttributeDefinition>(attributeBaseName, Type)
+      ?? getDefinitionFromStaticAu<CustomAttributeDefinition>(Type, attrTypeName, CustomAttributeDefinition.create)
+      ?? null;
   },
 });

@@ -14,39 +14,38 @@ import {
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../observation/signaler';
-import {
-  ekAccessThis,
-  ekAccessBoundary,
-  ekAccessScope,
-  ekAccessGlobal,
-  ekCallGlobal,
-  ekArrayLiteral,
-  ekObjectLiteral,
-  ekPrimitiveLiteral,
-  ekTemplate,
-  ekUnary,
-  ekCallScope,
-  ekCallMember,
-  ekCallFunction,
-  ekArrowFunction,
-  ekAccessMember,
-  ekAccessKeyed,
-  ekTaggedTemplate,
-  ekBinary,
-  ekConditional,
-  ekAssign,
-  ekValueConverter,
-  ekBindingBehavior,
-  ekBindingIdentifier,
-  ekForOfStatement,
-  ekInterpolation,
-  ekDestructuringAssignmentLeaf,
-  ekArrayDestructuring,
-  ekArrayBindingPattern,
-  ekObjectBindingPattern,
-  ekObjectDestructuring,
-  ekCustom } from './expression-types';
 
+const ekAccessThis = 'AccessThis';
+const ekAccessBoundary = 'AccessBoundary';
+const ekAccessGlobal = 'AccessGlobal';
+const ekAccessScope = 'AccessScope';
+const ekArrayLiteral = 'ArrayLiteral';
+const ekObjectLiteral = 'ObjectLiteral';
+const ekPrimitiveLiteral = 'PrimitiveLiteral';
+const ekTemplate = 'Template';
+const ekUnary = 'Unary';
+const ekCallScope = 'CallScope';
+const ekCallMember = 'CallMember';
+const ekCallFunction = 'CallFunction';
+const ekCallGlobal = 'CallGlobal';
+const ekAccessMember = 'AccessMember';
+const ekAccessKeyed = 'AccessKeyed';
+const ekTaggedTemplate = 'TaggedTemplate';
+const ekBinary = 'Binary';
+const ekConditional = 'Conditional';
+const ekAssign = 'Assign';
+const ekArrowFunction = 'ArrowFunction';
+const ekValueConverter = 'ValueConverter';
+const ekBindingBehavior = 'BindingBehavior';
+const ekArrayBindingPattern = 'ArrayBindingPattern';
+const ekObjectBindingPattern = 'ObjectBindingPattern';
+const ekBindingIdentifier = 'BindingIdentifier';
+const ekForOfStatement = 'ForOfStatement';
+const ekInterpolation = 'Interpolation';
+const ekArrayDestructuring = 'ArrayDestructuring';
+const ekObjectDestructuring = 'ObjectDestructuring';
+const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
+const ekCustom = 'Custom';
 const getContext = Scope.getContext;
 
 // -----------------------------------

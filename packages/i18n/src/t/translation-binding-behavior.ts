@@ -1,5 +1,6 @@
 import { type Writable } from '@aurelia/kernel';
-import { type BindingBehaviorExpression, type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
+import { type BindingBehaviorExpression } from '@aurelia/expression-parser';
+import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
 import { bindingBehavior } from '@aurelia/runtime-html';
 import { type BindingWithBehavior, ValueConverters } from '../utils';
 import { IsValueConverter, ValueConverterExpression } from '@aurelia/expression-parser';

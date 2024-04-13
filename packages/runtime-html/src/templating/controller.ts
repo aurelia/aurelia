@@ -12,9 +12,8 @@ import {
   optionalResource,
 } from '@aurelia/kernel';
 import { isObject } from '@aurelia/metadata';
-import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
+import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
 import {
-  AccessScopeExpression,
   ICoercionConfiguration,
   IObserverLocator,
   Scope,

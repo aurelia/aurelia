@@ -444,6 +444,7 @@ const packageNames = [
   'route-recognizer',
   'router',
   'router-lite',
+  'expression-parser',
   'runtime',
   'runtime-html',
   'state',

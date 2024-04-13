@@ -20,6 +20,7 @@ export default [{
         ...[
           'kernel',
           'metadata',
+          'expression-parser',
           'runtime',
           'runtime-html',
           'platform',
@@ -45,6 +46,7 @@ export default [{
         ...[
           'kernel',
           'metadata',
+          'expression-parser',
           'runtime',
           'runtime-html',
           'platform',

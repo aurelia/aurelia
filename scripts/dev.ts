@@ -69,6 +69,7 @@ const validPackages = [
   'platform',
   'platform-browser',
   'kernel',
+  'expression-parser',
   'runtime',
   'runtime-html',
   'dialog',

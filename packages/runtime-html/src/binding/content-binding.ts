@@ -11,13 +11,16 @@ import { toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
-  IBinding, ICollectionSubscriber, IObserverLocator,
-  IsExpression, Scope
+  IBinding,
+  ICollectionSubscriber,
+  IObserverLocator,
+  Scope
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
 import { isArray, safeString } from '../utilities';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator } from './binding-utils';
+import { IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,

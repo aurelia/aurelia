@@ -1,17 +1,19 @@
 import { type IDisposable, onResolve, IIndexable } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
+  DestructuringAssignmentExpression,
+  ForOfStatement,
+  type IsBindingBehavior,
+  ValueConverterExpression,
+} from '@aurelia/expression-parser';
+import {
   BindingContext,
   type Collection,
   CollectionObserver,
-  DestructuringAssignmentExpression,
-  ForOfStatement,
   getCollectionObserver,
   type IndexMap,
   type IOverrideContext,
-  type IsBindingBehavior,
   Scope,
-  ValueConverterExpression,
   astEvaluate,
   astAssign,
   createIndexMap,

@@ -7,14 +7,17 @@ import {
   resolve,
   Registrable,
 } from '@aurelia/kernel';
-import { IExpressionParser, type ExpressionType } from '@aurelia/expression-parser';
 import {
-  IObserverLocator,
+  IExpressionParser,
+  type ExpressionType,
   type Interpolation,
   type IsBindingBehavior,
   type AnyBindingExpression,
-  type IObservable,
   type ForOfStatement,
+} from '@aurelia/expression-parser';
+import {
+  IObserverLocator,
+  type IObservable,
 } from '@aurelia/runtime';
 import { toView, type BindingMode } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute';
@@ -398,11 +401,11 @@ export function renderer<TType extends string, T extends Constructable<IRenderer
   };
 }
 
-function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
+function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom | string, expressionType: ExpressionType): TFrom {
   if (isString(srcOrExpr)) {
-    return parser.parse(srcOrExpr, expressionType) as unknown as Exclude<TFrom, string>;
+    return parser.parse(srcOrExpr, expressionType) as TFrom;
   }
-  return srcOrExpr as Exclude<TFrom, string>;
+  return srcOrExpr;
 }
 
 function getTarget(potentialTarget: object): object {

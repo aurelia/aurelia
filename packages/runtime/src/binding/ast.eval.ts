@@ -1,53 +1,56 @@
 /* eslint-disable no-fallthrough */
 import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
+import { IConnectable, IOverrideContext, IBindingContext, IObservable, IBinding } from '../observation';
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
 import {
   type IsExpressionOrStatement,
-  type IAstEvaluator,
+  // type IAstEvaluator,
   type DestructuringAssignmentExpression,
   type DestructuringAssignmentRestExpression,
   DestructuringAssignmentSingleExpression,
-  BindingBehaviorInstance,
+  CustomExpression,
+} from '@aurelia/expression-parser';
+import {
+  type IAstEvaluator,
   ekAccessThis,
-  ekAccessScope,
+  ekAccessBoundary,
   ekAccessGlobal,
-  ekCallGlobal,
+  ekAccessScope,
   ekArrayLiteral,
   ekObjectLiteral,
   ekPrimitiveLiteral,
   ekTemplate,
   ekUnary,
   ekCallScope,
-  ekArrowFunction,
-  ekCallFunction,
   ekCallMember,
+  ekCallFunction,
+  ekCallGlobal,
   ekAccessMember,
   ekAccessKeyed,
   ekTaggedTemplate,
   ekBinary,
   ekConditional,
   ekAssign,
+  ekArrowFunction,
   ekValueConverter,
   ekBindingBehavior,
+  ekArrayBindingPattern,
+  ekObjectBindingPattern,
   ekBindingIdentifier,
   ekForOfStatement,
   ekInterpolation,
   ekArrayDestructuring,
-  ekDestructuringAssignmentLeaf,
-  ekArrayBindingPattern,
-  ekObjectBindingPattern,
   ekObjectDestructuring,
+  ekDestructuringAssignmentLeaf,
   ekCustom,
-  ekAccessBoundary
 } from './ast';
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
 
 const getContext = Scope.getContext;
 // eslint-disable-next-line max-lines-per-function
-export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
+export function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
   switch (ast.$kind) {
     case ekAccessThis: {
       let oc: IOverrideContext | null = s.overrideContext;
@@ -387,7 +390,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
   }
 }
 
-export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
+export function astAssign(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
   switch (ast.$kind) {
     case ekAccessScope: {
       if (ast.name === '$host') {
@@ -514,7 +517,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
 
-export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const name = ast.name;
@@ -565,7 +568,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
   }
 }
 
-export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const key = ast.key;
@@ -658,3 +661,15 @@ const autoObserveArrayMethods =
 // keys,    // not meaningful in template
 // values,  // not meaningful in template
 // entries, // not meaningful in template
+
+export type BindingBehaviorInstance<T extends {} = {}> = {
+  type?: 'instance' | 'factory';
+  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+} & T;
+
+export type ValueConverterInstance<T extends {} = {}> = {
+  signals?: string[];
+  toView(input: unknown, ...args: unknown[]): unknown;
+  fromView?(input: unknown, ...args: unknown[]): unknown;
+} & T;

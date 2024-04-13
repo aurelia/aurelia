@@ -13,12 +13,12 @@ import type {
   IConnectableBinding,
   IObservable,
   IObserverLocator,
-  IsBindingBehavior,
   ISubscriber,
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
 import { areEqual } from '../utilities';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;

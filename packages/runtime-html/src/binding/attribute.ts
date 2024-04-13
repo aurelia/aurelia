@@ -6,9 +6,7 @@ import {
   type IBinding,
   IAstEvaluator,
   IConnectableBinding,
-  type ForOfStatement,
   type IObserverLocator,
-  type IsBindingBehavior,
   type Scope
 } from '@aurelia/runtime';
 
@@ -25,6 +23,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { INode } from '../dom';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { isString, safeString } from '../utilities';
+import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const taskOptions: QueueTaskOptions = {
   reusable: false,

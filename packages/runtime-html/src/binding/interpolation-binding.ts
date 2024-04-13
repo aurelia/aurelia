@@ -14,13 +14,14 @@ import { toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
-  IBinding, ICollectionSubscriber,
-  Interpolation,
+  IBinding,
+  ICollectionSubscriber,
   IObserverLocator,
-  IsExpression, Scope
+  Scope
 } from '@aurelia/runtime';
 import { atLayout, isArray } from '../utilities';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
+import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,

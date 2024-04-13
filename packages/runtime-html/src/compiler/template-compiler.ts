@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources, resolve } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
-import { IsBindingBehavior, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import {
+  IExpressionParser,
+  PrimitiveLiteralExpression,
+} from '@aurelia/expression-parser';
 import { IAttrMapper } from './attribute-mapper';
 import { ITemplateElementFactory } from './template-element-factory';
 import {
@@ -38,7 +40,10 @@ import type {
   Constructable,
   Writable,
 } from '@aurelia/kernel';
-import type { AnyBindingExpression } from '@aurelia/runtime';
+import type {
+  AnyBindingExpression,
+  IsBindingBehavior,
+} from '@aurelia/expression-parser';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import type { ICompliationInstruction, IInstruction, } from '../renderer';
 import { auslotAttr, defaultSlotName, type IAuSlotProjections } from '../templating/controller.projection';

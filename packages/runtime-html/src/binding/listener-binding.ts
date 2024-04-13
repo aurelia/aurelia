@@ -1,9 +1,10 @@
+import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isArray, isFunction, isString, objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 
 export class ListenerBindingOptions {
   public constructor(

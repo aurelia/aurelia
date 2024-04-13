@@ -321,6 +321,31 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha convention tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages-tooling/__tests__/tsconfig.json"
+      },
+      "args": [
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "50000",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages-tooling/__tests__/dist/cjs/plugin-conventions/**/*.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

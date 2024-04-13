@@ -208,7 +208,6 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, oneTime);
   }
 }
-BindingCommand.define('one-time', OneTimeBindingCommand);
 
 export class ToViewBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -237,7 +236,6 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, toView);
   }
 }
-BindingCommand.define('to-view', ToViewBindingCommand);
 
 export class FromViewBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -266,7 +264,6 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, fromView);
   }
 }
-BindingCommand.define('from-view', FromViewBindingCommand);
 
 export class TwoWayBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -295,7 +292,6 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, twoWay);
   }
 }
-BindingCommand.define('two-way', TwoWayBindingCommand);
 
 export class DefaultBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -334,7 +330,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, mode);
   }
 }
-BindingCommand.define('bind', DefaultBindingCommand);
 
 export class ForBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -366,7 +361,6 @@ export class ForBindingCommand implements BindingCommandInstance {
     return new IteratorBindingInstruction(forOf, target, props);
   }
 }
-BindingCommand.define('for', ForBindingCommand);
 
 export class TriggerBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -384,7 +378,6 @@ export class TriggerBindingCommand implements BindingCommandInstance {
     );
   }
 }
-BindingCommand.define('trigger', TriggerBindingCommand);
 
 export class CaptureBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -402,7 +395,6 @@ export class CaptureBindingCommand implements BindingCommandInstance {
     );
   }
 }
-BindingCommand.define('capture', CaptureBindingCommand);
 
 /**
  * Attr binding command. Compile attr with binding symbol with command `attr` to `AttributeBindingInstruction`
@@ -418,7 +410,6 @@ export class AttrBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
-BindingCommand.define('attr', AttrBindingCommand);
 
 /**
  * Style binding command. Compile attr with binding symbol with command `style` to `AttributeBindingInstruction`
@@ -434,7 +425,6 @@ export class StyleBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction('style', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
-BindingCommand.define('style', StyleBindingCommand);
 
 /**
  * Class binding command. Compile attr with binding symbol with command `class` to `AttributeBindingInstruction`
@@ -450,7 +440,6 @@ export class ClassBindingCommand implements BindingCommandInstance {
     return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
-BindingCommand.define('class', ClassBindingCommand);
 
 /**
  * Binding command to refer different targets (element, custom element/attribute view models, controller) attached to an element
@@ -466,7 +455,6 @@ export class RefBindingCommand implements BindingCommandInstance {
     return new RefBindingInstruction(exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
   }
 }
-BindingCommand.define('ref', RefBindingCommand);
 
 export class SpreadBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -479,4 +467,3 @@ export class SpreadBindingCommand implements BindingCommandInstance {
     return new SpreadBindingInstruction();
   }
 }
-BindingCommand.define('...$attrs', SpreadBindingCommand);

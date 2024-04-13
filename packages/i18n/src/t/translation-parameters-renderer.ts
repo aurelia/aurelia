@@ -67,7 +67,6 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
     return new TranslationParametersBindingInstruction(exprParser.parse(attr.rawValue, etIsProperty), target);
   }
 }
-BindingCommand.define(attribute, TranslationParametersBindingCommand);
 
 export class TranslationParametersBindingRenderer implements IRenderer {
   public target!: typeof TranslationParametersInstructionType;

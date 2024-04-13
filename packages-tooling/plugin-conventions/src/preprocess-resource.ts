@@ -1,6 +1,5 @@
 import {
   type CallExpression,
-  type Statement,
   type Node,
 } from 'typescript';
 import { type ModifyCodeResult } from 'modify-code';
@@ -10,26 +9,30 @@ import { resourceName } from './resource-name';
 
 import pkg from 'typescript';
 import { modifyCode } from './modify-code';
-const { createSourceFile, ScriptTarget, isImportDeclaration, isStringLiteral, isNamedImports, isClassDeclaration, canHaveModifiers, getModifiers, SyntaxKind, canHaveDecorators, getDecorators, isCallExpression, isIdentifier } = pkg;
-
-interface ICapturedImport {
-  names: string[];
-  start: number;
-  end: number;
-}
+import { kebabCase } from '@aurelia/kernel';
+const { createSourceFile, ScriptTarget, isStringLiteral, isClassDeclaration, canHaveModifiers, getModifiers, SyntaxKind, canHaveDecorators, getDecorators, isCallExpression, isIdentifier } = pkg;
 
 interface IPos {
   pos: number;
   end: number;
 }
 
+interface Decorator {
+  position: IPos;
+  namePosition: IPos;
+}
+
+interface AuResource {
+  definition: string;
+  position: IPos;
+}
+
 interface IFoundResource {
-  className?: string;
+  className: string;
   localDep?: string;
-  needDecorator?: [number, string];
   implicitStatement?: IPos;
-  runtimeImportName?: string;
-  customName?: IPos;
+  customElementDecorator?: Decorator;
+  auResource?: AuResource;
 }
 
 interface IFoundDecorator {
@@ -39,56 +42,27 @@ interface IFoundDecorator {
 
 interface IModifyResourceOptions {
   exportedClassName?: string;
-  metadataImport: ICapturedImport;
-  runtimeImport: ICapturedImport;
   implicitElement?: IPos;
   localDeps: string[];
-  conventionalDecorators: [number, string][];
-  customElementName?: IPos;
+  customElementDecorator?: Decorator;
   transformHtmlImportSpecifier?: (path: string) => string;
+  auResources: AuResource[];
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
   let exportedClassName: string | undefined;
-  let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
-  let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
-  let metadataImport: ICapturedImport = { names: [], start: 0, end: 0 };
+  const auResources: AuResource[] = [];
 
   let implicitElement: IPos | undefined;
-  let customElementName: IPos | undefined; // for @customName('custom-name')
+  let customElementDecorator: Decorator | undefined; // for @customName('custom-name')
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for composing the main implicit custom element.
   const localDeps: string[] = [];
-  const conventionalDecorators: [number, string][] = [];
 
   sf.statements.forEach(s => {
-    // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
-    const au = captureImport(s, 'aurelia', unit.contents);
-    if (au) {
-      // Assumes only one import statement for @aurelia/runtime-html
-      auImport = au;
-      return;
-    }
-
-    // Find existing import {Metadata} from '@aurelia/metadata';
-    const metadata = captureImport(s, '@aurelia/metadata', unit.contents);
-    if (metadata) {
-      // Assumes only one import statement for @aurelia/runtime-html
-      metadataImport = metadata;
-      return;
-    }
-
-    // Find existing import {customElement} from '@aurelia/runtime-html';
-    const runtime = captureImport(s, '@aurelia/runtime-html', unit.contents);
-    if (runtime) {
-      // Assumes only one import statement for @aurelia/runtime-html
-      runtimeImport = runtime;
-      return;
-    }
-
     // Only care about export class Foo {...}.
     // Note this convention simply doesn't work for
     //   class Foo {}
@@ -98,51 +72,30 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     const {
       className,
       localDep,
-      needDecorator,
       implicitStatement,
-      runtimeImportName,
-      customName
+      customElementDecorator: customName,
+      auResource
     } = resource;
 
     if (localDep) localDeps.push(localDep);
-    if (needDecorator) conventionalDecorators.push(needDecorator);
     if (implicitStatement) implicitElement = implicitStatement;
-    if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
-      ensureTypeIsExported(runtimeImport.names, runtimeImportName);
-    }
     if (className && options.hmr && process.env.NODE_ENV !== 'production') {
       exportedClassName = className;
     }
-    if (customName) customElementName = customName;
+    if (customName) customElementDecorator = customName;
+    if (auResource) auResources.push(auResource);
   });
 
   let m = modifyCode(unit.contents, unit.path);
-  const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
-
-  if (options.enableConventions || hmrEnabled) {
-    if (hmrEnabled && metadataImport.names.length) {
-      let metadataImportStatement = `import { ${metadataImport.names.join(', ')} } from '@aurelia/metadata';`;
-      if (metadataImport.end === metadataImport.start)
-        metadataImportStatement += '\n';
-      m.replace(metadataImport.start, metadataImport.end, metadataImportStatement);
-    }
-
-    if (runtimeImport.names.length) {
-      let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
-      if (runtimeImport.end === runtimeImport.start) runtimeImportStatement += '\n';
-      m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
-    }
-  }
 
   if (options.enableConventions) {
     m = modifyResource(unit, m, {
-      runtimeImport,
-      metadataImport,
+      // metadataImport,
       exportedClassName,
       implicitElement,
       localDeps,
-      conventionalDecorators,
-      customElementName,
+      customElementDecorator,
+      auResources,
       transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
     });
   }
@@ -162,15 +115,12 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   const {
     implicitElement,
     localDeps,
-    conventionalDecorators,
-    customElementName,
+    customElementDecorator,
     transformHtmlImportSpecifier = s => s,
+    auResources,
   } = options;
 
   if (implicitElement && unit.filePair) {
-    // @view() for foo.js and foo-view.html
-    // @customElement() for foo.js and foo.html
-    const dec = unit.isViewPair ? 'view' : 'customElement';
 
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
@@ -181,51 +131,39 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       m.replace(implicitElement.pos, implicitElement.end, '');
 
-      if (customElementName) {
-        const name = unit.contents.slice(customElementName.pos, customElementName.end);
+      const beginningClassBody = elementStatement.indexOf('{');
+      if (customElementDecorator) {
         // Overwrite element name
-        m.append(`\n${elementStatement.substring(0, customElementName.pos - implicitElement.pos)}{ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }${elementStatement.substring(customElementName.end - implicitElement.pos)}\n`);
+        const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
+        const modifiedContent = `${elementStatement.substring(elementStatement.indexOf('export class'), beginningClassBody + 1)
+        }\nstatic $au = { type: 'custom-element', ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] };\n${
+        elementStatement.substring(beginningClassBody + 1)}`;
+        m.append(modifiedContent);
       } else {
-        m.append(`\n@${dec}({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}\n`);
+        const modifiedContent = `${elementStatement.substring(0, beginningClassBody + 1)
+           }\nstatic $au = { type: 'custom-element', ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] };\n${
+           elementStatement.substring(beginningClassBody + 1)}`;
+        m.append(modifiedContent);
       }
     } else {
-      if (customElementName) {
+      const beginningClassBody = unit.contents.indexOf('{', implicitElement.pos) + 1;
+      if (customElementDecorator) {
         // Overwrite element name
-        const name = unit.contents.slice(customElementName.pos, customElementName.end);
-        m.replace(customElementName.pos, customElementName.end, `{ ...${viewDef}, name: ${name} }`);
+        const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
+        // remove he decorator
+        m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
+        m.insert(beginningClassBody, `\nstatic $au = { type: 'custom-element', ...${viewDef}, name: ${name} };\n`);
       } else {
-        conventionalDecorators.push([implicitElement.pos, `@${dec}(${viewDef})\n`]);
+        m.insert(beginningClassBody, `\nstatic $au = { type: 'custom-element', ...${viewDef} };\n`);
       }
     }
   }
 
-  if (conventionalDecorators.length) {
-    conventionalDecorators.forEach(([pos, str]) => m.insert(pos, str));
-  }
-
+  auResources.forEach(auResource => {
+    const beginningClassBody = unit.contents.indexOf('{', auResource.position.pos) + 1;
+    m.insert(beginningClassBody, auResource.definition);
+  });
   return m;
-}
-
-function captureImport(s: Statement, lib: string, code: string): ICapturedImport | void {
-  if (isImportDeclaration(s) &&
-    isStringLiteral(s.moduleSpecifier) &&
-    s.moduleSpecifier.text === lib &&
-    s.importClause &&
-    s.importClause.namedBindings &&
-    isNamedImports(s.importClause.namedBindings)) {
-    return {
-      names: s.importClause.namedBindings.elements.map(e => e.name.text),
-      start: ensureTokenStart(s.pos, code),
-      end: s.end
-    };
-  }
-}
-
-// This method mutates runtimeExports.
-function ensureTypeIsExported(runtimeExports: string[], type: string) {
-  if (!runtimeExports.includes(type)) {
-    runtimeExports.push(type);
-  }
 }
 
 // TypeScript parsed statement could contain leading white spaces.
@@ -285,8 +223,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     // Explicitly decorated resource
     if (
       !isImplicitResource &&
-      foundType.type !== 'customElement' &&
-      foundType.type !== 'view'
+      foundType.type !== 'customElement'
     ) {
       return {
         className,
@@ -301,11 +238,15 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       isStringLiteral(foundType.expression.arguments[0])
     ) {
       // @customElement('custom-name')
-      const customName = foundType.expression.arguments[0];
+      const decorator = foundType.expression;
+      const customName = decorator.arguments[0];
       return {
         className,
         implicitStatement: { pos: pos, end: node.end },
-        customName: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
+        customElementDecorator: {
+          position: { pos: ensureTokenStart(decorator.pos, code), end: decorator.end },
+          namePosition: { pos: ensureTokenStart(customName.pos, code), end: customName.end}
+        }
       };
     }
 
@@ -320,19 +261,17 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         return {
           className,
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: isViewPair ? 'view' : 'customElement'
         };
       }
     } else {
-      const result: IFoundResource = {
+      return {
         className,
-        needDecorator: [pos, `@${type}('${name}')\n`],
         localDep: className,
+        auResource: {
+          definition: `\nstatic $au = { type: '${kebabCase(type)}', name: '${name}' };\n`,
+          position: { pos: pos, end: node.end },
+        },
       };
-
-      result.runtimeImportName = type;
-
-      return result;
     }
   }
 }

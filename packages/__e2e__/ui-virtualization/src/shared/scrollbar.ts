@@ -1,4 +1,4 @@
-import { customAttribute, bindable, IPlatform } from '@aurelia/runtime-html';
+import { customAttribute, bindable, IPlatform, CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
 
 const scrollbarStyle = `
 .sb {
@@ -30,12 +30,15 @@ const scrollbarStyle = `
   background-color: royalblue;
 }`;
 
-@customAttribute('scrollbar')
 export class Scrollbar {
+  public static $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'scrollbar',
+    bindables: ['value'],
+  };
 
   public static inject = [Element, IPlatform];
 
-  @bindable
   value: 'vertical' | 'horizontal' | 'y' | 'x';
 
   constructor(private readonly element: Element, p: IPlatform) {

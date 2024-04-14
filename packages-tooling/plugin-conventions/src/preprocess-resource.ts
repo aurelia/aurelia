@@ -133,7 +133,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     // Note this convention simply doesn't work for
     //   class Foo {}
     //   export {Foo};
-    const resource = findResource(s, expectedResourceName, unit.filePair, unit.isViewPair, unit.contents);
+    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
     if (!resource) return;
     const {
       className,
@@ -389,7 +389,7 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
   }
 }
 
-function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, isViewPair: boolean | undefined, code: string): IFoundResource | void {
+function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
   // defineElement
   if (isExpressionStatement(node)) {
     const pos = ensureTokenStart(node.pos, code);

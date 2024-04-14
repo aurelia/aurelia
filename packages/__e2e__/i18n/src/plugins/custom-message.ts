@@ -1,4 +1,4 @@
-import { CustomElementStaticAuDefinition, bindable, customElement } from '@aurelia/runtime-html';
+import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
 
 export class CustomMessage {
   static $au: CustomElementStaticAuDefinition = {

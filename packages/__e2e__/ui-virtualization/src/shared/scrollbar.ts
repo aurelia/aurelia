@@ -1,4 +1,4 @@
-import { customAttribute, bindable, IPlatform, CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
+import { IPlatform, CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
 
 const scrollbarStyle = `
 .sb {

@@ -14,7 +14,6 @@ import {
   IAttrMapper,
   ICommandBuildInfo,
   AttributePattern,
-  BindingCommand,
 } from '@aurelia/runtime-html';
 
 import type {

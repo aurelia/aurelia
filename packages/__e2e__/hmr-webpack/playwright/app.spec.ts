@@ -33,14 +33,12 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await page.type('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
 
-      const newContent = `import { IEventAggregator } from '@aurelia/kernel';
-  
+      const newContent = `import { IEventAggregator, resolve } from '@aurelia/kernel';
+
       export class App {
         public message = 'New Hello World!';
-      
-        public constructor(
-          @IEventAggregator private readonly ea: IEventAggregator,
-        ) {}
+
+        private readonly ea: IEventAggregator = resolve(IEventAggregator);
       }
       `;
       fs.writeFileSync(appFilePath, newContent, { encoding: 'utf-8' });
@@ -53,7 +51,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await expect(page.locator('app textarea')).toHaveValue('Hello 2!');
 
       const newContent = `import { bindable } from 'aurelia';
-  
+
       export class MyInput {
           @bindable value = 'hello';
       }

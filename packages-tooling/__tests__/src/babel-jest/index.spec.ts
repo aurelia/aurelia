@@ -108,10 +108,11 @@ export function register(container) {
 
   it('transforms js file with html pair', function () {
     const js = 'export class FooBar {}\n';
-    const expected = `import * as __au2ViewDef from './foo-bar.html';
-export class FooBar {
-static $au = { type: 'custom-element', ...__au2ViewDef };
-}
+    const expected = `import { defineElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
+export class FooBar {}
+defineElement(__au2ViewDef, FooBar);
+
 `;
     const t = _createTransformer(
       { hmr: false },

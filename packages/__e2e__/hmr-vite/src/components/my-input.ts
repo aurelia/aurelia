@@ -1,10 +1,6 @@
-import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
+import { defineElement } from '@aurelia/runtime-html';
 
 export class MyInput {
-  static $au: CustomElementStaticAuDefinition = {
-    type: 'custom-element',
-    name: 'my-input',
-    bindables: ['value']
-  };
   value = '';
 }
+defineElement({ name: 'my-input', bindables: ['value'] }, MyInput);

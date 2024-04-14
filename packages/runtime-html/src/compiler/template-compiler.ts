@@ -1722,11 +1722,6 @@ class CompilationContext {
     return new CompilationContext(this.def, this.c, this.ci, this, this.root, instructions);
   }
 
-  // // todo: ideally binding command shouldn't have to be cached
-  // // it can just be a singleton where it' retrieved
-  // // the resources semantic should be defined by the resource itself,
-  // // rather than baked in the container
-  // private readonly _commands: Record<string, BindingCommandInstance | null | undefined> = createLookup();
   /**
    * Retrieve a binding command resource instance.
    *
@@ -1740,23 +1735,6 @@ class CompilationContext {
       return null;
     }
     return this._resourceResolver.command(this.c, name);
-  //   if (this.root !== this) {
-  //     return this.root._createCommand(syntax);
-  //   }
-  //   const name = syntax.command;
-  //   if (name === null) {
-  //     return null;
-  //   }
-  //   let result = this._commands[name];
-  //   let commandDef: BindingCommandDefinition | null;
-  //   if (result === void 0) {
-  //     commandDef = BindingCommand.find(this.c, name);
-  //     if (commandDef == null) {
-  //       throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
-  //     }
-  //     this._commands[name] = result = BindingCommand.get(this.c, name);
-  //   }
-  //   return result;
   }
 }
 

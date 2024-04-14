@@ -1,23 +1,21 @@
-import { IRouter, route } from '@aurelia/router-lite';
-import { customElement } from 'aurelia';
+import { IRouter } from '@aurelia/router-lite';
 import template from './app.html';
-// import { Auth } from './pages/auth';
+import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
 import { Home } from './pages/home';
 import { IRouterEventLoggerService } from './router-event-logger-service';
 
-@route({
-  routes: [
+export class App {
+  static $au: CustomElementStaticAuDefinition = {
+    type: 'custom-element',
+    name: 'app',
+    template
+  };
+  static routes =  [
     { id: 'home', path: '', component: Home, title: 'Home' },
     { path: 'auth', component: import('./pages/auth').then(x => x.Auth), title: 'Sign in' },
     { path: 'one', component: import('./pages/one'), title: 'One' },
     { path: 'two', component: import('./pages/two'), title: 'Two' },
-  ]
-})
-@customElement({
-  name: 'app',
-  template,
-})
-export class App {
+  ];
   public static inject = [IRouter, IRouterEventLoggerService];
   public message = 'Hello World!';
   public iframeSrc: string;

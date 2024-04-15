@@ -281,5 +281,5 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
 
 mixinUseScope(InterpolationPartBinding);
 mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
-connectable(InterpolationPartBinding);
+connectable(InterpolationPartBinding, null!);
 mixinAstEvaluator(true)(InterpolationPartBinding);

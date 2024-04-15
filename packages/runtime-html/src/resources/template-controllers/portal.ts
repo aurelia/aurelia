@@ -48,21 +48,13 @@ export class Portal implements ICustomAttributeViewModel {
   public readonly $controller!: ICustomAttributeController<this>;
 
   public target: PortalTarget;
-
   public position: InsertPosition = 'beforeend';
-
   public renderContext: PortalTarget;
-
   public strict: boolean = false;
-
   public deactivating?: PortalLifecycleCallback;
-
   public activating?: PortalLifecycleCallback;
-
   public deactivated?: PortalLifecycleCallback;
-
   public activated?: PortalLifecycleCallback;
-
   public callbackContext: unknown;
 
   public view: ISyntheticView;
@@ -322,5 +314,3 @@ export class Portal implements ICustomAttributeViewModel {
     }
   }
 }
-
-// templateController('portal')(Portal);

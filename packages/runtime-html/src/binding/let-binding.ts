@@ -109,5 +109,5 @@ export class LetBinding implements IBinding {
 
 mixinUseScope(LetBinding);
 mixingBindingLimited(LetBinding, () => 'updateTarget');
-connectable(LetBinding);
+connectable(LetBinding, null!);
 mixinAstEvaluator(true)(LetBinding);

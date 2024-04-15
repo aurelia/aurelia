@@ -71,7 +71,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   public constructor() {
     const hdrContext = resolve(IHydrationContext);
     const location = resolve(IRenderLocation);
-    const instruction = resolve(IInstruction) as HydrateElementInstruction<{ name: string}>;
+    const instruction = resolve(IInstruction) as HydrateElementInstruction<{ name: string }>;
     const rendering = resolve(IRendering);
     const slotName = this.name = instruction.data.name;
     // when <au-slot> is empty, there's not even projections

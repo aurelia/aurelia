@@ -353,7 +353,7 @@ export class TranslationBinding implements IConnectableBinding {
     }
   }
 }
-connectable(TranslationBinding);
+connectable(TranslationBinding, null!);
 mixinAstEvaluator(true)(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
@@ -435,5 +435,5 @@ class ParameterBinding {
   }
 }
 
-connectable(ParameterBinding);
+connectable(ParameterBinding, null!);
 mixinAstEvaluator(true)(ParameterBinding);

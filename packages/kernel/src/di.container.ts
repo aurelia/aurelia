@@ -1,29 +1,38 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { Metadata, isObject } from '@aurelia/metadata';
+import { isObject } from '@aurelia/metadata';
+import {
+  IContainer,
+  InterfaceSymbol,
+  Resolver,
+  ResolverStrategy,
+  getDependencies,
+  type IContainerConfiguration,
+  type IDisposableResolver,
+  type IFactory,
+  type IRegistry,
+  type IResolver,
+  type Key,
+  type RegisterSelf,
+  type Resolved,
+  type Transformer,
+} from './di';
+import { aliasToRegistration, singletonRegistration } from './di.registration';
+import type {
+  IAllResolver,
+  IFactoryResolver,
+  ILazyResolver,
+  INewInstanceResolver,
+  IOptionalResolver,
+  IResolvedFactory,
+  IResolvedLazy,
+} from './di.resolvers';
+import { ErrorNames, createMappedError, logError, logWarn } from './errors';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable, type IDisposable } from './interfaces';
 import { emptyArray } from './platform';
-import { resourceBaseName, ResourceDefinition, StaticResourceType, type ResourceType } from './resource';
-import { isFunction, isString, objectFreeze } from './utilities';
-import {
-  IContainer,
-  type Key,
-  type IResolver,
-  type IDisposableResolver,
-  type IRegistry,
-  Resolver,
-  ResolverStrategy,
-  type Transformer,
-  type RegisterSelf,
-  type Resolved,
-  getDependencies,
-  type IFactory,
-  type IContainerConfiguration,
-} from './di';
-import { ErrorNames, createMappedError, logError, logWarn } from './errors';
-import { aliasToRegistration, singletonRegistration } from './di.registration';
-import type { IAllResolver, INewInstanceResolver, ILazyResolver, IResolvedLazy, IOptionalResolver, IFactoryResolver, IResolvedFactory } from './di.resolvers';
+import { ResourceDefinition, StaticResourceType, resourceBaseName, type ResourceType } from './resource';
+import { getMetadata, isFunction, isString, objectFreeze } from './utilities';
 
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
@@ -60,7 +69,7 @@ export class ContainerConfiguration implements IContainerConfiguration {
   private constructor(
     public readonly inheritParentResources: boolean,
     public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
-  ) {}
+  ) { }
 
   public static from(config?: IContainerConfiguration): ContainerConfiguration {
     if (
@@ -182,7 +191,7 @@ export class Container implements IContainer {
         current.register(this);
       } else if (Registrable.has(current)) {
         Registrable.get(current)!.call(current, this);
-      } else if ((def = Metadata.getOwn(resourceBaseName, current)) != null) {
+      } else if ((def = getMetadata(resourceBaseName, current)!) != null) {
         def.register(this);
       } else if (isClass<StaticResourceType>(current)) {
         if (isString((current).$au?.type)) {
@@ -551,7 +560,8 @@ export class Container implements IContainer {
 
   /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (!isFunction(keyAsValue)) {
+    const $isRegistry = isRegistry(keyAsValue);
+    if (!isFunction(keyAsValue) && !$isRegistry) {
       throw createMappedError(ErrorNames.unable_jit_non_constructor, keyAsValue);
     }
 
@@ -559,7 +569,7 @@ export class Container implements IContainer {
       throw createMappedError(ErrorNames.no_jit_intrinsic_type, keyAsValue);
     }
 
-    if (isRegistry(keyAsValue)) {
+    if ($isRegistry) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler._resolvers.get(keyAsValue);
@@ -571,6 +581,7 @@ export class Container implements IContainer {
       return registrationResolver as IResolver;
     }
 
+    // TODO(sayan): remove potential dead code
     if (keyAsValue.$isInterface) {
       throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }
@@ -587,7 +598,7 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
   public constructor(
     public Type: T,
     private readonly dependencies: Key[],
-  ) {}
+  ) { }
 
   public construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T> {
     const previousContainer = currentContainer;
@@ -675,7 +686,7 @@ export type IResolvedInjection<K extends Key> =
               ? Resolved<R>
               : K extends [infer R1 extends Key, ...infer R2]
                 ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
-                : K extends { __resolved__: infer T }
+                : K extends InterfaceSymbol<infer T>
                   ? T
                   : Resolved<K>;
 

@@ -15,7 +15,7 @@ export const Routes: {
    * Returns `true` if the specified type has any static routes configuration (either via static properties or a &#64;route decorator)
    */
   isConfigured<T extends CustomElementType>(Type: T): boolean {
-    return Metadata.hasOwn(Routes.name, Type) || 'routes' in Type;
+    return Metadata.hasMetadata(Routes.name, Type) || 'routes' in Type;
   },
 
   /**
@@ -23,7 +23,7 @@ export const Routes: {
    */
   configure<T extends CustomElementType>(configurationsOrTypes: (IRoute | RouteableComponentType)[], Type: T): T {
     const configurations = configurationsOrTypes.map(configOrType => Route.create(configOrType));
-    Metadata.define(Routes.name, configurations, Type);
+    Metadata.defineMetadata(configurations, Type, Routes.name);
 
     return Type;
   },
@@ -34,7 +34,7 @@ export const Routes: {
   getConfiguration<T extends CustomElementType>(Type: T): Route[] {
     const type: RouteableComponentType = Type;
     const routes: (IRoute | Route)[] = [];
-    const metadata = Metadata.getOwn(Routes.name, Type);
+    const metadata = Metadata.getMetadata(Routes.name, Type);
 
     // TODO: Check if they are indeed to be concatenated (and what that means
     // for match order) or if one should replace the other
@@ -48,7 +48,7 @@ export const Routes: {
   },
 };
 
-export type RoutesDecorator = <T extends Constructable>(Type: T) => T;
+export type RoutesDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext<T>) => T;
 
 /**
  * Associate a static routes configuration with this type.
@@ -70,7 +70,10 @@ export function routes(configurations: IRoute[]): RoutesDecorator;
  */
 export function routes(Types: RouteableComponentType[]): RoutesDecorator;
 export function routes(configurationsOrTypes: (IRoute | RouteableComponentType)[]): RoutesDecorator {
-  return function (target) {
-    return Routes.configure(configurationsOrTypes, target);
+  return function (target, context) {
+    context.addInitializer(function (this) {
+      Routes.configure(configurationsOrTypes, this);
+    });
+    return target;
   };
 }

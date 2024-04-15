@@ -198,5 +198,5 @@ export class ComputedObserver<T extends object> implements
   }
 }
 
-connectable(ComputedObserver);
+connectable(ComputedObserver, null!);
 subscriberCollection(ComputedObserver);

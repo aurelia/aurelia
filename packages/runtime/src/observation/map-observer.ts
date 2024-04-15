@@ -1,7 +1,7 @@
 import { createIndexMap, atObserver } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getMetadata } from '../utilities';
 
 import type {
   AccessorType,
@@ -132,8 +132,8 @@ let enableMapObservationCalled = false;
 const observationEnabledKey = '__au_map_on__';
 export function enableMapObservation(): void {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getOwnMetadata(observationEnabledKey, Map) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Map);
+  if (!(getMetadata(observationEnabledKey, Map) ?? false)) {
+    defineMetadata(true, Map, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         def(proto, method, { ...descriptorProps, value: observe[method] });

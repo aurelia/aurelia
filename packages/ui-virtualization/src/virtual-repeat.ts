@@ -48,7 +48,7 @@ const noScrollInfo: IScrollerInfo = {
   width: 0
 };
 
-export interface VirtualRepeat extends ICustomAttributeViewModel {}
+export interface VirtualRepeat extends ICustomAttributeViewModel { }
 
 export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -531,7 +531,7 @@ class CollectionObservationMediator {
   public constructor(
     public repeat: VirtualRepeat,
     public handleCollectionChange: (col: Collection, indexMap: IndexMap) => void,
-  ) {}
+  ) { }
 
   public start(c?: Collection | null): void {
     if (this._collection === c) {
@@ -555,9 +555,9 @@ interface IBufferCalculation {
 }
 
 const enum SizingSignals {
-  none              = 0b0_00000,
-  reset             = 0b0_00001,
-  has_sizing        = 0b0_00010,
+  none = 0b0_00000,
+  reset = 0b0_00001,
+  has_sizing = 0b0_00010,
 }
 
 interface ICalculation {
@@ -576,7 +576,7 @@ class Calculation implements ICalculation {
   private constructor(
     public readonly signals: SizingSignals,
     public readonly minViews: number,
-  ) {}
+  ) { }
 }
 
 interface IRepeaterItemScope extends Scope {

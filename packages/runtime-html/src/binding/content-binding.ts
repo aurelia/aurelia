@@ -217,5 +217,5 @@ export class ContentBinding implements IBinding, ICollectionSubscriber {
 
 mixinUseScope(ContentBinding);
 mixingBindingLimited(ContentBinding, () => 'updateTarget');
-connectable()(ContentBinding);
+connectable(ContentBinding, null!);
 mixinAstEvaluator(void 0, false)(ContentBinding);

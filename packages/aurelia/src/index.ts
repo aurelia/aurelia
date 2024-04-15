@@ -54,14 +54,6 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  Metadata,
-  // isNullOrUndefined,
-  // isObject,
-  // metadata,
-  // applyMetadataPolyfill,
-} from '@aurelia/metadata';
-
-export {
   type ITask,
   Platform,
   type QueueTaskOptions,

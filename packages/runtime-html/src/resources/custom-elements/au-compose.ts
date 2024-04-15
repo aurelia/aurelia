@@ -30,7 +30,6 @@ type ChangeSource = keyof Pick<AuCompose, 'template' | 'component' | 'model' | '
 // Desired usage:
 // <au-component template.bind="Promise<string>" component.bind="" model.bind="" />
 // <au-component template.bind="<string>" model.bind="" />
-//
 export class AuCompose {
   /** @internal */
   public static readonly $au: CustomElementStaticAuDefinition<keyof Pick<
@@ -112,7 +111,7 @@ export class AuCompose {
   /** @internal */ private readonly _platform = resolve(IPlatform);
   /** @internal */ private readonly _rendering = resolve(IRendering);
   /** @internal */ private readonly _instruction = resolve(IInstruction) as HydrateElementInstruction;
-  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory));
+  /** @internal */ private readonly _contextFactory = resolve(transient(CompositionContextFactory, null!));
   /** @internal */ private readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ private readonly _hydrationContext = resolve(IHydrationContext);
   /** @internal */ private readonly _exprParser = resolve(IExpressionParser);
@@ -396,8 +395,8 @@ export class AuCompose {
     const Ctor = (isFunction(component)
       ? component
       : component?.constructor) as Constructable;
-    return CustomElement.isType(Ctor)
-      ? CustomElement.getDefinition(Ctor)
+    return CustomElement.isType(Ctor, void 0)
+      ? CustomElement.getDefinition(Ctor, null)
       : null;
   }
 

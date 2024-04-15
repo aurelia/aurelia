@@ -1,4 +1,4 @@
-import { IPlatform } from '@aurelia/kernel';
+import { IPlatform, resolve } from '@aurelia/kernel';
 import { IRouter, IRouterEvents, route } from '@aurelia/router-lite';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
@@ -444,7 +444,7 @@ describe('router-lite/location-manager.spec.ts', function () {
       class GC1 { }
       @customElement({ name: 'gc-2', template: 'gc2 <button click.trigger="goBack()"></button>' })
       class GC2 {
-        public constructor(@IHistory private readonly history: IHistory) { }
+        private readonly history: IHistory = resolve(IHistory);
         private goBack() { history.back(); }
       }
 

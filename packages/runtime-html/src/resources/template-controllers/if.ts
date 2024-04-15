@@ -156,4 +156,3 @@ export class Else implements ICustomAttributeViewModel {
     }
   }
 }
-// templateController({ name: 'else' })(Else);

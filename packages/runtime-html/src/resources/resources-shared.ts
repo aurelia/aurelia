@@ -1,5 +1,5 @@
 import { Constructable, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
-import { defineMetadata, getOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getMetadata } from '../utilities-metadata';
 
 /** @internal */ export const dtElement = 'element';
 /** @internal */ export const dtAttribute = 'attribute';
@@ -17,11 +17,11 @@ export const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C exte
   typeName: string,
   createDef: (au: PartialResourceDefinition<Def>, Type: C) => Def,
 ): Def => {
-  let def = getOwnMetadata(staticResourceDefinitionMetadataKey, Type) as Def;
+  let def = getMetadata(staticResourceDefinitionMetadataKey, Type) as Def;
   if (def == null) {
     if ((Type as StaticResourceType<Def>).$au?.type === typeName) {
       def = createDef((Type as StaticResourceType<Def>).$au!, Type as C);
-      defineMetadata(staticResourceDefinitionMetadataKey, def, Type);
+      defineMetadata(def, Type, staticResourceDefinitionMetadataKey);
     }
   }
   return def;

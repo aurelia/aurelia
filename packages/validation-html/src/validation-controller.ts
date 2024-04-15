@@ -6,6 +6,7 @@ import {
   type Constructable,
   type Transformer,
   type Key,
+  resolve,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
@@ -309,12 +310,10 @@ export class ValidationController implements IValidationController {
   private readonly elements: WeakMap<ValidationResult, Element[]> = new WeakMap();
   public readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
-  public constructor(
-    @IValidator public readonly validator: IValidator,
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IPlatform private readonly platform: IPlatform,
-    @IServiceLocator private readonly locator: IServiceLocator,
-  ) { }
+  public readonly validator: IValidator = resolve(IValidator);
+  private readonly parser: IExpressionParser = resolve(IExpressionParser);
+  private readonly platform: IPlatform = resolve(IPlatform);
+  private readonly locator: IServiceLocator = resolve(IServiceLocator);
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);

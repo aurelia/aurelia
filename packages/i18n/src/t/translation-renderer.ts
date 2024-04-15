@@ -60,7 +60,6 @@ export class TranslationBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer(TranslationInstructionType)
 export class TranslationBindingRenderer implements IRenderer {
   public target!: typeof TranslationInstructionType;
   public render(
@@ -82,6 +81,7 @@ export class TranslationBindingRenderer implements IRenderer {
     });
   }
 }
+renderer(TranslationInstructionType)(TranslationBindingRenderer, null!);
 
 export const TranslationBindInstructionType = 'tbt';
 
@@ -123,7 +123,6 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer(TranslationBindInstructionType)
 export class TranslationBindBindingRenderer implements IRenderer {
   public target!: typeof TranslationBindInstructionType;
   public render(
@@ -145,3 +144,4 @@ export class TranslationBindBindingRenderer implements IRenderer {
     });
   }
 }
+renderer(TranslationBindInstructionType)(TranslationBindBindingRenderer, null!);

@@ -47,15 +47,14 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await page.type('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
 
-      const newContent = `import { IEventAggregator } from '@aurelia/kernel';
+      const newContent = `import { IEventAggregator, resolve } from '@aurelia/kernel';
 
     export class App {
       public message = ''
       public id = 1;
 
-      public constructor(
-        @IEventAggregator private readonly ea: IEventAggregator,
-      ) {
+      private readonly ea: IEventAggregator = resolve(IEventAggregator);
+      public constructor(){
         (window as any).app = this;
       }
     }

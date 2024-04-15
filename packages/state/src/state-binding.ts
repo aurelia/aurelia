@@ -230,6 +230,6 @@ const updateTaskOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-connectable(StateBinding);
+connectable(StateBinding, null!);
 mixinAstEvaluator(true)(StateBinding);
 mixingBindingLimited(StateBinding, () => 'updateTarget');

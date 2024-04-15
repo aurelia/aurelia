@@ -1,4 +1,4 @@
-import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject } from '@aurelia/kernel';
+import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
@@ -206,10 +206,8 @@ describe('router-lite/smoke-tests.spec.ts', function () {
   it('injecting Router and IRouter should yield the same instance', async function () {
     @customElement({ name: 'app', template: 'app' })
     class App {
-      public constructor(
-        @inject(Router) public readonly router1: Router,
-        @IRouter public readonly router2: IRouter,
-      ) {}
+      public readonly router1: Router = resolve(Router);
+      public readonly router2: IRouter = resolve(IRouter);
     }
 
     const  { component, tearDown } = await createFixture(App, []);
@@ -3369,9 +3367,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     }
     @customElement({ name: 'vm-b', template: 'view-b' })
     class VmB {
-      public constructor(
-        @IRouter public readonly router: IRouter,
-      ) { }
+      public readonly router: IRouter = resolve(IRouter);
       public async redirectToPath() {
         await this.router.load('a?foo=bar');
       }
@@ -3881,11 +3877,9 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       })
       class NavBar implements ICustomElementViewModel {
         private readonly navModel: INavigationModel | null;
-        public constructor(
-          @IRouteContext routeCtx: IRouteContext,
-          @INode private readonly node: INode,
-        ) {
-          this.navModel = routeCtx.navigationModel;
+        private readonly node: INode = resolve(INode);
+        public constructor() {
+          this.navModel = resolve(IRouteContext).navigationModel;
         }
 
         public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
@@ -4707,9 +4701,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     @customElement({ name: 'ro-ot', template: '<nav-bar></nav-bar> root <au-viewport></au-viewport>' })
     class Root {
       public isNavigatingLog: boolean[] = [];
-      public constructor(
-        @IRouter private readonly router: IRouter,
-      ) { }
+      public readonly router: IRouter = resolve(IRouter);
 
       @watch<Root>(root => root['router'].isNavigating)
       public logIsNavigating(isNavigating: boolean) {
@@ -6030,12 +6022,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce2"></a><span id="history">${history}</span><au-viewport></au-viewport>' })
         class Root {
           private history: string;
-          public constructor(
-            @IHistory history: IHistory,
-            @IRouterEvents events: IRouterEvents
-          ) {
+          public constructor() {
             let i = 0;
-            events.subscribe('au:router:navigation-end', () => {
+            const history = resolve(IHistory);
+            resolve(IRouterEvents).subscribe('au:router:navigation-end', () => {
               this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
             });
           }
@@ -6092,12 +6082,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<span id="history">${history}</span><au-viewport></au-viewport>' })
       class Root {
         private history: string;
-        public constructor(
-          @IHistory history: IHistory,
-          @IRouterEvents events: IRouterEvents
-        ) {
+        public constructor() {
           let i = 0;
-          events.subscribe('au:router:navigation-end', () => {
+          const history = resolve(IHistory);
+          resolve(IRouterEvents).subscribe('au:router:navigation-end', () => {
             this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
           });
         }
@@ -6181,12 +6169,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<span id="history">${history}</span><au-viewport></au-viewport>' })
       class Root {
         private history: string;
-        public constructor(
-          @IHistory history: IHistory,
-          @IRouterEvents events: IRouterEvents
-        ) {
+        public constructor() {
           let i = 0;
-          events.subscribe('au:router:navigation-end', () => {
+          const history = resolve(IHistory);
+          resolve(IRouterEvents).subscribe('au:router:navigation-end', () => {
             this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
           });
         }
@@ -6270,12 +6256,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<span id="history">${history}</span><au-viewport></au-viewport>' })
       class Root {
         private history: string;
-        public constructor(
-          @IHistory history: IHistory,
-          @IRouterEvents events: IRouterEvents
-        ) {
+        public constructor() {
           let i = 0;
-          events.subscribe('au:router:navigation-end', () => {
+          const history = resolve(IHistory);
+          resolve(IRouterEvents).subscribe('au:router:navigation-end', () => {
             this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
           });
         }
@@ -6492,10 +6476,8 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         @customElement({ name: 'c-1', template: '${parent}/c1' })
         class C1 {
           private readonly parent: string;
-          public constructor(
-            @IRouteContext ctx: IRouteContext
-          ) {
-            this.parent = ctx.parent.component.name;
+          public constructor() {
+            this.parent = resolve(IRouteContext).parent.component.name;
           }
         }
         @route({
@@ -6543,10 +6525,8 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         @customElement({ name: 'c-1', template: '${parent}/c1' })
         class C1 {
           private readonly parent: string;
-          public constructor(
-            @IRouteContext ctx: IRouteContext
-          ) {
-            this.parent = ctx.parent.component.name;
+          public constructor() {
+            this.parent = resolve(IRouteContext).parent.component.name;
           }
         }
         @route({
@@ -6598,10 +6578,8 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         private activationId: number = 0;
         private readonly parent: string;
         private routeId: string;
-        public constructor(
-          @IRouteContext ctx: IRouteContext
-        ) {
-          this.parent = ctx.parent.component.name;
+        public constructor() {
+          this.parent = resolve(IRouteContext).parent.component.name;
         }
 
         public canLoad(params: Params): boolean {
@@ -6659,10 +6637,8 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       @customElement({ name: 'c-1', template: '${parent}/c1' })
       class C1 implements IRouteViewModel {
         private readonly parent: string;
-        public constructor(
-          @IRouteContext ctx: IRouteContext
-        ) {
-          this.parent = ctx.parent.component.name;
+        public constructor() {
+          this.parent = resolve(IRouteContext).parent.component.name;
         }
       }
       @route('p1')
@@ -6931,21 +6907,19 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     @inject(Router, RouterOptions, RouteContext)
     @customElement({ name: 'c-1', template: 'c1' })
     class C1 {
+      public readonly ictx: IRouteContext = resolve(IRouteContext);
       public constructor(
         public readonly router: Router,
         public readonly routerOptions: RouterOptions,
         public readonly ctx: RouteContext,
-        @IRouteContext public readonly ictx: IRouteContext,
       ) { }
     }
 
     @route({ routes: [C1] })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root {
-      public constructor(
-        @IRouter public readonly router: IRouter,
-        @IRouterOptions public readonly routerOptions: IRouterOptions,
-      ) { }
+      public readonly router: IRouter = resolve(IRouter);
+      public readonly routerOptions: IRouterOptions = resolve(IRouterOptions);
     }
 
     const { au, host, container, rootVm } = await start({ appRoot: Root });

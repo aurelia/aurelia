@@ -119,7 +119,7 @@ type Connectable = { oL: IObserverLocator } & IConnectable & Partial<ISubscriber
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
-function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> {
+function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>, _context: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass> {
   const proto = target.prototype;
   ensureProto(proto, 'observe', observe);
   ensureProto(proto, 'observeCollection', observeCollection);
@@ -134,7 +134,7 @@ function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TPr
 }
 
 export function connectable(): typeof connectableDecorator;
-export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass>;
-export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
-  return target == null ? connectableDecorator : connectableDecorator(target);
+export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>, context: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass>;
+export function connectable<TProto, TClass>(target?: DecoratableConnectable<TProto, TClass>, context?: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass> | typeof connectableDecorator {
+  return target == null ? connectableDecorator : connectableDecorator(target, context!);
 }

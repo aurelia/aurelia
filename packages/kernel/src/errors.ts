@@ -31,6 +31,7 @@ export const enum ErrorNames {
   event_aggregator_subscribe_invalid_event_name = 19,
   first_defined_no_value = 20,
   invalid_module_transform_input = 21,
+  invalid_inject_decorator_usage = 22,
 }
 _END_CONST_ENUM();
 
@@ -59,6 +60,7 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,
   [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
   // [ErrorNames.module_loader_received_null]: `Module loader received null/undefined input. Expected Object.`,
+  [ErrorNames.invalid_inject_decorator_usage]: `The @inject decorator on the target ('{{0}}') type '{{1}}' is not supported.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

@@ -6,7 +6,7 @@ import {
   type Constructable,
   type IContainer,
 } from '@aurelia/kernel';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { IResourceKind } from './resources/resources-shared';
 
 /** @internal */
@@ -32,14 +32,16 @@ export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver)
   ctn.registerResolver(key, resolver);
 
 export function alias(...aliases: readonly string[]) {
-  return function (target: Constructable) {
-    const key = getAnnotationKeyFor('aliases');
-    const existing = getOwnMetadata(key, target) as string[] | undefined;
-    if (existing === void 0) {
-      defineMetadata(key, aliases, target);
-    } else {
-      existing.push(...aliases);
-    }
+  return function (target: Constructable, context: ClassDecoratorContext) {
+    context.addInitializer(function (this) {
+      const key = getAnnotationKeyFor('aliases');
+      const existing = getMetadata<string[] | undefined>(key, this);
+      if (existing === void 0) {
+        defineMetadata(aliases, this, key);
+      } else {
+        existing.push(...aliases);
+      }
+    });
   };
 }
 

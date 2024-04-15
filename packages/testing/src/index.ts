@@ -49,11 +49,6 @@ export {
   SpySubscriber,
 } from './mocks';
 export {
-  SortValueConverter,
-  JsonValueConverter,
-  TestConfiguration,
-} from './resources';
-export {
   ensureTaskQueuesEmpty,
 } from './scheduler';
 export {

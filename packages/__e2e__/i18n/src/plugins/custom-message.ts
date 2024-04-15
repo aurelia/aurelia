@@ -1,9 +1,11 @@
-import { bindable, customElement } from '@aurelia/runtime-html';
+import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
 
-@customElement({
-  name: 'custom-message',
-  template: `<div>\${message}</div>`
-})
 export class CustomMessage {
-  @bindable public message?: string;
+  static $au: CustomElementStaticAuDefinition = {
+    type: 'custom-element',
+    name: 'custom-message',
+    template: `<div>\${message}</div>`,
+    bindables: ['message']
+  }
+  public message?: string;
 }

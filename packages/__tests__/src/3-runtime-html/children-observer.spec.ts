@@ -210,6 +210,11 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
   }
 
   function defineAndRegisterElementWithChildren(container: IContainer, options?: PartialChildrenDefinition) {
+    @customElement({
+      name: 'element-with-children',
+      template: `<slot></slot>`,
+      shadowOptions: { mode: 'open' }
+    })
     class ElementWithChildren {
       @children(options) public children;
       public childrenChangedCallCount = 0;
@@ -218,15 +223,9 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       }
     }
 
-    const element = CustomElement.define({
-      name: 'element-with-children',
-      template: `<slot></slot>`,
-      shadowOptions: { mode: 'open' }
-    }, ElementWithChildren);
+    container.register(ElementWithChildren);
 
-    container.register(element);
-
-    return element;
+    return ElementWithChildren;
   }
 
   function defineAndRegisterHost(template: string, container: IContainer) {

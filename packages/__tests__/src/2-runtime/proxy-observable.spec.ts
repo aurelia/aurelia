@@ -55,7 +55,7 @@ describe('2-runtime/proxy-observable.spec.ts', function () {
     @nowrap
     class MyModel { }
 
-    @nowrap()
+    @nowrap
     class MyModel2 { }
 
     const m1 = new MyModel();

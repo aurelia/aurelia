@@ -1,4 +1,3 @@
-import { Metadata } from '@aurelia/metadata';
 import { alias, Aurelia, CustomAttribute, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
 import { assert, TestContext } from "@aurelia/testing";
 
@@ -14,13 +13,6 @@ function startAndStop(component: CustomElementType) {
   void au.stop();
 
   au.dispose();
-}
-
-function getMetadataAsObject(target: any): Record<string, any> {
-  return Metadata.getKeys(target).reduce(function (obj, key) {
-    obj[key] = Metadata.get(key, target);
-    return obj;
-  }, {});
 }
 
 describe('3-runtime-html/resources.spec.ts', function () {
@@ -39,16 +31,8 @@ describe('3-runtime-html/resources.spec.ts', function () {
 
     assert.strictEqual(created, true, 'created');
 
-    const $class = getMetadataAsObject(AuAttr);
-    const $proto = getMetadataAsObject(AuAttr.prototype);
-
-    assert.deepStrictEqual(
-      $class['au:annotation'],
-      [
-        'au:annotation:di:dependencies',
-      ],
-      `$class['au:annotation']`,
-    );
+    const $class = AuAttr[Symbol.metadata];
+    const $proto = AuAttr.prototype[Symbol.metadata];
 
     assert.deepStrictEqual(
       $class['au:resource'],
@@ -67,9 +51,9 @@ describe('3-runtime-html/resources.spec.ts', function () {
       `$class['au:resource:custom-attribute']`,
     );
 
-    assert.deepStrictEqual(
+    assert.strictEqual(
       $proto,
-      {},
+      void 0,
       `$proto`,
     );
   });
@@ -107,16 +91,8 @@ describe('3-runtime-html/resources.spec.ts', function () {
 
     assert.strictEqual(created, true, 'created');
 
-    const $class = getMetadataAsObject(AuAttr);
-    const $proto = getMetadataAsObject(AuAttr.prototype);
-
-    assert.deepStrictEqual(
-      $class['au:annotation'],
-      [
-        'au:annotation:di:dependencies',
-      ],
-      `$class['au:annotation']`,
-    );
+    const $class = AuAttr[Symbol.metadata];
+    const $proto = AuAttr.prototype[Symbol.metadata];
 
     assert.deepStrictEqual(
       $class['au:resource'],
@@ -135,9 +111,9 @@ describe('3-runtime-html/resources.spec.ts', function () {
       `$class['au:resource:custom-attribute']`,
     );
 
-    assert.deepStrictEqual(
+    assert.strictEqual(
       $proto,
-      {},
+      void 0,
       `$proto`,
     );
   });

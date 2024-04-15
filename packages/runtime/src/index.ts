@@ -127,7 +127,7 @@ export {
   ObserverLocator,
   getObserverLookup,
   type ObservableGetter,
-  type ObservableSetter,
+  // type ObservableSetter,
 } from './observation/observer-locator';
 export {
   PrimitiveObserver,

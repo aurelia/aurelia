@@ -25,8 +25,8 @@ export function enableComposeCompat() {
   if (!addedMetadata) {
     addedMetadata = true;
     const def = CustomElement.getDefinition(AuCompose);
-    def.bindables.viewModel = BindableDefinition.create('viewModel', AuCompose);
-    def.bindables.view = BindableDefinition.create('view', AuCompose);
+    def.bindables.viewModel = BindableDefinition.create('viewModel');
+    def.bindables.view = BindableDefinition.create('view');
   }
 
   defineHiddenProp(prototype, 'viewModelChanged', function (this: AuCompose, value: unknown) {

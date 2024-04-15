@@ -171,8 +171,8 @@ if (${moduleText}.hot) {
 
   if (${moduleText}.hot.data?.aurelia) {
     const newDefinition = $$CE.getDefinition(currentClassType);
-    $$M.define(newDefinition.name, newDefinition, currentClassType);
-    $$M.define(newDefinition.name, newDefinition, newDefinition);
+    $$M.defineMetadata(newDefinition, currentClassType, null, newDefinition.name);
+    $$M.defineMetadata(newDefinition, newDefinition, null, newDefinition.name);
     ${moduleText}.hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
     const previousControllers = ${moduleText}.hot.data.controllers;

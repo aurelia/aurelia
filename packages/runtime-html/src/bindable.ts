@@ -1,12 +1,12 @@
 import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
-import { Metadata } from '@aurelia/metadata';
 import { toView, type BindingMode, twoWay } from './binding/interfaces-bindings';
-import { appendAnnotationKey, defineMetadata, getAllAnnotations, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
+import { ErrorNames, createMappedError } from './errors';
 
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
@@ -31,84 +31,117 @@ type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 
 
 /**
  * Decorator: Specifies custom behavior for a bindable property.
+ * This can be either be a property decorator or a class decorator.
  *
  * @param config - The overrides
  */
-export function bindable(config?: PartialBindableDefinitionPropertyOmitted): (target: {}, property: string) => void;
+export function bindable(config?: PartialBindableDefinitionPropertyOmitted): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext) => void;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
  * @param prop - The property name
  */
-export function bindable(prop: string): (target: Constructable) => void;
+export function bindable(prop: string): (target: Constructable, context: ClassDecoratorContext) => void;
+// Note: there is a invisible separator character the precedes the `@` in the jsdoc example. Otherwise the eslint rule will complain.
+// Refer:
+// - https://stackoverflow.com/a/55214510/2270340
+// - https://unicode-explorer.com/c/2063
 /**
- * Decorator: Specifies a bindable property on a class.
+ * Decorator: Specifies a bindable property on a class property.
  *
- * @param target - The class
- * @param prop - The property name
+ * @example
+ * ```ts
+ * class Foo {
+ *   ⁣@bindable bar: string;
+ * }
+ * ```
  */
-export function bindable(target: {}, prop: string): void;
-export function bindable(configOrTarget?: PartialBindableDefinition | {}, prop?: string): void | ((target: {}, property: string) => void) | ((target: Constructable) => void) {
-  let config: PartialBindableDefinition;
+export function bindable(_: undefined, context: ClassFieldDecoratorContext): void;
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function bindable(_: Function, context: ClassGetterDecoratorContext): void;
+export function bindable(
+  configOrPropOrTarget: PartialBindableDefinition | string | Constructable | undefined,
+  context?: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext
+):
+  | void
+  | ((target: Constructable, context: ClassDecoratorContext) => void)
+  | ((target: undefined, context: ClassFieldDecoratorContext) => void)
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | ((target: Function, context: ClassGetterDecoratorContext) => void) {
 
-  function decorator($target: {}, $prop: string): void {
-    if (arguments.length > 1) {
-      // Non invocation:
-      // - @bindable
-      // Invocation with or w/o opts:
-      // - @bindable()
-      // - @bindable({...opts})
-      config.name = $prop;
+  let configOrProp: PartialBindableDefinition | string | undefined = void 0;
+  function decorator(_target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext): void {
+    let $prop: string;
+
+    switch (context.kind) {
+      case 'getter':
+      case 'field': {
+        const prop = context.name;
+        // We are not supporting a bindable that uses a symbol for name.
+        // Maybe we can later have a binding command like foo.sym="bar" that creates bindable instruction for `Symbol.for('sym')`, as target property.
+        if (typeof prop !== 'string') throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_symbol);
+        $prop = prop;
+        break;
+      }
+      case 'class':
+        if (configOrProp == null) throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_class_without_configuration);
+        if (typeof configOrProp == 'string') {
+          $prop = configOrProp;
+        } else {
+          const prop = configOrProp.name;
+          if (!prop) throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_class_without_property_name_configuration);
+          if (typeof prop !== 'string') throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_symbol);
+          $prop = prop;
+        }
+        break;
     }
 
-    defineMetadata(baseName, BindableDefinition.create($prop, $target as Constructable, config), $target.constructor, $prop);
-    appendAnnotationKey($target.constructor as Constructable, Bindable.keyFrom($prop));
+    const config = configOrProp == null || typeof configOrProp === 'string'
+      ? { name: $prop }
+      : configOrProp;
+
+    const metadata = context.metadata[baseName] ??= Object.create(null);
+    metadata[$prop] = BindableDefinition.create($prop, config);
   }
 
   if (arguments.length > 1) {
     // Non invocation:
     // - @bindable
-    config = {};
-    decorator(configOrTarget!, prop!);
+    configOrProp = {};
+    decorator(configOrPropOrTarget as Constructable | undefined, context!);
     return;
-  } else if (isString(configOrTarget)) {
+  } else if (isString(configOrPropOrTarget)) {
     // ClassDecorator
     // - @bindable('bar')
     // Direct call:
     // - @bindable('bar')(Foo)
-    config = {};
+    configOrProp = configOrPropOrTarget;
     return decorator;
   }
 
   // Invocation with or w/o opts:
   // - @bindable()
   // - @bindable({...opts})
-  config = configOrTarget === void 0 ? {} : configOrTarget;
+  configOrProp = configOrPropOrTarget === void 0 ? {} : configOrPropOrTarget as string | PartialBindableDefinition;
   return decorator;
 }
 
-function isBindableAnnotation(key: string): boolean {
-  return key.startsWith(baseName);
-}
-
-const baseName = /*@__PURE__*/getAnnotationKeyFor('bindable');
+const baseName = /*@__PURE__*/getAnnotationKeyFor('bindables');
 
 export const Bindable = objectFreeze({
   name: baseName,
   keyFrom: (name: string): string => `${baseName}:${name}`,
-  from(type: Constructable, ...bindableLists: readonly (BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'name'> | true> | readonly (string | PartialBindableDefinition & { name: string })[] | undefined)[]): Record<string, BindableDefinition> {
+  from(...bindableLists: readonly (BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'name'> | true> | readonly (string | PartialBindableDefinition & { name: string })[] | undefined)[]): Record<string, BindableDefinition> {
     const bindables: Record<string, BindableDefinition> = {};
 
     const isArray = Array.isArray as <T>(arg: unknown) => arg is readonly T[];
 
     function addName(name: string): void {
-      bindables[name] = BindableDefinition.create(name, type);
+      bindables[name] = BindableDefinition.create(name);
     }
 
     function addDescription(name: string, def: Exclude<PartialBindableDefinition, 'name'> | true): void {
-      bindables[name] = def instanceof BindableDefinition
-        ? def
-        : BindableDefinition.create(name, type, def === true ? { } : def);
+      bindables[name] = def instanceof BindableDefinition ? def : BindableDefinition.create(name, def === true ? { } : def);
     }
 
     function addList(maybeList: BindableDefinition | Record<string, Exclude<PartialBindableDefinition, 'name'> | true> | readonly (string | PartialBindableDefinition & { name: string })[] | undefined): void {
@@ -126,23 +159,16 @@ export const Bindable = objectFreeze({
     return bindables;
   },
   getAll(Type: Constructable): readonly BindableDefinition[] {
-    const propStart = baseName.length + 1;
     const defs: BindableDefinition[] = [];
     const prototypeChain = getPrototypeChain(Type);
 
     let iProto = prototypeChain.length;
-    let iDefs = 0;
-    let keys: string[];
-    let keysLen: number;
     let Class: Constructable;
-    let i: number;
     while (--iProto >= 0) {
       Class = prototypeChain[iProto];
-      keys = getAllAnnotations(Class).filter(isBindableAnnotation);
-      keysLen = keys.length;
-      for (i = 0; i < keysLen; ++i) {
-        defs[iDefs++] = getOwnMetadata(baseName, Class, keys[i].slice(propStart)) as BindableDefinition;
-      }
+      const bindableMetadata = getMetadata<Record<PropertyKey, BindableDefinition>>(baseName, Class);
+      if (bindableMetadata == null) continue;
+      defs.push(...Object.values<BindableDefinition>(bindableMetadata));
     }
     return defs;
   },
@@ -158,14 +184,14 @@ export class BindableDefinition {
     public readonly set: InterceptorFunc,
   ) { }
 
-  public static create(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}): BindableDefinition {
+  public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
     return new BindableDefinition(
       def.attribute ?? kebabCase(prop),
       def.callback ?? `${prop}Changed`,
       def.mode ?? toView,
       def.primary ?? false,
       def.name ?? prop,
-      def.set ?? getInterceptor(prop, target, def),
+      def.set ?? getInterceptor(def),
     );
   }
 }
@@ -205,25 +231,35 @@ function apiTypeCheck() {
     public prop: unknown;
   }
 }
-/* eslint-enable @typescript-eslint/no-unused-vars,spaced-comment */
 
-export function coercer(target: Constructable<unknown>, property: string, _descriptor: PropertyDescriptor): void {
-  Coercer.define(target, property);
+type CoercerFunction<This extends Constructable> = (this: This, value: unknown) => InstanceType<This>;
+export function coercer<
+  This extends Constructable,
+  TCoercer extends CoercerFunction<This>
+>(
+  target: TCoercer,
+  context: ClassMethodDecoratorContext<This, TCoercer>
+): void {
+  context.addInitializer(function (this: This) {
+    Coercer.define(this, context.name);
+  });
 }
 
 const Coercer = {
   key: /*@__PURE__*/getAnnotationKeyFor('coercer'),
-  define(target: Constructable<unknown>, property: string) {
+  define(target: Constructable<unknown>, property: string | symbol) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-    defineMetadata(Coercer.key, ((target as any)[property] as InterceptorFunc).bind(target), target);
+    defineMetadata(((target as any)[property] as InterceptorFunc).bind(target), target, Coercer.key);
   },
   for(target: Constructable<unknown>) {
-    return getOwnMetadata(Coercer.key, target) as InterceptorFunc;
+    return getMetadata<InterceptorFunc>(Coercer.key, target);
   }
 };
 
-function getInterceptor(prop: string, target: Constructable<unknown>, def: PartialBindableDefinition = {}) {
-  const type: PropertyType | null = def.type ?? Metadata.get('design:type', target, prop) ?? null;
+function getInterceptor(def: PartialBindableDefinition = {}) {
+  // TS5.x does not emit design:type metadata any longer for the new TC39 decorator proposal implementation.
+  // Hence, we needs to be solely reliant on the user-provided type in the bindable definition.
+  const type: PropertyType | null = def.type ?? null;
   if (type == null) { return noop; }
   let coercer: InterceptorFunc;
   switch (type) {

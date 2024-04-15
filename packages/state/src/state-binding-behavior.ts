@@ -1,13 +1,12 @@
 import { Writable, resolve } from '@aurelia/kernel';
 import { IBinding, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
-import { bindingBehavior } from '@aurelia/runtime-html';
+import { BindingBehavior } from '@aurelia/runtime-html';
 import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope } from './state-utilities';
 
 const bindingStateSubscriberMap = new WeakMap<IBinding, StateSubscriber>();
 
-@bindingBehavior('state')
 export class StateBindingBehavior {
 
   /** @internal */private readonly _store = resolve(IStore);
@@ -40,6 +39,7 @@ export class StateBindingBehavior {
     }
   }
 }
+BindingBehavior.define('state', StateBindingBehavior);
 
 class StateSubscriber implements IStoreSubscriber<object> {
   public constructor(

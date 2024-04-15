@@ -1,4 +1,4 @@
-import { IServiceLocator, newInstanceForScope } from '@aurelia/kernel';
+import { IServiceLocator, newInstanceForScope, resolve } from '@aurelia/kernel';
 import { Aurelia, CustomElement, IPlatform, customElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
@@ -33,39 +33,29 @@ describe('validation-html/validation-controller.spec.ts', function () {
     `
     })
     class VcRoot {
-      public constructor(
-        @newInstanceForScope(IValidationController) public controller1: ValidationController,
-        @newInstanceForScope(IValidationController) public controller2: ValidationController,
-        @IValidationController public controller3: ValidationController,
-      ) { }
+      public readonly controller1: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
+      public readonly controller2: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
+      public readonly controller3: ValidationController = resolve(IValidationController) as ValidationController;
     }
 
     @customElement({ name: 'new-vc-root', template: `<custom-stuff3></custom-stuff3>` })
     class NewVcRoot {
-      public constructor(
-        @newInstanceForScope(IValidationController) public controller: ValidationController
-      ) { }
+      public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
     }
 
     @customElement({ name: 'custom-stuff1', template: `custom stuff1` })
     class CustomStuff1 {
-      public constructor(
-        @IValidationController public controller: ValidationController
-      ) { }
+      public controller: ValidationController = resolve(IValidationController) as ValidationController;
     }
 
     @customElement({ name: 'custom-stuff2', template: `custom stuff2` })
     class CustomStuff2 {
-      public constructor(
-        @IValidationController public controller: ValidationController
-      ) { }
+      public controller: ValidationController = resolve(IValidationController) as ValidationController;
     }
 
     @customElement({ name: 'custom-stuff3', template: `custom stuff3` })
     class CustomStuff3 {
-      public constructor(
-        @IValidationController public controller: ValidationController
-      ) { }
+      public controller: ValidationController = resolve(IValidationController) as ValidationController;
     }
 
     async function runTest(
@@ -134,11 +124,11 @@ describe('validation-html/validation-controller.spec.ts', function () {
       public person2: Person = new Person((void 0)!, (void 0)!);
       public person2rules: PropertyRule[];
 
-      public constructor(
-        @IServiceLocator public locator: IServiceLocator,
-        @newInstanceForScope(IValidationController) public controller: ValidationController,
-        @IValidationRules public readonly validationRules: IValidationRules,
-      ) {
+      public locator: IServiceLocator = resolve(IServiceLocator);
+      public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
+      public readonly validationRules: IValidationRules = resolve(IValidationRules);
+      public constructor() {
+        const validationRules = this.validationRules;
         validationRules
           .on(this.person1)
 

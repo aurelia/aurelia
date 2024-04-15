@@ -1,4 +1,4 @@
-import { newInstanceForScope, newInstanceOf, toArray } from '@aurelia/kernel';
+import { newInstanceForScope, newInstanceOf, resolve, toArray } from '@aurelia/kernel';
 import { assert, createSpy, getVisibleText, ISpy, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';
 import { CustomAttribute, CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
@@ -21,17 +21,16 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
       public controllerRemoveSubscriberSpy: ISpy;
       public controller2ValidateSpy: ISpy;
       public controller2RemoveSubscriberSpy: ISpy;
-      public constructor(
-        @IPlatform public readonly platform: IPlatform,
-        @newInstanceForScope(IValidationController) public controller: ValidationController,
-        @newInstanceOf(IValidationController) public controller2: ValidationController,
-        @IValidationRules private readonly validationRules: IValidationRules,
-      ) {
-        this.controllerValidateSpy = createSpy(controller, 'validate', true);
-        this.controllerRemoveSubscriberSpy = createSpy(controller, 'removeSubscriber', true);
-        this.controller2ValidateSpy = createSpy(controller2, 'validate', true);
-        this.controller2RemoveSubscriberSpy = createSpy(controller2, 'removeSubscriber', true);
-        validationRules
+      public readonly platform: IPlatform = resolve(IPlatform);
+      public controller: ValidationController = resolve(newInstanceForScope(IValidationController)) as ValidationController;
+      public controller2: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController;
+      private readonly validationRules: IValidationRules = resolve(IValidationRules);
+      public constructor() {
+        this.controllerValidateSpy = createSpy(this.controller, 'validate', true);
+        this.controllerRemoveSubscriberSpy = createSpy(this.controller, 'removeSubscriber', true);
+        this.controller2ValidateSpy = createSpy(this.controller2, 'validate', true);
+        this.controller2RemoveSubscriberSpy = createSpy(this.controller2, 'removeSubscriber', true);
+        this.validationRules
           .on(this.person)
 
           .ensure('name')
@@ -174,11 +173,11 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         await assertEventHandler(target2, platform, controllerValidateSpy, spy2, ctx);
 
         errors1 = ca1.errors;
-        assert.equal(errors1.length, 0);
-        assert.equal(div1.querySelectorAll('span.error').length, 0);
+        assert.equal(errors1.length, 0, 'errors1.length');
+        assert.equal(div1.querySelectorAll('span.error').length, 0, 'div1.querySelectorAll(span.error).length');
         errors2 = ca2.errors;
-        assert.equal(errors2.length, 0);
-        assert.equal(div2.querySelectorAll('span.error').length, 0);
+        assert.equal(errors2.length, 0, 'errors2.length');
+        assert.equal(div2.querySelectorAll('span.error').length, 0, 'div2.querySelectorAll(span.error).length');
       },
       {
         template: `
@@ -365,13 +364,12 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         public person: Person = new Person((void 0)!, (void 0)!);
         public controllerValidateSpy: ISpy;
 
-        public constructor(
-          @newInstanceOf(IValidationController) public readonly controller: ValidationController,
-          @IValidationRules private readonly validationRules: IValidationRules,
-        ) {
-          this.controllerValidateSpy = createSpy(controller, 'validate', true);
+        public readonly controller: ValidationController = resolve(newInstanceOf(IValidationController)) as ValidationController;
+        private readonly validationRules: IValidationRules = resolve(IValidationRules);
+        public constructor() {
+          this.controllerValidateSpy = createSpy(this.controller, 'validate', true);
 
-          validationRules
+          this.validationRules
             .on(this.person)
 
             .ensure('name')

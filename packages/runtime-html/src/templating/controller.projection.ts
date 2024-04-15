@@ -1,12 +1,14 @@
-import { type ICustomElementViewModel, type ICustomElementController } from './controller';
-import { CustomElement, PartialCustomElementDefinition } from '../resources/custom-element';
-import { createInterface, instanceRegistration } from '../utilities-di';
-import { type ISubscribable, type ISubscriberCollection, subscriberCollection } from '@aurelia/runtime';
-import { type Constructable, emptyArray, type Key, type IContainer, type IIndexable, type IServiceLocator } from '@aurelia/kernel';
-import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { def, objectAssign, safeString } from '../utilities';
+import { emptyArray, type IContainer, type IIndexable, type IServiceLocator, type Key } from '@aurelia/kernel';
+import { subscriberCollection, type ISubscribable, type ISubscriberCollection } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
+import { PartialCustomElementDefinition } from '../resources/custom-element';
+import { def, objectAssign, safeString } from '../utilities';
+import { createInterface, instanceRegistration } from '../utilities-di';
 import { isElement } from '../utilities-dom';
+import { type ICustomElementController, type ICustomElementViewModel } from './controller';
+import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
+
+import { getAnnotationKeyFor } from '../utilities-metadata';
 
 /** @internal */
 export const defaultSlotName = 'default';
@@ -191,17 +193,18 @@ class SlottedLifecycleHooks {
   }
 }
 
+type Tc39PropertyDecorator = (target: undefined, context: ClassFieldDecoratorContext) => (initialValue: unknown) => unknown;
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
  */
-export function slotted(): PropertyDecorator;
+export function slotted(): Tc39PropertyDecorator;
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
  *
  * @param query - the query select used to match each slotted node of the corresponding <au-slot>
  * If * is provided, then it'll get all nodes (including text nodes)
  */
-export function slotted(query: string): PropertyDecorator;
+export function slotted(query: string): Tc39PropertyDecorator;
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
  *
@@ -210,24 +213,27 @@ export function slotted(query: string): PropertyDecorator;
  * @param slotName - the name of the <au-slot> this slotted decorator is targeting.
  * If * is provided, then it'll get all nodes from all <au-slot>
  */
-export function slotted(query: string, slotName: string): PropertyDecorator;
+export function slotted(query: string, slotName: string): Tc39PropertyDecorator;
 
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
  *
  * @param def - The configuration of the slotted decorator.
  */
-export function slotted(def: PartialSlottedDefinition): PropertyDecorator;
-export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string): PropertyDecorator;
+export function slotted(def: PartialSlottedDefinition): Tc39PropertyDecorator;
+export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string): Tc39PropertyDecorator;
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
   if (!mixed) {
     mixed = true;
     subscriberCollection(AuSlotWatcherBinding);
-    lifecycleHooks()(SlottedLifecycleHooks);
+    lifecycleHooks()(SlottedLifecycleHooks, null!);
   }
-  const dependenciesKey = 'dependencies';
+  const dependenciesKey = getAnnotationKeyFor('dependencies');
 
-  function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
+  // function decorator($target: {}, $prop: symbol | string, desc?: PropertyDecorator): void {
+  function decorator(_: undefined, context: ClassFieldDecoratorContext): void {
+    if (context.kind !== 'field') throw createMappedError(ErrorNames.slotted_decorator_invalid_usage);
+
     const config = (typeof queryOrDef === 'object'
       ? queryOrDef
       : {
@@ -235,18 +241,9 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
         slotName,
         name: ''
       }) as SlottedPropDefinition;
-    config.name = $prop;
+    config.name = context.name;
 
-    if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw createMappedError(ErrorNames.slotted_decorator_invalid_usage);
-    }
-
-    const target = ($target as object).constructor as Constructable;
-
-    let dependencies = CustomElement.getAnnotation(target, dependenciesKey) as Key[] | undefined;
-    if (dependencies == null) {
-      CustomElement.annotate(target, dependenciesKey, dependencies = []);
-    }
+    const dependencies = (context.metadata[dependenciesKey] ??= []) as Key[];
     dependencies.push(new SlottedLifecycleHooks(config));
   }
 

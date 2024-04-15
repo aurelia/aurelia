@@ -26,7 +26,11 @@ describe('1-kernel/di.integration.spec.ts', function () {
     });
   });
 
-  describe('DI.getDependencies', function () {
+  // TODO: Enable those tests once the decorator metadata is emitted by TS.
+  // The tests are disabled because TS with TC39 decorators (non-legacy), does not emit the decorator metadata as of now.
+  // The following tests are dependent on that and hence cannot be successfully run.
+  // Refer: https://github.com/microsoft/TypeScript/issues/55788
+  describe.skip('DI.getDependencies', function () {
     it('string param', function () {
       @singleton
       class Foo {

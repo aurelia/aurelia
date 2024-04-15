@@ -48,7 +48,6 @@ export class CallBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer(instructionType)
 export class CallBindingRenderer implements IRenderer {
   public target!: typeof instructionType;
 
@@ -64,6 +63,7 @@ export class CallBindingRenderer implements IRenderer {
     renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
 }
+renderer(instructionType)(CallBindingRenderer, null!);
 
 function getTarget(potentialTarget: object): object {
   if ((potentialTarget as { viewModel?: object }).viewModel != null) {

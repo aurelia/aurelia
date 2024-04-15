@@ -1,5 +1,4 @@
-import { Metadata } from '@aurelia/metadata';
-import { Class, DI, Protocol, ILogger, IServiceLocator } from '@aurelia/kernel';
+import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
@@ -35,6 +34,7 @@ import {
   IValidationExpressionHydrator,
   IValidationRule,
 } from './rule-interfaces';
+import { defineMetadata, deleteMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -61,28 +61,29 @@ export class RuleProperty implements IRuleProperty {
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
 export const validationRulesRegistrar = Object.freeze({
+  allRulesAnnotations: getAnnotationKeyFor('validation-rules-annotations'),
   name: 'validation-rules',
   defaultRuleSetName: '__default',
   set(target: IValidateable, rules: IPropertyRule[], tag?: string): void {
     const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
-    Metadata.define(Protocol.annotation.keyFor(key), rules, target);
-    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    defineMetadata(rules, target, getAnnotationKeyFor(key));
+    const keys = getMetadata<string[]>(this.allRulesAnnotations, target);
     if (keys === void 0) {
-      Metadata.define(Protocol.annotation.name, [key], target);
+      defineMetadata([key], target, this.allRulesAnnotations);
     } else {
       keys.push(key);
     }
   },
-  get(target: IValidateable, tag?: string): PropertyRule[] {
-    const key = Protocol.annotation.keyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName);
-    return Metadata.get(key, target) ?? Metadata.getOwn(key, target.constructor);
+  get(target: IValidateable, tag?: string): PropertyRule[] | undefined {
+    const key = getAnnotationKeyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName);
+    return getMetadata(key, target) ?? getMetadata(key, target.constructor);
   },
   unset(target: IValidateable, tag?: string): void {
-    const keys = Metadata.getOwn(Protocol.annotation.name, target);
+    const keys = getMetadata(this.allRulesAnnotations, target);
     if (!Array.isArray(keys)) return;
     for (const key of keys.slice(0)) {
       if (key.startsWith(validationRulesRegistrar.name) && (tag === void 0 || key.endsWith(tag))) {
-        Metadata.delete(Protocol.annotation.keyFor(key), target);
+        deleteMetadata(getAnnotationKeyFor(key), target);
         const index = keys.indexOf(key);
         if (index > -1) {
           keys.splice(index, 1);
@@ -91,7 +92,7 @@ export const validationRulesRegistrar = Object.freeze({
     }
   },
   isValidationRulesSet(target: IValidateable) {
-    const keys = Metadata.getOwn(Protocol.annotation.name, target) as string[];
+    const keys = getMetadata(this.allRulesAnnotations, target) as string[];
     return keys !== void 0 && keys.some((key) => key.startsWith(validationRulesRegistrar.name));
   }
 });
@@ -472,12 +473,10 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   public rules: PropertyRule[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
-  public constructor(
-    @IServiceLocator private readonly locator: IServiceLocator,
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IValidationMessageProvider private readonly messageProvider: IValidationMessageProvider,
-    @IValidationExpressionHydrator private readonly deserializer: IValidationExpressionHydrator,
-  ) { }
+  private readonly locator: IServiceLocator = resolve(IServiceLocator);
+  private readonly parser: IExpressionParser = resolve(IExpressionParser);
+  private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
+  private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator);
 
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
     const [name, expression] = parsePropertyName(property as any, this.parser);
@@ -607,14 +606,14 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   private readonly logger: ILogger;
   protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap();
 
+  public parser: IExpressionParser = resolve(IExpressionParser);
   public constructor(
-    @IExpressionParser public parser: IExpressionParser,
-    @ILogger logger: ILogger,
-    @ICustomMessages customMessages: ICustomMessage[],
+    logger: ILogger = resolve(ILogger),
+    customMessages: ICustomMessage[] = resolve(ICustomMessages),
   ) {
     this.logger = logger.scopeTo(ValidationMessageProvider.name);
     for (const { rule, aliases } of customMessages) {
-      ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
+      ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases }, true);
     }
   }
 

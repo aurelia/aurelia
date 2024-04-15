@@ -305,7 +305,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
         .rules;
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
+      assert.equal(Metadata.getMetadata(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
 
       sut.off();
     });
@@ -324,7 +324,7 @@ describe('validation/rule-provider.spec.ts', function () {
         .rules;
       const person = new Person(void 0!, void 0!);
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
+      assert.equal(Metadata.getMetadata(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
 
       const [rules1, rules2] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -354,7 +354,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
         .rules;
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
+      assert.equal(Metadata.getMetadata(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
 
       const [rules1, rules2, rules3] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -385,7 +385,7 @@ describe('validation/rule-provider.spec.ts', function () {
         .rules;
       const person = new Person(void 0!, void 0!);
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
+      assert.equal(Metadata.getMetadata(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
 
       const [rules1, rules2, rules3] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -713,7 +713,7 @@ describe('validation/rule-provider.spec.ts', function () {
         assert.equal(actual, messages[i]);
       });
 
-      it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
+      it(`rule.message returns the default message if the registered key is not found - ${title}`, function () {
         const { sut } = setup();
         const $rule = getRule();
         $rule.messageKey = 'foobar';
@@ -781,7 +781,7 @@ describe('validation/rule-provider.spec.ts', function () {
       }
       // reset the messages
       for (const { rule, aliases } of originalMessages) {
-        ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
+        ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases }, null);
       }
     });
 

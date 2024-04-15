@@ -1,8 +1,8 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, ILogger, IServiceLocator, Key } from '@aurelia/kernel';
-import { IExpressionParser, Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, resolve } from '@aurelia/kernel';
+import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/runtime';
 import { IPlatform } from '@aurelia/runtime-html';
-import { IValidationRule, IValidator, ValidationMessageProvider } from '@aurelia/validation';
+import { IValidationRule, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
@@ -18,13 +18,10 @@ export const I18nKeyConfiguration = /*@__PURE__*/DI.createInterface<I18nKeyConfi
 export class LocalizedValidationController extends ValidationController {
   private readonly localeChangeSubscription: IDisposable;
   public constructor(
-    @IServiceLocator locator: IServiceLocator,
-    @IEventAggregator ea: EventAggregator,
-    @IValidator validator: IValidator,
-    @IExpressionParser parser: IExpressionParser,
-    @IPlatform platform: IPlatform,
+    ea: EventAggregator = resolve(IEventAggregator),
+    platform: IPlatform = resolve(IPlatform),
   ) {
-    super(validator, parser, platform, locator);
+    super();
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
       () => { platform.domReadQueue.queueTask(async () => { await this.revalidateErrors(); }); }
@@ -41,14 +38,12 @@ export class LocalizedValidationControllerFactory extends ValidationControllerFa
 export class LocalizedValidationMessageProvider extends ValidationMessageProvider {
   private readonly keyPrefix?: string;
 
+  private readonly i18n: I18N = resolve(I18N);
   public constructor(
-    @I18nKeyConfiguration keyConfiguration: I18nKeyConfiguration,
-    @I18N private readonly i18n: I18N,
-    @IEventAggregator ea: EventAggregator,
-    @IExpressionParser parser: IExpressionParser,
-    @ILogger logger: ILogger,
+    keyConfiguration: I18nKeyConfiguration = resolve(I18nKeyConfiguration),
+    ea: EventAggregator = resolve(IEventAggregator),
   ) {
-    super(parser, logger, []);
+    super(undefined, []);
 
     const namespace = keyConfiguration.DefaultNamespace;
     const prefix = keyConfiguration.DefaultKeyPrefix;

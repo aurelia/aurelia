@@ -246,6 +246,7 @@ export {
   type PartialCustomAttributeDefinition,
   type CustomAttributeStaticAuDefinition,
   templateController,
+  defineAttribute,
 } from './resources/custom-attribute';
 export {
   If,
@@ -288,7 +289,6 @@ export {
   containerless,
   customElement,
   CustomElement,
-  type InjectableToken,
   type CustomElementDecorator,
   type CustomElementKind,
   type CustomElementType,
@@ -298,6 +298,7 @@ export {
   type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
+  defineElement,
 } from './resources/custom-element';
 
 export {

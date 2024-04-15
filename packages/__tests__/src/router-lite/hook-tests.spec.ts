@@ -1,4 +1,4 @@
-import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable, onResolve } from '@aurelia/kernel';
+import { Constructable, DI, ILogConfig, LogLevel, Registration, Writable, onResolve, resolve } from '@aurelia/kernel';
 import {
   CustomElement,
   customElement,
@@ -18,6 +18,8 @@ import {
   RouterConfiguration,
   route,
   Routeable,
+  IRouteViewModel,
+  IRouteConfig,
 } from '@aurelia/router-lite';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -234,9 +236,7 @@ class NotifierManager {
   public readonly fullNotifyHistory: string[] = [];
   public prefix: string = '';
 
-  public constructor(
-    @IPlatform public readonly p: IPlatform,
-  ) { }
+  public readonly p: IPlatform = resolve(IPlatform);
 
   public readonly binding: Notifier = new Notifier(this, 'binding');
   public readonly bound: Notifier = new Notifier(this, 'bound');
@@ -538,27 +538,27 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const hookSpec = HookSpecs.create(ticks);
 
       @customElement({ name: 'a01', template: null })
-      class A01 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A01 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a02', template: null })
-      class A02 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A02 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a03', template: null })
-      class A03 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A03 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a04', template: null })
-      class A04 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A04 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const A0 = [A01, A02, A03, A04];
 
       @customElement({ name: 'root1', template: vp(1) })
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      class Root1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a11', template: vp(1) })
-      class A11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a12', template: vp(1) })
-      class A12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a13', template: vp(1) })
-      class A13 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A13 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a14', template: vp(1) })
-      class A14 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A14 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const A1 = [A11, A12, A13, A14];
 
@@ -571,11 +571,11 @@ describe('router-lite/hook-tests.spec.ts', function () {
         ]
       })
       @customElement({ name: 'root2', template: vp(2) })
-      class Root2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a21', template: vp(2) })
-      class A21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'a22', template: vp(2) })
-      class A22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class A22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const A2 = [A21, A22];
 
@@ -680,32 +680,35 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
         describe('parent-child', function () {
           @customElement({ name: 'a01', template: null })
-          class PcA01 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class PcA01 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
           @customElement({ name: 'a02', template: null })
-          class PcA02 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class PcA02 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
-          @route({
-            routes: [
+          @customElement({ name: 'a12', template: vp(1) })
+          class PcA12 extends TestVM {
+            // as this is a self referencing routing configuration, we cannot use the decorator as the class cannot be (statically) used in the decorator before it is fully defined.
+            public static routes: IRouteConfig['routes'] = [
               { path: 'a02', component: PcA02 },
               { path: 'a12', component: PcA12 },
-            ]
-          })
-          @customElement({ name: 'a12', template: vp(1) })
-          class PcA12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            ];
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
+          }
 
-          @route({
-            routes: [
+          @customElement({ name: 'a11', template: vp(1) })
+          class PcA11 extends TestVM implements IRouteViewModel {
+            // as this is a self referencing routing configuration, we cannot use the decorator as the class cannot be (statically) used in the decorator before it is fully defined.
+            public static routes: IRouteConfig['routes'] = [
               { path: 'a01', component: PcA01 },
               { path: 'a02', component: PcA02 },
               { path: 'a12', component: PcA12 },
               { path: 'a11', component: PcA11 },
-            ]
-          })
-          @customElement({ name: 'a11', template: vp(1) })
-          class PcA11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            ];
+
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
+          }
 
           @customElement({ name: 'a14', template: vp(1) })
-          class PcA14 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class PcA14 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route({
             routes: [
@@ -715,7 +718,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             ]
           })
           @customElement({ name: 'a13', template: vp(1) })
-          class PcA13 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class PcA13 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route({
             routes: [
@@ -725,7 +728,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             ]
           })
           @customElement({ name: 'root2', template: vp(2) })
-          class PcRoot extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class PcRoot extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           const deps = [PcA01, PcA02, PcA11, PcA12, PcA13, PcA14];
 
@@ -752,10 +755,10 @@ describe('router-lite/hook-tests.spec.ts', function () {
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: '' } },
 
             { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: 'a02' } },
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: ''    } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a11', c: '' } },
 
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a11', c: 'a11' } },
-            { t1: { p: 'a11', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a11', c: '' }, t2: { p: 'a11', c: 'a11' } },
 
             // Both parent and child change with every nav
             { t1: { p: 'a11', c: 'a01' }, t2: { p: 'a12', c: 'a02' } },
@@ -764,11 +767,11 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
             { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a02' } },
             { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: 'a12' } },
-            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: ''    } },
+            { t1: { p: 'a11', c: 'a11' }, t2: { p: 'a12', c: '' } },
 
             { t1: { p: 'a12', c: 'a02' }, t2: { p: 'a11', c: 'a11' } },
             { t1: { p: 'a12', c: 'a12' }, t2: { p: 'a11', c: 'a11' } },
-            { t1: { p: 'a12', c: ''    }, t2: { p: 'a11', c: 'a11' } },
+            { t1: { p: 'a12', c: '' }, t2: { p: 'a11', c: 'a11' } },
 
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a14' } },
             { t1: { p: 'a11', c: 'a12' }, t2: { p: 'a13', c: 'a11' } },
@@ -930,19 +933,19 @@ describe('router-lite/hook-tests.spec.ts', function () {
     ]) {
       it(`'a/b/c/d' -> 'a' (c.hookSpec:${hookSpec})`, async function () {
         @customElement({ name: 'd', template: null })
-        class D extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        class D extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
         @route({ routes: [{ path: 'd', component: D }] })
         @customElement({ name: 'c', template: '<au-viewport></au-viewport>' })
-        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @route({ routes: [{ path: 'c', component: C }] })
         @customElement({ name: 'b', template: '<au-viewport></au-viewport>' })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
         @route({ routes: [{ path: 'b', component: B }] })
         @customElement({ name: 'a', template: '<au-viewport></au-viewport>' })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
         @route({ routes: [{ path: 'a', component: A }] })
         @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B, C, D]);
 
@@ -1104,9 +1107,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
       it(title, async function () {
         const { a, b } = spec;
         @customElement({ name: 'a', template: null })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a); } }
+        class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), a); } }
         @customElement({ name: 'b', template: null })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b); } }
+        class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), b); } }
 
         @route({
           routes: [
@@ -1115,7 +1118,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B]);
 
@@ -1194,17 +1197,17 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), a2); }
         }
         @route({ routes: [{ path: 'a2', component: A2 }] })
         @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
         class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), a1); }
         }
         @route({ routes: [{ path: 'a1', component: A1 }] })
         @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
         class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); }
         }
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2]);
 
@@ -1368,21 +1371,21 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const { a1, a2, b1, b2 } = spec;
         @customElement({ name: 'a2', template: null })
         class A2 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a2); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), a2); }
         }
         @route({ routes: [{ path: 'a2', component: A2 }] })
         @customElement({ name: 'a1', template: '<au-viewport></au-viewport>' })
         class A1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, a1); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), a1); }
         }
         @customElement({ name: 'b2', template: null })
         class B2 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b2); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), b2); }
         }
         @route({ routes: [{ path: 'b2', component: B2 }] })
         @customElement({ name: 'b1', template: '<au-viewport></au-viewport>' })
         class B1 extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, b1); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), b1); }
         }
         @route({
           routes: [
@@ -1392,7 +1395,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         })
         @customElement({ name: 'root', template: '<au-viewport name="$0"></au-viewport><au-viewport name="$1"></au-viewport>' })
         class Root extends TestVM {
-          public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, HookSpecs.create(0)); }
+          public constructor() { super(resolve(INotifierManager), resolve(IPlatform), HookSpecs.create(0)); }
         }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A1, A2, B1, B2]);
@@ -1688,13 +1691,13 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'a', template: null })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'b', template: null })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({ routes: routes(A, B) })
         @customElement({ name: 'root', template: vp(1) })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
@@ -1790,15 +1793,15 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'a', template: null })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'b', template: null })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'c', template: null })
-        class C extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({ routes: [...routes(A, B), { path: 'c', component: C }], fallback: 'c' })
         @customElement({ name: 'root', template: vp(1) })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [A, B, C]/* , LogLevel.trace */);
 
@@ -1920,9 +1923,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 's1', template: null })
-      class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class S1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 's2', template: null })
-      class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class S2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -1931,7 +1934,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         ]
       })
       @customElement({ name: 'root', template: vp(2) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const { router, mgr, tearDown } = await createFixture(Root, [S1, S2]/* , LogLevel.trace */);
 
@@ -1971,9 +1974,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 'c1', template: null })
-      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'c2', template: null })
-      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -1983,7 +1986,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'c2'
       })
       @customElement({ name: 'p', template: vp(1) })
-      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class P extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -1994,7 +1997,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         ]
       })
       @customElement({ name: 'root', template: vp(1) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P]/* , LogLevel.trace */);
 
@@ -2072,13 +2075,13 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 'gc11', template: null })
-      class GC11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc12', template: null })
-      class GC12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc21', template: null })
-      class GC21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc22', template: null })
-      class GC22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2088,7 +2091,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'gc11'
       })
       @customElement({ name: 'c1', template: vp(1) })
-      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2098,7 +2101,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'gc22'
       })
       @customElement({ name: 'c2', template: vp(1) })
-      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2108,7 +2111,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'c2'
       })
       @customElement({ name: 'p', template: vp(1) })
-      class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class P extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2119,7 +2122,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         ]
       })
       @customElement({ name: 'root', template: vp(1) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const { router, mgr, tearDown } = await createFixture(Root, [GC11, GC12, GC21, GC22, C1, C2, P]/* , LogLevel.trace */);
 
@@ -2215,11 +2218,11 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 's1', template: null })
-      class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class S1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 's2', template: null })
-      class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class S2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 's3', template: null })
-      class S3 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class S3 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2230,7 +2233,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 's2',
       })
       @customElement({ name: 'root', template: vp(2) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const { router, mgr, tearDown } = await createFixture(Root, [S1, S2, S3]/* , LogLevel.trace */);
 
@@ -2299,13 +2302,13 @@ describe('router-lite/hook-tests.spec.ts', function () {
       const ticks = 0;
       const hookSpec = HookSpecs.create(ticks);
       @customElement({ name: 'gc11', template: null })
-      class GC11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc12', template: null })
-      class GC12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc21', template: null })
-      class GC21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
       @customElement({ name: 'gc22', template: null })
-      class GC22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class GC22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2315,7 +2318,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'gc11'
       })
       @customElement({ name: 'c1', template: vp(1) })
-      class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2325,7 +2328,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         fallback: 'gc22'
       })
       @customElement({ name: 'c2', template: vp(1) })
-      class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class C2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       @route({
         routes: [
@@ -2334,7 +2337,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         ],
       })
       @customElement({ name: 'root', template: vp(2) })
-      class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+      class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
       const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, GC11, GC12, GC21, GC22]/* , LogLevel.trace */);
 
@@ -2415,9 +2418,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'c1', template: null })
-        class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'c2', template: null })
-        class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2426,10 +2429,10 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ],
         })
         @customElement({ name: 'p', template: vp(1) })
-        class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @customElement({ name: 'nf' })
-        class NF extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class NF extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2439,7 +2442,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           fallback,
         })
         @customElement({ name: 'root', template: vp(1) })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [C1, C2, P, NF]/* , LogLevel.trace */);
 
@@ -2474,18 +2477,18 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'gc1', template: null })
-        class GC1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class GC1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc21', template: null })
-        class GC21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class GC21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc22', template: null })
-        class GC22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class GC22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @route({
           routes: [
             { path: 'gc1', component: GC1 },
           ]
         })
         @customElement({ name: 'c1', template: vp(1) })
-        class C1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2495,7 +2498,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           fallback: 'gc22'
         })
         @customElement({ name: 'c2', template: vp(1) })
-        class C2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class C2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2504,10 +2507,10 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ],
         })
         @customElement({ name: 'p', template: vp(1) })
-        class P extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @customElement({ name: 'nf' })
-        class NF extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class NF extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2517,7 +2520,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           fallback,
         })
         @customElement({ name: 'root', template: vp(1) })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown } = await createFixture(Root, [GC1, GC21, GC22, C1, C2, P, NF]/* , LogLevel.trace */);
 
@@ -2575,9 +2578,9 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'ce-a', template: 'a' })
-        class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'ce-b', template: 'b' })
-        class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2594,7 +2597,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         <au-viewport></au-viewport>
         `
         })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
@@ -2689,13 +2692,13 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'gc-11', template: 'gc-11' })
-        class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-12', template: 'gc-12' })
-        class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-21', template: 'gc-21' })
-        class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-22', template: 'gc-22' })
-        class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2704,7 +2707,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
-        class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2713,7 +2716,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
-        class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2725,7 +2728,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           name: 'my-app',
           template: '<au-viewport></au-viewport>'
         })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
         const queue = platform.domWriteQueue;
@@ -2867,11 +2870,11 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 's1', template: 's1' })
-        class S1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class S1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 's2', template: 's2' })
-        class S2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class S2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 's3', template: 's3' })
-        class S3 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class S3 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -2881,7 +2884,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'root', template: 'root <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, host, tearDown } = await createFixture(Root, [S1, S2, S3]/* , LogLevel.trace */);
 
@@ -2989,17 +2992,17 @@ describe('router-lite/hook-tests.spec.ts', function () {
         const ticks = 0;
         const hookSpec = HookSpecs.create(ticks);
         @customElement({ name: 'gc-11', template: 'gc-11' })
-        class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-12', template: 'gc-12' })
-        class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-13', template: 'gc-13' })
-        class Gc13 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc13 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-21', template: 'gc-21' })
-        class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-22', template: 'gc-22' })
-        class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
         @customElement({ name: 'gc-23', template: 'gc-23' })
-        class Gc23 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Gc23 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -3009,7 +3012,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'p-1', template: 'p1 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
-        class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -3019,7 +3022,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           ]
         })
         @customElement({ name: 'p-2', template: 'p2 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
-        class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         @route({
           routes: [
@@ -3031,7 +3034,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           name: 'my-app',
           template: '<au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>'
         })
-        class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+        class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
         const queue = platform.domWriteQueue;
@@ -3233,16 +3236,16 @@ describe('router-lite/hook-tests.spec.ts', function () {
           const hookSpec = HookSpecs.create(ticks);
           @route(['', 'a'])
           @customElement({ name: 'ce-a', template: 'a' })
-          class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route('b')
           @customElement({ name: 'ce-b', template: 'b' })
-          class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route('c')
           @customElement({ name: 'ce-c', template: 'c' })
           class C extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
                 throw new Error(`Synthetic test error in ${hook}`);
@@ -3262,7 +3265,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
           <au-viewport></au-viewport>
           `
           })
-          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           return Root;
         }
@@ -3604,12 +3607,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
             const hookSpec = HookSpecs.create(ticks);
             @route(['', 'gc-11'])
             @customElement({ name: 'gc-11', template: 'gc-11' })
-            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-12', template: 'gc-12' })
-            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-13', template: 'gc-13' })
             class Gc13 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3619,12 +3622,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
             @route(['', 'gc-21'])
             @customElement({ name: 'gc-21', template: 'gc-21' })
-            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-22', template: 'gc-22' })
-            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-23', template: 'gc-23' })
             class Gc23 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3637,14 +3640,14 @@ describe('router-lite/hook-tests.spec.ts', function () {
               routes: [Gc11, Gc12, Gc13]
             })
             @customElement({ name: 'p-1', template: `p1 <au-viewport></au-viewport>` })
-            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               path: 'p2',
               routes: [Gc21, Gc22, Gc23]
             })
             @customElement({ name: 'p-2', template: `p2 <au-viewport></au-viewport>` })
-            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               routes: [P1, P2]
@@ -3660,7 +3663,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="p2/gc-23"></a>
             <au-viewport></au-viewport>`
             })
-            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             const { router, mgr, tearDown, host, platform } = await createFixture(Root);
             const [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
@@ -3734,12 +3737,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
             const hookSpec = HookSpecs.create(ticks);
             @route(['', 'gc-11'])
             @customElement({ name: 'gc-11', template: 'gc-11' })
-            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-12', template: 'gc-12' })
-            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-13', template: 'gc-13' })
             class Gc13 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3749,12 +3752,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
             @route(['', 'gc-21'])
             @customElement({ name: 'gc-21', template: 'gc-21' })
-            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-22', template: 'gc-22' })
-            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-23', template: 'gc-23' })
             class Gc23 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3776,7 +3779,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../p2/gc-23"></a>
             p1
             <au-viewport></au-viewport>` })
-            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               path: 'p2',
@@ -3791,7 +3794,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="gc-22"></a>
             <a href="gc-23"></a>
             p2 <au-viewport></au-viewport>` })
-            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               routes: [P1, P2]
@@ -3800,7 +3803,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
               name: 'my-app',
               template: `<au-viewport></au-viewport>`
             })
-            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             const { router, mgr, tearDown, host, platform } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
@@ -3873,7 +3876,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../../p2/gc-22"></a>
             <a href="../../p2/gc-23"></a>
             gc-11` })
-            class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({
               name: 'gc-12', template: `
             <a href="../gc-11"></a>
@@ -3883,10 +3886,10 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../../p2/gc-22"></a>
             <a href="../../p2/gc-23"></a>
             gc-12` })
-            class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-13', template: 'gc-13' })
             class Gc13 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3904,7 +3907,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../gc-22"></a>
             <a href="../gc-23"></a>
             gc-21` })
-            class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({
               name: 'gc-22', template: `
             <a href="../../p1/gc-11"></a>
@@ -3914,10 +3917,10 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="../gc-22"></a>
             <a href="../gc-23"></a>
             gc-22` })
-            class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
             @customElement({ name: 'gc-23', template: 'gc-23' })
             class Gc23 extends TestVM {
-              public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+              public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
               public [hook](...args: any[]): any {
                 return onResolve(super[hook].apply(this, args), () => {
                   throw new Error(`Synthetic test error in ${hook}`);
@@ -3933,7 +3936,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
               name: 'p-1', template: `
             p1
             <au-viewport></au-viewport>` })
-            class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               path: 'p2',
@@ -3942,7 +3945,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             @customElement({
               name: 'p-2', template: `
             p2 <au-viewport></au-viewport>` })
-            class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             @route({
               routes: [P1, P2]
@@ -3951,7 +3954,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
               name: 'my-app',
               template: `<au-viewport></au-viewport>`
             })
-            class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+            class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
             const { router, mgr, tearDown, host, platform } = await createFixture(Root);
             let [_p1gc11, p1gc12, p1gc13, _p2gc21, p2gc22, p2gc23] = Array.from(host.querySelectorAll('a'));
@@ -4020,16 +4023,16 @@ describe('router-lite/hook-tests.spec.ts', function () {
           const hookSpec = HookSpecs.create(ticks);
           @route('a')
           @customElement({ name: 'ce-a', template: 'a' })
-          class A extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class A extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route('b')
           @customElement({ name: 'ce-b', template: 'b' })
-          class B extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class B extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route('c')
           @customElement({ name: 'ce-c', template: 'c' })
           class C extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
                 throw new Error(`Synthetic test error in ${hook}`);
@@ -4049,7 +4052,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             <a href="c+b"></a>
             <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>`
           })
-          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           return Root;
         }
@@ -4287,12 +4290,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
         function createCes(hook: string) {
           const hookSpec = HookSpecs.create(ticks);
           @customElement({ name: 'gc-11', template: 'gc-11' })
-          class Gc11 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Gc11 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
           @customElement({ name: 'gc-12', template: 'gc-12' })
-          class Gc12 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Gc12 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
           @customElement({ name: 'gc-13', template: 'gc-13' })
           class Gc13 extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
                 throw new Error(`Synthetic test error in ${hook}`);
@@ -4300,12 +4303,12 @@ describe('router-lite/hook-tests.spec.ts', function () {
             }
           }
           @customElement({ name: 'gc-21', template: 'gc-21' })
-          class Gc21 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Gc21 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
           @customElement({ name: 'gc-22', template: 'gc-22' })
-          class Gc22 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Gc22 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
           @customElement({ name: 'gc-23', template: 'gc-23' })
           class Gc23 extends TestVM {
-            public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); }
+            public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); }
             public [hook](...args: any[]): any {
               return onResolve(super[hook](...args), () => {
                 throw new Error(`Synthetic test error in ${hook}`);
@@ -4321,7 +4324,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             ]
           })
           @customElement({ name: 'p-1', template: 'p1 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
-          class P1 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class P1 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route({
             routes: [
@@ -4331,7 +4334,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             ]
           })
           @customElement({ name: 'p-2', template: 'p2 <au-viewport name="$1"></au-viewport><au-viewport name="$2"></au-viewport>' })
-          class P2 extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class P2 extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           @route({
             routes: [
@@ -4343,7 +4346,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
             name: 'my-app',
             template: '<au-viewport name="$1"></au-viewport> <au-viewport name="$2"></au-viewport>'
           })
-          class Root extends TestVM { public constructor(@INotifierManager mgr: INotifierManager, @IPlatform p: IPlatform) { super(mgr, p, hookSpec); } }
+          class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
           return Root;
         }

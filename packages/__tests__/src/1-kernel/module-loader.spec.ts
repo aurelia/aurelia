@@ -296,12 +296,16 @@ describe('1-kernel/module-loader.spec.ts', function () {
     let loader: ReturnType<typeof createFixture>;
     const assertElementRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(CustomElement.keyFrom(name), false), registered);
+
     const assertAttributeRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(CustomAttribute.keyFrom(name), false), registered);
+
     const assertBindingBehaviorRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(BindingBehavior.keyFrom(name), false), registered);
+
     const assertValueConverterRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(ValueConverter.keyFrom(name), false), registered);
+
     const assertBindingCommandRegistration = (name: string, registered: boolean) =>
       assert.strictEqual(loader.container.has(BindingCommand.keyFrom(name), false), registered);
 

@@ -186,7 +186,7 @@ export class ExpressionWatcher implements IConnectableBinding {
   }
 }
 
-connectable(ComputedWatcher);
+connectable(ComputedWatcher, null!);
 
-connectable(ExpressionWatcher);
+connectable(ExpressionWatcher, null!);
 mixinAstEvaluator(true)(ExpressionWatcher);

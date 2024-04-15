@@ -2,6 +2,7 @@ import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurel
 import { CustomElement, customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
+import { resolve } from '@aurelia/kernel';
 
 describe('router-lite/resources/load.spec.ts', function () {
 
@@ -805,8 +806,8 @@ describe('router-lite/resources/load.spec.ts', function () {
       @customElement({ name: 'c-one', template: t1 })
       class ChildOne {
         private readonly parentCtx: IRouteContext;
-        public constructor(@IRouteContext ctx: IRouteContext) {
-          this.parentCtx = ctx.parent;
+        public constructor() {
+          this.parentCtx = resolve(IRouteContext).parent;
         }
       }
 
@@ -826,8 +827,8 @@ describe('router-lite/resources/load.spec.ts', function () {
       @customElement({ name: 'c-two', template: t2 })
       class ChildTwo {
         private readonly parentCtx: IRouteContext;
-        public constructor(@IRouteContext ctx: IRouteContext) {
-          this.parentCtx = ctx.parent;
+        public constructor() {
+          this.parentCtx = resolve(IRouteContext).parent;
         }
       }
 
@@ -1002,8 +1003,8 @@ describe('router-lite/resources/load.spec.ts', function () {
       @customElement({ name: 'c-one', template: t1 })
       class ChildOne {
         private readonly parentCtx: IRouteContext;
-        public constructor(@IRouteContext ctx: IRouteContext) {
-          this.parentCtx = ctx.parent;
+        public constructor() {
+          this.parentCtx = resolve(IRouteContext).parent;
         }
       }
 
@@ -1026,8 +1027,8 @@ describe('router-lite/resources/load.spec.ts', function () {
       @customElement({ name: 'c-two', template: t2 })
       class ChildTwo {
         private readonly parentCtx: IRouteContext;
-        public constructor(@IRouteContext ctx: IRouteContext) {
-          this.parentCtx = ctx.parent;
+        public constructor() {
+          this.parentCtx = resolve(IRouteContext).parent;
         }
       }
 

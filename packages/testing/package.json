@@ -61,9 +61,9 @@
     "@aurelia/runtime-html": "2.0.0-beta.14"
   },
   "devDependencies": {
-    "@types/mocha": "10.0.0",
+    "@types/mocha": "10.0.6",
     "jsdom": "24.0.0",
-    "mocha": "10.0.0",
+    "mocha": "10.3.0",
     "typescript": "5.4.2"
   },
   "engines": {

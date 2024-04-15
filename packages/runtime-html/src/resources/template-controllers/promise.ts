@@ -15,7 +15,7 @@ import {
   ISyntheticView
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
-import { attributePattern, AttrSyntax } from '../attribute-pattern';
+import { AttrSyntax, AttributePattern } from '../attribute-pattern';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
@@ -167,7 +167,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
 
 export class PendingTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'pending',
     isTemplateController: true,
     bindables: {
@@ -195,7 +195,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -220,7 +220,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
 export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'then',
     isTemplateController: true,
     bindables: {
@@ -249,7 +249,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -274,7 +274,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
 
 export class RejectedTemplateController implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
-    type: 'custom-attribute',
+    type: attrTypeName,
     name: 'catch',
     isTemplateController: true,
     bindables: {
@@ -303,7 +303,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -335,23 +335,23 @@ function getPromiseController(controller: IHydratableController) {
   throw createMappedError(ErrorNames.promise_invalid_usage);
 }
 
-@attributePattern({ pattern: 'promise.resolve', symbols: '' })
 export class PromiseAttributePattern {
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
+AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
 
-@attributePattern({ pattern: 'then', symbols: '' })
 export class FulfilledAttributePattern {
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
+AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
 
-@attributePattern({ pattern: 'catch', symbols: '' })
 export class RejectedAttributePattern {
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }
 }
+AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);

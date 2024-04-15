@@ -10,7 +10,8 @@ import {
   IConnectable, IConnectableBinding, IObserverLocator, Scope
 } from '@aurelia/runtime';
 import {
-  bindingBehavior, BindingTargetSubscriber,
+  BindingBehavior,
+  BindingTargetSubscriber,
   IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
@@ -56,7 +57,6 @@ export const IDefaultTrigger = /*@__PURE__*/DI.createInterface<ValidationTrigger
 const validationConnectorMap = new WeakMap<IBinding, ValidatitionConnector>();
 const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();
 
-@bindingBehavior('validate')
 export class ValidateBindingBehavior implements BindingBehaviorInstance {
 
   /** @internal */
@@ -100,6 +100,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
     // there's no need to do anything
   }
 }
+BindingBehavior.define('validate', ValidateBindingBehavior);
 
 interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
 /**
@@ -351,7 +352,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   }
 }
 
-connectable()(ValidatitionConnector);
+connectable(ValidatitionConnector, null!);
 mixinAstEvaluator(true)(ValidatitionConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
@@ -397,5 +398,5 @@ export class BindingMediator<K extends string> {
   }
 }
 
-connectable()(BindingMediator);
+connectable(BindingMediator, null!);
 mixinAstEvaluator(true)(BindingMediator);

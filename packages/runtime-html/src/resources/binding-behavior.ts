@@ -2,7 +2,7 @@ import { firstDefined, getResourceKeyFor, mergeArrays, resource, resourceBaseNam
 import { BindingBehaviorInstance } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata, hasOwnMetadata } from '../utilities-metadata';
+import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 
 import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
@@ -16,22 +16,25 @@ export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
-  define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
-  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
+  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
   find(container: IContainer, name: string): BindingBehaviorDefinition | null;
   get(container: IServiceLocator, name: string): BindingBehaviorInstance;
 };
 
-export type BindingBehaviorDecorator = <T extends Constructable>(Type: T) => BindingBehaviorType<T>;
+export type BindingBehaviorDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => BindingBehaviorType<T>;
 
 export function bindingBehavior(definition: PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(name: string): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator;
 export function bindingBehavior(nameOrDef: string | PartialBindingBehaviorDefinition): BindingBehaviorDecorator {
-  return function (target) {
-    return BindingBehavior.define(nameOrDef, target);
+  return function <T extends Constructable>(target: T, context: ClassDecoratorContext): BindingBehaviorType<T>  {
+    context.addInitializer(function (this) {
+      BindingBehavior.define(nameOrDef, this as Constructable);
+    });
+    return target as BindingBehaviorType<T>;
   };
 }
 
@@ -89,7 +92,7 @@ const bbBaseName = /*@__PURE__*/getResourceKeyFor(behaviorTypeName);
 const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>(
   Type: Constructable,
   prop: K,
-): PartialBindingBehaviorDefinition[K] => getOwnMetadata(getAnnotationKeyFor(prop), Type) as PartialBindingBehaviorDefinition[K];
+): PartialBindingBehaviorDefinition[K] | undefined => getMetadata(getAnnotationKeyFor(prop), Type);
 
 const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 
@@ -97,20 +100,19 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom: getBindingBehaviorKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {
-    return isFunction(value) && (hasOwnMetadata(bbBaseName, value) || (value as StaticResourceType).$au?.type === behaviorTypeName);
+    return isFunction(value) && (hasMetadata(bbBaseName, value) || (value as StaticResourceType).$au?.type === behaviorTypeName);
   },
   define<T extends Constructable<BindingBehaviorInstance>>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T> {
     const definition = BindingBehaviorDefinition.create(nameOrDef, Type as Constructable<BindingBehaviorInstance>);
     const $Type = definition.Type as BindingBehaviorType<T>;
 
-    defineMetadata(bbBaseName, definition, $Type);
-  // a requirement for the resource system in kernel
-    defineMetadata(resourceBaseName, definition, $Type);
+    // registration of resource name is a requirement for the resource system in kernel (module-loader)
+    defineMetadata(definition, $Type, bbBaseName, resourceBaseName);
 
     return $Type;
   },
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T> {
-    const def: BindingBehaviorDefinition<T> = getOwnMetadata(bbBaseName, Type)
+    const def: BindingBehaviorDefinition<T> = getMetadata<BindingBehaviorDefinition<T>>(bbBaseName, Type)
       ?? getDefinitionFromStaticAu(Type as BindingBehaviorType<T>, behaviorTypeName, BindingBehaviorDefinition.create);
     if (def === void 0) {
       throw createMappedError(ErrorNames.binding_behavior_def_not_found, Type);
@@ -122,7 +124,7 @@ export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
     const Type = container.find<BindingBehaviorType>(behaviorTypeName, name);
     return Type == null
       ? null
-      : getOwnMetadata(bbBaseName, Type) ?? getDefinitionFromStaticAu(Type, behaviorTypeName, BindingBehaviorDefinition.create) ?? null;
+      : getMetadata<BindingBehaviorDefinition>(bbBaseName, Type) ?? getDefinitionFromStaticAu<BindingBehaviorDefinition>(Type, behaviorTypeName, BindingBehaviorDefinition.create) ?? null;
   },
   get(container, name) {
     if (__DEV__) {

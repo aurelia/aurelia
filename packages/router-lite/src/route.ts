@@ -210,7 +210,7 @@ export const Route = {
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
    */
   isConfigured(Type: RouteType): boolean {
-    return Metadata.hasOwn(Route.name, Type);
+    return Metadata.hasMetadata(Route.name, Type);
   },
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
@@ -220,7 +220,7 @@ export const Route = {
     Type: T,
   ): T {
     const config = RouteConfig._create(configOrPath, Type);
-    Metadata.define(Route.name, config, Type);
+    Metadata.defineMetadata(config, Type, Route.name);
 
     return Type;
   },
@@ -234,12 +234,12 @@ export const Route = {
       Route.configure({}, Type);
     }
 
-    return Metadata.getOwn(Route.name, Type) as RouteConfig;
+    return Metadata.getMetadata(Route.name, Type)!;
   },
 };
 
 export type RouteType<T extends Constructable = Constructable> = ResourceType<T, InstanceType<T>, IRouteConfig>;
-export type RouteDecorator = <T extends Constructable>(Type: T) => T;
+export type RouteDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext<T>) => T;
 
 /**
  * Associate a static route configuration with this type.
@@ -264,14 +264,17 @@ export function route(config: IRouteConfig): RouteDecorator;
  */
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
-  return function (target) {
-    return Route.configure(configOrPath, target);
+  return function (target, context) {
+    context.addInitializer(function (this) {
+      Route.configure(configOrPath, this);
+    });
+    return target;
   };
 }
 
 /** @internal */
 export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteConfig | Promise<RouteConfig> {
-  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null/* , false */);
+  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
 

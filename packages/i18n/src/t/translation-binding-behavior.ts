@@ -1,9 +1,8 @@
 import { type Writable } from '@aurelia/kernel';
 import { type BindingBehaviorExpression, type BindingBehaviorInstance, type IsValueConverter, ValueConverterExpression, type Scope } from '@aurelia/runtime';
-import { bindingBehavior } from '@aurelia/runtime-html';
+import { BindingBehavior } from '@aurelia/runtime-html';
 import { type BindingWithBehavior, ValueConverters } from '../utils';
 
-@bindingBehavior(ValueConverters.translationValueConverterName)
 export class TranslationBindingBehavior implements BindingBehaviorInstance {
 
   public bind(_scope: Scope, binding: BindingWithBehavior) {
@@ -15,3 +14,4 @@ export class TranslationBindingBehavior implements BindingBehaviorInstance {
     }
   }
 }
+BindingBehavior.define(ValueConverters.translationValueConverterName, TranslationBindingBehavior);

@@ -1,6 +1,6 @@
-import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable, Constructable } from '@aurelia/kernel';
+import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable } from '@aurelia/kernel';
 import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
-import { CustomElement, findElementControllerFor } from '../resources/custom-element';
+import { findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, isString, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
@@ -9,6 +9,7 @@ import { createMutationObserver, isElement } from '../utilities-dom';
 
 import type { INode } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
+import { getAnnotationKeyFor } from '../utilities-metadata';
 
 export type PartialChildrenDefinition = {
   callback?: PropertyKey;
@@ -24,49 +25,37 @@ export type PartialChildrenDefinition = {
  *
  * @param config - The overrides
  */
-export function children(config?: PartialChildrenDefinition): PropertyDecorator;
+export function children<TThis,TValue>(config?: PartialChildrenDefinition): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
  *
  * @param selector - The CSS element selector for filtering children
  */
-export function children(selector: string): PropertyDecorator;
+export function children<TThis,TValue>(selector: string): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
 /**
  * Decorator: Decorator: Specifies an array property that synchronizes its items with child content nodes of the element.
  *
  * @param target - The class
  * @param prop - The property name
  */
-export function children(target: {}, prop: string): void;
-export function children(configOrTarget?: PartialChildrenDefinition | {} | string, prop?: string): void | PropertyDecorator | ClassDecorator {
+export function children<TThis,TValue>(target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>): void;
+export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinition | string | undefined, context?: ClassFieldDecoratorContext<TThis,TValue>): void | ((target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void) {
   if (!mixed) {
     mixed = true;
     subscriberCollection(ChildrenBinding);
-    lifecycleHooks()(ChildrenLifecycleHooks);
+    lifecycleHooks()(ChildrenLifecycleHooks, null!);
   }
   let config: PartialChildrenDefinition;
 
-  const dependenciesKey = 'dependencies';
-  function decorator($target: {}, $prop: symbol | string, desc?: PropertyDescriptor): void {
-    if (arguments.length > 1) {
-      // Non invocation:
-      // - @children
-      // Invocation with or w/o opts:
-      // - @children()
-      // - @children({...opts})
-      config.name = $prop as string;
+  const dependenciesKey = getAnnotationKeyFor('dependencies');
+  function decorator(_target: undefined, context: ClassFieldDecoratorContext): void {
+    switch (context.kind) {
+      case 'field':
+        config.name = context.name;
+        break;
     }
 
-    if (typeof $target === 'function' || typeof desc?.value !== 'undefined') {
-      throw createMappedError(ErrorNames.children_decorator_invalid_usage);
-    }
-
-    const target = ($target as object).constructor as Constructable;
-
-    let dependencies = CustomElement.getAnnotation(target, dependenciesKey) as Key[] | undefined;
-    if (dependencies == null) {
-      CustomElement.annotate(target, dependenciesKey, dependencies = []);
-    }
+    const dependencies = (context.metadata[dependenciesKey] ??= []) as Key[];
     dependencies.push(new ChildrenLifecycleHooks(config as PartialChildrenDefinition & { name: PropertyKey }));
   }
 
@@ -74,7 +63,7 @@ export function children(configOrTarget?: PartialChildrenDefinition | {} | strin
     // Non invocation:
     // - @children
     config = {};
-    decorator(configOrTarget!, prop!);
+    decorator(configOrTarget as undefined, context!);
     return;
   } else if (isString(configOrTarget)) {
     // Direct call:

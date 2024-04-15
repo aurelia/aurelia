@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "experimentalDecorators": true,
     "esModuleInterop": true,
     "module": "commonjs",
     "moduleResolution": "node",

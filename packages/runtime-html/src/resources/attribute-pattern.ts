@@ -436,7 +436,7 @@ export class AttrSyntax {
     public target: string,
     public command: string | null,
     public parts: readonly string[] | null = null
-  ) {}
+  ) { }
 }
 
 export type IAttributePattern<T extends string = string> = Record<T, (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax>;
@@ -498,7 +498,7 @@ export interface AttributePatternKind {
   findAll(container: IContainer): readonly IAttributePattern[];
 }
 
-export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T) => T {
+export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext) => T {
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
     return AttributePattern.define(patternDefs, target);
   };
@@ -521,10 +521,6 @@ export const AttributePattern = objectFreeze<AttributePatternKind>({
   findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
-@attributePattern(
-  { pattern: 'PART.PART', symbols: '.' },
-  { pattern: 'PART.PART.PART', symbols: '.' },
-)
 export class DotSeparatedAttributePattern {
   public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
@@ -534,11 +530,13 @@ export class DotSeparatedAttributePattern {
     return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
   }
 }
+AttributePattern.define(
+  [
+    { pattern: 'PART.PART', symbols: '.' },
+    { pattern: 'PART.PART.PART', symbols: '.' }
+  ],
+  DotSeparatedAttributePattern);
 
-@attributePattern(
-  { pattern: 'ref', symbols: '' },
-  { pattern: 'PART.ref', symbols: '.' }
-)
 export class RefAttributePattern {
   public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, 'element', 'ref');
@@ -557,11 +555,13 @@ export class RefAttributePattern {
     return new AttrSyntax(rawName, rawValue, target, 'ref');
   }
 }
+AttributePattern.define(
+  [
+    { pattern: 'ref', symbols: '' },
+    { pattern: 'PART.ref', symbols: '.' }
+  ],
+  RefAttributePattern);
 
-@attributePattern(
-  { pattern: 'PART.trigger:PART', symbols: '.:' },
-  { pattern: 'PART.capture:PART', symbols: '.:' },
-)
 export class EventAttributePattern {
   public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
@@ -570,18 +570,20 @@ export class EventAttributePattern {
     return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
   }
 }
+AttributePattern.define(
+  [
+    { pattern: 'PART.trigger:PART', symbols: '.:' },
+    { pattern: 'PART.capture:PART', symbols: '.:' },
+  ],
+  EventAttributePattern);
 
-@attributePattern({ pattern: ':PART', symbols: ':' })
 export class ColonPrefixedBindAttributePattern {
   public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
   }
 }
+AttributePattern.define([{ pattern: ':PART', symbols: ':' }], ColonPrefixedBindAttributePattern);
 
-@attributePattern(
-  { pattern: '@PART', symbols: '@' },
-  { pattern: '@PART:PART', symbols: '@:' },
-)
 export class AtPrefixedTriggerAttributePattern {
   public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
@@ -591,13 +593,19 @@ export class AtPrefixedTriggerAttributePattern {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
   }
 }
+AttributePattern.define(
+  [
+    { pattern: '@PART', symbols: '@' },
+    { pattern: '@PART:PART', symbols: '@:' },
+  ],
+  AtPrefixedTriggerAttributePattern);
 
-@attributePattern({ pattern: '...$attrs', symbols: '' })
 export class SpreadAttributePattern {
   public '...$attrs'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, '', '...$attrs');
   }
 }
+AttributePattern.define([{ pattern: '...$attrs', symbols: '' }], SpreadAttributePattern);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 /* istanbul ignore next */function testAttributePatternDeco() {

@@ -1,10 +1,11 @@
-import { customElement } from "aurelia";
+import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
 
-@customElement({
-  name: 'one-route',
-  template: `One page`
-})
 export class One {
+  static $au: CustomElementStaticAuDefinition = {
+    type: 'custom-element',
+    name: 'one-route',
+    template: `One page`
+  };
   async loading() {
     return new Promise(resolve => setTimeout(resolve, 10));
   }

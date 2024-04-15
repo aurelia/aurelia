@@ -17,7 +17,6 @@ import { createStateBindingScope, isSubscribable } from './state-utilities';
  * A binding that handles the connection of the global state to a property of a target object
  */
 export interface StateGetterBinding extends IConnectableBinding { }
-@connectable()
 export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
@@ -120,3 +119,4 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     this._sub = void 0;
   }
 }
+connectable(StateGetterBinding, null!);

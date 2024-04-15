@@ -6,7 +6,6 @@ import {
 import {
   eachCartesianJoin,
   TestContext,
-  TestConfiguration,
   trimFull,
   assert,
   createFixture,
@@ -560,7 +559,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
         const host = ctx.createElement('div');
 
         const au = new Aurelia(container);
-        void au.register(TestConfiguration)
+        void au
           .app({ host, component: Component })
           .start();
         const component = au.root.controller.viewModel;

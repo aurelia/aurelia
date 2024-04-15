@@ -1,6 +1,6 @@
 // This is to test for some intrinsic properties of enhance which is otherwise difficult to test in Data-driven tests parallel to `.app`
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { Constructable, DI, IContainer, Registration, onResolve } from '@aurelia/kernel';
+import { Constructable, DI, IContainer, Registration, onResolve, resolve } from '@aurelia/kernel';
 import {
   CustomElement,
   ICustomElementViewModel,
@@ -115,9 +115,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       class App2 {
         private readonly r1!: HTMLDivElement;
         private readonly r2!: HTMLDivElement;
-        public constructor(
-          @IContainer public container: IContainer
-        ) { }
+        public container: IContainer = resolve(IContainer);
 
         public async attaching() {
           await this.enhance(this.r1);

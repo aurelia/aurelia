@@ -2,7 +2,7 @@ import { AccessorType, IAccessor, IObserver, ISubscriberCollection, atObserver }
 import { safeString, def, isFunction, areEqual } from '../utilities';
 import { currentConnectable } from './connectable-switcher';
 
-import type { Constructable, IIndexable } from '@aurelia/kernel';
+import { emptyObject, type Constructable, type IIndexable } from '@aurelia/kernel';
 import type { IBindingContext, InterceptorFunc, IObservable } from '../observation';
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
@@ -27,11 +27,15 @@ const noValue: unknown = {};
 
 type SetterObserverOwningObject = IIndexable<IBindingContext, IObserver>;
 
+type FieldInitializer<TFThis, TValue> = (this: TFThis, initialValue: TValue) => TValue;
+type ObservableFieldDecorator<TFThis, TValue> = (target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue>;
+type ObservableClassDecorator<TCThis extends Constructable> = (target: TCThis, context: ClassDecoratorContext<TCThis>) => void;
+
 // for
 //    class {
 //      @observable prop
 //    }
-export function observable(target: object, key: PropertyKey, descriptor?: PropertyDescriptor & { initializer?: () => unknown }): void;
+export function observable<TFThis, TValue>(target: undefined, context: ClassFieldDecoratorContext<TFThis, TValue>): FieldInitializer<TFThis, TValue>;
 // for
 //    @observable({...})
 //    class {}
@@ -39,109 +43,94 @@ export function observable(target: object, key: PropertyKey, descriptor?: Proper
 //    class {
 //      @observable({...}) prop
 //    }
-export function observable(config: IObservableDefinition): (target: Constructable | object, ...args: unknown[]) => void;
+export function observable<TCThis extends Constructable, TFThis, TValue>(config: IObservableDefinition): (target: TCThis | undefined, context: ClassDecoratorContext<TCThis> | ClassFieldDecoratorContext<TFThis, TValue>) => FieldInitializer<TFThis, TValue> | void;
 // for
 //    @observable('') class {}
 //    @observable(5) class {}
 //    @observable(Symbol()) class {}
-export function observable(key: PropertyKey): ClassDecorator;
+export function observable<TCThis extends Constructable>(key: PropertyKey): ObservableClassDecorator<TCThis>;
 // for:
 //    class {
 //      @observable() prop
 //    }
-export function observable(): PropertyDecorator;
+export function observable<TFThis, TValue>(): ObservableFieldDecorator<TFThis, TValue>;
 // impl, wont be seen
-export function observable(
-  targetOrConfig?: Constructable | object | PropertyKey | IObservableDefinition,
-  key?: PropertyKey,
-  descriptor?: PropertyDescriptor
-): ClassDecorator | PropertyDecorator {
+export function observable<TCThis extends Constructable, TFThis, TValue>(targetOrConfig?: undefined | IObservableDefinition | PropertyKey, context?: ClassFieldDecoratorContext): ObservableClassDecorator<TCThis> | ObservableFieldDecorator<TFThis, TValue> | FieldInitializer<TFThis, TValue> {
   if (!SetterNotifier.mixed) {
     SetterNotifier.mixed = true;
     subscriberCollection(SetterNotifier);
   }
-  // either this check, or arguments.length === 3
-  // or could be both, so can throw against user error for better DX
-  if (key == null) {
-    // for:
-    //    @observable('prop')
-    //    class {}
-    //
-    //    @observable({ name: 'prop', callback: ... })
-    //    class {}
-    //
-    //    class {
-    //      @observable() prop
-    //      @observable({ callback: ... }) prop2
-    //    }
-    return ((t: Constructable, k: PropertyKey, d: PropertyDescriptor) => deco(t, k, d, targetOrConfig as PropertyKey | IObservableDefinition)) as ClassDecorator;
+
+  let isClassDecorator = false;
+  let config: IObservableDefinition;
+  if (typeof targetOrConfig === 'object') {
+    config = targetOrConfig;
+  } else if (targetOrConfig != null) {
+    config = { name: targetOrConfig };
+    isClassDecorator = true;
+  } else {
+    config = emptyObject;
   }
-  // for:
-  //    class {
-  //      @observable prop
-  //    }
-  return deco(targetOrConfig, key, descriptor) as PropertyDecorator;
 
-  function deco(
-    target: Constructable | object | PropertyKey | undefined,
-    key?: PropertyKey,
-    descriptor?: PropertyDescriptor & { initializer?: CallableFunction },
-    config?: PropertyKey | IObservableDefinition,
-  ): void | PropertyDescriptor {
-    // class decorator?
-    const isClassDecorator = key === void 0;
-    config = typeof config !== 'object'
-      ? { name: config }
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      : (config || {});
+  // case: @observable() prop
+  if (arguments.length === 0) {
+    return function (target: unknown, context: DecoratorContext) {
+      if (context.kind !== 'field') throw createMappedError(ErrorNames.invalid_observable_decorator_usage);
+      return createFieldInitializer(context);
+    };
+  }
 
-    if (isClassDecorator) {
-      key = config.name;
+  // case: @observable prop
+  if (context?.kind === 'field') return createFieldInitializer(context);
+
+  // case:  @observable(PropertyKey) class
+  if (isClassDecorator) {
+    return function (target: TCThis, _context: ClassDecoratorContext<TCThis>) {
+      createDescriptor(target, config.name!, () => noValue, true);
+    };
+  }
+
+  // case: @observable({...}) class | @observable({...}) prop
+  return function (target: Constructable | undefined, context: ClassFieldDecoratorContext | ClassDecoratorContext) {
+    switch (context.kind) {
+      case 'field': return createFieldInitializer(context);
+      case 'class': return createDescriptor(target, config.name!, () => noValue, true);
+      default: throw createMappedError(ErrorNames.invalid_observable_decorator_usage);
     }
+  };
 
-    if (key == null || key === '') {
-      throw createMappedError(ErrorNames.invalid_observable_decorator_usage);
-    }
-
-    // determine callback name based on config or convention.
+  function createFieldInitializer(context: ClassFieldDecoratorContext): FieldInitializer<TFThis, TValue> {
+    let $initialValue: TValue;
+    context.addInitializer(function (this: unknown) {
+      createDescriptor(this, context.name, () => $initialValue, false);
+    });
+    return function (this: TFThis, initialValue: TValue) {
+      return $initialValue = initialValue;
+    };
+  }
+  function createDescriptor(target: unknown, property: PropertyKey, initialValue: () => unknown, targetIsClass: boolean): void {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/strict-boolean-expressions
-    const callback = config.callback || `${safeString(key)}Changed`;
-    let initialValue = noValue;
-    if (descriptor) {
-      // we're adding a getter and setter which means the property descriptor
-      // cannot have a "value" or "writable" attribute
-      delete descriptor.value;
-      delete descriptor.writable;
-      initialValue = descriptor.initializer?.();
-      delete descriptor.initializer;
-    } else {
-      descriptor = { configurable: true };
-    }
-
-    // make the accessor enumerable by default, as fields are enumerable
-    if (!('enumerable' in descriptor)) {
-      descriptor.enumerable = true;
-    }
-
-    // todo(bigopon/fred): discuss string api for converter
+    const callback = config.callback || `${safeString(property)}Changed`;
     const $set = config.set;
-    descriptor.get = function g(/* @observable */this: SetterObserverOwningObject) {
-      const notifier = getNotifier(this, key!, callback, initialValue, $set);
+    const observableGetter: ObservableGetter = function (this: SetterObserverOwningObject) {
+      const notifier = getNotifier(this, property, callback, initialValue, $set);
       currentConnectable()?.subscribeTo(notifier);
       return notifier.getValue();
     };
-    descriptor.set = function s(/* @observable */this: SetterObserverOwningObject, newValue: unknown) {
-      getNotifier(this, key!, callback, initialValue, $set).setValue(newValue);
-    };
-    (descriptor.get as ObservableGetter).getObserver = function gO(/* @observable */obj: SetterObserverOwningObject) {
-      return getNotifier(obj, key!, callback, initialValue, $set);
+    observableGetter.getObserver = function (obj: SetterObserverOwningObject) {
+      return getNotifier(obj, property, callback, initialValue, $set);
     };
 
-    if (isClassDecorator) {
-      def((target as Constructable).prototype as object, key, descriptor);
-    } else {
-      return descriptor;
-    }
+    const descriptor = {
+      enumerable: true,
+      configurable: true,
+      get: observableGetter,
+      set(this: SetterObserverOwningObject, newValue: TValue) {
+        getNotifier(this, property, callback, initialValue, $set).setValue(newValue);
+      }
+    };
+    if (targetIsClass) def((target as Constructable).prototype as object, property, descriptor);
+    else def(target as object, property, descriptor);
   }
 }
 
@@ -149,13 +138,14 @@ function getNotifier(
   obj: SetterObserverOwningObject,
   key: PropertyKey,
   callbackKey: PropertyKey,
-  initialValue: unknown,
+  initialValue: () => unknown,
   set: InterceptorFunc | undefined,
 ): SetterNotifier {
   const lookup = getObserversLookup(obj) as unknown as Record<PropertyKey, SetterObserver | SetterNotifier>;
   let notifier = lookup[key as string] as SetterNotifier;
   if (notifier == null) {
-    notifier = new SetterNotifier(obj, callbackKey, set, initialValue === noValue ? void 0 : initialValue);
+    const $initialValue = initialValue();
+    notifier = new SetterNotifier(obj, callbackKey, set, $initialValue === noValue ? void 0 : $initialValue);
     lookup[key as string] = notifier;
   }
   return notifier;

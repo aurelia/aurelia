@@ -15,6 +15,7 @@ import {
   sink,
   optional,
   Class,
+  resolve,
 } from '@aurelia/kernel';
 import { BindingBehaviorInstance, Scope, IBinding } from '@aurelia/runtime';
 import {
@@ -67,19 +68,19 @@ describe('3-runtime-html/promise.spec.ts', function () {
     @customElement({ name, template, bindables })
     class Component {
       private logger: ILogger;
+      private readonly $logger: ILogger;
       @bindable
       private readonly ceId: unknown = null;
-      public constructor(
-        @optional(Config) private readonly config: Config,
-        @ILogger private readonly $logger: ILogger,
-        @IContainer container: IContainer,
-        @INode node: INode,
-      ) {
+      private readonly config: Config = resolve(optional(Config));
+      public constructor() {
+        const $logger = this.$logger = resolve(ILogger);
+        const container = resolve(IContainer);
+        const node = resolve(INode);
         if ((node as HTMLElement).dataset.logCtor !== void 0) {
           (this.logger = $logger.scopeTo(name)).debug('ctor');
           delete (node as HTMLElement).dataset.logCtor;
         }
-        if (config == null) {
+        if (this.config == null) {
           const lookup = container.get(configLookup);
           this.config = lookup.get(name);
         }
@@ -305,11 +306,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
   class App {
     public promise: PromiseWithId;
-    public constructor(
-      @IContainer private readonly container: IContainer,
-      @delaySeedPromise private readonly delaySeedPromise: DelayPromise,
-    ) {
-      if (delaySeedPromise === null) {
+    private readonly container: IContainer = resolve(IContainer);
+    private readonly delaySeedPromise: DelayPromise = resolve(delaySeedPromise);
+    public constructor() {
+      if (this.delaySeedPromise === null) {
         this.init();
       }
     }

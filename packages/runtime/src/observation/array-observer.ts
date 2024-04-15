@@ -15,7 +15,7 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata, isFunction } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getMetadata, isFunction } from '../utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
@@ -368,8 +368,8 @@ export function enableArrayObservation(): void {
   }
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getOwnMetadata(observationEnabledKey, Array) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Array);
+  if (!(getMetadata(observationEnabledKey, Array) ?? false)) {
+    defineMetadata(true, Array, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         defineHiddenProp(proto, method, observe![method]);

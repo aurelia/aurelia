@@ -76,5 +76,5 @@ export function ensureProto<T extends object, K extends keyof T>(
 
 /** @internal */ export const createLookup = <T>(): Record<string, T> => O.create(null) as Record<string, T>;
 
-/** @internal */ export const getMetadata = Metadata.getMetadata;
-/** @internal */ export const defineMetadata = Metadata.defineMetadata;
+/** @internal */ export const getMetadata = Metadata.get;
+/** @internal */ export const defineMetadata = Metadata.define;

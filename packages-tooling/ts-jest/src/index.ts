@@ -16,7 +16,7 @@ const $createTransformer = (typeof tsJest.createTransformer === 'function'
     : (() => { throw new Error('Unable to import createTransformer from "ts-jest"'); })
 ) as typeof tsJest.createTransformer;
 
-const tsTransformer = $createTransformer();
+const tsTransformer = $createTransformer({ isolatedModules: true });
 
 function _createTransformer(
   conventionsOptions = {},

@@ -65,10 +65,10 @@ export type BindingCommandInstance<T extends {} = {}> = {
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
 export type BindingCommandKind = IResourceKind & {
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
-  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
-  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T, decoratorContext?: DecoratorContext): BindingCommandType<T>;
-  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K, context: DecoratorContext | null): PartialBindingCommandDefinition[K] | undefined;
+  define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
+  define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
+  getAnnotation<K extends keyof PartialBindingCommandDefinition>(Type: Constructable, prop: K): PartialBindingCommandDefinition[K] | undefined;
   find(container: IContainer, name: string): BindingCommandDefinition | null;
   get(container: IServiceLocator, name: string): BindingCommandInstance;
 };

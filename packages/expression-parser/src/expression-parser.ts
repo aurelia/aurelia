@@ -52,13 +52,22 @@ import {
   ekObjectDestructuring,
   AccessBoundaryExpression,
 } from './ast';
-import { createInterface, createLookup, objectAssign } from '../utilities';
-import { ErrorNames, createMappedError } from '../errors';
+import { createLookup } from './utilities';
+import { ErrorNames, createMappedError } from './errors';
+import { DI } from '@aurelia/kernel';
 
-export interface IExpressionParser extends ExpressionParser {}
-export const IExpressionParser = createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
+export interface IExpressionParser<TCustom extends CustomExpression = CustomExpression> {
+  parse(expression: string, expressionType: 'IsIterator'): ForOfStatement;
+  parse(expression: string, expressionType: 'Interpolation'): Interpolation;
+  parse(expression: string, expressionType: Exclude<ExpressionType, 'IsIterator' | 'Interpolation'>): IsBindingBehavior;
+  parse(expression: string, expressionType: ExpressionType): AnyBindingExpression<TCustom>;
+}
+export const IExpressionParser = /*@__PURE__*/DI.createInterface<IExpressionParser>('IExpressionParser', x => x.singleton(ExpressionParser));
 
-export class ExpressionParser {
+/**
+ * A default implementation of the IExpressionParser interface
+ */
+export class ExpressionParser<TCustom extends CustomExpression = CustomExpression> implements IExpressionParser<TCustom> {
   /** @internal */ private readonly _expressionLookup: Record<string, IsBindingBehavior> = createLookup();
   /** @internal */ private readonly _forOfLookup: Record<string, ForOfStatement> = createLookup();
   /** @internal */ private readonly _interpolationLookup: Record<string, Interpolation> = createLookup();
@@ -346,14 +355,14 @@ const $this = new AccessThisExpression(0);
 const $parent = new AccessThisExpression(1);
 const boundary = new AccessBoundaryExpression();
 
-const etNone = 'None' as const;
-const etInterpolation = 'Interpolation' as const;
-const etIsIterator = 'IsIterator' as const;
-const etIsChainable = 'IsChainable' as const;
-const etIsFunction = 'IsFunction' as const;
-const etIsProperty = 'IsProperty' as const;
-const etIsCustom = 'IsCustom' as const;
-export type ExpressionType = typeof etNone | typeof etInterpolation | typeof etIsIterator | typeof etIsChainable | typeof etIsFunction | typeof etIsProperty | typeof etIsCustom;
+const etNone = 'None';
+const etInterpolation = 'Interpolation';
+const etIsIterator = 'IsIterator';
+const etIsChainable = 'IsChainable';
+const etIsFunction = 'IsFunction';
+const etIsProperty = 'IsProperty';
+const etIsCustom = 'IsCustom';
+export type ExpressionType = 'None' | 'Interpolation' | 'IsIterator' | 'IsChainable' | 'IsFunction' | 'IsProperty' | 'IsCustom';
 
 let $input: string = '';
 let $index: number = 0;
@@ -403,14 +412,12 @@ export function parseExpression(input: string, expressionType?: ExpressionType):
 // eslint-disable-next-line max-lines-per-function
 export function parse(minPrecedence: Precedence, expressionType: ExpressionType): AnyBindingExpression {
   if (expressionType === etIsCustom) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new CustomExpression($input) as any;
+    return new CustomExpression($input);
   }
 
   if ($index === 0) {
     if (expressionType === etInterpolation) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return parseInterpolation() as any;
+      return parseInterpolation();
     }
     nextToken();
     if ($currentToken & Token.ExpressionTerminal) {
@@ -605,11 +612,9 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     }
 
     if (expressionType === etIsIterator) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return parseForOfStatement(result as BindingIdentifierOrPattern) as any;
+      return parseForOfStatement(result as BindingIdentifierOrPattern);
     }
     if (Precedence.LeftHandSide < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
 
@@ -741,7 +746,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
   }
 
   if (Precedence.Binary < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -795,7 +799,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     $assignable = false;
   }
   if (Precedence.Conditional < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -818,7 +821,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     $assignable = false;
   }
   if (Precedence.Assign < minPrecedence) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -842,7 +844,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     result = new AssignExpression(result as IsAssignable, parse(Precedence.Assign, expressionType) as IsAssign);
   }
   if (Precedence.Variadic < minPrecedence) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return result as any;
   }
 
@@ -880,7 +881,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
 
   if ($currentToken !== Token.EOF) {
     if (expressionType === etInterpolation && $currentToken === Token.CloseBrace) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
     if (expressionType === etIsChainable && $currentToken === Token.Semicolon) {
@@ -888,7 +888,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
         throw unconsumedToken();
       }
       $semicolonIndex = $index - 1;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return result as any;
     }
     if ($tokenRaw() === 'of') {
@@ -896,7 +895,6 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     }
     throw unconsumedToken();
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return result as any;
 }
 
@@ -1717,7 +1715,7 @@ const TokenValues = [
   'of', '=>'
 ];
 
-const KeywordLookup: Record<string, Token> = objectAssign(Object.create(null), {
+const KeywordLookup: Record<string, Token> = Object.assign(createLookup<Token>(), {
   true: Token.TrueKeyword,
   null: Token.NullKeyword,
   false: Token.FalseKeyword,
@@ -1782,9 +1780,7 @@ decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
 
 // IdentifierPart lookup
 const IdParts = new Uint8Array(0xFFFF);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.IdStart, 1);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 decompress(IdParts as any, null, codes.Digit, 1);
 
 type CharScanner = (() => Token | null) & { notMapped?: boolean };

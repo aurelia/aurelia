@@ -47,6 +47,7 @@ export default function au(options: {
         'route-recognizer',
         'compat-v1',
         'dialog',
+        'expression-parser',
         'runtime',
         'runtime-html',
         'router-lite',

@@ -1,5 +1,6 @@
 import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
-import { IBinding, IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IBinding, IObserverLocator, Scope } from '@aurelia/runtime';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
 import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';

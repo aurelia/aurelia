@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { IsExpressionOrStatement, Unparser } from '@aurelia/runtime';
+import { IsExpressionOrStatement, Unparser } from '@aurelia/expression-parser';
 import { AttributeBinding, ContentBinding, InterpolationPartBinding, LetBinding, ListenerBinding, PropertyBinding, RefBinding } from '@aurelia/runtime-html';
 import { CallBinding } from './compat-call';
 import { DelegateListenerBinding } from './compat-event';
@@ -38,5 +38,5 @@ export const defineBindingMethods = () => {
     );
   });
 
-  const getMessage = (name: string, ast: IsExpressionOrStatement) => console.warn(`@deprecated "sourceExpression" property for expression on ${name}. It has been renamed to "ast". expression: "${Unparser.unparse(ast)}"`);
+  const getMessage = (name: string, ast: IsExpressionOrStatement) => console.warn(`[DEV:aurelia] @deprecated "sourceExpression" property for expression on ${name}. It has been renamed to "ast". expression: "${Unparser.unparse(ast)}"`);
 };

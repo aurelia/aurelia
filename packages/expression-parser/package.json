@@ -1,0 +1,64 @@
+{
+  "name": "@aurelia/expression-parser",
+  "version": "2.0.0-beta.14",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/cjs/index.cjs",
+      "import": "./dist/esm/index.mjs",
+      "development": "./dist/esm/index.dev.mjs"
+    },
+    "./development": {
+      "types": "./dist/types/index.d.ts",
+      "require": "./dist/cjs/index.dev.cjs",
+      "import": "./dist/esm/index.dev.mjs"
+    }
+  },
+  "types": "dist/types/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia.git",
+    "directory": "packages/expression-parser"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "expression-parser"
+  ],
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages": "npm run rollup"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/kernel": "2.0.0-beta.14"
+  },
+  "devDependencies": {
+    "typescript": "5.4.2"
+  },
+  "engines": {
+    "node": ">=14.17.0"
+  }
+}

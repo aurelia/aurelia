@@ -12,10 +12,9 @@ import {
   optionalResource,
 } from '@aurelia/kernel';
 import { isObject } from '@aurelia/metadata';
+import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
 import {
-  AccessScopeExpression,
   ICoercionConfiguration,
-  IExpressionParser,
   IObserverLocator,
   Scope,
 } from '@aurelia/runtime';
@@ -41,7 +40,6 @@ import type {
 import type {
   IBinding,
   IObservable,
-  IsBindingBehavior,
 } from '@aurelia/runtime';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';

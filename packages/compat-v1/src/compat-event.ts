@@ -1,7 +1,8 @@
 import { DI, IContainer, resolve } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, Scope, type IsBindingBehavior } from '@aurelia/runtime';
+import { astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, Scope } from '@aurelia/runtime';
 import { AppTask, BindingCommandInstance, ICommandBuildInfo, IEventTarget, IHydratableController, IInstruction, InstructionType, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform, IListenerBindingOptions, BindingCommandStaticAuDefinition } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
+import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';
 

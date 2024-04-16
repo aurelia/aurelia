@@ -16,6 +16,7 @@ module.exports = {
             ...[
                 'kernel',
                 'metadata',
+                'expression-parser',
                 'runtime',
                 'runtime-html',
                 'platform',

@@ -23,7 +23,7 @@ import {
   TaggedTemplateExpression,
   AssignExpression,
   AccessBoundaryExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
 

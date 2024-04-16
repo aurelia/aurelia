@@ -1,7 +1,7 @@
 import {
   AccessScopeExpression,
   ConditionalExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import {
   BindingMode,
   IPlatform,

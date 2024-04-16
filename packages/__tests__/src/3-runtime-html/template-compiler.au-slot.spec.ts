@@ -1,4 +1,4 @@
-import { IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   BindingMode,
   AuSlot,

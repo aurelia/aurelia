@@ -9,6 +9,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'platform-browser',
       'metadata',
       'kernel',
+      'expression-parser',
       'runtime',
       'runtime-html',
       'route-recognizer',

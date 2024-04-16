@@ -210,7 +210,7 @@ export const Route = {
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
    */
   isConfigured(Type: RouteType): boolean {
-    return Metadata.hasMetadata(Route.name, Type);
+    return Metadata.has(Route.name, Type);
   },
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
@@ -220,7 +220,7 @@ export const Route = {
     Type: T,
   ): T {
     const config = RouteConfig._create(configOrPath, Type);
-    Metadata.defineMetadata(config, Type, Route.name);
+    Metadata.define(config, Type, Route.name);
 
     return Type;
   },
@@ -234,7 +234,7 @@ export const Route = {
       Route.configure({}, Type);
     }
 
-    return Metadata.getMetadata(Route.name, Type)!;
+    return Metadata.get(Route.name, Type)!;
   },
 };
 

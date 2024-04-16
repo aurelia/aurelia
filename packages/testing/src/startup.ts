@@ -54,7 +54,7 @@ export function createFixture<T extends object>(
     ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
-      Metadata.defineMetadata(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, anno);
+      Metadata.define(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, anno);
     });
   }
 

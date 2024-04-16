@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isObject } from '@aurelia/metadata';
 import { IContainer, IFactory, IRegistry, IResolver, InstanceProvider, InterfaceSymbol, Key, Resolved, inject } from './di';
 import { createContainer } from './di.container';
 import { ErrorNames, createMappedError } from './errors';
@@ -267,6 +266,6 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   return handler.getFactory(key).construct(requestor);
 };
 
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isObject(key) && (key as {$isInterface?: boolean}).$isInterface === true;
+const isInterface = <K>(key: any): key is InterfaceSymbol<K> => (key as {$isInterface?: boolean})?.$isInterface === true;
 
 let newInstanceContainer: IContainer;

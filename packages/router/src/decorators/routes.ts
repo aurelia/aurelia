@@ -15,7 +15,7 @@ export const Routes: {
    * Returns `true` if the specified type has any static routes configuration (either via static properties or a &#64;route decorator)
    */
   isConfigured<T extends CustomElementType>(Type: T): boolean {
-    return Metadata.hasMetadata(Routes.name, Type) || 'routes' in Type;
+    return Metadata.has(Routes.name, Type) || 'routes' in Type;
   },
 
   /**
@@ -23,7 +23,7 @@ export const Routes: {
    */
   configure<T extends CustomElementType>(configurationsOrTypes: (IRoute | RouteableComponentType)[], Type: T): T {
     const configurations = configurationsOrTypes.map(configOrType => Route.create(configOrType));
-    Metadata.defineMetadata(configurations, Type, Routes.name);
+    Metadata.define(configurations, Type, Routes.name);
 
     return Type;
   },
@@ -34,7 +34,7 @@ export const Routes: {
   getConfiguration<T extends CustomElementType>(Type: T): Route[] {
     const type: RouteableComponentType = Type;
     const routes: (IRoute | Route)[] = [];
-    const metadata = Metadata.getMetadata(Routes.name, Type);
+    const metadata = Metadata.get(Routes.name, Type);
 
     // TODO: Check if they are indeed to be concatenated (and what that means
     // for match order) or if one should replace the other

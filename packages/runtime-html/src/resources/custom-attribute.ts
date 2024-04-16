@@ -63,7 +63,7 @@ export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
   closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, Type: CustomAttributeType<TType>): ICustomAttributeController<InstanceType<TType>> | null;
   closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, name: string): ICustomAttributeController<InstanceType<TType>> | null;
-  isType<T>(value: T, context?: DecoratorContext | null): value is (T extends Constructable ? CustomAttributeType<T> : never);
+  isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
@@ -205,6 +205,7 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
   return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
 };
 
+/** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
   const $Type = definition.Type as CustomAttributeType<T>;

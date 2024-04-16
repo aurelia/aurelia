@@ -16,9 +16,9 @@ export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
 export type BindingBehaviorKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
-  define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
-  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
-  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;
+  define<T extends Constructable>(name: string, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(def: PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
+  define<T extends Constructable>(nameOrDef: string | PartialBindingBehaviorDefinition, Type: T): BindingBehaviorType<T>;
   getDefinition<T extends Constructable>(Type: T): BindingBehaviorDefinition<T>;
   find(container: IContainer, name: string): BindingBehaviorDefinition | null;
   get(container: IServiceLocator, name: string): BindingBehaviorInstance;

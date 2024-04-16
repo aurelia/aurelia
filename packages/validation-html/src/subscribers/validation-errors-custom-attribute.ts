@@ -1,4 +1,4 @@
-import { BindingMode, INode, defineAttribute } from '@aurelia/runtime-html';
+import { BindingMode, INode, CustomAttribute } from '@aurelia/runtime-html';
 import { IValidationController, ValidationResultsSubscriber, ValidationEvent, ValidationResultTarget } from '../validation-controller';
 import { compareDocumentPositionFlat } from './common';
 import { optional, resolve } from '@aurelia/kernel';
@@ -68,4 +68,4 @@ export class ValidationErrorsCustomAttribute implements ValidationResultsSubscri
     this.controller!.removeSubscriber(this);
   }
 }
-defineAttribute({ name: 'validation-errors', bindables: { controller: {}, errors: { primary: true, mode: BindingMode.twoWay } } }, ValidationErrorsCustomAttribute);
+CustomAttribute.define({ name: 'validation-errors', bindables: { controller: {}, errors: { primary: true, mode: BindingMode.twoWay } } }, ValidationErrorsCustomAttribute);

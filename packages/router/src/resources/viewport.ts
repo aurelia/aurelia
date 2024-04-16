@@ -10,7 +10,6 @@ import {
   IHydratedParentController,
   ISyntheticView,
   IInstruction,
-  defineElement,
 } from '@aurelia/runtime-html';
 import { IRouter, NavigationFlags } from '../index';
 import { Viewport } from '../endpoints/viewport';
@@ -261,7 +260,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 }
-defineElement({
+CustomElement.define({
   name: 'au-viewport',
   injectable: ParentViewport,
   bindables: ['name', 'usedBy', 'default', 'fallback', 'fallbackAction', 'noScope', 'noLink', 'noTitle', 'noHistory', 'stateful']

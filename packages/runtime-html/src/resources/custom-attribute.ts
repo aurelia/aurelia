@@ -205,6 +205,7 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
   return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
 };
 
+/** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
   const $Type = definition.Type as CustomAttributeType<T>;

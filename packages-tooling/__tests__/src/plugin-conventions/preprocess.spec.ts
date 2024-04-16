@@ -147,10 +147,10 @@ export function register(container) {
 
   it('injects customElement decorator', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import { defineElement } from '@aurelia/runtime-html';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 export class FooBar {}
-defineElement(__au2ViewDef, FooBar);
+CustomElement.define(__au2ViewDef, FooBar);
 
 `;
     const result = preprocess(
@@ -168,10 +168,10 @@ defineElement(__au2ViewDef, FooBar);
 
   it('injects customElement decorator with index file', function () {
     const js = `export class FooBar {}\n`;
-    const expected = `import { defineElement } from '@aurelia/runtime-html';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
 export class FooBar {}
-defineElement(__au2ViewDef, FooBar);
+CustomElement.define(__au2ViewDef, FooBar);
 
 `;
     const result = preprocess(
@@ -222,7 +222,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo.js';
-import { valueConverter, other, defineElement, defineAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
+import { valueConverter, other, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
@@ -231,7 +231,7 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-defineAttribute('lorem', LoremCustomAttribute);
+CustomAttribute.define('lorem', LoremCustomAttribute);
 
 
 @valueConverter('one')
@@ -262,7 +262,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-defineElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
 `;
     const result = preprocess(
       {
@@ -311,7 +311,7 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.haml';
 import {Foo} from './foo.js';
-import { valueConverter, other, defineElement, defineAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
+import { valueConverter, other, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
@@ -320,7 +320,7 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-defineAttribute('lorem', LoremCustomAttribute);
+CustomAttribute.define('lorem', LoremCustomAttribute);
 
 
 @valueConverter('one')
@@ -351,7 +351,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-defineElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
 `;
     const result = preprocess(
       {

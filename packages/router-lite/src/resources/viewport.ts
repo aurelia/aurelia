@@ -1,7 +1,6 @@
 import { Constructable, ILogger, resolve } from '@aurelia/kernel';
 import {
   CustomElement,
-  defineElement,
   ICompiledCustomElementController,
   ICustomElementController,
   ICustomElementViewModel,
@@ -95,7 +94,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     return `VP(ctx:'${this._ctx._friendlyPath}',${propStrings.join(',')})`;
   }
 }
-defineElement({
+CustomElement.define({
   name: 'au-viewport',
   bindables: ['name', 'usedBy', 'default', 'fallback'],
 }, ViewportCustomElement);

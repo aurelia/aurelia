@@ -4,7 +4,6 @@ export const createError = (message: string) => new Error(message);
 /** @internal */
 export const isString = (v: unknown): v is string => typeof v === 'string';
 
-/** @internal */ export const objectAssign = Object.assign;
 // this is used inside template literal, since TS errs without String(...value)
 /** @internal */ export const safeString = String;
 

@@ -29,8 +29,7 @@
   },
   "keywords": [
     "aurelia",
-    "expression-parser",
-    "store"
+    "expression-parser"
   ],
   "files": [
     "dist",

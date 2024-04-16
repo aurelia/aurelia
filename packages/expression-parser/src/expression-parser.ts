@@ -52,7 +52,7 @@ import {
   ekObjectDestructuring,
   AccessBoundaryExpression,
 } from './ast';
-import { createLookup, objectAssign } from './utilities';
+import { createLookup } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 import { DI } from '@aurelia/kernel';
 
@@ -1715,7 +1715,7 @@ const TokenValues = [
   'of', '=>'
 ];
 
-const KeywordLookup: Record<string, Token> = objectAssign(Object.create(null), {
+const KeywordLookup: Record<string, Token> = Object.assign(createLookup<Token>(), {
   true: Token.TrueKeyword,
   null: Token.NullKeyword,
   false: Token.FalseKeyword,

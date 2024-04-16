@@ -1,12 +1,12 @@
 import { callSyntax, delegateSyntax } from '@aurelia/compat-v1';
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration, resolve } from '@aurelia/kernel';
+import { Unparser } from '@aurelia/expression-parser';
 import {
   ArrayObserver,
   BindingBehaviorInstance,
   IBinding,
   IObserverLocator,
   Scope,
-  Unparser,
 } from '@aurelia/runtime';
 import {
   bindable,

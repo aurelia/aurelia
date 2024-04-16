@@ -1,10 +1,9 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
-  IExpressionParser,
   IObserverLocator,
-  type IsBindingBehavior,
 } from '@aurelia/runtime';
+import { IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IHydratableController,
   IRenderer,

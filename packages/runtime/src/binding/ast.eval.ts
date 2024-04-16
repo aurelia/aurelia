@@ -1,53 +1,76 @@
 /* eslint-disable no-fallthrough */
 import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { IConnectable, IOverrideContext, IBindingContext, IObservable } from '../observation';
+import { IConnectable, IOverrideContext, IBindingContext, IObservable, IBinding } from '../observation';
 import { Scope } from '../observation/scope';
 import { isArray, isFunction, isObject, safeString } from '../utilities';
 import {
   type IsExpressionOrStatement,
-  type IAstEvaluator,
+  // type IAstEvaluator,
   type DestructuringAssignmentExpression,
   type DestructuringAssignmentRestExpression,
   DestructuringAssignmentSingleExpression,
-  BindingBehaviorInstance,
-  ekAccessThis,
-  ekAccessScope,
-  ekAccessGlobal,
-  ekCallGlobal,
-  ekArrayLiteral,
-  ekObjectLiteral,
-  ekPrimitiveLiteral,
-  ekTemplate,
-  ekUnary,
-  ekCallScope,
-  ekArrowFunction,
-  ekCallFunction,
-  ekCallMember,
-  ekAccessMember,
-  ekAccessKeyed,
-  ekTaggedTemplate,
-  ekBinary,
-  ekConditional,
-  ekAssign,
-  ekValueConverter,
-  ekBindingBehavior,
-  ekBindingIdentifier,
-  ekForOfStatement,
-  ekInterpolation,
-  ekArrayDestructuring,
-  ekDestructuringAssignmentLeaf,
-  ekArrayBindingPattern,
-  ekObjectBindingPattern,
-  ekObjectDestructuring,
-  ekCustom,
-  ekAccessBoundary
-} from './ast';
+  CustomExpression,
+} from '@aurelia/expression-parser';
 import { IConnectableBinding } from './connectable';
 import { ErrorNames, createMappedError } from '../errors';
+import { ISignaler } from '../observation/signaler';
 
+const ekAccessThis = 'AccessThis';
+const ekAccessBoundary = 'AccessBoundary';
+const ekAccessGlobal = 'AccessGlobal';
+const ekAccessScope = 'AccessScope';
+const ekArrayLiteral = 'ArrayLiteral';
+const ekObjectLiteral = 'ObjectLiteral';
+const ekPrimitiveLiteral = 'PrimitiveLiteral';
+const ekTemplate = 'Template';
+const ekUnary = 'Unary';
+const ekCallScope = 'CallScope';
+const ekCallMember = 'CallMember';
+const ekCallFunction = 'CallFunction';
+const ekCallGlobal = 'CallGlobal';
+const ekAccessMember = 'AccessMember';
+const ekAccessKeyed = 'AccessKeyed';
+const ekTaggedTemplate = 'TaggedTemplate';
+const ekBinary = 'Binary';
+const ekConditional = 'Conditional';
+const ekAssign = 'Assign';
+const ekArrowFunction = 'ArrowFunction';
+const ekValueConverter = 'ValueConverter';
+const ekBindingBehavior = 'BindingBehavior';
+const ekArrayBindingPattern = 'ArrayBindingPattern';
+const ekObjectBindingPattern = 'ObjectBindingPattern';
+const ekBindingIdentifier = 'BindingIdentifier';
+const ekForOfStatement = 'ForOfStatement';
+const ekInterpolation = 'Interpolation';
+const ekArrayDestructuring = 'ArrayDestructuring';
+const ekObjectDestructuring = 'ObjectDestructuring';
+const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
+const ekCustom = 'Custom';
 const getContext = Scope.getContext;
+
+// -----------------------------------
+// this interface causes issues to sourcemap mapping in devtool
+// chuck it at the bottom to avoid such issue
+/**
+ * An interface describing the object that can evaluate Aurelia AST
+ */
+export interface IAstEvaluator {
+  /** describe whether the evaluator wants to evaluate in strict mode */
+  strict?: boolean;
+  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
+  boundFn?: boolean;
+  /** describe whether the evaluator wants to evaluate the function call in strict mode */
+  strictFnCall?: boolean;
+  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
+  getSignaler?(): ISignaler;
+  /** Allow an AST to retrieve a value converter that it needs */
+  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
+  /** Allow an AST to retrieve a binding behavior that it needs */
+  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
+}
+
 // eslint-disable-next-line max-lines-per-function
-export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
+export function astEvaluate(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null): unknown {
   switch (ast.$kind) {
     case ekAccessThis: {
       let oc: IOverrideContext | null = s.overrideContext;
@@ -387,7 +410,7 @@ export function astEvaluate(ast: IsExpressionOrStatement, s: Scope, e: IAstEvalu
   }
 }
 
-export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
+export function astAssign(ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
   switch (ast.$kind) {
     case ekAccessScope: {
       if (ast.name === '$host') {
@@ -514,7 +537,7 @@ export function astAssign(ast: IsExpressionOrStatement, s: Scope, e: IAstEvaluat
 
 type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
 
-export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const name = ast.name;
@@ -565,7 +588,7 @@ export function astBind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator
   }
 }
 
-export function astUnbind(ast: IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const key = ast.key;
@@ -658,3 +681,15 @@ const autoObserveArrayMethods =
 // keys,    // not meaningful in template
 // values,  // not meaningful in template
 // entries, // not meaningful in template
+
+export type BindingBehaviorInstance<T extends {} = {}> = {
+  type?: 'instance' | 'factory';
+  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+} & T;
+
+export type ValueConverterInstance<T extends {} = {}> = {
+  signals?: string[];
+  toView(input: unknown, ...args: unknown[]): unknown;
+  fromView?(input: unknown, ...args: unknown[]): unknown;
+} & T;

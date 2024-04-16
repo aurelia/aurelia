@@ -1,5 +1,5 @@
 import { camelCase, mergeArrays, firstDefined, emptyArray, resourceBaseName, getResourceKeyFor, resource, resolve } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
 import { IAttrMapper } from '../compiler/attribute-mapper';
 import {

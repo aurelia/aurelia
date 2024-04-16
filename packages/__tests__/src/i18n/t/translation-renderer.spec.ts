@@ -13,9 +13,9 @@ import {
   TranslationInstructionType,
 } from '@aurelia/i18n';
 import { Constructable } from '@aurelia/kernel';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IBinding,
-  IExpressionParser,
   IObserverLocator,
 } from '@aurelia/runtime';
 import {

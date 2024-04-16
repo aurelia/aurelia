@@ -8,12 +8,12 @@ import {
   type IConnectableBinding,
   type IObservable,
   type IObserverLocator,
-  type IsExpression,
   type Scope
 } from '@aurelia/runtime';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { IsExpression } from '@aurelia/expression-parser';
 export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
 
 export class LetBinding implements IBinding {

@@ -1,16 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { emptyArray } from '@aurelia/kernel';
-import type { IBinding, IConnectable } from '../observation';
-import type { Scope } from '../observation/scope';
-import type { IConnectableBinding } from './connectable';
-
-import type { ISignaler } from '../observation/signaler';
 import type { IVisitor } from './ast.visitor';
-
-export {
-  astVisit,
-  IVisitor,
-  Unparser
-} from './ast.visitor';
 
 /** @internal */ export const ekAccessThis = 'AccessThis';
 /** @internal */ export const ekAccessBoundary = 'AccessBoundary';
@@ -88,13 +78,13 @@ export type IsUnary = IsLeftHandSide | UnaryExpression;
 export type IsBinary = IsUnary | BinaryExpression;
 export type IsConditional = IsBinary | ConditionalExpression;
 export type IsAssign = IsConditional | AssignExpression | ArrowFunction;
-export type IsValueConverter = CustomExpression | IsAssign | ValueConverterExpression;
+export type IsValueConverter = IsAssign | ValueConverterExpression;
 export type IsBindingBehavior = IsValueConverter | BindingBehaviorExpression;
 export type IsAssignable = AccessScopeExpression | AccessKeyedExpression | AccessMemberExpression | AssignExpression;
 export type IsExpression = IsBindingBehavior | Interpolation;
 export type BindingIdentifierOrPattern = BindingIdentifier | ArrayBindingPattern | ObjectBindingPattern;
 export type IsExpressionOrStatement = IsExpression | ForOfStatement | BindingIdentifierOrPattern | DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression;
-export type AnyBindingExpression = Interpolation | ForOfStatement | IsBindingBehavior;
+export type AnyBindingExpression<TCustom extends CustomExpression = CustomExpression> = Interpolation | ForOfStatement | TCustom | IsBindingBehavior;
 
 export class CustomExpression {
   public readonly $kind = ekCustom;
@@ -102,21 +92,19 @@ export class CustomExpression {
     public readonly value: unknown,
   ) {}
 
-  public evaluate(_s: Scope, _e: IAstEvaluator | null, _c: IConnectable | null): unknown {
+  public evaluate(...params: unknown[]): unknown {
     return this.value;
   }
 
-  public assign(s: Scope, e: IAstEvaluator | null, val: unknown): unknown {
-    return val;
+  public assign(...params: unknown[]): unknown {
+    return params;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public bind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public bind(...params: unknown[]): void {
     // empty
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public unbind(s: Scope, b: IAstEvaluator & IConnectableBinding): void {
+  public unbind(...params: unknown[]): void {
     // empty
   }
 
@@ -124,12 +112,6 @@ export class CustomExpression {
     return (void 0)!;
   }
 }
-
-export type BindingBehaviorInstance<T extends {} = {}> = {
-  type?: 'instance' | 'factory';
-  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
-  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
-} & T;
 
 export class BindingBehaviorExpression {
   public readonly $kind = ekBindingBehavior;
@@ -146,12 +128,6 @@ export class BindingBehaviorExpression {
     this.key = `_bb_${name}`;
   }
 }
-
-export type ValueConverterInstance<T extends {} = {}> = {
-  signals?: string[];
-  toView(input: unknown, ...args: unknown[]): unknown;
-  fromView?(input: unknown, ...args: unknown[]): unknown;
-} & T;
 
 export class ValueConverterExpression {
   public readonly $kind = ekValueConverter;
@@ -436,25 +412,4 @@ export class ArrowFunction {
     public body: IsAssign,
     public rest: boolean = false,
   ) {}
-}
-
-// -----------------------------------
-// this interface causes issues to sourcemap mapping in devtool
-// chuck it at the bottom to avoid such issue
-/**
- * An interface describing the object that can evaluate Aurelia AST
- */
- export interface IAstEvaluator {
-  /** describe whether the evaluator wants to evaluate in strict mode */
-  strict?: boolean;
-  /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
-  boundFn?: boolean;
-  /** describe whether the evaluator wants to evaluate the function call in strict mode */
-  strictFnCall?: boolean;
-  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
-  getSignaler?(): ISignaler;
-  /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
-  /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
 }

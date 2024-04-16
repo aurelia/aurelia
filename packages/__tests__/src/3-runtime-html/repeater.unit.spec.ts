@@ -1,4 +1,5 @@
-import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext, DirtyChecker } from '@aurelia/runtime';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { Scope, BindingContext, DirtyChecker } from '@aurelia/runtime';
 import {
   Repeat,
   Controller,

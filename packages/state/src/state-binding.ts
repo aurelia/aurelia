@@ -9,7 +9,9 @@ import {
   IConnectableBinding,
   Scope,
   type IAccessor,
-  type IObserverLocator, type IOverrideContext, type IsBindingBehavior, AccessorType
+  type IObserverLocator,
+  type IOverrideContext,
+  AccessorType
 } from '@aurelia/runtime';
 import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited, State } from '@aurelia/runtime-html';
 import {
@@ -17,6 +19,7 @@ import {
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 const atLayout = AccessorType.Layout;
 const stateActivating = State.activating;

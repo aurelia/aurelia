@@ -1,5 +1,5 @@
 import { DI, IContainer } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   alias,
   BindingCommandInstance,

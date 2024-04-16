@@ -1,9 +1,75 @@
-import { createError, isString, safeString } from '../utilities';
-import { CustomExpression, ekAccessBoundary, ekAccessKeyed, ekAccessMember, ekAccessScope, ekAccessThis, ekArrayBindingPattern, ekArrayDestructuring, ekArrayLiteral, ekArrowFunction, ekAssign, ekBinary, ekBindingBehavior, ekBindingIdentifier, ekCallFunction, ekCallMember, ekCallScope, ekConditional, ekCustom, ekDestructuringAssignmentLeaf, ekForOfStatement, ekInterpolation, ekObjectBindingPattern, ekObjectDestructuring, ekObjectLiteral, ekPrimitiveLiteral, ekTaggedTemplate, ekTemplate, ekUnary, ekValueConverter } from './ast';
+import {
+  CustomExpression,
+  ekAccessBoundary,
+  ekAccessKeyed,
+  ekAccessMember,
+  ekAccessScope,
+  ekAccessThis,
+  ekArrayBindingPattern,
+  ekArrayDestructuring,
+  ekArrayLiteral,
+  ekArrowFunction,
+  ekAssign,
+  ekBinary,
+  ekBindingBehavior,
+  ekBindingIdentifier,
+  ekCallFunction,
+  ekCallMember,
+  ekCallScope,
+  ekConditional,
+  ekCustom,
+  ekDestructuringAssignmentLeaf,
+  ekForOfStatement,
+  ekInterpolation,
+  ekObjectBindingPattern,
+  ekObjectDestructuring,
+  ekObjectLiteral,
+  ekPrimitiveLiteral,
+  ekTaggedTemplate,
+  ekTemplate,
+  ekUnary,
+  ekValueConverter,
+} from './ast';
+import {
+  createError,
+  isString,
+  safeString,
+} from './utilities';
 
-import type { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, IsExpressionOrStatement, IsBindingBehavior, AccessBoundaryExpression } from './ast';
+import type {
+  AccessBoundaryExpression,
+  AccessKeyedExpression,
+  AccessMemberExpression,
+  AccessScopeExpression,
+  AccessThisExpression,
+  ArrayBindingPattern,
+  ArrayLiteralExpression,
+  ArrowFunction,
+  AssignExpression,
+  BinaryExpression,
+  BindingBehaviorExpression,
+  BindingIdentifier,
+  CallFunctionExpression,
+  CallMemberExpression,
+  CallScopeExpression,
+  ConditionalExpression,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  ForOfStatement,
+  Interpolation,
+  IsBindingBehavior,
+  IsExpressionOrStatement,
+  ObjectBindingPattern,
+  ObjectLiteralExpression,
+  PrimitiveLiteralExpression,
+  TaggedTemplateExpression,
+  TemplateExpression,
+  UnaryExpression,
+  ValueConverterExpression,
+} from './ast';
 
-export interface IVisitor<T = unknown> {
+export interface IVisitor<T = unknown, TCustom extends CustomExpression = CustomExpression> {
   visitAccessKeyed(expr: AccessKeyedExpression): T;
   visitAccessMember(expr: AccessMemberExpression): T;
   visitAccessScope(expr: AccessScopeExpression): T;
@@ -32,10 +98,10 @@ export interface IVisitor<T = unknown> {
   visitDestructuringAssignmentExpression(expr: DestructuringAssignmentExpression): T;
   visitDestructuringAssignmentSingleExpression(expr: DestructuringAssignmentSingleExpression): T;
   visitDestructuringAssignmentRestExpression(expr: DestructuringAssignmentRestExpression): T;
-  visitCustom(expr: CustomExpression): T;
+  visitCustom(expr: TCustom): T;
 }
 
-export const astVisit = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) => {
+export const astVisit = <T, TCustom extends CustomExpression>(ast: TCustom | IsExpressionOrStatement, visitor: IVisitor<T, TCustom>) => {
   switch (ast.$kind) {
     case ekAccessKeyed: return visitor.visitAccessKeyed(ast);
     case ekAccessMember: return visitor.visitAccessMember(ast);
@@ -67,7 +133,7 @@ export const astVisit = <T>(ast: IsExpressionOrStatement, visitor: IVisitor<T>) 
     case ekValueConverter: return visitor.visitValueConverter(ast);
     case ekCustom: return visitor.visitCustom(ast);
     default: {
-      throw createError(`Unknown ast node ${JSON.stringify(ast)}`);
+      throw createError(`Trying to visit unknown ast node ${JSON.stringify(ast)}`);
     }
   }
 };

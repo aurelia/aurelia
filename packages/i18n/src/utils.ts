@@ -1,4 +1,5 @@
-import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
+import { BindingBehaviorExpression, IsValueConverter, ValueConverterExpression } from '@aurelia/expression-parser';
+import { IBinding } from '@aurelia/runtime';
 import { Writable } from '@aurelia/kernel';
 import { BindingMode, State } from '@aurelia/runtime-html';
 

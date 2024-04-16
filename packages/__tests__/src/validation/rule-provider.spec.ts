@@ -12,6 +12,8 @@ import {
   Interpolation,
   PrimitiveLiteralExpression,
   IExpressionParser,
+} from '@aurelia/expression-parser';
+import {
   Scope,
   astEvaluate
 } from '@aurelia/runtime';

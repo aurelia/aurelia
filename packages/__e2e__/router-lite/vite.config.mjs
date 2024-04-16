@@ -13,6 +13,7 @@ export default defineConfig({
         'fetch-client',
         'router-lite',
         'kernel',
+        'expression-parser',
         'runtime',
         'runtime-html',
         'router-lite',

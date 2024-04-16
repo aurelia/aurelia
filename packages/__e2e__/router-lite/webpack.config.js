@@ -28,6 +28,7 @@ module.exports = function () {
           'fetch-client',
           'router-lite',
           'kernel',
+          'expression-parser',
           'runtime',
           'runtime-html',
         ].reduce((map, pkg) => {

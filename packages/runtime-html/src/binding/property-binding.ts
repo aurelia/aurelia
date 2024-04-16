@@ -7,15 +7,14 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
-  ForOfStatement,
   IObserver,
   IObserverLocator,
-  IsBindingBehavior,
   Scope,
 } from '@aurelia/runtime';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
+import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 
 export interface PropertyBinding extends IAstEvaluator, IConnectableBinding {}
 

@@ -1,5 +1,6 @@
 import { IContainer, resolve } from '@aurelia/kernel';
-import { IExpressionParser, IObserverLocator } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IObserverLocator } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';

@@ -2,7 +2,6 @@ import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
   astEvaluate,
-  BindingBehaviorExpression,
   BindingBehaviorInstance,
   connectable,
   IAstEvaluator,
@@ -16,6 +15,7 @@ import {
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
+import { BindingBehaviorExpression } from '@aurelia/expression-parser';
 
 /**
  * Validation triggers.

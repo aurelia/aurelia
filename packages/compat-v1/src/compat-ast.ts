@@ -1,7 +1,42 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Constructable } from '@aurelia/kernel';
-import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayBindingPattern, ArrayLiteralExpression, ArrowFunction, AssignExpression, astAssign, astBind, astEvaluate, astUnbind, astVisit, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, ForOfStatement, Interpolation, ObjectBindingPattern, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression } from '@aurelia/runtime';
+import {
+  AccessKeyedExpression,
+  AccessMemberExpression,
+  AccessScopeExpression,
+  AccessThisExpression,
+  ArrayBindingPattern,
+  ArrayLiteralExpression,
+  ArrowFunction,
+  AssignExpression,
+  astVisit,
+  BinaryExpression,
+  BindingBehaviorExpression,
+  BindingIdentifier,
+  CallFunctionExpression,
+  CallMemberExpression,
+  CallScopeExpression,
+  ConditionalExpression,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  ForOfStatement,
+  Interpolation,
+  ObjectBindingPattern,
+  ObjectLiteralExpression,
+  PrimitiveLiteralExpression,
+  TaggedTemplateExpression,
+  TemplateExpression,
+  UnaryExpression,
+  ValueConverterExpression,
+} from '@aurelia/expression-parser';
+import {
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from '@aurelia/runtime';
 
 let defined = false;
 export function defineAstMethods() {

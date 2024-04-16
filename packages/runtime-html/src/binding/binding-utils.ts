@@ -1,6 +1,6 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
-import { astEvaluate, BindingBehaviorInstance, IBinding, IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
+import { astEvaluate, type BindingBehaviorInstance, type IBinding, type IRateLimitOptions, ISignaler, Scope, type ISubscriber, type ValueConverterInstance } from '@aurelia/runtime';
 import { BindingBehavior } from '../resources/binding-behavior';
 import { ValueConverter } from '../resources/value-converter';
 import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';

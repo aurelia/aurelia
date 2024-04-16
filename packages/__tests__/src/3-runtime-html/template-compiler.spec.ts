@@ -13,7 +13,7 @@ import {
   BindingIdentifier,
   PrimitiveLiteralExpression,
   IExpressionParser,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import {
   bindable,
   BindingMode,

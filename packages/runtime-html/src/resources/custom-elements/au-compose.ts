@@ -1,5 +1,5 @@
 import { Constructable, IContainer, InstanceProvider, MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
-import { IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
+import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';
@@ -12,6 +12,7 @@ import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
 import { AttrSyntax } from '../attribute-pattern';
+import { IExpressionParser } from '@aurelia/expression-parser';
 
 /**
  * An optional interface describing the dynamic composition activate convention.

@@ -267,6 +267,6 @@ const createNewInstance = (key: any, handler: IContainer, requestor: IContainer)
   return handler.getFactory(key).construct(requestor);
 };
 
-const isInterface = <K>(key: any): key is InterfaceSymbol<K> => isObject(key) && (key as {$isInterface?: boolean}).$isInterface === true;
+const isInterface = <K>(key: any): key is InterfaceSymbol<K> => (key as {$isInterface?: boolean})?.$isInterface === true;
 
 let newInstanceContainer: IContainer;

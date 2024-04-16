@@ -1,6 +1,5 @@
-import { BindingBehaviorInstance, IBinding } from '@aurelia/runtime';
-import { fromView, oneTime, toView, twoWay, type BindingMode } from '../../binding/interfaces-bindings';
-import { behaviorTypeName, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
+import { type IBinding, fromView, oneTime, toView, twoWay, type BindingMode } from '../../binding/interfaces-bindings';
+import { BindingBehaviorInstance, behaviorTypeName, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 
 import type { Scope } from '@aurelia/runtime';
 

@@ -1,5 +1,5 @@
 import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable } from '@aurelia/kernel';
-import { type IBinding, subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
+import { subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, isString, objectAssign, safeString } from '../utilities';
@@ -10,6 +10,7 @@ import { createMutationObserver, isElement } from '../utilities-dom';
 import type { INode } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
 import { getAnnotationKeyFor } from '../utilities-metadata';
+import { IBinding } from '../binding/interfaces-bindings';
 
 export type PartialChildrenDefinition = {
   callback?: PropertyKey;

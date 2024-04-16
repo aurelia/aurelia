@@ -6,7 +6,7 @@ import {
 } from '../observation';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
-import { connectable } from '../binding/connectable';
+import { connectable } from './connectable';
 import { wrap, unwrap } from './proxy-observation';
 import { areEqual, isFunction } from '../utilities';
 
@@ -17,7 +17,7 @@ import type {
   ISubscriberCollection,
   IConnectable,
 } from '../observation';
-import type { IConnectableBinding } from '../binding/connectable';
+import type { IObserverLocatorBasedConnectable } from './connectable';
 import type { IObserverLocator } from './observer-locator';
 import { ErrorNames, createMappedError } from '../errors';
 
@@ -25,11 +25,11 @@ import { ErrorNames, createMappedError } from '../errors';
 export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface ComputedObserver<T extends object> extends IConnectableBinding, ISubscriberCollection { }
+export interface ComputedObserver<T extends object> extends IObserverLocatorBasedConnectable, ISubscriberCollection { }
 
 export class ComputedObserver<T extends object> implements
   IObserver,
-  IConnectableBinding,
+  IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber,
   ISubscriberCollection {

@@ -1,5 +1,5 @@
 import { ErrorNames, createMappedError } from '../errors';
-import type { IBinding, IBindingContext, IOverrideContext } from '../observation';
+import type { IBindingContext, IOverrideContext } from '../observation';
 
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small
@@ -24,7 +24,7 @@ export class Scope {
     public readonly isBoundary: boolean,
   ) { }
 
-  public static getContext(scope: Scope, name: string, ancestor: number): IBindingContext | IOverrideContext | IBinding | undefined | null {
+  public static getContext(scope: Scope, name: string, ancestor: number): IBindingContext | IOverrideContext | undefined | null {
     if (scope == null) {
       throw createMappedError(ErrorNames.null_scope);
     }

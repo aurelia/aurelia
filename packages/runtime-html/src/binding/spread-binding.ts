@@ -1,12 +1,13 @@
 import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { IBinding, IObserverLocator, Scope } from '@aurelia/runtime';
+import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
 import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';
 import { IHasController, IInstruction, ITemplateCompiler, spreadBinding as $spreadBinding, SpreadElementPropBindingInstruction, spreadElementProp } from '../renderer';
 import { IRendering } from '../templating/rendering';
 import { IPlatform } from '../platform';
+import { IBinding } from './interfaces-bindings';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,

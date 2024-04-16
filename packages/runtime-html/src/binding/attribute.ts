@@ -1,15 +1,17 @@
 import {
+  connectable,
+  type IObserverLocator,
+  type Scope,
+  IObserverLocatorBasedConnectable,
+  ISubscriber,
+  ICollectionSubscriber
+} from '@aurelia/runtime';
+import {
   astBind,
   astEvaluate,
   astUnbind,
-  connectable,
-  type IBinding,
   IAstEvaluator,
-  IConnectableBinding,
-  type IObserverLocator,
-  type Scope
-} from '@aurelia/runtime';
-
+} from './ast.eval';
 import { activating } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';
@@ -21,7 +23,7 @@ import type {
 } from '@aurelia/platform';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { INode } from '../dom';
-import type { BindingMode, IBindingController } from './interfaces-bindings';
+import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { isString, safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
@@ -31,12 +33,12 @@ const taskOptions: QueueTaskOptions = {
 };
 
 // the 2 interfaces implemented come from mixin
-export interface AttributeBinding extends IAstEvaluator, IConnectableBinding {}
+export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
-export class AttributeBinding implements IBinding {
+export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
   /** @internal */
   public _scope?: Scope = void 0;

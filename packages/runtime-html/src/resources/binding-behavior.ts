@@ -1,5 +1,5 @@
 import { firstDefined, getResourceKeyFor, mergeArrays, resource, resourceBaseName, ResourceType } from '@aurelia/kernel';
-import { BindingBehaviorInstance } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
@@ -7,6 +7,7 @@ import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '.
 import type { Constructable, IContainer, IServiceLocator, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from '../errors';
 import { getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
+import { IBinding } from '../binding/interfaces-bindings';
 
 export type PartialBindingBehaviorDefinition = PartialResourceDefinition;
 export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition & {
@@ -14,6 +15,13 @@ export type BindingBehaviorStaticAuDefinition = PartialBindingBehaviorDefinition
 };
 
 export type BindingBehaviorType<T extends Constructable = Constructable> = ResourceType<T, BindingBehaviorInstance>;
+
+export type BindingBehaviorInstance<T extends {} = {}> = {
+  type?: 'instance' | 'factory';
+  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
+} & T;
+
 export type BindingBehaviorKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never);
   define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): BindingBehaviorType<T>;

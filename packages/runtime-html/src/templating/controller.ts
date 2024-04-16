@@ -38,7 +38,6 @@ import type {
   Writable,
 } from '@aurelia/kernel';
 import type {
-  IBinding,
   IObservable,
 } from '@aurelia/runtime';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
@@ -50,6 +49,7 @@ import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { IAuSlotProjections } from './controller.projection';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
+import { IBinding } from '../binding/interfaces-bindings';
 
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 

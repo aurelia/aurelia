@@ -1,19 +1,20 @@
 /* eslint-disable no-fallthrough */
-import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { IConnectable, IOverrideContext, IBindingContext, IObservable, IBinding } from '../observation';
-import { Scope } from '../observation/scope';
-import { isArray, isFunction, isObject, safeString } from '../utilities';
 import {
-  type IsExpressionOrStatement,
+  CustomExpression,
+  DestructuringAssignmentSingleExpression,
   // type IAstEvaluator,
   type DestructuringAssignmentExpression,
   type DestructuringAssignmentRestExpression,
-  DestructuringAssignmentSingleExpression,
-  CustomExpression,
+  type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { IConnectableBinding } from './connectable';
+import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
+import { IBindingContext, IConnectable, IObservable, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from '../errors';
-import { ISignaler } from '../observation/signaler';
+import { isArray, isFunction, isObject, safeString } from '../utilities';
+import { ISignaler } from './signaler';
+import { BindingBehaviorInstance } from '../resources/binding-behavior';
+import { ValueConverterInstance } from '../resources/value-converter';
+import { IBinding } from './interfaces-bindings';
 
 const ekAccessThis = 'AccessThis';
 const ekAccessBoundary = 'AccessBoundary';
@@ -535,9 +536,9 @@ export function astAssign(ast: CustomExpression | IsExpressionOrStatement, s: Sc
   }
 }
 
-type BindingWithBehavior = IConnectableBinding & { [key: string]: BindingBehaviorInstance | undefined };
+type BindingWithBehavior = IConnectable & IBinding & { [key: string]: BindingBehaviorInstance | undefined };
 
-export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const name = ast.name;
@@ -571,8 +572,7 @@ export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scop
         const ii = signals.length;
         let i = 0;
         for (; i < ii; ++i) {
-          // todo: signaler api
-          signaler?.addSignalListener(signals[i], b);
+          signaler?.addSignalListener(signals[i], b as unknown as ISubscriber);
         }
       }
       astBind(ast.expression, s, b);
@@ -588,7 +588,7 @@ export function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scop
   }
 }
 
-export function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectableBinding) {
+export function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
   switch (ast.$kind) {
     case ekBindingBehavior: {
       const key = ast.key;
@@ -608,9 +608,7 @@ export function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Sc
       const signaler = b.getSignaler?.();
       let i = 0;
       for (; i < vc.signals.length; ++i) {
-        // the cast is correct, as the value converter expression would only add
-        // a IConnectable that also implements `ISubscriber` interface to the signaler
-        signaler?.removeSignalListener(vc.signals[i], b);
+        signaler?.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);
       }
       astUnbind(ast.expression, s, b);
       break;
@@ -681,15 +679,3 @@ const autoObserveArrayMethods =
 // keys,    // not meaningful in template
 // values,  // not meaningful in template
 // entries, // not meaningful in template
-
-export type BindingBehaviorInstance<T extends {} = {}> = {
-  type?: 'instance' | 'factory';
-  bind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
-  unbind?(scope: Scope, binding: IBinding, ...args: unknown[]): void;
-} & T;
-
-export type ValueConverterInstance<T extends {} = {}> = {
-  signals?: string[];
-  toView(input: unknown, ...args: unknown[]): unknown;
-  fromView?(input: unknown, ...args: unknown[]): unknown;
-} & T;

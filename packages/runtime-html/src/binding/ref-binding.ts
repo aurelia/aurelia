@@ -1,10 +1,12 @@
 import type { IServiceLocator } from '@aurelia/kernel';
-import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, type Scope } from '@aurelia/runtime';
+import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, type Scope } from '@aurelia/runtime';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from './ast.eval';
 import { mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
+import { IBinding } from './interfaces-bindings';
 
-export interface RefBinding extends IAstEvaluator, IConnectableBinding { }
-export class RefBinding implements IBinding {
+export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
+export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
 
   /** @internal */

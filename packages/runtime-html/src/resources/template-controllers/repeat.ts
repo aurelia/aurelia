@@ -14,10 +14,12 @@ import {
   type IndexMap,
   type IOverrideContext,
   Scope,
-  astEvaluate,
-  astAssign,
   createIndexMap,
 } from '@aurelia/runtime';
+import {
+  astEvaluate,
+  astAssign,
+} from '../../binding/ast.eval';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';

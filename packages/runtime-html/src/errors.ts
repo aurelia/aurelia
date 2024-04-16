@@ -13,6 +13,18 @@ _START_CONST_ENUM();
 export const enum ErrorNames {
   method_not_implemented = 99,
 
+  ast_behavior_not_found = 101,
+  ast_behavior_duplicated = 102,
+  ast_converter_not_found = 103,
+  ast_$host_not_found = 105,
+  ast_no_assign_$host = 106,
+  ast_not_a_function = 107,
+  ast_unknown_binary_operator = 108,
+  ast_unknown_unary_operator = 109,
+  ast_tagged_not_a_function = 110,
+  ast_name_is_not_a_function = 111,
+  ast_destruct_null = 112,
+
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
   element_existed = 153,
@@ -127,6 +139,18 @@ _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
+
+  [ErrorNames.ast_behavior_not_found]: `Ast eval error: binding behavior "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+  [ErrorNames.ast_behavior_duplicated]: `Ast eval error: binding behavior "{{0}}" already applied.`,
+  [ErrorNames.ast_converter_not_found]: `Ast eval error: value converter "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+  [ErrorNames.ast_$host_not_found]: `Ast eval error: unable to find $host context. Did you forget [au-slot] attribute?`,
+  [ErrorNames.ast_no_assign_$host]: `Ast eval error: invalid assignment. "$host" is a reserved keyword.`,
+  [ErrorNames.ast_not_a_function]: `Ast eval error: expression is not a function.`,
+  [ErrorNames.ast_unknown_unary_operator]: `Ast eval error: unknown unary operator: "{{0}}"`,
+  [ErrorNames.ast_unknown_binary_operator]: `Ast eval error: unknown binary operator: "{{0}}"`,
+  [ErrorNames.ast_tagged_not_a_function]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
+  [ErrorNames.ast_name_is_not_a_function]: `Ast eval error: expected "{{0}}" to be a function`,
+  [ErrorNames.ast_destruct_null]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,

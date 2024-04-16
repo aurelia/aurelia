@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isObject } from '@aurelia/metadata';
 import { IContainer, IFactory, IRegistry, IResolver, InstanceProvider, InterfaceSymbol, Key, Resolved, inject } from './di';
 import { createContainer } from './di.container';
 import { ErrorNames, createMappedError } from './errors';

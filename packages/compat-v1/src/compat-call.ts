@@ -68,7 +68,7 @@ export class CallBindingCommand implements BindingCommandInstance {
 }
 
 export const CallBindingRenderer = /*@__PURE__*/ renderer(class CallBindingRenderer implements IRenderer {
-  public target!: typeof instructionType;
+  public readonly target = instructionType;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -95,6 +95,12 @@ function getTarget(potentialTarget: object): object {
  */
 export interface CallBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class CallBinding implements IBinding {
+  static {
+    mixinUseScope(CallBinding);
+    mixingBindingLimited(CallBinding, () => 'callSource');
+    mixinAstEvaluator(true)(CallBinding);
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -157,7 +163,3 @@ export class CallBinding implements IBinding {
     this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 }
-
-mixinUseScope(CallBinding);
-mixingBindingLimited(CallBinding, () => 'callSource');
-mixinAstEvaluator(true)(CallBinding);

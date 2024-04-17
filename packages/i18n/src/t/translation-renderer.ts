@@ -123,7 +123,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
 }
 
 export const TranslationBindBindingRenderer = /*@__PURE__*/ renderer(class TranslationBindBindingRenderer implements IRenderer {
-  public target!: typeof TranslationBindInstructionType;
+  public target = TranslationBindInstructionType;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,

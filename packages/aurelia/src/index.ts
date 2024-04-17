@@ -682,5 +682,6 @@ export {
   IEventModifier,
   type IModifiedEventHandler,
 
+  Scope,
   ISignaler,
 } from '@aurelia/runtime-html';

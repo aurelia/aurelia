@@ -16,6 +16,10 @@ export interface SetterObserver extends ISubscriberCollection {}
  * This is used for observing object properties that has no decorator.
  */
 export class SetterObserver implements IObserver, ISubscriberCollection {
+  static {
+    subscriberCollection(SetterObserver, null!);
+  }
+
   // todo(bigopon): tweak the flag based on typeof obj (array/set/map/iterator/proxy etc...)
   public type: AccessorType = atObserver;
 
@@ -125,8 +129,6 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
     return this;
   }
 }
-
-subscriberCollection(SetterObserver);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

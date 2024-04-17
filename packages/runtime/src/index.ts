@@ -1,7 +1,7 @@
 export {
   type IObserverLocatorBasedConnectable,
+  type IObserverRecord,
   connectable,
-  BindingObserverRecord,
 } from './observation/connectable';
 
 export {
@@ -72,7 +72,6 @@ export {
   SetterObserver,
 } from './observation/setter-observer';
 export {
-  SubscriberRecord,
   subscriberCollection,
 } from './observation/subscriber-collection';
 export {

@@ -17,6 +17,8 @@
     "preserveConstEnums": true,
     "stripInternal": true,
 
+    "useDefineForClassFields": false,
+
     "strict": true,
 
     "types": []

@@ -39,7 +39,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.strictEqual(getCallCount, 3);
       assert.deepStrictEqual(callbackValues, [1, 2]);
 
-      watcher.isBound = false;
+      watcher._mixed = false;
       obj.prop = 3;
       assert.strictEqual(watcher['value'], 2);
       assert.strictEqual(getCallCount, 3);
@@ -65,7 +65,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
         true,
       );
       const arr = [];
-      watcher.isBound = true;
+      watcher._mixed = true;
       watcher.observeCollection(arr);
       arr.push(1);
 

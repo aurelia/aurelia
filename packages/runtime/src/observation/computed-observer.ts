@@ -33,6 +33,10 @@ export class ComputedObserver<T extends object> implements
   ISubscriber,
   ICollectionSubscriber,
   ISubscriberCollection {
+  static {
+    connectable(ComputedObserver, null!);
+    subscriberCollection(ComputedObserver, null!);
+  }
 
   public type: AccessorType = atObserver;
 
@@ -197,6 +201,3 @@ export class ComputedObserver<T extends object> implements
     }
   }
 }
-
-connectable(ComputedObserver, null!);
-subscriberCollection(ComputedObserver);

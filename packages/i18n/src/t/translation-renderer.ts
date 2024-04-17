@@ -60,8 +60,8 @@ export class TranslationBindingCommand implements BindingCommandInstance {
   }
 }
 
-export class TranslationBindingRenderer implements IRenderer {
-  public target!: typeof TranslationInstructionType;
+export const TranslationBindingRenderer = /*@__PURE__*/ renderer(class TranslationBindingRenderer implements IRenderer {
+  public readonly target = TranslationInstructionType;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -80,8 +80,7 @@ export class TranslationBindingRenderer implements IRenderer {
       platform,
     });
   }
-}
-renderer(TranslationInstructionType)(TranslationBindingRenderer, null!);
+}, null!);
 
 export const TranslationBindInstructionType = 'tbt';
 
@@ -123,7 +122,7 @@ export class TranslationBindBindingCommand implements BindingCommandInstance {
   }
 }
 
-export class TranslationBindBindingRenderer implements IRenderer {
+export const TranslationBindBindingRenderer = /*@__PURE__*/ renderer(class TranslationBindBindingRenderer implements IRenderer {
   public target!: typeof TranslationBindInstructionType;
   public render(
     renderingCtrl: IHydratableController,
@@ -143,5 +142,4 @@ export class TranslationBindBindingRenderer implements IRenderer {
       platform
     });
   }
-}
-renderer(TranslationBindInstructionType)(TranslationBindBindingRenderer, null!);
+}, null!);

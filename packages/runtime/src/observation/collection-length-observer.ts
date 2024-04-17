@@ -17,6 +17,10 @@ import { ErrorNames, createMappedError } from '../errors';
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 
 export class CollectionLengthObserver implements IObserver, ICollectionSubscriber {
+  static {
+    implementLengthObserver(CollectionLengthObserver);
+  }
+
   public readonly type: AccessorType = atObserver;
 
   /** @internal */
@@ -65,6 +69,10 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
 export interface CollectionSizeObserver extends ISubscriberCollection {}
 
 export class CollectionSizeObserver implements ICollectionSubscriber {
+  static {
+    implementLengthObserver(CollectionSizeObserver);
+  }
+
   public readonly type: AccessorType = atObserver;
 
   /** @internal */
@@ -104,7 +112,7 @@ function implementLengthObserver(klass: Constructable<ISubscriberCollection>) {
   const proto = klass.prototype as ISubscriberCollection;
   ensureProto(proto, 'subscribe', subscribe);
   ensureProto(proto, 'unsubscribe', unsubscribe);
-  subscriberCollection(klass);
+  return subscriberCollection(klass, null!);
 }
 
 function subscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber): void {
@@ -118,6 +126,3 @@ function unsubscribe(this: CollectionLengthObserverImpl, subscriber: ISubscriber
     this.owner.subscribe(this);
   }
 }
-
-implementLengthObserver(CollectionLengthObserver);
-implementLengthObserver(CollectionSizeObserver);

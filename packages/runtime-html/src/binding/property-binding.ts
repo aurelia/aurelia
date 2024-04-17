@@ -22,6 +22,13 @@ import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-pars
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
 export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  static {
+    mixinUseScope(PropertyBinding);
+    mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
+    connectable(PropertyBinding, null!);
+    mixinAstEvaluator(true, false)(PropertyBinding);
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -199,11 +206,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     this._targetSubscriber = subscriber;
   }
 }
-
-mixinUseScope(PropertyBinding);
-mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
-connectable(PropertyBinding, null!);
-mixinAstEvaluator(true, false)(PropertyBinding);
 
 let task: ITask | null = null;
 

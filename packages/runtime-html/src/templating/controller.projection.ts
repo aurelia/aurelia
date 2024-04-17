@@ -225,7 +225,7 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
   if (!mixed) {
     mixed = true;
-    subscriberCollection(AuSlotWatcherBinding);
+    subscriberCollection(AuSlotWatcherBinding, null!);
     lifecycleHooks()(SlottedLifecycleHooks, null!);
   }
   const dependenciesKey = getAnnotationKeyFor('dependencies');

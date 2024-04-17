@@ -73,7 +73,7 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 }
 
 /** @internal */
-export class ListenerBindingRenderer implements IRenderer {
+export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
 
   public readonly target!: 'dl';
   /** @internal */
@@ -96,8 +96,7 @@ export class ListenerBindingRenderer implements IRenderer {
       new DelegateListenerOptions(instruction.preventDefault),
     ));
   }
-}
-renderer('dl')(ListenerBindingRenderer, null!);
+}, null!);
 
 export class DelegateBindingInstruction {
   public readonly type = InstructionType.listenerBinding;

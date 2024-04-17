@@ -57,7 +57,7 @@ export const observable = /*@__PURE__*/(() => {
   function observable<TCThis extends Constructable, TFThis, TValue>(targetOrConfig?: undefined | IObservableDefinition | PropertyKey, context?: ClassFieldDecoratorContext): ObservableClassDecorator<TCThis> | ObservableFieldDecorator<TFThis, TValue> | FieldInitializer<TFThis, TValue> {
     if (!SetterNotifier.mixed) {
       SetterNotifier.mixed = true;
-      subscriberCollection(SetterNotifier);
+      subscriberCollection(SetterNotifier, null!);
     }
 
     let isClassDecorator = false;

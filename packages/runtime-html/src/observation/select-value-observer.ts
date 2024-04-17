@@ -12,28 +12,46 @@ import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';
 import { createMutationObserver } from '../utilities-dom';
 
-const childObserverOptions = {
-  childList: true,
-  subtree: true,
-  characterData: true
-};
-
-function defaultMatcher(a: unknown, b: unknown): boolean {
-  return a === b;
-}
-
 export interface ISelectElement extends HTMLSelectElement {
   options: HTMLCollectionOf<IOptionElement> & Pick<HTMLOptionsCollection, 'length' | 'selectedIndex' | 'add' | 'remove'>;
-  matcher?: typeof defaultMatcher;
+  matcher?: (a: unknown, b: unknown) => boolean;
 }
 export interface IOptionElement extends HTMLOptionElement {
   model?: unknown;
 }
 
-export interface SelectValueObserver extends
-  ISubscriberCollection {}
+export interface SelectValueObserver extends ISubscriberCollection {}
 
 export class SelectValueObserver implements INodeObserver {
+  static {
+    mixinNodeObserverUseConfig(SelectValueObserver);
+    subscriberCollection(SelectValueObserver, null!);
+  }
+
+  /** @internal */
+  private static _getSelectedOptions(options: ArrayLike<IOptionElement>): unknown[] {
+    const selection: unknown[] = [];
+    if (options.length === 0) {
+      return selection;
+    }
+    const ii = options.length;
+    let i = 0;
+    let option: IOptionElement;
+    while (ii > i) {
+      option = options[i];
+      if (option.selected) {
+        selection[selection.length] = hasOwnProperty.call(option, 'model') ? option.model : option.value;
+      }
+      ++i;
+    }
+    return selection;
+  }
+
+  /** @internal */
+  private static _defaultMatcher(a: unknown, b: unknown): boolean {
+    return a === b;
+  }
+
   // ObserverType.Layout is not always true
   // but for simplicity, always treat as such
   public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
@@ -94,7 +112,7 @@ export class SelectValueObserver implements INodeObserver {
       ? this._value
       : this._el.multiple
         // todo: maybe avoid double iteration?
-        ? getSelectedOptions(this._el.options)
+        ? SelectValueObserver._getSelectedOptions(this._el.options)
         : this._el.value;
   }
 
@@ -124,7 +142,7 @@ export class SelectValueObserver implements INodeObserver {
     const value = this._value;
     const obj = this._el;
     const $isArray = isArray(value);
-    const matcher = obj.matcher ?? defaultMatcher;
+    const matcher = obj.matcher ?? SelectValueObserver._defaultMatcher;
     const options = obj.options;
     let i = options.length;
 
@@ -171,7 +189,7 @@ export class SelectValueObserver implements INodeObserver {
       // multi select
       let option: IOptionElement;
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      const matcher = obj.matcher || defaultMatcher;
+      const matcher = obj.matcher || SelectValueObserver._defaultMatcher;
       // A.1.b.i
       const values: unknown[] = [];
       while (i < len) {
@@ -237,7 +255,11 @@ export class SelectValueObserver implements INodeObserver {
    * @internal
    */
   public _start(): void {
-    (this._nodeObserver = createMutationObserver(this._el, this._handleNodeChange.bind(this))).observe(this._el, childObserverOptions);
+    (this._nodeObserver = createMutationObserver(this._el, this._handleNodeChange.bind(this))).observe(this._el, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
     this._observeArray(this._value instanceof Array ? this._value : null);
     this._observing = true;
   }
@@ -298,33 +320,8 @@ export class SelectValueObserver implements INodeObserver {
 
   /** @internal */
   private _flush(): void {
-    oV = this._oldValue;
+    const oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
   }
 }
-
-mixinNodeObserverUseConfig(SelectValueObserver);
-subscriberCollection(SelectValueObserver);
-
-function getSelectedOptions(options: ArrayLike<IOptionElement>): unknown[] {
-  const selection: unknown[] = [];
-  if (options.length === 0) {
-    return selection;
-  }
-  const ii = options.length;
-  let i = 0;
-  let option: IOptionElement;
-  while (ii > i) {
-    option = options[i];
-    if (option.selected) {
-      selection[selection.length] = hasOwnProperty.call(option, 'model') ? option.model : option.value;
-    }
-    ++i;
-  }
-  return selection;
-}
-
-// a shared variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;

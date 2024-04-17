@@ -11,7 +11,7 @@ export interface IResourceKind {
   keyFrom(name: string): string;
 }
 
-export const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C extends Constructable = Constructable>(
+/** @internal */ export const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C extends Constructable = Constructable>(
   // eslint-disable-next-line @typescript-eslint/ban-types
   Type: C | Function,
   typeName: string,

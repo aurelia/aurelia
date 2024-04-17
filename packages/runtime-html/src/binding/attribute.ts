@@ -39,6 +39,13 @@ export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObser
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  static {
+    mixinUseScope(AttributeBinding);
+    mixingBindingLimited(AttributeBinding, () => 'updateTarget');
+    connectable(AttributeBinding, null!);
+    mixinAstEvaluator(true)(AttributeBinding);
+  }
+
   public isBound: boolean = false;
   /** @internal */
   public _scope?: Scope = void 0;
@@ -204,8 +211,3 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this.obs.clearAll();
   }
 }
-
-mixinUseScope(AttributeBinding);
-mixingBindingLimited(AttributeBinding, () => 'updateTarget');
-connectable(AttributeBinding, null!);
-mixinAstEvaluator(true)(AttributeBinding);

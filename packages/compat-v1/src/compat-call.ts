@@ -67,7 +67,7 @@ export class CallBindingCommand implements BindingCommandInstance {
   }
 }
 
-export class CallBindingRenderer implements IRenderer {
+export const CallBindingRenderer = /*@__PURE__*/ renderer(class CallBindingRenderer implements IRenderer {
   public target!: typeof instructionType;
 
   public render(
@@ -81,8 +81,7 @@ export class CallBindingRenderer implements IRenderer {
     const expr = ensureExpression(exprParser, instruction.from, etIsFunction);
     renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
-}
-renderer(instructionType)(CallBindingRenderer, null!);
+}, null!);
 
 function getTarget(potentialTarget: object): object {
   if ((potentialTarget as { viewModel?: object }).viewModel != null) {

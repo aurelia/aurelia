@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### Bug Fixes:
+
+* **ts-jest:** add isolated modules for internal ts-jest instance (#1941) ([7eb31f4](https://github.com/aurelia/aurelia/commit/7eb31f4))
+
+
+### Refactorings:
+
+* ***:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
 <a name="2.0.0-beta.14"></a>
 # 2.0.0-beta.14 (2024-04-03)
 

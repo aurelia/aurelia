@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### BREAKING CHANGES:
+
+* **expression-parser:** move exp parser to its own package (#1943) ([6e7dcad](https://github.com/aurelia/aurelia/commit/6e7dcad))
+* **bindings:** move binding infra to runtime html (#1944) ([1c7608a](https://github.com/aurelia/aurelia/commit/1c7608a))
+* **runtime:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
+### Features:
+
+* **resources:** support static `$au` property for definition (#1939) ([877a385](https://github.com/aurelia/aurelia/commit/877a385))
+
+
+### Bug Fixes:
+
+* **ts-jest:** add isolated modules for internal ts-jest instance (#1941) ([7eb31f4](https://github.com/aurelia/aurelia/commit/7eb31f4))
+* **vite-plugin:** missed some default options in "load" preprocess (#1936) ([794f3c6](https://github.com/aurelia/aurelia/commit/794f3c6))
+* **vite-plugin:** when using ShadowDOM, need to load css as string (#1934) ([32e8cc1](https://github.com/aurelia/aurelia/commit/32e8cc1))
+
+
 <a name="2.0.0-beta.14"></a>
 # 2.0.0-beta.14 (2024-04-03)
 

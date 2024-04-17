@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.14",
+  "version": "2.0.0-beta.15",
   "packageManager": "npm@8.19.2",
   "workspaces": [
     "packages/kernel",
@@ -28,7 +28,6 @@
     "packages/addons",
     "packages/aurelia",
     "packages/__tests__",
-
     "packages-tooling/http-server",
     "packages-tooling/plugin-gulp",
     "packages-tooling/plugin-conventions",
@@ -38,7 +37,6 @@
     "packages-tooling/ts-jest",
     "packages-tooling/parcel-transformer",
     "packages-tooling/__tests__",
-
     "packages/__e2e__/hmr-vite",
     "packages/__e2e__/hmr-webpack",
     "packages/__e2e__/i18n",

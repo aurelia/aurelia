@@ -1,5 +1,5 @@
 import { camelCase, type IContainer, type IServiceLocator } from '@aurelia/kernel';
-import { IAccessor, IObserverLocator, IObserverLocatorBasedConnectable, Scope } from '@aurelia/runtime';
+import { IAccessor, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import {
   astBind,
   astEvaluate,
@@ -17,6 +17,7 @@ import {
   IPlatform,
   type IAstEvaluator,
   type IBinding,
+  Scope,
 } from '@aurelia/runtime-html';
 import { ensureExpression, etIsFunction } from './utilities';
 import { BindingCommandStaticAuDefinition } from '@aurelia/runtime-html/dist/types/resources/binding-command';

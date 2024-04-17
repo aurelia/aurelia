@@ -1,5 +1,5 @@
 import { DI } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime-html';
 import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
 import { IValidateable } from './rule-interfaces';
 

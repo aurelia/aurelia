@@ -7,6 +7,7 @@ import {
   astEvaluate,
 } from '../ast.eval';
 import { mixinAstEvaluator } from '../binding/binding-utils';
+import { type Scope } from '../binding/scope';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
@@ -16,7 +17,6 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
-  Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
 import { areEqual } from '../utilities';

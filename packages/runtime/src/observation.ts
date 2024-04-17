@@ -236,16 +236,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
 
-export interface IBindingContext {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: PropertyKey]: any;
-}
-
-export interface IOverrideContext {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: PropertyKey]: any;
-}
-
 export type IObservable<T = IIndexable> = T & {
   $observers?: IIndexable<{}, AccessorOrObserver>;
 };

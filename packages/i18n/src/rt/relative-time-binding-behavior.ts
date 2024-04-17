@@ -1,7 +1,5 @@
-import { type Scope } from '@aurelia/runtime';
-import { type BindingWithBehavior, createIntlFormatValueConverterExpression, ValueConverters, behaviorTypeName } from '../utils';
-
-import { type BindingBehaviorStaticAuDefinition, type BindingBehaviorInstance } from '@aurelia/runtime-html';
+import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition, type Scope } from '@aurelia/runtime-html';
+import { ValueConverters, behaviorTypeName, createIntlFormatValueConverterExpression, type BindingWithBehavior } from '../utils';
 
 export class RelativeTimeBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {

@@ -15,7 +15,8 @@ import {
   mixingBindingLimited,
   type IHydratableController,
   type INode,
-  IBinding
+  IBinding,
+  type Scope,
 } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -24,7 +25,6 @@ import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
 import type {
-  Scope,
   IObserverLocator,
   IAccessor,
   IObserverLocatorBasedConnectable,

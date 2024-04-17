@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { mixinAstEvaluator, type IAstEvaluator, astEvaluate } from '@aurelia/runtime-html';
+import { mixinAstEvaluator, type IAstEvaluator, astEvaluate, Scope } from '@aurelia/runtime-html';
 import { Deserializer, serializePrimitive, Serializer } from './ast-serialization';
 import {
   IPropertyRule,

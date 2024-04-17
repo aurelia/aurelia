@@ -8,8 +8,8 @@ import {
 import {
   type ICollectionObserver,
   IObserverLocator,
-  type Scope,
 } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { IRenderLocation } from '../../dom';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';

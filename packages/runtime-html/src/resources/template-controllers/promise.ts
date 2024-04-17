@@ -1,6 +1,6 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IInstruction } from '../../renderer';

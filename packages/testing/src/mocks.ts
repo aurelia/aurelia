@@ -9,6 +9,7 @@ import {
   type ISignaler,
   type IRateLimitOptions,
   type IBinding,
+  type Scope,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -18,7 +19,6 @@ import type {
   IServiceLocator,
 } from '@aurelia/kernel';
 import type {
-  Scope,
   IndexMap,
   IObserverLocator,
   BindingObserverRecord,

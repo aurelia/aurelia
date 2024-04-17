@@ -8,8 +8,6 @@ import {
 } from '@aurelia/expression-parser';
 import {
   Scope,
-} from '@aurelia/runtime';
-import {
   type IAstEvaluator,
   astEvaluate,
   mixinAstEvaluator,

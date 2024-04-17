@@ -16,8 +16,8 @@ import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@au
 import {
   ICoercionConfiguration,
   IObserverLocator,
-  Scope,
 } from '@aurelia/runtime';
+import { Scope } from '../binding/scope';
 import { convertToRenderLocation, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
@@ -125,11 +125,11 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   public _vmHooks: HooksDefinition;
 
   /** @internal */
-  public _vm: BindingContext<C> | null;
-  public get viewModel(): BindingContext<C> | null {
+  public _vm: ControllerBindingContext<C> | null;
+  public get viewModel(): ControllerBindingContext<C> | null {
     return this._vm;
   }
-  public set viewModel(v: BindingContext<C> | null) {
+  public set viewModel(v: ControllerBindingContext<C> | null) {
     this._vm = v;
     this._vmHooks = v == null || this.vmKind === vmkSynth ? HooksDefinition.none : new HooksDefinition(v);
   }
@@ -147,7 +147,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /**
      * The backing viewModel. Only present for custom attributes and elements.
      */
-    viewModel: BindingContext<C> | null,
+    viewModel: ControllerBindingContext<C> | null,
     /**
      * The physical host dom node.
      *
@@ -230,7 +230,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* vmKind         */vmkCe,
       /* definition     */definition,
       /* viewFactory    */null,
-      /* viewModel      */viewModel as BindingContext<C>,
+      /* viewModel      */viewModel as ControllerBindingContext<C>,
       /* host           */host,
       /* location       */location,
     );
@@ -291,7 +291,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* vmKind         */vmkCa,
       /* definition     */definition,
       /* viewFactory    */null,
-      /* viewModel      */viewModel as BindingContext<C>,
+      /* viewModel      */viewModel as ControllerBindingContext<C>,
       /* host           */host,
       /* location       */null
     );
@@ -1214,7 +1214,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
 const controllerLookup: WeakMap<object, Controller> = new WeakMap();
 
-export type BindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
+export type ControllerBindingContext<C extends IViewModel> = Required<ICompileHooks> & Required<IActivationHooks<IHydratedController | null>> & C;
 
 const targetNone = 0;
 const targetHost = 1;

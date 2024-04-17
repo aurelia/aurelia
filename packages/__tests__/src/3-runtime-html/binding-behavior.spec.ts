@@ -1,6 +1,6 @@
 import { resolve } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
 import {
+  Scope,
   type BindingBehaviorInstance,
   type IBinding,
   bindingBehavior,

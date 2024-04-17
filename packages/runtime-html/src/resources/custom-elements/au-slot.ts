@@ -1,4 +1,4 @@
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '../../binding/scope';
 import { IRenderLocation } from '../../dom';
 import { CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { IInstruction } from '../../renderer';

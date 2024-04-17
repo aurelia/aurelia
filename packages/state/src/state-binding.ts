@@ -3,16 +3,16 @@ import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kerne
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   connectable,
-  type Scope,
   type IAccessor,
   type IObserverLocator,
-  type IOverrideContext,
   AccessorType,
   type IObserverLocatorBasedConnectable,
   ISubscriber
 } from '@aurelia/runtime';
 import {
   BindingMode,
+  type Scope,
+  type IOverrideContext,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,

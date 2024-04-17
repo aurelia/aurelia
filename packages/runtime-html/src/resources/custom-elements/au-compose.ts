@@ -1,5 +1,6 @@
 import { Constructable, IContainer, InstanceProvider, MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
-import { IObserverLocator, Scope } from '@aurelia/runtime';
+import { IObserverLocator } from '@aurelia/runtime';
+import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler } from '../../renderer';

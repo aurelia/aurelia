@@ -1,4 +1,5 @@
-import { INodeObserverLocator, IObserverLocator, type Scope } from '@aurelia/runtime';
+import { INodeObserverLocator, IObserverLocator } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { type IBinding, fromView } from '../../binding/interfaces-bindings';
 import { NodeObserverLocator } from '../../observation/observer-locator';
 import { behaviorTypeName, type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';

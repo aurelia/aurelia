@@ -33,6 +33,9 @@ export const enum ErrorNames {
   binding_behavior_existed = 156,
   binding_command_existed = 157,
 
+  null_scope = 203,
+  create_scope_with_null_context = 204,
+
   invalid_bindable_decorator_usage_symbol = 227,
   invalid_bindable_decorator_usage_class_without_configuration = 228,
   invalid_bindable_decorator_usage_class_without_property_name_configuration = 229,
@@ -159,6 +162,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
   [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
   [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,
+
+  [ErrorNames.null_scope]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
+  [ErrorNames.create_scope_with_null_context]: 'Trying to create a scope with null/undefined binding context',
 
   [ErrorNames.invalid_bindable_decorator_usage_symbol]: `@bindable is not supported for properties that uses a symbol for name. Use a string for the property name instead.`,
   [ErrorNames.invalid_bindable_decorator_usage_class_without_configuration]: `@bindable cannot be used as a class decorator when no configuration object is supplied.`,

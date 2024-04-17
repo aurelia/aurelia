@@ -1,19 +1,13 @@
 import { ErrorNames, createMappedError } from '../errors';
-import type { IBindingContext, IOverrideContext } from '../observation';
 
-/**
- * A class for creating context in synthetic scope to keep the number of classes of context in scope small
- */
-export class BindingContext implements IBindingContext {
-  [key: PropertyKey]: unknown;
+export interface IBindingContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: PropertyKey]: any;
+}
 
-  public constructor();
-  public constructor(key: PropertyKey, value: unknown);
-  public constructor(key?: PropertyKey, value?: unknown) {
-    if (key !== void 0) {
-      this[key] = value;
-    }
-  }
+export interface IOverrideContext {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: PropertyKey]: any;
 }
 
 export class Scope {
@@ -113,6 +107,21 @@ export class Scope {
       throw createMappedError(ErrorNames.null_scope);
     }
     return new Scope(ps, bc as IBindingContext, new OverrideContext(), false);
+  }
+}
+
+/**
+ * A class for creating context in synthetic scope to keep the number of classes of context in scope small
+ */
+export class BindingContext implements IBindingContext {
+  [key: PropertyKey]: unknown;
+
+  public constructor();
+  public constructor(key: PropertyKey, value: unknown);
+  public constructor(key?: PropertyKey, value?: unknown) {
+    if (key !== void 0) {
+      this[key] = value;
+    }
   }
 }
 

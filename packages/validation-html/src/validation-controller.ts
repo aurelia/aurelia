@@ -16,6 +16,7 @@ import {
   astEvaluate,
   IPlatform,
   PropertyBinding,
+  type Scope,
 } from '@aurelia/runtime-html';
 import {
   parsePropertyName,
@@ -27,8 +28,6 @@ import {
   type IValidationRule,
   type IValidateable,
 } from '@aurelia/validation';
-
-import type { Scope } from '@aurelia/runtime';
 
 export type BindingWithBehavior = PropertyBinding & {
   ast: BindingBehaviorExpression;

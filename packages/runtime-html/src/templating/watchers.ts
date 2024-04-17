@@ -32,6 +32,10 @@ const { wrap, unwrap } = ProxyObservable;
 export interface ComputedWatcher extends IObserverLocatorBasedConnectable, IServiceLocator { }
 
 export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscriber {
+  static {
+    connectable(ComputedWatcher, null!);
+  }
+
   public isBound: boolean = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
@@ -118,6 +122,11 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
 export interface ExpressionWatcher extends IObserverLocatorBasedConnectable, /* a hack, but it's only for internal */IServiceLocator { }
 
 export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnectable {
+  static {
+    connectable(ExpressionWatcher, null!);
+    mixinAstEvaluator(true)(ExpressionWatcher);
+  }
+
   public isBound: boolean = false;
   /**
    * @internal
@@ -188,8 +197,3 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     this._value = void 0;
   }
 }
-
-connectable(ComputedWatcher, null!);
-
-connectable(ExpressionWatcher, null!);
-mixinAstEvaluator(true)(ExpressionWatcher);

@@ -73,9 +73,9 @@ export class DelegateBindingCommand implements BindingCommandInstance {
 }
 
 /** @internal */
-export class ListenerBindingRenderer implements IRenderer {
+export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
 
-  public readonly target!: 'dl';
+  public readonly target = 'dl';
   /** @internal */
   private readonly _eventDelegator = resolve(IEventDelegator);
 
@@ -96,8 +96,7 @@ export class ListenerBindingRenderer implements IRenderer {
       new DelegateListenerOptions(instruction.preventDefault),
     ));
   }
-}
-renderer('dl')(ListenerBindingRenderer, null!);
+}, null!);
 
 export class DelegateBindingInstruction {
   public readonly type = InstructionType.listenerBinding;
@@ -120,6 +119,12 @@ export interface DelegateListenerBinding extends IAstEvaluator, IObserverLocator
  * Listener binding. Handle event binding between view and view model
  */
 export class DelegateListenerBinding implements IBinding {
+  static {
+    mixinUseScope(DelegateListenerBinding);
+    mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
+    mixinAstEvaluator(true, true)(DelegateListenerBinding);
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -209,10 +214,6 @@ export class DelegateListenerBinding implements IBinding {
     this.handler = null!;
   }
 }
-
-mixinUseScope(DelegateListenerBinding);
-mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
-mixinAstEvaluator(true, true)(DelegateListenerBinding);
 
 const defaultOptions: AddEventListenerOptions = {
   capture: false,

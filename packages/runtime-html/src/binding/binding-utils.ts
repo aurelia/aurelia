@@ -56,33 +56,63 @@ export class BindingTargetSubscriber implements ISubscriber {
 /**
  * Implement method `useScope` in a common way for a binding. For internal use only for size saving.
  */
-export const mixinUseScope = <T extends { _scope?: Scope }>(target: Constructable<T>) => {
-  defineHiddenProp(target.prototype, 'useScope', useScope);
-};
+export const mixinUseScope = /*@__PURE__*/(() => {
+  function useScope<T extends { _scope?: Scope }>(this: T, scope: Scope) {
+    this._scope = scope;
+  }
+  return <T extends { _scope?: Scope }>(target: Constructable<T>) => {
+    defineHiddenProp(target.prototype, 'useScope', useScope);
+  };
+})();
 
 /**
  * Turns a class into AST evaluator. For internal use only
  *
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
-export const mixinAstEvaluator = (strict?: boolean | undefined, strictFnCall = true) => {
-  return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
-    const proto = target.prototype;
-    // some evaluator may have their strict configurable in some way
-    // undefined to leave the property alone
-    if (strict != null) {
-      def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
-    }
-    def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-    defineHiddenProp(proto, 'get', evaluatorGet<T>);
-    defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
-    defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
-    defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
-  };
-};
+export const mixinAstEvaluator = /*@__PURE__*/(() => {
+  type IHasServiceLocator = { l: IServiceLocator };
 
-const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
-const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+  const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+  const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+
+  function evaluatorGet<T extends IHasServiceLocator>(this: T, key: Key) {
+    return this.l.get(key);
+  }
+  function evaluatorGetSignaler<T extends IHasServiceLocator>(this: T) {
+    return this.l.root.get(ISignaler);
+  }
+  function evaluatorGetConverter<T extends IHasServiceLocator>(this: T, name: string) {
+    let resourceLookup = converterResourceLookupCache.get(this);
+    if (resourceLookup == null) {
+      converterResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+    }
+    return resourceLookup[name] ??= ValueConverter.get(this.l as IContainer, name);
+  }
+  function evaluatorGetBehavior<T extends IHasServiceLocator>(this: T, name: string) {
+    let resourceLookup = behaviorResourceLookupCache.get(this);
+    if (resourceLookup == null) {
+      behaviorResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+    }
+    return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
+  }
+
+  return (strict?: boolean | undefined, strictFnCall = true) => {
+    return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
+      const proto = target.prototype;
+      // some evaluator may have their strict configurable in some way
+      // undefined to leave the property alone
+      if (strict != null) {
+        def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
+      }
+      def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
+      defineHiddenProp(proto, 'get', evaluatorGet<T>);
+      defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
+      defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
+      defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
+    };
+  };
+})();
 class ResourceLookup {
   [key: string]: ValueConverterInstance | BindingBehaviorInstance;
 }
@@ -126,163 +156,140 @@ export class FlushQueue implements IFlushQueue {
   }
 }
 
-type IHasServiceLocator = { l: IServiceLocator };
-function useScope<T extends { _scope?: Scope }>(this: T, scope: Scope) {
-  this._scope = scope;
-}
-function evaluatorGet<T extends IHasServiceLocator>(this: T, key: Key) {
-  return this.l.get(key);
-}
-function evaluatorGetSignaler<T extends IHasServiceLocator>(this: T) {
-  return this.l.root.get(ISignaler);
-}
-function evaluatorGetConverter<T extends IHasServiceLocator>(this: T, name: string) {
-  let resourceLookup = converterResourceLookupCache.get(this);
-  if (resourceLookup == null) {
-    converterResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
-  }
-  return resourceLookup[name] ??= ValueConverter.get(this.l as IContainer, name);
-}
-function evaluatorGetBehavior<T extends IHasServiceLocator>(this: T, name: string) {
-  let resourceLookup = behaviorResourceLookupCache.get(this);
-  if (resourceLookup == null) {
-    behaviorResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
-  }
-  return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
-}
-
-function flushItem(item: IFlushable, _: IFlushable, items: Set<IFlushable>) {
+const flushItem = function (item: IFlushable, _: IFlushable, items: Set<IFlushable>) {
   items.delete(item);
   item.flush();
-}
+};
 
-const withLimitationBindings = new WeakSet<IBinding>();
 /**
  * A mixing for bindings to implement a set of default behvaviors for rate limiting their calls.
  *
  * For internal use only
  */
-export const mixingBindingLimited = <T extends IBinding>(target: Constructable<T>, getMethodName: (binding: T, opts: IRateLimitOptions) => keyof T) => {
-  defineHiddenProp(target.prototype, 'limit', function (this: T, opts: IRateLimitOptions) {
-    if (withLimitationBindings.has(this)) {
-      throw createMappedError(ErrorNames.binding_already_has_rate_limited);
-    }
-    withLimitationBindings.add(this);
-    const prop = getMethodName(this, opts);
-    const signals = opts.signals;
-    const signaler = signals.length > 0 ? this.get(ISignaler) : null;
-    const originalFn = this[prop] as unknown as (...args: unknown[]) => unknown;
-    const callOriginal = (...args: unknown[]) => originalFn.call(this, ...args);
-    const limitedFn = opts.type === 'debounce'
-      ? debounced(opts, callOriginal, this)
-      : throttled(opts, callOriginal, this);
-    const signalListener = signaler ? { handleChange: limitedFn.flush } : null;
-    this[prop] = limitedFn as unknown as typeof this[typeof prop];
-    if (signaler) {
-      signals.forEach(s => addSignalListener(signaler, s, signalListener!));
-    }
-
-    return {
-      dispose: () => {
-        if (signaler) {
-          signals.forEach(s => removeSignalListener(signaler, s, signalListener!));
-        }
-        withLimitationBindings.delete(this);
-        limitedFn.dispose();
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete this[prop];
+export const mixingBindingLimited = /*@__PURE__*/ (() => {
+  const withLimitationBindings = new WeakSet<IBinding>();
+  /**
+   * A helper for creating rated limited functions for binding. For internal use only
+   */
+  const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
+    let limiterTask: ITask | undefined;
+    let task: ITask | undefined;
+    let latestValue: unknown;
+    let isPending = false;
+    const taskQueue = opts.queue;
+    const callOriginalCallback = () => callOriginal(latestValue);
+    const fn = (v: unknown) => {
+      latestValue = v;
+      if (binding.isBound) {
+        task = limiterTask;
+        limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay, reusable: false });
+        task?.cancel();
+      } else {
+        callOriginalCallback();
       }
     };
-  });
-};
-
-/**
- * A helper for creating rated limited functions for binding. For internal use only
- */
-const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-  let limiterTask: ITask | undefined;
-  let task: ITask | undefined;
-  let latestValue: unknown;
-  let isPending = false;
-  const taskQueue = opts.queue;
-  const callOriginalCallback = () => callOriginal(latestValue);
-  const fn = (v: unknown) => {
-    latestValue = v;
-    if (binding.isBound) {
-      task = limiterTask;
-      limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay, reusable: false });
+    const dispose = fn.dispose = () => {
       task?.cancel();
-    } else {
-      callOriginalCallback();
-    }
-  };
-  const dispose = fn.dispose = () => {
-    task?.cancel();
-    limiterTask?.cancel();
-    task = limiterTask = void 0;
-  };
-  fn.flush = () => {
-    // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === tsPending;
-    dispose();
-    if (isPending) {
-      callOriginalCallback();
-    }
-  };
-
-  return fn;
-};
-
-/**
- * A helper for creating rated limited functions for binding. For internal use only
- */
-const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-  let limiterTask: ITask | undefined;
-  let task: ITask | undefined;
-  let last: number = 0;
-  let elapsed = 0;
-  let latestValue: unknown;
-  let isPending = false;
-  const taskQueue = opts.queue;
-  const now = () => opts.now();
-  const callOriginalCallback = () => callOriginal(latestValue);
-  const fn = (v: unknown) => {
-    latestValue = v;
-    if (binding.isBound) {
-      elapsed = now() - last;
-      task = limiterTask;
-      if (elapsed > opts.delay) {
-        last = now();
+      limiterTask?.cancel();
+      task = limiterTask = void 0;
+    };
+    fn.flush = () => {
+      // only call callback when there's actually task being queued
+      isPending = limiterTask?.status === tsPending;
+      dispose();
+      if (isPending) {
         callOriginalCallback();
-      } else {
-        // Queue the new one before canceling the old one, to prevent early yield
-        limiterTask = taskQueue.queueTask(() => {
+      }
+    };
+
+    return fn;
+  };
+
+  /**
+   * A helper for creating rated limited functions for binding. For internal use only
+   */
+  const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
+    let limiterTask: ITask | undefined;
+    let task: ITask | undefined;
+    let last: number = 0;
+    let elapsed = 0;
+    let latestValue: unknown;
+    let isPending = false;
+    const taskQueue = opts.queue;
+    const now = () => opts.now();
+    const callOriginalCallback = () => callOriginal(latestValue);
+    const fn = (v: unknown) => {
+      latestValue = v;
+      if (binding.isBound) {
+        elapsed = now() - last;
+        task = limiterTask;
+        if (elapsed > opts.delay) {
           last = now();
           callOriginalCallback();
-        }, { delay: opts.delay - elapsed, reusable: false });
+        } else {
+          // Queue the new one before canceling the old one, to prevent early yield
+          limiterTask = taskQueue.queueTask(() => {
+            last = now();
+            callOriginalCallback();
+          }, { delay: opts.delay - elapsed, reusable: false });
+        }
+        task?.cancel();
+      } else {
+        callOriginalCallback();
       }
+    };
+    const dispose = fn.dispose = () => {
       task?.cancel();
-    } else {
-      callOriginalCallback();
-    }
+      limiterTask?.cancel();
+      task = limiterTask = void 0;
+    };
+    fn.flush = () => {
+      // only call callback when there's actually task being queued
+      isPending = limiterTask?.status === tsPending;
+      dispose();
+      if (isPending) {
+        callOriginalCallback();
+      }
+    };
+    return fn;
   };
-  const dispose = fn.dispose = () => {
-    task?.cancel();
-    limiterTask?.cancel();
-    task = limiterTask = void 0;
-  };
-  fn.flush = () => {
-    // only call callback when there's actually task being queued
-    isPending = limiterTask?.status === tsPending;
-    dispose();
-    if (isPending) {
-      callOriginalCallback();
-    }
-  };
-  return fn;
-};
 
-type LimiterHandle = IDisposable & {
-  (v: unknown, oV?: unknown): void;
-  flush(): void;
-};
+  type LimiterHandle = IDisposable & {
+    (v: unknown, oV?: unknown): void;
+    flush(): void;
+  };
+
+  return <T extends IBinding>(target: Constructable<T>, getMethodName: (binding: T, opts: IRateLimitOptions) => keyof T) => {
+    defineHiddenProp(target.prototype, 'limit', function (this: T, opts: IRateLimitOptions) {
+      if (withLimitationBindings.has(this)) {
+        throw createMappedError(ErrorNames.binding_already_has_rate_limited);
+      }
+      withLimitationBindings.add(this);
+      const prop = getMethodName(this, opts);
+      const signals = opts.signals;
+      const signaler = signals.length > 0 ? this.get(ISignaler) : null;
+      const originalFn = this[prop] as unknown as (...args: unknown[]) => unknown;
+      const callOriginal = (...args: unknown[]) => originalFn.call(this, ...args);
+      const limitedFn = opts.type === 'debounce'
+        ? debounced(opts, callOriginal, this)
+        : throttled(opts, callOriginal, this);
+      const signalListener = signaler ? { handleChange: limitedFn.flush } : null;
+      this[prop] = limitedFn as unknown as typeof this[typeof prop];
+      if (signaler) {
+        signals.forEach(s => addSignalListener(signaler, s, signalListener!));
+      }
+
+      return {
+        dispose: () => {
+          if (signaler) {
+            signals.forEach(s => removeSignalListener(signaler, s, signalListener!));
+          }
+          withLimitationBindings.delete(this);
+          limitedFn.dispose();
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete this[prop];
+        }
+      };
+    });
+  };
+})();

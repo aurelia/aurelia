@@ -119,8 +119,11 @@ class LifecycleHooksLookupImpl implements LifecycleHooksLookup {}
 /**
  * Decorator: Indicates that the decorated class is a custom element.
  */
-export function lifecycleHooks(): <T extends Constructable>(target: T, context: ClassDecoratorContext) => T {
-  return function decorator<T extends Constructable>(target: T, _context: ClassDecoratorContext): T {
+export function lifecycleHooks(): <T extends Constructable>(target: T, context: ClassDecoratorContext) => T;
+export function lifecycleHooks<T extends Constructable>(target: T, context: ClassDecoratorContext): T;
+export function lifecycleHooks<T extends Constructable>(target?: T, context?: ClassDecoratorContext<T>): T | (<T extends Constructable>(target: T, context: ClassDecoratorContext) => T) {
+  function decorator<T extends Constructable>(target: T, context: ClassDecoratorContext): T {
     return LifecycleHooks.define({}, target);
-  };
+  }
+  return target == null ? decorator : decorator(target, context!);
 }

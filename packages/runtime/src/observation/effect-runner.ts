@@ -1,4 +1,4 @@
-import { connectable, type BindingObserverRecord } from './connectable';
+import { IObserverLocatorBasedConnectable, connectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
 import { createInterface } from '../utilities';
@@ -92,8 +92,12 @@ export interface IEffect {
 }
 
 interface RunEffect extends IConnectable {}
-class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
-  public readonly obs!: BindingObserverRecord;
+class RunEffect implements IEffect, IObserverLocatorBasedConnectable, ISubscriber, ICollectionSubscriber {
+  static {
+    connectable(RunEffect, null!);
+  }
+
+  public readonly obs!: IObserverRecord;
   // to configure this, potentially a 2nd parameter is needed for run
   public maxRunCount: number = 10;
   private queued: boolean = false;
@@ -156,5 +160,3 @@ class RunEffect implements IEffect, ISubscriber, ICollectionSubscriber {
     this.obs.clearAll();
   }
 }
-
-connectable(RunEffect, null!);

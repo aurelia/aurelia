@@ -193,7 +193,8 @@ class SlottedLifecycleHooks {
   }
 }
 
-type Tc39PropertyDecorator = (target: undefined, context: ClassFieldDecoratorContext) => (initialValue: unknown) => unknown;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Tc39PropertyDecorator = (target: undefined, context: ClassFieldDecoratorContext) => (initialValue: any) => any;
 /**
  * Decorate a property of a class to get updates from the projection of the decorated custom element
  */
@@ -225,7 +226,7 @@ export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName
 export function slotted(queryOrDef?: string | PartialSlottedDefinition, slotName?: string) {
   if (!mixed) {
     mixed = true;
-    subscriberCollection(AuSlotWatcherBinding);
+    subscriberCollection(AuSlotWatcherBinding, null!);
     lifecycleHooks()(SlottedLifecycleHooks, null!);
   }
   const dependenciesKey = getAnnotationKeyFor('dependencies');

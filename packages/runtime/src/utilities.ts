@@ -1,8 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Class, DI } from '@aurelia/kernel';
-
-export type $ClassDecorator = <T extends Class<unknown>>(value: T, context: ClassDecoratorContext) => void | T;
-export type $FieldDecorator = (value: undefined, context: ClassFieldDecoratorContext) => ((initialValue: unknown) => unknown) | void;
+import { DI } from '@aurelia/kernel';
 
 const O = Object;
 

@@ -89,10 +89,10 @@ export class DispatchBindingInstruction {
   ) {}
 }
 
-export class StateBindingInstructionRenderer implements IRenderer {
-  public readonly target!: 'sb';
+export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
+  public readonly target = 'sb';
 
-  /** @internal */ private readonly _stateContainer = resolve(IStore);
+  /** @internal */ public readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -113,12 +113,11 @@ export class StateBindingInstructionRenderer implements IRenderer {
       this._stateContainer,
     ));
   }
-}
-renderer('sb')(StateBindingInstructionRenderer, null!);
+}, null!);
 
-export class DispatchBindingInstructionRenderer implements IRenderer {
-  public readonly target!: 'sd';
-  /** @internal */ private readonly _stateContainer = resolve(IStore);
+export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
+  public readonly target = 'sd';
+  /** @internal */ public readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -136,8 +135,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
       this._stateContainer,
     ));
   }
-}
-renderer('sd')(DispatchBindingInstructionRenderer, null!);
+}, null!);
 
 function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {

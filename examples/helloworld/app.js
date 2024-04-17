@@ -2,25 +2,20 @@ import { DirtyChecker } from '@aurelia/runtime';
 import { Aurelia, CustomElement, /* StandardConfiguration */ } from '@aurelia/runtime-html';
 import { TemplateCompiler, TextBindingRenderer } from '@aurelia/runtime-html';
 
-const App = CustomElement.define(
-  {
-    name: 'app',
-    template: `\${message}`
-  },
-  class {
-    constructor() {
-      this.message = 'Hello world';
-    }
-  }
-);
-
 void new Aurelia().register(
   DirtyChecker,
   TemplateCompiler,
+  // CustomElementRenderer,
   TextBindingRenderer,
+  {register(){}},
 ).app(
   {
     host: document.getElementById('app'),
-    component: App,
+    component: class {
+      static $au = { type: 'custom-element', name: 'app', template: '${message}' }
+      constructor() {
+        this.message = 'Hello world';
+      }
+    },
   })
   .start();

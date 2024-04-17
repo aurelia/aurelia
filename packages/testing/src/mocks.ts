@@ -21,11 +21,11 @@ import type {
 import type {
   IndexMap,
   IObserverLocator,
-  BindingObserverRecord,
   Collection,
   ISubscribable,
   ICollectionSubscribable,
   IObserverLocatorBasedConnectable,
+  IObserverRecord,
 } from '@aurelia/runtime';
 
 export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
@@ -36,7 +36,7 @@ export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
   public scope?: Scope | undefined;
   public isBound!: boolean;
   public value: unknown;
-  public obs!: BindingObserverRecord;
+  public obs!: IObserverRecord;
 
   public calls: [keyof MockBinding, ...any[]][] = [];
 

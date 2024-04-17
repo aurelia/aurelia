@@ -153,6 +153,10 @@ export function disableMapObservation(): void {
 export interface MapObserver extends ICollectionObserver<'map'>, ICollectionSubscriberCollection {}
 
 export class MapObserver {
+  static {
+    subscriberCollection(MapObserver, null!);
+  }
+
   public type: AccessorType = atObserver;
   private lenObs?: CollectionSizeObserver;
 
@@ -189,8 +193,6 @@ export class MapObserver {
     return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
-
-subscriberCollection(MapObserver);
 
 export function getMapObserver(map: Map<unknown, unknown>): MapObserver {
   let observer = observerLookup.get(map);

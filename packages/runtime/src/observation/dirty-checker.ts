@@ -64,7 +64,7 @@ export class DirtyChecker {
   private readonly p = resolve(IPlatform);
   public constructor(
   ) {
-    subscriberCollection(DirtyCheckProperty);
+    subscriberCollection(DirtyCheckProperty, null!);
   }
 
   public createProperty(obj: object, key: PropertyKey): DirtyCheckProperty {

@@ -26,12 +26,14 @@ export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
-export class TranslationParametersAttributePattern {
-  public [attribute](rawName: string, rawValue: string): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, '', attribute);
+export const TranslationParametersAttributePattern = AttributePattern.define(
+  [{ pattern: attribute, symbols: '' }],
+  class TranslationParametersAttributePattern {
+    public [attribute](rawName: string, rawValue: string): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, '', attribute);
+    }
   }
-}
-AttributePattern.define([{ pattern: attribute, symbols: '' }], TranslationParametersAttributePattern);
+);
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
@@ -66,8 +68,8 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
   }
 }
 
-export class TranslationParametersBindingRenderer implements IRenderer {
-  public target!: typeof TranslationParametersInstructionType;
+export const TranslationParametersBindingRenderer = /*@__PURE__*/ renderer(class TranslationParametersBindingRenderer implements IRenderer {
+  public readonly target = TranslationParametersInstructionType;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -87,5 +89,4 @@ export class TranslationParametersBindingRenderer implements IRenderer {
       platform,
     });
   }
-}
-renderer(TranslationParametersInstructionType)(TranslationParametersBindingRenderer, null!);
+}, null!);

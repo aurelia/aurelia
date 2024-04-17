@@ -174,6 +174,12 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 export interface InterpolationPartBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class InterpolationPartBinding implements IBinding, ICollectionSubscriber {
+  static {
+    mixinUseScope(InterpolationPartBinding);
+    mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
+    connectable(InterpolationPartBinding, null!);
+    mixinAstEvaluator(true)(InterpolationPartBinding);
+  }
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
@@ -280,8 +286,3 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     this.obs.clearAll();
   }
 }
-
-mixinUseScope(InterpolationPartBinding);
-mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
-connectable(InterpolationPartBinding, null!);
-mixinAstEvaluator(true)(InterpolationPartBinding);

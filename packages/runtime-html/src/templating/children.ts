@@ -43,7 +43,7 @@ export function children<TThis,TValue>(target: undefined, context: ClassFieldDec
 export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinition | string | undefined, context?: ClassFieldDecoratorContext<TThis,TValue>): void | ((target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void) {
   if (!mixed) {
     mixed = true;
-    subscriberCollection(ChildrenBinding);
+    subscriberCollection(ChildrenBinding, null!);
     lifecycleHooks()(ChildrenLifecycleHooks, null!);
   }
   let config: PartialChildrenDefinition;

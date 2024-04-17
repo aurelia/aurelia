@@ -133,6 +133,10 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<'set'>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
+  static {
+    subscriberCollection(SetObserver, null!);
+  }
+
   public type: AccessorType = atObserver;
   private lenObs?: CollectionSizeObserver;
 
@@ -169,8 +173,6 @@ export class SetObserver {
     return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
-
-subscriberCollection(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>): SetObserver {
   let observer = observerLookup.get(observedSet);

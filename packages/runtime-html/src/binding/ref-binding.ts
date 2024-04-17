@@ -8,6 +8,10 @@ import { IBinding } from './interfaces-bindings';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  static {
+    mixinAstEvaluator(false)(RefBinding);
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -59,5 +63,3 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this._scope = void 0;
   }
 }
-
-mixinAstEvaluator(false)(RefBinding);

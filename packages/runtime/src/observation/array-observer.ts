@@ -389,6 +389,10 @@ export function disableArrayObservation(): void {
 export interface ArrayObserver extends ICollectionObserver<'array'>, ICollectionSubscriberCollection {}
 
 export class ArrayObserver {
+  static {
+    subscriberCollection(ArrayObserver, null!);
+  }
+
   public type: AccessorType = atObserver;
 
   private readonly indexObservers: Record<string | number, ArrayIndexObserver | undefined>;
@@ -443,6 +447,9 @@ export interface IArrayIndexObserver extends IObserver {
 export interface ArrayIndexObserver extends IArrayIndexObserver, ISubscriberCollection {}
 
 export class ArrayIndexObserver implements IArrayIndexObserver {
+  static {
+    subscriberCollection(ArrayIndexObserver, null!);
+  }
 
   public doNotCache: boolean = true;
   public value: unknown;
@@ -505,9 +512,6 @@ export class ArrayIndexObserver implements IArrayIndexObserver {
     }
   }
 }
-
-subscriberCollection(ArrayObserver);
-subscriberCollection(ArrayIndexObserver);
 
 export function getArrayObserver(array: unknown[]): ArrayObserver {
   let observer = observerLookup.get(array);

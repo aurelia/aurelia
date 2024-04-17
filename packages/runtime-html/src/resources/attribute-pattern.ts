@@ -521,91 +521,96 @@ export const AttributePattern = objectFreeze<AttributePatternKind>({
   findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
-export class DotSeparatedAttributePattern {
-  public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-  }
-
-  public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
-  }
-}
-AttributePattern.define(
+export const DotSeparatedAttributePattern = /*@__PURE__*/ AttributePattern.define(
   [
     { pattern: 'PART.PART', symbols: '.' },
     { pattern: 'PART.PART.PART', symbols: '.' }
   ],
-  DotSeparatedAttributePattern);
-
-export class RefAttributePattern {
-  public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, 'element', 'ref');
-  }
-
-  public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    let target = parts[0];
-    if (target === 'view-model') {
-      target = 'component';
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
-          + ` This is deprecated and component.ref should be used instead`);
-      }
+  class DotSeparatedAttributePattern {
+    public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
     }
-    return new AttrSyntax(rawName, rawValue, target, 'ref');
+
+    public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
+    }
   }
-}
-AttributePattern.define(
+);
+
+export const RefAttributePattern = /*@__PURE__*/AttributePattern.define(
   [
     { pattern: 'ref', symbols: '' },
     { pattern: 'PART.ref', symbols: '.' }
   ],
-  RefAttributePattern);
+  class RefAttributePattern {
+    public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, 'element', 'ref');
+    }
 
-export class EventAttributePattern {
-  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
+    public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      let target = parts[0];
+      if (target === 'view-model') {
+        target = 'component';
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
+            + ` This is deprecated and component.ref should be used instead`);
+        }
+      }
+      return new AttrSyntax(rawName, rawValue, target, 'ref');
+    }
   }
-  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
-  }
-}
-AttributePattern.define(
+);
+
+export const EventAttributePattern =  /*@__PURE__*/ AttributePattern.define(
   [
     { pattern: 'PART.trigger:PART', symbols: '.:' },
     { pattern: 'PART.capture:PART', symbols: '.:' },
   ],
-  EventAttributePattern);
-
-export class ColonPrefixedBindAttributePattern {
-  public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+  class EventAttributePattern {
+    public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
+    }
+    public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
+    }
   }
-}
-AttributePattern.define([{ pattern: ':PART', symbols: ':' }], ColonPrefixedBindAttributePattern);
+);
 
-export class AtPrefixedTriggerAttributePattern {
-  public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-  }
+export const ColonPrefixedBindAttributePattern = /*@__PURE__*/AttributePattern.define(
+  [{ pattern: ':PART', symbols: ':' }],
+  class ColonPrefixedBindAttributePattern {
 
-  public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
+    public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+    }
   }
-}
-AttributePattern.define(
+);
+
+export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.define(
   [
     { pattern: '@PART', symbols: '@' },
     { pattern: '@PART:PART', symbols: '@:' },
   ],
-  AtPrefixedTriggerAttributePattern);
+  class AtPrefixedTriggerAttributePattern {
+    public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+    }
 
-export class SpreadAttributePattern {
-  public '...$attrs'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, '', '...$attrs');
+    public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
+    }
   }
-}
-AttributePattern.define([{ pattern: '...$attrs', symbols: '' }], SpreadAttributePattern);
+);
+
+export const SpreadAttributePattern = /*@__PURE__*/ AttributePattern.define(
+  [{ pattern: '...$attrs', symbols: '' }],
+  class SpreadAttributePattern {
+    public '...$attrs'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, '', '...$attrs');
+    }
+  }
+);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 /* istanbul ignore next */function testAttributePatternDeco() {

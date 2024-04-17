@@ -45,7 +45,7 @@ module.exports = {
     'mocha/no-setup-in-describe': 'off',
     'mocha/no-synchronous-tests': 'off',
 
-    '@typescript-eslint/no-unused-vars': ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
+    '@typescript-eslint/no-unused-vars': ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_|context" }],
     '@typescript-eslint/prefer-readonly': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',

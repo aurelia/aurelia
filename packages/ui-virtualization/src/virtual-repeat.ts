@@ -1,15 +1,15 @@
 import { resolve } from "@aurelia/kernel";
 import type { ITask } from '@aurelia/platform';
 import {
-  Scope,
   Collection,
   getCollectionObserver,
   IndexMap,
-  BindingContext,
   type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   astEvaluate,
+  Scope,
+  BindingContext,
   IInstruction,
   IController,
   IViewFactory,

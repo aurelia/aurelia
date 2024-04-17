@@ -4,7 +4,8 @@ import { createInterface, singletonRegistration } from '../utilities-di';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
-import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, Scope } from '@aurelia/runtime';
+import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, } from '@aurelia/runtime';
+import { type Scope } from './scope';
 import { astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
 import { IBinding } from './interfaces-bindings';
 

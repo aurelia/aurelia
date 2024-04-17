@@ -8,7 +8,8 @@ import {
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
 import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
-import { IBindingContext, IConnectable, IObservable, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
+import { IConnectable, IObservable, ISubscriber } from '@aurelia/runtime';
+import { Scope, type IBindingContext, IOverrideContext } from './binding/scope';
 import { ErrorNames, createMappedError } from './errors';
 import { isArray, isFunction, isObject, safeString } from './utilities';
 import { ISignaler } from './signaler';
@@ -42,7 +43,7 @@ export const {
   astEvaluate,
   astBind,
   astUnbind
-} = (() => {
+} = /*@__PURE__*/(() => {
   const ekAccessThis = 'AccessThis';
   const ekAccessBoundary = 'AccessBoundary';
   const ekAccessGlobal = 'AccessGlobal';

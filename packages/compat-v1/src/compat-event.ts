@@ -1,5 +1,5 @@
 import { DI, IContainer, resolve } from '@aurelia/kernel';
-import { IObserverLocatorBasedConnectable, type Scope } from '@aurelia/runtime';
+import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import {
   AppTask,
   type BindingCommandInstance,
@@ -21,6 +21,7 @@ import {
   astUnbind,
   type IAstEvaluator,
   type IBinding,
+  type Scope,
 } from '@aurelia/runtime-html';
 import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';

@@ -4,9 +4,9 @@ import { Unparser } from '@aurelia/expression-parser';
 import {
   ArrayObserver,
   IObserverLocator,
-  Scope,
 } from '@aurelia/runtime';
 import {
+  Scope,
   type BindingBehaviorInstance,
   type IBinding,
   bindable,

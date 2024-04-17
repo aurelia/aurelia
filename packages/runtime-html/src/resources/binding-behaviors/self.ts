@@ -1,4 +1,4 @@
-import { type Scope } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { ListenerBinding } from '../../binding/listener-binding';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 

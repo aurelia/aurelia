@@ -1,11 +1,11 @@
 import {
   connectable,
   type IObserverLocator,
-  type Scope,
   IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber
 } from '@aurelia/runtime';
+import { type Scope } from './scope';
 import {
   astBind,
   astEvaluate,

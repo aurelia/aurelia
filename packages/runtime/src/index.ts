@@ -22,10 +22,6 @@ export {
   disableSetObservation
 } from './observation/set-observer';
 export {
-  BindingContext,
-  Scope,
-} from './observation/scope';
-export {
   CollectionLengthObserver,
   CollectionSizeObserver,
 } from './observation/collection-length-observer';
@@ -53,6 +49,7 @@ export {
   type IObjectObservationAdapter,
   IObserverLocator,
   INodeObserverLocator,
+  IComputedObserverLocator,
   getCollectionObserver,
   ObserverLocator,
   getObserverLookup,
@@ -91,7 +88,6 @@ export {
   type Collection,
   type CollectionKind,
   type IAccessor,
-  type IBindingContext,
   type ICollectionChangeTracker,
   type ICollectionObserver,
   type IConnectable,
@@ -99,7 +95,6 @@ export {
   type IndexMap,
   type IObserver,
   type IObservable,
-  type IOverrideContext,
   type InterceptorFunc,
   type ISubscribable,
   type ISubscriberCollection,

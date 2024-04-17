@@ -12,8 +12,8 @@ import type {
   IObserver,
   IObserverLocator,
   IObserverLocatorBasedConnectable,
-  Scope,
 } from '@aurelia/runtime';
+import { type Scope } from './scope';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';

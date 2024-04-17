@@ -1,4 +1,4 @@
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '../../binding/scope';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';

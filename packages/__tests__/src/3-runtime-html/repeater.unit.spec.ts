@@ -1,6 +1,8 @@
 import { AccessScopeExpression, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
-import { Scope, BindingContext, DirtyChecker } from '@aurelia/runtime';
+import { DirtyChecker } from '@aurelia/runtime';
 import {
+  Scope,
+  BindingContext,
   Repeat,
   Controller,
   CustomElementDefinition,

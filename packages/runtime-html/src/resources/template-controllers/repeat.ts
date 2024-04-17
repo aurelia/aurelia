@@ -7,19 +7,21 @@ import {
   ValueConverterExpression,
 } from '@aurelia/expression-parser';
 import {
-  BindingContext,
   type Collection,
   CollectionObserver,
   getCollectionObserver,
   type IndexMap,
-  type IOverrideContext,
-  Scope,
   createIndexMap,
 } from '@aurelia/runtime';
 import {
   astEvaluate,
   astAssign,
 } from '../../ast.eval';
+import {
+  Scope,
+  BindingContext,
+  type IOverrideContext,
+} from '../../binding/scope';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';

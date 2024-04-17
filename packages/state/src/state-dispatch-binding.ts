@@ -2,7 +2,6 @@
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
   type IOverrideContext,
-  Scope,
   connectable,
   IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
@@ -14,6 +13,7 @@ import {
   astUnbind,
   IBinding,
   IAstEvaluator,
+  type Scope,
 } from '@aurelia/runtime-html';
 import {
   IStoreSubscriber,

@@ -5,13 +5,13 @@ import {
   IConnectable,
   IObserverLocator,
   IObserverLocatorBasedConnectable,
-  Scope
 } from '@aurelia/runtime';
 import {
   type IAstEvaluator,
   type IBinding,
   astEvaluate,
   type BindingBehaviorInstance,
+  Scope,
   BindingBehavior,
   BindingTargetSubscriber,
   IFlushQueue,

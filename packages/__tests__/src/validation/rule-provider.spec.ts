@@ -15,8 +15,8 @@ import {
 } from '@aurelia/expression-parser';
 import {
   Scope,
-} from '@aurelia/runtime';
-import { astEvaluate } from '@aurelia/runtime-html';
+  astEvaluate,
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   EqualsRule,

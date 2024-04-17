@@ -1,7 +1,7 @@
 import { IDisposable, IPlatform, emptyArray, resolve } from '@aurelia/kernel';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
-import { type Scope } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { isString } from '../../utilities';
 import { type IBinding, type IRateLimitOptions } from '../../binding/interfaces-bindings';
 

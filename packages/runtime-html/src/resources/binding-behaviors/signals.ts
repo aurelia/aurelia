@@ -1,8 +1,9 @@
 import { ISignaler } from '../../signaler';
 import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 import { addSignalListener, removeSignalListener } from '../../utilities';
-import { type ISubscriber, type Scope } from '@aurelia/runtime';
+import { type ISubscriber } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
+import { type Scope } from '../../binding/scope';
 import { ErrorNames, createMappedError } from '../../errors';
 import { IBinding } from '../../binding/interfaces-bindings';
 

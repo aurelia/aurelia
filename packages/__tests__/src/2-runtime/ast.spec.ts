@@ -39,8 +39,8 @@ import {
   Unparser,
   AccessBoundaryExpression,
 } from '@aurelia/expression-parser';
-import { IObserverLocatorBasedConnectable, Scope } from '@aurelia/runtime';
-import { type IAstEvaluator, astAssign, astEvaluate, astBind, IBinding } from '@aurelia/runtime-html';
+import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { type IAstEvaluator, astAssign, astEvaluate, astBind, IBinding, Scope } from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;

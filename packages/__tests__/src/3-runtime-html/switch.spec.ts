@@ -13,8 +13,6 @@ import {
 } from '@aurelia/kernel';
 import {
   Scope,
-} from '@aurelia/runtime';
-import {
   AuSlot,
   type BindingBehaviorInstance,
   type IBinding,

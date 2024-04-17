@@ -1,7 +1,7 @@
 import { type IBinding, fromView, oneTime, toView, twoWay, type BindingMode } from '../../binding/interfaces-bindings';
 import { BindingBehaviorInstance, behaviorTypeName, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 
-import type { Scope } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 
 const originalModesMap = new Map<IBinding & { mode: BindingMode }, BindingMode>();
 const createConfig = (name: string): BindingBehaviorStaticAuDefinition => ({ type: behaviorTypeName, name });

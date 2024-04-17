@@ -1,4 +1,4 @@
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime-html';
 import { type SubscribableValue } from './interfaces';
 import { DI } from '@aurelia/kernel';
 

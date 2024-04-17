@@ -1,8 +1,9 @@
 import { IDisposable, IPlatform, emptyArray, resolve } from '@aurelia/kernel';
-import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
+import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
-import { type BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
+import { type Scope } from '@aurelia/runtime';
 import { isString } from '../../utilities';
+import { type IBinding, type IRateLimitOptions } from '../../binding/interfaces-bindings';
 
 const bindingHandlerMap: WeakMap<IBinding, IDisposable> = new WeakMap();
 const defaultDelay = 200;

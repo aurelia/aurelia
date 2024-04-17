@@ -1,5 +1,6 @@
 import { DI, IEventAggregator, resolve } from '@aurelia/kernel';
-import { ISignaler, nowrap } from '@aurelia/runtime';
+import { nowrap } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18nInitOptions } from './i18n-configuration-options';
 import { II18nextWrapper } from './i18next-wrapper';

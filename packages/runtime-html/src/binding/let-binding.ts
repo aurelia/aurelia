@@ -1,22 +1,26 @@
 import {
-  astBind,
-  astEvaluate,
-  astUnbind,
+  ICollectionSubscriber,
+  IObserverLocatorBasedConnectable,
+  ISubscriber,
   connectable,
-  type IAstEvaluator,
-  type IBinding,
-  type IConnectableBinding,
   type IObservable,
   type IObserverLocator,
   type Scope
 } from '@aurelia/runtime';
+import {
+  astBind,
+  astEvaluate,
+  astUnbind,
+  type IAstEvaluator,
+} from '../ast.eval';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
-export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
+import { IBinding } from './interfaces-bindings';
+export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
-export class LetBinding implements IBinding {
+export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
 
   /** @internal */

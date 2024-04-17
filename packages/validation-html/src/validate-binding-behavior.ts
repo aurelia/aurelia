@@ -1,17 +1,24 @@
 import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
-  astEvaluate,
-  BindingBehaviorInstance,
   connectable,
-  IAstEvaluator,
-  IBinding,
-  IConnectable, IConnectableBinding, IObserverLocator, Scope
+  IConnectable,
+  IObserverLocator,
+  IObserverLocatorBasedConnectable,
+  Scope
 } from '@aurelia/runtime';
 import {
+  type IAstEvaluator,
+  type IBinding,
+  astEvaluate,
+  type BindingBehaviorInstance,
   BindingBehavior,
   BindingTargetSubscriber,
-  IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
+  IFlushQueue,
+  IPlatform,
+  mixinAstEvaluator,
+  PropertyBinding,
+  type ICustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
@@ -102,7 +109,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
 }
 BindingBehavior.define('validate', ValidateBindingBehavior);
 
-interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
+interface ValidatitionConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */

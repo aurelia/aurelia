@@ -1,9 +1,9 @@
-import { type ValueConverterStaticAuDefinition } from '@aurelia/runtime-html';
+import { type ValueConverterInstance, type ValueConverterStaticAuDefinition } from '@aurelia/runtime-html';
 import { resolve } from '@aurelia/kernel';
 import { I18N } from '../i18n';
 import { Signals, ValueConverters, valueConverterTypeName } from '../utils';
 
-export class NumberFormatValueConverter {
+export class NumberFormatValueConverter implements ValueConverterInstance {
   public static readonly $au: ValueConverterStaticAuDefinition = {
     type: valueConverterTypeName,
     name: ValueConverters.numberFormatValueConverterName,

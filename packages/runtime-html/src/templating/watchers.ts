@@ -1,24 +1,27 @@
 import {
-  astEvaluate,
   connectable,
   ConnectableSwitcher,
   ProxyObservable,
 } from '@aurelia/runtime';
+import {
+  astEvaluate,
+} from '../ast.eval';
 import { mixinAstEvaluator } from '../binding/binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IConnectable,
-  IConnectableBinding,
   IObservable,
   IObserverLocator,
+  IObserverLocatorBasedConnectable,
   ISubscriber,
   Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
 import { areEqual } from '../utilities';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
+import { IBinding } from '../binding/interfaces-bindings';
 
 const { enter, exit } = ConnectableSwitcher;
 const { wrap, unwrap } = ProxyObservable;
@@ -26,9 +29,9 @@ const { wrap, unwrap } = ProxyObservable;
 // watchers (Computed & Expression) are basically binding,
 // they are treated as special and setup before all other bindings
 
-export interface ComputedWatcher extends IConnectableBinding { }
+export interface ComputedWatcher extends IObserverLocatorBasedConnectable, IServiceLocator { }
 
-export class ComputedWatcher implements IConnectableBinding, ISubscriber, ICollectionSubscriber {
+export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
@@ -112,9 +115,9 @@ export class ComputedWatcher implements IConnectableBinding, ISubscriber, IColle
   }
 }
 
-export interface ExpressionWatcher extends IConnectableBinding { }
+export interface ExpressionWatcher extends IObserverLocatorBasedConnectable, /* a hack, but it's only for internal */IServiceLocator { }
 
-export class ExpressionWatcher implements IConnectableBinding {
+export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnectable {
   public isBound: boolean = false;
   /**
    * @internal

@@ -7,9 +7,9 @@ import {
   IndexMap,
   BindingContext,
   type IOverrideContext,
-  astEvaluate,
 } from '@aurelia/runtime';
 import {
+  astEvaluate,
   IInstruction,
   IController,
   IViewFactory,

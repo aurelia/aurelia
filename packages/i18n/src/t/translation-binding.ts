@@ -2,20 +2,20 @@ import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   connectable,
+} from '@aurelia/runtime';
+import {
   astEvaluate,
   astUnbind,
   astBind,
-  IConnectableBinding,
   IAstEvaluator,
-} from '@aurelia/runtime';
-import {
   CustomElement,
   IPlatform,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,
   type IHydratableController,
-  type INode
+  type INode,
+  IBinding
 } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -27,6 +27,7 @@ import type {
   Scope,
   IObserverLocator,
   IAccessor,
+  IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
@@ -53,7 +54,7 @@ interface ContentValue {
 
 const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']]);
 
-export interface TranslationBinding extends IAstEvaluator, IConnectableBinding { }
+export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 
 const forOpts = { optional: true } as const;
 const taskQueueOpts: QueueTaskOptions = {
@@ -61,7 +62,7 @@ const taskQueueOpts: QueueTaskOptions = {
   preempt: true,
 };
 
-export class TranslationBinding implements IConnectableBinding {
+export class TranslationBinding implements IBinding {
 
   public static create({
     parser,
@@ -370,9 +371,9 @@ class AccessorUpdateTask {
   }
 }
 
-interface ParameterBinding extends IAstEvaluator, IConnectableBinding {}
+interface ParameterBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
-class ParameterBinding {
+class ParameterBinding implements IBinding {
   public isBound: boolean = false;
   public value!: i18next.TOptions;
   /**

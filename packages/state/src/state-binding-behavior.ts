@@ -1,6 +1,6 @@
 import { Writable, resolve } from '@aurelia/kernel';
-import { IBinding, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
-import { BindingBehavior } from '@aurelia/runtime-html';
+import { IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
+import { IBinding, BindingBehavior } from '@aurelia/runtime-html';
 import { IStore, IStoreSubscriber } from './interfaces';
 import { StateBinding } from './state-binding';
 import { createStateBindingScope } from './state-utilities';

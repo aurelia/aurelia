@@ -8,10 +8,10 @@ import {
 } from '@aurelia/expression-parser';
 import {
   Scope,
-  IAstEvaluator,
-  astEvaluate,
 } from '@aurelia/runtime';
 import {
+  type IAstEvaluator,
+  astEvaluate,
   mixinAstEvaluator,
 } from '@aurelia/runtime-html';
 import {

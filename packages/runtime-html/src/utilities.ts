@@ -1,5 +1,6 @@
-import { AccessorType, type ISignaler, type ISubscriber } from '@aurelia/runtime';
-import type { ISVGAnalyzer } from './observation/svg-analyzer';
+import { AccessorType, type ISubscriber } from '@aurelia/runtime';
+import { type ISVGAnalyzer } from './observation/svg-analyzer';
+import { type ISignaler } from './signaler';
 
 const O = Object;
 
@@ -45,6 +46,7 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 // eslint-disable-next-line @typescript-eslint/ban-types
 /** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';
 
+/** @internal */ export const isObject = (v: unknown): v is object => v instanceof O;
 /** @internal */ export const isString = (v: unknown): v is string => typeof v === 'string';
 /** @internal */ export const isSymbol = (v: unknown): v is string => typeof v === 'symbol';
 /** @internal */ export const isNumber = (v: unknown): v is number => typeof v === 'number';

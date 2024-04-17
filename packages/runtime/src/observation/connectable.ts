@@ -1,23 +1,22 @@
 import { def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities';
-import { getArrayObserver } from '../observation/array-observer';
-import { getSetObserver } from '../observation/set-observer';
-import { getMapObserver } from '../observation/map-observer';
+import { getArrayObserver } from './array-observer';
+import { getSetObserver } from './set-observer';
+import { getMapObserver } from './map-observer';
 
 import type { Class } from '@aurelia/kernel';
 import type {
   IConnectable,
   ISubscribable,
   ISubscriber,
-  IBinding,
   Collection,
   CollectionObserver,
   ICollectionSubscriber,
   ICollectionSubscribable,
 } from '../observation';
-import type { IObserverLocator } from '../observation/observer-locator';
+import type { IObserverLocator } from './observer-locator';
 import { ErrorNames, createMappedError } from '../errors';
 
-export interface IConnectableBinding extends IConnectable, IBinding, ISubscriber, ICollectionSubscriber {
+export interface IObserverLocatorBasedConnectable extends IConnectable, ISubscriber, ICollectionSubscriber {
   oL: IObserverLocator;
   /**
    * A record storing observers that are currently subscribed to by this binding
@@ -25,44 +24,6 @@ export interface IConnectableBinding extends IConnectable, IBinding, ISubscriber
   obs: BindingObserverRecord;
 }
 
-function getObserverRecord(this: IConnectableBinding): BindingObserverRecord {
-  return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
-}
-function observe(this: IConnectableBinding, obj: object, key: PropertyKey): void {
-  this.obs.add(this.oL.getObserver(obj, key));
-}
-function observeCollection(this: IConnectableBinding, collection: Collection): void {
-  let obs: CollectionObserver;
-  if (isArray(collection)) {
-    obs = getArrayObserver(collection);
-  } else if (isSet(collection)) {
-    obs = getSetObserver(collection);
-  } else if (isMap(collection)) {
-    obs = getMapObserver(collection);
-  } else {
-    throw createMappedError(ErrorNames.non_recognisable_collection_type, collection);
-  }
-  this.obs.add(obs);
-}
-
-function subscribeTo(this: IConnectableBinding, subscribable: ISubscribable | ICollectionSubscribable): void {
-  this.obs.add(subscribable);
-}
-
-function noopHandleChange() {
-  throw createMappedError(ErrorNames.method_not_implemented, 'handleChange');
-}
-
-function noopHandleCollectionChange() {
-  throw createMappedError(ErrorNames.method_not_implemented, 'handleCollectionChange');
-}
-
-type ObservationRecordImplType = {
-  version: number;
-  count: number;
-} & Record<string, unknown>;
-
-export interface BindingObserverRecord extends ObservationRecordImplType { }
 export class BindingObserverRecord {
   public version: number = 0;
   public count: number = 0;
@@ -72,9 +33,9 @@ export class BindingObserverRecord {
   /** @internal */
   public o = new Map<ISubscribable | ICollectionSubscribable, number>();
   /** @internal */
-  public readonly b: IConnectableBinding;
+  public readonly b: IObserverLocatorBasedConnectable;
 
-  public constructor(b: IConnectableBinding) {
+  public constructor(b: IObserverLocatorBasedConnectable) {
     this.b = b;
   }
 
@@ -119,19 +80,53 @@ type Connectable = { oL: IObserverLocator } & IConnectable & Partial<ISubscriber
 type DecoratableConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 type DecoratedConnectable<TProto, TClass> = Class<TProto & Connectable, TClass>;
 
-function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>, _context: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass> {
-  const proto = target.prototype;
-  ensureProto(proto, 'observe', observe);
-  ensureProto(proto, 'observeCollection', observeCollection);
-  ensureProto(proto, 'subscribeTo', subscribeTo);
-  def(proto, 'obs', { get: getObserverRecord });
-  // optionally add these two methods to normalize a connectable impl
-  // though don't override if it already exists
-  ensureProto(proto, 'handleChange', noopHandleChange);
-  ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
+const connectableDecorator = (() => {
+  function getObserverRecord(this: IObserverLocatorBasedConnectable): BindingObserverRecord {
+    return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
+  }
+  function observe(this: IObserverLocatorBasedConnectable, obj: object, key: PropertyKey): void {
+    this.obs.add(this.oL.getObserver(obj, key));
+  }
+  function observeCollection(this: IObserverLocatorBasedConnectable, collection: Collection): void {
+    let observer: CollectionObserver;
+    if (isArray(collection)) {
+      observer = getArrayObserver(collection);
+    } else if (isSet(collection)) {
+      observer = getSetObserver(collection);
+    } else if (isMap(collection)) {
+      observer = getMapObserver(collection);
+    } else {
+      throw createMappedError(ErrorNames.non_recognisable_collection_type, collection);
+    }
+    this.obs.add(observer);
+  }
 
-  return target;
-}
+  function subscribeTo(this: IObserverLocatorBasedConnectable, subscribable: ISubscribable | ICollectionSubscribable): void {
+    this.obs.add(subscribable);
+  }
+
+  function noopHandleChange() {
+    throw createMappedError(ErrorNames.method_not_implemented, 'handleChange');
+  }
+
+  function noopHandleCollectionChange() {
+    throw createMappedError(ErrorNames.method_not_implemented, 'handleCollectionChange');
+  }
+
+  return function connectableDecorator<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>, _context: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass> {
+    const proto = target.prototype;
+    ensureProto(proto, 'observe', observe);
+    ensureProto(proto, 'observeCollection', observeCollection);
+    ensureProto(proto, 'subscribeTo', subscribeTo);
+    def(proto, 'obs', { get: getObserverRecord });
+    // optionally add these two methods to normalize a connectable impl
+    // though don't override if it already exists
+    ensureProto(proto, 'handleChange', noopHandleChange);
+    ensureProto(proto, 'handleCollectionChange', noopHandleCollectionChange);
+
+    return target;
+  };
+})();
 
 export function connectable(): typeof connectableDecorator;
 export function connectable<TProto, TClass>(target: DecoratableConnectable<TProto, TClass>, context: ClassDecoratorContext<DecoratableConnectable<TProto, TClass>>): DecoratedConnectable<TProto, TClass>;

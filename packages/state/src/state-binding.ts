@@ -2,18 +2,25 @@
 import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
-  astEvaluate,
   connectable,
-  IAstEvaluator,
-  IBinding,
-  IConnectableBinding,
-  Scope,
+  type Scope,
   type IAccessor,
   type IObserverLocator,
   type IOverrideContext,
-  AccessorType
+  AccessorType,
+  type IObserverLocatorBasedConnectable,
+  ISubscriber
 } from '@aurelia/runtime';
-import { BindingMode, type IBindingController, mixinAstEvaluator, mixingBindingLimited, State } from '@aurelia/runtime-html';
+import {
+  BindingMode,
+  type IBindingController,
+  mixinAstEvaluator,
+  mixingBindingLimited,
+  State,
+  astEvaluate,
+  IAstEvaluator,
+  IBinding,
+} from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
@@ -26,8 +33,8 @@ const stateActivating = State.activating;
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateBinding extends IAstEvaluator, IConnectableBinding { }
-export class StateBinding implements IBinding, IStoreSubscriber<object> {
+export interface StateBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
+export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
   /** @internal */

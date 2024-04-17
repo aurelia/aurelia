@@ -1,10 +1,10 @@
-import { BindingBehaviorInstance, IBinding } from '@aurelia/runtime';
+import { IBinding } from '../../binding/interfaces-bindings';
 import { attrAccessor } from '../../observation/data-attribute-accessor';
 
 import type { Scope } from '@aurelia/runtime';
 import { PropertyBinding } from '../../binding/property-binding';
 import { ErrorNames, createMappedError } from '../../errors';
-import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
+import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 export class AttrBindingBehavior implements BindingBehaviorInstance {
   public static readonly $au: BindingBehaviorStaticAuDefinition = {

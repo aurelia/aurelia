@@ -1,5 +1,8 @@
+import { IDisposable, IServiceLocator } from '@aurelia/kernel';
 import { State } from '../templating/controller';
 import { objectFreeze } from '../utilities';
+import { Scope } from '@aurelia/runtime';
+import { TaskQueue } from '@aurelia/platform';
 
 // Note: the oneTime binding now has a non-zero value for 2 reasons:
 //  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -34,4 +37,21 @@ export type BindingMode = typeof BindingMode[keyof typeof BindingMode];
 
 export interface IBindingController {
   readonly state: State;
+}
+
+export interface IBinding {
+  readonly isBound: boolean;
+  bind(scope: Scope): void;
+  unbind(): void;
+  get: IServiceLocator['get'];
+  useScope?(scope: Scope): void;
+  limit?(opts: IRateLimitOptions): IDisposable;
+}
+
+export interface IRateLimitOptions {
+  type: 'throttle' | 'debounce';
+  delay: number;
+  queue: TaskQueue;
+  now: () => number;
+  signals: string[];
 }

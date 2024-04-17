@@ -1,6 +1,6 @@
-import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
+import { type Scope } from '@aurelia/runtime';
 import { ListenerBinding } from '../../binding/listener-binding';
-import { BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
+import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 import { ErrorNames, createMappedError } from '../../errors';
 

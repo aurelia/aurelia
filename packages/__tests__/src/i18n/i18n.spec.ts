@@ -1,7 +1,8 @@
 import { I18N, I18nInitOptions, Signals } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
-import { ISignaler, nowrap } from '@aurelia/runtime';
+import { nowrap } from '@aurelia/runtime';
 import { assert, MockSignaler, createFixture } from '@aurelia/testing';
+import { ISignaler } from '@aurelia/runtime-html';
 import i18next, { PostProcessorModule } from 'i18next';
 import { Spy } from '../Spy.js';
 import { createI18NContainer } from './util.js';

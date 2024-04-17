@@ -36,7 +36,7 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-} from '@aurelia/runtime';
+} from '@aurelia/runtime-html';
 
 let defined = false;
 export function defineAstMethods() {

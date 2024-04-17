@@ -6,8 +6,10 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  IRateLimitOptions,
-} from '@aurelia/runtime';
+  type ISignaler,
+  type IRateLimitOptions,
+  type IBinding,
+} from '@aurelia/runtime-html';
 
 import type {
   IContainer,
@@ -17,18 +19,16 @@ import type {
 } from '@aurelia/kernel';
 import type {
   Scope,
-  IBinding,
-  IConnectableBinding,
   IndexMap,
   IObserverLocator,
-  ISignaler,
   BindingObserverRecord,
   Collection,
   ISubscribable,
   ICollectionSubscribable,
+  IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
 
-export class MockBinding implements IConnectableBinding {
+export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
   public observerSlots!: number;
   public version!: number;
   public oL!: IObserverLocator;

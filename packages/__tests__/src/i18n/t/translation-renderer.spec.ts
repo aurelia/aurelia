@@ -15,10 +15,10 @@ import {
 import { Constructable } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
-  IBinding,
   IObserverLocator,
 } from '@aurelia/runtime';
 import {
+  IBinding,
   AttributePattern,
   AttributePatternDefinition,
   AttrSyntax,

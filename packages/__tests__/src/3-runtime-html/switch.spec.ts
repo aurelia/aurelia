@@ -12,12 +12,12 @@ import {
   sink,
 } from '@aurelia/kernel';
 import {
-  BindingBehaviorInstance,
-  IBinding,
   Scope,
 } from '@aurelia/runtime';
 import {
   AuSlot,
+  type BindingBehaviorInstance,
+  type IBinding,
   Case,
   Controller,
   bindingBehavior,

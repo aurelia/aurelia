@@ -3,9 +3,9 @@ import { DI } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
-  IBinding,
 } from '@aurelia/runtime';
 import {
+  IBinding,
   IRenderer,
   StandardConfiguration,
   IHydratableController,

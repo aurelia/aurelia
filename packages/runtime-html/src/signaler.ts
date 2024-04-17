@@ -1,8 +1,9 @@
-import { createInterface, createLookup } from '../utilities';
-import type { ISubscriber } from '../observation';
+import type { ISubscriber } from '@aurelia/runtime';
+import { createLookup } from './utilities';
+import { createInterface } from './utilities-di';
 
 export interface ISignaler extends Signaler {}
-export const ISignaler = createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
+export const ISignaler = /*@__PURE__*/ createInterface<ISignaler>('ISignaler', x => x.singleton(Signaler));
 
 export class Signaler {
   public signals: Record<string, Set<ISubscriber> | undefined> = createLookup();

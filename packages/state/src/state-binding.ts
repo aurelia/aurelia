@@ -5,7 +5,6 @@ import {
   connectable,
   type IAccessor,
   type IObserverLocator,
-  type IOverrideContext,
   AccessorType,
   type IObserverLocatorBasedConnectable,
   ISubscriber
@@ -13,6 +12,7 @@ import {
 import {
   BindingMode,
   type Scope,
+  type IOverrideContext,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,

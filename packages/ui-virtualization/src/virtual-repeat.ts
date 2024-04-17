@@ -4,11 +4,11 @@ import {
   Collection,
   getCollectionObserver,
   IndexMap,
-  type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   astEvaluate,
   Scope,
+  type IOverrideContext,
   BindingContext,
   IInstruction,
   IController,

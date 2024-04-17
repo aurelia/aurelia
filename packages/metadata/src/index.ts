@@ -77,10 +77,10 @@ export function isNullOrUndefined(value: unknown): value is null | undefined {
 }
 
 export const Metadata = {
-  getMetadata<T>(key: string, type: any): T | undefined {
+  get<T>(key: string, type: any): T | undefined {
     return type[Symbol.metadata]?.[key];
   },
-  defineMetadata(value: any, type: any,...keys: string[]): void {
+  define(value: any, type: any,...keys: string[]): void {
     const metadata = type[Symbol.metadata] ??= Object.create(null);
     const length = keys.length;
     switch (length) {
@@ -95,13 +95,13 @@ export const Metadata = {
       }
     }
   },
-  hasMetadata(key: string, type: any): boolean {
+  has(key: string, type: any): boolean {
     const metadata = type[Symbol.metadata];
     return metadata == null
       ? false
       : key in metadata;
   },
-  deleteMetadata(key: string, type: any): void {
+  delete(key: string, type: any): void {
     const metadata = type[Symbol.metadata];
     if (metadata == null) return;
     Reflect.deleteProperty(metadata, key);

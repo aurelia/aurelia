@@ -95,7 +95,7 @@ export class Route {
    */
   public static configure<T extends RouteType>(configOrPath: IRoute | string | undefined, Type: T): T {
     const config = Route.create(configOrPath as IRoute, Type as RouteableComponentType);
-    Metadata.defineMetadata(config, Type, Route.resourceKey);
+    Metadata.define(config, Type, Route.resourceKey);
 
     return Type;
   }
@@ -104,7 +104,7 @@ export class Route {
    * Get the `Route` configured with the specified type or null if there's nothing configured.
    */
   public static getConfiguration(Type: RouteableComponentType): Route | IRoute {
-    const config = Metadata.getMetadata<IRoute>(Route.resourceKey, Type) ?? {};
+    const config = Metadata.get<IRoute>(Route.resourceKey, Type) ?? {};
 
     if (Array.isArray(Type.parameters)) {
       config.parameters = Type.parameters;

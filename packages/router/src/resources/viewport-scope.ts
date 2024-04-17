@@ -13,7 +13,6 @@ import {
   IController,
   IHydratedController,
   ISyntheticView,
-  defineElement,
 } from '@aurelia/runtime-html';
 import { IContainer, Writable, resolve } from '@aurelia/kernel';
 import { IRouter } from '../index';
@@ -132,7 +131,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     return void 0;
   }
 }
-defineElement({
+CustomElement.define({
   name: 'au-viewport-scope',
   template: '<template></template>',
   containerless: false,

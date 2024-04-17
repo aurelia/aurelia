@@ -429,6 +429,7 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
   defineMetadata(value, Type, getAnnotationKeyFor(prop));
 };
 
+/** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C | null): CustomElementType<C> => {
   const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable);
   const $Type = definition.Type as CustomElementType<C>;

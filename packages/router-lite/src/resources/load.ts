@@ -3,7 +3,7 @@ import {
   ICustomAttributeViewModel,
   INode,
   CustomElement,
-  defineAttribute,
+  CustomAttribute,
 } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
@@ -126,7 +126,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     void this._router.load(this._instructions, { context: this.context });
   };
 }
-defineAttribute({
+CustomAttribute.define({
   name: 'load',
   bindables: {
     route: { mode: bmToView, primary: true, callback: 'valueChanged' },

@@ -1,7 +1,7 @@
 import { FoundRoute } from '../found-route';
 import { IRoutingInstruction } from '../interfaces';
 import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
-import { INode, CustomAttribute, ICustomAttributeViewModel, defineAttribute } from '@aurelia/runtime-html';
+import { INode, CustomAttribute, ICustomAttributeViewModel } from '@aurelia/runtime-html';
 import { ILinkHandler } from './link-handler';
 import { IRouter, RouterNavigationEndEvent } from '../router';
 import { bmToView, getConsideredActiveInstructions, getLoadIndicator } from './utils';
@@ -117,7 +117,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     return new FoundRoute();
   }
 }
-defineAttribute({
+CustomAttribute.define({
   name: 'load',
   bindables: {
     value: { mode: bmToView },

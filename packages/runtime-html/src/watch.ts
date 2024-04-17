@@ -83,14 +83,14 @@ export function watch<T extends object = object, TV extends AnyMethod = AnyMetho
     );
 
     if (isClassDecorator) {
-      core(target as Constructable);
+      addDefinition(target as Constructable);
     } else {
       context.addInitializer(function (this: T) {
-        core(this.constructor as Constructable);
+        addDefinition(this.constructor as Constructable);
       });
     }
 
-    function core(type: Constructable) {
+    function addDefinition(type: Constructable) {
       Watch.add(type, watchDef as IWatchDefinition);
 
       // if the code looks like this:

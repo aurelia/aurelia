@@ -257,7 +257,6 @@ export {
   type PartialCustomAttributeDefinition,
   type CustomAttributeStaticAuDefinition,
   templateController,
-  defineAttribute,
 } from './resources/custom-attribute';
 export {
   If,
@@ -309,7 +308,6 @@ export {
   type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
-  defineElement,
 } from './resources/custom-element';
 
 export {

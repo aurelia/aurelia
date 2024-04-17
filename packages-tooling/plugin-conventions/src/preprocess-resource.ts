@@ -38,6 +38,7 @@ const {
   isPropertyDeclaration,
   getCombinedModifierFlags,
   ModifierFlags,
+  isPropertyAccessExpression,
   factory: {
     createSpreadAssignment,
     createIdentifier,
@@ -219,26 +220,26 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
         // in order to avoid TS2449: Class '...' used before its declaration.
 
         if (customElementDecorator) {
-          // @customElement('custom-name') CLASS -> CLASS defineElement({ ...viewDef, name: 'custom-name', dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
+          // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name', dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
           m.replace(implicitElement.pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n${elementStatement}\ndefineElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
         } else {
-          // CLASS -> CLASS defineElement({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
+          // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
           m.replace(implicitElement.pos, implicitElement.end, '');
-          m.append(`\n${elementStatement}\ndefineElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
         }
       } else {
         if (customElementDecorator) {
-          // @customElement('custom-name') CLASS -> CLASS defineElement({ ...viewDef, name: 'custom-name' }, exportedClassName);
+          // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.end, `\ndefineElement({ ...${viewDef}, name: ${name} }, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name} }, ${exportedClassName});\n`);
         } else {
-          // CLASS -> CLASS defineElement(viewDef, exportedClassName);
-          m.insert(implicitElement.end, `\ndefineElement(${viewDef}, ${exportedClassName});\n`);
+          // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
+          m.insert(implicitElement.end, `\nCustomElement.define(${viewDef}, ${exportedClassName});\n`);
         }
       }
     }
@@ -328,8 +329,12 @@ function createDefineElementTransformer(): TransformerFactory<SourceFile> {
     const callExpression = node.expression;
     if (!isCallExpression(callExpression)) return node;
 
-    const identifier = callExpression.expression;
-    if (!isIdentifier(identifier) || identifier.escapedText !== 'defineElement') return node;
+    const propertyAccessExpression = callExpression.expression;
+    if (
+      !isPropertyAccessExpression(propertyAccessExpression)
+      || !(isIdentifier(propertyAccessExpression.expression) && propertyAccessExpression.expression.escapedText === 'CustomElement')
+      || !(isIdentifier(propertyAccessExpression.name) && propertyAccessExpression.name.escapedText === 'define')
+    ) return node;
 
     const $arguments = callExpression.arguments;
     if ($arguments.length !== 2) return node;
@@ -348,7 +353,7 @@ function createDefineElementTransformer(): TransformerFactory<SourceFile> {
         spreadAssignment,
         ...definitionExpression.properties,
       ]);
-    const newCallExpression = updateCallExpression(callExpression, identifier, undefined, [newDefinition, className]);
+    const newCallExpression = updateCallExpression(callExpression, propertyAccessExpression, undefined, [newDefinition, className]);
     return updateExpressionStatement(node, newCallExpression);
   }
 }
@@ -390,11 +395,11 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
 }
 
 function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
-  // defineElement
+  // CustomElement.define
   if (isExpressionStatement(node)) {
     const pos = ensureTokenStart(node.pos, code);
     const statement = code.slice(pos, node.end);
-    if (!statement.startsWith('defineElement')) return;
+    if (!statement.startsWith('CustomElement.define')) return;
     const sf = createSourceFile('temp.ts', statement, ScriptTarget.Latest);
     const result = transform(sf, [createDefineElementTransformer()]);
     const modifiedContent = createPrinter().printFile(result.transformed[0]);
@@ -443,7 +448,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
           position: { pos: ensureTokenStart(decorator.pos, code), end: decorator.end },
           namePosition: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
         },
-        runtimeImportName: filePair ? 'defineElement' : undefined
+        runtimeImportName: filePair ? 'CustomElement' : undefined
       };
     }
   } else {
@@ -453,7 +458,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         return {
           className,
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: 'defineElement'
+          runtimeImportName: 'CustomElement'
         };
       }
     } else {
@@ -461,13 +466,13 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       let runtimeImportName: string | undefined;
       switch (type) {
         case 'customAttribute':
-          resourceDefinitionStatement = `\ndefineAttribute('${name}', ${className});\n`;
-          runtimeImportName = 'defineAttribute';
+          resourceDefinitionStatement = `\nCustomAttribute.define('${name}', ${className});\n`;
+          runtimeImportName = 'CustomAttribute';
           break;
 
         case 'templateController':
-          resourceDefinitionStatement = `\ndefineAttribute({ name: '${name}', isTemplateController: true }, ${className});\n`;
-          runtimeImportName = 'defineAttribute';
+          resourceDefinitionStatement = `\nCustomAttribute.define({ name: '${name}', isTemplateController: true }, ${className});\n`;
+          runtimeImportName = 'CustomAttribute';
           break;
 
         case 'valueConverter':

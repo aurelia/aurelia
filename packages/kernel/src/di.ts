@@ -437,7 +437,7 @@ export const DI = {
 export const IContainer = /*@__PURE__*/createInterface<IContainer>('IContainer');
 export const IServiceLocator = IContainer as unknown as InterfaceSymbol<IServiceLocator>;
 
-function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, _context: ClassDecoratorContext):
+function transientDecorator<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, context: ClassDecoratorContext):
   T & RegisterSelf<T> {
   return DI.transient(target);
 }
@@ -464,15 +464,15 @@ export function transient<T extends Constructable>(): typeof transientDecorator;
  * ```
  */
 export function transient<T extends Constructable>(target: T & Partial<RegisterSelf<T>>, context: ClassDecoratorContext): T & RegisterSelf<T>;
-export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, _context?: ClassDecoratorContext): T & RegisterSelf<T> | typeof transientDecorator {
-  return  target == null ? transientDecorator : transientDecorator(target, _context!);
+export function transient<T extends Constructable>(target?: T & Partial<RegisterSelf<T>>, context?: ClassDecoratorContext): T & RegisterSelf<T> | typeof transientDecorator {
+  return  target == null ? transientDecorator : transientDecorator(target, context!);
 }
 
 type SingletonOptions = { scoped: boolean };
 const defaultSingletonOptions = { scoped: false };
 const decorateSingleton = DI.singleton;
 
-type SingletonDecorator = <T extends Constructable>(target: T & Partial<RegisterSelf<T>>, _context: ClassDecoratorContext) => T & RegisterSelf<T>;
+type SingletonDecorator = <T extends Constructable>(target: T & Partial<RegisterSelf<T>>, context: ClassDecoratorContext) => T & RegisterSelf<T>;
 /**
  * Registers the decorated class as a singleton dependency; the class will only be created once. Each
  * consecutive time the dependency is resolved, the same instance will be returned.

@@ -17,8 +17,8 @@ export const subscriberCollection = /*@__PURE__*/(() => {
 
   function subscriberCollection(): <T extends Constructable>(value: T, context: ClassDecoratorContext) => T;
   function subscriberCollection<T extends Constructable>(target: T, context: ClassDecoratorContext): T;
-  function subscriberCollection<T extends Constructable>(target?: T): ((value: T, context: ClassDecoratorContext) => T) | T {
-    return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
+  function subscriberCollection<T extends Constructable>(target?: T, context?: ClassDecoratorContext<T>): ((value: T, context: ClassDecoratorContext) => T) | T {
+    return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target, context!);
   }
 
   function getSubscriberRecord(this: ISubscriberCollection) {
@@ -34,7 +34,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
   }
 
   const decoratedTarget = new WeakSet<Constructable>();
-  function subscriberCollectionDeco<TObj extends object, T extends Class<TObj>>(target: T): T { // ClassDecorator expects it to be derived from Function
+  function subscriberCollectionDeco<TObj extends object, T extends Class<TObj>>(target: T, context: ClassDecoratorContext): T { // ClassDecorator expects it to be derived from Function
     if (!decoratedTarget.has(target)) {
       decoratedTarget.add(target);
       const proto = target.prototype as ISubscriberCollection;

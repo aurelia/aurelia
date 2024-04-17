@@ -389,7 +389,6 @@ export interface IRenderer<TType extends string = string> {
 
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function renderer<TType extends string, T extends IRenderer<TType>, C extends Constructable<T>>(target: C, context: ClassDecoratorContext): C {
   return Registrable.define(target, function (this: typeof target, container: IContainer): void {
     singletonRegistration(IRenderer, this).register(container);

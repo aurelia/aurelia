@@ -64,7 +64,7 @@ export function connectTo<T, R = any>(settings?: ((store: Store<T>) => Observabl
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function <TClass extends Class<unknown>>(target: any, _context: ClassDecoratorContext<TClass>) {
+  return function <TClass extends Class<unknown>>(target: any, context: ClassDecoratorContext<TClass>) {
     const originalSetup = typeof settings === 'object' && settings.setup
       ? target.prototype[settings.setup]
       : target.prototype.binding;

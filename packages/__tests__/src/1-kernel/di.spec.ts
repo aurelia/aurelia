@@ -8,7 +8,7 @@ import {
 } from '@aurelia/kernel';
 import { _, assert, createSpy, ISpy } from '@aurelia/testing';
 
-function decorator() { return (target: any, _context: ClassDecoratorContext) => target; }
+function decorator() { return (target: any, context: ClassDecoratorContext) => target; }
 
 describe('1-kernel/di.spec.ts', function () {
   describe(`The DI object`, function () {

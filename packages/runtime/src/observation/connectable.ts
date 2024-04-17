@@ -119,7 +119,7 @@ const connectableDecorator = /*@__PURE__*/ (() => {
     throw createMappedError(ErrorNames.method_not_implemented, 'handleCollectionChange');
   }
 
-  return function connectableDecorator<T extends Partial<IConnectable>, C extends Constructable<T>>(target: C, _context: ClassDecoratorContext<C>): DecoratedConnectable<T> {
+  return function connectableDecorator<T extends Partial<IConnectable>, C extends Constructable<T>>(target: C, context: ClassDecoratorContext<C>): DecoratedConnectable<T> {
     const proto = target.prototype;
     ensureProto(proto, 'observe', observe);
     ensureProto(proto, 'observeCollection', observeCollection);

@@ -84,7 +84,7 @@ export const observable = /*@__PURE__*/(() => {
 
     // case:  @observable(PropertyKey) class
     if (isClassDecorator) {
-      return function (target: TCThis, _context: ClassDecoratorContext<TCThis>) {
+      return function (target: TCThis, context: ClassDecoratorContext<TCThis>) {
         createDescriptor(target, config.name!, () => noValue, true);
       };
     }

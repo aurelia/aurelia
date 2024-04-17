@@ -1,6 +1,6 @@
 import { I18nConfiguration, I18nInitOptions, II18nextWrapper } from '@aurelia/i18n';
 import { DI, EventAggregator, IContainer, IEventAggregator, Registration } from '@aurelia/kernel';
-import { ISignaler } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime-html';
 import { MockSignaler } from '@aurelia/testing';
 
 export interface I18nConfiguration {

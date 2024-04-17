@@ -5,7 +5,7 @@ import {
 } from '@aurelia/runtime';
 import {
   astEvaluate,
-} from '../binding/ast.eval';
+} from '../ast.eval';
 import { mixinAstEvaluator } from '../binding/binding-utils';
 
 import type { IServiceLocator } from '@aurelia/kernel';

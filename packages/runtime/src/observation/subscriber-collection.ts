@@ -13,27 +13,44 @@ import { addValueBatch, batching } from './subscriber-batch';
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
 /* eslint-disable @typescript-eslint/ban-types */
-export function subscriberCollection(): $ClassDecorator;
-export function subscriberCollection(target: Function): void;
-export function subscriberCollection(target?: Function): $ClassDecorator | void {
-  return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
-}
+export const subscriberCollection = (() => {
 
-const decoratedTarget = new WeakSet<Function>();
-function subscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
-  if (decoratedTarget.has(target)) {
-    return;
+  function subscriberCollection(): $ClassDecorator;
+  function subscriberCollection(target: Function): void;
+  function subscriberCollection(target?: Function): $ClassDecorator | void {
+    return target == null ? subscriberCollectionDeco : subscriberCollectionDeco(target);
   }
-  decoratedTarget.add(target);
-  const proto = target.prototype as ISubscriberCollection;
-  // not configurable, as in devtool, the getter could be invoked on the prototype,
-  // and become permanently broken
-  def(proto, 'subs', { get: getSubscriberRecord });
 
-  ensureProto(proto, 'subscribe', addSubscriber);
-  ensureProto(proto, 'unsubscribe', removeSubscriber);
-}
-/* eslint-enable @typescript-eslint/ban-types */
+  function getSubscriberRecord(this: ISubscriberCollection) {
+    return defineHiddenProp(this, 'subs', new SubscriberRecord());
+  }
+
+  function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
+    return this.subs.add(subscriber as ISubscriber & ICollectionSubscriber);
+  }
+
+  function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
+    return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
+  }
+
+  const decoratedTarget = new WeakSet<Function>();
+  function subscriberCollectionDeco(target: Function): void { // ClassDecorator expects it to be derived from Function
+    if (decoratedTarget.has(target)) {
+      return;
+    }
+    decoratedTarget.add(target);
+    const proto = target.prototype as ISubscriberCollection;
+    // not configurable, as in devtool, the getter could be invoked on the prototype,
+    // and become permanently broken
+    def(proto, 'subs', { get: getSubscriberRecord });
+
+    ensureProto(proto, 'subscribe', addSubscriber);
+    ensureProto(proto, 'unsubscribe', removeSubscriber);
+  }
+  /* eslint-enable @typescript-eslint/ban-types */
+
+  return subscriberCollection;
+})();
 
 export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRecord<T> {
   public count: number = 0;
@@ -89,16 +106,4 @@ export class SubscriberRecord<T extends IAnySubscriber> implements ISubscriberRe
     }
     return;
   }
-}
-
-function getSubscriberRecord(this: ISubscriberCollection) {
-  return defineHiddenProp(this, 'subs', new SubscriberRecord());
-}
-
-function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.add(subscriber as ISubscriber & ICollectionSubscriber);
-}
-
-function removeSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
-  return this.subs.remove(subscriber as ISubscriber & ICollectionSubscriber);
 }

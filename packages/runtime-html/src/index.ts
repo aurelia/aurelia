@@ -1,4 +1,12 @@
 export {
+  type IAstEvaluator,
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from './ast.eval';
+
+export {
   bindable,
   Bindable,
   BindableDefinition,
@@ -15,6 +23,7 @@ export {
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
   type BindingBehaviorType,
+  type BindingBehaviorInstance,
 } from './resources/binding-behavior';
 
 export {
@@ -101,6 +110,8 @@ export {
 export {
   BindingMode,
   type IBindingController,
+  type IBinding,
+  type IRateLimitOptions,
 } from './binding/interfaces-bindings';
 export {
   IFlushQueue,
@@ -314,6 +325,7 @@ export {
   type ValueConverterKind,
   type ValueConverterDecorator,
   type ValueConverterType,
+  type ValueConverterInstance,
   valueConverter,
 } from './resources/value-converter';
 
@@ -459,6 +471,10 @@ export {
   ComputedWatcher,
   ExpressionWatcher,
 } from './templating/watchers';
+
+export {
+  ISignaler,
+} from './signaler';
 
 export {
   alias,

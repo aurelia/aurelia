@@ -2,7 +2,7 @@ import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { toView, type BindingMode, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
-import { isString, objectFreeze, objectKeys } from './utilities';
+import { createLookup, isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
@@ -89,6 +89,7 @@ export function bindable(
           $prop = configOrProp;
         } else {
           const prop = configOrProp.name;
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!prop) throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_class_without_property_name_configuration);
           if (typeof prop !== 'string') throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_symbol);
           $prop = prop;
@@ -100,7 +101,7 @@ export function bindable(
       ? { name: $prop }
       : configOrProp;
 
-    const metadata = context.metadata[baseName] ??= Object.create(null);
+    const metadata = (context.metadata[baseName] ??= createLookup()) as Record<string, BindableDefinition>;
     metadata[$prop] = BindableDefinition.create($prop, config);
   }
 

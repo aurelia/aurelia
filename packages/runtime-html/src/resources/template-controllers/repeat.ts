@@ -19,7 +19,7 @@ import {
 import {
   astEvaluate,
   astAssign,
-} from '../../binding/ast.eval';
+} from '../../ast.eval';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';

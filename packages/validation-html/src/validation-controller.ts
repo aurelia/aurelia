@@ -14,9 +14,6 @@ import {
 } from '@aurelia/expression-parser';
 import {
   astEvaluate,
-  // IsBindingBehavior
-} from '@aurelia/runtime';
-import {
   IPlatform,
   PropertyBinding,
 } from '@aurelia/runtime-html';

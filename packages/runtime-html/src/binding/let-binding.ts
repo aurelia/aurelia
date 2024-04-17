@@ -12,7 +12,7 @@ import {
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
-} from './ast.eval';
+} from '../ast.eval';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';

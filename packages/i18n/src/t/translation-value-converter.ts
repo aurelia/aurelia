@@ -1,10 +1,10 @@
 import { resolve } from '@aurelia/kernel';
-import { ValueConverter } from '@aurelia/runtime-html';
+import { ValueConverter, type ValueConverterInstance } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 import { Signals, ValueConverters } from '../utils';
 
-export class TranslationValueConverter {
+export class TranslationValueConverter implements ValueConverterInstance {
   public readonly signals: string[] = [Signals.I18N_SIGNAL];
 
   private readonly i18n: I18N = resolve(I18N);

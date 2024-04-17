@@ -6,7 +6,7 @@ import {
   astEvaluate,
   astUnbind,
   IAstEvaluator,
-} from './ast.eval';
+} from '../ast.eval';
 import { activating } from '../templating/controller';
 import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';

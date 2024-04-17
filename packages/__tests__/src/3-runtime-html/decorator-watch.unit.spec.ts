@@ -1,7 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { AccessMemberExpression, AccessScopeExpression } from '@aurelia/expression-parser';
-import { astEvaluate } from '@aurelia/runtime';
-import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
+import { astEvaluate, ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {

@@ -9,8 +9,7 @@ import {
   ValidationMessageProvider,
 } from '@aurelia/validation';
 import { Unparser } from '@aurelia/expression-parser';
-import { IBinding } from '@aurelia/runtime';
-import { CustomElement, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
+import { IBinding, CustomElement, INode, Aurelia, IPlatform } from '@aurelia/runtime-html';
 import {
   BindingWithBehavior,
   IValidationController,

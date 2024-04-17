@@ -1,5 +1,5 @@
 import { connectable, ISubscriber } from '@aurelia/runtime';
-import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from './ast.eval';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
 import { activating } from '../templating/controller';
 import { BindingTargetSubscriber, IFlushQueue, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';

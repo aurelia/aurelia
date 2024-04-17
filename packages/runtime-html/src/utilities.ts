@@ -1,5 +1,6 @@
-import { AccessorType, type ISignaler, type ISubscriber } from '@aurelia/runtime';
-import type { ISVGAnalyzer } from './observation/svg-analyzer';
+import { AccessorType, type ISubscriber } from '@aurelia/runtime';
+import { type ISVGAnalyzer } from './observation/svg-analyzer';
+import { type ISignaler } from './signaler';
 
 const O = Object;
 

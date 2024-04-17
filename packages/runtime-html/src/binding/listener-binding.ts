@@ -5,7 +5,7 @@ import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './bindin
 
 import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
 import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, Scope } from '@aurelia/runtime';
-import { astBind, astEvaluate, astUnbind, IAstEvaluator } from './ast.eval';
+import { astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
 import { IBinding } from './interfaces-bindings';
 
 export class ListenerBindingOptions {

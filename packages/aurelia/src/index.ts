@@ -248,24 +248,7 @@ export {
 
   // SetterObserver,
 
-  ISignaler,
-
   subscriberCollection,
-
-  type BindingBehaviorInstance,
-  // PartialBindingBehaviorDefinition,
-  // BindingBehaviorKind,
-  // BindingBehaviorDecorator,
-  // BindingBehaviorInstance,
-  // BindingBehaviorType,
-
-  // BindingModeBehavior,
-  // OneTimeBindingBehavior,
-  // ToViewBindingBehavior,
-  // FromViewBindingBehavior,
-  // TwoWayBindingBehavior,
-
-  // DebounceBindingBehavior,
 
   // SignalableBinding,
   // SignalBindingBehavior,
@@ -313,22 +296,24 @@ export {
   // ICollectionChangeTracker,
   // ICollectionSubscriber,
 
-  // ValueConverterDefinition,
-  // PartialValueConverterDefinition,
-  // ValueConverterKind,
-  // ValueConverterDecorator,
-  type ValueConverterInstance,
-  // ValueConverterType,
   type IndexMap,
 
 } from '@aurelia/runtime';
 
 export {
+  // BindingBehaviorDefinition,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
-  // BindingBehaviorInstance,
   // BindingBehaviorType,
+  type BindingBehaviorInstance,
+
+  // ValueConverterDefinition,
+  // PartialValueConverterDefinition,
+  // ValueConverterKind,
+  // ValueConverterDecorator,
+  // ValueConverterType,
+  type ValueConverterInstance,
 
   // BindingModeBehavior,
   // OneTimeBindingBehavior,
@@ -696,4 +681,6 @@ export {
   IModifiedEventHandlerCreator,
   IEventModifier,
   type IModifiedEventHandler,
+
+  ISignaler,
 } from '@aurelia/runtime-html';

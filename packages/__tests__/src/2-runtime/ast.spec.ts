@@ -39,7 +39,8 @@ import {
   Unparser,
   AccessBoundaryExpression,
 } from '@aurelia/expression-parser';
-import { IAstEvaluator, IConnectableBinding, Scope, astAssign, astEvaluate, astBind } from '@aurelia/runtime';
+import { IObserverLocatorBasedConnectable, Scope } from '@aurelia/runtime';
+import { type IAstEvaluator, astAssign, astEvaluate, astBind, IBinding } from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -62,11 +63,11 @@ const dummyLocatorThatReturnsNull = {
 const dummyBinding = {
   observe: () => { return; },
   locator: dummyLocator
-} as unknown as IConnectableBinding;
+} as unknown as IBinding & IObserverLocatorBasedConnectable;
 const dummyBindingWithLocatorThatReturnsNull = {
   observe: () => { return; },
   locator: dummyLocatorThatReturnsNull,
-} as unknown as IConnectableBinding;
+} as unknown as IBinding & IObserverLocatorBasedConnectable;
 const dummyScope = Scope.create({});
 
 function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {

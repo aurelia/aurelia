@@ -1,6 +1,6 @@
 import type { IServiceLocator } from '@aurelia/kernel';
 import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, type Scope } from '@aurelia/runtime';
-import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from './ast.eval';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
 import { mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';

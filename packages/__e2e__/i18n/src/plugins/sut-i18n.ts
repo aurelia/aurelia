@@ -1,5 +1,5 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { ISignaler } from '@aurelia/runtime';
+import { ISignaler } from '@aurelia/runtime-html';
 import { customElement } from '@aurelia/runtime-html';
 import { Locale } from './translation-resources';
 import { resolve } from '@aurelia/kernel';

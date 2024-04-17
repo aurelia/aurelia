@@ -6,7 +6,7 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-} from './ast.eval';
+} from '../ast.eval';
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';

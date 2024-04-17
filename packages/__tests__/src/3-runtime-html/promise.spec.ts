@@ -17,8 +17,10 @@ import {
   Class,
   resolve,
 } from '@aurelia/kernel';
-import { BindingBehaviorInstance, Scope, IBinding } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime';
 import {
+  type BindingBehaviorInstance,
+  type IBinding,
   valueConverter,
   bindingBehavior,
   ValueConverter,

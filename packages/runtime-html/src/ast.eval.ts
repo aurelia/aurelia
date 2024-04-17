@@ -9,12 +9,12 @@ import {
 } from '@aurelia/expression-parser';
 import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
 import { IBindingContext, IConnectable, IObservable, IOverrideContext, ISubscriber, Scope } from '@aurelia/runtime';
-import { ErrorNames, createMappedError } from '../errors';
-import { isArray, isFunction, isObject, safeString } from '../utilities';
+import { ErrorNames, createMappedError } from './errors';
+import { isArray, isFunction, isObject, safeString } from './utilities';
 import { ISignaler } from './signaler';
-import { BindingBehaviorInstance } from '../resources/binding-behavior';
-import { ValueConverterInstance } from '../resources/value-converter';
-import { IBinding } from './interfaces-bindings';
+import { BindingBehaviorInstance } from './resources/binding-behavior';
+import { ValueConverterInstance } from './resources/value-converter';
+import { IBinding } from './binding/interfaces-bindings';
 
 const ekAccessThis = 'AccessThis';
 const ekAccessBoundary = 'AccessBoundary';

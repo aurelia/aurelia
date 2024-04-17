@@ -1,6 +1,5 @@
 import { ConsoleSink, LoggerConfiguration, LogLevel, resolve } from '@aurelia/kernel';
-import { ISignaler } from '@aurelia/runtime';
-import { customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
+import { ISignaler, customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/signaler.integration.spec.ts', function () {

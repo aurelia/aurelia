@@ -334,10 +334,10 @@ export interface ITemplateCompiler {
    */
   resolveResources: boolean;
   compile(
-    partialDefinition: CustomElementDefinition,
+    partialDefinition: PartialCustomElementDefinition,
     context: IContainer,
     compilationInstruction: ICompliationInstruction | null,
-  ): CustomElementDefinition;
+  ): PartialCustomElementDefinition;
 
   /**
    * Compile a list of captured attributes as if they are declared in a template

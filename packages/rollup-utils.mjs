@@ -180,7 +180,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           rollupReplace({ '_START_CONST_ENUM': '(() => {})', '_END_CONST_ENUM': '(() => {})' }),
           esbuild({
             minify: false,
-            target: 'es2022',
+            target: 'es2021',
             define: { ...envVars, __DEV__: 'true' },
             sourceMap: true,
           }),
@@ -230,7 +230,7 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           rollupReplace({ '_START_CONST_ENUM': '(() => {})', '_END_CONST_ENUM': '(() => {})' }),
           esbuild({
             minify: false,
-            target: 'es2022',
+            target: 'es2021',
             define: { ...envVars, __DEV__: 'false' },
             sourceMap: true,
           }),

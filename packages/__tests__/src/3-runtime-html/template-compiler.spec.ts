@@ -1283,7 +1283,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         ] as ((ctx: TestContext) => BindingMode | undefined)[],
         [
           (ctx, [, , to], [attr, value]) => [`${attr}`, value.length > 0 ? { type: TT.setProperty, to, value } : null],
-          (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default) ? mode : (defaultMode || BindingMode.toView) }],
+          (ctx, [, mode, to], [attr, value], defaultMode) => [`${attr}.bind`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: (mode && mode !== BindingMode.default as any) ? mode : (defaultMode || BindingMode.toView) }],
           (ctx, [, , to], [attr, value]) => [`${attr}.to-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.toView }],
           (ctx, [, , to], [attr, value]) => [`${attr}.one-time`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.oneTime }],
           (ctx, [, , to], [attr, value]) => [`${attr}.from-view`, { type: TT.propertyBinding, from: value.length > 0 ? new AccessScopeExpression(value) : new PrimitiveLiteralExpression(value), to, mode: BindingMode.fromView }],
@@ -2149,7 +2149,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       get debug() { return compiler.debug; },
       set debug(value: boolean) { compiler.debug = value; },
       compile(definition: PartialCustomElementDefinition, container: IContainer, instruction: any) {
-        return compiler.compile(CustomElementDefinition.create(definition), container, instruction);
+        return CustomElementDefinition.getOrCreate(compiler.compile(CustomElementDefinition.create(definition), container, instruction));
       },
       compileSpread(...args: any[]) {
         // eslint-disable-next-line prefer-spread

@@ -28,7 +28,7 @@ import { IPlatform } from '../platform';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
-import { CustomElement, CustomElementDefinition, CustomElementType, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementType, PartialCustomElementDefinition, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
 import { BindingCommandInstance, ICommandBuildInfo, BindingCommand, BindingCommandDefinition } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
@@ -64,10 +64,10 @@ export class TemplateCompiler implements ITemplateCompiler {
   public resolveResources: boolean = true;
 
   public compile(
-    definition: CustomElementDefinition,
+    definition: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
-  ): CustomElementDefinition {
+  ): PartialCustomElementDefinition {
     if (definition.template == null || definition.needsCompile === false) {
       return definition;
     }
@@ -1090,12 +1090,12 @@ export class TemplateCompiler implements ITemplateCompiler {
           // also, it wouldn't have any real uses
           projectionCompilationContext = context._createChild();
           this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = CustomElementDefinition.create({
+          projections[targetSlot] = {
             name: generateElementName(),
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
-          });
+          };
         }
         elementInstruction!.projections = projections;
       }
@@ -1125,12 +1125,12 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       }
-      tcInstruction.def = CustomElementDefinition.create({
+      tcInstruction.def = {
         name: generateElementName(),
         template: mostInnerTemplate,
         instructions: childContext.rows,
         needsCompile: false,
-      });
+      };
 
       // 4.1.2.
       //  Start processing other Template controllers by walking the TC list (list 1) RIGHT -> LEFT
@@ -1158,12 +1158,12 @@ export class TemplateCompiler implements ITemplateCompiler {
           context._comment(auEndComment),
         ]);
 
-        tcInstruction.def = CustomElementDefinition.create({
+        tcInstruction.def = {
           name: generateElementName(),
           template,
           needsCompile: false,
           instructions: [[tcInstructions[i + 1]]],
-        });
+        };
       }
       // the most outer template controller should be
       // the only instruction for peek instruction of the current context
@@ -1277,12 +1277,12 @@ export class TemplateCompiler implements ITemplateCompiler {
           // compile it
           projectionCompilationContext = context._createChild();
           this._compileNode(template.content, projectionCompilationContext);
-          projections[targetSlot] = CustomElementDefinition.create({
+          projections[targetSlot] = {
             name: generateElementName(),
             template,
             instructions: projectionCompilationContext.rows,
             needsCompile: false,
-          });
+          };
         }
         elementInstruction!.projections = projections;
       }
@@ -1631,7 +1631,7 @@ const isMarker = (el: Node): el is Comment =>
 class CompilationContext {
   public readonly root: CompilationContext;
   public readonly parent: CompilationContext | null;
-  public readonly def: CustomElementDefinition;
+  public readonly def: PartialCustomElementDefinition;
   public readonly ci: ICompliationInstruction;
   public readonly _resourceResolver: IResourceResolver;
   public readonly _templateFactory: ITemplateElementFactory;
@@ -1650,7 +1650,7 @@ class CompilationContext {
   private readonly c: IContainer;
 
   public constructor(
-    def: CustomElementDefinition,
+    def: PartialCustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction,
     parent: CompilationContext | null,

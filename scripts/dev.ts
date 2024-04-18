@@ -36,7 +36,7 @@ const args = yargs
   })
   .parseSync();
 
-const envVars = { DEV_MODE: true };
+const envVars = { DEV_MODE: false };
 const testPatterns = (args.t ?? []).join(' ');
 const hasValidTestPatterns = testPatterns !== '';
 
@@ -150,7 +150,7 @@ const baseAppPort = 9000;
 concurrently([
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
-  { command: devCmd, cwd: 'packages/__tests__', name: '__tests__(build)', env: envVars },
+  { command: 'tsc --watch --isolatedModules true', cwd: 'packages/__tests__', name: '__tests__(build)', env: envVars },
   ...devPackages.map((folder: string) => ({
     command: devCmd,
     cwd: `packages/${folder}`,

@@ -95,7 +95,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
-    const compiledDef = CustomElementDefinition.create({
+    const compiledDef: PartialCustomElementDefinition = {
       ...definition,
       name: definition.name || generateElementName(),
       dependencies: (definition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
@@ -106,7 +106,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       template,
       hasSlots: context.hasSlot,
       needsCompile: false,
-    });
+    };
 
     if (context.deps != null) {
       // if we have a template like this
@@ -118,9 +118,9 @@ export class TemplateCompiler implements ITemplateCompiler {
       // <template as-custom-element="le-2">...</template>
       //
       // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
-      const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies, ...context.deps];
+      const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies ?? [], ...context.deps].filter(d => d);
       for (const localElementType of context.deps) {
-        (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType));
+        (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType) as Key[]);
       }
     }
 

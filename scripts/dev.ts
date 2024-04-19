@@ -175,7 +175,7 @@ concurrently([
   }))
 ].filter(Boolean), {
   prefix: '[{name}]',
-  killOthers: 'failure',
+  killOthers: ['failure', 'success'],
   prefixColors: [
     'green',
     'blue',

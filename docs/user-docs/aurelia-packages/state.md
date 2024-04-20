@@ -166,13 +166,11 @@ export type ClearAction = { type: 'clear' }
 
 Then the store can be declared like this:
 ```ts
+import { resolve } from 'aurelia';
 import { IStore } from '@aurelia/state';
 
-@inject(IStore)
 class MyEl {
-  constructor(store: IStore<{}, EditAction | ClearAction>) {
-    this.store = store;
-  }
+  store: IStore<{}, EditAction | ClearAction> = resolve(IStore);
 
   onSomeUserAction() {
     this.store.dispatch({ type: 'edit', value: 'hi' }); // good

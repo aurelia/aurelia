@@ -355,13 +355,13 @@ Note that the property `$dialog` will only be ready after the contructor.
 If it's desirable to retrieve the associated dialog controller of a dialog during the constructor of the component, `IDialogController` can be inject to achieve the same effect:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IDialogController } from '@aurelia/dialog';
 
-@inject(IDialogController)
 class MyDialog {
-  constructor(dialog) {
+  constructor() {
     // change some settings
-    dialog.settings.zIndex = 100;
+    resolve(IDialogController).settings.zIndex = 100;
   }
 }
 ```
@@ -404,11 +404,11 @@ An example of the html structure when document body is the dialog host:
 By default, the dialog content host is centered horizontally and vertically. It can be changed via `IDialogDom` injection:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
 
-@inject(IDialogDom)
 export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom) {
+  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
     dialogDom.contentHost.style.margin = "0 auto"; // only center horizontally
   }
 }
@@ -423,11 +423,11 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
 
-@inject(IDialogDom)
 export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom) {
+  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
     dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   }
 }
@@ -444,8 +444,10 @@ The lifecycles `attaching` and `detaching` can be used to animate a dialog, as i
 An example of animating a dialog on attaching and detaching, with the animation duration of 200 milliseconds:
 
 ```typescript
-@inject(Element)
+import { resolve } from 'aurelia';
+
 export class MyDialog {
+  host: Element = resolve(Element);
   constructor(host: Element) {
     this.host = host;
   }

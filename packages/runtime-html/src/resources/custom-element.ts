@@ -151,7 +151,7 @@ type ShadowOptions = Pick<PartialCustomElementDefinition, 'shadowOptions'>['shad
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */
-export function useShadowDOM(options?: ShadowOptions): (target: Constructable) => void;
+export function useShadowDOM(options?: ShadowOptions): (target: Constructable, context: ClassDecoratorContext) => void;
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
  */

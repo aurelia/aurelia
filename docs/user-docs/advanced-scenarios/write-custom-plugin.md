@@ -95,9 +95,9 @@ Then, add the following dependencies:
 
 ```javascript
 // bootstrap-v5/package.json
-"dependencies": {    
+"dependencies": {
     "aurelia": "latest",
-    "bootstrap": "^5.0.0-beta2",    
+    "bootstrap": "^5.0.0-beta2",
     "@my-plugin/bootstrap-v5-core": "0.1.0"
 },
 ```
@@ -114,8 +114,8 @@ Then, add the following dependencies:
 
 ```javascript
 // demo/package.json
-"dependencies": {    
-    "aurelia": "latest",    
+"dependencies": {
+    "aurelia": "latest",
     "@my-plugin/bootstrap-v5-core": "0.1.0",
     "@my-plugin/bootstrap-v5": "0.1.0"
 },
@@ -264,7 +264,7 @@ Create `bs-button.html` file.
 Create `bs-button.ts` file.
 
 ```javascript
-import { customElement, containerless, BindingMode, bindable } from "aurelia";
+import { customElement, containerless, BindingMode, bindable, resolve } from "aurelia";
 import template from "./bs-button.html";
 import { IBootstrapV5Options, Size } from "@my-plugin/bootstrap-v5-core";
 
@@ -273,10 +273,7 @@ import { IBootstrapV5Options, Size } from "@my-plugin/bootstrap-v5-core";
 export class BootstrapButton {
     private bsButtonTemplate: Element;
     @bindable({ mode: BindingMode.toView }) public size?: Size = null;
-    constructor(
-        @IBootstrapV5Options private options: IBootstrapV5Options
-    ) {
-    }
+    private options: IBootstrapV5Options = resolve(IBootstrapV5Options);
     attached() {
         this.applySize();
     }

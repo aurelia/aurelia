@@ -116,8 +116,8 @@ import { IValidationController, IValidationResultPresenterService } from '@aurel
 export class MyApp {
 
   public constructor(
-    @newInstanceForScope(IValidationController) private readonly validationController: IValidationController,
-    @IValidationResultPresenterService private readonly presenter: IValidationResultPresenterService;
+    private readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+    private readonly presenter: IValidationResultPresenterService = resolve(IValidationResultPresenterService),
   ) {
       this.validationController.addSubscriber(this.presenter);
   }

@@ -25,16 +25,17 @@ export class Person {
 }
 ```
 
-To define rules use the `IValidationRules` fluent API. In order to do that you need to use the `@IValidationRules` constructor parameter decorator which will inject an transient instance of `IValidationRules` object. This is shown in the following example.
+To define rules use the `IValidationRules` fluent API. In order to do that you need to inject the `@IValidationRules`. This is shown in the following example.
 
 {% tabs %}
 {% tab title="awesome-component.ts" %}
 ```typescript
+import { resolve } from 'aurelia';
 import { IValidationRules } from '@aurelia/validation';
 
 export class AwesomeComponent {
   public constructor(
-    @IValidationRules validationRules: IValidationRules
+    validationRules: IValidationRules = resolve(IValidationRules)
   ) { }
 }
 ```
@@ -670,8 +671,8 @@ export class AwesomeComponent {
   private errors: string[];
 
   public constructor(
-     @IValidator private validator: IValidator,
-     @IValidationRules validationRules: IValidationRules
+     private validator: IValidator = resolve(IValidator)
+     validationRules: IValidationRules = resolve(IValidationRules)
   ) {
       this.person = new Person();
       validationRules

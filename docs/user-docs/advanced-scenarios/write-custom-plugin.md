@@ -305,7 +305,7 @@ export class BootstrapButton {
 As you can see we are able to access to plugin options easy via `ctor` \(DI\) and react appropriately to its values.
 
 ```typescript
-@IBootstrapV5Options private options: IBootstrapV5Options
+private options: IBootstrapV5Options = resolve(IBootstrapV5Options);
 ```
 
 In this example, I get the size from the user and apply it to the button component. If the user does not define a value, the default value will be used.

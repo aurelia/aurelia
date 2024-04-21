@@ -23,11 +23,11 @@ When the framework instantiates a component, it calls your class's constructor, 
 Furthermore, the constructor is where you handle the injection of dependencies using dependency injection. You will learn about DI in the [dependency injection section](../getting-to-know-aurelia/dependency-injection-di/), but here is a basic example of where the constructor is used.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter } from '@aurelia/router-lite';
 
 export class MyComponent {
-    constructor(@IRouter readonly router: IRouter) {
-    }
+    readonly router: IRouter = resolve(IRouter);
 }
 ```
 

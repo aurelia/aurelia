@@ -35,8 +35,8 @@ import { FileReader, Logger } from 'your-dependencies-path';
 
 export class FileImporter {
   public static readonly inject = [FileReader, Logger];
-  
-  constructor(private fileReader: FileReader, private logger: Logger) { 
+
+  constructor(private fileReader: FileReader, private logger: Logger) {
     // Constructor logic here
   }
 }
@@ -54,13 +54,13 @@ import { inject, FileReader, Logger } from 'aurelia';
 
 @inject(FileReader, Logger)
 export class FileImporter {
-  constructor(private fileReader: FileReader, private logger: Logger) { 
+  constructor(private fileReader: FileReader, private logger: Logger) {
     // Constructor logic here
   }
 }
 ```
 
-#### Using Compiler Metadata
+<!-- #### Using Compiler Metadata
 
 If you use TypeScript and have enabled metadata emission, you can leverage the TypeScript compiler to deduce the types to inject:
 
@@ -69,14 +69,14 @@ import { inject, FileReader, Logger } from 'aurelia';
 
 @inject()
 export class FileImporter {
-  constructor(private fileReader: FileReader, private logger: Logger) { 
+  constructor(private fileReader: FileReader, private logger: Logger) {
     // Constructor logic here
   }
 }
 ```
 {% hint style="info" %}
 Any decorator on a class will trigger TypeScript to emit type metadata, which Aurelia's DI can use.
-{% endhint %}
+{% endhint %} -->
 
 ### Creating Containers
 
@@ -192,7 +192,7 @@ You can inject an interface using either the decorator or the token directly:
 
 ```typescript
 export class MyComponent {
-  constructor(@IApiClient private api: IApiClient) {}
+  private api: IApiClient = resolve(IApiClient);
 }
 
 // In the future, the decorator may not be necessary:
@@ -227,8 +227,8 @@ You can customize how dependencies are injected using additional decorators:
 
 ```typescript
 export class MyComponent {
-  constructor(@all(ISink) private sinks: ISink[]) {}
-  constructor(@lazy(IFoo) private getFoo: () => IFoo) {}
+  private sinks: ISink[] = resolve(all(ISink));
+  private getFoo: () => IFoo = resolve(lazy(IFoo));
   // And so on...
 }
 ```
@@ -243,7 +243,7 @@ export interface IReduxDevTools extends Window {
 }
 
 export class MyComponent {
-  constructor(@IWindow private window: IReduxDevTools) {}
+  private window: IReduxDevTools = resolve(IWindow);
 }
 ```
 

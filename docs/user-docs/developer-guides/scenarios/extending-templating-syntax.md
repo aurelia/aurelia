@@ -50,11 +50,11 @@ In the next section, we will look into how to teach Aurelia such knowledge.
 As mentioned earlier, the Attribute Syntax Mapper will be used to map `value.bind` into `value.two-way`. Every Aurelia application uses a single instance of this class. The instance can be retrieved via the injection of interface `IAttrMapper`, like the following example:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { inject, IAttrMapper } from '@aurelia/runtime-html';
 
-@inject(IAttrMapper)
 export class MyCustomElement {
-  constructor(attrMapper) {
+  constructor(attrMapper = resolve(IAttrMapper)) {
     // do something with the attr mapper
   }
 }
@@ -83,11 +83,11 @@ attrMapper.useTwoWay(function(element, property) {
 Teaching Aurelia to map `value.bind` to `value.two-way` is the first half of the story. The second half is about how we can teach Aurelia to observe the `value` property for changes on those custom input elements. We can do this via the Node Observer Locator. Every Aurelia application uses a single instance of this class, and this instance can be retrieved via the injection of interface `INodeObserverLocator` like the following example:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { inject, INodeObserverLocator } from '@aurelia/runtime-html';
 
-@inject(INodeObserverLocator)
 export class MyCustomElement {
-  constructor(nodeObserverLocator) {
+  constructor(nodeObserverLocator = resolve(INodeObserverLocator)) {
     // do something with the locator
   }
 }

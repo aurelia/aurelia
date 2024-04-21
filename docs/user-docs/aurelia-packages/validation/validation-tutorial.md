@@ -76,20 +76,20 @@ We now need to include the validation plugin in our component. We'll inject it u
 
 {% code title="my-app.ts" overflow="wrap" %}
 ```typescript
-import { newInstanceForScope } from '@aurelia/kernel';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 
 export class MyApp {
   public constructor(
-    @newInstanceForScope(IValidationController) readonly validationController: IValidationController,
-    @IValidationRules readonly validationRules: IValidationRules
+    readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+    readonly validationRules: IValidationRules = resolve(IValidationRules)
   ) {}
 }
 ```
 {% endcode %}
 
-`@newInstanceForScope(IValidationController)` injects a new instance of validation controller, which is made available to the children of `my-app`
+`resolve(newInstanceForScope(IValidationController))` injects a new instance of validation controller, which is made available to the children of `my-app`
 
 `IValidationRules` is what we will use to register our validation rules that we validate against in our views.
 
@@ -97,15 +97,15 @@ export class MyApp {
 
 Now we have our validation plugin added to the component, let's write validation rules.
 
-<pre class="language-typescript" data-title="my-app.ts" data-overflow="wrap"><code class="lang-typescript">import { newInstanceForScope } from '@aurelia/kernel';
+<pre class="language-typescript" data-title="my-app.ts" data-overflow="wrap"><code class="lang-typescript">
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 
 export class MyApp {
   public constructor(
-    @newInstanceForScope(IValidationController)
-    private validationController: IValidationController,
-    @IValidationRules validationRules: IValidationRules
+    private validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+    validationRules: IValidationRules = resolve(IValidationRules),
   ) {
 <strong>    validationRules
 </strong>      .on(this)
@@ -249,15 +249,15 @@ We have highlighted the changes to our form. We have added in a DIV with two rad
 
 We also add an `if.bind` to our website field as we are making the URL only mandatory for new users, not new customers.
 
-<pre class="language-typescript" data-title="my-app.ts" data-overflow="wrap"><code class="lang-typescript">import { newInstanceForScope } from '@aurelia/kernel';
+<pre class="language-typescript" data-title="my-app.ts" data-overflow="wrap"><code class="lang-typescript">
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 
 export class MyApp {
   public constructor(
-    @newInstanceForScope(IValidationController)
-    private validationController: IValidationController,
-    @IValidationRules validationRules: IValidationRules
+    private validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+    validationRules: IValidationRules = resolve(IValidationRules),
   ) {
     validationRules
       .on(this)
@@ -304,7 +304,7 @@ We already have the code for this part, but we must talk about it. In our `my-ap
 ```typescript
 public async add() {
   const result = await this.validationController.validate();
-  
+
   if (result.valid) {
     // Make an API call or do something here when validation passes
   } else {

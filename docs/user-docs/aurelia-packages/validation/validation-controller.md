@@ -6,29 +6,30 @@ The validation controller is the implementation of `IValidationController` inter
 
 ## Injecting a controller instance
 
-An instance of the validation controller can be injected using the `@newInstanceForScope(IValidationController)`, and the `@IValidationController` decorator. The `@newInstanceForScope(IValidationController)` decorator creates a new instance of the validation controller and registers the instance with the dependency injection container. This same instance can later be made available to the child components using the `@IValidationController` decorator.
+An instance of the validation controller can be injected using `resolve(newInstanceForScope(IValidationController))`, and `resolve(IValidationController)`. The `newInstanceForScope(IValidationController)` resolver creates a new instance of the validation controller and registers the instance with the dependency injection container. This same instance can later be made available to the child components using  `resolve(IValidationController)`.
 
 ```typescript
 // parent-ce.ts
 import { customElement } from '@aurelia/runtime';
-import { newInstanceForScope } from '@aurelia/kernel';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationController } from '@aurelia/validation-html';
 
 @customElement({name:'parent-ce', template:`<child-ce></child-ce>`})
 export class ParentCe {
   public constructor(
     // new instance of validation controller; let us name it c1
-    @newInstanceForScope(IValidationController) private controller: IValidationController
+    private controller: IValidationController = resolve(newInstanceForScope(IValidationController))
   ) { }
 }
 
 // child-ce.ts
+import { resolve } from '@aurelia/kernel';
 import { IValidationController } from '@aurelia/validation';
 
 export class Parent {
   public constructor(
     // the c1 instance is injected here
-    @IValidationController private controller: IValidationController
+    private controller: IValidationController = resolve(IValidationController)
   ) { }
 }
 ```
@@ -39,7 +40,7 @@ The design decision is made keeping the following frequent use case in mind. The
 Creating a new instance of the validation controller and registering the instance with the dependency injection container makes the same instance available to the child components level. The instance can then be used for registering the validation targets (see [`validate` binding behavior](validate-binding-behavior.md)), which makes it possible to execute all the validation rules defined in the children with a single instance of the controller.
 {% endhint %}
 
-A new instance of validation controller can always be injected using the `@newInstanceOf(IValidationController)` decorator. See this action in the demo below.
+A new instance of validation controller can always be injected using the `newInstanceOf(IValidationController)` resolver. See this action in the demo below.
 
 {% embed url="https://stackblitz.com/edit/au2-validation-injecting-validation-controller" %}
 

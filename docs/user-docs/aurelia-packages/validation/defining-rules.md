@@ -25,7 +25,7 @@ export class Person {
 }
 ```
 
-To define rules use the `IValidationRules` fluent API. In order to do that you need to inject the `@IValidationRules`. This is shown in the following example.
+To define rules use the `IValidationRules` fluent API. In order to do that you need to inject the `IValidationRules`. This is shown in the following example.
 
 {% tabs %}
 {% tab title="awesome-component.ts" %}

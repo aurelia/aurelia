@@ -62,10 +62,10 @@ You can also target elements not using the `ref` attribute too. A good example i
 
 {% code overflow="wrap" %}
 ```typescript
-import { INode } from 'aurelia';
+import { INode, resolve } from 'aurelia';
 
 export class MyComponent {
-    constructor(@INode readonly element: HTMLElement) {}
+    readonly element: HTMLElement = resolve(INode);
 }
 ```
 {% endcode %}

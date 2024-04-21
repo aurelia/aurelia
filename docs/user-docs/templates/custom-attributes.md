@@ -23,7 +23,7 @@ Let's create a custom attribute that adds a red background and height to any dom
 
 ```typescript
   import { INode, resolve } from 'aurelia';
-  
+
   export class RedSquareCustomAttribute {
     private element = resolve(INode) as HTMLElement;
     constructor(){
@@ -53,8 +53,8 @@ You can explicitly name the custom attribute using the `name` configuration prop
 
 ```typescript
   import { customAttribute, INode, resolve } from 'aurelia';
-  
-  @customAttribute({ name: 'red-square' }) 
+
+  @customAttribute({ name: 'red-square' })
   export class RedSquare {
     private element = resolve(INode) as HTMLElement;
 
@@ -71,8 +71,8 @@ The `customAttribute` allows you to create one or more aliases that this attribu
 
 ```typescript
   import { customAttribute, INode, resolve } from 'aurelia';
-  
-  @customAttribute({ name: 'red-square', aliases: ['redify', 'redbox'] }) 
+
+  @customAttribute({ name: 'red-square', aliases: ['redify', 'redbox'] })
   export class RedSquare {
     private element = resolve(INode) as HTMLElement;
 
@@ -101,12 +101,12 @@ Sometimes, you want a custom attribute with only one bindable property. You don'
   export class RedSquareCustomAttribute {
     private element = resolve(INode) as HTMLElement;
     private value;
-    
+
     constructor() {
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
-    
+
     bind() {
         this.element.style.backgroundColor = this.value;
     }
@@ -119,21 +119,21 @@ When the value is changed, we can access it like this:
 
 ```typescript
   import { bindable, INode, resolve } from 'aurelia';
-  
+
   export class RedSquareCustomAttribute {
     private element = resolve(INode) as HTMLElement;
 
     @bindable() private value;
-    
+
     constructor() {
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = 'red';
     }
-    
+
     bound() {
         this.element.style.backgroundColor = this.value;
     }
-    
+
     valueChanged(newValue: string, oldValue: string){
         this.element.style.backgroundColor = newValue;
     }
@@ -146,7 +146,7 @@ When using the custom attribute on a dom element, there are instances where you 
 
 ```typescript
   import { INode } from 'aurelia';
-  
+
   export class RedSquareCustomAttribute {
     private element = resolve(INode) as HTMLElement;
   }
@@ -165,16 +165,16 @@ In many cases, you might only need custom attributes without user-configurable p
 Using bindable properties, you can create a configurable custom attribute. Taking our example from above, let's make the background color configurable instead of always red. We will rename the attribute for this.
 
 ```typescript
-  import { bindable, INode } from 'aurelia';
-  
+  import { bindable, INode, resolve } from 'aurelia';
+
   export class ColorSquareCustomAttribute {
     @bindable() color: string = 'red';
-  
-    constructor(@INode private element: HTMLElement){
+
+    constructor(private element: HTMLElement = resolve(INode)){
         this.element.style.width = this.element.style.height = '100px';
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.backgroundColor = this.color;
     }
@@ -184,17 +184,17 @@ Using bindable properties, you can create a configurable custom attribute. Takin
 We can now provide a color on a per-use basis. Let's go one step further and allow the size to be set too.
 
 ```typescript
-  import { bindable, INode } from 'aurelia';
-  
+  import { bindable, INode, resolve } from 'aurelia';
+
   export class ColorSquareCustomAttribute {
     @bindable() color: string = 'red';
     @bindable() size: string = '100px';
-  
-    constructor(@INode private element: HTMLElement){
+
+    constructor(private element: HTMLElement = resolve(INode)){
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.width = this.element.style.height = this.size;
       this.element.style.backgroundColor = this.color;
@@ -207,30 +207,30 @@ We can now provide a color on a per-use basis. Let's go one step further and all
 We have code that will work on the first initialization of our custom property, but if the property is changed after rendering, nothing else will happen. We need to use the change detection functionality to update the element when any bindable properties change.
 
 ```typescript
-  import { bindable, INode } from 'aurelia';
-  
+  import { bindable, INode, resolve } from 'aurelia';
+
   export class ColorSquareCustomAttribute {
     @bindable() color: string = 'red';
     @bindable() size: string = '100px';
-  
-    constructor(@INode private element: HTMLElement){
+
+    constructor(private element: HTMLElement = resolve(INode)){
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.width = this.element.style.height = this.size;
       this.element.style.backgroundColor = this.color;
     }
-    
+
     colorChanged(newColor, oldColor) {
       this.element.style.backgroundColor = newColor;
     }
-    
+
     sizeChanged(newSize: string, oldSize: string) {
       this.element.style.width = this.element.style.height = newSize;
     }
-}  
+}
 ```
 
 As a default convention, bindable property change callbacks will use the bindable property name followed by a suffix of `Changed` at the end. The change callback gets two parameters, the new value and the existing value.
@@ -248,30 +248,30 @@ Options binding provides a custom attribute with the ability to have multiple bi
 When binding to these options, separate each option with a semicolon and supply a binding command or literal value, as in the example below. It is important to note that **bindable properties are converted to dash-case when used in the DOM**, while the view model property they are bound to is kept with their original casing.
 
 ```typescript
-  import { bindable, INode } from 'aurelia';
-  
+  import { bindable, INode, resolve } from 'aurelia';
+
   export class ColorSquareCustomAttribute {
     @bindable() color: string = 'red';
     @bindable() size: string = '100px';
-  
-    constructor(@INode private element: HTMLElement){
+
+    constructor(private element: HTMLElement = resolve(INode)){
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.width = this.element.style.height = this.size;
       this.element.style.backgroundColor = this.color;
     }
-    
+
     colorChanged(newColor, oldColor) {
       this.element.style.backgroundColor = newColor;
     }
-    
+
     sizeChanged(newSize: string, oldSize: string) {
       this.element.style.width = this.element.style.height = newSize;
     }
-}  
+}
 ```
 
 To use options binding, here is how you might configure those properties:
@@ -288,31 +288,31 @@ When you have more than one bindable property, you might want to specify which p
 
 ```typescript
   import { bindable, INode } from 'aurelia';
-   
+
   export class ColorSquareCustomAttribute {
     @bindable( {primary: true} ) color: string = 'red';
     @bindable() size: string = '100px';
-  
+
     private element = resolve(INode) as HTMLElement;
 
     constructor() {
         this.element.style.width = this.element.style.height = this.size;
         this.element.style.backgroundColor = this.color;
     }
-    
+
     bound() {
       this.element.style.width = this.element.style.height = this.size;
       this.element.style.backgroundColor = this.color;
     }
-    
+
     colorChanged(newColor, oldColor) {
       this.element.style.backgroundColor = newColor;
     }
-    
+
     sizeChanged(newSize, oldSize) {
       this.element.style.width = this.element.style.height = newSize;
     }
-}  
+}
 ```
 
 The above example specifies that color is the primary bindable property. Our code actually doesn't change at all. The way we consume the custom attribute changes slightly.

@@ -256,11 +256,12 @@ It is possible to inject an instance of `IAuSlotsInfo` in a custom element view 
 
 {% tab title="my-element.ts" %}
 ```typescript
+import { resolve } from 'aurelia';
 import { IAuSlotsInfo } from '@aurelia/runtime-html';
 
 class MyElement {
   public constructor(
-    @IAuSlotsInfo public readonly slotInfo: IAuSlotsInfo,
+    public readonly slotInfo: IAuSlotsInfo = resolve(IAuSlotsInfo),
   ) {
     console.log(slotInfo.projectedSlots);
   }

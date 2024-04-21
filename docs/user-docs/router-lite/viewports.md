@@ -110,10 +110,7 @@ import template from './products.html';
 })
 @customElement({ name: 'pro-ducts', template })
 export class Products {
-  promise: Promise<ProductDetail[]>;
-  public constructor(@IProductService productService: IProductService) {
-    this.promise = productService.getAll();
-  }
+  promise: Promise<ProductDetail[]> = resolve(IProductService).getAll();
 }
 ```
 {% endtab %}

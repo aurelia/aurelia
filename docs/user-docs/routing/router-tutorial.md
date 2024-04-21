@@ -32,12 +32,12 @@ Open `my-app.html` and add in the `<au-viewport>` and some navigation links.
 
 <pre class="language-html" data-title="my-app.html"><code class="lang-html">&#x3C;div>
   &#x3C;h1>Recipes&#x3C;/h1>
-  
+
 <strong>  &#x3C;nav>
 </strong>    &#x3C;a load="/">Home&#x3C;/a>&#x26;nbsp;&#x26;nbsp;
 <strong>    &#x3C;a load="/recipes">Recipes&#x3C;/a>
 </strong>  &#x3C;/nav>
-  
+
 <strong>  &#x3C;au-viewport>&#x3C;/au-viewport>
 </strong>&#x3C;/div>
 </code></pre>
@@ -180,12 +180,12 @@ In `recipes-page.ts` add the following to the component view model:
 export class RecipesPage {
 <strong>    private http: HttpClient = new HttpClient();
 </strong>    private recipes = [];
-    
+
 <strong>    async bound() {
 </strong>        const response = await this.http.fetch(`https://www.themealdb.com/api/json/v1/1/search.php?f=b`);
-<strong>        
+<strong>
 </strong>        const result = await response.json();
-<strong>        
+<strong>
 </strong>        this.recipes = result.meals;
 <strong>    }
 </strong>}
@@ -244,6 +244,7 @@ When we created our routes in `my-app.ts` you might recall we created a recipe d
 
 {% code title="recipe-detail.ts" overflow="wrap" %}
 ```typescript
+import { resolve } from 'aurelia';
 import { HttpClient } from '@aurelia/fetch-client';
 import { IRouter } from '@aurelia/router';
 
@@ -251,7 +252,7 @@ export class RecipeDetail {
   private http: HttpClient = new HttpClient();
   private recipe;
 
-  constructor(@IRouter readonly router: IRouter) {}
+  readonly router: IRouter = resolve(IRouter);
 
   async canLoad(parameters) {
     if (parameters?.recipeId) {
@@ -259,7 +260,7 @@ export class RecipeDetail {
 
       if (loadRecipe) {
         this.recipe = loadRecipe;
-        
+
         return true;
       } else {
         this.router.load(`/recipes`);

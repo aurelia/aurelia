@@ -340,22 +340,18 @@ The default value is `false`; that is Aurelia2 does not coerce the `null` and `u
 
 Additionally, depending on whether you are using TypeScript or JavaScript for your app, there can be several ways to use automatic type coercion.
 
-### For TypeScript development
+### Specify `type` in `@bindable`
 
-For TypeScript development, this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set, and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest.
-
-If, for some reason, you cannot do that, then refer to the next section.
-
-### For JavaScript development
-
-For JavaScript development, you need to specify the explicit `type` in the `@bindable` definition.
+You need to specify the explicit `type` in the `@bindable` definition.
 
 ```javascript
 @customElement({ name:'my-el', template: 'not important' })
 export class MyEl {
-  @bindable({ type: Number }) num;
+  @bindable({ type: Number }) num : number;
 }
 ```
+
+<!-- For TypeScript development, this gets easier when the `emitDecoratorMetadata` configuration property in `tsconfig.json` is set to `true`. When this property is set, and the `@bindable` properties are annotated with types, there is no need to do anything else; Aurelia 2 will do the rest. -->
 
 {% hint style="info" %}
 The rest of the document is based on TypeScript examples. However, we trust that you can transfer that knowledge to your JavaScript codebase if necessary.

@@ -75,12 +75,11 @@ A good practice when working with APIs in Aurelia is to create a service (a sing
 Create a new directory inside of `src` called `services` and then create a new file called `api.ts`. Let's inject the Aurelia Fetch Client and write a method to fetch the prices.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     async getPrices(ids: string[]) {
         try {

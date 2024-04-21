@@ -15,12 +15,10 @@ Reasons to use logging inside of your apps and plugins include helpful debug mes
 The logger is injected using dependency injection into your components:
 
 ```typescript
-import { ILogger } from 'aurelia';
+import { ILogger, resolve } from 'aurelia';
 
 export class MyComponent {
-  public constructor(@ILogger private readonly logger: ILogger) {
-      this.logger = logger.scopeTo('MyComponent');
-  }
+  private readonly logger: ILogger = resolve(ILogger).scopeTo('MyComponent');
 }
 ```
 
@@ -38,13 +36,11 @@ Just like `console.log` the Aurelia logger supports the following methods:
 These methods are called on the logger instance you injected into your component.
 
 ```typescript
-import { ILogger } from 'aurelia';
+import { ILogger, resolve } from 'aurelia';
 
 export class MyComponent {
-  public constructor(@ILogger private readonly logger: ILogger) {
-      this.logger = logger.scopeTo('MyComponent');
-  }
-  
+  private readonly logger: ILogger = resolve(ILogger).scopeTo('MyComponent');
+
   public add() {
       this.logger.debug(`Adding something`);
   }
@@ -54,13 +50,11 @@ export class MyComponent {
 Just like `console.log` you can also pass in values such as strings, booleans, arrays and objects.
 
 ```typescript
-import { ILogger } from 'aurelia';
+import { ILogger, resolve } from 'aurelia';
 
 export class MyComponent {
-  public constructor(@ILogger private readonly logger: ILogger) {
-      this.logger = logger.scopeTo('MyComponent');
-  }
-  
+  private readonly logger: ILogger = resolve(ILogger).scopeTo('MyComponent');
+
   public add() {
       this.logger.debug(`Adding something`, [
           { prop: 'value', something: 'else' }

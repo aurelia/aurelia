@@ -105,7 +105,7 @@ Here's how you would tell the binding to only update the model on `blur`:
 **Update on blur**
 
 ```html
-<input value.bind="firstName & updateTrigger:'blur'>  
+<input value.bind="firstName & updateTrigger:'blur'>
 ```
 
 Multiple events are supported:
@@ -139,10 +139,10 @@ Here's how we can use the `ISignaler` to signal the bindings periodically:
 **Signaling Bindings**
 
 ```typescript
-import { ISignaler } from 'aurelia';
-  
+import { ISignaler, resolve} from 'aurelia';
+
 export class MyApp {
-  constructor(@ISignaler readonly signaler: ISignaler) {
+  constructor(readonly signaler: ISignaler = resolve(ISignaler)) {
     setInterval(() => signaler.signal('my-signal'), 5000);
   }
 }
@@ -167,9 +167,9 @@ There are also binding behaviors for `toView` and `twoWay` which you could use l
 ```html
 <input value.bind="foo & toView">
 <input value.to-view="foo">
-  
+
 <input value.bind="foo & twoWay">
-<input value.two-way="foo">  
+<input value.two-way="foo">
 ```
 
 {% hint style="warning" %}
@@ -234,7 +234,7 @@ onMouseDown(event) {
 
 ## Custom binding behaviors
 
-You can build custom binding behaviors just like you can build value converters. Instead of `toView` and `fromView` methods, you'll create `bind(binding, scope, [...args])` and `unbind(binding, scope)` methods. In the bind method, you'll add your behavior to the binding, and in the unbind method, you should clean up whatever you did in the bind method to restore the binding instance to its original state. 
+You can build custom binding behaviors just like you can build value converters. Instead of `toView` and `fromView` methods, you'll create `bind(binding, scope, [...args])` and `unbind(binding, scope)` methods. In the bind method, you'll add your behavior to the binding, and in the unbind method, you should clean up whatever you did in the bind method to restore the binding instance to its original state.
 
 The `binding` argument is the binding instance whose behavior you want to change. It's an implementation of the `Binding` interface. The `scope` argument is the binding's data context. It provides access to the model the binding will be bound to via its `bindingContext` and `overrideContext` properties.
 
@@ -255,7 +255,7 @@ Here's a custom binding behavior that calls a method on your view model each tim
         binding[methodName] = method.bind(binding);
       }
     }
-  
+
     unbind(scope, binding) {
       let i = interceptMethods.length;
       while (i--) {
@@ -268,7 +268,7 @@ Here's a custom binding behavior that calls a method on your view model each tim
       }
     }
   }
-  
+
 ```
 
 ```html
@@ -348,7 +348,7 @@ export class HighlightUpdatesBindingBehavior {
     binding.updateTarget = (value) => {
       originalUpdateTarget.call(binding, value);
       const originalBg = binding.target.style.backgroundColor;
-      
+
       binding.target.style.backgroundColor = highlightColor;
       setTimeout(() => {
         binding.target.style.backgroundColor = originalBg;

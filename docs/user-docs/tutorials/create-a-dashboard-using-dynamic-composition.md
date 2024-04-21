@@ -70,7 +70,7 @@ The functionality of this component is to get the current date and then display 
 
 ```typescript
 export class DateComponent {
-    date = new Date().toDateString(); 
+    date = new Date().toDateString();
 }
 ```
 
@@ -86,7 +86,7 @@ import { customElement } from 'aurelia';
     template: `<div class="component date-component"><h4>\${date}</h4></div>`
 })
 export class DateComponent {
-    date = new Date().toDateString(); 
+    date = new Date().toDateString();
 }
 ```
 
@@ -99,12 +99,11 @@ You will be introduced to the Promise controller in this component, showcasing h
 Create a new file called `dog-component` inside of `src/components` and add in the following code:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class DogComponent {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     fetchDog() {
         return this.http.fetch('https://random.dog/woof.json')
@@ -287,12 +286,11 @@ Some of this code will look familiar to you. We worked with the Aurelia Fetch Cl
 Create a new file called `geoip-component.ts` inside of the `src/components` directory in your application and populate it with the following:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class GeoipComponent {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     getUserInfo() {
         return this.http.fetch('https://freegeoip.app/json/')
@@ -450,12 +448,11 @@ Once more, we'll be interacting with an API. And the code like in our dog compon
 Create a new file called `exchange-component` in the `components` directory:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class ExchangeComponent {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     getExchangeData() {
         return this.http.fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -535,17 +532,16 @@ Our dog, GeoIP and exchange components all make API requests, they all expect JS
 Create a new file called `api.ts` in our `services` directory. We will then inject the Aurelia Fetch Client and create a method that accepts two parameters.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     fetchData(url: string, error = 'Unable to fetch data') {
         return this.http.fetch(url)
             .then(r => r.ok ? r.json() : (() => { throw new Error(error) }))
-    } 
+    }
 }
 ```
 

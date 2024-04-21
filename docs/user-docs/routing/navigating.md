@@ -13,12 +13,11 @@ This section details how you can use the load method on the router instance or l
 To use the `load` method, you have first to inject the router into your component. This can be done easily by using the `IRouter` decorator on your component constructor method. The following code will add a property to your component, which we can reference.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, IRouteableComponent } from '@aurelia/router';
 
 export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
+    private router: IRouter = resolve(IRouter);
 }
 ```
 
@@ -27,12 +26,11 @@ export class MyComponent implements IRouteableComponent {
 The `load` method can accept a simple string value allowing you to navigate to another component without needing to supply configuration options.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, IRouteableComponent } from '@aurelia/router';
 
 export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
+    private router: IRouter = resolve(IRouter);
 
     async viewProducts() {
         await this.router.load('/products');
@@ -43,12 +41,11 @@ export class MyComponent implements IRouteableComponent {
 You could also use the string value method to pass parameter values and do something like this where our route expects a product ID, and we pass 12:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, IRouteableComponent } from '@aurelia/router';
 
 export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
+    private router: IRouter = resolve(IRouter);
 
     async viewProducts() {
         await this.router.load(`/products/12`);
@@ -69,12 +66,11 @@ A list of available load options can be found below:
 These option values can be specified as follows and when needed:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, IRouteableComponent } from '@aurelia/router';
 
 export class MyComponent implements IRouteableComponent {
-    constructor(@IRouter private router: IRouter) {
-
-    }
+    private router: IRouter = resolve(IRouter);
 
     async viewProduct() {
         await this.router.load('products', {

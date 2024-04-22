@@ -10,18 +10,18 @@ import { TaskQueue } from '@aurelia/platform';
 //
 // Furthermore, the "default" mode would be for simple ".bind" expressions to make it explicit for our logic that the default is being used.
 // This essentially adds extra information which binding could use to do smarter things and allows bindingBehaviors that add a mode instead of simply overwriting it
+/** @internal */ export const defaultMode = 0b0000;
 /** @internal */ export const oneTime     = 0b0001;
 /** @internal */ export const toView      = 0b0010;
 /** @internal */ export const fromView    = 0b0100;
 /** @internal */ export const twoWay      = 0b0110;
-/** @internal */ export const defaultMode = 0b1000;
 /**
  * Mode of a binding to operate
  * - 1 / one time - bindings should only update the target once
  * - 2 / to view - bindings should update the target and observe the source for changes to update again
  * - 3 / from view - bindings should update the source and observe the target for changes to update again
  * - 6 / two way - bindings should observe both target and source for changes to update the other side
- * - 8 / default - undecided mode, bindings, depends on the circumstance, may decide what to do accordingly
+ * - 0 / default - undecided mode, bindings, depends on the circumstance, may decide what to do accordingly
  */
 export const BindingMode = /*@__PURE__*/ objectFreeze({
   oneTime,

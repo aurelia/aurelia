@@ -13,9 +13,28 @@ import { createInterface } from '../utilities-di';
 import { ErrorNames, createMappedError } from '../errors';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
-export interface IRendering extends Rendering { }
+export interface IRendering {
+  get renderers(): Record<string, IRenderer>;
 
-export class Rendering {
+  compile(
+    definition: CustomElementDefinition,
+    container: IContainer,
+    compilationInstruction: ICompliationInstruction | null,
+  ): CustomElementDefinition;
+
+  getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
+
+  createNodes(definition: CustomElementDefinition): INodeSequence;
+
+  render(
+    controller: IHydratableController,
+    targets: ArrayLike<INode>,
+    definition: CustomElementDefinition,
+    host: INode | null | undefined,
+  ): void;
+}
+
+export class Rendering implements IRendering {
   /** @internal */
   private readonly _ctn: IContainer;
   /** @internal */
@@ -49,21 +68,20 @@ export class Rendering {
   }
 
   public compile(
-    definition: PartialCustomElementDefinition,
+    definition: CustomElementDefinition,
     container: IContainer,
     compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
+    const compiler = container.get(ITemplateCompiler);
+    const compiledMap = this._compilationCache;
+    let compiled = compiledMap.get(definition);
     if (definition.needsCompile !== false) {
-      const compiledMap = this._compilationCache;
-      const compiler = container.get(ITemplateCompiler);
-      let compiled = compiledMap.get(definition);
       if (compiled == null) {
-        // const fullDefinition = CustomElementDefinition.getOrCreate(definition);
-        compiledMap.set(definition, compiled = compiler.compile(
-          CustomElementDefinition.getOrCreate(definition),
+        compiledMap.set(definition, compiled = CustomElementDefinition.create(compiler.compile(
+          definition,
           container,
           compilationInstruction
-        ));
+        )));
       } else {
         // todo:
         // should only register if the compiled def resolution is string
@@ -73,7 +91,7 @@ export class Rendering {
       return compiled;
     }
 
-    return definition as CustomElementDefinition;
+    return definition;
   }
 
   public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {
@@ -94,7 +112,7 @@ export class Rendering {
     } else {
       const template = definition.template;
       let tpl: HTMLTemplateElement;
-      if (template === null) {
+      if (template == null) {
         fragment = null;
       } else if (template instanceof p.Node) {
         if (template.nodeName === 'TEMPLATE') {

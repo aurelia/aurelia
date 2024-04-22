@@ -55,6 +55,7 @@ export type PartialCustomElementDefinition<TBindables extends string = string> =
   readonly enhance?: boolean;
   readonly watches?: IWatchDefinition[];
   readonly processContent?: ProcessContentHook | null;
+  readonly Type?: Constructable;
 }>;
 
 export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {

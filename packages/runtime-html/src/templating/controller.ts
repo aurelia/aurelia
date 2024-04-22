@@ -492,7 +492,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   private _hydrateSynthetic(): void {
-    this._compiledDef = this._rendering.compile(this.viewFactory!.def!, this.container, null);
+    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container, null);
     this._rendering.render(
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),

@@ -95,7 +95,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
-    const compiledDef: PartialCustomElementDefinition = {
+    const compiledDef: PartialCustomElementDefinition = CustomElementDefinition.create({
       ...definition,
       name: definition.name || generateElementName(),
       dependencies: (definition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
@@ -106,7 +106,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       template,
       hasSlots: context.hasSlot,
       needsCompile: false,
-    };
+    });
 
     if (context.deps != null) {
       // if we have a template like this

@@ -36,3 +36,4 @@ test/benchmarking-apps/runner/cosmos.config.json
 
 .turbo
 .parcel-cache
+.tsconfig.dev.json

@@ -39,6 +39,7 @@
     "build": "tsc --build",
     "postbuild": "rimraf dist/**/.tsbuildinfo",
     "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",
+    "dev:tsc": "node tsc.dev.cjs",
     "rollup": "npm run build",
     "build:packages": "node esbuild.dev.cjs",
     "verify": "tsc --noEmit"

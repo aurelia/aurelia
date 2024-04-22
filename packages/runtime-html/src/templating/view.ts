@@ -4,17 +4,30 @@ import { createInterface } from '../utilities-di';
 import { Controller } from './controller';
 
 import type { IContainer } from '@aurelia/kernel';
-import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { ICustomAttributeController, ICustomElementController, ISyntheticView } from './controller';
 
-export interface IViewFactory extends ViewFactory {}
+export interface IViewFactory {
+  name: string;
+  readonly container: IContainer;
+  def: CustomElementDefinition;
+  isCaching: boolean;
+
+  setCacheSize(size: number | '*', doNotOverrideIfAlreadySet: boolean): void;
+
+  canReturnToCache(_controller: ISyntheticView): boolean;
+
+  tryReturnToCache(controller: ISyntheticView): boolean;
+
+  create(parentController?: ISyntheticView | ICustomElementController | ICustomAttributeController | undefined): ISyntheticView;
+}
 export const IViewFactory = /*@__PURE__*/createInterface<IViewFactory>('IViewFactory');
+
 export class ViewFactory implements IViewFactory {
   public static maxCacheSize: number = 0xFFFF;
 
   public name: string;
   public readonly container: IContainer;
-  public def: PartialCustomElementDefinition;
+  public def: CustomElementDefinition;
   public isCaching: boolean = false;
 
   /** @internal */

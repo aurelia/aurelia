@@ -117,7 +117,7 @@ export class MyApp {
   private presenter: ValidationResultPresenterService;
 
   public constructor(
-     @newInstanceForScope(IValidationController) private validationController: IValidationController,
+     private validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
   ) {
       this.presenter = new ValidationResultPresenterService();
       this.validationController.addSubscriber(this.presenter);

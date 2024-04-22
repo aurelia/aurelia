@@ -196,19 +196,19 @@ await new Aurelia(container).app({
 ### With conventions
 
 ```typescript
-import { bindable, IHttpClient } from 'aurelia';
+import { bindable, IHttpClient, resolve } from 'aurelia';
 export class ProductDetailCustomElement {
   static dependencies = [ImageViewerCustomElement, CurrencyValueConverter];
   static containerless = true;
   @bindable product: Product;
-  constructor(@IHttpClient readonly http: IHttpClient) {}
+  readonly http: IHttpClient = resolve(IHttpClient);
 }
 ```
 
 ### Without conventions
 
 ```typescript
-import { customElement, bindable, IHttpClient } from 'aurelia';
+import { customElement, bindable, IHttpClient, resolve } from 'aurelia';
 import template from './product-detail.html';
 @customElement({
   name: 'product-detail',
@@ -218,7 +218,7 @@ import template from './product-detail.html';
 })
 export class ProductDetail {
   @bindable product: Product;
-  constructor(@IHttpClient readonly http: IHttpClient) {}
+  readonly http: IHttpClient = resolve(IHttpClient);
 }
 ```
 
@@ -276,31 +276,23 @@ export const Ripple = CustomAttribute.define({
 ### With conventions
 
 ```typescript
-import { IViewFactory, IRenderLocation, ISyntheticView } from 'aurelia';
+import { IViewFactory, IRenderLocation, ISyntheticView, resolve } from 'aurelia';
 export class NoopTemplateController {
-  view: ISyntheticView;
-  constructor(
-    @IViewFactory factory: IViewFactory,
-    @IRenderLocation location: IRenderLocation,
-  ) {
-    this.view = factory.create().setLocation(location);
-  }
+  view: ISyntheticView = resolve(IViewFactory)
+    .create()
+    .setLocation(resolve(IRenderLocation));
 }
 ```
 
 ### Without conventions
 
 ```typescript
-import { templateController, IViewFactory, IRenderLocation, ISyntheticView } from 'aurelia';
+import { templateController, IViewFactory, IRenderLocation, ISyntheticView, resolve } from 'aurelia';
 @templateController('noop')
 export class Noop {
-  view: ISyntheticView;
-  constructor(
-    @IViewFactory factory: IViewFactory,
-    @IRenderLocation location: IRenderLocation,
-  ) {
-    this.view = factory.create().setLocation(location);
-  }
+  view: ISyntheticView = resolve(IViewFactory)
+    .create()
+    .setLocation(resolve(IRenderLocation));
 }
 ```
 
@@ -324,10 +316,10 @@ export const Noop = CustomAttribute.define({
 ### With conventions
 
 ```typescript
-import { ILogger } from 'aurelia';
+import { ILogger, resolve } from 'aurelia';
 export class LogBindingBehavior {
   constructor(
-    @ILogger readonly logger: ILogger,
+    readonly logger: ILogger = resolve(ILogger),
   ) {}
   bind(...args) {
     this.logger.debug('bind', ...args);
@@ -341,11 +333,11 @@ export class LogBindingBehavior {
 ### Without conventions
 
 ```typescript
-import { ILogger, bindingBehavior } from 'aurelia';
+import { ILogger, bindingBehavior, resolve } from 'aurelia';
 @bindingBehavior('log')
 export class Log {
   constructor(
-    @ILogger readonly logger: ILogger,
+    readonly logger: ILogger = resolve(ILogger),
   ) {}
   bind(...args) {
     this.logger.debug('bind', ...args);
@@ -518,7 +510,7 @@ export class BananaInBox {
 * Rename `unbind` to `unbinding` (there is no `unbound`)
 * Rename `detached` to `detaching` (there is no more `detached`)
   * If you _really_ need to run logic _after_ the component is removed from the DOM, use `unbinding` instead.
-* If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" (or simply parent in this case). You can inject it via DI with the `@IController` decorator / `IController` interface, therefore it's no longer passed-in as an argument to `created`.
+* If you need the `owningView`, consider the interface shown below: what was "view" in v1 is now called "controller", and what was called "owningView" in v1 is now called "parentController" (or simply parent in this case). You can inject it via DI using `resolve(IController)`, therefore it's no longer passed-in as an argument to `created`.
 
 ### The view model interfaces
 
@@ -632,7 +624,7 @@ container.register(Registration.singleton(IApiClient, ApiClient));
 ```typescript
 // Note: in the future there will be a convention where the decorator is no longer necessary with interfaces
 export class MyComponent {
-  constructor(@IApiClient private api: IApiClient) {}
+  private api: IApiClient = resolve(IApiClient);
 }
 // Once the convention is in place:
 export class MyComponent {
@@ -677,12 +669,12 @@ export class SomeClass {}
 ```typescript
 export class MyLogger {
   // Resolve all dependencies associated with a key (zero to many)
-  constructor(@all(ISink) private sinks: ISink[]) {}
+  private sinks: ISink[] = resolve(all(ISink));
 }
 
 export class MyComponent {
   // Resolve a factory function that returns the dependency when called
-  constructor(@lazy(IFoo) private getFoo: () => IFoo) {}
+  private getFoo: () => IFoo = resolve(lazy(IFoo));
 
   doStuff() {
     const foo = this.getFoo();
@@ -696,12 +688,12 @@ export class MyComponent {
 
 export class MyComponent {
   // Yield undefined (instead of throwing) if no registration exists
-  constructor(@optional(IFoo) private foo: IFoo) {}
+  private foo: IFoo = resolve(optional(IFoo));
 }
 
 export class MyComponent {
   // Explicitly create a new instance, even if the key is already registered as a singleton
-  constructor(@newInstanceOf(IFoo) private foo: IFoo) {}
+  private foo: IFoo = resolve(newInstanceOf(IFoo));
 }
 
 // Extend Window type for custom added properties or e.g. third party libraries like Redux DevTools which do so, yet inject the actual window object
@@ -712,7 +704,7 @@ export interface IReduxDevTools extends Window {
 
 export class MyComponent {
   // Note that the type itself is not responsible for resolving the proper key but the decorator
-  constructor(@IWindow private window: IReduxDevTools) {}
+  private window: IReduxDevTools = resolve(IWindow);
 }
 ```
 

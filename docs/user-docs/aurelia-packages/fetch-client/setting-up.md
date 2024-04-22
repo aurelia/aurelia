@@ -25,47 +25,15 @@ httpClient.get('users')
 
 You can inject a new instance into your component or service class by injecting the Fetch client with the `newInstanceOf` decorator. This will ensure our component gets a new instance of the Fetch client.
 
-{% tabs %}
-{% tab title="TypeScript" %}
-```typescript
-import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
-import { ICustomElementViewModel } from 'aurelia';
-
-export class MyComponent {    
-    constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
-
-    }
- }   
-```
-{% endtab %}
-
-{% tab title="JavaScript" %}
-```javascript
-import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
-import { inject } from 'aurelia';
-
-@inject(newInstanceOf(IHttpClient))
-
-export class MyComponent {    
-    constructor(http) {
-        this.http = http
-    }
- }   
-```
-
-You can also use `resolve`
-
 ```javascript
 
 import { IHttpClient } from '@aurelia/fetch-client';
 import { resolve, newInstanceOf } from '@aurelia/kernel';
 import { inject } from 'aurelia';
 
-export class MyComponent {    
+export class MyComponent {
     http = resolve(newInstanceOf(IHttpClient))
-} 
+}
 ```
 {% endtab %}
 {% endtabs %}
@@ -82,11 +50,11 @@ Many configuration options available to the native Fetch API are also available 
 {% tab title="TypeScript" %}
 ```typescript
 import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
+import { newInstanceOf. resolve } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
+export class MyComponent implements ICustomElementViewModel {
+    constructor(readonly http: IHttpClient= resolve(newInstanceOf(IHttpClient))) {
       http.configure(config =>
         config
         .withBaseUrl('api/')
@@ -109,22 +77,19 @@ export class MyComponent implements ICustomElementViewModel {
         })
       );
     }
- }   
+ }
 ```
 {% endtab %}
 
 {% tab title="JavaScript" %}
 ```javascript
 import { IHttpClient } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
-import { inject } from 'aurelia';
+import { newInstanceOf, resolve } from '@aurelia/kernel';
 
-@inject(newInstanceOf(IHttpClient))
-
-export class MyComponent {    
-    constructor(http) {
+export class MyComponent {
+    constructor(http = resolve(newInstanceOf(IHttpClient))) {
         this.http = http
-        
+
         this.http.configure(config =>
           config
           .withBaseUrl('api/')
@@ -147,7 +112,7 @@ export class MyComponent {
           })
         );
     }
- }    
+ }
 ```
 {% endtab %}
 {% endtabs %}
@@ -176,54 +141,51 @@ There are some caveats with the default Fetch implementation around error handli
 {% tab title="TypeScript" %}
 ```typescript
 import { IHttpClient, json } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
+import { newInstanceOf, resolve } from '@aurelia/kernel';
 import { ICustomElementViewModel } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@newInstanceOf(IHttpClient) readonly http: IHttpClient) {
+export class MyComponent implements ICustomElementViewModel {
+    constructor(readonly http: IHttpClient = resolve(newInstanceOf(IHttpClient)) {
 
     }
-    
+
     createComment() {
         let comment = {
           title: 'Awesome!',
           content: 'This Fetch client is pretty rad.'
         };
-  
+
         this.http.fetch('comments', {
           method: 'post',
           body: json(comment)
         });
     }
- }   
+ }
 ```
 {% endtab %}
 
 {% tab title="JavaScript" %}
 ```typescript
 import { IHttpClient, json } from '@aurelia/fetch-client';
-import { newInstanceOf } from '@aurelia/kernel';
-import { inject } from 'aurelia';
+import { newInstanceOf, resolve } from '@aurelia/kernel';
 
-@inject(newInstanceOf(IHttpClient))
-
-export class MyComponent {    
-    constructor(http) {
+export class MyComponent {
+    constructor(http = resolve(newInstanceOf(IHttpClient))) {
         this.http = http
     }
-    
+
     createComment() {
         let comment = {
           title: 'Awesome!',
           content: 'This Fetch client is pretty rad.'
         };
-  
+
         this.http.fetch('comments', {
           method: 'post',
           body: json(comment)
         });
     }
- }       
+ }
 ```
 {% endtab %}
 {% endtabs %}

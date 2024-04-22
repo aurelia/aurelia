@@ -27,7 +27,7 @@ Usage of `ValidationRules` in terms of defining rules is a bit different. The ex
 import { IValidationRules } from '@aurelia/validation';
 //...
 constructor(
-  @IValidationRules validationRules: IValidationRules
+  validationRules: IValidationRules = resolve(IValidationRules)
 ) {
   ValidationRules
     .on(this.person)
@@ -72,7 +72,7 @@ The validator interface has been changed to have only one `validate` method equi
 
 ### Validation controller factory usage changed
 
-The usage of the validation controller factory is changed. Instead of using `controllerFactory.createForCurrentScope();` , you need to use the argument decorator `@newInstanceForScope(IValidationController)` syntax. Refer to the [Injecting a controller instance](validation-controller.md) section for the details.
+The usage of the validation controller factory is changed. Instead of using `controllerFactory.createForCurrentScope();` , you need to inject the `newInstanceForScope(IValidationController)` (example: `resolve(newInstanceForScope(IValidationController))`). Refer to the [Injecting a controller instance](validation-controller.md) section for the details.
 
 ### Validation renderer has been removed
 

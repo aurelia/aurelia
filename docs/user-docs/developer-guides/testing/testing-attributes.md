@@ -8,14 +8,15 @@ Let's consider a `ColorSquareCustomAttribute` that we previously created. This a
 
 {% code title="color-square.ts" %}
 ```typescript
-import { bindable, customAttribute, INode } from 'aurelia';
+import { bindable, customAttribute, INode, resolve } from 'aurelia';
 
 @customAttribute('color-square')
 export class ColorSquareCustomAttribute {
   @bindable color: string = 'red';
   @bindable size: string = '100px';
 
-  constructor(@INode private element: HTMLElement) {
+  private element: HTMLElement = resolve(INode)
+  constructor() {
     this.element.style.width = this.size;
     this.element.style.height = this.size;
     this.element.style.backgroundColor = this.color;

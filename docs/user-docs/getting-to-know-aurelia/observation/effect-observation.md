@@ -45,8 +45,10 @@ The effect APIs are provided via the default implementation of the interface `IO
   Or
 
   ```typescript
+  import { resolve, IObservation } from 'aurelia';
+
   class MyElement {
-    constructor(@IObservation readonly observation) {
+    constructor(readonly observation = resolve(IObservation)) {
       // ...
     }
   }

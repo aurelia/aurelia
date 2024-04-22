@@ -123,7 +123,7 @@ export class ChatComponent {
   public message: string = '';
   public messages: { user: string; message: string }[] = [];
 
-  constructor(@ISignalRService private signalR: ISignalRService) {
+  constructor(private signalR: ISignalRService) {
     this.signalR.connection.on('ReceiveMessage', (user: string, message: string) => {
       this.messages.push({ user, message });
     });

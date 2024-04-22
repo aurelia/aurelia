@@ -16,7 +16,7 @@ First, we'll create an authentication service that will handle the interaction w
 ```typescript
 // src/services/auth-service.ts
 import { IAuth0Client, Auth0Client, Auth0ClientOptions } from '@auth0/auth0-spa-js';
-import { DI, IContainer } from 'aurelia';
+import { DI, IContainer, resolve } from 'aurelia';
 
 export const IAuthService = DI.createInterface<IAuthService>('IAuthService', x => x.singleton(AuthService));
 export type IAuthService = AuthService;
@@ -24,7 +24,7 @@ export type IAuthService = AuthService;
 export class AuthService {
   private auth0Client: IAuth0Client;
 
-  constructor(@IContainer private container: IContainer) {
+  constructor(private container: IContainer = resolve(IContainer)) {
     const options: Auth0ClientOptions = {
       domain: 'YOUR_AUTH0_DOMAIN',
       client_id: 'YOUR_AUTH0_CLIENT_ID',
@@ -89,13 +89,13 @@ Now that we have our `AuthService`, we can inject it into our components to use 
 
 ```typescript
 // src/components/login.ts
-import { customElement, ICustomElementViewModel } from 'aurelia';
+import { customElement, ICustomElementViewModel, resolve } from 'aurelia';
 import { IAuthService } from '../services/auth-service';
 
 @customElement({ name: 'login', template: `<button click.trigger="login()">Login</button>` })
 export class Login implements ICustomElementViewModel {
 
-  constructor(@IAuthService private authService: IAuthService) {}
+  constructor(private authService: IAuthService = resolve(IAuthService)) {}
 
   login(): void {
     this.authService.login();
@@ -109,12 +109,15 @@ After a successful login, Auth0 will redirect back to your application with the 
 
 ```typescript
 // src/my-app.ts
-import { IRouter, ICustomElementViewModel, watch } from 'aurelia';
+import { IRouter, ICustomElementViewModel, watch, resolve } from 'aurelia';
 import { IAuthService } from './services/auth-service';
 
 export class MyApp implements ICustomElementViewModel {
 
-  constructor(@IRouter private router: IRouter, @IAuthService private authService: IAuthService) {}
+  constructor(
+    private router: IRouter = resolve(IRouter),
+    private authService: IAuthService = resolve(IAuthService),
+  ) {}
 
   binding(): void {
     this.handleAuthentication();
@@ -128,7 +131,7 @@ export class MyApp implements ICustomElementViewModel {
       // Handle post-login actions
     }
   }
-  
+
   // ... Other component logic
 }
 ```

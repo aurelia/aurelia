@@ -42,15 +42,15 @@ To use the validation plugin, all you have to do is inject the validation contro
 {% tabs %}
 {% tab title="Typescript" %}
 ```typescript
-import { newInstanceForScope } from '@aurelia/kernel';
+import { newInstanceForScope, resolve } from '@aurelia/kernel';
 import { IValidationRules } from '@aurelia/validation';
 import { IValidationController } from '@aurelia/validation-html';
 
 export class AwesomeComponent {
   private person: Person; // Let us assume that we want to validate instance of Person class
   public constructor(
-    @newInstanceForScope(IValidationController) private validationController: IValidationController,
-    @IValidationRules validationRules: IValidationRules
+    private validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+    validationRules: IValidationRules = resolve(IValidationRules)
   ) {
     this.person = new Person();
 
@@ -81,7 +81,7 @@ import { IValidationController } from '@aurelia/validation-html';
 
 @inject(IValidationRules)
 
-export class AwesomeComponent {  
+export class AwesomeComponent {
   validationController = resolve(newInstanceForScope(IValidationController));
 
   constructor(validationRules) {
@@ -117,7 +117,7 @@ Inside our HTML, we use the `validate` binding behavior to signal to Aurelia tha
 </form>
 ```
 
-> `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](broken-reference/).
+> `resolve(newInstanceForScope(IValidationController))` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](broken-reference/).
 
 ### Demo
 

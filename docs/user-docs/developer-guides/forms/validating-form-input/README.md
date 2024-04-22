@@ -34,15 +34,15 @@ This guide explains how to validate the user input for your app using the valida
 * Inject the infra to your view-model and define rules, and use `validate` binding behavior in your markup.
 
   ```typescript
-  import { newInstanceForScope } from '@aurelia/kernel';
+  import { newInstanceForScope, resolve } from '@aurelia/kernel';
   import { IValidationRules } from '@aurelia/validation';
   import { IValidationController } from '@aurelia/validation-html';
 
   export class AwesomeComponent {
     private person: Person; // Let us assume that we want to validate instance of Person class
     public constructor(
-      @newInstanceForScope(IValidationController) private validationController: IValidationController,
-      @IValidationRules validationRules: IValidationRules
+      private validationController: IValidationController = resolve(newInstanceForScope(IValidationController)),
+      validationRules: IValidationRules = resolve(IValidationRules)
     ) {
       this.person = new Person();
 
@@ -71,7 +71,7 @@ This guide explains how to validate the user input for your app using the valida
   </form>
   ```
 
-  > `@newInstanceForScope(IValidationController)` injects a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](validation-controller.md).
+  > `newInstanceForScope(IValidationController)` resolves a new instance of validation controller which is made available to the children of `awesome-component`. More on validation controller [later](validation-controller.md).
 
 Here is one similar playable demo, if you want to explore on your own!
 

@@ -166,6 +166,7 @@ This is shown below.
 
 {% code title="authentication-hook.ts" %}
 ```typescript
+import { resolve } from 'aurelia';
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -177,9 +178,7 @@ import { IAuthenticationService } from './authentication-service';
 
 @lifecycleHooks()
 export class AuthenticationHook {
-  public constructor(
-    @IAuthenticationService private readonly authService: IAuthenticationService
-  ) {}
+  private readonly authService: IAuthenticationService = resolve(IAuthenticationService)
   public canLoad(
     _viewmodel: IRouteViewModel,
     _params: Params,
@@ -201,6 +200,7 @@ This is shown below.
 
 {% code title="authorization-hook.ts" %}
 ```typescript
+import { resolve } from 'aurelia';
 import {
   IRouteViewModel,
   NavigationInstruction,
@@ -213,9 +213,7 @@ import { IAuthenticationService } from './authentication-service';
 
 @lifecycleHooks()
 export class AuthorizationHook {
-  public constructor(
-    @IAuthenticationService private readonly authService: IAuthenticationService
-  ) {}
+  private readonly authService: IAuthenticationService = resolve(IAuthenticationService)
   public canLoad(
     _viewmodel: IRouteViewModel,
     _params: Params,
@@ -290,17 +288,15 @@ Note that the globally registered hooks in the example above do nothing signific
 This is shown below.
 
 ```typescript
-import { ILogger } from '@aurelia/kernel';
+import { ILogger, resolve } from '@aurelia/kernel';
 import { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
 import { lifecycleHooks } from '@aurelia/runtime-html';
 
 @lifecycleHooks()
 export class Hook1 {
   public static readonly scope = 'hook1';
-  private readonly logger: ILogger;
-  public constructor(@ILogger logger: ILogger) {
-    this.logger = logger.scopeTo(Hook1.scope);
-  }
+  private readonly logger: ILogger = resolve(ILogger).scopeTo(Hook1.scope);
+
   public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode): boolean {
     this.logger.debug(`canLoad '${next.computeAbsolutePath()}'`);
     return true;
@@ -320,10 +316,8 @@ export class Hook1 {
 @lifecycleHooks()
 export class Hook2 {
   public static readonly scope = 'hook2';
-  private readonly logger: ILogger;
-  public constructor(@ILogger logger: ILogger) {
-    this.logger = logger.scopeTo(Hook2.scope);
-  }
+  private readonly logger: ILogger = resolve(ILogger).scopeTo(Hook1.scope);
+
   public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode): boolean {
     this.logger.debug(`canLoad '${next.computeAbsolutePath()}'`);
     return true;

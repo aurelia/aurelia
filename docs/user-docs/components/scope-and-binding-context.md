@@ -321,6 +321,7 @@ Let's start with a simple example.
 ```typescript
 import {
   IPlatform,
+  resolve,
 } from '@aurelia/kernel';
 import {
   customElement,
@@ -338,7 +339,7 @@ export class App implements ICustomElementViewModel {
   private intervalId: ReturnType<IPlatform['setInterval']>;
 
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform = resolve(IPlatform),
   ) { }
 
   public attached(): void {
@@ -369,6 +370,7 @@ As the next example, we change the property in both the binding context and the 
 ```typescript
 import {
   IPlatform,
+  resolve,
 } from '@aurelia/kernel';
 import {
   customElement,
@@ -387,7 +389,7 @@ export class App implements ICustomElementViewModel {
   private intervalId2: ReturnType<IPlatform['setInterval']>;
 
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform = resolve(IPlatform),
   ) { }
 
   public attached(): void {
@@ -422,6 +424,7 @@ However, the result would have been quite different, if the `message` property i
 ```typescript
 import {
   IPlatform,
+  resolve,
 } from '@aurelia/kernel';
 import {
   customElement,
@@ -440,7 +443,7 @@ export class App implements ICustomElementViewModel {
   private intervalId2: ReturnType<IPlatform['setInterval']>;
 
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform = resolve(IPlatform),
   ) { }
 
   public binding(): void {
@@ -565,7 +568,7 @@ export class App implements ICustomElementViewModel {
   public message: string;
 
   public constructor(
-    @IPlatform private readonly platform: IPlatform,
+    private readonly platform: IPlatform = resolve(IPlatform),
   ) { }
 
   public attached(): void {

@@ -36,7 +36,7 @@ To integrate the React component into Aurelia, create a wrapper Aurelia componen
 
 ```typescript
 // src/resources/elements/react-wrapper.ts
-import { customElement, bindable, INode } from 'aurelia';
+import { customElement, bindable, INode, resolve } from 'aurelia';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
@@ -44,7 +44,7 @@ import * as ReactDOM from 'react-dom';
 export class ReactWrapper {
   @bindable public reactComponent: React.FunctionComponent;
 
-  constructor(@INode private element: Element) {}
+  private element: Element = resolve(INode);
 
   public binding(): void {
     ReactDOM.render(React.createElement(this.reactComponent), this.element);

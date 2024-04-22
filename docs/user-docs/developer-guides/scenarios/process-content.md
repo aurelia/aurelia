@@ -49,12 +49,6 @@ function processContent(node: INode, platform: IPlatform) { }
 @customElement({ name: 'my-element', processContent })
 export class MyElement { }
 
-// ... or use a static method explicitly
-@customElement({ name: 'my-element', processContent: MyElement.processContent })
-export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
-}
-
 // ... or use a static method named 'processContent' (convention)
 @customElement({ name: 'my-element' })
 export class MyElement {
@@ -66,12 +60,6 @@ Apart from this, there is also the `@processContent` decorator which can used cl
 
 ```typescript
 import { customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
-
-// Reference a static method
-@processContent(MyElement.processContent)
-export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
-}
 
 // ...or a standalone method
 function processContent(this: typeof MyElement, node: INode, platform: IPlatform) { }
@@ -135,9 +123,9 @@ A prototype implementation is shown below.
 // tabs.ts
 import { INode, IPlatform, processContent } from '@aurelia/runtime-html';
 
-@processContent(Tabs.processTabs)
 class Tabs {
 
+  @processContent()
   public static processTabs(node: INode, p: IPlatform): boolean {
     const el = node as Element;
 

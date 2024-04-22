@@ -15,6 +15,7 @@ import {
   IRendering,
   PropertyBinding,
   HydrateTemplateController,
+  ITemplateCompiler,
 } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
@@ -22,7 +23,7 @@ import {
   PLATFORM,
   createContainer,
 } from '@aurelia/testing';
-import { Writable } from '@aurelia/kernel';
+import { Registration, Writable } from '@aurelia/kernel';
 
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   function runActivateLifecycle(sut: Repeat, scope: Scope): void {
@@ -503,6 +504,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     NodeObserverLocator,
     PropertyBindingRenderer,
     TextBindingRenderer,
+    Registration.instance(ITemplateCompiler, { compile: (d) => d }),
   );
 
   const createStartLocation = () => PLATFORM.document.createComment('au-start');

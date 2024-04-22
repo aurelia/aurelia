@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources, resolve } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Key, Registrable, getResourceKeyFor, allResources, resolve, pascalCase } from '@aurelia/kernel';
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
@@ -28,7 +28,7 @@ import { IPlatform } from '../platform';
 import { BindableDefinition, PartialBindableDefinition } from '../bindable';
 import { AttrSyntax, IAttributeParser } from '../resources/attribute-pattern';
 import { CustomAttribute } from '../resources/custom-attribute';
-import { CustomElement, CustomElementDefinition, CustomElementType, PartialCustomElementDefinition, defineElement, generateElementName, getElementDefinition } from '../resources/custom-element';
+import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, PartialCustomElementDefinition, generateElementName } from '../resources/custom-element';
 import { BindingCommandInstance, ICommandBuildInfo, BindingCommand, BindingCommandDefinition } from '../resources/binding-command';
 import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
@@ -95,7 +95,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     this._compileLocalElement(content, context);
     this._compileNode(content, context);
 
-    const compiledDef: PartialCustomElementDefinition = {
+    const compiledDef = {
       ...definition,
       name: definition.name || generateElementName(),
       dependencies: (definition.dependencies ?? emptyArray).concat(context.deps ?? emptyArray),
@@ -106,23 +106,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       template,
       hasSlots: context.hasSlot,
       needsCompile: false,
-    };
-
-    if (context.deps != null) {
-      // if we have a template like this
-      //
-      // my-app.html
-      // <template as-custom-element="le-1">
-      //  <le-2></le-2>
-      // </template>
-      // <template as-custom-element="le-2">...</template>
-      //
-      // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
-      const allDepsForLocalElements = [compiledDef.Type, ...compiledDef.dependencies ?? [], ...context.deps].filter(d => d);
-      for (const localElementType of context.deps) {
-        (getElementDefinition(localElementType).dependencies as Key[]).push(...allDepsForLocalElements.filter(d => d !== localElementType) as Key[]);
-      }
-    }
+    } satisfies PartialCustomElementDefinition;
 
     return compiledDef;
   }
@@ -1453,6 +1437,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       throw createMappedError(ErrorNames.compiler_template_only_local_template, elName);
     }
     const localTemplateNames: Set<string> = new Set();
+    const localElementTypes: (Constructable & { dependencies?: Key[] })[] = [];
 
     for (const localTemplate of localTemplates) {
       if (localTemplate.parentNode !== root) {
@@ -1498,12 +1483,36 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         return allBindables;
       }, {});
-      class LocalTemplateType {}
-      def(LocalTemplateType, 'name', { value: name });
-      context._addLocalDep(defineElement({ name, template: localTemplate, bindables }, LocalTemplateType));
+
+      class LocalDepType {
+        public static $au: CustomElementStaticAuDefinition & { dependencies?: Key[] } = {
+          type: 'custom-element',
+          name,
+          template: localTemplate,
+          bindables,
+        };
+      }
+      def(LocalDepType, 'name', { value: pascalCase(name) });
+      localElementTypes.push(LocalDepType);
 
       root.removeChild(localTemplate);
     }
+
+    // if we have a template like this
+    //
+    // my-app.html
+    // <template as-custom-element="le-1">
+    //  <le-2></le-2>
+    // </template>
+    // <template as-custom-element="le-2">...</template>
+    //
+    // without registering dependencies properly, <le-1> will not see <le-2> as a custom element
+    const compilationDeps = (context.root.def.dependencies ?? []).concat(context.root.def.Type == null ? emptyArray : [context.root.def.Type]);
+    for (const localElementType of localElementTypes) {
+      localElementType.dependencies = compilationDeps.concat(localElementTypes.filter(d => d !== localElementType));
+      context._addLocalDep(localElementType);
+    }
+
   }
 
   /** @internal */
@@ -1644,7 +1653,7 @@ class CompilationContext {
   public readonly rows: IInstruction[][];
   public readonly localEls: Set<string>;
   public hasSlot: boolean = false;
-  public deps: CustomElementType[] | undefined;
+  public deps: Constructable[] | null = null;
 
   /** @internal */
   private readonly c: IContainer;
@@ -1675,10 +1684,10 @@ class CompilationContext {
     this.rows = instructions ?? [];
   }
 
-  public _addLocalDep(dep: CustomElementType) {
-    (this.root.deps ??= []).push(dep);
-    this.root.c.register(dep);
-    return dep;
+  public _addLocalDep(Type: Constructable) {
+    (this.root.deps ??= []).push(Type);
+    this.root.c.register(Type);
+    return this;
   }
 
   public _text(text: string) {

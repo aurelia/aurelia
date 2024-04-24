@@ -1,15 +1,13 @@
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 import { BindableDefinition } from '../bindable';
 import { defaultMode } from '../binding/interfaces-bindings';
-// import { BindingCommand, BindingCommandDefinition, BindingCommandInstance } from '../resources/binding-command';
 import { CustomAttribute } from '../resources/custom-attribute';
 import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
 import { createLookup } from '../utilities';
-import { singletonRegistration } from '../utilities-di';
 
-import type {
-  IContainer,
-  IRegistry
+import {
+  createImplementationRegister,
+  type IContainer,
+  type IRegistry
 } from '@aurelia/kernel';
 import {
   BindingCommand,
@@ -20,24 +18,27 @@ import {
   IBindablesInfoResolver,
   IResourceResolver,
   TemplateCompiler,
-  IAttrMapper,
 } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { AttrMapper } from './attribute-mapper';
 
+/**
+ * A group of registrations to connect the template compiler with the aurelia runtime implementation
+ */
 export const templateCompilerComponents: IRegistry = {
   register(container) {
     container.register(
       TemplateCompiler,
-      singletonRegistration(IAttrMapper, AttrMapper),
-      singletonRegistration(IBindablesInfoResolver, BindablesInfoResolver),
-      singletonRegistration(IResourceResolver, ResourceResolver),
+      AttrMapper,
+      BindablesInfoResolver,
+      ResourceResolver,
     );
   }
 };
 
 class BindablesInfoResolver implements IBindablesInfoResolver {
+  public static register = /*@__PURE__*/ createImplementationRegister(IBindablesInfoResolver);
   /** @internal */
   private readonly _cache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
   public get(def: CustomAttributeDefinition): IAttributeBindablesInfo;
@@ -75,7 +76,7 @@ class BindablesInfoResolver implements IBindablesInfoResolver {
         // if no bindables are present, default to "value"
         primary = attrs.value = BindableDefinition.create(
           'value',
-          { mode: def.defaultBindingMode != null ? def.defaultBindingMode : defaultMode }
+          { mode: def.defaultBindingMode ?? defaultMode }
         );
       }
 
@@ -94,6 +95,8 @@ class BindablesInfo {
 }
 
 class ResourceResolver implements IResourceResolver {
+  public static register = /*@__PURE__*/ createImplementationRegister(IResourceResolver);
+
   private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();
   private readonly _commandCache = new WeakMap<IContainer, Record<string, BindingCommandInstance | null>>();
 

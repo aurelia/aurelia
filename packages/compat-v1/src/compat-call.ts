@@ -18,9 +18,9 @@ import {
   type IAstEvaluator,
   type IBinding,
   Scope,
+  type BindingCommandStaticAuDefinition,
 } from '@aurelia/runtime-html';
 import { ensureExpression, etIsFunction } from './utilities';
-import { BindingCommandStaticAuDefinition } from '@aurelia/runtime-html/dist/types/resources/binding-command';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const callRegisteredContainer = new WeakSet<IContainer>();

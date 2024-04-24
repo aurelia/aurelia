@@ -35,6 +35,7 @@ export {
 
 export {
   Registration,
+  createImplementationRegister,
 } from './di.registration';
 
 export {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Registrable, getResourceKeyFor, allResources, resolve, IPlatform, pascalCase } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Registrable, getResourceKeyFor, allResources, resolve, IPlatform, pascalCase, createImplementationRegister } from '@aurelia/kernel';
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
@@ -26,7 +26,7 @@ import {
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommandInstance, ICommandBuildInfo } from './binding-command';
-import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze, aliasRegistration, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
+import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
@@ -39,7 +39,13 @@ import type {
   AnyBindingExpression,
   IsBindingBehavior,
 } from '@aurelia/expression-parser';
-import type { IAttributeComponentDefinition, ICompiledElementComponentDefinition, IComponentBindablePropDefinition, IDomPlatform, IElementComponentDefinition, } from './interfaces-template-compiler';
+import type {
+  IAttributeComponentDefinition,
+  ICompiledElementComponentDefinition,
+  IComponentBindablePropDefinition,
+  IDomPlatform,
+  IElementComponentDefinition,
+} from './interfaces-template-compiler';
 import { ErrorNames, createMappedError } from './errors';
 import { ITemplateCompiler } from './interfaces-template-compiler';
 
@@ -48,12 +54,7 @@ const defaultSlotName = 'default';
 const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
 
 export class TemplateCompiler implements ITemplateCompiler {
-  public static register(container: IContainer): void {
-    container.register(
-      singletonRegistration(this, this),
-      aliasRegistration(this, ITemplateCompiler),
-    );
-  }
+  public static register = /*@__PURE__*/ createImplementationRegister(ITemplateCompiler);
 
   /** @internal */
   private readonly _bindableResolver = resolve(IBindablesInfoResolver);

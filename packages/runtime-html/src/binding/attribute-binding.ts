@@ -13,7 +13,7 @@ import {
   IAstEvaluator,
 } from '../ast.eval';
 import { activating } from '../templating/controller';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';
 
 import type {
@@ -39,12 +39,13 @@ export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObser
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-  static {
-    mixinUseScope(AttributeBinding);
-    mixingBindingLimited(AttributeBinding, () => 'updateTarget');
-    connectable(AttributeBinding, null!);
-    mixinAstEvaluator(true)(AttributeBinding);
-  }
+  /** @internal */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+      mixinUseScope(AttributeBinding);
+      mixingBindingLimited(AttributeBinding, () => 'updateTarget');
+      connectable(AttributeBinding, null!);
+      mixinAstEvaluator(true)(AttributeBinding);
+  });
 
   public isBound: boolean = false;
   /** @internal */

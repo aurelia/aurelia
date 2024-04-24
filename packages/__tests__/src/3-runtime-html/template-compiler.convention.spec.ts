@@ -49,7 +49,6 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       const { instructions: rootInstructions } = compiler.compile(
         CustomElementDefinition.create({ name: '', template, surrogates: [], instructions: [] }),
         ctx.container,
-        null,
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [
@@ -97,7 +96,6 @@ describe('3-runtime-html/template-compiler.convention.spec.ts', function () {
       const { instructions: rootInstructions } = compiler.compile(
         CustomElementDefinition.create({ name: '', template, surrogates: [], instructions: [] }),
         ctx.container,
-        null,
       );
 
       const expectedElInstructions: IExpectedInstruction[] = [

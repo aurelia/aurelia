@@ -8,7 +8,7 @@ import {
   IAstEvaluator,
 } from '../ast.eval';
 import { activating } from '../templating/controller';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
@@ -38,7 +38,6 @@ const queueTaskOptions: QueueTaskOptions = {
 // in which case the renderer will create the TextBinding directly
 export interface InterpolationBinding extends IObserverLocatorBasedConnectable, IAstEvaluator, IServiceLocator {}
 export class InterpolationBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-
   public isBound: boolean = false;
 
   /** @internal */
@@ -174,12 +173,13 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 export interface InterpolationPartBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class InterpolationPartBinding implements IBinding, ICollectionSubscriber {
-  static {
+  /** @internal */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
     mixinUseScope(InterpolationPartBinding);
     mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
     connectable(InterpolationPartBinding, null!);
     mixinAstEvaluator(true)(InterpolationPartBinding);
-  }
+  });
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check

@@ -135,7 +135,7 @@ export {
 } from './binding/listener-binding';
 export {
   AttributeBinding,
-} from './binding/attribute';
+} from './binding/attribute-binding';
 export {
   InterpolationBinding,
   InterpolationPartBinding,
@@ -209,6 +209,10 @@ export {
   IInstruction,
   InstructionType,
 } from '@aurelia/template-compiler';
+
+export {
+  templateCompilerComponents,
+} from './compiler/template-compiler';
 
 export {
   AttributeNSAccessor,

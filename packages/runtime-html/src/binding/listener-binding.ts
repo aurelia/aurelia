@@ -1,7 +1,7 @@
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isArray, isFunction, isString, objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
 import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, } from '@aurelia/runtime';
@@ -22,16 +22,11 @@ export interface ListenerBinding extends IAstEvaluator, IObserverLocatorBasedCon
  */
 export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   /** @internal */
-  private static _mixed = false;
-  /** @internal */
-  public static mix() {
-    if (!this._mixed) {
-      this._mixed = true;
-      mixinUseScope(ListenerBinding);
-      mixingBindingLimited(ListenerBinding, () => 'callSource');
-      mixinAstEvaluator(true, true)(ListenerBinding);
-    }
-  }
+  public static mix = createPrototypeMixer(function () {
+    mixinUseScope(ListenerBinding);
+    mixingBindingLimited(ListenerBinding, () => 'callSource');
+    mixinAstEvaluator(true, true)(ListenerBinding);
+  });
 
   public isBound: boolean = false;
 

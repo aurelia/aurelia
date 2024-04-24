@@ -17,8 +17,8 @@ import {
   type IObservable,
 } from '@aurelia/runtime';
 import { BindingMode, defaultMode, toView } from './binding/interfaces-bindings';
-import { AttributeBinding } from './binding/attribute';
-import { InterpolationBinding } from './binding/interpolation-binding';
+import { AttributeBinding } from './binding/attribute-binding';
+import { InterpolationBinding, InterpolationPartBinding } from './binding/interpolation-binding';
 import { ContentBinding } from "./binding/content-binding";
 import { LetBinding } from './binding/let-binding';
 import { PropertyBinding } from './binding/property-binding';
@@ -406,6 +406,9 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
 
 export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer implements IRenderer {
   public readonly target = InstructionType.interpolation;
+  public constructor() {
+    InterpolationPartBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -429,6 +432,9 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
 
 export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRenderer implements IRenderer {
   public readonly target = InstructionType.propertyBinding;
+  public constructor() {
+    PropertyBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -453,6 +459,9 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
 
 export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRenderer implements IRenderer {
   public readonly target = InstructionType.iteratorBinding;
+  public constructor() {
+    PropertyBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: IController,
@@ -476,6 +485,9 @@ export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBind
 
 export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer implements IRenderer {
   public readonly target = InstructionType.textBinding;
+  public constructor() {
+    ContentBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: ChildNode,
@@ -599,6 +611,9 @@ const ambiguousStyles = [
 
 export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePropertyBindingRenderer implements IRenderer {
   public readonly target = InstructionType.stylePropertyBinding;
+  public constructor() {
+    PropertyBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -649,6 +664,9 @@ class DevStylePropertyBinding extends PropertyBinding {
 
 export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBindingRenderer implements IRenderer {
   public readonly target = InstructionType.attributeBinding;
+  public constructor() {
+    AttributeBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,

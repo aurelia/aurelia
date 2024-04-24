@@ -21,7 +21,7 @@ import { type Scope } from './scope';
 import type { IPlatform } from '../platform';
 import { isArray, safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
-import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator } from './binding-utils';
+import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
@@ -36,12 +36,13 @@ export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserve
  */
 
 export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-  static {
+  /** @internal */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
     mixinUseScope(ContentBinding);
     mixingBindingLimited(ContentBinding, () => 'updateTarget');
     connectable(ContentBinding, null!);
     mixinAstEvaluator(void 0, false)(ContentBinding);
-  }
+  });
 
   public isBound: boolean = false;
 

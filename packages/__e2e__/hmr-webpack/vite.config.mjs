@@ -15,6 +15,7 @@ export default defineConfig({
         'kernel',
         'expression-parser',
         'runtime',
+        'template-compiler',
         'runtime-html',
         'router-lite',
       ].reduce((map, pkg) => {

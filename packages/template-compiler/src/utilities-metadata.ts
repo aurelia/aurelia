@@ -1,16 +1,14 @@
-import { Constructable, PartialResourceDefinition, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
-import { defineMetadata, getMetadata } from '../utilities-metadata';
+import { Metadata } from '@aurelia/metadata';
+import { Constructable, PartialResourceDefinition, Protocol, ResourceDefinition, StaticResourceType } from '@aurelia/kernel';
 
-/** @internal */ export const dtElement = 'custom-element';
-/** @internal */ export const dtAttribute = 'custom-attribute';
+/** @internal */ export const getMetadata = Metadata.get;
+/** @internal */ export const hasMetadata = Metadata.has;
+/** @internal */ export const defineMetadata = Metadata.define;
+
+const { annotation } = Protocol;
+/** @internal */ export const getAnnotationKeyFor = annotation.keyFor;
 
 /** @internal */export const staticResourceDefinitionMetadataKey = '__au_static_resource__';
-
-export interface IResourceKind {
-  readonly name: string;
-  keyFrom(name: string): string;
-}
-
 /** @internal */ export const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C extends Constructable = Constructable>(
   // eslint-disable-next-line @typescript-eslint/ban-types
   Type: C | Function,

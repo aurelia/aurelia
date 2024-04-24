@@ -1,12 +1,11 @@
 import { INode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
-import { IInstruction } from '../../renderer';
 
 import type { ITask } from '@aurelia/platform';
 
 import type { ICustomAttributeViewModel } from '../../templating/controller';
-import type { HydrateAttributeInstruction } from '../../renderer';
+import { IInstruction, HydrateAttributeInstruction } from '@aurelia/template-compiler';
 import { resolve } from '@aurelia/kernel';
 
 export class Show implements ICustomAttributeViewModel {

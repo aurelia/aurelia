@@ -28,7 +28,7 @@ import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
 import { areEqual, isArray, isPromise, baseObjectPrototype, rethrow, etIsProperty } from '../../utilities';
-import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
+import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';

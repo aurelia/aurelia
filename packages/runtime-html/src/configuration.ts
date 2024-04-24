@@ -7,8 +7,7 @@ import {
   DotSeparatedAttributePattern,
   RefAttributePattern,
   EventAttributePattern,
-} from './resources/attribute-pattern';
-import {
+
   DefaultBindingCommand,
   ForBindingCommand,
   FromViewBindingCommand,
@@ -22,8 +21,7 @@ import {
   StyleBindingCommand,
   TriggerBindingCommand,
   SpreadBindingCommand,
-} from './resources/binding-command';
-import { TemplateCompiler } from './compiler/template-compiler';
+} from '@aurelia/template-compiler';
 import {
   CustomAttributeRenderer,
   CustomElementRenderer,
@@ -78,6 +76,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
 import { EventModifierRegistration } from './binding/listener-binding';
+import { templateCompilerComponents } from './compiler/template-compiler';
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -86,7 +85,7 @@ import { EventModifierRegistration } from './binding/listener-binding';
  * - `ITargetObserverLocator`
  */
 export const DefaultComponents = [
-  TemplateCompiler,
+  templateCompilerComponents,
   DirtyChecker,
   NodeObserverLocator,
 ];

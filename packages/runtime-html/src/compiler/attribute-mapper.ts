@@ -1,15 +1,11 @@
 import { createLookup, isDataAttribute } from '../utilities';
 import { ISVGAnalyzer } from '../observation/svg-analyzer';
-import { createInterface } from '../utilities-di';
 import { resolve } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from '../errors';
+import { IAttrMapper, IsTwoWayPredicate } from '@aurelia/template-compiler';
 
-export interface IAttrMapper extends AttrMapper {}
-export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper', x => x.singleton(AttrMapper));
+export class AttrMapper implements IAttrMapper {
 
-export type IsTwoWayPredicate = (element: Element, attribute: string) => boolean;
-
-export class AttrMapper {
   /** @internal */ private readonly fns: IsTwoWayPredicate[] = [];
   /** @internal */ private readonly _tagAttrMap: Record<string, Record<string, PropertyKey>> = createLookup();
   /** @internal */ private readonly _globalAttrMap: Record<string, PropertyKey> = createLookup();

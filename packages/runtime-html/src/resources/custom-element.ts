@@ -27,35 +27,22 @@ import type {
   StaticResourceType,
   InterfaceSymbol,
 } from '@aurelia/kernel';
-import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
+import type { BindableDefinition } from '../bindable';
 import type { INode } from '../dom';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
-import type { IPlatform } from '../platform';
-import type { IInstruction } from '../renderer';
+import { ProcessContentHook, type IElementComponentDefinition, IInstruction } from '@aurelia/template-compiler';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtElement, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
-export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<{
-  readonly cache?: '*' | number;
-  readonly capture?: boolean | ((attr: string) => boolean);
-  readonly template?: null | string | Node;
-  readonly instructions?: readonly (readonly IInstruction[])[];
-  readonly dependencies?: readonly Key[];
+export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IElementComponentDefinition<TBindables>, 'type'> & {
+  readonly cache?: number | '*';
   /**
    * An semi internal property used to signal the rendering process not to try to compile the template again
    */
   readonly injectable?: InterfaceSymbol | null;
-  readonly needsCompile?: boolean;
-  readonly surrogates?: readonly IInstruction[];
-  readonly bindables?: Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>> | (TBindables | PartialBindableDefinition & { name: TBindables })[];
-  readonly containerless?: boolean;
-  readonly shadowOptions?: { mode: 'open' | 'closed' } | null;
-  readonly hasSlots?: boolean;
   readonly enhance?: boolean;
   readonly watches?: IWatchDefinition[];
-  readonly processContent?: ProcessContentHook | null;
-  readonly Type?: Constructable;
 }>;
 
 export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {
@@ -147,7 +134,7 @@ export function customElement(nameOrDef: string | PartialCustomElementDefinition
   };
 }
 
-type ShadowOptions = Pick<PartialCustomElementDefinition, 'shadowOptions'>['shadowOptions'];
+type ShadowOptions = PartialCustomElementDefinition['shadowOptions'];
 
 /**
  * Decorator: Indicates that the custom element should render its view in ShadowDOM.
@@ -214,7 +201,7 @@ function markContainerless(target: Constructable) {
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
-  public get kind(): 'element' { return dtElement; }
+  public get type(): 'custom-element' { return dtElement; }
   private constructor(
     public readonly Type: CustomElementType<C>,
     public readonly name: string,
@@ -223,8 +210,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly cache: '*' | number,
     public readonly capture: boolean | ((attr: string) => boolean),
     public readonly template: null | string | Node,
-    public readonly instructions: readonly (readonly IInstruction[])[],
-    public readonly dependencies: readonly Key[],
+    public readonly instructions: readonly IInstruction[][],
+    public readonly dependencies: Key[],
     public readonly injectable: InterfaceSymbol<C> | null,
     public readonly needsCompile: boolean,
     public readonly surrogates: readonly IInstruction[],
@@ -432,8 +419,8 @@ const annotateElementMetadata = <K extends keyof PartialCustomElementDefinition>
 
 /** @internal */
 export const defineElement = <C extends Constructable>(nameOrDef: string | PartialCustomElementDefinition, Type: C | null): CustomElementType<C> => {
-  const definition = CustomElementDefinition.create(nameOrDef, Type as Constructable);
-  const $Type = definition.Type as CustomElementType<C>;
+  const definition = CustomElementDefinition.create(nameOrDef, Type as CustomElementType<C>);
+  const $Type = definition.Type;
 
   // this is the case, where the APi is invoked directly without a decorator
   // registration of resource name is a requirement for the resource system in kernel (module-loader)
@@ -609,7 +596,6 @@ export const CustomElement = objectFreeze<CustomElementKind>({
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type DecoratorFactoryMethod = (target: Function, context: ClassMethodDecoratorContext) => void;
-export type ProcessContentHook = (node: HTMLElement, platform: IPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
 const pcHookMetadataProperty = /*@__PURE__*/getAnnotationKeyFor('processContent');
 export function processContent(hook: ProcessContentHook | string | symbol): CustomElementDecorator;

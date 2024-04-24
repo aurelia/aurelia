@@ -1,5 +1,5 @@
 {
-  "name": "@aurelia/runtime-html",
+  "name": "@aurelia/template-compiler",
   "version": "2.0.0-beta.15",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
@@ -22,14 +22,14 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/aurelia/aurelia.git",
-    "directory": "packages/runtime-html"
+    "directory": "packages/template-compiler"
   },
   "bugs": {
     "url": "https://github.com/aurelia/aurelia/issues"
   },
   "keywords": [
     "aurelia",
-    "runtime-html"
+    "template-compiler"
   ],
   "files": [
     "dist",
@@ -38,7 +38,6 @@
     "CHANGELOG.md",
     "LICENSE"
   ],
-  "sideEffects": false,
   "scripts": {
     "lint": "eslint --cache --ext .js,.ts src/",
     "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
@@ -54,13 +53,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.15",
     "@aurelia/metadata": "2.0.0-beta.15",
-    "@aurelia/platform": "2.0.0-beta.15",
-    "@aurelia/platform-browser": "2.0.0-beta.15",
-    "@aurelia/runtime": "2.0.0-beta.15",
-    "@aurelia/expression-parser": "2.0.0-beta.15",
-    "@aurelia/template-compiler": "2.0.0-beta.15"
+    "@aurelia/kernel": "2.0.0-beta.15",
+    "@aurelia/expression-parser": "2.0.0-beta.15"
   },
   "devDependencies": {
     "typescript": "5.4.2"

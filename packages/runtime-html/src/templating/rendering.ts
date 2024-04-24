@@ -4,13 +4,14 @@ import { IObserverLocator } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
-import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer';
+import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
 import { ErrorNames, createMappedError } from '../errors';
+import { IInstruction, ITemplateCompiler } from '@aurelia/template-compiler';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
 export interface IRendering {
@@ -19,7 +20,6 @@ export interface IRendering {
   compile(
     definition: CustomElementDefinition,
     container: IContainer,
-    compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition;
 
   getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
@@ -70,7 +70,6 @@ export class Rendering implements IRendering {
   public compile(
     definition: CustomElementDefinition,
     container: IContainer,
-    compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
     const compiler = container.get(ITemplateCompiler);
     const compiledMap = this._compilationCache;
@@ -80,7 +79,6 @@ export class Rendering implements IRendering {
         compiledMap.set(definition, compiled = CustomElementDefinition.create(compiler.compile(
           definition,
           container,
-          compilationInstruction
         )));
       } else {
         // todo:

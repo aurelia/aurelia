@@ -5,7 +5,7 @@ import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { type BindingMode, toView } from '../binding/interfaces-bindings';
+import { toView } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -20,9 +20,10 @@ import type { ICustomAttributeViewModel, ICustomAttributeController, Controller 
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
 import { dtAttribute, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
+import { IAttributeComponentDefinition } from '@aurelia/template-compiler';
 
-export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<{
-  readonly defaultBindingMode?: BindingMode;
+export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IAttributeComponentDefinition, 'type'> & {
+  readonly defaultBindingMode?: string | number;
   readonly isTemplateController?: boolean;
   readonly bindables?: (Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>>) | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   /**
@@ -97,10 +98,10 @@ export function customAttribute(nameOrDef: string | PartialCustomAttributeDefini
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator;
 export function templateController(name: string): CustomAttributeDecorator;
-export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator;
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator {
   return function (target, context) {
     context.addInitializer(function (this) {
       defineAttribute(
@@ -116,14 +117,14 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get kind(): 'attribute' { return dtAttribute; }
+  public get type(): 'custom-attribute' { return dtAttribute; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-    public readonly defaultBindingMode: BindingMode,
+    public readonly defaultBindingMode: string | number,
     public readonly isTemplateController: boolean,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,

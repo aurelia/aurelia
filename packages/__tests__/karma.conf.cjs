@@ -446,6 +446,7 @@ const packageNames = [
   'router-lite',
   'expression-parser',
   'runtime',
+  'template-compiler',
   'runtime-html',
   'state',
   'store-v1',

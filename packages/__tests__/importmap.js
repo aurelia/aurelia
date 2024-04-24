@@ -11,6 +11,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'kernel',
       'expression-parser',
       'runtime',
+      'template-compiler',
       'runtime-html',
       'route-recognizer',
       'fetch-client',

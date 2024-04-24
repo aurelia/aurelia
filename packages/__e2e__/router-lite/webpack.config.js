@@ -30,6 +30,7 @@ module.exports = function () {
           'kernel',
           'expression-parser',
           'runtime',
+          'template-compiler',
           'runtime-html',
         ].reduce((map, pkg) => {
           const name = `@aurelia/${pkg}`;

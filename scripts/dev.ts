@@ -71,6 +71,7 @@ const validPackages = [
   'kernel',
   'expression-parser',
   'runtime',
+  'template-compiler',
   'runtime-html',
   'dialog',
   'web-components',
@@ -149,6 +150,7 @@ if (apps.length > 0) {
 const baseAppPort = 9000;
 concurrently([
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
+  { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
   hasValidTestPatterns
     ? {

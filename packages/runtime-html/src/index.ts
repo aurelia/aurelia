@@ -80,7 +80,8 @@ export {
   ColonPrefixedBindAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
-} from './resources/attribute-pattern';
+} from '@aurelia/template-compiler';
+
 export {
   bindingCommand,
   type ICommandBuildInfo,
@@ -102,11 +103,11 @@ export {
   AttrBindingCommand,
   ClassBindingCommand,
   StyleBindingCommand,
-} from './resources/binding-command';
+} from '@aurelia/template-compiler';
 export {
   IAttrMapper,
   type IsTwoWayPredicate,
-} from './compiler/attribute-mapper';
+} from '@aurelia/template-compiler';
 export {
   BindingMode,
   type IBindingController,
@@ -160,9 +161,30 @@ export {
 
 export {
   IRenderer,
-  ITemplateCompiler,
-  type ICompliationInstruction,
   renderer,
+
+  PropertyBindingRenderer,
+  TextBindingRenderer,
+  ListenerBindingRenderer,
+  IListenerBindingOptions,
+  LetElementRenderer,
+  TemplateControllerRenderer,
+  AttributeBindingRenderer,
+  CustomAttributeRenderer,
+  CustomElementRenderer,
+  InterpolationBindingRenderer,
+  IteratorBindingRenderer,
+  RefBindingRenderer,
+  SetAttributeRenderer,
+  SetClassAttributeRenderer,
+  SetPropertyRenderer,
+  SetStyleAttributeRenderer,
+  SpreadRenderer,
+  StylePropertyBindingRenderer,
+} from './renderer';
+
+export {
+  ITemplateCompiler,
   HydrateAttributeInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
@@ -182,31 +204,11 @@ export {
   TextBindingInstruction,
   SpreadBindingInstruction,
   SpreadElementPropBindingInstruction,
+  MultiAttrInstruction,
 
-  isInstruction,
   IInstruction,
   InstructionType,
-
-  PropertyBindingRenderer,
-  TextBindingRenderer,
-  ListenerBindingRenderer,
-  IListenerBindingOptions,
-  LetElementRenderer,
-  TemplateControllerRenderer,
-  AttributeBindingRenderer,
-  CustomAttributeRenderer,
-  CustomElementRenderer,
-  InterpolationBindingRenderer,
-  IteratorBindingRenderer,
-  MultiAttrInstruction,
-  RefBindingRenderer,
-  SetAttributeRenderer,
-  SetClassAttributeRenderer,
-  SetPropertyRenderer,
-  SetStyleAttributeRenderer,
-  SpreadRenderer,
-  StylePropertyBindingRenderer,
-} from './renderer';
+} from '@aurelia/template-compiler';
 
 export {
   AttributeNSAccessor,
@@ -310,7 +312,6 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
-  type ProcessContentHook,
   type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
@@ -357,7 +358,7 @@ export {
 } from './configuration';
 export {
   ITemplateElementFactory
-} from './compiler/template-element-factory';
+} from '@aurelia/template-compiler';
 export {
   TemplateCompiler,
   ITemplateCompilerHooks,
@@ -366,7 +367,7 @@ export {
   type IAttributeBindablesInfo,
   type IElementBindablesInfo,
   IBindablesInfoResolver,
-} from './compiler/template-compiler';
+} from '@aurelia/template-compiler';
 
 export {
   type PartialChildrenDefinition,

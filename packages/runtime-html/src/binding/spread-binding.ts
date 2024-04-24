@@ -5,7 +5,8 @@ import { type Scope } from './scope';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
 import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';
-import { IHasController, IInstruction, ITemplateCompiler, spreadBinding as $spreadBinding, SpreadElementPropBindingInstruction, spreadElementProp } from '../renderer';
+import { IHasController,} from '../renderer';
+import { IInstruction, ITemplateCompiler, SpreadElementPropBindingInstruction, InstructionType } from '@aurelia/template-compiler';
 import { IRendering } from '../templating/rendering';
 import { IPlatform } from '../platform';
 import { IBinding } from './interfaces-bindings';
@@ -63,10 +64,10 @@ export class SpreadBinding implements IBinding, IHasController {
       let inst: IInstruction;
       for (inst of instructions) {
         switch (inst.type) {
-          case $spreadBinding:
+          case InstructionType.spreadBinding:
             renderSpreadInstruction(ancestor + 1);
             break;
-          case spreadElementProp:
+          case InstructionType.spreadElementProp:
             renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
               spreadBinding,
               findElementControllerFor(target),

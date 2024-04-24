@@ -3,7 +3,6 @@ import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
 import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
-import { IInstruction } from '../../renderer';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
@@ -15,7 +14,7 @@ import {
   ISyntheticView
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
-import { AttrSyntax, AttributePattern } from '../attribute-pattern';
+import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';

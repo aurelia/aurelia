@@ -119,7 +119,7 @@ export class AppRoot<
 
       controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate(null);
+        controller._hydrate();
         return onResolve(this._runAppTasks('hydrated'), () => {
           controller._hydrateChildren();
           this._hydratePromise = void 0;

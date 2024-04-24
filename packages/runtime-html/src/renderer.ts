@@ -352,6 +352,9 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
 
 export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer implements IRenderer {
   public readonly target = InstructionType.hydrateLetElement;
+  public constructor() {
+    LetBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: Node & ChildNode,
@@ -513,6 +516,10 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
   public readonly _modifierHandler = resolve(IEventModifier);
   /** @internal */
   public readonly _defaultOptions = resolve(IListenerBindingOptions);
+
+  public constructor() {
+    ListenerBinding.mix();
+  }
 
   public render(
     renderingCtrl: IHydratableController,

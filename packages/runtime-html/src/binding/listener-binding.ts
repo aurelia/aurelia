@@ -21,10 +21,16 @@ export interface ListenerBinding extends IAstEvaluator, IObserverLocatorBasedCon
  * Listener binding. Handle event binding between view and view model
  */
 export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-  static {
-    mixinUseScope(ListenerBinding);
-    mixingBindingLimited(ListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(ListenerBinding);
+  /** @internal */
+  private static _mixed = false;
+  /** @internal */
+  public static mix() {
+    if (!this._mixed) {
+      this._mixed = true;
+      mixinUseScope(ListenerBinding);
+      mixingBindingLimited(ListenerBinding, () => 'callSource');
+      mixinAstEvaluator(true, true)(ListenerBinding);
+    }
   }
 
   public isBound: boolean = false;

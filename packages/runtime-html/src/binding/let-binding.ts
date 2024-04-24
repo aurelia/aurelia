@@ -21,11 +21,21 @@ import { IBinding } from './interfaces-bindings';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-  static {
-    mixinUseScope(LetBinding);
-    mixingBindingLimited(LetBinding, () => 'updateTarget');
-    connectable(LetBinding, null!);
-    mixinAstEvaluator(true)(LetBinding);
+  /** @internal */
+  private static _mixed = false;
+  /**
+   * The renderer can call this method to prepare the prototype,
+   * so that it can be effectively tree shaken before decorator can be officially applied with tree shaking.
+   * @internal
+   */
+  public static mix() {
+    if (this._mixed) {
+      this._mixed = true;
+      mixinUseScope(LetBinding);
+      mixingBindingLimited(LetBinding, () => 'updateTarget');
+      connectable(LetBinding, null!);
+      mixinAstEvaluator(true)(LetBinding);
+    }
   }
 
   public isBound: boolean = false;

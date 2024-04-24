@@ -18,7 +18,6 @@ import {
   CustomAttribute,
   customElement,
   CustomElement,
-  ITemplateCompiler,
   PartialCustomElementDefinition,
   CustomElementDefinition,
   IInstruction,
@@ -47,11 +46,12 @@ import {
   TestContext,
   verifyBindingInstructionsEqual,
 } from '@aurelia/testing';
+import { IElementComponentDefinition, ITemplateCompiler } from '@aurelia/template-compiler';
 
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {
     let ctx: TestContext;
-    let sut: IWrappedTemplateCompiler;
+    let sut: ReturnType<typeof createCompilerWrapper>;
     let container: IContainer;
 
     beforeEach(function () {
@@ -72,7 +72,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               i = 1;
             }
           }));
-          sut.compile({ template: '<template>' } as any, container, null);
+          sut.compile({ template: '<template>' } as any, container);
           assert.strictEqual(i, 1);
         });
 
@@ -83,7 +83,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               i = 1;
             }
           }));
-          sut.compile({ template: '<template>', needsCompile: false } as any, container, null);
+          sut.compile({ template: '<template>', needsCompile: false } as any, container);
           assert.strictEqual(i, 0);
         });
       });
@@ -557,7 +557,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           surrogates: [],
           shadowOptions: shadow ? { mode: 'open' } : null
         } as unknown as PartialCustomElementDefinition;
-        return sut.compile(templateDefinition, container, null);
+        return sut.compile(templateDefinition, container);
       }
 
       function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
@@ -640,7 +640,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         let bindable: BindableDefinition;
         let prop: string;
         let attr: string;
-        let mode: BindingMode;
+        let mode: string | number;
 
         for (prop in bindables) {
           bindable = bindables[prop];
@@ -715,7 +715,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         let bindable: BindableDefinition;
         let prop: string;
-        let mode: BindingMode;
+        let mode: string | number;
         let hasPrimary: boolean = false;
         let isPrimary: boolean = false;
         let bindableInfo: BindableInfo;
@@ -775,7 +775,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
        * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
        * 3. `bindingMode.toView`
        */
-      public mode: BindingMode,
+      public mode: string | number,
     ) { }
   }
 
@@ -1499,7 +1499,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element value.bind="value">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1512,7 +1512,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element prop1.bind="value">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual((definition.instructions[0][0] as any).captures, []);
       });
@@ -1522,7 +1522,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element prop1.trigger="value()">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1535,7 +1535,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element my-attr.bind="myAttrValue">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1548,7 +1548,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element ...$attrs>',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1561,7 +1561,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element if.bind>',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
@@ -1691,18 +1691,18 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     );
   }
 
-  interface IWrappedTemplateCompiler extends ITemplateCompiler {
-    compile(def: PartialCustomElementDefinition, container: IContainer, instruction: any): CustomElementDefinition;
-  }
+  // interface IWrappedTemplateCompiler extends ITemplateCompiler {
+  //   compile(def: PartialCustomElementDefinition, container: IContainer): CustomElementDefinition;
+  // }
 
-  function createCompilerWrapper(compiler: ITemplateCompiler): IWrappedTemplateCompiler {
+  function createCompilerWrapper(compiler: ITemplateCompiler) {
     return {
       get resolveResources() { return compiler.resolveResources; },
       set resolveResources(value: boolean) { compiler.resolveResources = value; },
       get debug() { return compiler.debug; },
       set debug(value: boolean) { compiler.debug = value; },
-      compile(definition: PartialCustomElementDefinition, container: IContainer, instruction: any) {
-        return CustomElementDefinition.getOrCreate(compiler.compile(CustomElementDefinition.create(definition), container, instruction));
+      compile(definition: PartialCustomElementDefinition, container: IContainer) {
+        return CustomElementDefinition.getOrCreate(compiler.compile(CustomElementDefinition.create(definition), container));
       },
       compileSpread(...args: any[]) {
         // eslint-disable-next-line prefer-spread
@@ -1728,16 +1728,16 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     if ('resolveResources' in options) {
       sut.resolveResources = options.resolveResources;
     }
-    const templateDefinition: PartialCustomElementDefinition = {
+    const templateDefinition = {
       template: markup,
       // instructions: [],
       // surrogates: [],
       // shadowOptions: { mode: 'open' }
-    } as unknown as PartialCustomElementDefinition;
+    } as unknown as IElementComponentDefinition;
     const parser = container.get(IExpressionParser);
 
     return {
-      result: sut.compile(templateDefinition, container, null),
+      result: sut.compile(templateDefinition, container),
       parser,
       createElement: ({ ctor, props = [], projections = null, containerless = false, captures = [], data = {} }: {
         ctor: Constructable;
@@ -1747,7 +1747,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         captures?: AttrSyntax[];
         data?: Record<PropertyKey, unknown>;
       }) =>
-        new HydrateElementInstruction(CustomElement.getDefinition(ctor), props, projections, containerless, captures, data),
+        new HydrateElementInstruction(CustomElement.getDefinition(ctor), props, projections as Record<string, IElementComponentDefinition>, containerless, captures, data),
       createSetProp: ({ value, to }: { value: unknown; to: string }) =>
         new SetPropertyInstruction(value, to),
       createRef: (name: string, to: string) => new RefBindingInstruction(parser.parse(name, 'IsProperty'), to),

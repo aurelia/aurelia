@@ -24,7 +24,7 @@ export interface IElementComponentDefinition<TBindables extends string = string>
   Type?: Constructable;
 }
 
-export type ProcessContentHook = <T extends Constructable>(this: T | undefined, node: HTMLElement, platform: IDomPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
+export type ProcessContentHook = (this: Constructable | undefined, node: HTMLElement, platform: IDomPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
 export interface IAttributeComponentDefinition<TBindables extends string = string> {
   name: string;

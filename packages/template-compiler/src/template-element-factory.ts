@@ -1,6 +1,6 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
-import { BrowserPlatform } from '@aurelia/platform-browser';
 import { createInterface, isString } from './utilities';
+import { IDomPlatform } from './interfaces-template-compiler';
 
 /**
  * Utility that creates a `HTMLTemplateElement` out of string markup or an existing DOM node.
@@ -15,7 +15,7 @@ const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
 export class TemplateElementFactory {
   /** @internal */
-  private readonly p = resolve(IPlatform) as BrowserPlatform;
+  private readonly p = resolve(IPlatform) as IDomPlatform;
   /** @internal */
   private _template = this.t();
 

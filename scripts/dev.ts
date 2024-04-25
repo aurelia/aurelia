@@ -64,6 +64,12 @@ If it is intended to run e2e test, then specified --e2e + one of the following: 
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
 
+const alwaysBuildPackages = [
+  'runtime',
+  'runtime-html',
+  'template-compiler',
+];
+
 const validPackages = [
   'metadata',
   'platform',
@@ -92,7 +98,7 @@ const validPackages = [
   'testing',
 ];
 
-const devPackages = (args.d ?? []) as string[];
+const devPackages = ((args.d ?? []) as string[]).filter(pkg => !alwaysBuildPackages.includes(pkg));
 if (devPackages.some(d => !validPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validPackages}`);
 }

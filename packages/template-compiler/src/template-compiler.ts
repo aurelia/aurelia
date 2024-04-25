@@ -45,6 +45,7 @@ import type {
   IComponentBindablePropDefinition,
   IDomPlatform,
   IElementComponentDefinition,
+  StringBindingMode,
 } from './interfaces-template-compiler';
 import { ErrorNames, createMappedError } from './errors';
 import { ITemplateCompiler } from './interfaces-template-compiler';
@@ -1480,7 +1481,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         bindableEl.remove();
 
-        allBindables[property] = { name: property, attribute: attribute ?? void 0, mode: getBindingMode(bindableEl) };
+        allBindables[property] = {
+          name: property,
+          attribute: attribute ?? void 0,
+          mode: bindableEl.getAttribute(LocalTemplateBindableAttributes.mode) as StringBindingMode ?? 'default'
+        };
 
         return allBindables;
       }, {});
@@ -1851,19 +1856,6 @@ const processTemplateName = (owningElementName: string, localTemplate: HTMLTempl
     localTemplate.removeAttribute(localTemplateIdentifier);
   }
   return name;
-};
-
-const getBindingMode = (bindable: Element): string | number => {
-  const mode = bindable.getAttribute(LocalTemplateBindableAttributes.mode);
-  switch (mode) {
-    case 'oneTime':
-    case 'toView':
-    case 'fromView':
-    case 'twoWay':
-    case 'default':
-    default:
-      return 0;
-  }
 };
 
 /**

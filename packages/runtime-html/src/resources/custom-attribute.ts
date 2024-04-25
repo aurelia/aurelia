@@ -5,7 +5,7 @@ import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { toView } from '../binding/interfaces-bindings';
+import { defaultMode, toView, BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
@@ -124,7 +124,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-    public readonly defaultBindingMode: string | number,
+    public readonly defaultBindingMode: BindingMode,
     public readonly isTemplateController: boolean,
     public readonly bindables: Record<string, BindableDefinition>,
     public readonly noMultiBindings: boolean,
@@ -147,12 +147,14 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       def = nameOrDef;
     }
 
+    const mode = firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView) as string | BindingMode;
+
     return new CustomAttributeDefinition(
       Type,
       firstDefined(getAttributeAnnotation(Type, 'name'), name),
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView),
+      isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
       Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),

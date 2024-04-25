@@ -26,6 +26,7 @@ import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { ErrorNames, createMappedError } from './errors';
 import { IAttributeComponentDefinition, IElementComponentDefinition, IComponentBindablePropDefinition } from './interfaces-template-compiler';
 import type { IInstruction } from './instructions';
+import { BindingMode, InternalBindingMode } from './binding-mode';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition;
 export type BindingCommandStaticAuDefinition = PartialBindingCommandDefinition & {
@@ -206,7 +207,7 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, 'oneTime');
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.oneTime);
   }
 }
 
@@ -234,7 +235,7 @@ export class ToViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, 'toView');
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.toView);
   }
 }
 
@@ -262,7 +263,7 @@ export class FromViewBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, 'fromView');
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.fromView);
   }
 }
 
@@ -290,7 +291,7 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, 'twoWay');
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.twoWay);
   }
 }
 
@@ -304,12 +305,12 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
     const bindable = info.bindable;
-    let defaultMode: string | number;
+    let defDefaultMode: string | number;
     let mode: string | number;
     let target = attr.target;
     let value = attr.rawValue;
     if (bindable == null) {
-      mode = attrMapper.isTwoWay(info.node, target) ? 'twoWay' : 'toView';
+      mode = attrMapper.isTwoWay(info.node, target) ? InternalBindingMode.twoWay : InternalBindingMode.toView;
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
@@ -320,15 +321,21 @@ export class DefaultBindingCommand implements BindingCommandInstance {
       if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
-      defaultMode = (info.def as IAttributeComponentDefinition).defaultBindingMode ?? 0;
+      defDefaultMode = (info.def as IAttributeComponentDefinition).defaultBindingMode ?? 0;
       mode = bindable.mode === 0 || bindable.mode == null
-        ? defaultMode == null || defaultMode === 0
-          ? 'toView'
-          : defaultMode
+        ? defDefaultMode == null || defDefaultMode === 0
+          ? InternalBindingMode.toView
+          : defDefaultMode
         : bindable.mode;
       target = bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, mode);
+    return new PropertyBindingInstruction(
+      exprParser.parse(value, etIsProperty),
+      target,
+      isString(mode)
+        ? BindingMode[mode as keyof typeof BindingMode] ?? InternalBindingMode.default
+        : mode as BindingMode
+    );
   }
 }
 

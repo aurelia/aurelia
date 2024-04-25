@@ -1,13 +1,13 @@
 import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
-import { toView, twoWay } from './binding/interfaces-bindings';
+import { defaultMode, toView, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { createLookup, isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from './errors';
-import { IComponentBindablePropDefinition } from '@aurelia/template-compiler';
+import { BindingMode, IComponentBindablePropDefinition } from '@aurelia/template-compiler';
 
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
@@ -178,17 +178,18 @@ export class BindableDefinition {
   private constructor(
     public readonly attribute: string,
     public readonly callback: string,
-    public readonly mode: string | number,
+    public readonly mode: BindingMode,
     public readonly primary: boolean,
     public readonly name: string,
     public readonly set: InterceptorFunc,
   ) { }
 
   public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
+    const mode = (def.mode ?? toView) as BindingMode;
     return new BindableDefinition(
       def.attribute ?? kebabCase(prop),
       def.callback ?? `${prop}Changed`,
-      def.mode ?? toView,
+      isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       def.primary ?? false,
       def.name ?? prop,
       def.set ?? getInterceptor(def),

@@ -72,7 +72,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
-    public mode: BindingMode,
+    public mode: BindingMode
   ) {
     this._controller = controller;
     this.oL = observerLocator;

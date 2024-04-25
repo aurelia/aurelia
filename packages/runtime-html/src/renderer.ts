@@ -16,7 +16,7 @@ import {
   IObserverLocator,
   type IObservable,
 } from '@aurelia/runtime';
-import { BindingMode, defaultMode, toView } from './binding/interfaces-bindings';
+import { toView } from './binding/interfaces-bindings';
 import { AttributeBinding } from './binding/attribute-binding';
 import { InterpolationBinding, InterpolationPartBinding } from './binding/interpolation-binding';
 import { ContentBinding } from "./binding/content-binding";
@@ -443,7 +443,6 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    const mode = isString(instruction.mode) ? BindingMode[instruction.mode as keyof typeof BindingMode] ?? defaultMode : instruction.mode as BindingMode;
     renderingCtrl.addBinding(new PropertyBinding(
       renderingCtrl,
       renderingCtrl.container,
@@ -452,7 +451,7 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
-      mode,
+      instruction.mode,
     ));
   }
 }, null!);

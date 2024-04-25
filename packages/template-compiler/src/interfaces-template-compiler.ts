@@ -26,13 +26,20 @@ export interface IElementComponentDefinition<TBindables extends string = string>
 
 export type ProcessContentHook = (this: Constructable | undefined, node: HTMLElement, platform: IDomPlatform, data: Record<PropertyKey, unknown>) => boolean | void;
 
+export type StringBindingMode =
+  | 'default'
+  | 'oneTime'
+  | 'toView'
+  | 'fromView'
+  | 'twoWay';
+
 export interface IAttributeComponentDefinition<TBindables extends string = string> {
   name: string;
   type: 'custom-attribute';
   noMultiBindings?: boolean;
   isTemplateController?: boolean;
   aliases?: readonly string[];
-  defaultBindingMode?: string | number;
+  defaultBindingMode?: StringBindingMode | number;
   bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true> | null;
 }
 
@@ -40,7 +47,7 @@ export interface IComponentBindablePropDefinition {
   name: string;
   attribute?: string;
   primary?: boolean;
-  mode?: string | number;
+  mode?: StringBindingMode | number;
   set?: (v: any) => any;
 }
 

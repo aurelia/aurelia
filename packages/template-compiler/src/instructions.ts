@@ -6,6 +6,7 @@ import {
 import { IAttributeComponentDefinition, IElementComponentDefinition } from './interfaces-template-compiler';
 import { createInterface, isString, objectFreeze } from './utilities';
 import { AttrSyntax } from './attribute-pattern';
+import { BindingMode } from './binding-mode';
 
 /** @internal */ export const hydrateElement = 'ra';
 /** @internal */ export const hydrateAttribute = 'rb';
@@ -77,7 +78,7 @@ export class PropertyBindingInstruction {
   public constructor(
     public from: string | IsBindingBehavior,
     public to: string,
-    public mode: number | string,
+    public mode: BindingMode,
   ) {}
 }
 

@@ -10,9 +10,11 @@
   "scripts": {
     "build": "rollup -c",
     "build:kernel": "cd ../../packages/kernel && npm run build",
+    "build:expression-parser": "cd ../../packages/expression-parser && npm run build",
     "build:runtime": "cd ../../packages/runtime && npm run build",
+    "build:template-compiler": "cd ../../packages/template-compiler && npm run build",
     "build:runtime-html": "cd ../../packages/runtime-html && npm run build",
-    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
+    "build:all": "concurrently \"npm run build:kernel\" \"npm run build:expression-parser\" \"npm run build:runtime\" \"npm run build:template-compiler\" \"npm run build:runtime-html\"",
     "postbuild:all": "rollup -c"
   },
   "dependencies": {

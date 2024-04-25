@@ -1,4 +1,9 @@
 export {
+  BindingMode,
+} from './binding-mode';
+
+export {
+  type StringBindingMode,
   type IAttributeComponentDefinition,
   type ICompiledElementComponentDefinition,
   type IComponentBindablePropDefinition,

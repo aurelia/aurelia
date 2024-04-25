@@ -12,7 +12,7 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import { Constructable } from '@aurelia/kernel';
+import { Constructable, Registration } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
@@ -32,6 +32,7 @@ import {
   PropertyBindingInstruction,
   InstructionType,
   BindingMode,
+  AttrMapper,
 } from '@aurelia/runtime-html';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
@@ -224,7 +225,8 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       aliases = aliases || [];
       aliases = aliases.map(alias => `${alias}.bind`);
       const container = createContainer().register(
-        BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand)
+        BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand),
+        Registration.singleton(IAttrMapper, AttrMapper),
       );
       if (!aliases.includes('t.bind')) {
         aliases.push('t.bind');

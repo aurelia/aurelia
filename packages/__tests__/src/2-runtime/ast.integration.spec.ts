@@ -17,6 +17,10 @@ import {
 } from '@aurelia/testing';
 
 describe('2-runtime/ast.integration.spec.ts', function () {
+  // well maybe should just delete these tests
+  (PropertyBinding as any).mix();
+  (LetBinding as any).mix();
+
   describe('[[AccessScope]]', function () {
     describe('PropertyBinding', function () {
       it('auto connects when evaluates', function () {

@@ -211,6 +211,10 @@ export {
 } from '@aurelia/template-compiler';
 
 export {
+  AttrMapper,
+} from './compiler/attribute-mapper';
+
+export {
   templateCompilerComponents,
 } from './compiler/template-compiler';
 

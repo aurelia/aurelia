@@ -26,7 +26,7 @@ import {
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommandInstance, ICommandBuildInfo } from './binding-command';
-import { createLookup, def, etInterpolation, etIsProperty, isString, objectAssign, objectFreeze, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
+import { etInterpolation, etIsProperty, isString, objectFreeze, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
 import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
@@ -1498,7 +1498,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           bindables,
         };
       }
-      def(LocalDepType, 'name', { value: pascalCase(name) });
+      Reflect.defineProperty(LocalDepType, 'name', { value: pascalCase(name) });
       localElementTypes.push(LocalDepType);
 
       root.removeChild(localTemplate);
@@ -1791,12 +1791,12 @@ const commandBuildInfo: Writable<ICommandBuildInfo> = {
   bindable: null,
   def: null,
 };
-const invalidSurrogateAttribute = objectAssign(createLookup<boolean | undefined>(), {
+const invalidSurrogateAttribute: Record<string, boolean> = /*@__PURE__*/ {
   'id': true,
   'name': true,
   'au-slot': true,
   'as-element': true,
-});
+};
 const orderSensitiveInputType: Record<string, number> = {
   checkbox: 1,
   radio: 1,
@@ -1815,16 +1815,22 @@ export interface IElementBindablesInfo {
   readonly primary: null;
 }
 
-export interface IBindablesInfoResolver {
-  get(def: IAttributeComponentDefinition): IAttributeBindablesInfo;
-  get(def: IElementComponentDefinition): IElementBindablesInfo;
+export interface IBindablesInfoResolver<
+  TElementDef extends IElementComponentDefinition = IElementComponentDefinition,
+  TAttrDef extends IAttributeComponentDefinition = IAttributeComponentDefinition,
+> {
+  get(def: TAttrDef): IAttributeBindablesInfo;
+  get(def: TElementDef): IElementBindablesInfo;
 }
 
 export const IBindablesInfoResolver = /*@__PURE__*/createInterface<IBindablesInfoResolver>('IBindablesInfoResolver');
 
-export interface IResourceResolver {
-  el(c: IContainer, name: string): IElementComponentDefinition | null;
-  attr(c: IContainer, name: string): IAttributeComponentDefinition | null;
+export interface IResourceResolver<
+  TElementDef extends IElementComponentDefinition = IElementComponentDefinition,
+  TAttrDef extends IAttributeComponentDefinition = IAttributeComponentDefinition,
+> {
+  el(c: IContainer, name: string): TElementDef | null;
+  attr(c: IContainer, name: string): TAttrDef | null;
   command(c: IContainer, name: string): BindingCommandInstance | null;
 }
 

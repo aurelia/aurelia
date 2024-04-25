@@ -1,7 +1,6 @@
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { camelCase, emptyArray, firstDefined, getResourceKeyFor, mergeArrays, resolve, resource, resourceBaseName } from '@aurelia/kernel';
-// import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
-import { defineMetadata, getAnnotationKeyFor, getDefinitionFromStaticAu, getMetadata } from './utilities-metadata';
+import { Protocol, camelCase, emptyArray, firstDefined, getResourceKeyFor, mergeArrays, resolve, resource, resourceBaseName } from '@aurelia/kernel';
+import { defineMetadata, getMetadata } from './utilities-metadata';
 import { IAttrMapper } from './attribute-mapper';
 import {
   AttributeBindingInstruction,
@@ -12,7 +11,7 @@ import {
   RefBindingInstruction,
   SpreadBindingInstruction,
 } from './instructions';
-import { aliasRegistration, definitionTypeElement, etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
+import { aliasRegistration, definitionTypeElement, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
 
 import type {
   Constructable,
@@ -21,6 +20,7 @@ import type {
   PartialResourceDefinition,
   ResourceDefinition,
   ResourceType,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { ErrorNames, createMappedError } from './errors';
@@ -144,43 +144,63 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
 ): PartialBindingCommandDefinition[K] | undefined =>
-  getMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type);
+  getMetadata<PartialBindingCommandDefinition[K]>(Protocol.annotation.keyFor(prop), Type);
 
-export const BindingCommand = objectFreeze<BindingCommandKind>({
-  name: cmdBaseName,
-  keyFrom: getCommandKeyFrom,
-  // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-  //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
-  // },
-  define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
-    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    const $Type = definition.Type as BindingCommandType<T>;
+export const BindingCommand = /*@__PURE__*/ (() => {
 
-    // registration of resource name is a requirement for the resource system in kernel (module-loader)
-    defineMetadata(definition, $Type, cmdBaseName, resourceBaseName);
-
-    return $Type;
-  },
-  getAnnotation: getCommandAnnotation,
-  find(container, name) {
-    const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
-    return Type == null
-      ? null
-      : getMetadata<BindingCommandDefinition>(cmdBaseName, Type) ?? getDefinitionFromStaticAu<BindingCommandDefinition, BindingCommandType>(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
-  },
-  get(container, name) {
-    if (__DEV__) {
-      try {
-        return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
-      } catch (ex) {
-        // eslint-disable-next-line no-console
-        console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
-        throw ex;
+  const staticResourceDefinitionMetadataKey = '__au_static_resource__';
+  const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C extends Constructable = Constructable>(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    Type: C | Function,
+    typeName: string,
+    createDef: (au: PartialResourceDefinition<Def>, Type: C) => Def,
+  ): Def => {
+    let def = getMetadata(staticResourceDefinitionMetadataKey, Type) as Def;
+    if (def == null) {
+      if ((Type as StaticResourceType<Def>).$au?.type === typeName) {
+        def = createDef((Type as StaticResourceType<Def>).$au!, Type as C);
+        defineMetadata(def, Type, staticResourceDefinitionMetadataKey);
       }
     }
-    return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
-  },
-});
+    return def;
+  };
+
+  return objectFreeze<BindingCommandKind>({
+    name: cmdBaseName,
+    keyFrom: getCommandKeyFrom,
+    // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
+    //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
+    // },
+    define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
+      const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
+      const $Type = definition.Type as BindingCommandType<T>;
+
+      // registration of resource name is a requirement for the resource system in kernel (module-loader)
+      defineMetadata(definition, $Type, cmdBaseName, resourceBaseName);
+
+      return $Type;
+    },
+    getAnnotation: getCommandAnnotation,
+    find(container, name) {
+      const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
+      return Type == null
+        ? null
+        : getMetadata<BindingCommandDefinition>(cmdBaseName, Type) ?? getDefinitionFromStaticAu<BindingCommandDefinition, BindingCommandType>(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
+    },
+    get(container, name) {
+      if (__DEV__) {
+        try {
+          return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+        } catch (ex) {
+          // eslint-disable-next-line no-console
+          console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
+          throw ex;
+        }
+      }
+      return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+    },
+  });
+})();
 
 export class OneTimeBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -354,7 +374,7 @@ export class ForBindingCommand implements BindingCommandInstance {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.name;
-    const forOf = exprParser.parse(info.attr.rawValue, etIsIterator);
+    const forOf = exprParser.parse(info.attr.rawValue, 'IsIterator');
     let props: MultiAttrInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
       const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);

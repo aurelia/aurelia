@@ -57,7 +57,7 @@ export type ICompiledElementComponentDefinition = IElementComponentDefinition & 
   template: HTMLElement | null;
 };
 
-export const ITemplateCompiler = createInterface<ITemplateCompiler>('ITemplateCompiler');
+export const ITemplateCompiler = /*@__PURE__*/createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
    * Indicates whether this compiler should compile template in debug mode

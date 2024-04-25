@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
 
-import { safeString } from './utilities';
-
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
-  : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}:${details.map(safeString)}`);
+  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}:${details.map(String)}`);
 
 _START_CONST_ENUM();
 /** @internal */
@@ -87,9 +85,9 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
           default: {
             // property access
             if (method?.startsWith('.')) {
-              value = safeString(value[method.slice(1)]);
+              value = String(value[method.slice(1)]);
             } else {
-              value = safeString(value);
+              value = String(value);
             }
           }
         }

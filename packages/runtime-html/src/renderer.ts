@@ -211,7 +211,8 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
      */
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: HydrateAttributeInstruction,
+    // <CustomAttributeDefinition> as we assume it's always used with the default resources resolver
+    instruction: HydrateAttributeInstruction<CustomAttributeDefinition>,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -234,7 +235,7 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
       //   def = CustomAttribute.getDefinition(instruction.res);
       //   break;
       default:
-        def = instruction.res as CustomAttributeDefinition;
+        def = instruction.res;
     }
     const results = invokeAttribute(
       /* platform         */platform,
@@ -278,7 +279,8 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: HydrateTemplateController,
+    // <CustomAttributeDefinition> as we assume it's always used with the default resources resolver
+    instruction: HydrateTemplateController<CustomAttributeDefinition>,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
@@ -301,7 +303,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       //   def = CustomAttribute.getDefinition(instruction.res);
       //   break;
       default:
-        def = instruction.res as CustomAttributeDefinition;
+        def = instruction.res;
     }
     // const viewFactory = this._rendering.getViewFactory(
     //   instruction.def,

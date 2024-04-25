@@ -157,13 +157,14 @@ export class HydrateElementInstruction<
   }
 }
 
-export class HydrateAttributeInstruction {
+// the template type gives an opportunity for implementor of resources resolver to provide a more specific type
+export class HydrateAttributeInstruction<T extends IAttributeComponentDefinition = IAttributeComponentDefinition> {
   public readonly type = hydrateAttribute;
 
   public constructor(
     // in theory, Constructor of resources should be accepted too
     // though it would be unnecessary right now
-    public res: string | /* Constructable |  */IAttributeComponentDefinition,
+    public res: string | /* Constructable |  */T,
     public alias: string | undefined,
     /**
      * Bindable instructions for the custom attribute instance
@@ -172,14 +173,15 @@ export class HydrateAttributeInstruction {
   ) {}
 }
 
-export class HydrateTemplateController {
+// the template type gives an opportunity for implementor of resources resolver to provide a more specific type
+export class HydrateTemplateController<T extends IAttributeComponentDefinition = IAttributeComponentDefinition> {
   public readonly type = hydrateTemplateController;
 
   public constructor(
     public def: IElementComponentDefinition,
     // in theory, Constructor of resources should be accepted too
     // though it would be unnecessary right now
-    public res: string | /* Constructable |  */IAttributeComponentDefinition,
+    public res: string | /* Constructable |  */T,
     public alias: string | undefined,
     /**
      * Bindable instructions for the template controller instance

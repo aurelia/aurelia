@@ -37,10 +37,11 @@ export const templateCompilerComponents: IRegistry = {
   }
 };
 
-class BindablesInfoResolver implements IBindablesInfoResolver {
+class BindablesInfoResolver implements IBindablesInfoResolver<CustomElementDefinition, CustomAttributeDefinition> {
   public static register = /*@__PURE__*/ createImplementationRegister(IBindablesInfoResolver);
   /** @internal */
   private readonly _cache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
+
   public get(def: CustomAttributeDefinition): IAttributeBindablesInfo;
   public get(def: CustomElementDefinition): IElementBindablesInfo;
   public get(def: CustomAttributeDefinition | CustomElementDefinition): IAttributeBindablesInfo | IElementBindablesInfo {
@@ -94,7 +95,7 @@ class BindablesInfo {
   ) {}
 }
 
-class ResourceResolver implements IResourceResolver {
+class ResourceResolver implements IResourceResolver<CustomElementDefinition, CustomAttributeDefinition> {
   public static register = /*@__PURE__*/ createImplementationRegister(IResourceResolver);
 
   private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();

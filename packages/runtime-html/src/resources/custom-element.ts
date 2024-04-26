@@ -574,7 +574,7 @@ export const generateElementType = /*@__PURE__*/(function () {
   };
 })();
 
-export const CustomElement = objectFreeze<CustomElementKind>({
+export const CustomElement = /*@__PURE__*/ objectFreeze<CustomElementKind>({
   name: elementBaseName,
   keyFrom: getElementKeyFrom,
   isType: isElementType,

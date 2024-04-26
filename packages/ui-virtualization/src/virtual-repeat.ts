@@ -10,10 +10,8 @@ import {
   Scope,
   type IOverrideContext,
   BindingContext,
-  IInstruction,
   IController,
   IViewFactory,
-  HydrateTemplateController,
   IHydratedComponentController,
   ICustomAttributeViewModel,
   ISyntheticView,
@@ -22,6 +20,8 @@ import {
   type CustomAttributeStaticAuDefinition,
 } from '@aurelia/runtime-html';
 import {
+  IInstruction,
+  HydrateTemplateController,
   IteratorBindingInstruction,
 } from '@aurelia/template-compiler';
 import {

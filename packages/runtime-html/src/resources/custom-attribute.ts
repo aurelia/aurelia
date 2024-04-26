@@ -254,7 +254,7 @@ const findClosestControllerByName = (node: Node, attrNameOrType: string | Custom
   return null;
 };
 
-export const CustomAttribute = objectFreeze<CustomAttributeKind>({
+export const CustomAttribute = /*@__PURE__*/ objectFreeze<CustomAttributeKind>({
   name: attributeBaseName,
   keyFrom: getAttributeKeyFrom,
   isType: isAttributeType,

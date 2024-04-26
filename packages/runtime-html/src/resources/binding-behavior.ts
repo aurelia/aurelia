@@ -104,7 +104,7 @@ const getBehaviorAnnotation = <K extends keyof PartialBindingBehaviorDefinition>
 
 const getBindingBehaviorKeyFrom = (name: string): string => `${bbBaseName}:${name}`;
 
-export const BindingBehavior = objectFreeze<BindingBehaviorKind>({
+export const BindingBehavior = /*@__PURE__*/ objectFreeze<BindingBehaviorKind>({
   name: bbBaseName,
   keyFrom: getBindingBehaviorKeyFrom,
   isType<T>(value: T): value is (T extends Constructable ? BindingBehaviorType<T> : never) {

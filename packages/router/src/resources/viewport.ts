@@ -2,15 +2,17 @@ import { IContainer, IEventAggregator, resolve } from '@aurelia/kernel';
 import {
   INode,
   CustomElement,
-  HydrateElementInstruction,
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
-  IInstruction,
 } from '@aurelia/runtime-html';
+import {
+  HydrateElementInstruction,
+  IInstruction,
+} from '@aurelia/template-compiler';
 import { IRouter, NavigationFlags } from '../index';
 import { Viewport } from '../endpoints/viewport';
 import { IViewportOptions } from '../endpoints/viewport-options';

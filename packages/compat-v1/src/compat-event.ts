@@ -99,7 +99,7 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
   }
 }, null!);
 
-export class DelegateBindingInstruction {
+export class DelegateBindingInstruction implements IInstruction {
   public readonly type = 'dl';
 
   public constructor(

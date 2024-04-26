@@ -72,12 +72,14 @@ export class Aurelia implements IDisposable {
    * @param parentController - The owning controller of the view created by this enhance call
    */
   public enhance<T extends object>(config: IEnhancementConfig<T>): IAppRoot<T> | Promise<IAppRoot<T>> {
-    const appRoot = new AppRoot(
+    const container = (config.container ?? this.container.createChild());
+    const rootProvider = registerResolver(container, IAppRoot, new InstanceProvider<IAppRoot<T>>('IAppRoot'));
+    const appRoot: IAppRoot<T> = new AppRoot(
       { host: config.host as HTMLElement, component: config.component },
-      config.container ?? this.container.createChild(),
-      new InstanceProvider('IAppRoot'),
+      container,
+      rootProvider,
       true
-    ) as IAppRoot<T>;
+    );
     return onResolve(appRoot.activate(), () => appRoot);
   }
 

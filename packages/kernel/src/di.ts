@@ -78,7 +78,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   readonly root: IContainer;
   readonly parent: IContainer | null;
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
+  registerResolver<K extends Key, T extends IResolver<K> | IDisposableResolver<K> = IResolver<K>>(key: K, resolver: T, isDisposable?: boolean): T;
   // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
@@ -133,7 +133,7 @@ export class ResolverBuilder<K> {
   private _registerResolver(strategy: ResolverStrategy, state: unknown): IResolver<K> {
     const { _container: container, _key: key } = this;
     this._container = this._key = (void 0)!;
-    return container.registerResolver(key, new Resolver(key, strategy, state));
+    return container.registerResolver(key, new Resolver(key, strategy, state)) as IResolver<K>;
   }
 }
 
@@ -613,7 +613,7 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
-export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
+export class InstanceProvider<K extends Key> implements IDisposableResolver<K> {
   /** @internal */ private _instance: Resolved<K> | null;
   /** @internal */ private readonly _name?: string;
   /** @internal */ private readonly _Type: Constructable | null;
@@ -642,7 +642,7 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public get $isResolver(): true {return true;}
 
-  public resolve(): Resolved<K> | null {
+  public resolve(): Resolved<K> {
     if (this._instance == null) {
       throw createMappedError(ErrorNames.no_instance_provided, this._name);
     }

@@ -242,7 +242,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable: boolean = false): IResolver<T> {
+  public registerResolver<K extends Key, T extends IResolver<K> | IDisposableResolver<K> = IResolver<K>>(key: K, resolver: T, isDisposable: boolean = false): T {
     validateKey(key);
 
     const resolvers = this._resolvers;
@@ -263,7 +263,7 @@ export class Container implements IContainer {
     }
 
     if (isDisposable) {
-      this._disposableResolvers.set(key, resolver as IDisposableResolver<T>);
+      this._disposableResolvers.set(key, resolver as Partial<IDisposableResolver> as IDisposableResolver<T>);
     }
 
     return resolver;

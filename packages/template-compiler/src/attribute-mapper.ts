@@ -1,5 +1,8 @@
 import { createInterface } from './utilities';
 
+/**
+ * An interface describing the API for mapping attributes to properties
+ */
 export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper');
 export interface IAttrMapper {
   /**

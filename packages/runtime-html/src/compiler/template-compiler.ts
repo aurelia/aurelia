@@ -26,7 +26,7 @@ import { AttrMapper } from './attribute-mapper';
 /**
  * A group of registrations to connect the template compiler with the aurelia runtime implementation
  */
-export const templateCompilerComponents: IRegistry = {
+export const RuntimeTemplateCompilerImplementation: IRegistry = {
   register(container) {
     container.register(
       TemplateCompiler,

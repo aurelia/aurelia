@@ -1,10 +1,12 @@
 import {
   BindingMode,
+  CustomElementDefinition,
+} from '@aurelia/runtime-html';
+import {
   ITemplateCompiler,
   IInstruction,
   InstructionType as TT,
-  CustomElementDefinition,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import {
   assert,
   TestContext

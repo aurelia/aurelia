@@ -19,21 +19,23 @@ import {
 } from '@aurelia/runtime';
 import {
   IBinding,
+  IRenderer,
+  IHydratableController,
+  StandardConfiguration,
+  IPlatform,
+  BindingMode,
+  AttrMapper,
+} from '@aurelia/runtime-html';
+import {
   AttributePattern,
   AttributePatternDefinition,
   AttrSyntax,
   BindingCommand,
-  IRenderer,
-  IHydratableController,
-  StandardConfiguration,
   IAttributePattern,
-  IPlatform,
   IAttrMapper,
   PropertyBindingInstruction,
   InstructionType,
-  BindingMode,
-  AttrMapper,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 
 const noopLocator = {} as unknown as IObserverLocator;

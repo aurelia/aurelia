@@ -1791,7 +1791,7 @@ const commandBuildInfo: Writable<ICommandBuildInfo> = {
   bindable: null,
   def: null,
 };
-const invalidSurrogateAttribute: Record<string, boolean> = /*@__PURE__*/ {
+const invalidSurrogateAttribute: Record<string, boolean> = {
   'id': true,
   'name': true,
   'au-slot': true,

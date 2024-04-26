@@ -4,11 +4,8 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  type BindingCommandInstance,
-  ICommandBuildInfo,
   IController,
   IHydratableController,
-  IInstruction,
   IRenderer,
   mixinAstEvaluator,
   mixinUseScope,
@@ -18,8 +15,13 @@ import {
   type IAstEvaluator,
   type IBinding,
   Scope,
-  type BindingCommandStaticAuDefinition,
 } from '@aurelia/runtime-html';
+import {
+  type BindingCommandInstance,
+  type ICommandBuildInfo,
+  type IInstruction,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 import { ensureExpression, etIsFunction } from './utilities';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 

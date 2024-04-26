@@ -76,7 +76,7 @@ import { SanitizeValueConverter } from './resources/value-converters/sanitize';
 import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
 import { EventModifierRegistration } from './binding/listener-binding';
-import { templateCompilerComponents } from './compiler/template-compiler';
+import { RuntimeTemplateCompilerImplementation } from './compiler/template-compiler';
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -85,7 +85,7 @@ import { templateCompilerComponents } from './compiler/template-compiler';
  * - `ITargetObserverLocator`
  */
 export const DefaultComponents = [
-  templateCompilerComponents,
+  RuntimeTemplateCompilerImplementation,
   DirtyChecker,
   NodeObserverLocator,
 ];

@@ -1,5 +1,6 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { AppTask, AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/runtime-html';
+import { AppTask } from '@aurelia/runtime-html';
+import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/template-compiler';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';

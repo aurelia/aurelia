@@ -8,18 +8,21 @@ import {
   IHydratableController,
   IRenderer,
   renderer,
-  AttrSyntax,
   IPlatform,
-  IAttrMapper,
-  ICommandBuildInfo,
-  AttributePattern,
 } from '@aurelia/runtime-html';
+import {
+  AttrSyntax,
+  AttributePattern,
+  type IAttrMapper,
+  type ICommandBuildInfo,
+  type BindingCommandInstance,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 
 import type {
   BindingMode,
-  BindingCommandInstance,
-  BindingCommandStaticAuDefinition,
 } from '@aurelia/runtime-html';
+
 import { bmToView, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';

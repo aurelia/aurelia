@@ -54,7 +54,13 @@ export class Rendering implements IRendering {
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
-      all[r.target] = r;
+      if (__DEV__) {
+        if (all[r.target] !== void 0) {
+          // eslint-disable-next-line no-console
+          console.warn(`[DEV:aurelia] Renderer for target ${r.target} already exists.`);
+        }
+      }
+      all[r.target] ??= r;
       return all;
     }, createLookup<IRenderer>());
   }

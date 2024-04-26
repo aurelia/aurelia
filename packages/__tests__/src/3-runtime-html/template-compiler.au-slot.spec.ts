@@ -5,13 +5,15 @@ import {
   CustomElement,
   CustomElementDefinition,
   CustomElementType,
+  DefaultBindingSyntax,
+} from '@aurelia/runtime-html';
+import {
   HydrateElementInstruction,
   InstructionType,
   IInstruction,
-  DefaultBindingSyntax,
   PropertyBindingInstruction,
   TextBindingInstruction,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import {
   assert, TestContext
 } from '@aurelia/testing';

@@ -9,9 +9,9 @@ import {
   customElement,
   CustomElement,
   CustomElementDefinition,
-  HydrateElementInstruction,
   PartialCustomElementDefinition,
 } from '@aurelia/runtime-html';
+import { HydrateElementInstruction } from '@aurelia/template-compiler';
 import {
   assert,
   generateCartesianProduct,

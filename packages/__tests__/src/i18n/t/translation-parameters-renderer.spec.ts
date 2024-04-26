@@ -9,17 +9,19 @@ import {
   IRenderer,
   StandardConfiguration,
   IHydratableController,
+  IPlatform,
+  BindingMode,
+  AttrMapper,
+} from '@aurelia/runtime-html';
+import {
   AttrSyntax,
   BindingCommand,
   BindingCommandInstance,
   IAttributePattern,
-  IPlatform,
   IAttrMapper,
   PropertyBindingInstruction,
   InstructionType,
-  BindingMode,
-  AttrMapper,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
 const noopLocator = {} as unknown as IObserverLocator;

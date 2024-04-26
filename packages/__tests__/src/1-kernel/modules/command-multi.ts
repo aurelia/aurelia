@@ -1,4 +1,4 @@
-import { bindingCommand } from '@aurelia/runtime-html';
+import { bindingCommand } from '@aurelia/template-compiler';
 
 @bindingCommand('cmd')
 export class Cmd {}

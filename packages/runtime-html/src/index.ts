@@ -66,48 +66,51 @@ export {
   type AppTaskCallback,
   type AppTaskCallbackNoArg,
 } from './app-task';
-export {
-  AttrSyntax,
-  IAttributeParser,
-  attributePattern,
-  type AttributePatternDefinition,
-  IAttributePattern,
-  type AttributePatternKind,
-  AttributePattern,
-  Interpretation,
-  ISyntaxInterpreter,
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern,
-} from '@aurelia/template-compiler';
 
-export {
-  bindingCommand,
-  type ICommandBuildInfo,
-  BindingCommand ,
-  type BindingCommandInstance,
-  type PartialBindingCommandDefinition,
-  type BindingCommandStaticAuDefinition,
-  BindingCommandDefinition,
-  type BindingCommandKind,
-  type BindingCommandType,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand,
-  TriggerBindingCommand,
-  CaptureBindingCommand,
-  AttrBindingCommand,
-  ClassBindingCommand,
-  StyleBindingCommand,
-} from '@aurelia/template-compiler';
-export {
-  IAttrMapper,
-  type IsTwoWayPredicate,
-} from '@aurelia/template-compiler';
+// export {
+//   AttrSyntax,
+//   IAttributeParser,
+//   attributePattern,
+//   type AttributePatternDefinition,
+//   IAttributePattern,
+//   type AttributePatternKind,
+//   AttributePattern,
+//   Interpretation,
+//   ISyntaxInterpreter,
+//   AtPrefixedTriggerAttributePattern,
+//   ColonPrefixedBindAttributePattern,
+//   DotSeparatedAttributePattern,
+//   RefAttributePattern,
+// } from '@aurelia/template-compiler';
+
+// export {
+//   bindingCommand,
+//   type ICommandBuildInfo,
+//   BindingCommand ,
+//   type BindingCommandInstance,
+//   type PartialBindingCommandDefinition,
+//   type BindingCommandStaticAuDefinition,
+//   BindingCommandDefinition,
+//   type BindingCommandKind,
+//   type BindingCommandType,
+//   DefaultBindingCommand,
+//   ForBindingCommand,
+//   FromViewBindingCommand,
+//   OneTimeBindingCommand,
+//   ToViewBindingCommand,
+//   TwoWayBindingCommand,
+//   TriggerBindingCommand,
+//   CaptureBindingCommand,
+//   AttrBindingCommand,
+//   ClassBindingCommand,
+//   StyleBindingCommand,
+// } from '@aurelia/template-compiler';
+
+// export {
+//   IAttrMapper,
+//   type IsTwoWayPredicate,
+// } from '@aurelia/template-compiler';
+
 export {
   BindingMode,
   type IBindingController,
@@ -183,39 +186,39 @@ export {
   StylePropertyBindingRenderer,
 } from './renderer';
 
-export {
-  ITemplateCompiler,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  HydrateLetElementInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  AttributeBindingInstruction,
-  ListenerBindingInstruction,
-  PropertyBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetStyleAttributeInstruction,
-  StylePropertyBindingInstruction,
-  TextBindingInstruction,
-  SpreadBindingInstruction,
-  SpreadElementPropBindingInstruction,
-  MultiAttrInstruction,
+// export {
+//   ITemplateCompiler,
+//   HydrateAttributeInstruction,
+//   HydrateElementInstruction,
+//   HydrateTemplateController,
+//   InterpolationInstruction,
+//   IteratorBindingInstruction,
+//   LetBindingInstruction,
+//   HydrateLetElementInstruction,
+//   RefBindingInstruction,
+//   SetPropertyInstruction,
+//   AttributeBindingInstruction,
+//   ListenerBindingInstruction,
+//   PropertyBindingInstruction,
+//   SetAttributeInstruction,
+//   SetClassAttributeInstruction,
+//   SetStyleAttributeInstruction,
+//   StylePropertyBindingInstruction,
+//   TextBindingInstruction,
+//   SpreadBindingInstruction,
+//   SpreadElementPropBindingInstruction,
+//   MultiAttrInstruction,
 
-  IInstruction,
-  InstructionType,
-} from '@aurelia/template-compiler';
+//   IInstruction,
+//   InstructionType,
+// } from '@aurelia/template-compiler';
 
 export {
   AttrMapper,
 } from './compiler/attribute-mapper';
 
 export {
-  templateCompilerComponents,
+  RuntimeTemplateCompilerImplementation,
 } from './compiler/template-compiler';
 
 export {

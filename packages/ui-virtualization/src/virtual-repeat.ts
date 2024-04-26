@@ -15,13 +15,15 @@ import {
   IViewFactory,
   HydrateTemplateController,
   IHydratedComponentController,
-  IteratorBindingInstruction,
   ICustomAttributeViewModel,
   ISyntheticView,
   IRenderLocation,
   IPlatform,
-  CustomAttributeStaticAuDefinition,
+  type CustomAttributeStaticAuDefinition,
 } from '@aurelia/runtime-html';
+import {
+  IteratorBindingInstruction,
+} from '@aurelia/template-compiler';
 import {
   unwrapExpression,
 } from "./utilities-repeat";

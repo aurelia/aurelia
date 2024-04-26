@@ -1,9 +1,9 @@
 import { DirtyChecker } from '@aurelia/runtime';
-import { Aurelia, templateCompilerComponents, TextBindingRenderer } from '@aurelia/runtime-html';
+import { Aurelia, RuntimeTemplateCompilerImplementation, TextBindingRenderer } from '@aurelia/runtime-html';
 
 void new Aurelia().register(
   DirtyChecker,
-  templateCompilerComponents,
+  RuntimeTemplateCompilerImplementation,
   // CustomElementRenderer,
   TextBindingRenderer,
   {register(){}},

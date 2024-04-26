@@ -8,15 +8,17 @@ import {
   IRenderer,
   renderer,
   IHydratableController,
-  AttrSyntax,
   IPlatform,
-  IAttrMapper,
-  ICommandBuildInfo,
 } from '@aurelia/runtime-html';
+import {
+  AttrSyntax,
+  type IAttrMapper,
+  type ICommandBuildInfo,
+  type BindingCommandInstance,
+} from '@aurelia/template-compiler';
 
 import type {
   BindingMode,
-  BindingCommandInstance,
 } from '@aurelia/runtime-html';
 import { etIsProperty, bmToView } from '../utils';
 

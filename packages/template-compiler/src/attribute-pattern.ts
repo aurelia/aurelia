@@ -517,7 +517,7 @@ const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePa
 
 const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
 
-export const AttributePattern = objectFreeze<AttributePatternKind>({
+export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
   define(patternDefs, Type) {
     patterns.set(Type, patternDefs);

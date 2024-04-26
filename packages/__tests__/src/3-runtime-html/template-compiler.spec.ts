@@ -20,33 +20,36 @@ import {
   CustomElement,
   PartialCustomElementDefinition,
   CustomElementDefinition,
+  CustomAttributeDefinition,
+  If,
+  DefaultBindingSyntax,
+  TemplateCompilerHooks,
+} from '@aurelia/runtime-html';
+import {
   IInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
   InstructionType as HTT,
   InstructionType as TT,
   HydrateLetElementInstruction,
-  CustomAttributeDefinition,
   HydrateAttributeInstruction,
   AttrSyntax,
-  If,
   attributePattern,
   PropertyBindingInstruction,
   InterpolationInstruction,
   InstructionType,
-  DefaultBindingSyntax,
-  TemplateCompilerHooks,
   IteratorBindingInstruction,
   RefBindingInstruction,
   AttributeBindingInstruction,
   SetPropertyInstruction,
-} from '@aurelia/runtime-html';
+  IElementComponentDefinition,
+  ITemplateCompiler,
+} from '@aurelia/template-compiler';
 import {
   assert,
   TestContext,
   verifyBindingInstructionsEqual,
 } from '@aurelia/testing';
-import { IElementComponentDefinition, ITemplateCompiler } from '@aurelia/template-compiler';
 
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {

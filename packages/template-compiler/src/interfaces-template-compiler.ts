@@ -57,6 +57,9 @@ export type ICompiledElementComponentDefinition = IElementComponentDefinition & 
   template: HTMLElement | null;
 };
 
+/**
+ * An interface describing the template compiler used by Aurelia applicaitons
+ */
 export const ITemplateCompiler = /*@__PURE__*/createInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**

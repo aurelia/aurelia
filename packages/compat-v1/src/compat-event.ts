@@ -146,6 +146,8 @@ export class DelegateListenerBinding implements IBinding {
    */
   public readonly boundFn = true;
 
+  public self: boolean = false;
+
   public constructor(
     locator: IServiceLocator,
     public ast: IsBindingBehavior,
@@ -178,6 +180,12 @@ export class DelegateListenerBinding implements IBinding {
   }
 
   public handleEvent(event: Event): void {
+    if (this.self) {
+      /* istanbul ignore next */
+      if (this.target !== event.composedPath()[0]) {
+        return;
+      }
+    }
     this.callSource(event);
   }
 

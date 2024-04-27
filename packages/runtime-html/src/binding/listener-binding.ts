@@ -90,7 +90,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public handleEvent(event: Event): void {
     if (this.self) {
       if (this.target !== event.composedPath()[0]) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
         return;
       }
     }
@@ -102,7 +102,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public bind(scope: Scope): void {
     if (this.isBound) {
       if (this._scope === scope) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
         return;
       }
       this.unbind();
@@ -118,7 +118,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   public unbind(): void {
     if (!this.isBound) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
       return;
     }
     this.isBound = false;

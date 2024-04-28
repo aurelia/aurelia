@@ -67,50 +67,6 @@ export {
   type AppTaskCallbackNoArg,
 } from './app-task';
 
-// export {
-//   AttrSyntax,
-//   IAttributeParser,
-//   attributePattern,
-//   type AttributePatternDefinition,
-//   IAttributePattern,
-//   type AttributePatternKind,
-//   AttributePattern,
-//   Interpretation,
-//   ISyntaxInterpreter,
-//   AtPrefixedTriggerAttributePattern,
-//   ColonPrefixedBindAttributePattern,
-//   DotSeparatedAttributePattern,
-//   RefAttributePattern,
-// } from '@aurelia/template-compiler';
-
-// export {
-//   bindingCommand,
-//   type ICommandBuildInfo,
-//   BindingCommand ,
-//   type BindingCommandInstance,
-//   type PartialBindingCommandDefinition,
-//   type BindingCommandStaticAuDefinition,
-//   BindingCommandDefinition,
-//   type BindingCommandKind,
-//   type BindingCommandType,
-//   DefaultBindingCommand,
-//   ForBindingCommand,
-//   FromViewBindingCommand,
-//   OneTimeBindingCommand,
-//   ToViewBindingCommand,
-//   TwoWayBindingCommand,
-//   TriggerBindingCommand,
-//   CaptureBindingCommand,
-//   AttrBindingCommand,
-//   ClassBindingCommand,
-//   StyleBindingCommand,
-// } from '@aurelia/template-compiler';
-
-// export {
-//   IAttrMapper,
-//   type IsTwoWayPredicate,
-// } from '@aurelia/template-compiler';
-
 export {
   BindingMode,
   type IBindingController,
@@ -185,33 +141,6 @@ export {
   SpreadRenderer,
   StylePropertyBindingRenderer,
 } from './renderer';
-
-// export {
-//   ITemplateCompiler,
-//   HydrateAttributeInstruction,
-//   HydrateElementInstruction,
-//   HydrateTemplateController,
-//   InterpolationInstruction,
-//   IteratorBindingInstruction,
-//   LetBindingInstruction,
-//   HydrateLetElementInstruction,
-//   RefBindingInstruction,
-//   SetPropertyInstruction,
-//   AttributeBindingInstruction,
-//   ListenerBindingInstruction,
-//   PropertyBindingInstruction,
-//   SetAttributeInstruction,
-//   SetClassAttributeInstruction,
-//   SetStyleAttributeInstruction,
-//   StylePropertyBindingInstruction,
-//   TextBindingInstruction,
-//   SpreadBindingInstruction,
-//   SpreadElementPropBindingInstruction,
-//   MultiAttrInstruction,
-
-//   IInstruction,
-//   InstructionType,
-// } from '@aurelia/template-compiler';
 
 export {
   AttrMapper,
@@ -368,16 +297,8 @@ export {
   StandardConfiguration,
 } from './configuration';
 export {
-  ITemplateElementFactory
-} from '@aurelia/template-compiler';
-export {
-  TemplateCompiler,
-  ITemplateCompilerHooks,
-  TemplateCompilerHooks,
-  templateCompilerHooks,
-  type IAttributeBindablesInfo,
-  type IElementBindablesInfo,
-  IBindablesInfoResolver,
+  /** @deprecated - Should be imported directly from `aurelia` or `@aurelia/template-compiler` package */
+  BindingCommand,
 } from '@aurelia/template-compiler';
 
 export {

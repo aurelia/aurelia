@@ -23,9 +23,9 @@ import {
   CustomAttributeDefinition,
   If,
   DefaultBindingSyntax,
-  TemplateCompilerHooks,
 } from '@aurelia/runtime-html';
 import {
+  TemplateCompilerHooks,
   IInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,

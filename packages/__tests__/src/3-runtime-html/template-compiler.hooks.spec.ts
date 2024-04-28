@@ -4,10 +4,12 @@ import {
 import {
   CustomElement,
   CustomElementDefinition,
+} from '@aurelia/runtime-html';
+import {
   ITemplateCompilerHooks,
   templateCompilerHooks,
   TemplateCompilerHooks,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import {
   assert,
   createFixture,

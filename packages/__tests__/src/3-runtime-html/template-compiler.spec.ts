@@ -18,30 +18,33 @@ import {
   CustomAttribute,
   customElement,
   CustomElement,
-  ITemplateCompiler,
   PartialCustomElementDefinition,
   CustomElementDefinition,
+  CustomAttributeDefinition,
+  If,
+  DefaultBindingSyntax,
+} from '@aurelia/runtime-html';
+import {
+  TemplateCompilerHooks,
   IInstruction,
   HydrateElementInstruction,
   HydrateTemplateController,
   InstructionType as HTT,
   InstructionType as TT,
   HydrateLetElementInstruction,
-  CustomAttributeDefinition,
   HydrateAttributeInstruction,
   AttrSyntax,
-  If,
   attributePattern,
   PropertyBindingInstruction,
   InterpolationInstruction,
   InstructionType,
-  DefaultBindingSyntax,
-  TemplateCompilerHooks,
   IteratorBindingInstruction,
   RefBindingInstruction,
   AttributeBindingInstruction,
   SetPropertyInstruction,
-} from '@aurelia/runtime-html';
+  IElementComponentDefinition,
+  ITemplateCompiler,
+} from '@aurelia/template-compiler';
 import {
   assert,
   TestContext,
@@ -51,7 +54,7 @@ import {
 describe('3-runtime-html/template-compiler.spec.ts', function () {
   describe('base assertions', function () {
     let ctx: TestContext;
-    let sut: IWrappedTemplateCompiler;
+    let sut: ReturnType<typeof createCompilerWrapper>;
     let container: IContainer;
 
     beforeEach(function () {
@@ -72,7 +75,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               i = 1;
             }
           }));
-          sut.compile({ template: '<template>' } as any, container, null);
+          sut.compile({ template: '<template>' } as any, container);
           assert.strictEqual(i, 1);
         });
 
@@ -83,7 +86,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               i = 1;
             }
           }));
-          sut.compile({ template: '<template>', needsCompile: false } as any, container, null);
+          sut.compile({ template: '<template>', needsCompile: false } as any, container);
           assert.strictEqual(i, 0);
         });
       });
@@ -557,7 +560,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           surrogates: [],
           shadowOptions: shadow ? { mode: 'open' } : null
         } as unknown as PartialCustomElementDefinition;
-        return sut.compile(templateDefinition, container, null);
+        return sut.compile(templateDefinition, container);
       }
 
       function verifyInstructions(actual: readonly any[], expectation: IExpectedInstruction[], type?: string) {
@@ -640,7 +643,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         let bindable: BindableDefinition;
         let prop: string;
         let attr: string;
-        let mode: BindingMode;
+        let mode: string | number;
 
         for (prop in bindables) {
           bindable = bindables[prop];
@@ -715,7 +718,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         let bindable: BindableDefinition;
         let prop: string;
-        let mode: BindingMode;
+        let mode: string | number;
         let hasPrimary: boolean = false;
         let isPrimary: boolean = false;
         let bindableInfo: BindableInfo;
@@ -775,7 +778,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
        * 2. The `defaultBindingMode` (if it's an attribute, defined, and not bindingMode.default)
        * 3. `bindingMode.toView`
        */
-      public mode: BindingMode,
+      public mode: string | number,
     ) { }
   }
 
@@ -798,6 +801,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               ? '<template><!--au*--><div ref="el"></div></template>'
               : '<template><!--au*--><div></div></template>',
             instructions: [[createRef('el', 'element')]],
+            type: 'custom-element',
             surrogates: [],
             dependencies: [],
             hasSlots: false,
@@ -819,6 +823,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               createProp({ from: '1', to: 'data-b' }),
               createInterpolation({ from: '${hey}', to: 'data-c' })
             ]],
+            type: 'custom-element',
             surrogates: [],
             dependencies: [],
             hasSlots: false,
@@ -840,6 +845,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               createAttr({ attr: 'class', from: 'a', to: 'd' }),
               createInterpolation({ from: 'a ${b} c', to: 'class' })
             ]],
+            type: 'custom-element',
             surrogates: [],
             dependencies: [],
             hasSlots: false,
@@ -861,6 +867,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               createAttr({ attr: 'style', from: 'a', to: 'bg' }),
               createInterpolation({ from: 'a ${b} c', to: 'style' })
             ]],
+            type: 'custom-element',
             surrogates: [],
             dependencies: [],
             hasSlots: false,
@@ -883,6 +890,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             res: CustomAttribute.getDefinition(MyAttr),
             props: []
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false,
@@ -900,6 +908,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createInterpolation({ from: '${attr}', to: 'value' })]
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false,
@@ -917,6 +926,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createPropBinding({ from: 'v', to: 'value' })]
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false,
@@ -934,6 +944,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             res: CustomAttribute.getDefinition(MyAttr),
             props: [createPropBinding({ from: 'v', to: 'value' })]
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false,
@@ -1024,6 +1035,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             needsCompile: false,
             template: '<template><div></div></template>',
             instructions: [],
+            type: 'custom-element',
           }
         });
       });
@@ -1057,6 +1069,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           dependencies: [],
           surrogates: [],
           hasSlots: false,
+          type: 'custom-element',
           instructions: [[{
             type: InstructionType.hydrateTemplateController,
             res: CustomAttribute.getDefinition(Foo),
@@ -1073,6 +1086,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                   name: 'unamed',
                   needsCompile: false,
                   template: '<template><div id="2"><!--au*--><!--au-start--><!--au-end--></div></template>',
+                  type: 'custom-element',
                   instructions: [[{
                     type: InstructionType.hydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
@@ -1081,6 +1095,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       name: 'unamed',
                       needsCompile: false,
                       template: '<template><div id="3"><!--au*--><!--au-start--><!--au-end--></div></template>',
+                      type: 'custom-element',
                       instructions: [[{
                         type: InstructionType.hydrateTemplateController,
                         res: CustomAttribute.getDefinition(Qux),
@@ -1090,12 +1105,14 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                           template: '<template><div id="4"></div></template>',
                           needsCompile: false,
                           instructions: [],
+                          type: 'custom-element',
                         }
                       }]],
                     }
                   }]],
                 }
-              }]]
+              }]],
+              type: 'custom-element',
             }
           }]]
         });
@@ -1126,6 +1143,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             dependencies: [],
             surrogates: [],
             hasSlots: false,
+            type: 'custom-element',
             instructions: [[{
               type: InstructionType.hydrateTemplateController,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
@@ -1134,6 +1152,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 name: 'unamed',
                 template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
+                type: 'custom-element',
                 instructions: [[{
                   type: InstructionType.hydrateTemplateController,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
@@ -1142,6 +1161,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     name: 'unamed',
                     template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                     needsCompile: false,
+                    type: 'custom-element',
                     instructions: [[{
                       type: InstructionType.hydrateTemplateController,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
@@ -1150,6 +1170,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         name: 'unamed',
                         template: '<template><div><!--au*--><!--au-start--><!--au-end--></div></template>',
                         needsCompile: false,
+                        type: 'custom-element',
                         instructions: [[{
                           type: InstructionType.hydrateTemplateController,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
@@ -1158,6 +1179,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             name: 'unamed',
                             template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                             needsCompile: false,
+                            type: 'custom-element',
                             instructions: [[{
                               type: InstructionType.hydrateTemplateController,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
@@ -1166,7 +1188,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                                 name: 'unamed',
                                 template: '<template><div id="2"></div></template>',
                                 needsCompile: false,
-                                instructions: []
+                                instructions: [],
+                                type: 'custom-element',
                               }
                             }]]
                           }
@@ -1197,6 +1220,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             dependencies: [],
             surrogates: [],
             hasSlots: false,
+            type: 'custom-element',
             instructions: [[{
               type: InstructionType.hydrateTemplateController,
               res: resolveResources ? CustomAttribute.getDefinition(Foo) : 'foo',
@@ -1205,6 +1229,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 name: 'unamed',
                 template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
+                type: 'custom-element',
                 instructions: [[{
                   type: InstructionType.hydrateTemplateController,
                   res: resolveResources ? CustomAttribute.getDefinition(Bar) : 'bar',
@@ -1213,6 +1238,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     name: 'unamed',
                     template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                     needsCompile: false,
+                    type: 'custom-element',
                     instructions: [[{
                       type: InstructionType.hydrateTemplateController,
                       res: resolveResources ? CustomAttribute.getDefinition(Baz) : 'baz',
@@ -1221,6 +1247,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                         name: 'unamed',
                         template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                         needsCompile: false,
+                        type: 'custom-element',
                         instructions: [[{
                           type: InstructionType.hydrateTemplateController,
                           res: resolveResources ? CustomAttribute.getDefinition(Qux) : 'qux',
@@ -1229,6 +1256,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                             name: 'unamed',
                             template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                             needsCompile: false,
+                            type: 'custom-element',
                             instructions: [[{
                               type: InstructionType.hydrateTemplateController,
                               res: resolveResources ? CustomAttribute.getDefinition(Quux) : 'quux',
@@ -1237,7 +1265,8 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                                 name: 'unamed',
                                 template: '<template><div id="2"></div></template>',
                                 needsCompile: false,
-                                instructions: []
+                                instructions: [],
+                                type: 'custom-element',
                               }
                             }]]
                           }
@@ -1276,6 +1305,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 name: 'unamed',
                 template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                 needsCompile: false,
+                type: 'custom-element',
                 instructions: [[{
                   type: InstructionType.hydrateTemplateController,
                   res: CustomAttribute.getDefinition(Bar),
@@ -1285,10 +1315,12 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                     template: '<template><!--au*--><div></div></template>',
                     needsCompile: false,
                     instructions: [[createPropBinding({ from: 'b', to: 'a' })]],
+                    type: 'custom-element',
                   }
                 }]],
               }
             }]],
+            type: 'custom-element',
             surrogates: [],
             dependencies: [],
             hasSlots: false,
@@ -1310,6 +1342,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             props: [],
             def: {
               name: 'unamed',
+              type: 'custom-element',
               needsCompile: false,
               template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
               instructions: [[{
@@ -1319,6 +1352,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
                   name: 'unamed',
+                  type: 'custom-element',
                   needsCompile: false,
                   template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
@@ -1329,13 +1363,15 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                       name: 'unamed',
                       needsCompile: false,
                       template: '<template><div id="1"></div></template>',
-                      instructions: []
+                      type: 'custom-element',
+                      instructions: [],
                     }
                   }]]
                 }
               }]]
             }
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false,
@@ -1356,6 +1392,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
             props: [],
             def: {
               name: 'unamed',
+              type: 'custom-element',
               needsCompile: false,
               template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
               instructions: [[{
@@ -1366,15 +1403,17 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
                 props: [createIterateProp('i of ii', 'value', [])],
                 def: {
                   name: 'unamed',
+                  type: 'custom-element',
                   needsCompile: false,
                   template: '<template><!--au*--><!--au-start--><!--au-end--></template>',
                   instructions: [[{
                     name: 'unamed',
                     type: InstructionType.hydrateTemplateController,
                     res: CustomAttribute.getDefinition(Baz),
-                    props: [createPropBinding({ from: 'e', to: 'value' })],
+                    props: [createPropBinding({ from: 'e', to: 'value', mode: 2 })],
                     def: {
                       name: 'unamed',
+                      type: 'custom-element',
                       needsCompile: false,
                       template: '<template id="1"></template>',
                       instructions: []
@@ -1384,6 +1423,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               }]]
             }
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           needsCompile: false,
@@ -1411,6 +1451,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               res: CustomAttribute.getDefinition(MyAttr),
               props: []
           }]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false
@@ -1438,6 +1479,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               ]
             })
           ]],
+          type: 'custom-element',
           surrogates: [],
           dependencies: [],
           hasSlots: false
@@ -1459,6 +1501,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               ctor: Foo,
             })
           ]],
+          type: 'custom-element',
           dependencies: [],
           surrogates: [],
           hasSlots: false,
@@ -1476,6 +1519,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
               ctor: Foo,
             })
           ]],
+          type: 'custom-element',
           dependencies: [],
           surrogates: [],
           hasSlots: false,
@@ -1499,7 +1543,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element value.bind="value">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1512,7 +1556,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element prop1.bind="value">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual((definition.instructions[0][0] as any).captures, []);
       });
@@ -1522,7 +1566,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element prop1.trigger="value()">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1535,7 +1579,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element my-attr.bind="myAttrValue">',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1548,7 +1592,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element ...$attrs>',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
@@ -1561,7 +1605,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element if.bind>',
-        }, container, { projections: null });
+        }, container);
 
         assert.deepStrictEqual(
           ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
@@ -1658,6 +1702,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         assert.deepStrictEqual(
           result.instructions[0],
           [new HydrateAttributeInstruction(CustomAttribute.getDefinition(MyAttr), undefined, [
+            // this bindingMode.toView is because it's from defaultBindingMode on `@customAttribute`
             new PropertyBindingInstruction(new AccessScopeExpression('bb'), 'value', BindingMode.toView)
           ])]
         );
@@ -1691,18 +1736,18 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     );
   }
 
-  interface IWrappedTemplateCompiler extends ITemplateCompiler {
-    compile(def: PartialCustomElementDefinition, container: IContainer, instruction: any): CustomElementDefinition;
-  }
+  // interface IWrappedTemplateCompiler extends ITemplateCompiler {
+  //   compile(def: PartialCustomElementDefinition, container: IContainer): CustomElementDefinition;
+  // }
 
-  function createCompilerWrapper(compiler: ITemplateCompiler): IWrappedTemplateCompiler {
+  function createCompilerWrapper(compiler: ITemplateCompiler) {
     return {
       get resolveResources() { return compiler.resolveResources; },
       set resolveResources(value: boolean) { compiler.resolveResources = value; },
       get debug() { return compiler.debug; },
       set debug(value: boolean) { compiler.debug = value; },
-      compile(definition: PartialCustomElementDefinition, container: IContainer, instruction: any) {
-        return CustomElementDefinition.getOrCreate(compiler.compile(CustomElementDefinition.create(definition), container, instruction));
+      compile(definition: PartialCustomElementDefinition, container: IContainer) {
+        return CustomElementDefinition.getOrCreate(compiler.compile(CustomElementDefinition.create(definition), container));
       },
       compileSpread(...args: any[]) {
         // eslint-disable-next-line prefer-spread
@@ -1728,16 +1773,17 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     if ('resolveResources' in options) {
       sut.resolveResources = options.resolveResources;
     }
-    const templateDefinition: PartialCustomElementDefinition = {
+    const templateDefinition = {
+      type: 'custom-element',
       template: markup,
       // instructions: [],
       // surrogates: [],
       // shadowOptions: { mode: 'open' }
-    } as unknown as PartialCustomElementDefinition;
+    } as unknown as IElementComponentDefinition;
     const parser = container.get(IExpressionParser);
 
     return {
-      result: sut.compile(templateDefinition, container, null),
+      result: sut.compile(templateDefinition, container),
       parser,
       createElement: ({ ctor, props = [], projections = null, containerless = false, captures = [], data = {} }: {
         ctor: Constructable;
@@ -1747,7 +1793,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         captures?: AttrSyntax[];
         data?: Record<PropertyKey, unknown>;
       }) =>
-        new HydrateElementInstruction(CustomElement.getDefinition(ctor), props, projections, containerless, captures, data),
+        new HydrateElementInstruction(CustomElement.getDefinition(ctor), props, projections as Record<string, IElementComponentDefinition>, containerless, captures, data),
       createSetProp: ({ value, to }: { value: unknown; to: string }) =>
         new SetPropertyInstruction(value, to),
       createRef: (name: string, to: string) => new RefBindingInstruction(parser.parse(name, 'IsProperty'), to),

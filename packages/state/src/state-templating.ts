@@ -4,17 +4,19 @@ import {
   IObserverLocator,
 } from '@aurelia/runtime';
 import {
-  AttrSyntax,
-  IAttrMapper,
   IHydratableController,
   IPlatform,
   renderer,
+  type IRenderer,
+} from '@aurelia/runtime-html';
+import {
+  AttrSyntax,
+  IAttrMapper,
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
-  type IRenderer,
-  BindingCommandStaticAuDefinition
-} from '@aurelia/runtime-html';
+  type BindingCommandStaticAuDefinition
+} from '@aurelia/template-compiler';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
@@ -51,7 +53,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === 'element') {
+      if (value === '' && info.def.type === 'custom-element') {
         value = camelCase(target);
       }
       target = info.bindable.name;

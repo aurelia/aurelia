@@ -5,7 +5,7 @@ import {
   IAttributePattern,
   ISyntaxInterpreter,
   AttributePattern
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/attribute-pattern.spec.ts', function () {

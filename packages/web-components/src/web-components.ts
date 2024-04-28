@@ -104,9 +104,6 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
         const compiledDef = rendering.compile(
           elDef,
           childCtn,
-          // todo: compile existing child element with [au-slot] into here
-          //       complication: what are the scope for the [au-slot] view?
-          { projections: null }
         );
         const viewModel = childCtn.invoke(compiledDef.Type);
         const controller = this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);

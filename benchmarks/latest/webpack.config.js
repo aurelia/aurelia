@@ -18,6 +18,7 @@ module.exports = {
                 'metadata',
                 'expression-parser',
                 'runtime',
+                'template-compiler',
                 'runtime-html',
                 'platform',
                 'platform-browser',

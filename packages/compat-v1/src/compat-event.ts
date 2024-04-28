@@ -2,12 +2,8 @@ import { DI, IContainer, resolve } from '@aurelia/kernel';
 import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import {
   AppTask,
-  type BindingCommandInstance,
-  type ICommandBuildInfo,
   IEventTarget,
   type IHydratableController,
-  IInstruction,
-  InstructionType,
   IRenderer,
   mixinAstEvaluator,
   mixinUseScope,
@@ -15,7 +11,6 @@ import {
   renderer,
   IPlatform,
   IListenerBindingOptions,
-  type BindingCommandStaticAuDefinition,
   astBind,
   astEvaluate,
   astUnbind,
@@ -23,6 +18,12 @@ import {
   type IBinding,
   type Scope,
 } from '@aurelia/runtime-html';
+import {
+  type BindingCommandInstance,
+  type ICommandBuildInfo,
+  type IInstruction,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
@@ -98,8 +99,8 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
   }
 }, null!);
 
-export class DelegateBindingInstruction {
-  public readonly type = InstructionType.listenerBinding;
+export class DelegateBindingInstruction implements IInstruction {
+  public readonly type = 'dl';
 
   public constructor(
     public from: string | IsBindingBehavior,
@@ -145,6 +146,8 @@ export class DelegateListenerBinding implements IBinding {
    */
   public readonly boundFn = true;
 
+  public self: boolean = false;
+
   public constructor(
     locator: IServiceLocator,
     public ast: IsBindingBehavior,
@@ -177,6 +180,12 @@ export class DelegateListenerBinding implements IBinding {
   }
 
   public handleEvent(event: Event): void {
+    if (this.self) {
+      /* istanbul ignore next */
+      if (this.target !== event.composedPath()[0]) {
+        return;
+      }
+    }
     this.callSource(event);
   }
 

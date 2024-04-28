@@ -2,6 +2,8 @@ import { DI, IContainer } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   alias,
+} from '@aurelia/runtime-html';
+import {
   BindingCommandInstance,
   bindingCommand,
   OneTimeBindingCommand,
@@ -9,7 +11,7 @@ import {
   ICommandBuildInfo,
   IAttrMapper,
   BindingCommand,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/binding-commands.spec.ts', function () {

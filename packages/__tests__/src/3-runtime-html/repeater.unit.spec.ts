@@ -10,13 +10,15 @@ import {
   IRenderLocation,
   PropertyBindingRenderer,
   TextBindingRenderer,
-  TextBindingInstruction,
   NodeObserverLocator,
   IRendering,
   PropertyBinding,
+} from '@aurelia/runtime-html';
+import {
+  TextBindingInstruction,
   HydrateTemplateController,
   ITemplateCompiler,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import {
   eachCartesianJoin,
   assert,

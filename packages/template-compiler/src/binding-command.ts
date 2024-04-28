@@ -1,35 +1,32 @@
-import { camelCase, mergeArrays, firstDefined, emptyArray, resourceBaseName, getResourceKeyFor, resource, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { oneTime, toView, fromView, twoWay, defaultMode as $defaultMode, type BindingMode } from '../binding/interfaces-bindings';
-import { IAttrMapper } from '../compiler/attribute-mapper';
+import { Protocol, camelCase, emptyArray, firstDefined, getResourceKeyFor, mergeArrays, resolve, resource, resourceBaseName } from '@aurelia/kernel';
+import { defineMetadata, getMetadata } from './utilities-metadata';
+import { IAttrMapper } from './attribute-mapper';
 import {
   AttributeBindingInstruction,
-  PropertyBindingInstruction,
   IteratorBindingInstruction,
-  RefBindingInstruction,
   ListenerBindingInstruction,
-  SpreadBindingInstruction,
   MultiAttrInstruction,
-} from '../renderer';
-import { defineMetadata, getAnnotationKeyFor, getMetadata } from '../utilities-metadata';
-import { etIsFunction, etIsIterator, etIsProperty, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
+  PropertyBindingInstruction,
+  RefBindingInstruction,
+  SpreadBindingInstruction,
+} from './instructions';
+import { aliasRegistration, definitionTypeElement, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
 
 import type {
   Constructable,
   IContainer,
-  ResourceType,
-  ResourceDefinition,
-  PartialResourceDefinition,
   IServiceLocator,
+  PartialResourceDefinition,
+  ResourceDefinition,
+  ResourceType,
+  StaticResourceType,
 } from '@aurelia/kernel';
-import type { IInstruction } from '../renderer';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
-import type { BindableDefinition } from '../bindable';
-import type { CustomAttributeDefinition } from './custom-attribute';
-import type { CustomElementDefinition } from './custom-element';
-import { type IResourceKind, dtElement, getDefinitionFromStaticAu } from './resources-shared';
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from './errors';
+import { IAttributeComponentDefinition, IElementComponentDefinition, IComponentBindablePropDefinition } from './interfaces-template-compiler';
+import type { IInstruction } from './instructions';
+import { BindingMode, InternalBindingMode } from './binding-mode';
 
 export type PartialBindingCommandDefinition = PartialResourceDefinition;
 export type BindingCommandStaticAuDefinition = PartialBindingCommandDefinition & {
@@ -46,8 +43,8 @@ export interface IPlainAttrCommandInfo {
 export interface IBindableCommandInfo {
   readonly node: Element;
   readonly attr: AttrSyntax;
-  readonly bindable: BindableDefinition;
-  readonly def: CustomAttributeDefinition | CustomElementDefinition;
+  readonly bindable: IComponentBindablePropDefinition;
+  readonly def: IAttributeComponentDefinition | IElementComponentDefinition;
 }
 
 export type ICommandBuildInfo = IPlainAttrCommandInfo | IBindableCommandInfo;
@@ -63,7 +60,9 @@ export type BindingCommandInstance<T extends {} = {}> = {
 } & T;
 
 export type BindingCommandType<T extends Constructable = Constructable> = ResourceType<T, BindingCommandInstance, PartialBindingCommandDefinition>;
-export type BindingCommandKind = IResourceKind & {
+export type BindingCommandKind = {
+  readonly name: string;
+  keyFrom(name: string): string;
   // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never);
   define<T extends Constructable>(name: string, Type: T): BindingCommandType<T>;
   define<T extends Constructable>(def: PartialBindingCommandDefinition, Type: T): BindingCommandType<T>;
@@ -75,6 +74,9 @@ export type BindingCommandKind = IResourceKind & {
 
 export type BindingCommandDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => BindingCommandType<T>;
 
+/**
+ * Decorator to describe a class as a binding command resource
+ */
 export function bindingCommand(name: string): BindingCommandDecorator;
 export function bindingCommand(definition: PartialBindingCommandDefinition): BindingCommandDecorator;
 export function bindingCommand(nameOrDefinition: string | PartialBindingCommandDefinition): BindingCommandDecorator {
@@ -142,43 +144,63 @@ const getCommandAnnotation = <K extends keyof PartialBindingCommandDefinition>(
   Type: Constructable,
   prop: K,
 ): PartialBindingCommandDefinition[K] | undefined =>
-  getMetadata<PartialBindingCommandDefinition[K]>(getAnnotationKeyFor(prop), Type);
+  getMetadata<PartialBindingCommandDefinition[K]>(Protocol.annotation.keyFor(prop), Type);
 
-export const BindingCommand = objectFreeze<BindingCommandKind>({
-  name: cmdBaseName,
-  keyFrom: getCommandKeyFrom,
-  // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
-  //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
-  // },
-  define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
-    const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
-    const $Type = definition.Type as BindingCommandType<T>;
+export const BindingCommand = /*@__PURE__*/ (() => {
 
-    // registration of resource name is a requirement for the resource system in kernel (module-loader)
-    defineMetadata(definition, $Type, cmdBaseName, resourceBaseName);
-
-    return $Type;
-  },
-  getAnnotation: getCommandAnnotation,
-  find(container, name) {
-    const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
-    return Type == null
-      ? null
-      : getMetadata<BindingCommandDefinition>(cmdBaseName, Type) ?? getDefinitionFromStaticAu<BindingCommandDefinition, BindingCommandType>(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
-  },
-  get(container, name) {
-    if (__DEV__) {
-      try {
-        return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
-      } catch (ex) {
-        // eslint-disable-next-line no-console
-        console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
-        throw ex;
+  const staticResourceDefinitionMetadataKey = '__au_static_resource__';
+  const getDefinitionFromStaticAu = <Def extends ResourceDefinition, C extends Constructable = Constructable>(
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    Type: C | Function,
+    typeName: string,
+    createDef: (au: PartialResourceDefinition<Def>, Type: C) => Def,
+  ): Def => {
+    let def = getMetadata(staticResourceDefinitionMetadataKey, Type) as Def;
+    if (def == null) {
+      if ((Type as StaticResourceType<Def>).$au?.type === typeName) {
+        def = createDef((Type as StaticResourceType<Def>).$au!, Type as C);
+        defineMetadata(def, Type, staticResourceDefinitionMetadataKey);
       }
     }
-    return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
-  },
-});
+    return def;
+  };
+
+  return objectFreeze<BindingCommandKind>({
+    name: cmdBaseName,
+    keyFrom: getCommandKeyFrom,
+    // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
+    //   return isFunction(value) && hasOwnMetadata(cmdBaseName, value);
+    // },
+    define<T extends Constructable<BindingCommandInstance>>(nameOrDef: string | PartialBindingCommandDefinition, Type: T): T & BindingCommandType<T> {
+      const definition = BindingCommandDefinition.create(nameOrDef, Type as Constructable<BindingCommandInstance>);
+      const $Type = definition.Type as BindingCommandType<T>;
+
+      // registration of resource name is a requirement for the resource system in kernel (module-loader)
+      defineMetadata(definition, $Type, cmdBaseName, resourceBaseName);
+
+      return $Type;
+    },
+    getAnnotation: getCommandAnnotation,
+    find(container, name) {
+      const Type = container.find<BindingCommandType>(bindingCommandTypeName, name);
+      return Type == null
+        ? null
+        : getMetadata<BindingCommandDefinition>(cmdBaseName, Type) ?? getDefinitionFromStaticAu<BindingCommandDefinition, BindingCommandType>(Type, bindingCommandTypeName, BindingCommandDefinition.create) ?? null;
+    },
+    get(container, name) {
+      if (__DEV__) {
+        try {
+          return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+        } catch (ex) {
+          // eslint-disable-next-line no-console
+          console.log(`\n\n\n[DEV:aurelia] Cannot retrieve binding command with name\n\n\n\n\n`, name);
+          throw ex;
+        }
+      }
+      return container.get<BindingCommandInstance>(resource(getCommandKeyFrom(name)));
+    },
+  });
+})();
 
 export class OneTimeBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -200,12 +222,12 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === dtElement) {
+      if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, oneTime);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.oneTime);
   }
 }
 
@@ -228,12 +250,12 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === dtElement) {
+      if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, toView);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.toView);
   }
 }
 
@@ -256,12 +278,12 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === dtElement) {
+      if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, fromView);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.fromView);
   }
 }
 
@@ -284,12 +306,12 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === dtElement) {
+      if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
       target = info.bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, twoWay);
+    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.twoWay);
   }
 }
 
@@ -303,12 +325,12 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
     const bindable = info.bindable;
-    let defaultMode: BindingMode;
-    let mode: BindingMode;
+    let defDefaultMode: string | number;
+    let mode: string | number;
     let target = attr.target;
     let value = attr.rawValue;
     if (bindable == null) {
-      mode = attrMapper.isTwoWay(info.node, target) ? twoWay : toView;
+      mode = attrMapper.isTwoWay(info.node, target) ? InternalBindingMode.twoWay : InternalBindingMode.toView;
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
@@ -316,18 +338,24 @@ export class DefaultBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.kind === dtElement) {
+      if (value === '' && info.def.type === definitionTypeElement) {
         value = camelCase(target);
       }
-      defaultMode = (info.def as CustomAttributeDefinition).defaultBindingMode;
-      mode = bindable.mode === $defaultMode || bindable.mode == null
-        ? defaultMode == null || defaultMode === $defaultMode
-          ? toView
-          : defaultMode
+      defDefaultMode = (info.def as IAttributeComponentDefinition).defaultBindingMode ?? 0;
+      mode = bindable.mode === 0 || bindable.mode == null
+        ? defDefaultMode == null || defDefaultMode === 0
+          ? InternalBindingMode.toView
+          : defDefaultMode
         : bindable.mode;
       target = bindable.name;
     }
-    return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, mode);
+    return new PropertyBindingInstruction(
+      exprParser.parse(value, etIsProperty),
+      target,
+      isString(mode)
+        ? BindingMode[mode as keyof typeof BindingMode] ?? InternalBindingMode.default
+        : mode as BindingMode
+    );
   }
 }
 
@@ -346,7 +374,7 @@ export class ForBindingCommand implements BindingCommandInstance {
     const target = info.bindable === null
       ? camelCase(info.attr.target)
       : info.bindable.name;
-    const forOf = exprParser.parse(info.attr.rawValue, etIsIterator);
+    const forOf = exprParser.parse(info.attr.rawValue, 'IsIterator');
     let props: MultiAttrInstruction[] = emptyArray;
     if (forOf.semiIdx > -1) {
       const attr = info.attr.rawValue.slice(forOf.semiIdx + 1);

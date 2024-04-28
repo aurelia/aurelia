@@ -42,11 +42,9 @@ import type {
 } from '@aurelia/runtime';
 import type { INode, INodeSequence, IRenderLocation } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
-import type { IInstruction } from '../renderer';
-import type { AttrSyntax } from '../resources/attribute-pattern';
+import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
 import type { IWatchDefinition, IWatcherCallback } from '../watch';
-import type { IAuSlotProjections } from './controller.projection';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
 import { IBinding } from '../binding/interfaces-bindings';
@@ -386,13 +384,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate(hydrationInst);
+      this._hydrate();
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(hydrationInst: IControllerElementHydrationInstruction | null): void {
+  public _hydrate(): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -403,7 +401,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
 
     const definition = this.definition!;
-    const compiledDef = this._compiledDef = this._rendering.compile(definition as CustomElementDefinition, this.container, hydrationInst);
+    const compiledDef = this._compiledDef = this._rendering.compile(definition as CustomElementDefinition, this.container);
     const shadowOptions = compiledDef.shadowOptions;
     const hasSlots = compiledDef.hasSlots;
     const containerless = compiledDef.containerless;
@@ -492,7 +490,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   private _hydrateSynthetic(): void {
-    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container, null);
+    this._compiledDef = this._rendering.compile(this.viewFactory!.def, this.container);
     this._rendering.render(
       /* controller */this as ISyntheticView,
       /* targets    */(this.nodes = this._rendering.createNodes(this._compiledDef)).findTargets(),
@@ -1840,7 +1838,7 @@ export interface IControllerElementHydrationInstruction {
    * @internal
    */
   readonly hydrate?: boolean;
-  readonly projections: IAuSlotProjections | null;
+  readonly projections: Record<string, PartialCustomElementDefinition> | null;
   /**
    * A list of captured attributes/binding in raw format
    */

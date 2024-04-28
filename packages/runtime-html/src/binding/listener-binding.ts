@@ -1,7 +1,7 @@
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isArray, isFunction, isString, objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
 import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, } from '@aurelia/runtime';
@@ -21,11 +21,12 @@ export interface ListenerBinding extends IAstEvaluator, IObserverLocatorBasedCon
  * Listener binding. Handle event binding between view and view model
  */
 export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscriber {
-  static {
+  /** @internal */
+  public static mix = createPrototypeMixer(function () {
     mixinUseScope(ListenerBinding);
     mixingBindingLimited(ListenerBinding, () => 'callSource');
     mixinAstEvaluator(true, true)(ListenerBinding);
-  }
+  });
 
   public isBound: boolean = false;
 
@@ -89,7 +90,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public handleEvent(event: Event): void {
     if (this.self) {
       if (this.target !== event.composedPath()[0]) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
         return;
       }
     }
@@ -101,7 +102,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public bind(scope: Scope): void {
     if (this.isBound) {
       if (this._scope === scope) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
         return;
       }
       this.unbind();
@@ -117,7 +118,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   public unbind(): void {
     if (!this.isBound) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
       return;
     }
     this.isBound = false;

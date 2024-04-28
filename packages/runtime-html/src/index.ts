@@ -66,47 +66,7 @@ export {
   type AppTaskCallback,
   type AppTaskCallbackNoArg,
 } from './app-task';
-export {
-  AttrSyntax,
-  IAttributeParser,
-  attributePattern,
-  type AttributePatternDefinition,
-  IAttributePattern,
-  type AttributePatternKind,
-  AttributePattern,
-  Interpretation,
-  ISyntaxInterpreter,
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern,
-} from './resources/attribute-pattern';
-export {
-  bindingCommand,
-  type ICommandBuildInfo,
-  BindingCommand ,
-  type BindingCommandInstance,
-  type PartialBindingCommandDefinition,
-  type BindingCommandStaticAuDefinition,
-  BindingCommandDefinition,
-  type BindingCommandKind,
-  type BindingCommandType,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand,
-  TriggerBindingCommand,
-  CaptureBindingCommand,
-  AttrBindingCommand,
-  ClassBindingCommand,
-  StyleBindingCommand,
-} from './resources/binding-command';
-export {
-  IAttrMapper,
-  type IsTwoWayPredicate,
-} from './compiler/attribute-mapper';
+
 export {
   BindingMode,
   type IBindingController,
@@ -134,7 +94,7 @@ export {
 } from './binding/listener-binding';
 export {
   AttributeBinding,
-} from './binding/attribute';
+} from './binding/attribute-binding';
 export {
   InterpolationBinding,
   InterpolationPartBinding,
@@ -160,32 +120,7 @@ export {
 
 export {
   IRenderer,
-  ITemplateCompiler,
-  type ICompliationInstruction,
   renderer,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  HydrateLetElementInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  AttributeBindingInstruction,
-  ListenerBindingInstruction,
-  PropertyBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetStyleAttributeInstruction,
-  StylePropertyBindingInstruction,
-  TextBindingInstruction,
-  SpreadBindingInstruction,
-  SpreadElementPropBindingInstruction,
-
-  isInstruction,
-  IInstruction,
-  InstructionType,
 
   PropertyBindingRenderer,
   TextBindingRenderer,
@@ -198,7 +133,6 @@ export {
   CustomElementRenderer,
   InterpolationBindingRenderer,
   IteratorBindingRenderer,
-  MultiAttrInstruction,
   RefBindingRenderer,
   SetAttributeRenderer,
   SetClassAttributeRenderer,
@@ -207,6 +141,14 @@ export {
   SpreadRenderer,
   StylePropertyBindingRenderer,
 } from './renderer';
+
+export {
+  AttrMapper,
+} from './compiler/attribute-mapper';
+
+export {
+  RuntimeTemplateCompilerImplementation,
+} from './compiler/template-compiler';
 
 export {
   AttributeNSAccessor,
@@ -310,7 +252,6 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
-  type ProcessContentHook,
   type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
@@ -356,17 +297,9 @@ export {
   StandardConfiguration,
 } from './configuration';
 export {
-  ITemplateElementFactory
-} from './compiler/template-element-factory';
-export {
-  TemplateCompiler,
-  ITemplateCompilerHooks,
-  TemplateCompilerHooks,
-  templateCompilerHooks,
-  type IAttributeBindablesInfo,
-  type IElementBindablesInfo,
-  IBindablesInfoResolver,
-} from './compiler/template-compiler';
+  /** @deprecated - Should be imported directly from `aurelia` or `@aurelia/template-compiler` package */
+  BindingCommand,
+} from '@aurelia/template-compiler';
 
 export {
   type PartialChildrenDefinition,

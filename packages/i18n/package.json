@@ -57,8 +57,9 @@
     "@aurelia/kernel": "2.0.0-beta.15",
     "@aurelia/metadata": "2.0.0-beta.15",
     "@aurelia/platform": "2.0.0-beta.15",
-    "@aurelia/runtime": "2.0.0-beta.15",
     "@aurelia/expression-parser": "2.0.0-beta.15",
+    "@aurelia/runtime": "2.0.0-beta.15",
+    "@aurelia/template-compiler": "2.0.0-beta.15",
     "@aurelia/runtime-html": "2.0.0-beta.15",
     "i18next": ">= 17.3.1"
   },

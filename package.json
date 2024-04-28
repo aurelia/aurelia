@@ -55,7 +55,8 @@
     "examples/router-animation",
     "examples/state-plugin",
     "examples/sierpinski-triangle",
-    "packages/expression-parser"
+    "packages/expression-parser",
+    "packages/template-compiler"
   ],
   "license": "MIT",
   "engines": {
@@ -128,7 +129,7 @@
     "husky": "8.0.3",
     "i18next": ">= 17.3.1",
     "rimraf": "3.0.2",
-    "rollup": "4.9.6",
+    "rollup": "4.15.0",
     "rollup-plugin-esbuild": "6.1.1",
     "tachometer": "0.7.0",
     "ts-node": "10.9.1",

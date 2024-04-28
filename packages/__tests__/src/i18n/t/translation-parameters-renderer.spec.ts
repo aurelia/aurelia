@@ -1,5 +1,5 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
-import { DI } from '@aurelia/kernel';
+import { DI, Registration } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
@@ -9,16 +9,19 @@ import {
   IRenderer,
   StandardConfiguration,
   IHydratableController,
+  IPlatform,
+  BindingMode,
+  AttrMapper,
+} from '@aurelia/runtime-html';
+import {
   AttrSyntax,
   BindingCommand,
   BindingCommandInstance,
   IAttributePattern,
-  IPlatform,
   IAttrMapper,
   PropertyBindingInstruction,
   InstructionType,
-  BindingMode,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 
 const noopLocator = {} as unknown as IObserverLocator;
@@ -47,7 +50,10 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
   describe('TranslationParametersBindingCommand', function () {
     function createFixture() {
       const container = DI.createContainer();
-      container.register(TranslationParametersBindingCommand);
+      container.register(
+        TranslationParametersBindingCommand,
+        Registration.singleton(IAttrMapper, AttrMapper)
+      );
       return {
         sut: container.get<BindingCommandInstance>(BindingCommand.keyFrom(`t-params.bind`)),
         parser: container.get(IExpressionParser),

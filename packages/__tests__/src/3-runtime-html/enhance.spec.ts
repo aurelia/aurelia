@@ -150,7 +150,9 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       assert.html.textContent('div', message, 'div', host);
 
       host.querySelector('button').click();
+      await Promise.resolve();
       ctx.platform.domReadQueue.flush();
+      ctx.platform.domWriteQueue.flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 

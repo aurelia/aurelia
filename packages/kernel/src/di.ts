@@ -31,15 +31,15 @@ export interface InterfaceSymbol<K = any> {
 interface IResolverLike<C, K = any> {
   readonly $isResolver: true;
   resolve(handler: C, requestor: C): Resolved<K>;
-  getFactory?(container: C): (K extends Constructable ? IFactory<K> : never) | null;
+  getFactory?<T extends K extends Constructable ? IFactory<K> : IFactory<Constructable>>(container: C): T | null;
 }
 
-export interface IResolver<K = any> extends IResolverLike<IContainer, K> { }
+export interface IResolver<K = any> extends IResolverLike<IContainer, K>, Partial<IDisposable> { }
 export interface IDisposableResolver<K = any> extends IResolver<K> {
   dispose(): void;
 }
 
-export interface IRegistration<K = any> {
+export interface IRegistration<K = any> extends IResolver<K> {
   register(container: IContainer, key?: Key): IResolver<K>;
 }
 
@@ -78,7 +78,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   readonly root: IContainer;
   readonly parent: IContainer | null;
   register(...params: any[]): IContainer;
-  registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable?: boolean): IResolver<T>;
+  registerResolver<K extends Key, T extends IResolver<K>>(key: K, resolver: T, isDisposable?: boolean): T;
   // deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void;
   registerTransformer<K extends Key, T = K>(key: K, transformer: Transformer<T>): boolean;
   getResolver<K extends Key, T = K>(key: K | Key, autoRegister?: boolean): IResolver<T> | null;
@@ -133,7 +133,7 @@ export class ResolverBuilder<K> {
   private _registerResolver(strategy: ResolverStrategy, state: unknown): IResolver<K> {
     const { _container: container, _key: key } = this;
     this._container = this._key = (void 0)!;
-    return container.registerResolver(key, new Resolver(key, strategy, state));
+    return container.registerResolver(key, new Resolver(key, strategy, state)) as IResolver<K>;
   }
 }
 
@@ -520,7 +520,7 @@ export const enum ResolverStrategy {
 _END_CONST_ENUM();
 
 /** @internal */
-export class Resolver implements IResolver, IRegistration {
+export class Resolver<K extends Key = any> implements IResolver<K> {
   /** @internal */
   public _key: Key;
   /** @internal */
@@ -534,7 +534,7 @@ export class Resolver implements IResolver, IRegistration {
   private _resolving: boolean = false;
 
   public constructor(
-    key: Key,
+    key: K,
     strategy: ResolverStrategy,
     state: any,
   ) {
@@ -551,7 +551,7 @@ export class Resolver implements IResolver, IRegistration {
   private _cachedFactory: IFactory | null = null;
 
   public register(container: IContainer, key?: Key): IResolver {
-    return container.registerResolver(key || this._key, this);
+    return container.registerResolver(key || this._key, this as IResolver<K>);
   }
 
   public resolve(handler: IContainer, requestor: IContainer): any {
@@ -577,7 +577,7 @@ export class Resolver implements IResolver, IRegistration {
         return factory.construct(requestor);
       }
       case ResolverStrategy.callback:
-        return (this._state as ResolveCallback)(handler, requestor, this);
+        return (this._state as ResolveCallback)(handler, requestor, this as IResolver<K>);
       case ResolverStrategy.array:
         return (this._state as IResolver[])[0].resolve(handler, requestor);
       case ResolverStrategy.alias:
@@ -587,15 +587,15 @@ export class Resolver implements IResolver, IRegistration {
     }
   }
 
-  public getFactory(container: IContainer): IFactory | null {
+  public getFactory<T extends K extends Constructable ? IFactory<K> : IFactory<Constructable>>(container: IContainer): T | null {
     switch (this._strategy) {
       case ResolverStrategy.singleton:
       case ResolverStrategy.transient:
-        return container.getFactory(this._state as Constructable);
+        return container.getFactory(this._state as Constructable) as T;
       case ResolverStrategy.alias:
         return container.getResolver(this._state)?.getFactory?.(container) ?? null;
       case ResolverStrategy.instance:
-        return this._cachedFactory;
+        return this._cachedFactory as T;
       default:
         return null;
     }
@@ -613,7 +613,7 @@ export interface IInvoker<T extends Constructable = any> {
   ): Resolved<T>;
 }
 
-export class InstanceProvider<K extends Key> implements IDisposableResolver<K | null> {
+export class InstanceProvider<K extends Key> implements IDisposableResolver<K> {
   /** @internal */ private _instance: Resolved<K> | null;
   /** @internal */ private readonly _name?: string;
   /** @internal */ private readonly _Type: Constructable | null;
@@ -642,15 +642,15 @@ export class InstanceProvider<K extends Key> implements IDisposableResolver<K | 
 
   public get $isResolver(): true {return true;}
 
-  public resolve(): Resolved<K> | null {
+  public resolve(): Resolved<K> {
     if (this._instance == null) {
       throw createMappedError(ErrorNames.no_instance_provided, this._name);
     }
     return this._instance;
   }
 
-  public getFactory(container: IContainer): (K extends Constructable ? IFactory<K> : never) | null {
-    return this._Type == null ? null : container.getFactory(this._Type) as (K extends Constructable ? IFactory<K> : never) | null;
+  public getFactory<T extends K extends Constructable ? IFactory<K> : IFactory<Constructable>>(container: IContainer): T | null {
+    return this._Type == null ? null : container.getFactory(this._Type) as T;
   }
 
   public dispose(): void {

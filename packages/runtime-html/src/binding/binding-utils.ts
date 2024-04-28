@@ -293,3 +293,15 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
     });
   };
 })();
+
+export const createPrototypeMixer = (() => {
+  const mixed = new WeakSet<Constructable<IBinding>>();
+  return (mixer: () => void) => {
+    return function<T extends Constructable<IBinding>>(this: T) {
+      if (!mixed.has(this)) {
+        mixed.add(this);
+        mixer.call(this);
+      }
+    };
+  };
+})();

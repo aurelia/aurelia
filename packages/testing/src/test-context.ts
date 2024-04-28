@@ -2,10 +2,12 @@
 import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
 import {
-  ITemplateCompiler,
   IPlatform,
   StandardConfiguration,
 } from '@aurelia/runtime-html';
+import {
+  ITemplateCompiler,
+} from '@aurelia/template-compiler';
 
 export class TestContext {
   public static readonly ambient: TestContext;

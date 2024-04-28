@@ -301,6 +301,27 @@ export {
 } from '@aurelia/runtime';
 
 export {
+  attributePattern,
+  AttributePattern,
+  IAttrMapper,
+  IAttributeParser,
+  IAttributePattern,
+
+  bindingCommand,
+  BindingCommand,
+  type BindingCommandInstance,
+
+  ITemplateCompiler,
+  ITemplateElementFactory,
+  ITemplateCompilerHooks,
+  TemplateCompilerHooks,
+  templateCompilerHooks,
+
+  type BindingCommandStaticAuDefinition,
+
+} from '@aurelia/template-compiler';
+
+export {
   // BindingBehaviorDefinition,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
@@ -329,7 +350,6 @@ export {
   // ThrottleBindingBehavior,
 
   customAttribute,
-  // CustomAttributeDecorator,
   CustomAttribute,
   // CustomAttributeDefinition
   // CustomAttributeKind,
@@ -542,25 +562,14 @@ export {
   // IRenderer,
   // IRenderingEngine,
   // ITemplate,
-  ITemplateCompiler,
-  // ITemplateFactory,
-  ITemplateCompilerHooks,
-  TemplateCompilerHooks,
-  templateCompilerHooks,
+
+  RuntimeTemplateCompilerImplementation,
 
   // RenderContext
 
   // AttrSyntax,
 
   // IAttributeParser,
-
-  attributePattern,
-  // AttributePatternDefinition,
-  IAttributePattern,
-  // IAttributePatternHandler,
-  // Interpretation,
-  // ISyntaxInterpreter,
-  IAttrMapper,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,
@@ -576,9 +585,6 @@ export {
   valueConverter,
   ValueConverter,
 
-  bindingCommand,
-  // BindingCommand,
-  type BindingCommandInstance,
   // BindingCommandDefinition,
   // BindingCommandKind,
   // BindingCommandType,
@@ -646,30 +652,8 @@ export {
   // IShadowDOMStyles,
   // IShadowDOMGlobalStyles
 
-  // IAttrSyntaxTransformer,
-
-  // TriggerBindingCommand,
-  // DelegateBindingCommand,
-  // CaptureBindingCommand,
-  // AttrBindingCommand,
-  // ClassBindingCommand,
-  // StyleBindingCommand,
-
-  // IAttrSyntaxTransformerRegistation,
-
-  // DefaultComponents as JitHtmlDefaultComponents,
-
-  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
-
   // StandardConfiguration,
 
-  // stringifyDOM,
-  // stringifyInstructions,
-  // stringifyTemplateDefinition,
-
-  // TemplateBinder,
-
-  // ITemplateElementFactory,
   ILifecycleHooks,
   type LifecycleHook,
   LifecycleHooks,

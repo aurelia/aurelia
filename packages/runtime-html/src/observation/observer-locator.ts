@@ -1,4 +1,4 @@
-import { emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
+import { createImplementationRegister, emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
   getObserverLookup,
   IDirtyChecker,
@@ -17,38 +17,39 @@ import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
 import { atLayout, atNode, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
-import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
-import type { IIndexable, IContainer } from '@aurelia/kernel';
+import type { IIndexable } from '@aurelia/kernel';
 import type { AccessorType, IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import { createMappedError, ErrorNames } from '../errors';
 
-// https://infra.spec.whatwg.org/#namespaces
-// const htmlNS = 'http://www.w3.org/1999/xhtml';
-// const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
-// const svgNS = 'http://www.w3.org/2000/svg';
-const xlinkNS = 'http://www.w3.org/1999/xlink';
-const xmlNS = 'http://www.w3.org/XML/1998/namespace';
-const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
+const nsAttributes = (() => {
+  // https://infra.spec.whatwg.org/#namespaces
+  // const htmlNS = 'http://www.w3.org/1999/xhtml';
+  // const mathmlNS = 'http://www.w3.org/1998/Math/MathML';
+  // const svgNS = 'http://www.w3.org/2000/svg';
+  const xlinkNS = 'http://www.w3.org/1999/xlink';
+  const xmlNS = 'http://www.w3.org/XML/1998/namespace';
+  const xmlnsNS = 'http://www.w3.org/2000/xmlns/';
 
-// https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-const nsAttributes = objectAssign(
-  createLookup<[string, string]>(),
-  {
-    'xlink:actuate': ['actuate', xlinkNS],
-    'xlink:arcrole': ['arcrole', xlinkNS],
-    'xlink:href': ['href', xlinkNS],
-    'xlink:role': ['role', xlinkNS],
-    'xlink:show': ['show', xlinkNS],
-    'xlink:title': ['title', xlinkNS],
-    'xlink:type': ['type', xlinkNS],
-    'xml:lang': ['lang', xmlNS],
-    'xml:space': ['space', xmlNS],
-    'xmlns': ['xmlns', xmlnsNS],
-    'xmlns:xlink': ['xlink', xmlnsNS],
-  },
-);
+  // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
+  return objectAssign(
+    createLookup<[string, string]>(),
+    {
+      'xlink:actuate': ['actuate', xlinkNS],
+      'xlink:arcrole': ['arcrole', xlinkNS],
+      'xlink:href': ['href', xlinkNS],
+      'xlink:role': ['role', xlinkNS],
+      'xlink:show': ['show', xlinkNS],
+      'xlink:title': ['title', xlinkNS],
+      'xlink:type': ['type', xlinkNS],
+      'xml:lang': ['lang', xmlNS],
+      'xml:space': ['space', xmlNS],
+      'xmlns': ['xmlns', xmlnsNS],
+      'xmlns:xlink': ['xlink', xmlnsNS],
+    },
+  );
+})();
 
 const elementPropertyAccessor = new PropertyAccessor();
 elementPropertyAccessor.type = (atNode | atLayout) as AccessorType;
@@ -106,12 +107,7 @@ export interface INodeObserverConfig {
 }
 
 export class NodeObserverLocator implements INodeObserverLocator {
-  public static register(container: IContainer) {
-    container.register(
-      singletonRegistration(this, this),
-      aliasRegistration(this, INodeObserverLocator),
-    );
-  }
+  public static register = /*@__PURE__*/ createImplementationRegister(INodeObserverLocator);
 
   /**
    * Indicates whether the node observer will be allowed to use dirty checking for a property it doesn't know how to observe

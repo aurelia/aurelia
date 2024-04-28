@@ -5,13 +5,15 @@ import {
   CustomElement,
   CustomElementDefinition,
   CustomElementType,
+  DefaultBindingSyntax,
+} from '@aurelia/runtime-html';
+import {
   HydrateElementInstruction,
   InstructionType,
   IInstruction,
-  DefaultBindingSyntax,
   PropertyBindingInstruction,
   TextBindingInstruction,
-} from '@aurelia/runtime-html';
+} from '@aurelia/template-compiler';
 import {
   assert, TestContext
 } from '@aurelia/testing';
@@ -318,7 +320,6 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),
         container,
-        { projections: null }
       );
 
       type HEI = HydrateElementInstruction;
@@ -378,7 +379,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     const parser = container.get(IExpressionParser);
 
     return {
-      ...sut.compile(templateDefinition, container, { projections: null }),
+      ...sut.compile(templateDefinition, container),
       createProp: ({ from, to, mode = BindingMode.toView }: { from: string; to: string; mode?: BindingMode }) =>
         new PropertyBindingInstruction(parser.parse(from, 'IsProperty'), to, mode),
       createTextInterpolation: ({ from }: { from: string }) =>

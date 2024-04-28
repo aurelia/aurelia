@@ -64,6 +64,12 @@ If it is intended to run e2e test, then specified --e2e + one of the following: 
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
 
+const alwaysBuildPackages = [
+  'runtime',
+  'runtime-html',
+  'template-compiler',
+];
+
 const validPackages = [
   'metadata',
   'platform',
@@ -71,6 +77,7 @@ const validPackages = [
   'kernel',
   'expression-parser',
   'runtime',
+  'template-compiler',
   'runtime-html',
   'dialog',
   'web-components',
@@ -91,7 +98,7 @@ const validPackages = [
   'testing',
 ];
 
-const devPackages = (args.d ?? []) as string[];
+const devPackages = ((args.d ?? []) as string[]).filter(pkg => !alwaysBuildPackages.includes(pkg));
 if (devPackages.some(d => !validPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validPackages}`);
 }
@@ -149,6 +156,7 @@ if (apps.length > 0) {
 const baseAppPort = 9000;
 concurrently([
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
+  { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
   hasValidTestPatterns
     ? {

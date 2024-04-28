@@ -8,6 +8,7 @@ import {
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { IResourceKind } from './resources/resources-shared';
+import { IDisposableResolver } from '@aurelia/kernel/dist/types/di';
 
 /** @internal */
 export const createInterface = DI.createInterface;
@@ -28,7 +29,7 @@ export const callbackRegistration = Registration.callback;
 export const transientRegistration = Registration.transient;
 
 /** @internal */
-export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver): IResolver =>
+export const registerResolver = <T extends IResolver | IDisposableResolver>(ctn: IContainer, key: Key, resolver: T): T =>
   ctn.registerResolver(key, resolver);
 
 export function alias(...aliases: readonly string[]) {

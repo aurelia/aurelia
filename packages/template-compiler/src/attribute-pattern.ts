@@ -1,7 +1,6 @@
-import { emptyArray, IContainer, resolve, Registrable, getResourceKeyFor } from '@aurelia/kernel';
-import { createInterface, singletonRegistration } from '../utilities-di';
 import type { Constructable } from '@aurelia/kernel';
-import { objectFreeze } from '../utilities';
+import { IContainer, Registrable, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
+import { createInterface, objectFreeze, singletonRegistration } from './utilities';
 
 export interface AttributePatternDefinition<T extends string = string> {
   pattern: T;
@@ -288,6 +287,9 @@ export interface ISyntaxInterpreter {
 }
 export const ISyntaxInterpreter = /*@__PURE__*/createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
+/**
+ * The default implementation of @see {ISyntaxInterpreter}.
+ */
 export class SyntaxInterpreter implements ISyntaxInterpreter {
   /** @internal */
   public _rootState: AttrParsingState = new AttrParsingState(null!);
@@ -448,6 +450,9 @@ export interface IAttributeParser {
 }
 export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
+/**
+ * The default implementation of the @see IAttributeParser interface
+ */
 export class AttributeParser implements IAttributeParser {
   /** @internal */
   private readonly _cache: Record<string, Interpretation> = {};
@@ -498,6 +503,9 @@ export interface AttributePatternKind {
   findAll(container: IContainer): readonly IAttributePattern[];
 }
 
+/**
+ * Decorator to be used on attr pattern classes
+ */
 export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext) => T {
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
     return AttributePattern.define(patternDefs, target);
@@ -509,7 +517,7 @@ const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePa
 
 const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
 
-export const AttributePattern = objectFreeze<AttributePatternKind>({
+export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
   define(patternDefs, Type) {
     patterns.set(Type, patternDefs);

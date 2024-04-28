@@ -9,6 +9,7 @@ import {
   type IContainer,
   IResolver,
   ParameterizedRegistry,
+  InterfaceSymbol,
 } from './di';
 import { Constructable } from './interfaces';
 
@@ -150,4 +151,13 @@ export const Registration = {
    * @param params - the parameters that should be passed to the resolution of the key
    */
   defer: deferRegistration,
+};
+
+export const createImplementationRegister = function<T extends Key>(key: InterfaceSymbol<T>) {
+  return function register<C extends Constructable>(this: C, container: IContainer) {
+    container.register(
+      singletonRegistration(this, this),
+      aliasToRegistration(this, key),
+    );
+  };
 };

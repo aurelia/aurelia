@@ -1,21 +1,22 @@
 import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
-import { toView, type BindingMode, twoWay } from './binding/interfaces-bindings';
+import { defaultMode, toView, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { createLookup, isString, objectFreeze, objectKeys } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from './errors';
+import { BindingMode, IComponentBindablePropDefinition } from '@aurelia/template-compiler';
 
 type PropertyType = typeof Number | typeof String | typeof Boolean | typeof BigInt | { coercer: InterceptorFunc } | Class<unknown>;
 
-export type PartialBindableDefinition = {
-  mode?: BindingMode;
+export type PartialBindableDefinition = Omit<IComponentBindablePropDefinition, 'name'> & {
+  // mode?: BindingMode;
   callback?: string;
-  attribute?: string;
+  // attribute?: string;
   name?: string;
-  primary?: boolean;
+  // primary?: boolean;
   set?: InterceptorFunc;
   type?: PropertyType;
 
@@ -27,15 +28,13 @@ export type PartialBindableDefinition = {
   nullable?: boolean;
 };
 
-type PartialBindableDefinitionPropertyOmitted = Omit<PartialBindableDefinition, 'name'>;
-
 /**
  * Decorator: Specifies custom behavior for a bindable property.
  * This can be either be a property decorator or a class decorator.
  *
  * @param config - The overrides
  */
-export function bindable(config?: PartialBindableDefinitionPropertyOmitted): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext) => void;
+export function bindable(config?: Omit<PartialBindableDefinition, 'name'>): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext) => void;
 /**
  * Decorator: Specifies a bindable property on a class.
  *
@@ -123,7 +122,7 @@ export function bindable(
   // Invocation with or w/o opts:
   // - @bindable()
   // - @bindable({...opts})
-  configOrProp = configOrPropOrTarget === void 0 ? {} : configOrPropOrTarget as string | PartialBindableDefinition;
+  configOrProp = configOrPropOrTarget === void 0 ? {} satisfies PartialBindableDefinition : configOrPropOrTarget as string | PartialBindableDefinition;
   return decorator;
 }
 
@@ -186,10 +185,11 @@ export class BindableDefinition {
   ) { }
 
   public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
+    const mode = (def.mode ?? toView) as BindingMode;
     return new BindableDefinition(
       def.attribute ?? kebabCase(prop),
       def.callback ?? `${prop}Changed`,
-      def.mode ?? toView,
+      isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       def.primary ?? false,
       def.name ?? prop,
       def.set ?? getInterceptor(def),

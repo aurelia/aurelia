@@ -17,7 +17,7 @@ describe('compat-v1/event.spec.ts', function () {
 
     assert.strictEqual(component.callCount, 0);
 
-    trigger.click('button');
+    trigger.click('button', { bubbles: true});
 
     assert.strictEqual(component.callCount, 1);
   });

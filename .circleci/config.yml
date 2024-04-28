@@ -299,6 +299,7 @@ jobs:
             - packages/router-lite/dist
             - packages/expression-parser/dist
             - packages/runtime/dist
+            - packages/template-compiler/dist
             - packages/runtime-html/dist
             - packages/state/dist
             - packages/store-v1/dist

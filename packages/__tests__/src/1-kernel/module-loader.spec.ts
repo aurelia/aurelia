@@ -10,7 +10,8 @@ import * as vc_multi from './modules/vc-multi.js';
 import * as cmd_multi from './modules/command-multi.js';
 import * as kitchen_sink from './modules/kitchen-sink.js';
 import { assert } from '@aurelia/testing';
-import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter, BindingCommand, customElement } from '@aurelia/runtime-html';
+import { CustomAttribute, CustomElement, BindingBehavior, ValueConverter, customElement } from '@aurelia/runtime-html';
+import { BindingCommand } from '@aurelia/template-compiler';
 
 describe('1-kernel/module-loader.spec.ts', function () {
   function createFixture() {

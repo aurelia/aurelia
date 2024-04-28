@@ -4,7 +4,7 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
-import type { IInstruction } from '../../renderer';
+import type { IInstruction } from '@aurelia/template-compiler';
 import type { INode } from '../../dom';
 import { ErrorNames, createMappedError } from '../../errors';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
@@ -17,7 +17,7 @@ export class If implements ICustomAttributeViewModel {
     bindables: {
       value: true,
       cache: {
-        set: v => v === '' || !!v && v !== 'false',
+        set: (v: unknown) => v === '' || !!v && v !== 'false',
       }
     }
   };

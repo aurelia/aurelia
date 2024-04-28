@@ -4,11 +4,8 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-  type BindingCommandInstance,
-  ICommandBuildInfo,
   IController,
   IHydratableController,
-  IInstruction,
   IRenderer,
   mixinAstEvaluator,
   mixinUseScope,
@@ -19,8 +16,13 @@ import {
   type IBinding,
   Scope,
 } from '@aurelia/runtime-html';
+import {
+  type BindingCommandInstance,
+  type ICommandBuildInfo,
+  type IInstruction,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 import { ensureExpression, etIsFunction } from './utilities';
-import { BindingCommandStaticAuDefinition } from '@aurelia/runtime-html/dist/types/resources/binding-command';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const callRegisteredContainer = new WeakSet<IContainer>();

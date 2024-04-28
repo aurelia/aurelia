@@ -3,13 +3,13 @@ import { InstanceProvider, onResolve, onResolveAll } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
-import { createInterface, instanceRegistration } from './utilities-di';
+import { createInterface, instanceRegistration, registerResolver } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 import { IPlatform } from './platform';
-import { registerHostNode } from './dom';
+import { IEventTarget, registerHostNode } from './dom';
 import { isFunction } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 
@@ -79,6 +79,7 @@ export class AppRoot<
     const host = this.host = config.host;
     rootProvider.prepare(this);
 
+    registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, this.platform = this._createPlatform(container, host), host);
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
@@ -119,7 +120,7 @@ export class AppRoot<
 
       controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
       return onResolve(this._runAppTasks('hydrating'), () => {
-        controller._hydrate(null);
+        controller._hydrate();
         return onResolve(this._runAppTasks('hydrated'), () => {
           controller._hydrateChildren();
           this._hydratePromise = void 0;

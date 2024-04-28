@@ -1715,7 +1715,7 @@ const TokenValues = [
   'of', '=>'
 ];
 
-const KeywordLookup: Record<string, Token> = Object.assign(createLookup<Token>(), {
+const KeywordLookup: Record<string, Token> = /*@__PURE__*/ Object.assign(createLookup<Token>(), {
   true: Token.TrueKeyword,
   null: Token.NullKeyword,
   false: Token.FalseKeyword,
@@ -1775,142 +1775,150 @@ const returnToken = (token: Token): () => Token =>
   };
 
 // ASCII IdentifierPart lookup
-const AsciiIdParts = new Set<number>();
-decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const AsciiIdParts = /*@__PURE__*/ ((AsciiIdParts) => {
+  decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
+  return AsciiIdParts;
+})(new Set<number>());
 
 // IdentifierPart lookup
-const IdParts = new Uint8Array(0xFFFF);
-decompress(IdParts as any, null, codes.IdStart, 1);
-decompress(IdParts as any, null, codes.Digit, 1);
-
+const IdParts = /*@__PURE__*/ ((IdParts) => {
+  decompress(IdParts as any, null, codes.IdStart, 1);
+  decompress(IdParts as any, null, codes.Digit, 1);
+  return IdParts;
+})(new Uint8Array(0xFFFF));
 type CharScanner = (() => Token | null) & { notMapped?: boolean };
 
 // Character scanning function lookup
-const CharScanners = new Array<CharScanner>(0xFFFF);
-CharScanners.fill(unexpectedCharacter, 0, 0xFFFF);
+const CharScanners = /*@__PURE__*/ (() => {
+  const CharScanners = new Array<CharScanner>(0xFFFF);
+  CharScanners.fill(unexpectedCharacter, 0, 0xFFFF);
 
-decompress(CharScanners, null, codes.Skip, () => {
-  nextChar();
-  return null;
-});
-decompress(CharScanners, null, codes.IdStart, scanIdentifier);
-decompress(CharScanners, null, codes.Digit, () => scanNumber(false));
-
-CharScanners[Char.DoubleQuote] =
-CharScanners[Char.SingleQuote] = () => {
-  return scanString();
-};
-CharScanners[Char.Backtick] = () => {
-  return scanTemplate();
-};
-
-// !, !=, !==
-CharScanners[Char.Exclamation] = () => {
-  if (nextChar() !== Char.Equals) {
-    return Token.Exclamation;
-  }
-  if (nextChar() !== Char.Equals) {
-    return Token.ExclamationEquals;
-  }
-  nextChar();
-  return Token.ExclamationEqualsEquals;
-};
-
-// =, ==, ===, =>
-CharScanners[Char.Equals] =  () => {
-  if (nextChar() === Char.GreaterThan) {
+  decompress(CharScanners, null, codes.Skip, () => {
     nextChar();
-    return Token.Arrow;
-  }
-  if ($currentChar !== Char.Equals) {
-    return Token.Equals;
-  }
-  if (nextChar() !== Char.Equals) {
-    return Token.EqualsEquals;
-  }
-  nextChar();
-  return Token.EqualsEqualsEquals;
-};
+    return null;
+  });
+  decompress(CharScanners, null, codes.IdStart, scanIdentifier);
+  decompress(CharScanners, null, codes.Digit, () => scanNumber(false));
 
-// &, &&
-CharScanners[Char.Ampersand] = () => {
-  if (nextChar() !== Char.Ampersand) {
-    return Token.Ampersand;
-  }
-  nextChar();
-  return Token.AmpersandAmpersand;
-};
+  CharScanners[Char.DoubleQuote] =
+  CharScanners[Char.SingleQuote] = () => {
+    return scanString();
+  };
+  CharScanners[Char.Backtick] = () => {
+    return scanTemplate();
+  };
 
-// |, ||
-CharScanners[Char.Bar] = () => {
-  if (nextChar() !== Char.Bar) {
-    return Token.Bar;
-  }
-  nextChar();
-  return Token.BarBar;
-};
+  // !, !=, !==
+  CharScanners[Char.Exclamation] = () => {
+    if (nextChar() !== Char.Equals) {
+      return Token.Exclamation;
+    }
+    if (nextChar() !== Char.Equals) {
+      return Token.ExclamationEquals;
+    }
+    nextChar();
+    return Token.ExclamationEqualsEquals;
+  };
 
-// ?, ??, ?.
-CharScanners[Char.Question] = () => {
-  if (nextChar() === Char.Dot) {
-    const peek = $charCodeAt($index + 1);
-    if (peek <= Char.Zero || peek >= Char.Nine) {
+  // =, ==, ===, =>
+  CharScanners[Char.Equals] =  () => {
+    if (nextChar() === Char.GreaterThan) {
       nextChar();
-      return Token.QuestionDot;
+      return Token.Arrow;
     }
-    return Token.Question;
-  }
-  if ($currentChar !== Char.Question) {
-    return Token.Question;
-  }
-  nextChar();
-  return Token.QuestionQuestion;
-};
-
-// ., ...
-CharScanners[Char.Dot] = () => {
-  if (nextChar() <= Char.Nine && $currentChar >= Char.Zero) {
-    return scanNumber(true);
-  }
-  if ($currentChar === Char.Dot) {
-    if (nextChar() !== Char.Dot) {
-      return Token.DotDot;
+    if ($currentChar !== Char.Equals) {
+      return Token.Equals;
+    }
+    if (nextChar() !== Char.Equals) {
+      return Token.EqualsEquals;
     }
     nextChar();
-    return Token.DotDotDot;
-  }
-  return Token.Dot;
-};
+    return Token.EqualsEqualsEquals;
+  };
 
-// <, <=
-CharScanners[Char.LessThan] =  () => {
-  if (nextChar() !== Char.Equals) {
-    return Token.LessThan;
-  }
-  nextChar();
-  return Token.LessThanEquals;
-};
+  // &, &&
+  CharScanners[Char.Ampersand] = () => {
+    if (nextChar() !== Char.Ampersand) {
+      return Token.Ampersand;
+    }
+    nextChar();
+    return Token.AmpersandAmpersand;
+  };
 
-// >, >=
-CharScanners[Char.GreaterThan] =  () => {
-  if (nextChar() !== Char.Equals) {
-    return Token.GreaterThan;
-  }
-  nextChar();
-  return Token.GreaterThanEquals;
-};
+  // |, ||
+  CharScanners[Char.Bar] = () => {
+    if (nextChar() !== Char.Bar) {
+      return Token.Bar;
+    }
+    nextChar();
+    return Token.BarBar;
+  };
 
-CharScanners[Char.Percent]      = returnToken(Token.Percent);
-CharScanners[Char.OpenParen]    = returnToken(Token.OpenParen);
-CharScanners[Char.CloseParen]   = returnToken(Token.CloseParen);
-CharScanners[Char.Asterisk]     = returnToken(Token.Asterisk);
-CharScanners[Char.Plus]         = returnToken(Token.Plus);
-CharScanners[Char.Comma]        = returnToken(Token.Comma);
-CharScanners[Char.Minus]        = returnToken(Token.Minus);
-CharScanners[Char.Slash]        = returnToken(Token.Slash);
-CharScanners[Char.Colon]        = returnToken(Token.Colon);
-CharScanners[Char.Semicolon]    = returnToken(Token.Semicolon);
-CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);
-CharScanners[Char.CloseBracket] = returnToken(Token.CloseBracket);
-CharScanners[Char.OpenBrace]    = returnToken(Token.OpenBrace);
-CharScanners[Char.CloseBrace]   = returnToken(Token.CloseBrace);
+  // ?, ??, ?.
+  CharScanners[Char.Question] = () => {
+    if (nextChar() === Char.Dot) {
+      const peek = $charCodeAt($index + 1);
+      if (peek <= Char.Zero || peek >= Char.Nine) {
+        nextChar();
+        return Token.QuestionDot;
+      }
+      return Token.Question;
+    }
+    if ($currentChar !== Char.Question) {
+      return Token.Question;
+    }
+    nextChar();
+    return Token.QuestionQuestion;
+  };
+
+  // ., ...
+  CharScanners[Char.Dot] = () => {
+    if (nextChar() <= Char.Nine && $currentChar >= Char.Zero) {
+      return scanNumber(true);
+    }
+    if ($currentChar === Char.Dot) {
+      if (nextChar() !== Char.Dot) {
+        return Token.DotDot;
+      }
+      nextChar();
+      return Token.DotDotDot;
+    }
+    return Token.Dot;
+  };
+
+  // <, <=
+  CharScanners[Char.LessThan] =  () => {
+    if (nextChar() !== Char.Equals) {
+      return Token.LessThan;
+    }
+    nextChar();
+    return Token.LessThanEquals;
+  };
+
+  // >, >=
+  CharScanners[Char.GreaterThan] =  () => {
+    if (nextChar() !== Char.Equals) {
+      return Token.GreaterThan;
+    }
+    nextChar();
+    return Token.GreaterThanEquals;
+  };
+
+  CharScanners[Char.Percent]      = returnToken(Token.Percent);
+  CharScanners[Char.OpenParen]    = returnToken(Token.OpenParen);
+  CharScanners[Char.CloseParen]   = returnToken(Token.CloseParen);
+  CharScanners[Char.Asterisk]     = returnToken(Token.Asterisk);
+  CharScanners[Char.Plus]         = returnToken(Token.Plus);
+  CharScanners[Char.Comma]        = returnToken(Token.Comma);
+  CharScanners[Char.Minus]        = returnToken(Token.Minus);
+  CharScanners[Char.Slash]        = returnToken(Token.Slash);
+  CharScanners[Char.Colon]        = returnToken(Token.Colon);
+  CharScanners[Char.Semicolon]    = returnToken(Token.Semicolon);
+  CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);
+  CharScanners[Char.CloseBracket] = returnToken(Token.CloseBracket);
+  CharScanners[Char.OpenBrace]    = returnToken(Token.OpenBrace);
+  CharScanners[Char.CloseBrace]   = returnToken(Token.CloseBrace);
+
+  return CharScanners;
+})();

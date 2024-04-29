@@ -387,7 +387,7 @@ export class RouteContext {
     if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
 
     this._hostControllerProvider.prepare(hostController);
-    const container = this.container;
+    const container = this.container.createChild({ inheritParentResources: true });
     const componentInstance = container.invoke<IRouteViewModel>(routeNode.component.Type);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     const task: Promise<void> | void = this._childRoutesConfigured

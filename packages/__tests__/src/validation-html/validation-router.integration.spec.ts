@@ -17,7 +17,6 @@ import {
   IHistory,
   ILocation,
   IPlatform,
-  StandardConfiguration
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -110,7 +109,6 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
 
       await au
         .register(
-          StandardConfiguration,
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
           RouterConfiguration,

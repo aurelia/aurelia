@@ -17,8 +17,8 @@ const config = {
     ...testPatterns.flatMap(pattern => {
       pattern = pattern.replace(/\.ts$/, '');
       return [
-        `src/*/*${pattern}*.ts`,
-        `src/*/${pattern}/**/*.ts`,
+        `src/**/*${pattern}*.ts`,
+        `src/**/${pattern}/**/*.ts`,
       ]
     })
   ]

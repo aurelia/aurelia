@@ -378,7 +378,8 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
       );
     } /* istanbul ignore next */ else if (__DEV__) {
-      throw createMappedError(ErrorNames.element_existed, this.name);
+      // eslint-disable-next-line no-console
+      console.warn(createMappedError(ErrorNames.element_existed, this.name));
     }
   }
 

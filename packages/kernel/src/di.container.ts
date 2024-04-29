@@ -200,7 +200,7 @@ export class Container implements IContainer {
           if (this.has(key, false)) {
             if (__DEV__) {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              (globalThis as any)?.console?.warn(createMappedError(ErrorNames.resource_already_exists, key));
+              (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, key)}`);
             }
             continue;
           }
@@ -215,7 +215,7 @@ export class Container implements IContainer {
             if (this.has(key, false)) {
               if (__DEV__) {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                (globalThis as any)?.console?.warn(createMappedError(ErrorNames.resource_already_exists, `${key} (aliased)`));
+                (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, `${key} (aliased)`)}`);
               }
               continue;
             }

@@ -198,11 +198,12 @@ export class Container implements IContainer {
           const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
           let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
           if (this.has(key, false)) {
-            if (__DEV__) {
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-              (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, key)}`);
-            }
-            continue;
+            throw createMappedError(ErrorNames.resource_already_exists, key);
+            // if (__DEV__) {
+            //   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            //   (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, key)}`);
+            // }
+            // continue;
           }
           aliasToRegistration(current, key).register(this);
           if (!this.has(current, false)) {
@@ -213,11 +214,12 @@ export class Container implements IContainer {
           for (; j < jj; ++j) {
             key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
             if (this.has(key, false)) {
-              if (__DEV__) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, `${key} (aliased)`)}`);
-              }
-              continue;
+              throw createMappedError(ErrorNames.resource_already_exists, `${key} (aliased)`);
+              // if (__DEV__) {
+              //   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              //   (globalThis as any)?.console?.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.resource_already_exists, `${key} (aliased)`)}`);
+              // }
+              // continue;
             }
             aliasToRegistration(current, key).register(this);
           }

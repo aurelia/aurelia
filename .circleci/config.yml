@@ -828,7 +828,7 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
-          path: "packages/__e2e__/1-hmr-webpack"
+          path: "packages/__e2e__/3-hmr-webpack"
           requires:
             - build_release
       - e2e_test:
@@ -907,6 +907,7 @@ workflows:
             - test_toolings
             # - lint_packages
             - e2e_verdaccio_parcel_ts
+            - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
@@ -992,6 +993,8 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_gh_issues
           path: "packages/__e2e__/1-gh-issues"
+          requires:
+            - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
@@ -1044,6 +1047,7 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
+            - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite

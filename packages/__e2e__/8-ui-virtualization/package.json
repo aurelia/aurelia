@@ -1,5 +1,5 @@
 {
-  "name": "@__e2e__/ui-virtualization",
+  "name": "@__e2e__/8-ui-virtualization",
   "license": "MIT",
   "private": true,
   "engines": {
@@ -7,6 +7,7 @@
     "npm": ">=6.14.8"
   },
   "version": "2.0.0-beta.15",
+  "port": 9008,
   "scripts": {
     "dev": "vite dev",
     "test:e2e": "cross-env APP_PORT=9008 concurrently -n app,test \"npm run dev\" \"playwright test\" --kill-others --success first",

@@ -21,7 +21,6 @@ import {
   PartialCustomElementDefinition,
   CustomElementDefinition,
   CustomAttributeDefinition,
-  If,
   DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
@@ -1601,7 +1600,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       });
 
       it('does not capture template controller', function () {
-        const { sut, container } = createFixture(TestContext.create(), MyElement, If);
+        const { sut, container } = createFixture(TestContext.create(), MyElement);
         const definition = sut.compile({
           name: 'rando',
           template: '<my-element if.bind>',

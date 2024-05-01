@@ -1,7 +1,7 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
-import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, StandardConfiguration, watch } from '@aurelia/runtime-html';
+import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
@@ -3947,7 +3947,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         C11,
@@ -4061,7 +4060,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         C11,
@@ -4175,7 +4173,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe(true);
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         C11,
@@ -4276,7 +4273,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         navBarCe,
@@ -4384,7 +4380,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         navBarCe
@@ -4484,7 +4479,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe(false);
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         navBarCe
@@ -4559,7 +4553,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         navBarCe
@@ -4617,7 +4610,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const navBarCe = getNavBarCe();
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration.customize({ useNavigationModel: false }),
         navBarCe
@@ -4665,7 +4657,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         const { container } = ctx;
 
         container.register(
-          StandardConfiguration,
           TestRouterConfiguration.for(LogLevel.warn),
           RouterConfiguration,
         );
@@ -4713,7 +4704,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     const { container } = ctx;
 
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration,
       P1,
@@ -4762,7 +4752,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     }));
 
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration.customize({ basePath: '/mega-dodo/guide1/' }),
       P1,
@@ -4826,7 +4815,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration,
       P1,
@@ -4881,7 +4869,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration,
       P1,
@@ -4945,7 +4932,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     const ctx = TestContext.create();
     const { container } = ctx;
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(LogLevel.warn),
       RouterConfiguration,
       P1,
@@ -5002,7 +4988,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const { container } = ctx;
 
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         Foo,
@@ -5116,7 +5101,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const { container } = ctx;
 
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         Foo,
@@ -5246,7 +5230,6 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const { container } = ctx;
 
       container.register(
-        StandardConfiguration,
         TestRouterConfiguration.for(LogLevel.warn),
         RouterConfiguration,
         CeL11,

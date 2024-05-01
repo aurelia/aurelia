@@ -80,22 +80,17 @@ export class Rendering implements IRendering {
     const compiler = container.get(ITemplateCompiler);
     const compiledMap = this._compilationCache;
     let compiled = compiledMap.get(definition);
-    if (definition.needsCompile !== false) {
-      if (compiled == null) {
-        compiledMap.set(definition, compiled = CustomElementDefinition.create(compiler.compile(
-          definition,
-          container,
-        )));
-      } else {
-        // todo:
-        // should only register if the compiled def resolution is string
-        // instead of direct resources
-        container.register(...compiled.dependencies);
-      }
-      return compiled;
+    if (compiled == null) {
+      compiledMap.set(definition, compiled = CustomElementDefinition.create(
+        definition.needsCompile
+          ? compiler.compile(
+            definition,
+            container,
+          )
+          : definition
+      ));
     }
-
-    return definition;
+    return compiled;
   }
 
   public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {

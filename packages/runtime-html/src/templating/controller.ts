@@ -213,8 +213,8 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         try {
           definition = getElementDefinition(viewModel.constructor as Constructable);
         } catch (ex) {
-          // eslint-disable-next-line no-console
-          console.error(`[DEV:aurelia] Custom element definition not found for creating a controller with host: <${host.nodeName} /> and component ${JSON.stringify(viewModel)}`);
+          // eslint-disable-next-line
+          console.error(`[DEV:aurelia] Custom element definition not found for creating a controller with host: <${host.nodeName} /> and component ${viewModel.constructor.name || '(Anonymous) class'}`);
           throw ex;
         }
       }

@@ -7,7 +7,6 @@ import {
 import {
   IBinding,
   IRenderer,
-  StandardConfiguration,
   IHydratableController,
   IPlatform,
   BindingMode,
@@ -84,7 +83,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
 
     function createFixture() {
       const { container } = TestContext.create();
-      container.register(StandardConfiguration, I18nConfiguration);
+      container.register(I18nConfiguration);
       return container;
     }
 

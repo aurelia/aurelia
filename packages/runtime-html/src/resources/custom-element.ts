@@ -370,17 +370,17 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     const key = typeof aliasName === 'string' ? getElementKeyFrom(aliasName) : this.key;
     const aliases = this.aliases;
 
-    // todo: warn if alreay has key
-    if (!container.has(key, false)) {
-      container.register(
-        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
-        aliasRegistration($Type, key),
-        ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
-      );
-    } /* istanbul ignore next */ else if (__DEV__) {
+    /* istanbul ignore next */
+    if (container.has(key, false)) {
       // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.element_existed, this.name)}`);
+      console.warn(createMappedError(ErrorNames.element_existed, this.name));
+      return;
     }
+    container.register(
+      container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+      aliasRegistration($Type, key),
+      ...aliases.map(alias => aliasRegistration($Type, getElementKeyFrom(alias)))
+    );
   }
 
   public toString() {

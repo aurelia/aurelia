@@ -1,6 +1,8 @@
 import {
   CustomElement,
   SVGAnalyzer,
+  bindable,
+  customElement,
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -190,4 +192,25 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
       }
     );
   }
+
+  it('understands local recursive element', function () {
+    @customElement({
+      name: 'child',
+      template: '${v}<child if.bind="v > 0" v.bind="v - 1">'
+    })
+    class Child {
+      @bindable v;
+    }
+
+    @customElement({
+      name: 'parent',
+      template: '<child v.bind="1">',
+      dependencies: [Child]
+    })
+    class Parent {}
+
+    const { assertHtml } = createFixture(`<parent></parent>`, class {}, [Parent]);
+
+    assertHtml('<parent><child>1<child>0</child></child></parent>', { compact: true });
+  });
 });

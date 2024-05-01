@@ -42,14 +42,15 @@ const hasValidTestPatterns = testPatterns !== '';
 
 const e2e = args.e2e;
 const validE2e = [
-  'router',
-  'router-lite',
-  'hmr-vite',
-  'hmr-webpack',
+  '1-gh-issues',
+  '2-hmr-vite',
+  '3-hmr-webpack',
+  '4-i18n',
+  '5-router',
+  '6-router-lite',
   'hmr-parcel',
-  'select-safari16',
-  'i18n',
-  'ui-virtualization',
+  '7-select-safari16',
+  '8-ui-virtualization',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 

@@ -197,21 +197,29 @@ export class Container implements IContainer {
           const $au = current.$au;
           const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
           let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
-          if (!this.has(key, false)) {
-            aliasToRegistration(current, key).register(this);
-            if (!this.has(current, false)) {
-              singletonRegistration(current, current).register(this);
+          if (this.has(key, false)) {
+            if (__DEV__) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              (globalThis as any).console?.warn(createMappedError(ErrorNames.resource_already_exists, key));
             }
-            j = 0;
-            jj = aliases.length;
-            for (; j < jj; ++j) {
-              key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
-              if (!this.has(key, false)) {
-                aliasToRegistration(current, key).register(this);
+            continue;
+          }
+          aliasToRegistration(current, key).register(this);
+          if (!this.has(current, false)) {
+            singletonRegistration(current, current).register(this);
+          }
+          j = 0;
+          jj = aliases.length;
+          for (; j < jj; ++j) {
+            key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
+            if (this.has(key, false)) {
+              if (__DEV__) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                (globalThis as any).console?.warn(createMappedError(ErrorNames.resource_already_exists, key));
               }
+              continue;
             }
-          } else {
-            // dev message for registering static resources that the key already registered
+            aliasToRegistration(current, key).register(this);
           }
         } else {
           singletonRegistration(current, current as Constructable).register(this);

@@ -315,7 +315,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   for (const { only, customElements, template, expectedSlotInfos, allExpectedProjections } of getTestData()) {
     (only ? it.only : it)(`compiles - ${template}`, function () {
       const { sut, container } = createFixture();
-      container.register(AuSlot, ...customElements);
+      container.register(...customElements);
 
       const compiledDefinition = sut.compile(
         CustomElementDefinition.create({ name: 'my-ce', template }, class MyCe { }),

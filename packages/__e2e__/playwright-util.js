@@ -1,5 +1,5 @@
-/** @type {(port: number, workers?: number) => import('@playwright/test').PlaywrightTestConfig} */
-module.exports = function getPlaywrightConfig(port, workers) {
+/** @type {(pkg: { port?: number }, workers?: number, ) => import('@playwright/test').PlaywrightTestConfig} */
+module.exports = function getPlaywrightConfig(pkg, workers) {
   return {
     // Forbid test.only on CI
     forbidOnly: !!process.env.CI,
@@ -14,10 +14,12 @@ module.exports = function getPlaywrightConfig(port, workers) {
     // },
     use: {
       headless: true,
-      baseURL: `http://localhost:` + port,
+      baseURL: `http://localhost:` + (pkg.port ?? defaultVitePort),
     },
     expect: {
       timeout: 10_000,
     },
   }
 };
+
+const defaultVitePort = 5173;

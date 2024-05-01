@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { CustomElement, IPlatform, Aurelia, StandardConfiguration } from '@aurelia/runtime-html';
+import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, createFixture, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { StyleAttributePattern } from './attribute-pattern.js';
@@ -159,7 +159,6 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
             public value: string = ruleValue;
           },
           StyleAttributePattern,
-          StandardConfiguration,
           CustomElement.define(
             {
               name: 'child',

@@ -30,7 +30,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
     test(`rerenders without flushing <input> state`, async function ({ page }) {
       await expect(page.locator('app > div')).toHaveText('Hello World!');
-      await page.type('input', 'abc');
+      await page.fill('input', 'abc');
       await expect(page.locator('input')).toHaveValue('abc');
 
       const newContent = `import { IEventAggregator, resolve } from '@aurelia/kernel';

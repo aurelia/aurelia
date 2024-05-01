@@ -372,7 +372,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
 
     /* istanbul ignore next */
     if (container.has(key, false)) {
-      throw createMappedError(ErrorNames.element_existed, this.name);
+      // eslint-disable-next-line no-console
+      console.warn(createMappedError(ErrorNames.element_existed, this.name));
+      return;
     }
     container.register(
       container.has($Type, false) ? null : singletonRegistration($Type, $Type),

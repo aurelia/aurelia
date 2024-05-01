@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import au from '@aurelia/vite-plugin';
-import { createFilter } from '@rollup/pluginutils';
 import { resolve } from 'path';
 
 export default defineConfig({

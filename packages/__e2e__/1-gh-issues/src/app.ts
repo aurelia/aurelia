@@ -12,7 +12,7 @@ export class App {
   }
 
   async click() {
-    const { dialog } = await this.dialogService.open({
+    await this.dialogService.open({
       component: () => MyDialog,
       lock: false
     });

@@ -14,7 +14,7 @@ module.exports = function getPlaywrightConfig(pkg, workers) {
     // },
     use: {
       headless: true,
-      baseURL: `http://localhost:` + pkg.port ?? defaultVitePort,
+      baseURL: `http://localhost:` + (pkg.port ?? defaultVitePort),
     },
     expect: {
       timeout: 10_000,

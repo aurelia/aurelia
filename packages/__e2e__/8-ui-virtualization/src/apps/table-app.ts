@@ -45,14 +45,14 @@ export class TableApp {
   }
 
   bound() {
-    let name;
+    // let name;
     for (let i = 0; i < this.numberOfItems; ++i) {
-      name = faker.name.fullName();
+      // name = faker.name.fullName();
       this.objectArray.push(this.createItem(i));
     }
 
     for (let i = 0; i < this.numberOfItems; ++i) {
-      name = faker.name.fullName();
+      // name = faker.name.fullName();
       this.objectArray2.push(this.createItem());
     }
   }

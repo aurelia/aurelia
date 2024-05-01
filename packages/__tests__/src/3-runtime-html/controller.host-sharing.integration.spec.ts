@@ -59,7 +59,7 @@ describe('3-runtime-html/controller.host-sharing.integration.spec.ts', function 
               private childController!: ICustomElementController;
 
               public created(controller: ICustomElementController<this>): void {
-                const container = controller.container;
+                const container = controller.container.createChild();
                 this.childController = Controller.$el(
                   container,
                   container.get(CustomElement.keyFrom('the-child')),

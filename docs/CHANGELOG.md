@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+### Bug Fixes:
+
+* **au-slot:** ensure passthrough slot get the right host value (#1959) ([f266ddd](https://github.com/aurelia/aurelia/commit/f266ddd))
+* **rendering:** correctly handle compilation cache (#1955) ([c11491b](https://github.com/aurelia/aurelia/commit/c11491b))
+
+
+### Refactorings:
+
+* **router-lite:** avoided duplicate CE defn reg to same container (#1956) ([6578e54](https://github.com/aurelia/aurelia/commit/6578e54))
+* **compiler:** extract template compiler into own package (#1954) ([ad7ae1e](https://github.com/aurelia/aurelia/commit/ad7ae1e))
+* **compiler:** simplify definition creation (#1950) ([bb0fcab](https://github.com/aurelia/aurelia/commit/bb0fcab))
+* **observers:** use static blocks, group related code ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* **runtime:** move scope to runtime html (#1945) ([bca0290](https://github.com/aurelia/aurelia/commit/bca0290))
+
 <a name="2.0.0-beta.15"></a>
 # 2.0.0-beta.15 (2024-04-17)
 

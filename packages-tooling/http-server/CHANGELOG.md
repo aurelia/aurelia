@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+**Note:** Version bump only for package @aurelia/http-server
+
 <a name="2.0.0-beta.15"></a>
 # 2.0.0-beta.15 (2024-04-17)
 

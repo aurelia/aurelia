@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+### Refactorings:
+
+* ***:** cleanup deco code (#1947) ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* **observers:** use static blocks, group related code ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+
 <a name="2.0.0-beta.15"></a>
 # 2.0.0-beta.15 (2024-04-17)
 

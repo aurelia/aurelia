@@ -55,13 +55,13 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   }
 
   it('compiles default <au-slot> as the only child', function () {
-    const { template, instructions } = compileWith('<au-slot></au-slot>');
+    const { template, instructions } = compileTemplate('<au-slot></au-slot>');
     assertTemplateEqual(template, '<!--au*--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
   it('compiles 2 default <au-slot>s', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<au-slot></au-slot><au-slot></au-slot>'
     );
     assertTemplateEqual(
@@ -73,7 +73,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles default <au-slot> with fallback', function () {
-    const { template, instructions, createProp } = compileWith(
+    const { template, instructions, createProp } = compileTemplate(
       '<au-slot><div a.bind="b"></div></au-slot>'
     );
     assertTemplateEqual(
@@ -89,7 +89,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles default <au-slot> with [interpolation] fallback', function () {
-    const { template, instructions, createTextInterpolation } = compileWith(
+    const { template, instructions, createTextInterpolation } = compileTemplate(
       '<au-slot>${message}</au-slot>'
     );
     assertTemplateEqual(
@@ -105,26 +105,26 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles together with slot', function () {
-    const { template, instructions } = compileWith('<slot></slot><au-slot></au-slot>');
+    const { template, instructions } = compileTemplate('<slot></slot><au-slot></au-slot>');
     assertTemplateEqual(template, '<slot></slot><!--au*--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
   it('compiles named <au-slot>', function () {
-    const { template, instructions } = compileWith('<au-slot name="s1"></au-slot>');
+    const { template, instructions } = compileTemplate('<au-slot name="s1"></au-slot>');
     assertTemplateEqual(template, '<!--au*--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
   });
 
   it('compiles default <au-slot> mixed with named <au-slot>', function () {
-    const { template, instructions } = compileWith('<au-slot name="s1"></au-slot><au-slot></au-slot>');
+    const { template, instructions } = compileTemplate('<au-slot name="s1"></au-slot><au-slot></au-slot>');
     assertTemplateEqual(template, '<!--au*--><!--au-start--><!--au-end--><!--au*--><!--au-start--><!--au-end-->');
     assertAuSlotFallback(instructions[0][0], null);
     assertAuSlotFallback(instructions[1][0], null);
   });
 
   it('compiles projection with default [au-slot]', function () {
-    const { template, instructions, createProp } = compileWith(
+    const { template, instructions, createProp } = compileTemplate(
       '<el><div au-slot a.bind="b">',
       $createCustomElement('', 'el')
     );
@@ -135,7 +135,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles content without the need of [au-slot]', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<el><div>',
       $createCustomElement('', 'el')
     );
@@ -146,7 +146,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles projection with default [au-slot] as empty string', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<el><div au-slot="">',
       $createCustomElement('', 'el')
     );
@@ -157,7 +157,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('does not get confused when theres a slot with the same name with project in the template', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<au-slot></au-slot><el><div au-slot="">',
       $createCustomElement('', 'el')
     );
@@ -169,7 +169,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles projection with specific [au-slot] name', function () {
-    const { template, instructions, createProp } = compileWith(
+    const { template, instructions, createProp } = compileTemplate(
       '<el><div au-slot="s1" a.bind="b">',
       $createCustomElement('', 'el')
     );
@@ -180,7 +180,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles auto projection with named projection', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<el><div></div><div au-slot="s1">',
       $createCustomElement('', 'el')
     );
@@ -192,7 +192,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles projection that has <au-slot>', function () {
-    const { template, instructions } = compileWith(
+    const { template, instructions } = compileTemplate(
       '<el><au-slot au-slot>',
       $createCustomElement('', 'el')
     );
@@ -207,7 +207,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles default <au-slot> in projection with fallback', function () {
-    const { template, instructions, createProp } = compileWith(
+    const { template, instructions, createProp } = compileTemplate(
       '<el><au-slot au-slot"><div a.bind="b">',
       $createCustomElement('', 'el')
     );
@@ -222,7 +222,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   });
 
   it('compiles multiple <au-slot>s in projection with fallback', function () {
-    const { template, instructions, createProp } = compileWith(
+    const { template, instructions, createProp } = compileTemplate(
       ['<el>',
         '<au-slot au-slot">',
           '<div a.bind="b"></div>',
@@ -365,7 +365,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
     });
   }
 
-  function compileWith(template: string, ...registrations: unknown[]) {
+  function compileTemplate(template: string, ...registrations: unknown[]) {
     const { container, sut } = createFixture();
     container.register(DefaultBindingSyntax, ...registrations);
 

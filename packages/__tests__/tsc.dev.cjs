@@ -18,7 +18,9 @@ const config = {
       pattern = pattern.replace(/\.ts$/, '');
       return [
         `src/**/*${pattern}*.ts`,
+        `src/**/*${pattern}*.tsx`,
         `src/**/${pattern}/**/*.ts`,
+        `src/**/${pattern}/**/*.tsx`,
       ]
     })
   ]

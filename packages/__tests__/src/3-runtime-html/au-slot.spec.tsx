@@ -2137,6 +2137,119 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     });
   });
 
+  // bug discorverd by @MaxB on Discord
+  // https://discord.com/channels/448698263508615178/448699089513611266/1234665951467929666
+  it('passes $host value through 1 layer of <au-slot>', function () {
+
+    @customElement({
+      name: 'mdc-filter',
+      template:
+        // '<mdc-lookup><au-slot>mdc-filter ${$host | json:"mdc-lookup"}</au-slot></mdc-lookup>',
+        '<mdc-lookup><template au-slot><au-slot>mdc-filter ${$host.option}</au-slot></template></mdc-lookup>',
+      dependencies: [],
+    })
+    class MdcFilter {
+    }
+
+    @customElement({
+      name: 'mdc-lookup',
+      template:
+      `<au-slot repeat.for="option of options">mdc-lookup $\{option}</au-slot>`
+    })
+    class MdcLookup {
+      options = ['option1'];
+    }
+
+    @customElement({ name: 'mdc-option', template: '<au-slot></au-slot>' })
+    class MdcOption {}
+
+    const { assertHtml } = createFixture(
+      `<mdc-filter>
+        <template au-slot>my-app>mdc-filter \${$host.option | json:'app'}</template>
+      </mdc-filter>`,
+      class MyApp {},
+      [MdcLookup, MdcFilter, MdcOption, class {
+        static $au = { type: 'value-converter', name: 'json' };
+        toView = (v: unknown, tag = '') => { console.log({ ctor: `${tag}:${v?.constructor.name ?? '<undefined>'}` }); return v; };
+      }]
+    );
+
+    assertHtml(`<mdc-filter><mdc-lookup>my-app&gt;mdc-filter option1</mdc-lookup></mdc-filter>`, { compact: true });
+  });
+
+  it('passes $host value through 2 layers of <au-slot>', function () {
+
+    @customElement({
+      name: 'layer0',
+      template: '<layer1><au-slot>layer0 ${$host.value}</au-slot></layer2>',
+    })
+    class Layer0 {}
+
+    @customElement({
+      name: 'layer1',
+      template: '<layer2><au-slot>layer1 ${$host.value}</au-slot></layer2>',
+    })
+    class Layer1 {}
+
+    @customElement({
+      name: 'layer2',
+      template:
+      `<au-slot repeat.for="value of options">layer2 $\{value}</au-slot>`
+    })
+    class Layer2 {
+      options = ['option1'];
+    }
+
+    const { assertHtml } = createFixture(
+      `<layer0>
+        my-app>layer0 \${$host.value}
+      </layer0>`,
+      class MyApp {},
+      [Layer0, Layer1, Layer2]
+    );
+
+    assertHtml(`<layer0><layer1><layer2> my-app&gt;layer0 option1 </layer2></layer1></layer0>`, { compact: true });
+  });
+
+  it('passes $host value through 3 layers of <au-slot>', function () {
+
+    @customElement({
+      name: 'layer0',
+      template: '<layer1><au-slot>layer0 ${$host.value}</au-slot></layer2>',
+    })
+    class Layer0 {}
+
+    @customElement({
+      name: 'layer1',
+      template: '<layer2><au-slot>layer1 ${$host.value}</au-slot></layer2>',
+    })
+    class Layer1 {}
+
+    @customElement({
+      name: 'layer2',
+      template:
+      '<layer3><au-slot>layer 2 ${host.value}</au-slot></layer3>'
+    })
+    class Layer2 {}
+
+    @customElement({
+      name: 'layer3',
+      template:
+      `<au-slot repeat.for="value of [1]">layer3 $\{value}</au-slot>`
+    })
+    class Layer3 {}
+
+    const { assertHtml } = createFixture(
+      `<layer0>
+        my-app>layer0 \${$host.value}
+      </layer0>`,
+      class MyApp {},
+      [Layer0, Layer1, Layer2, Layer3]
+    );
+
+    assertHtml(`<layer0><layer1><layer2><layer3> my-app&gt;layer0 1 </layer3></layer2></layer1></layer0>`, { compact: true });
+  });
+
   describe('with dependency injection', function () {
 
     it('injects the right parent component', async function () {

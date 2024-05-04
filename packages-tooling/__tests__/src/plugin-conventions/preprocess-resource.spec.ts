@@ -1088,7 +1088,37 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
     });
 
   }
-  // #region
+  // #endregion
+
+  // #region bindables
+  it(`rewrites bindables - field decorator`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+export class FooBar {
+  @bindable x;
+  @bindable() y;
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { bindable, CustomElement } from '@aurelia/runtime-html';
+export class FooBar {
+   x;
+   y;
+}
+CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 'x', 'y' ] }, FooBar);
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+  // TODO: class decorators
+  // #endregion
 });
 
 describe('preprocessResource for complex resource', function () {

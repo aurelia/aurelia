@@ -70,9 +70,13 @@ interface CustomElementDecorator {
   namePosition: IPos;
 }
 
-type ReplaceableDecorators = {
+type ReplaceableDecorator = {
   position: IPos;
   modifiedContent: string;
+};
+
+type BindableDecorator = ReplaceableDecorator & {
+  isClassDecorator: boolean;
 };
 
 interface DefineElementInformation {
@@ -81,6 +85,7 @@ interface DefineElementInformation {
 }
 
 interface IFoundResource {
+  type?: ResourceType;
   className?: string;
   localDep?: string;
   needDefinition?: [number, string];
@@ -88,7 +93,8 @@ interface IFoundResource {
   runtimeImportName?: string;
   customElementDecorator?: CustomElementDecorator;
   defineElementInformation?: DefineElementInformation;
-  ceDecorators?: ReplaceableDecorators[];
+  ceDecorators?: ReplaceableDecorator[];
+  bindables?: BindableDecorator[];
 }
 
 interface IResourceDecorator {
@@ -104,7 +110,13 @@ interface IModifyResourceOptions {
   customElementDecorator?: CustomElementDecorator;
   transformHtmlImportSpecifier?: (path: string) => string;
   defineElementInformation?: DefineElementInformation;
-  ceDecorators?: ReplaceableDecorators[];
+  ceDecorators?: ReplaceableDecorator[];
+  ceBindables?: BindableDecorator[];
+}
+
+interface DecoratorInformation {
+  resourceType: IResourceDecorator | undefined;
+  ceDecorators: ReplaceableDecorator[];
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
@@ -117,7 +129,9 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let implicitElement: IPos | undefined;
   let customElementDecorator: CustomElementDecorator | undefined; // for @customName('custom-name')
   let defineElementInformation: DefineElementInformation | undefined;
-  let ceDecorators: ReplaceableDecorators[] | undefined;
+  let ceDecorators: ReplaceableDecorator[] | undefined;
+  let ceBindables: BindableDecorator[] | undefined;
+  const bindables: BindableDecorator[] = [];
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for composing the main implicit custom element.
@@ -155,7 +169,8 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       runtimeImportName,
       customElementDecorator: customName,
       defineElementInformation: $defineElementInformation,
-      ceDecorators: $ceDecorators
+      ceDecorators: $ceDecorators,
+      bindables: $bindables
     } = resource;
 
     if (localDep) localDeps.push(localDep);
@@ -170,6 +185,10 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
     if ($ceDecorators) ceDecorators = $ceDecorators;
+    if ($bindables?.length) {
+      if (resource.type === 'customElement') ceBindables = $bindables;
+      else bindables.push(...$bindables);
+    }
   });
 
   let m = modifyCode(unit.contents, unit.path);
@@ -192,7 +211,8 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       customElementDecorator,
       transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
       defineElementInformation,
-      ceDecorators
+      ceDecorators,
+      ceBindables,
     });
   }
 
@@ -214,7 +234,8 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     transformHtmlImportSpecifier = s => s,
     exportedClassName,
     defineElementInformation,
-    ceDecorators
+    ceDecorators,
+    ceBindables,
   } = options;
 
   if (implicitElement && unit.filePair) {
@@ -231,15 +252,11 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
         const modified = createPrinter().printFile(result.transformed[0]);
         m.replace(implicitElement.pos, implicitElement.end, modified);
       } else if (localDeps.length) {
-        let pos = implicitElement.pos;
-        let decoratorStatements = '';
-        if (ceDecorators) {
-          for (const d of ceDecorators) {
-            m.replace(d.position.pos, d.position.end, '');
-            decoratorStatements += `, ${d.modifiedContent}`;
-            pos = d.position.end;
-          }
-        }
+        // eslint-disable-next-line prefer-const
+        let { statement: decoratorStatements, effectivePos: pos } = createDecoratorStatement(ceDecorators, implicitElement.pos, m);
+        let bindableStatements = '';
+        ({statement: bindableStatements, effectivePos: pos } = createBindableStatement(ceBindables, pos, m, viewDef));
+
         // When in-file deps are used, move the body of custom element to end of the file,
         // in order to avoid TS2449: Class '...' used before its declaration.
         if (customElementDecorator) {
@@ -247,29 +264,35 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements} }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(pos, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements} }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         }
       } else {
-        let decoratorStatements = '';
-        if (ceDecorators) {
-          for (const d of ceDecorators) {
-            m.replace(d.position.pos, d.position.end, '');
-            decoratorStatements += `, ${d.modifiedContent}`;
-          }
-        }
+        const pos = implicitElement.pos;
+        const { statement: decoratorStatements } = createDecoratorStatement(ceDecorators, pos, m);
+        const { statement: bindableStatements } = createBindableStatement(ceBindables, pos, m, viewDef);
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name}${decoratorStatements} }, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name}${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
-          m.insert(implicitElement.end, `\nCustomElement.define(${(decoratorStatements ? `{ ...${viewDef}${decoratorStatements} }` : viewDef)}, ${exportedClassName});\n`);
+          let sb = viewDef;
+          if (decoratorStatements) {
+            sb = `...${sb}${decoratorStatements}`;
+          }
+          if (bindableStatements) {
+            sb = `${(sb.startsWith('...') ? '' : '...')}${sb}${bindableStatements}`;
+          }
+          if (sb.startsWith('...')) {
+            sb = `{ ${sb} }`;
+          }
+          m.insert(implicitElement.end, `\nCustomElement.define(${sb}, ${exportedClassName});\n`);
         }
       }
     }
@@ -280,6 +303,34 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   }
 
   return m;
+}
+
+function createDecoratorStatement(decorators: ReplaceableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>): { statement: string; effectivePos: number } {
+  let statement = '';
+  if (decorators == null) return { statement, effectivePos: classPos };
+  for (const d of decorators) {
+    const end = d.position.end;
+    m.replace(d.position.pos, end, '');
+    statement += `, ${d.modifiedContent}`;
+    classPos = Math.max(classPos, end);
+  }
+  return { statement, effectivePos: classPos };
+}
+
+function createBindableStatement(bindables: BindableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>, viewDef: string): { statement: string; effectivePos: number } {
+  let statement = '';
+  if (!bindables) return { statement, effectivePos: classPos };
+  const statements: string[] = [];
+  for (const ceb of bindables) {
+    const end = ceb.position.end;
+    m.replace(ceb.position.pos, end, '');
+    statements.push(ceb.modifiedContent);
+    classPos = Math.max(classPos, end);
+  }
+  if (statements.length > 0) {
+    statement = `, bindables: [ ...${viewDef}.bindables, ${statements.join(', ')} ]`;
+  }
+  return {statement, effectivePos: classPos };
 }
 
 function captureImport(s: Statement, lib: string, code: string): ICapturedImport | void {
@@ -408,110 +459,29 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
 function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
   // CustomElement.define
   if (isExpressionStatement(node)) {
-    const pos = ensureTokenStart(node.pos, code);
-    const statement = code.slice(pos, node.end);
+    const statement = getText(node, code);
     if (!statement.startsWith('CustomElement.define')) return;
     const sf = createSourceFile('temp.ts', statement, ScriptTarget.Latest);
     const result = transform(sf, [createDefineElementTransformer()]);
     const modifiedContent = createPrinter().printFile(result.transformed[0]);
     return {
       defineElementInformation: {
-        position: { pos, end: node.end },
+        position: getPosition(node, code),
         modifiedContent
       }
     };
   }
 
-  if (!isClassDeclaration(node)) return;
-  if (!node.name) return;
-  if (!isExported(node)) return;
+  if (!isClassDeclaration(node) || !node.name || !isExported(node)) return;
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
-  // gather decorator information
-  let resourceType: IResourceDecorator | undefined;
-  // later these decorators will be replaced with the modified content
-  const ceDecorators: ReplaceableDecorators[] = [];
-  if (canHaveDecorators(node)) {
-    const decorators = getDecorators(node) ?? [];
-    for (const d of decorators) {
-      let name: string | undefined;
-      let resourceExpression: CallExpression | undefined;
-      if (isCallExpression(d.expression)) {
-        const exp = d.expression.expression;
-        if (isIdentifier(exp)) {
-          name = exp.text;
-          resourceExpression = d.expression;
-        }
-      } else if (isIdentifier(d.expression)) {
-        name = d.expression.text;
-      }
-      if (name == null) continue;
+  const { resourceType, ceDecorators } = collectClassDecorators(node, code);
 
-      if (KNOWN_RESOURCE_DECORATORS.includes(name)) {
-        if (resourceExpression == null) continue;
-        resourceType = {
-          type: name as ResourceType,
-          expression: resourceExpression
-        };
-        continue;
-      }
-
-      let modifiedContent: string | undefined;
-      switch (name) {
-        case 'containerless':
-          modifiedContent = 'containerless: true';
-          break;
-
-        case 'useShadowDOM':
-          modifiedContent = `shadowOptions: ${getFirstArgumentOrDefault(d, '{ mode: \'open\' }')}`;
-          break;
-
-        case 'capture':
-          modifiedContent = `capture: ${getFirstArgumentOrDefault(d, 'true')}`;
-          break;
-
-        case 'alias': {
-          if (!isCallExpression(d.expression)) continue;
-
-          const args = d.expression.arguments;
-          const numArgs = args.length;
-          if (numArgs === 0) continue;
-
-          let ceDefinitionOptions: string | undefined;
-          if (numArgs === 1) {
-            // this can be a string literal, identifier, or a spread element
-            const firstArg = args[0];
-            if (isStringLiteral(firstArg) || isIdentifier(firstArg)) ceDefinitionOptions = `[${code.slice(ensureTokenStart(firstArg.pos, code), firstArg.end)}]`;
-            else if (isSpreadElement(firstArg) && isArrayLiteralExpression(firstArg.expression)) ceDefinitionOptions = `${code.slice(ensureTokenStart(firstArg.pos, code) + 3, firstArg.end)}`;
-            else continue;
-          } else {
-            let unexpectedArgument = false;
-            const aliases: string[] = [];
-            for (let i = 0; i < numArgs; i++) {
-              const arg = args[i];
-              if (!isStringLiteral(arg) && !isIdentifier(arg)) {
-                unexpectedArgument = true;
-                break;
-              }
-              aliases.push(code.slice(ensureTokenStart(arg.pos, code), arg.end));
-            }
-            if (unexpectedArgument || aliases.length === 0) continue;
-            ceDefinitionOptions = `[${aliases.join(', ')}]`;
-          }
-
-          modifiedContent = `aliases: ${ceDefinitionOptions}`;
-          break;
-        }
-      }
-      if (modifiedContent != null) {
-        ceDecorators.push({ position: { pos: ensureTokenStart(d.pos, code), end: d.end },  modifiedContent});
-      }
-    }
-  }
+  const bindables: BindableDecorator[] = collectBindables(node, code);
 
   if (resourceType) {
     // Explicitly decorated resource
@@ -534,14 +504,16 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       const decorator = resourceType.expression;
       const customName = decorator.arguments[0];
       return {
+        type: resourceType.type,
         className,
         implicitStatement: { pos: pos, end: node.end },
         customElementDecorator: {
-          position: { pos: ensureTokenStart(decorator.pos, code), end: decorator.end },
-          namePosition: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
+          position: getPosition(decorator, code),
+          namePosition: getPosition(customName, code)
         },
         runtimeImportName: filePair ? 'CustomElement' : undefined,
-        ceDecorators
+        ceDecorators,
+        bindables
       };
     }
   } else {
@@ -551,10 +523,12 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       case 'customElement': {
         if (!isImplicitResource || !filePair) return;
         return {
+          type: 'customElement',
           className,
           implicitStatement: { pos: pos, end: node.end },
           runtimeImportName: 'CustomElement',
-          ceDecorators
+          ceDecorators,
+          bindables
         };
       }
       case 'customAttribute':
@@ -583,6 +557,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         break;
     }
     const result: IFoundResource = {
+      type,
       needDefinition: resourceDefinitionStatement ? [node.end, resourceDefinitionStatement] : void 0,
       localDep: className,
     };
@@ -593,10 +568,144 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
 
     return result;
   }
+}
 
-  function getFirstArgumentOrDefault(d: Decorator, defaultValue: string) {
-    if(!isCallExpression(d.expression) || d.expression.arguments.length === 0) return defaultValue;
-    const argument = d.expression.arguments[0];
-    return code.slice(ensureTokenStart(argument.pos, code), argument.end);
+function collectClassDecorators(node: ClassDeclaration, code: string): DecoratorInformation {
+
+  // gather decorator information
+  let resourceType: IResourceDecorator | undefined;
+  // later these decorators will be replaced with the modified content
+  const ceDecorators: ReplaceableDecorator[] = [];
+
+  if (!canHaveDecorators(node)) return { resourceType, ceDecorators };
+  const decorators = getDecorators(node) ?? [];
+  for (const d of decorators) {
+    let name: string | undefined;
+    let resourceExpression: CallExpression | undefined;
+    if (isCallExpression(d.expression)) {
+      const exp = d.expression.expression;
+      if (isIdentifier(exp)) {
+        name = exp.text;
+        resourceExpression = d.expression;
+      }
+    } else if (isIdentifier(d.expression)) {
+      name = d.expression.text;
+    }
+    if (name == null) continue;
+
+    if (KNOWN_RESOURCE_DECORATORS.includes(name)) {
+      if (resourceExpression == null) continue;
+      resourceType = {
+        type: name as ResourceType,
+        expression: resourceExpression
+      };
+      continue;
+    }
+
+    let modifiedContent: string | undefined;
+    switch (name) {
+      case 'containerless':
+        modifiedContent = 'containerless: true';
+        break;
+
+      case 'useShadowDOM':
+        modifiedContent = `shadowOptions: ${getFirstArgumentOrDefault(d, '{ mode: \'open\' }')}`;
+        break;
+
+      case 'capture':
+        modifiedContent = `capture: ${getFirstArgumentOrDefault(d, 'true')}`;
+        break;
+
+      case 'alias': {
+        if (!isCallExpression(d.expression)) continue;
+
+        const args = d.expression.arguments;
+        const numArgs = args.length;
+        if (numArgs === 0) continue;
+
+        let ceDefinitionOptions: string | undefined;
+        if (numArgs === 1) {
+          // this can be a string literal, identifier, or a spread element
+          const firstArg = args[0];
+          if (isStringLiteral(firstArg) || isIdentifier(firstArg)) ceDefinitionOptions = `[${getText(firstArg, code)}]`;
+          else if (isSpreadElement(firstArg) && isArrayLiteralExpression(firstArg.expression)) ceDefinitionOptions = `${getText(firstArg, code, 3)}`;
+          else continue;
+        } else {
+          let unexpectedArgument = false;
+          const aliases: string[] = [];
+          for (let i = 0; i < numArgs; i++) {
+            const arg = args[i];
+            if (!isStringLiteral(arg) && !isIdentifier(arg)) {
+              unexpectedArgument = true;
+              break;
+            }
+            aliases.push(getText(arg, code));
+          }
+          if (unexpectedArgument || aliases.length === 0) continue;
+          ceDefinitionOptions = `[${aliases.join(', ')}]`;
+        }
+
+        modifiedContent = `aliases: ${ceDefinitionOptions}`;
+        break;
+      }
+    }
+    if (modifiedContent != null) {
+      ceDecorators.push({ position: getPosition(d, code), modifiedContent });
+    }
   }
+
+  return { resourceType, ceDecorators };
+
+  function getFirstArgumentOrDefault(decorator: Decorator, defaultValue: string) {
+    if (!isCallExpression(decorator.expression) || decorator.expression.arguments.length === 0) return defaultValue;
+    const argument = decorator.expression.arguments[0];
+    return getText(argument, code);
+  }
+}
+
+function collectBindables(node: ClassDeclaration, code: string): BindableDecorator[] {
+  const bindables: BindableDecorator[] = [];
+  // TODO: class level decos
+
+  for (const member of node.members) {
+    if (!isPropertyDeclaration(member) || !canHaveDecorators(member)) continue;
+    const decorators = getDecorators(member);
+    if (decorators == null || decorators.length === 0) continue;
+    for (const decorator of decorators) {
+      const de = decorator.expression;
+
+      if (isIdentifier(de)) {
+        const decoratorName = getText(de, code);
+        if (decoratorName !== 'bindable') continue;
+        // case 1: @bindable x
+        bindables.push({
+          isClassDecorator: false,
+          position: getPosition(decorator, code),
+          modifiedContent: `'${getText(member.name, code)}'`
+        });
+      } else if (isCallExpression(de)) {
+        const decoratorName = getText(de.expression, code);
+        if (decoratorName !== 'bindable') continue;
+
+        const args = de.arguments;
+        // case 2: @bindable() x
+        if (args.length === 0) {
+          bindables.push({
+            isClassDecorator: false,
+            position: getPosition(decorator, code),
+            modifiedContent: `'${getText(member.name, code)}'`
+          });
+        }
+      }
+    }
+  }
+  return bindables;
+}
+
+function getText(node: Node, code: string, offset = 0) {
+  return code.slice(ensureTokenStart(node.pos + offset, code), node.end);
+}
+
+function getPosition(node: Node, code: string): IPos {
+  return { pos: ensureTokenStart(node.pos, code), end: node.end };
 }

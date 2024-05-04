@@ -772,7 +772,7 @@ ${deco2}
 @customElement('foo-bar')
 export class FooBar {}
 `;
-      const expected = `import * as __au2ViewDef from './foo-bar.html';
+        const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { useShadowDOM, customElement, CustomElement } from '@aurelia/runtime-html';
 
 
@@ -968,6 +968,127 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
 
   }
   // #endregion
+
+  // #region alias
+  for (const [decoratorOptions, definitionOptions] of [
+    [`...['alias1']`, `['alias1']`],
+    [`'alias1'`, `['alias1']`],
+    [`...['alias1', 'alias2']`, `['alias1', 'alias2']`],
+    [`'alias1', 'alias2'`, `['alias1', 'alias2']`],
+  ]) {
+    const deco = `@alias(${decoratorOptions})`;
+
+    it(`rewrites ${deco} to CustomElement.define`, function () {
+      const code = `import { alias } from '@aurelia/runtime-html'
+${deco}
+export class FooBar {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { alias, CustomElement } from '@aurelia/runtime-html';
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, aliases: ${definitionOptions} }, FooBar);
+
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with @customElement`, function () {
+      const code = `import { alias, customElement } from '@aurelia/runtime-html'
+${deco}
+@customElement('foo-bar')
+export class FooBar {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { alias, customElement, CustomElement } from '@aurelia/runtime-html';
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', aliases: ${definitionOptions} }, FooBar);
+
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with local deps`, function () {
+      const code = `import { alias } from '@aurelia/runtime-html'
+${deco}
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { alias, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], aliases: ${definitionOptions} }, FooBar);
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with local deps - with @customElement`, function () {
+      const code = `import { alias, customElement } from '@aurelia/runtime-html'
+${deco}
+@customElement('foo-bar')
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { alias, customElement, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], aliases: ${definitionOptions} }, FooBar);
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+  }
+  // #region
 });
 
 describe('preprocessResource for complex resource', function () {

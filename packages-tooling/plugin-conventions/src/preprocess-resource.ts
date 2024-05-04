@@ -27,6 +27,7 @@ const {
   getCombinedModifierFlags,
   getDecorators,
   getModifiers,
+  isArrayLiteralExpression,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
@@ -36,6 +37,7 @@ const {
   isPropertyAccessExpression,
   isPropertyDeclaration,
   isNamedImports,
+  isSpreadElement,
   isStringLiteral,
   transform,
   visitEachChild,
@@ -471,6 +473,39 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         case 'capture':
           modifiedContent = `capture: ${getFirstArgumentOrDefault(d, 'true')}`;
           break;
+
+        case 'alias': {
+          if (!isCallExpression(d.expression)) continue;
+
+          const args = d.expression.arguments;
+          const numArgs = args.length;
+          if (numArgs === 0) continue;
+
+          let ceDefinitionOptions: string | undefined;
+          if (numArgs === 1) {
+            // this can be a string literal, identifier, or a spread element
+            const firstArg = args[0];
+            if (isStringLiteral(firstArg) || isIdentifier(firstArg)) ceDefinitionOptions = `[${code.slice(ensureTokenStart(firstArg.pos, code), firstArg.end)}]`;
+            else if (isSpreadElement(firstArg) && isArrayLiteralExpression(firstArg.expression)) ceDefinitionOptions = `${code.slice(ensureTokenStart(firstArg.pos, code) + 3, firstArg.end)}`;
+            else continue;
+          } else {
+            let unexpectedArgument = false;
+            const aliases: string[] = [];
+            for (let i = 0; i < numArgs; i++) {
+              const arg = args[i];
+              if (!isStringLiteral(arg) && !isIdentifier(arg)) {
+                unexpectedArgument = true;
+                break;
+              }
+              aliases.push(code.slice(ensureTokenStart(arg.pos, code), arg.end));
+            }
+            if (unexpectedArgument || aliases.length === 0) continue;
+            ceDefinitionOptions = `[${aliases.join(', ')}]`;
+          }
+
+          modifiedContent = `aliases: ${ceDefinitionOptions}`;
+          break;
+        }
       }
       if (modifiedContent != null) {
         ceDecorators.push({ position: { pos: ensureTokenStart(d.pos, code), end: d.end },  modifiedContent});

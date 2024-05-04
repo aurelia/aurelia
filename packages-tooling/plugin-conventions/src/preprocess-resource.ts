@@ -458,10 +458,23 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       }
 
       let auDecorator: ReplaceableDecorators | undefined;
+      const position = { pos: ensureTokenStart(d.pos, code), end: d.end };
       switch (name) {
         case 'containerless':
-          auDecorator = { position: {pos: ensureTokenStart(d.pos, code), end: d.end}, modifiedContent: 'containerless: true' };
+          auDecorator = { position, modifiedContent: 'containerless: true' };
           break;
+
+        case 'useShadowDOM': {
+          // early termination
+          if (!isCallExpression(d.expression) || d.expression.arguments.length === 0) {
+            auDecorator = { position, modifiedContent: 'shadowOptions: { mode: \'open\' }'};
+          } else {
+            const argument = d.expression.arguments[0];
+            const options = code.slice(ensureTokenStart(argument.pos, code), argument.end);
+            auDecorator = { position, modifiedContent: `shadowOptions: ${options}`};
+          }
+          break;
+        }
       }
       if (auDecorator != null) {
         ceDecorators.push(auDecorator);

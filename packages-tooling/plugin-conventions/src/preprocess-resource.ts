@@ -16,37 +16,37 @@ import { resourceName } from './resource-name';
 import pkg from 'typescript';
 import { modifyCode } from './modify-code';
 const {
-  createSourceFile,
+  ModifierFlags,
   ScriptTarget,
-  isImportDeclaration,
-  isStringLiteral,
-  isNamedImports,
-  isClassDeclaration,
-  canHaveModifiers,
-  getModifiers,
   SyntaxKind,
   canHaveDecorators,
+  canHaveModifiers,
+  createPrinter,
+  createSourceFile,
+  getCombinedModifierFlags,
   getDecorators,
+  getModifiers,
   isCallExpression,
+  isClassDeclaration,
+  isExpressionStatement,
   isIdentifier,
+  isImportDeclaration,
+  isObjectLiteralExpression,
+  isPropertyAccessExpression,
+  isPropertyDeclaration,
+  isNamedImports,
+  isStringLiteral,
+  transform,
   visitEachChild,
   visitNode,
-  isExpressionStatement,
-  isObjectLiteralExpression,
-  transform,
-  createPrinter,
-  isPropertyDeclaration,
-  getCombinedModifierFlags,
-  ModifierFlags,
-  isPropertyAccessExpression,
   factory: {
-    createSpreadAssignment,
     createIdentifier,
     createObjectLiteralExpression,
-    updateCallExpression,
-    updateExpressionStatement,
     createPropertyAssignment,
+    createSpreadAssignment,
+    updateCallExpression,
     updateClassDeclaration,
+    updateExpressionStatement,
     updatePropertyDeclaration,
   }
 } = pkg;
@@ -67,6 +67,11 @@ interface CustomElementDecorator {
   namePosition: IPos;
 }
 
+type ReplaceableDecorators = {
+  position: IPos;
+  modifiedContent: string;
+};
+
 interface DefineElementInformation {
   position: IPos;
   modifiedContent: string;
@@ -80,9 +85,10 @@ interface IFoundResource {
   runtimeImportName?: string;
   customElementDecorator?: CustomElementDecorator;
   defineElementInformation?: DefineElementInformation;
+  ceDecorators?: ReplaceableDecorators[];
 }
 
-interface IFoundDecorator {
+interface IResourceDecorator {
   type: ResourceType;
   expression: CallExpression;
 }
@@ -95,6 +101,7 @@ interface IModifyResourceOptions {
   customElementDecorator?: CustomElementDecorator;
   transformHtmlImportSpecifier?: (path: string) => string;
   defineElementInformation?: DefineElementInformation;
+  ceDecorators?: ReplaceableDecorators[];
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
@@ -107,6 +114,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let implicitElement: IPos | undefined;
   let customElementDecorator: CustomElementDecorator | undefined; // for @customName('custom-name')
   let defineElementInformation: DefineElementInformation | undefined;
+  let ceDecorators: ReplaceableDecorators[] | undefined;
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for composing the main implicit custom element.
@@ -144,6 +152,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       runtimeImportName,
       customElementDecorator: customName,
       defineElementInformation: $defineElementInformation,
+      ceDecorators: $ceDecorators
     } = resource;
 
     if (localDep) localDeps.push(localDep);
@@ -157,6 +166,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     }
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
+    if ($ceDecorators) ceDecorators = $ceDecorators;
   });
 
   let m = modifyCode(unit.contents, unit.path);
@@ -179,6 +189,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       customElementDecorator,
       transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
       defineElementInformation,
+      ceDecorators
     });
   }
 
@@ -200,6 +211,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     transformHtmlImportSpecifier = s => s,
     exportedClassName,
     defineElementInformation,
+    ceDecorators
   } = options;
 
   if (implicitElement && unit.filePair) {
@@ -216,30 +228,45 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
         const modified = createPrinter().printFile(result.transformed[0]);
         m.replace(implicitElement.pos, implicitElement.end, modified);
       } else if (localDeps.length) {
+        let pos = implicitElement.pos;
+        let decoratorStatements = '';
+        if (ceDecorators) {
+          for (const d of ceDecorators) {
+            m.replace(d.position.pos, d.position.end, '');
+            decoratorStatements += `, ${d.modifiedContent}`;
+            pos = d.position.end;
+          }
+        }
         // When in-file deps are used, move the body of custom element to end of the file,
         // in order to avoid TS2449: Class '...' used before its declaration.
-
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name', dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
-          m.replace(implicitElement.pos, implicitElement.end, '');
+          m.replace(pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
-          const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
-          m.replace(implicitElement.pos, implicitElement.end, '');
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);
+          const elementStatement = unit.contents.slice(pos, implicitElement.end);
+          m.replace(pos, implicitElement.end, '');
+          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements} }, ${exportedClassName});\n`);
         }
       } else {
+        let decoratorStatements = '';
+        if (ceDecorators) {
+          for (const d of ceDecorators) {
+            m.replace(d.position.pos, d.position.end, '');
+            decoratorStatements += `, ${d.modifiedContent}`;
+          }
+        }
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name} }, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name}${decoratorStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
-          m.insert(implicitElement.end, `\nCustomElement.define(${viewDef}, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `\nCustomElement.define(${(decoratorStatements ? `{ ...${viewDef}${decoratorStatements} }` : viewDef)}, ${exportedClassName});\n`);
         }
       }
     }
@@ -291,26 +318,7 @@ function isExported(node: Node): boolean {
   return false;
 }
 
-const KNOWN_DECORATORS = ['view', 'customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
-
-function findDecoratedResourceType(node: Node): IFoundDecorator | void {
-  if (!canHaveDecorators(node)) return;
-  const decorators = getDecorators(node);
-  if (decorators === void 0) return;
-  for (const d of decorators) {
-    if (!isCallExpression(d.expression)) return;
-    const exp = d.expression.expression;
-    if (isIdentifier(exp)) {
-      const name = exp.text;
-      if (KNOWN_DECORATORS.includes(name)) {
-        return {
-          type: name as ResourceType,
-          expression: d.expression
-        };
-      }
-    }
-  }
-}
+const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
 
 function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
@@ -419,13 +427,53 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
   const className = node.name.text;
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
-  const foundType = findDecoratedResourceType(node);
 
-  if (foundType) {
+  // gather decorator information
+  let resourceType: IResourceDecorator | undefined;
+  // later these decorators will be replaced with the modified content
+  const ceDecorators: ReplaceableDecorators[] = [];
+  if (canHaveDecorators(node)) {
+    const decorators = getDecorators(node) ?? [];
+    for (const d of decorators) {
+      let name: string | undefined;
+      let resourceExpression: CallExpression | undefined;
+      if (isCallExpression(d.expression)) {
+        const exp = d.expression.expression;
+        if (isIdentifier(exp)) {
+          name = exp.text;
+          resourceExpression = d.expression;
+        }
+      } else if (isIdentifier(d.expression)) {
+        name = d.expression.text;
+      }
+      if (name == null) continue;
+
+      if (KNOWN_RESOURCE_DECORATORS.includes(name)) {
+        if (resourceExpression == null) continue;
+        resourceType = {
+          type: name as ResourceType,
+          expression: resourceExpression
+        };
+        continue;
+      }
+
+      let auDecorator: ReplaceableDecorators | undefined;
+      switch (name) {
+        case 'containerless':
+          auDecorator = { position: {pos: ensureTokenStart(d.pos, code), end: d.end}, modifiedContent: 'containerless: true' };
+          break;
+      }
+      if (auDecorator != null) {
+        ceDecorators.push(auDecorator);
+      }
+    }
+  }
+
+  if (resourceType) {
     // Explicitly decorated resource
     if (
       !isImplicitResource &&
-      foundType.type !== 'customElement'
+      resourceType.type !== 'customElement'
     ) {
       return {
         localDep: className
@@ -434,12 +482,12 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
 
     if (
       isImplicitResource &&
-      foundType.type === 'customElement' &&
-      foundType.expression.arguments.length === 1 &&
-      isStringLiteral(foundType.expression.arguments[0])
+      resourceType.type === 'customElement' &&
+      resourceType.expression.arguments.length === 1 &&
+      isStringLiteral(resourceType.expression.arguments[0])
     ) {
       // @customElement('custom-name')
-      const decorator = foundType.expression;
+      const decorator = resourceType.expression;
       const customName = decorator.arguments[0];
       return {
         className,
@@ -448,58 +496,57 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
           position: { pos: ensureTokenStart(decorator.pos, code), end: decorator.end },
           namePosition: { pos: ensureTokenStart(customName.pos, code), end: customName.end }
         },
-        runtimeImportName: filePair ? 'CustomElement' : undefined
+        runtimeImportName: filePair ? 'CustomElement' : undefined,
+        ceDecorators
       };
     }
   } else {
-    if (type === 'customElement') {
-      // Custom element can only be implicit resource
-      if (isImplicitResource && filePair) {
+    let resourceDefinitionStatement: string | undefined;
+    let runtimeImportName: string | undefined;
+    switch (type) {
+      case 'customElement': {
+        if (!isImplicitResource || !filePair) return;
         return {
           className,
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: 'CustomElement'
+          runtimeImportName: 'CustomElement',
+          ceDecorators
         };
       }
-    } else {
-      let resourceDefinitionStatement: string | undefined;
-      let runtimeImportName: string | undefined;
-      switch (type) {
-        case 'customAttribute':
-          resourceDefinitionStatement = `\nCustomAttribute.define('${name}', ${className});\n`;
-          runtimeImportName = 'CustomAttribute';
-          break;
+      case 'customAttribute':
+        resourceDefinitionStatement = `\nCustomAttribute.define('${name}', ${className});\n`;
+        runtimeImportName = 'CustomAttribute';
+        break;
 
-        case 'templateController':
-          resourceDefinitionStatement = `\nCustomAttribute.define({ name: '${name}', isTemplateController: true }, ${className});\n`;
-          runtimeImportName = 'CustomAttribute';
-          break;
+      case 'templateController':
+        resourceDefinitionStatement = `\nCustomAttribute.define({ name: '${name}', isTemplateController: true }, ${className});\n`;
+        runtimeImportName = 'CustomAttribute';
+        break;
 
-        case 'valueConverter':
-          resourceDefinitionStatement = `\nValueConverter.define('${name}', ${className});\n`;
-          runtimeImportName = 'ValueConverter';
-          break;
+      case 'valueConverter':
+        resourceDefinitionStatement = `\nValueConverter.define('${name}', ${className});\n`;
+        runtimeImportName = 'ValueConverter';
+        break;
 
-        case 'bindingBehavior':
-          resourceDefinitionStatement = `\nBindingBehavior.define('${name}', ${className});\n`;
-          runtimeImportName = 'BindingBehavior';
-          break;
+      case 'bindingBehavior':
+        resourceDefinitionStatement = `\nBindingBehavior.define('${name}', ${className});\n`;
+        runtimeImportName = 'BindingBehavior';
+        break;
 
-        case 'bindingCommand':
-          resourceDefinitionStatement = `\nBindingCommand.define('${name}', ${className});\n`;
-          runtimeImportName = 'BindingCommand';
-          break;
-      }
-      const result: IFoundResource = {
-        needDefinition: resourceDefinitionStatement ? [node.end, resourceDefinitionStatement] : void 0,
-        localDep: className,
-      };
-
-      if (runtimeImportName) {
-        result.runtimeImportName = runtimeImportName;
-      }
-
-      return result;
+      case 'bindingCommand':
+        resourceDefinitionStatement = `\nBindingCommand.define('${name}', ${className});\n`;
+        runtimeImportName = 'BindingCommand';
+        break;
     }
+    const result: IFoundResource = {
+      needDefinition: resourceDefinitionStatement ? [node.end, resourceDefinitionStatement] : void 0,
+      localDep: className,
+    };
+
+    if (runtimeImportName) {
+      result.runtimeImportName = runtimeImportName;
+    }
+
+    return result;
   }
 }

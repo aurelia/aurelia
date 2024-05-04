@@ -392,7 +392,6 @@ const defaultForOpts: ForOpts = {
   searchParents: false,
   optional: false,
 };
-const returnZero = () => 0;
 const returnNull = <T>(): T | null => null;
 const returnFalse = () => false;
 const returnTrue = () => true;

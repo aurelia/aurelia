@@ -7,6 +7,7 @@ import {
   type ExpressionStatement,
   type ClassDeclaration,
   type Identifier,
+  type Decorator,
 } from 'typescript';
 import { type ModifyCodeResult } from 'modify-code';
 import { nameConvention } from './name-convention';
@@ -457,27 +458,22 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         continue;
       }
 
-      let auDecorator: ReplaceableDecorators | undefined;
-      const position = { pos: ensureTokenStart(d.pos, code), end: d.end };
+      let modifiedContent: string | undefined;
       switch (name) {
         case 'containerless':
-          auDecorator = { position, modifiedContent: 'containerless: true' };
+          modifiedContent = 'containerless: true';
           break;
 
-        case 'useShadowDOM': {
-          // early termination
-          if (!isCallExpression(d.expression) || d.expression.arguments.length === 0) {
-            auDecorator = { position, modifiedContent: 'shadowOptions: { mode: \'open\' }'};
-          } else {
-            const argument = d.expression.arguments[0];
-            const options = code.slice(ensureTokenStart(argument.pos, code), argument.end);
-            auDecorator = { position, modifiedContent: `shadowOptions: ${options}`};
-          }
+        case 'useShadowDOM':
+          modifiedContent = `shadowOptions: ${getFirstArgumentOrDefault(d, '{ mode: \'open\' }')}`;
           break;
-        }
+
+        case 'capture':
+          modifiedContent = `capture: ${getFirstArgumentOrDefault(d, 'true')}`;
+          break;
       }
-      if (auDecorator != null) {
-        ceDecorators.push(auDecorator);
+      if (modifiedContent != null) {
+        ceDecorators.push({ position: { pos: ensureTokenStart(d.pos, code), end: d.end },  modifiedContent});
       }
     }
   }
@@ -561,5 +557,11 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     }
 
     return result;
+  }
+
+  function getFirstArgumentOrDefault(d: Decorator, defaultValue: string) {
+    if(!isCallExpression(d.expression) || d.expression.arguments.length === 0) return defaultValue;
+    const argument = d.expression.arguments[0];
+    return code.slice(ensureTokenStart(argument.pos, code), argument.end);
   }
 }

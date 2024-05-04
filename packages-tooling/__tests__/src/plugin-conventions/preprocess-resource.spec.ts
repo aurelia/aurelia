@@ -855,6 +855,119 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
   }
   // #endregion
 
+  // #region capture
+  for (const [deco, options] of [['@capture()', 'true'], ['@capture(() => true)', '() => true'], ['@capture(filter)', 'filter']]) {
+    it(`rewrites ${deco} to CustomElement.define`, function () {
+      const code = `import { capture } from '@aurelia/runtime-html'
+${deco}
+export class FooBar {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { capture, CustomElement } from '@aurelia/runtime-html';
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, capture: ${options} }, FooBar);
+
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with @customElement`, function () {
+      const code = `import { capture, customElement } from '@aurelia/runtime-html'
+${deco}
+@customElement('foo-bar')
+export class FooBar {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { capture, customElement, CustomElement } from '@aurelia/runtime-html';
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', capture: ${options} }, FooBar);
+
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with local deps`, function () {
+      const code = `import { capture } from '@aurelia/runtime-html'
+${deco}
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { capture, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], capture: ${options} }, FooBar);
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+    it(`rewrites ${deco} to CustomElement.define - with local deps - with @customElement`, function () {
+      const code = `import { capture, customElement } from '@aurelia/runtime-html'
+${deco}
+@customElement('foo-bar')
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+      const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { capture, customElement, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], capture: ${options} }, FooBar);
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('bar', 'foo-bar.js'),
+          contents: code,
+          filePair: 'foo-bar.html'
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+
+  }
+  // #endregion
 });
 
 describe('preprocessResource for complex resource', function () {

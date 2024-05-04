@@ -695,6 +695,15 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
             position: getPosition(decorator, code),
             modifiedContent: `'${getText(member.name, code)}'`
           });
+        } else if (args.length === 1) {
+          // case 3: @bindable({...}) x
+          const definition = getText(args[0], code);
+          const name = getText(member.name, code);
+          bindables.push({
+            isClassDecorator: false,
+            position: getPosition(decorator, code),
+            modifiedContent: `{ name: '${name}', ...${definition} }`
+          });
         }
       }
     }

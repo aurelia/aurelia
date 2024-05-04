@@ -1096,6 +1096,8 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
 export class FooBar {
   @bindable x;
   @bindable() y;
+  @bindable({ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } }) z;
+  @bindable(opts) a;
 }
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
@@ -1103,8 +1105,10 @@ import { bindable, CustomElement } from '@aurelia/runtime-html';
 export class FooBar {
    x;
    y;
+   z;
+   a;
 }
-CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 'x', 'y' ] }, FooBar);
+CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBar);
 
 `;
     const result = preprocessResource(

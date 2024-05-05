@@ -71,6 +71,7 @@ interface CustomElementDecorator {
 }
 
 type ReplaceableDecorator = {
+  isDefinitionPart: boolean;
   position: IPos;
   modifiedContent: string;
 };
@@ -121,7 +122,7 @@ interface IModifyResourceOptions {
 
 interface DecoratorInformation {
   resourceType: IResourceDecorator | undefined;
-  ceDecorators: ReplaceableDecorator[];
+  decorators: ReplaceableDecorator[];
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
@@ -301,6 +302,13 @@ Either move the dependencies to another source file, or consider using @bindable
         }
       }
     }
+
+    for (const d of (ceDecorators ?? [])) {
+      if (d.isDefinitionPart) continue;
+      const end = d.position.end;
+      m.insert(implicitElement.end, d.modifiedContent);
+      m.replace(d.position.pos, end, '');
+    }
   }
 
   if (modifications.length) {
@@ -325,6 +333,7 @@ function createDecoratorStatement(decorators: ReplaceableDecorator[] | undefined
   let statement = '';
   if (decorators == null) return { statement, effectivePos: classPos };
   for (const d of decorators) {
+    if (!d.isDefinitionPart) continue;
     const end = d.position.end;
     m.replace(d.position.pos, end, '');
     statement += `, ${d.modifiedContent}`;
@@ -495,7 +504,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
-  const { resourceType, ceDecorators } = collectClassDecorators(node, code);
+  const { resourceType, decorators } = collectClassDecorators(node, code);
 
   const bindables: BindableDecorator[] = collectBindables(node, code);
 
@@ -528,22 +537,31 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
           namePosition: getPosition(customName, code)
         },
         runtimeImportName: filePair ? 'CustomElement' : undefined,
-        ceDecorators,
+        ceDecorators: decorators,
         bindables
       };
     }
   } else {
-    let resourceDefinitionStatement: string | undefined;
+    let resourceDefinitionStatement: string | undefined = '';
     let runtimeImportName: string | undefined;
     switch (type) {
       case 'customElement': {
-        if (!isImplicitResource || !filePair) return;
+        if (!isImplicitResource || !filePair) {
+          const { content, remove } = rewriteNonDefinitionDecorators();
+          if (!content && !remove.length) return;
+          return {
+            modification: {
+              remove,
+              insert: content ? [[node.end, content]] : void 0
+            }
+          };
+        }
         return {
           type: 'customElement',
           className,
           implicitStatement: { pos: pos, end: node.end },
           runtimeImportName: 'CustomElement',
-          ceDecorators,
+          ceDecorators: decorators,
           bindables
         };
       }
@@ -572,11 +590,16 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         runtimeImportName = 'BindingCommand';
         break;
     }
+    const remove = bindables.map(b => b.position);
+    const { content: additionalContent, remove: $remove  } = rewriteNonDefinitionDecorators();
+    remove.push(...$remove);
+
+    const insertContent = `${resourceDefinitionStatement}${additionalContent}`;
     const result: IFoundResource = {
       type,
       modification: {
-        remove: bindables.map(b => b.position),
-        insert: resourceDefinitionStatement ? [[node.end, resourceDefinitionStatement]] : void 0
+        remove,
+        insert: insertContent ? [[node.end, insertContent]] : void 0
       },
       localDep: className,
     };
@@ -596,6 +619,16 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       case 'tc': return `\nCustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
     }
   }
+  function rewriteNonDefinitionDecorators() {
+    const remove: IPos[] = [];
+    let content = '';
+    for (const d of decorators) {
+      if (d.isDefinitionPart) continue;
+      remove.push(d.position);
+      content += `\n${d.modifiedContent}`;
+    }
+    return { remove, content };
+  }
 }
 
 function collectClassDecorators(node: ClassDeclaration, code: string): DecoratorInformation {
@@ -605,7 +638,7 @@ function collectClassDecorators(node: ClassDeclaration, code: string): Decorator
   // later these decorators will be replaced with the modified content
   const ceDecorators: ReplaceableDecorator[] = [];
 
-  if (!canHaveDecorators(node)) return { resourceType, ceDecorators };
+  if (!canHaveDecorators(node)) return { resourceType, decorators: ceDecorators };
   const decorators = getDecorators(node) ?? [];
   for (const d of decorators) {
     let name: string | undefined;
@@ -630,6 +663,7 @@ function collectClassDecorators(node: ClassDeclaration, code: string): Decorator
       continue;
     }
 
+    let isDefinitionPart = true;
     let modifiedContent: string | undefined;
     switch (name) {
       case 'containerless':
@@ -676,13 +710,21 @@ function collectClassDecorators(node: ClassDeclaration, code: string): Decorator
         modifiedContent = `aliases: ${ceDefinitionOptions}`;
         break;
       }
+
+      case 'inject': {
+        if (!isCallExpression(d.expression)) continue;
+
+        isDefinitionPart = false;
+        modifiedContent = `Reflect.defineProperty(${getText(node.name!, code)}, 'inject', { value: [${d.expression.arguments.map(a => getText(a, code)).join(', ')}], writable: true, configurable: true, enumerable: true });`;
+        break;
+      }
     }
     if (modifiedContent != null) {
-      ceDecorators.push({ position: getPosition(d, code), modifiedContent });
+      ceDecorators.push({ isDefinitionPart, position: getPosition(d, code), modifiedContent });
     }
   }
 
-  return { resourceType, ceDecorators };
+  return { resourceType, decorators: ceDecorators };
 
   function getFirstArgumentOrDefault(decorator: Decorator, defaultValue: string) {
     if (!isCallExpression(decorator.expression) || decorator.expression.arguments.length === 0) return defaultValue;
@@ -707,6 +749,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
       if (args.length !== 1) continue;
 
       bindables.push({
+        isDefinitionPart: true,
         isClassDecorator: true,
         position: getPosition(decorator, code),
         modifiedContent: getText(args[0], code)
@@ -727,6 +770,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
         if (decoratorName !== 'bindable') continue;
         // case 1: @bindable x
         bindables.push({
+          isDefinitionPart: true,
           isClassDecorator: false,
           position: getPosition(decorator, code),
           modifiedContent: `'${getText(member.name, code)}'`
@@ -739,6 +783,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
         // case 2: @bindable() x
         if (args.length === 0) {
           bindables.push({
+            isDefinitionPart: true,
             isClassDecorator: false,
             position: getPosition(decorator, code),
             modifiedContent: `'${getText(member.name, code)}'`
@@ -748,6 +793,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
           const definition = getText(args[0], code);
           const name = getText(member.name, code);
           bindables.push({
+            isDefinitionPart: true,
             isClassDecorator: false,
             position: getPosition(decorator, code),
             modifiedContent: `{ name: '${name}', ...${definition} }`

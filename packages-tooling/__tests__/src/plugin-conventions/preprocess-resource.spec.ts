@@ -1352,6 +1352,169 @@ CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables:
     assert.equal(result.code, expected);
   });
   // #endregion
+
+  // #region inject
+  it(`rewrites @inject - custom element`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooBar {}
+`;
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import * as __au2ViewDef from './foo-bar.html';
+import { inject } from '@aurelia/kernel';
+
+export class FooBar {}
+CustomElement.define(__au2ViewDef, FooBar);
+Reflect.defineProperty(FooBar, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - custom attribute`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooCustomAttribute {}
+`;
+    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+import { inject } from '@aurelia/kernel';
+
+export class FooCustomAttribute {}
+CustomAttribute.define('foo', FooCustomAttribute);
+
+Reflect.defineProperty(FooCustomAttribute, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - template controller`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooTemplateController {}
+`;
+    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+import { inject } from '@aurelia/kernel';
+
+export class FooTemplateController {}
+CustomAttribute.define({ name: 'foo', isTemplateController: true }, FooTemplateController);
+
+Reflect.defineProperty(FooTemplateController, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - value converter`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooValueConverter {}
+`;
+    const expected = `import { ValueConverter } from '@aurelia/runtime-html';
+import { inject } from '@aurelia/kernel';
+
+export class FooValueConverter {}
+ValueConverter.define('foo', FooValueConverter);
+
+Reflect.defineProperty(FooValueConverter, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - binding behavior`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooBindingBehavior {}
+`;
+    const expected = `import { BindingBehavior } from '@aurelia/runtime-html';
+import { inject } from '@aurelia/kernel';
+
+export class FooBindingBehavior {}
+BindingBehavior.define('foo', FooBindingBehavior);
+
+Reflect.defineProperty(FooBindingBehavior, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - binding command`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class FooBindingCommand {}
+`;
+    const expected = `import { BindingCommand } from '@aurelia/runtime-html';
+import { inject } from '@aurelia/kernel';
+
+export class FooBindingCommand {}
+BindingCommand.define('foo', FooBindingCommand);
+
+Reflect.defineProperty(FooBindingCommand, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites @inject - general class`, function () {
+    const code = `import { inject } from '@aurelia/kernel';
+@inject(A, B)
+export class Foo {}
+`;
+    const expected = `import { inject } from '@aurelia/kernel';
+
+export class Foo {}
+Reflect.defineProperty(Foo, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+  // #endregion
 });
 
 describe('preprocessResource for complex resource', function () {

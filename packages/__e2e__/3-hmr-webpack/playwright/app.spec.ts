@@ -13,6 +13,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
     test('import aliasing with [as] works', async function ({ page }) {
       await expect(page.locator('text=42')).toBeVisible();
+      await expect(page.locator('text=a - b')).toBeVisible(); // injects works correctly
     });
   });
 

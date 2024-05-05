@@ -1499,11 +1499,18 @@ Reflect.defineProperty(FooBindingCommand, 'inject', { value: [A, B], writable: t
     const code = `import { inject } from '@aurelia/kernel';
 @inject(A, B)
 export class Foo {}
+
+@inject(C, D)
+export class Bar {}
 `;
     const expected = `import { inject } from '@aurelia/kernel';
 
 export class Foo {}
 Reflect.defineProperty(Foo, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
+
+
+export class Bar {}
+Reflect.defineProperty(Bar, 'inject', { value: [C, D], writable: true, configurable: true, enumerable: true });
 `;
     const result = preprocessResource(
       {

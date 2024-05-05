@@ -1283,6 +1283,74 @@ export class BarCustomAttribute {}
       preprocessOptions({ hmr: false })
     ), /@bindable decorators on fields.+not supported.+local dependencies.*BarCustomAttribute/);
   });
+
+  it(`rewrites bindables - custom attribute`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+export class FooBarCustomAttribute {
+  @bindable x;
+  @bindable() y;
+  @bindable({ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } }) z;
+  @bindable(opts) a;
+}
+`;
+    const expected = `import { bindable, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class FooBarCustomAttribute {
+   x;
+   y;
+   z;
+   a;
+}
+CustomAttribute.define({ name: 'foo-bar', bindables: [ 'b', 'c', 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBarCustomAttribute);
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites bindables - template controller`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+export class FooBarTemplateController {
+  @bindable x;
+  @bindable() y;
+  @bindable({ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } }) z;
+  @bindable(opts) a;
+}
+`;
+    const expected = `import { bindable, CustomAttribute } from '@aurelia/runtime-html';
+
+
+export class FooBarTemplateController {
+   x;
+   y;
+   z;
+   a;
+}
+CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: [ 'b', 'c', 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBarTemplateController);
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
   // #endregion
 });
 

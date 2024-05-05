@@ -84,11 +84,16 @@ interface DefineElementInformation {
   modifiedContent: string;
 }
 
+type Modification = {
+  remove?: IPos[];
+  insert?: [number, string][];
+};
+
 interface IFoundResource {
   type?: ResourceType;
   className?: string;
   localDep?: string;
-  needDefinition?: [number, string];
+  modification?: Modification;
   implicitStatement?: IPos;
   runtimeImportName?: string;
   customElementDecorator?: CustomElementDecorator;
@@ -106,7 +111,7 @@ interface IModifyResourceOptions {
   exportedClassName?: string;
   implicitElement?: IPos;
   localDeps: string[];
-  definitions: [number, string][];
+  modifications: Modification[];
   customElementDecorator?: CustomElementDecorator;
   transformHtmlImportSpecifier?: (path: string) => string;
   defineElementInformation?: DefineElementInformation;
@@ -131,12 +136,11 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   let defineElementInformation: DefineElementInformation | undefined;
   let ceDecorators: ReplaceableDecorator[] | undefined;
   let ceBindables: BindableDecorator[] | undefined;
-  const bindables: BindableDecorator[] = [];
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for composing the main implicit custom element.
   const localDeps: string[] = [];
-  const definitions: [number, string][] = [];
+  const modifications: Modification[] = [];
 
   sf.statements.forEach(s => {
     // Find existing import Aurelia, {customElement, templateController} from 'aurelia';
@@ -164,7 +168,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     const {
       className,
       localDep,
-      needDefinition,
+      modification,
       implicitStatement,
       runtimeImportName,
       customElementDecorator: customName,
@@ -174,7 +178,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     } = resource;
 
     if (localDep) localDeps.push(localDep);
-    if (needDefinition) definitions.push(needDefinition);
+    if (modification) modifications.push(modification);
     if (implicitStatement) implicitElement = implicitStatement;
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
@@ -185,10 +189,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
     if ($ceDecorators) ceDecorators = $ceDecorators;
-    if ($bindables?.length) {
-      if (resource.type === 'customElement') ceBindables = $bindables;
-      else bindables.push(...$bindables);
-    }
+    if ($bindables?.length && resource.type === 'customElement') ceBindables = $bindables;
   });
 
   let m = modifyCode(unit.contents, unit.path);
@@ -207,7 +208,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       exportedClassName,
       implicitElement,
       localDeps,
-      definitions: definitions,
+      modifications,
       customElementDecorator,
       transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
       defineElementInformation,
@@ -229,7 +230,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   const {
     implicitElement,
     localDeps,
-    definitions,
+    modifications,
     customElementDecorator,
     transformHtmlImportSpecifier = s => s,
     exportedClassName,
@@ -254,12 +255,12 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
       } else if (localDeps.length) {
         // this is needed to avoid conflicting code modification
         if (ceBindables?.find((ceb) => !ceb.isClassDecorator) != null) throw new Error(
-`@bindable decorators on fields are not supported by the convention plugin, when there are local dependencies (${localDeps.join(',')}) found.
+          `@bindable decorators on fields are not supported by the convention plugin, when there are local dependencies (${localDeps.join(',')}) found.
 Either move the dependencies to another source file, or consider using @bindable(string) decorator on class level.`);
         // eslint-disable-next-line prefer-const
         let { statement: decoratorStatements, effectivePos: pos } = createDecoratorStatement(ceDecorators, implicitElement.pos, m);
         let bindableStatements = '';
-        ({statement: bindableStatements, effectivePos: pos } = createBindableStatement(ceBindables, pos, m, viewDef));
+        ({ statement: bindableStatements, effectivePos: pos } = createBindableStatement(ceBindables, pos, m, viewDef));
 
         // When in-file deps are used, move the body of custom element to end of the file,
         // in order to avoid TS2449: Class '...' used before its declaration.
@@ -302,8 +303,19 @@ Either move the dependencies to another source file, or consider using @bindable
     }
   }
 
-  if (definitions.length) {
-    definitions.forEach(([pos, str]) => m.insert(pos, str));
+  if (modifications.length) {
+    for (const modification of modifications) {
+      if (modification.remove) {
+        for (const pos of modification.remove) {
+          m.delete(pos.pos, pos.end);
+        }
+      }
+      if (modification.insert) {
+        for (const [pos, str] of modification.insert) {
+          m.insert(pos, str);
+        }
+      }
+    }
   }
 
   return m;
@@ -334,7 +346,7 @@ function createBindableStatement(bindables: BindableDecorator[] | undefined, cla
   if (statements.length > 0) {
     statement = `, bindables: [ ...${viewDef}.bindables, ${statements.join(', ')} ]`;
   }
-  return {statement, effectivePos: classPos };
+  return { statement, effectivePos: classPos };
 }
 
 function captureImport(s: Statement, lib: string, code: string): ICapturedImport | void {
@@ -536,12 +548,12 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         };
       }
       case 'customAttribute':
-        resourceDefinitionStatement = `\nCustomAttribute.define('${name}', ${className});\n`;
+        resourceDefinitionStatement = createDefinitionStatement('ca');
         runtimeImportName = 'CustomAttribute';
         break;
 
       case 'templateController':
-        resourceDefinitionStatement = `\nCustomAttribute.define({ name: '${name}', isTemplateController: true }, ${className});\n`;
+        resourceDefinitionStatement = createDefinitionStatement('tc');
         runtimeImportName = 'CustomAttribute';
         break;
 
@@ -562,7 +574,10 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     }
     const result: IFoundResource = {
       type,
-      needDefinition: resourceDefinitionStatement ? [node.end, resourceDefinitionStatement] : void 0,
+      modification: {
+        remove: bindables.map(b => b.position),
+        insert: resourceDefinitionStatement ? [[node.end, resourceDefinitionStatement]] : void 0
+      },
       localDep: className,
     };
 
@@ -571,6 +586,15 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     }
 
     return result;
+  }
+
+  function createDefinitionStatement(type: 'ca' | 'tc'): string {
+    const bindableStatements = bindables.map(x => x.modifiedContent).join(', ');
+    const bindableOption = bindableStatements ? `, bindables: [ ${bindableStatements} ]` : '';
+    switch (type) {
+      case 'ca': return `\nCustomAttribute.define(${(bindableOption ? `{ name: '${name}'${bindableOption} }` : `'${name}'`)}, ${className});\n`;
+      case 'tc': return `\nCustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
+    }
   }
 }
 

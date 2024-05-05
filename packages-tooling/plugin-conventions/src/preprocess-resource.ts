@@ -252,6 +252,10 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
         const modified = createPrinter().printFile(result.transformed[0]);
         m.replace(implicitElement.pos, implicitElement.end, modified);
       } else if (localDeps.length) {
+        // this is needed to avoid conflicting code modification
+        if (ceBindables?.find((ceb) => !ceb.isClassDecorator) != null) throw new Error(
+`@bindable decorators on fields are not supported by the convention plugin, when there are local dependencies (${localDeps.join(',')}) found.
+Either move the dependencies to another source file, or consider using @bindable(string) decorator on class level.`);
         // eslint-disable-next-line prefer-const
         let { statement: decoratorStatements, effectivePos: pos } = createDecoratorStatement(ceDecorators, implicitElement.pos, m);
         let bindableStatements = '';

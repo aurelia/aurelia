@@ -1091,7 +1091,7 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
   // #endregion
 
   // #region bindables
-  it(`rewrites bindables - field decorator`, function () {
+  it(`rewrites bindables`, function () {
     const code = `import { bindable } from '@aurelia/runtime-html'
 @bindable('b')
 @bindable('c')
@@ -1124,6 +1124,164 @@ CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 
       preprocessOptions({ hmr: false })
     );
     assert.equal(result.code, expected);
+  });
+
+  it(`rewrites bindables - with @customElement after @bindable`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+@customElement('foo-bar')
+export class FooBar {
+  @bindable x;
+  @bindable() y;
+  @bindable({ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } }) z;
+  @bindable(opts) a;
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { bindable, CustomElement } from '@aurelia/runtime-html';
+
+
+
+export class FooBar {
+   x;
+   y;
+   z;
+   a;
+}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', bindables: [ ...__au2ViewDef.bindables, 'b', 'c', 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBar);
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+  it(`rewrites bindables - with @customElement before @bindable`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@customElement('foo-bar')
+@bindable('b')
+@bindable('c')
+export class FooBar {
+  @bindable x;
+  @bindable() y;
+  @bindable({ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } }) z;
+  @bindable(opts) a;
+}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { bindable, CustomElement } from '@aurelia/runtime-html';
+
+
+
+export class FooBar {
+   x;
+   y;
+   z;
+   a;
+}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', bindables: [ ...__au2ViewDef.bindables, 'b', 'c', 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBar);
+
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites bindables - with local deps`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { bindable, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], bindables: [ ...__au2ViewDef.bindables, 'b', 'c' ] }, FooBar);
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`rewrites bindables - with local deps - with @customElement`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+@customElement('foo-bar')
+export class FooBar {}
+
+export class BarCustomAttribute {}
+`;
+    const expected = `import * as __au2ViewDef from './foo-bar.html';
+import { bindable, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
+
+
+
+export class BarCustomAttribute {}
+CustomAttribute.define('bar', BarCustomAttribute);
+
+
+
+export class FooBar {}
+CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], bindables: [ ...__au2ViewDef.bindables, 'b', 'c' ] }, FooBar);
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it(`does not support field-level @bindables with local deps`, function () {
+    const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
+export class FooBar {
+  @bindable x;
+}
+
+export class BarCustomAttribute {}
+`;
+    assert.throws(() => preprocessResource(
+      {
+        path: path.join('bar', 'foo-bar.js'),
+        contents: code,
+        filePair: 'foo-bar.html'
+      },
+      preprocessOptions({ hmr: false })
+    ), /@bindable decorators on fields.+not supported.+local dependencies.*BarCustomAttribute/);
   });
   // #endregion
 });

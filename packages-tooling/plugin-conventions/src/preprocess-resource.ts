@@ -259,9 +259,9 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
           `@bindable decorators on fields are not supported by the convention plugin, when there are local dependencies (${localDeps.join(',')}) found.
 Either move the dependencies to another source file, or consider using @bindable(string) decorator on class level.`);
         // eslint-disable-next-line prefer-const
-        let { statement: decoratorStatements, effectivePos: pos } = createDecoratorStatement(ceDecorators, implicitElement.pos, m);
+        let { statement: decoratorStatements, effectivePos: pos } = processDecorators(ceDecorators, implicitElement.pos, m);
         let bindableStatements = '';
-        ({ statement: bindableStatements, effectivePos: pos } = createBindableStatement(ceBindables, pos, m, viewDef));
+        ({ statement: bindableStatements, effectivePos: pos } = processBindables(ceBindables, pos, m, viewDef));
 
         // When in-file deps are used, move the body of custom element to end of the file,
         // in order to avoid TS2449: Class '...' used before its declaration.
@@ -279,8 +279,8 @@ Either move the dependencies to another source file, or consider using @bindable
         }
       } else {
         const pos = implicitElement.pos;
-        const { statement: decoratorStatements } = createDecoratorStatement(ceDecorators, pos, m);
-        const { statement: bindableStatements } = createBindableStatement(ceBindables, pos, m, viewDef);
+        const { statement: decoratorStatements } = processDecorators(ceDecorators, pos, m);
+        const { statement: bindableStatements } = processBindables(ceBindables, pos, m, viewDef);
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
@@ -329,7 +329,7 @@ Either move the dependencies to another source file, or consider using @bindable
   return m;
 }
 
-function createDecoratorStatement(decorators: ReplaceableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>): { statement: string; effectivePos: number } {
+function processDecorators(decorators: ReplaceableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>): { statement: string; effectivePos: number } {
   let statement = '';
   if (decorators == null) return { statement, effectivePos: classPos };
   for (const d of decorators) {
@@ -342,7 +342,7 @@ function createDecoratorStatement(decorators: ReplaceableDecorator[] | undefined
   return { statement, effectivePos: classPos };
 }
 
-function createBindableStatement(bindables: BindableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>, viewDef: string): { statement: string; effectivePos: number } {
+function processBindables(bindables: BindableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>, viewDef: string): { statement: string; effectivePos: number } {
   let statement = '';
   if (!bindables) return { statement, effectivePos: classPos };
   const statements: string[] = [];
@@ -746,7 +746,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
       if (decoratorName !== 'bindable') continue;
 
       const args = de.arguments;
-      if (args.length !== 1) continue;
+      if (args.length !== 1) throw new Error(`Invalid @bindable class-level decorator found at position ${decorator.pos}. Did you forget to provide a property name?`);
 
       bindables.push({
         isDefinitionPart: true,
@@ -798,7 +798,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
             position: getPosition(decorator, code),
             modifiedContent: `{ name: '${name}', ...${definition} }`
           });
-        }
+        } else throw new Error(`Invalid @bindable field-level decorator found at position ${decorator.pos}. Expected 0 or 1 argument, got ${args.length} instead.`);
       }
     }
   }

@@ -665,8 +665,28 @@ function collectClassDecorators(node: ClassDeclaration, code: string): Decorator
 
 function collectBindables(node: ClassDeclaration, code: string): BindableDecorator[] {
   const bindables: BindableDecorator[] = [];
-  // TODO: class level decos
 
+  // class-level decorators
+  if (canHaveDecorators(node)) {
+    for (const decorator of (getDecorators(node) ?? [])) {
+      const de = decorator.expression;
+      if (!isCallExpression(de)) continue;
+
+      const decoratorName = getText(de.expression, code);
+      if (decoratorName !== 'bindable') continue;
+
+      const args = de.arguments;
+      if (args.length !== 1) continue;
+
+      bindables.push({
+        isClassDecorator: true,
+        position: getPosition(decorator, code),
+        modifiedContent: getText(args[0], code)
+      });
+    }
+  }
+
+  // field-level decorators
   for (const member of node.members) {
     if (!isPropertyDeclaration(member) || !canHaveDecorators(member)) continue;
     const decorators = getDecorators(member);

@@ -1093,6 +1093,8 @@ CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au
   // #region bindables
   it(`rewrites bindables - field decorator`, function () {
     const code = `import { bindable } from '@aurelia/runtime-html'
+@bindable('b')
+@bindable('c')
 export class FooBar {
   @bindable x;
   @bindable() y;
@@ -1102,13 +1104,15 @@ export class FooBar {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import { bindable, CustomElement } from '@aurelia/runtime-html';
+
+
 export class FooBar {
    x;
    y;
    z;
    a;
 }
-CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBar);
+CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 'b', 'c', 'x', 'y', { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, { name: 'a', ...opts } ] }, FooBar);
 
 `;
     const result = preprocessResource(
@@ -1121,7 +1125,6 @@ CustomElement.define({ ...__au2ViewDef, bindables: [ ...__au2ViewDef.bindables, 
     );
     assert.equal(result.code, expected);
   });
-  // TODO: class decorators
   // #endregion
 });
 

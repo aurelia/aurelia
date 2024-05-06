@@ -9,9 +9,9 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": false,
-    "emitDecoratorMetadata": true,
     "strict": false,
     "alwaysStrict": true,
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
 
     "jsx": "react",
     "jsxFactory": "hJsx",

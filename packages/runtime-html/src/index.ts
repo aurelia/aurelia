@@ -214,6 +214,7 @@ export {
   Repeat,
   IRepeatableHandlerResolver,
   IRepeatableHandler,
+  ArrayLikeHandler,
 } from './resources/template-controllers/repeat';
 export {
   With

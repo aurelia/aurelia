@@ -1,4 +1,4 @@
-import { type IDisposable, onResolve, IIndexable, resolve, all, emptyArray } from '@aurelia/kernel';
+import { type IDisposable, onResolve, IIndexable, resolve, all, emptyArray, IContainer } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   DestructuringAssignmentExpression,
@@ -33,7 +33,7 @@ import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } f
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';
-import { createInterface } from '../../utilities-di';
+import { createInterface, singletonRegistration } from '../../utilities-di';
 
 type Items<C extends Collection = unknown[]> = C | undefined;
 
@@ -762,6 +762,30 @@ class RepeatableHandlerResolver implements IRepeatableHandlerResolver {
     }
     return _unknownHandler;
   }
+}
+
+/**
+ * A simple implementation for handling common array like values, such as:
+ * - HTMLCollection
+ * - NodeList
+ * - FileList,
+ * - etc...
+ */
+export class ArrayLikeHandler implements IRepeatableHandler<ArrayLike<unknown>> {
+  public static register(c: IContainer) {
+    c.register(singletonRegistration(IRepeatableHandler, this));
+  }
+
+  public handles(value: NonNullable<unknown>): boolean {
+    return 'length' in value && isNumber(value.length);
+  }
+
+  public iterate(items: ArrayLike<unknown>, func: (item: unknown, index: number, arr: ArrayLike<unknown>) => void): void {
+    for (let i = 0, ii = items.length; i < ii; ++i) {
+      func(items[i], i, items);
+    }
+  }
+
 }
 
 /**

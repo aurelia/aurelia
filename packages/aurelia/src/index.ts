@@ -363,6 +363,9 @@ export {
   // Else,
 
   // Repeat,
+  IRepeatableHandlerResolver,
+  IRepeatableHandler,
+  ArrayLikeHandler,
 
   // Replaceable,
 

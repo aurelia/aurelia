@@ -1,9 +1,9 @@
 import { Registration } from '@aurelia/kernel';
-import { IRepeatableHandler } from '@aurelia/runtime-html';
+import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
 import { createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.array-like.spec.ts", function () {
-  it('repeats a html collection', function () {
+  it('repeats an html collection', function () {
     const { assertText } = createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
       class {
@@ -21,6 +21,25 @@ describe("3-runtime-html/repeat.array-like.spec.ts", function () {
           }
         };
       }), class {
+        static $au = { type: 'value-converter', name: 'nodeName' };
+        toView = v => v.nodeName;
+      }]
+    );
+
+    assertText('hey 0--#text');
+  });
+
+  it('repeats an html collection using the default array like handler', function () {
+    const { assertText } = createFixture(
+      '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
+      class {
+        items: any[];
+        p: any;
+        bound() {
+          this.items = this.p?.childNodes;
+        }
+      },
+      [ArrayLikeHandler, class {
         static $au = { type: 'value-converter', name: 'nodeName' };
         toView = v => v.nodeName;
       }]

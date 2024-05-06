@@ -155,9 +155,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     m.append(`export const capture = true;\n`);
   }
 
-  if (Object.keys(bindables).length > 0) {
-    m.append(`export const bindables = ${JSON.stringify(bindables)};\n`);
-  }
+  m.append(`export const bindables = ${(Object.keys(bindables).length > 0 ? JSON.stringify(bindables) : '[]')};\n`);
 
   if (aliases.length > 0) {
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);
@@ -170,7 +168,7 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
     shadowMode !== null ? 'shadowOptions' : '',
     containerless ? 'containerless' : '',
     capture ? 'capture' : '',
-    Object.keys(bindables).length > 0 ? 'bindables' : '',
+    'bindables',
     aliases.length > 0 ? 'aliases' : '',
   ].filter(Boolean);
   const definition = `{ ${definitionProperties.join(', ')} }`;

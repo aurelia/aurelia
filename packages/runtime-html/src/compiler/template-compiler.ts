@@ -10,9 +10,6 @@ import {
   type IRegistry
 } from '@aurelia/kernel';
 import {
-  BindingCommand,
-  BindingCommandDefinition,
-  type BindingCommandInstance,
   type IAttributeBindablesInfo,
   type IElementBindablesInfo,
   IResourceResolver,
@@ -48,8 +45,6 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
 
   /** @internal */
   private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();
-  /** @internal */
-  private readonly _commandCache = new WeakMap<IContainer, Record<string, BindingCommandInstance | null>>();
 
   public el(c: IContainer, name: string): CustomElementDefinition | null {
     let record = this._resourceCache.get(c);
@@ -65,27 +60,6 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
       this._resourceCache.set(c, record = new RecordCache());
     }
     return name in record._attr ? record._attr[name] : (record._attr[name] = CustomAttribute.find(c, name));
-  }
-
-  public command(c: IContainer, name: string): BindingCommandInstance | null {
-    let commandInstanceCache = this._commandCache.get(c);
-    if (commandInstanceCache == null) {
-      this._commandCache.set(c, commandInstanceCache = createLookup());
-    }
-    let result = commandInstanceCache[name];
-    if (result === void 0) {
-      let record = this._resourceCache.get(c);
-      if (record == null) {
-        this._resourceCache.set(c, record = new RecordCache());
-      }
-
-      const commandDef = name in record._command ? record._command[name] : (record._command[name] = BindingCommand.find(c, name));
-      if (commandDef == null) {
-        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
-      }
-      commandInstanceCache[name] = result = BindingCommand.get(c, name);
-    }
-    return result;
   }
 
   /** @internal */
@@ -139,5 +113,4 @@ class ResourceResolver implements IResourceResolver<CustomElementDefinition, Cus
 class RecordCache {
   public _element = createLookup<CustomElementDefinition | null>();
   public _attr = createLookup<CustomAttributeDefinition | null>();
-  public _command = createLookup<BindingCommandDefinition | null>();
 }

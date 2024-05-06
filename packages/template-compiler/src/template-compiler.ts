@@ -1822,7 +1822,6 @@ export interface IResourceResolver<
 > {
   el(c: IContainer, name: string): TElementDef | null;
   attr(c: IContainer, name: string): TAttrDef | null;
-  command(c: IContainer, name: string): BindingCommandInstance | null;
   bindables(def: TAttrDef): IAttributeBindablesInfo;
   bindables(def: TElementDef): IElementBindablesInfo;
   bindables(def: TAttrDef | TElementDef): IAttributeBindablesInfo | IElementBindablesInfo;

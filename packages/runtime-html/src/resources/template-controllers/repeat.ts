@@ -803,6 +803,7 @@ export interface IRepeatableHandler<TValue extends Repeatable = Repeatable> {
 const _arrayHandler: IRepeatableHandler<unknown[]> = {
   handles: isArray,
   getObserver: getCollectionObserver,
+  /* istanbul ignore next */
   iterate(value, func): void {
     const ii = value.length;
     let i = 0;

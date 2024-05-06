@@ -1,8 +1,8 @@
 import { Registration } from '@aurelia/kernel';
 import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
-import { createFixture } from "@aurelia/testing";
+import { assert, createFixture } from "@aurelia/testing";
 
-describe("3-runtime-html/repeat.array-like.spec.ts", function () {
+describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
   it('repeats an html collection', function () {
     const { assertText } = createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
@@ -46,5 +46,9 @@ describe("3-runtime-html/repeat.array-like.spec.ts", function () {
     );
 
     assertText('hey 0--#text');
+  });
+
+  it('throws on unknown repetable value', function () {
+    assert.throws(() => createFixture('<div repeat.for="i of {}">${$index}--${i | nodeName}</div>'));
   });
 });

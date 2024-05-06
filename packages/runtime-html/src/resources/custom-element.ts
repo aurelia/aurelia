@@ -36,7 +36,6 @@ import { ErrorNames, createMappedError } from '../errors';
 import { dtElement, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialCustomElementDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IElementComponentDefinition<TBindables>, 'type'> & {
-  readonly cache?: number | '*';
   /**
    * An semi internal property used to signal the rendering process not to try to compile the template again
    */
@@ -207,7 +206,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly name: string,
     public readonly aliases: string[],
     public readonly key: string,
-    public readonly cache: '*' | number,
     public readonly capture: boolean | ((attr: string) => boolean),
     public readonly template: null | string | Node,
     public readonly instructions: readonly IInstruction[][],
@@ -243,7 +241,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     nameOrDef: string | PartialCustomElementDefinition,
     Type: CustomElementType | null = null,
   ): CustomElementDefinition {
-    // TODO(Sayan): aggregate the info from decorator metadata instead of using the Reflect API
     if (Type === null) {
       const def = nameOrDef;
       if (isString(def)) {
@@ -266,7 +263,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         name,
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => getElementKeyFrom(name)),
-        fromDefinitionOrDefault('cache', def, returnZero),
         fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse),
         fromDefinitionOrDefault('template', def, returnNull),
         mergeArrays(def.instructions),
@@ -293,7 +289,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         nameOrDef,
         mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases),
         getElementKeyFrom(nameOrDef),
-        fromAnnotationOrTypeOrDefault('cache', Type, returnZero),
         fromAnnotationOrTypeOrDefault('capture', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('template', Type, returnNull as () => string | Node | null),
         mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions),
@@ -326,7 +321,6 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       name,
       mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases),
       getElementKeyFrom(name),
-      fromAnnotationOrDefinitionOrTypeOrDefault('cache', nameOrDef, Type, returnZero),
       fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull),
       mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions),
@@ -398,7 +392,6 @@ const defaultForOpts: ForOpts = {
   searchParents: false,
   optional: false,
 };
-const returnZero = () => 0;
 const returnNull = <T>(): T | null => null;
 const returnFalse = () => false;
 const returnTrue = () => true;

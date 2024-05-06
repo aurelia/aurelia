@@ -102,7 +102,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // we won't find the information in the hydration context hierarchy <MyApp>/<S3>
       // as it's a flat wysiwyg structure based on the template html
       //
-      // since we are construction the projection (2) view based on the
+      // since we are constructing the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
       // =============================
@@ -166,6 +166,10 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     _initiator: IHydratedController,
     parent: IHydratedParentController,
   ): void | Promise<void> {
+    this._parentScope = parent.scope;
+
+    // The following block finds the real host scope for the content of this <au-slot>
+    //
     // if this <au-slot> was created by another au slot, the controller hierarchy will be like this:
     // C(au-slot)#1 --> C(synthetic)#1 --> C(au-slot)#2 --> C(synthetic)#2
     //
@@ -176,7 +180,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     while (parent.vmKind === 'synthetic' && parent.parent?.viewModel instanceof AuSlot) {
       parent = parent.parent.parent as IHydratedParentController;
     }
-    this._parentScope = parent.scope;
+    const host = parent.scope.bindingContext;
 
     let outerScope: Scope;
     if (this._hasProjection) {
@@ -187,7 +191,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // - override context has the $host pointing to inner scope binding context
       outerScope = this._hdrContext.controller.scope.parent!;
       (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
-        .overrideContext.$host = this.expose ?? this._parentScope.bindingContext;
+        .overrideContext.$host = this.expose ?? host;
     }
   }
 

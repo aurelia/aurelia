@@ -319,7 +319,7 @@ import { MyApp } from './my-app';
 
 class ArrayLikeHandler {
   static register(c) {
-    Registration.singleton(ArrayLikeHandler).register(c)
+    Registration.singleton(IRepeatableHandler, ArrayLikeHandler).register(c)
   }
 
   handles(v) {

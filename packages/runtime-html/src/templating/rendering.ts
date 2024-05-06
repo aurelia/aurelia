@@ -208,8 +208,10 @@ export class Rendering implements IRendering {
     }
     return fragment;
     // below is a homemade "comment query selector that seems to be as efficient as the TreeWalker
-    // leaving it here just in case we need it again
-    // TreeWalker is slightly less code
+    // also it works with very minimal set of APIs (.nextSibling, .parentNode, .insertBefore, .removeChild)
+    // while TreeWalker maynot be always available in platform that we may potentially support
+    //
+    // so leaving it here just in case we need it again, TreeWalker is slightly less code
 
     // let parent: Node = fragment;
     // let current: Node | null | undefined = parent.firstChild;

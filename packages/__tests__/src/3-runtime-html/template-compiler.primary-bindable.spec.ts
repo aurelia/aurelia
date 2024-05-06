@@ -1,5 +1,5 @@
 import {
-  Constructable,
+  Constructable, resolve,
 } from '@aurelia/kernel';
 import {
   assert,
@@ -42,7 +42,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -67,7 +67,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public diameter: number;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -93,7 +93,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -118,7 +118,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -145,7 +145,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public diameter: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -173,7 +173,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -200,7 +200,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.color;
@@ -222,7 +222,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
         @customAttribute({ name: 'square' })
         class Square {
           public value: string;
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding() {
             this.el.style.background = this.value;
@@ -246,7 +246,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @customAttribute({ name: 'square' })
           class Square {
             public value: string;
-            public constructor(@INode private readonly el: INode<HTMLElement>) {}
+            private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
             public binding() {
               const value = this.value === 'literal:literal' ? 'red' : this.value;
@@ -293,7 +293,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
         }
         return [Square];
       },
@@ -316,7 +316,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable({ primary: true })
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
         }
         return [Square];
       },
@@ -342,7 +342,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
@@ -369,7 +369,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;
@@ -399,7 +399,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
           @bindable()
           public color: string;
 
-          public constructor(@INode private readonly el: INode<HTMLElement>) {}
+          private readonly el: INode<HTMLElement> = resolve(INode) as INode<HTMLElement>;
 
           public binding(): void {
             this.el.style.borderRadius = `${this.borderRadius || 0}px`;

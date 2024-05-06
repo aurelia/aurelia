@@ -1,4 +1,4 @@
-import { Constructable, IContainer, IResolver, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
@@ -7,12 +7,17 @@ export interface IInstructionComponent extends InstructionComponent { }
 
 /**
  * Public API - The routing instructions are the core of the router's navigations. The component
- * part of a routing instruction can be specified as a component name, a custom element definition,
- * a custom element type or a custom element instance. The instruction component isn't limited to
- * routing instructions, but can be found in for example load instructions as well. The instruction
- * components are resolved "non-early" to support dynamic, local resolutions.
+ * part of a routing instruction can be specified as
+ * - a component name, or
+ * - a custom element definition, or
+ * - a custom element class, or
+ * - a custom element instance.
+ *
+ * The instruction component isn't limited to routing instructions, but can be found in for example load instructions as well.
+ * The instruction components are resolved "non-early" to support dynamic, local resolutions.
  */
 
+/** */
 export type ComponentAppellation = string | RouteableComponentType | IRouteableComponent | CustomElementDefinition | Constructable;
 export type ComponentAppellationFunction = (instruction?: RoutingInstruction) => ComponentAppellation | Promise<ComponentAppellation>;
 
@@ -136,8 +141,8 @@ export class InstructionComponent {
     if (!(this.promise instanceof Promise)) {
       return;
     }
-    // TODO(alpha): Fix the type here
-    return (this.promise as any).then((component: ComponentAppellation): void => {
+
+    return this.promise.then((component: ComponentAppellation): void => {
       // TODO(alpha): Fix the issues with import/module here
       if (InstructionComponent.isAppelation(component)) {
         this.set(component);
@@ -156,6 +161,7 @@ export class InstructionComponent {
       }
       const key = keys[0];
       // TODO(alpha): Fix type here
+      // eslint-disable-next-line
       this.set((component as any)[key] as ComponentAppellation);
     }) as Promise<ComponentAppellation>;
   }
@@ -164,7 +170,7 @@ export class InstructionComponent {
     return !this.isName() && !this.isType() && !this.isInstance() && !this.isFunction() && !this.isPromise();
   }
   public isName(): boolean {
-    return !!this.name && !this.isType() && !this.isInstance();
+    return this.name != null && this.name !== '' && !this.isType() && !this.isInstance();
   }
   public isType(): boolean {
     return this.type !== null && !this.isInstance();
@@ -203,6 +209,12 @@ export class InstructionComponent {
     }
     return null;
   }
+
+  /**
+   * Returns the component instance of this instruction.
+   *
+   * Throws instantiation error if there was an error during instantiation.
+   */
   public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null {
     // TODO: Allow instantiation from a promise here, but awaiting resolve?
     void this.resolve(instruction);
@@ -213,16 +225,21 @@ export class InstructionComponent {
     if (parentContainer == null) {
       return null;
     }
+
     const container = parentContainer.createChild();
-    const instance = this.isType()
-      ? container.get<IRouteableComponent>(this.type!)
-      : container.get<IRouteableComponent>(routerComponentResolver(this.name!));
+    const Type = this.isType()
+      ? this.type!
+      : container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.name!))!.getFactory!(container)!.Type;
+    const instance = container.invoke(Type);
+    // const instance: IRouteableComponent = this.isType()
+    //   ? container.invoke(this.type!)
+    //   : container.get(routerComponentResolver(this.name!));
     // TODO: Implement non-traversing lookup (below) based on router configuration
     // let instance;
     // if (this.isType()) {
     //   instance = ownContainer.invoke(this.type!);
     // } else {
-    //   const def = ownContainer.find(CustomElement, CustomElement.keyFrom(this.name!));
+    //   const def = CustomElement.find(ownContainer, this.name!);
     //   if (def != null) {
     //     instance = ownContainer.invoke(def.Type);
     //   }
@@ -258,21 +275,25 @@ export class InstructionComponent {
   }
 }
 
-function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
-  const key = CustomElement.keyFrom(name);
-  return {
-    $isResolver: true,
-    resolve(_, requestor) {
-      if (requestor.has(key, false)) {
-        return requestor.get(key);
-      }
-      if (requestor.root.has(key, false)) {
-        return requestor.root.get(key);
-      }
-      // eslint-disable-next-line no-console
-      console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
-        + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
-      return requestor.get(key);
-    }
-  };
-}
+// function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
+//   const key = CustomElement.keyFrom(name);
+//   return {
+//     $isResolver: true,
+//     resolve(_, requestor) {
+//       // const container = requestor.get(IHydrationContext).parent!.controller.container;
+//       if (requestor.has(key, false)) {
+//         return requestor.get(key);
+//       }
+//       if (requestor.root.has(key, false)) {
+//         return requestor.root.get(key);
+//       }
+//       // it's not always correct to consider this resolution as a traversal
+//       // since sometimes it could be the work of trying a fallback configuration as component
+//       // todo: cleanup the paths so that it's clearer when a fallback is being tried vs when an actual component name configuration
+//       //
+//       // console.warn(`Detected resource traversal behavior. A custom element "${name}" is neither`
+//       //   + ` registered locally nor globally. This is not a supported behavior and will be removed in a future release`);
+//       return requestor.get(key);
+//     }
+//   };
+// }

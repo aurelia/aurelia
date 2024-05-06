@@ -1,12 +1,12 @@
-import { I18nService, RelativeTimeValueConverter } from '@aurelia/i18n';
-import { EventAggregator } from '@aurelia/kernel';
-import { assert, MockSignaler } from '@aurelia/testing';
-import i18next from 'i18next';
+import { I18N, RelativeTimeValueConverter } from '@aurelia/i18n';
+import { assert } from '@aurelia/testing';
+import { createI18NContainer } from '../util.js';
 
 describe('i18n/rt/relative-time-value-converter.spec.ts', function () {
   function createFixture() {
-    const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
-    const sut = new RelativeTimeValueConverter(i18n);
+    const container = createI18NContainer();
+    const i18n = container.get(I18N);
+    const sut = container.invoke(RelativeTimeValueConverter);
     return { i18n, sut };
   }
 

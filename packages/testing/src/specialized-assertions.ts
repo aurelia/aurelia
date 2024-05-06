@@ -1,4 +1,5 @@
-import { InstructionType, CustomElement } from '@aurelia/runtime-html';
+import { CustomElement } from '@aurelia/runtime-html';
+import { InstructionType } from '@aurelia/template-compiler';
 import { assert } from './assert';
 
 // Disabling this as it this is nowhere used. And also the ast-serialization infra is moved to validation package.

@@ -41,7 +41,7 @@ Aurelia
 
 The above example shows how to initialize the i18n plugin and, thereby, i18next with translation resources. There are alternatives ways of doing this, which are discussed [later](internationalization.md#managing-translation-resources). Once registered, the plugin can be used in your view using the translation attribute `t` (this is the default translation attribute name, but an [alias can be configured](internationalization.md#configuring-translation-attribute-aliases)), and the translation keys that have been registered.
 
-```markup
+```html
 <span t="key"></span>
 ```
 
@@ -94,7 +94,7 @@ Additionally, all [`i18next` plugins](https://www.i18next.com/overview/plugins-a
 
 As mentioned above, Aurelia views access translation resources using the `t` attribute by default (see the details [here](internationalization.md#translation)).
 
-```markup
+```html
 <element t="key"></element>
 ```
 
@@ -111,7 +111,7 @@ new Aurelia()
 
 The registered aliases can then be used in your view in place of `t`.
 
-```markup
+```html
 <element i18n="key1"></element>
 <element tr="key2"></element>
 ```
@@ -247,10 +247,11 @@ If you are familiar with`aurelia-i18n` Then you know that besides the translatio
 The active locale can be `get` or `set` by injecting an instance of the `I18N`, and using `getLocale()`, and `setLocale()` methods. The following example shows how to manipulate the active locale.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const currentLocale = this.i18n.getLocale();
   }
 
@@ -278,7 +279,7 @@ Aurelia uses an attribute pattern to replace the content or attribute values. (T
 
 **Syntax**
 
-```markup
+```html
 <element
   t="
     [optional-attribute-list1]translation-key;
@@ -304,7 +305,7 @@ This is the most common use case and the default behavior.
 }
 ```
 
-```markup
+```html
 <span t="key"></span>
 ```
 
@@ -318,7 +319,7 @@ class MyView {
 }
 ```
 
-```markup
+```html
 <span t.bind="i18nKey"></span>
 ```
 
@@ -332,7 +333,7 @@ The aforementioned `t="key"` syntax behaves a bit differently for `img` elements
 }
 ```
 
-```markup
+```html
 <img t="key">
 ```
 
@@ -348,13 +349,13 @@ As mentioned above, by default, the plugin will set the `textContent` property o
 }
 ```
 
-```markup
+```html
 <span t="title">Title</span>
 ```
 
 Therefore, in the above example, the HTML tags will be escaped, and the output will be `&lt;b&gt;bold&lt;/b&gt;`. The `[html]` attribute must be added before the translation key to allow HTML markup.
 
-```markup
+```html
 <span t="[html]title">Title</span>
 ```
 
@@ -371,7 +372,7 @@ So far, we have seen that the contents are replaced. There are two special attri
 }
 ```
 
-```markup
+```html
 <span t="[prepend]pre;[append]post">tac</span>
 ```
 
@@ -387,7 +388,7 @@ The plugin can be used to translate HTML-element attributes.
 }
 ```
 
-```markup
+```html
 <span t="[title]title"></span>
 ```
 
@@ -405,7 +406,7 @@ export class CustomMessage {
 }
 ```
 
-```markup
+```html
 <template>
   <span>${message}</span>
 </template>
@@ -413,13 +414,13 @@ export class CustomMessage {
 
 Use the custom element as follows.
 
-```markup
+```html
 <custom-message t="[message]bar"></custom-message>
 ```
 
 Which produces the following result.
 
-```markup
+```html
 <custom-message>
   <span>[TRANSLATED VALUE OF BAR KEY]</span>
 </custom-message>
@@ -437,7 +438,7 @@ Let's see how this works in Aurelia with some basic examples. For further detail
 { "key": "{{what}} is {{how}}" }
 ```
 
-```markup
+```html
 <span t="key" t-params.bind="{ what: 'i18next', how: 'great' }"></span>
 ```
 
@@ -453,7 +454,7 @@ The above results in `<span>i18next is great</span>`.
 }
 ```
 
-```markup
+```html
 <span t="status" t-params.bind="{ context: 'dispatched' }"></span>
 ```
 
@@ -468,7 +469,7 @@ The above results in `<span>Your order has been dispatched</span>`.
 }
 ```
 
-```markup
+```html
 <span t="itemWithCount" t-params.bind="{ count: 0 }"></span>
 <span t="itemWithCount" t-params.bind="{ count: 1 }"></span>
 <span t="itemWithCount" t-params.bind="{ count: 10 }"></span>
@@ -476,7 +477,7 @@ The above results in `<span>Your order has been dispatched</span>`.
 
 The above results in the following.
 
-```markup
+```html
 <span>0 items</span>
 <span>1 item</span>
 <span>10 items</span>
@@ -494,7 +495,7 @@ Sometimes, simple plural contexts are not enough, and another translation is req
 }
 ```
 
-```markup
+```html
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 0}"></span>
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 1}"></span>
 <span t="itemWithCount_interval"  t-params.bind="{postProcess: 'interval', count: 2}"></span>
@@ -506,7 +507,7 @@ Sometimes, simple plural contexts are not enough, and another translation is req
 
 This results in the following.
 
-```markup
+```html
 <span>0 items</span>
 <span>1 item</span>
 <span>2 items</span>
@@ -520,7 +521,7 @@ This results in the following.
 
 If the key expression is evaluated to `null`, or `undefined`, a default value can be provided as follows.
 
-```markup
+```html
 <span
   t.bind="exprEvaluatedToNullOrUnd"
   t-params.bind="{defaultValue: 'foo-bar'}"
@@ -533,7 +534,7 @@ The example above produces `<span>foo-bar</span>`, given that `exprEvaluatedToNu
 
 To do translations in a more declarative way from within your HTML markup, you can use the `t` ValueConverter and BindingBehavior.
 
-```markup
+```html
 <span> ${'itemWithCount' | t : {count: 10}} </span>
 <span> ${'itemWithCount' & t : {count: 10}} </span>
 ```
@@ -545,12 +546,13 @@ Combined with appropriate translation resources, the correct value will be rende
 Translations via code are done by using the method `I18N#tr`. You can pass in the `key` as the first parameter, followed by the optional second parameter `options`.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
   private status: string = 'dispatched';
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N) {
     const statusText = this.i18n.tr('status', { context: this.status });
   }
 }
@@ -579,7 +581,7 @@ The `@aurelia/i18n` plugin provides number formatting using [`Intl` API](https:/
 
 #### Format number in view using ValueConverter and/or BindingBehavior
 
-```markup
+```html
 <span> ${ 123456789.12 | nf } </span>
 <span> ${ 123456789.12 & nf : undefined : 'de'} </span>
 <span> ${ 123456789.12 | nf: {style:'currency', currency: 'EUR' } : 'de' } </span>
@@ -599,11 +601,12 @@ Both ValueConverter and BindingBehavior update the formatted value when the acti
 Formatting numbers via code works by using the method `I18N#nf`. You can pass in the number as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const formatted = this.i18n.nf(123456789.12); // 123,456,789.12 - considering the current locale to be en
     const formattedCurrency = this.i18n.nf(123456789.12, { style: 'currency', currency: 'EUR' }, 'de'); // 123.456.789,12 €
   }
@@ -613,11 +616,12 @@ export class MyDemoVm {
 Additionally, if needed, an instance of `Intl.NumberFormat` can be created using the `I18N#createNumberFormat` method.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const nf = this.i18n.createNumberFormat({ style: 'currency', currency: 'EUR' }, 'de');
     const formatted = nf.format(123456789.12); // 123.456.789,12 €
   }
@@ -633,11 +637,12 @@ This can be useful if you want to cache the `Intl.NumberFormat` instance and reu
 Numeric strings can be converted back to a number using the `I18N#uf` method. The method takes the numeric string as the first argument, followed by an optional second argument for the locale, as shown in the following example.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     // all of the strings are converted back to `123456789.12`
     const ufSimple = this.i18n.uf('123,456,789.12');
     const ufLocale = this.i18n.uf('123.456.789,12', 'de');
@@ -662,7 +667,7 @@ export class MyDemoVm {
 }
 ```
 
-```markup
+```html
 <span> ${ date | df } </span> <!-- 8/20/2019 -->
 <span> ${ '2019-08-10T13:42:35.209Z' | df } </span> <!-- 8/20/2019 -->
 <span> ${ 0 | df } </span> <!-- 1/1/1970 -->
@@ -686,11 +691,12 @@ The value being formatted does not strictly need to be a date object. Apart from
 Formatting date via code works by using the method `I18N#df`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const df1 = this.i18n.df(new Date(2020, 1, 10)); // '2/10/2020'
     const df2 = this.i18n.df(new Date(2020, 1, 10), { month: '2-digit', day: 'numeric', year: 'numeric' }, 'de'); // '10.02.2020'
     const df3 = this.i18n.df(0); // '1/1/1970'
@@ -701,11 +707,12 @@ export class MyDemoVm {
 Additionally, if needed an instance of `Intl.DateTimeFormat` can be created using the `I18N#createDateTimeFormat` method.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const df = this.i18n.createDateTimeFormat({ month: '2-digit', day: 'numeric', year: 'numeric' }, 'de');
     const formatted = df.format(new Date(2020, 1, 10)); // '10.02.2020'
   }
@@ -734,7 +741,7 @@ export class MyDemoVm {
 }
 ```
 
-```markup
+```html
 <span> ${ date | rt } </span>                             <!-- 5 seconds ago -->
 <span> ${ date & rt : { style: 'short' } : 'de' } </span> <!-- vor 5 Sek. -->
 ```
@@ -753,11 +760,11 @@ The formatted value can be updated on demand by dispatching the signal `'aurelia
 
 ```typescript
 import { Signals } from '@aurelia/i18n';
-import { ISignaler } from 'aurelia';
+import { ISignaler, resolve } from 'aurelia';
 
 export class MyDemoVm {
 
-  constructor(@ISignaler private readonly signaler: ISignaler) {}
+  constructor(private readonly signaler: ISignaler = resolve(ISignaler)) {}
 
   public changeRelativeTimeFormat() {
     this.signaler.dispatchSignal(Signals.RT_SIGNAL); // the signal 'aurelia-relativetime-signal' is exposed by Signals.RT_SIGNAL
@@ -772,10 +779,11 @@ ValueConverter and BindingBehavior react to this signal and update the view with
 Formatting relative dates via code work by using the method `I18N#rt`. You can pass in the date as its first parameter, followed by the optional parameters `options`, and `locales`.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const date = new Date();
     date.setSeconds(input.getSeconds() + 5);
 
@@ -787,11 +795,12 @@ export class MyDemoVm {
 Additionally, if needed, an instance of `Intl.RelativeTimeFormat` can be created using the `I18N#createRelativeTimeFormat` method.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { I18N } from '@aurelia/i18n';
 
 export class MyDemoVm {
 
-  constructor(@I18N private readonly i18n: I18N) {
+  constructor(private readonly i18n: I18N = resolve(I18N)) {
     const date = new Date();
     date.setSeconds(input.getSeconds() - 5);
 

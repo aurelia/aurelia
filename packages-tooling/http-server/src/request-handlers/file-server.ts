@@ -2,7 +2,7 @@ import { statSync, openSync, readdirSync } from 'fs';
 import { IncomingMessage, ServerResponse } from 'http';
 import { ServerHttp2Stream, constants, Http2ServerRequest, Http2ServerResponse, OutgoingHttpHeaders } from 'http2';
 import { join, resolve, relative, extname } from 'path';
-import { ILogger } from '@aurelia/kernel';
+import { ILogger, resolve as diResolve } from '@aurelia/kernel';
 import { IRequestHandler, IHttpServerOptions, IHttp2FileServer } from '../interfaces';
 import { IHttpContext } from '../http-context';
 import { getContentType, HTTPStatusCode, getContentEncoding, ContentEncoding } from '../http-utils';
@@ -29,16 +29,12 @@ export class FileServer implements IRequestHandler {
   private readonly root: string;
   private readonly cacheControlDirective: string;
 
-  public constructor(
-    @IHttpServerOptions
-    private readonly opts: IHttpServerOptions,
-    @ILogger
-    private readonly logger: ILogger,
-  ) {
-    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
-    this.logger = logger.root.scopeTo('FileServer');
+  private readonly opts: IHttpServerOptions = diResolve(IHttpServerOptions);
+  private readonly logger: ILogger = diResolve(ILogger).root.scopeTo('FileServer');
 
-    this.root = resolve(opts.root);
+  public constructor() {
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
+    this.root = resolve(this.opts.root);
 
     this.logger.debug(`Now serving files from: "${this.root}"`);
   }
@@ -110,16 +106,12 @@ export class Http2FileServer implements IHttp2FileServer {
   private readonly root: string;
   private readonly filePushMap: Map<string, PushInfo> = new Map<string, PushInfo>();
 
-  public constructor(
-    @IHttpServerOptions
-    private readonly opts: IHttpServerOptions,
-    @ILogger
-    private readonly logger: ILogger,
-  ) {
-    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
-    this.logger = logger.root.scopeTo('Http2FileServer');
+  private readonly opts: IHttpServerOptions = diResolve(IHttpServerOptions);
+  private readonly logger: ILogger = diResolve(ILogger).root.scopeTo('Http2FileServer');
 
-    this.root = resolve(opts.root);
+  public constructor() {
+    this.cacheControlDirective = this.opts.responseCacheControl ?? 'max-age=3600';
+    this.root = resolve(this.opts.root);
     this.prepare();
     this.logger.debug(`Now serving files from: "${this.root}"`);
   }

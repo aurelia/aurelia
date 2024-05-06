@@ -12,9 +12,11 @@ import {
   Interpolation,
   PrimitiveLiteralExpression,
   IExpressionParser,
+} from '@aurelia/expression-parser';
+import {
   Scope,
-  astEvaluate
-} from '@aurelia/runtime';
+  astEvaluate,
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   EqualsRule,
@@ -713,7 +715,7 @@ describe('validation/rule-provider.spec.ts', function () {
         assert.equal(actual, messages[i]);
       });
 
-      it(`rule.message returns the default message the registered key is not found - ${title}`, function () {
+      it(`rule.message returns the default message if the registered key is not found - ${title}`, function () {
         const { sut } = setup();
         const $rule = getRule();
         $rule.messageKey = 'foobar';
@@ -781,7 +783,7 @@ describe('validation/rule-provider.spec.ts', function () {
       }
       // reset the messages
       for (const { rule, aliases } of originalMessages) {
-        ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases });
+        ValidationRuleAliasMessage.setDefaultMessage(rule, { aliases }, null);
       }
     });
 

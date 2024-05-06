@@ -1,9 +1,17 @@
 import type { IServiceLocator } from '@aurelia/kernel';
-import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator, IBinding, IConnectableBinding, type IsBindingBehavior, type Scope } from '@aurelia/runtime';
-import { mixinAstEvaluator } from './binding-utils';
+import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber } from '@aurelia/runtime';
+import { type Scope } from './scope';
+import { astAssign, astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
+import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
+import { type IsBindingBehavior } from '@aurelia/expression-parser';
+import { IBinding } from './interfaces-bindings';
 
-export interface RefBinding extends IAstEvaluator, IConnectableBinding { }
-export class RefBinding implements IBinding {
+export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
+export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+    mixinAstEvaluator(false)(RefBinding);
+  });
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -55,5 +63,3 @@ export class RefBinding implements IBinding {
     this._scope = void 0;
   }
 }
-
-mixinAstEvaluator(false)(RefBinding);

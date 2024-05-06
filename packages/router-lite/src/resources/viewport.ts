@@ -1,7 +1,5 @@
 import { Constructable, ILogger, resolve } from '@aurelia/kernel';
 import {
-  bindable,
-  customElement,
   CustomElement,
   ICompiledCustomElementController,
   ICustomElementController,
@@ -25,12 +23,11 @@ export interface IViewport {
   _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null;
 }
 
-@customElement({ name: 'au-viewport' })
 export class ViewportCustomElement implements ICustomElementViewModel, IViewport {
-  @bindable public name: string = defaultViewportName;
-  @bindable public usedBy: string = '';
-  @bindable public default: string = '';
-  @bindable public fallback: Routeable | FallbackFunction = '';
+  public name: string = defaultViewportName;
+  public usedBy: string = '';
+  public default: string = '';
+  public fallback: Routeable | FallbackFunction = '';
 
   /** @internal */ private _agent: ViewportAgent = (void 0)!;
   /** @internal */ private _controller: ICustomElementController = (void 0)!;
@@ -97,6 +94,10 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
     return `VP(ctx:'${this._ctx._friendlyPath}',${propStrings.join(',')})`;
   }
 }
+CustomElement.define({
+  name: 'au-viewport',
+  bindables: ['name', 'usedBy', 'default', 'fallback'],
+}, ViewportCustomElement);
 
 const props = [
   'name',

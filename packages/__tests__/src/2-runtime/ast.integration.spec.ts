@@ -1,7 +1,7 @@
 import {
   AccessScopeExpression,
   ConditionalExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import {
   BindingMode,
   IPlatform,
@@ -17,6 +17,10 @@ import {
 } from '@aurelia/testing';
 
 describe('2-runtime/ast.integration.spec.ts', function () {
+  // well maybe should just delete these tests
+  (PropertyBinding as any).mix();
+  (LetBinding as any).mix();
+
   describe('[[AccessScope]]', function () {
     describe('PropertyBinding', function () {
       it('auto connects when evaluates', function () {
@@ -248,6 +252,26 @@ describe('2-runtime/ast.integration.spec.ts', function () {
       flush();
 
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
+    });
+  });
+
+  describe('[[AccessBoundary]]', function () {
+    it('retrieves binding from component boundary in single repeat', async function () {
+      const { assertText } = createFixture
+        .html`<div repeat.for="name of ['bar', 'baz']">(\${this.name + name})</div>`
+        .component({ name: 'foo' })
+        .build();
+
+      assertText('(foobar)(foobaz)');
+    });
+
+    it('retrieves binding from component boundary in nested repeat', async function () {
+      const { assertText } = createFixture
+        .html`<div repeat.for="name of ['bar', 'baz']"><div repeat.for="name of ['qux']">(\${this.name + $parent.name + name})</div></div>`
+        .component({ name: 'foo' })
+        .build();
+
+      assertText('(foobarqux)(foobazqux)');
     });
   });
 });

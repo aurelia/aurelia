@@ -2,12 +2,10 @@
   "compilerOptions": {
     "pretty": true,
     "lib": ["esnext"],
-    "target": "ES2020",
+    "target": "ES2021",
     "module": "esnext",
     "moduleResolution": "node",
     "importHelpers": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": false,
     "rootDir": ".",
 
     "declaration": true,
@@ -18,6 +16,8 @@
     "skipLibCheck": true,
     "preserveConstEnums": true,
     "stripInternal": true,
+
+    "useDefineForClassFields": false,
 
     "strict": true,
 

@@ -1,29 +1,34 @@
 import { type IDisposable, onResolve, IIndexable, resolve, all } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
-  BindingContext,
-  type Collection,
-  CollectionObserver,
   DestructuringAssignmentExpression,
   ForOfStatement,
+  type IsBindingBehavior,
+  ValueConverterExpression,
+} from '@aurelia/expression-parser';
+import {
+  type Collection,
+  CollectionObserver,
   getCollectionObserver,
   type IndexMap,
-  type IOverrideContext,
-  type IsBindingBehavior,
-  Scope,
-  ValueConverterExpression,
+  createIndexMap,
+} from '@aurelia/runtime';
+import {
   astEvaluate,
   astAssign,
-  createIndexMap,
-  IExpressionParser,
-} from '@aurelia/runtime';
+} from '../../ast.eval';
+import {
+  Scope,
+  BindingContext,
+  type IOverrideContext,
+} from '../../binding/scope';
+import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
-import { templateController } from '../custom-attribute';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
-import { bindable } from '../../bindable';
-import { areEqual, isArray, isPromise, rethrow, etIsProperty, isMap, isNumber, isNullish, isSet } from '../../utilities';
-import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '../../renderer';
+import { areEqual, isArray, isPromise, isMap, isSet, isNullish, isNumber, rethrow, etIsProperty } from '../../utilities';
+import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
 import type { PropertyBinding } from '../../binding/property-binding';
 import type { ISyntheticView, ICustomAttributeController, IHydratableController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
@@ -42,6 +47,15 @@ const wrappedExprs = [
 ];
 
 export class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'repeat',
+    isTemplateController: true,
+    bindables: ['items'],
+  };
+
+  /** @internal */ protected static inject = [IInstruction, IExpressionParser, IRenderLocation, IController, IViewFactory];
+
   public views: ISyntheticView[] = [];
   private _oldViews: ISyntheticView[] = [];
 
@@ -50,7 +64,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable public items: Items<C>;
+  public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
 
   /** @internal */ private readonly _keyMap: Map<unknown, unknown> = new Map();
@@ -361,7 +375,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this._deactivateAndRemoveViewsByKey(indexMap),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLen, indexMap!);
+            return this._createAndActivateAndSortViewsByKey(oldLen, indexMap);
           },
         );
         if (isPromise(ret)) { ret.catch(rethrow); }
@@ -615,7 +629,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
   }
 }
-templateController('repeat')(Repeat);
 
 let maxLen = 16;
 let prevIndices = new Int32Array(maxLen);

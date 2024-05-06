@@ -1,12 +1,17 @@
-import { type BindingBehaviorInstance, type Scope } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { ListenerBinding } from '../../binding/listener-binding';
-import { bindingBehavior } from '../binding-behavior';
+import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class SelfBindingBehavior implements BindingBehaviorInstance {
+  public static readonly $au: BindingBehaviorStaticAuDefinition = {
+    type: behaviorTypeName,
+    name: 'self',
+  };
+
   public bind(_scope: Scope, binding: ListenerBinding): void {
-    if (!(binding instanceof ListenerBinding)) {
+    if (!('handleEvent' in binding)) {
       throw createMappedError(ErrorNames.self_behavior_invalid_usage);
     }
 
@@ -17,5 +22,3 @@ export class SelfBindingBehavior implements BindingBehaviorInstance {
     binding.self = false;
   }
 }
-
-bindingBehavior('self')(SelfBindingBehavior);

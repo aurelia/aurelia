@@ -12,7 +12,7 @@ In some cases, you want to make an impact on the value that is binding. For such
 
 Suppose you have a `carousel` component in which you want to enable `navigator` feature for it. You probably imagine such a thing for yourself.
 
-```markup
+```html
 <!-- Enable -->
 <my-carousel navigator.bind="true">
 <my-carousel navigator="true">

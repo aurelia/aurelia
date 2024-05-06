@@ -2,10 +2,12 @@
 import { DI, IContainer, IRegistration, IRegistry, Registration } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
 import {
-  ITemplateCompiler,
   IPlatform,
   StandardConfiguration,
 } from '@aurelia/runtime-html';
+import {
+  ITemplateCompiler,
+} from '@aurelia/template-compiler';
 
 export class TestContext {
   public static readonly ambient: TestContext;
@@ -17,6 +19,9 @@ export class TestContext {
   public get UIEvent() { return this.platform.globalThis.UIEvent; }
   public get Event() { return this.platform.globalThis.Event; }
   public get CustomEvent() { return this.platform.globalThis.CustomEvent; }
+  public get KeyboardEvent() { return this.platform.globalThis.KeyboardEvent; }
+  public get MouseEvent() { return this.platform.globalThis.MouseEvent; }
+  public get SubmitEvent() { return this.platform.globalThis.SubmitEvent; }
   public get Node() { return this.platform.globalThis.Node; }
   public get Element() { return this.platform.globalThis.Element; }
   public get HTMLElement() { return this.platform.globalThis.HTMLElement; }

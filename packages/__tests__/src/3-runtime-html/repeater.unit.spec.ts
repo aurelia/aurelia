@@ -1,5 +1,8 @@
-import { Scope, AccessScopeExpression, ForOfStatement, BindingIdentifier, BindingContext, DirtyChecker, IExpressionParser } from '@aurelia/runtime';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { DirtyChecker } from '@aurelia/runtime';
 import {
+  Scope,
+  BindingContext,
   Repeat,
   Controller,
   CustomElementDefinition,
@@ -7,15 +10,15 @@ import {
   IRenderLocation,
   PropertyBindingRenderer,
   TextBindingRenderer,
-  TextBindingInstruction,
   NodeObserverLocator,
   IRendering,
   PropertyBinding,
-  HydrateTemplateController,
-  IInstruction,
-  IController,
-  IViewFactory,
 } from '@aurelia/runtime-html';
+import {
+  TextBindingInstruction,
+  HydrateTemplateController,
+  ITemplateCompiler,
+} from '@aurelia/template-compiler';
 import {
   eachCartesianJoin,
   assert,
@@ -503,6 +506,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     NodeObserverLocator,
     PropertyBindingRenderer,
     TextBindingRenderer,
+    Registration.instance(ITemplateCompiler, { compile: (d) => d }),
   );
 
   const createStartLocation = () => PLATFORM.document.createComment('au-start');

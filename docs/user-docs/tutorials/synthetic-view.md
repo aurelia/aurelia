@@ -173,6 +173,7 @@ To this end, we inject a `IPlatform` instance to our `App` instead of directly u
 {% tabs %}
 {% tab title="app.ts" %}
 ```typescript
+import { resolve } from 'aurelia';
 import {
   IPlatform,
   //...
@@ -180,10 +181,7 @@ import {
 //...
 
 export class App {
-  //...
-  public constructor(
-    @IPlatform private readonly platform: IPlatform,
-  ){}
+  private readonly platform: IPlatform = resolve(IPlatform);
 }
 ```
 {% endtab %}
@@ -275,15 +273,12 @@ import {
 } from '@aurelia/runtime-html';
 import {
   IContainer,
+  resolve,
   //...
 } from 'aurelia';
 //...
 export class App {
-  //...
-  public constructor(
-    @IContainer private readonly container: IContainer,
-    //...
-  ){}
+  private readonly platform: IPlatform = resolve(IPlatform);
 
   public async add() {
     //...
@@ -429,14 +424,15 @@ In an application where the form fields need to be generated based on user selec
 ```typescript
 // app.ts
 import { customElement, ICustomElementViewModel, ICustomElementController, LifecycleFlags, Scope, ISyntheticView, ViewFactory, convertToRenderLocation, IPlatform } from '@aurelia/runtime-html';
-import { IContainer } from 'aurelia';
+import { IContainer, resolve } from 'aurelia';
 
 @customElement({ name: 'app', template: '<div ref="containerEl"></div>' })
 export class App implements ICustomElementViewModel {
   private containerEl: HTMLElement;
   private view: ISyntheticView | undefined;
 
-  constructor(@IPlatform private readonly platform: IPlatform, @IContainer private readonly container: IContainer) {}
+  private readonly platform: IPlatform = resolve(IPlatform);
+  private readonly container: IContainer = resolve(IContainer);
 
   public attached() {
     this.addDynamicForm();
@@ -471,7 +467,7 @@ This example illustrates a scenario where a component needs to display real-time
 ```typescript
 // app.ts
 import { customElement, ICustomElementViewModel, ICustomElementController, LifecycleFlags, Scope, ISyntheticView, ViewFactory, convertToRenderLocation, IPlatform } from '@aurelia/runtime-html';
-import { IContainer } from 'aurelia';
+import { IContainer, resolve } from 'aurelia';
 
 interface LiveData {
   id: number;
@@ -484,7 +480,10 @@ export class LiveDataApp implements ICustomElementViewModel {
   private view: ISyntheticView | undefined;
   private liveData: LiveData[] = [];
 
-  constructor(@IPlatform private readonly platform: IPlatform, @IContainer private readonly container: IContainer) {
+  private readonly platform: IPlatform = resolve(IPlatform);
+  private readonly container: IContainer = resolve(IContainer);
+
+  constructor() {
     // Simulate live data updates
     setInterval(() => this.updateLiveData(), 1000);
   }

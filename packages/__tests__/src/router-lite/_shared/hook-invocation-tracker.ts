@@ -1,4 +1,4 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, Writable, resolve } from '@aurelia/kernel';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export type HookName = (
@@ -96,10 +96,8 @@ export class HookInvocationAggregator {
   public readonly notifyHistory: string[] = [];
   public phase: string = '';
 
-  public constructor(
-    @IPlatform public readonly platform: IPlatform,
-    @IHIAConfig public readonly config: IHIAConfig,
-  ) {}
+  public readonly platform: IPlatform = resolve(IPlatform);
+  public readonly config: IHIAConfig = resolve(IHIAConfig);
 
   public readonly binding: HookInvocationTracker = new HookInvocationTracker(this, 'binding');
   public readonly bound: HookInvocationTracker = new HookInvocationTracker(this, 'bound');

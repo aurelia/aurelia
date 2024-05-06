@@ -1,4 +1,4 @@
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 
 describe('2-runtime/binding-context.spec.ts', function () {

@@ -1,5 +1,4 @@
 import {
-  Constructable,
   DI,
   type IContainer,
   ILogger,
@@ -8,9 +7,7 @@ import {
   InstanceProvider,
   noop,
   onResolve,
-  Protocol,
   Registration,
-  ResourceDefinition,
   emptyObject,
   emptyArray,
 } from '@aurelia/kernel';
@@ -199,8 +196,6 @@ export class RouteContext {
     const ctxProvider = new InstanceProvider<IRouteContext>('IRouteContext', this);
     container.registerResolver(IRouteContext, ctxProvider);
     container.registerResolver(RouteContext, ctxProvider);
-
-    container.register(config);
 
     this._recognizer = new RouteRecognizer();
 
@@ -392,8 +387,8 @@ export class RouteContext {
     if (__DEV__) trace(this._logger, Events.rcCreateCa, routeNode);
 
     this._hostControllerProvider.prepare(hostController);
-    const container = this.container;
-    const componentInstance = container.get<IRouteViewModel>(routeNode.component.key);
+    const container = this.container.createChild({ inheritParentResources: true });
+    const componentInstance = container.invoke<IRouteViewModel>(routeNode.component.Type);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     const task: Promise<void> | void = this._childRoutesConfigured
       ? void 0
@@ -490,21 +485,24 @@ export class RouteContext {
       // when we have import('./some-path').then(x => x.somethingSpecific)
       const raw = m.raw;
       if (typeof raw === 'function') {
-        const def = Protocol.resource.getAll(raw as Constructable).find(isCustomElementDefinition);
-        if (def !== void 0) return def;
+        const def = CustomElement.isType(raw) ? CustomElement.getDefinition(raw) : null;
+        if (def != null) return def;
       }
 
       let defaultExport: CustomElementDefinition | undefined = void 0;
       let firstNonDefaultExport: CustomElementDefinition | undefined = void 0;
       for (const item of m.items) {
-        if (item.isConstructable) {
-          const def = item.definitions.find(isCustomElementDefinition);
-          if (def !== void 0) {
-            if (item.key === 'default') {
-              defaultExport = def;
-            } else if (firstNonDefaultExport === void 0) {
-              firstNonDefaultExport = def;
-            }
+        const def = (CustomElement.isType(item.value)
+          // static resource API may require to change this item.definition
+          // into CustomElement.getDefinition(item.value) or CustomElement.getOrCreateDefinition(item.value)
+          ? item.definition
+          : null
+        ) as CustomElementDefinition;
+        if (def != null) {
+          if (item.key === 'default') {
+            defaultExport = def;
+          } else if (firstNonDefaultExport === void 0) {
+            firstNonDefaultExport = def;
           }
         }
       }
@@ -662,10 +660,6 @@ export class RouteContext {
     }
     return tree.join('\n');
   }
-}
-
-function isCustomElementDefinition(value: ResourceDefinition): value is CustomElementDefinition {
-  return CustomElement.isType(value.Type);
 }
 
 export class $RecognizedRoute {

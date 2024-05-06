@@ -271,12 +271,13 @@ If the user agrees to navigate way, then the navigation is performed.
 The navigation is cancelled, if the user does not confirm.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export class ChildOne implements IRouteViewModel {
 
-  public constructor(@IPlatform private readonly platform: IPlatform) {}
+  private readonly platform: IPlatform = resolve(IPlatform);
 
   public canUnload(next: RouteNode, current: RouteNode): boolean {
     const from = current.computeAbsolutePath();

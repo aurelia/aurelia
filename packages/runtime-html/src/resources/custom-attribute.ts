@@ -1,36 +1,31 @@
-import { mergeArrays, firstDefined, Key } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
-import { getRef } from '../dom';
-import { appendResourceKey, defineMetadata, getAnnotationKeyFor, getOwnMetadata, getResourceKeyFor, hasOwnMetadata } from '../utilities-metadata';
+import { INode, getEffectiveParentNode, getRef } from '../dom';
+import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { isFunction, isString, objectFreeze } from '../utilities';
-import { aliasRegistration, registerAliases, transientRegistration } from '../utilities-di';
-import { type BindingMode, toView } from '../binding/interfaces-bindings';
+import { aliasRegistration, singletonRegistration } from '../utilities-di';
+import { defaultMode, toView, BindingMode } from '../binding/interfaces-bindings';
 
 import type {
   Constructable,
   IContainer,
-  IResourceKind,
   ResourceDefinition,
   PartialResourceDefinition,
   ResourceType,
+  StaticResourceType,
 } from '@aurelia/kernel';
 import type { BindableDefinition, PartialBindableDefinition } from '../bindable';
-import type { ICustomAttributeViewModel, ICustomAttributeController } from '../templating/controller';
+import type { ICustomAttributeViewModel, ICustomAttributeController, Controller } from '../templating/controller';
 import type { IWatchDefinition } from '../watch';
 import { ErrorNames, createMappedError } from '../errors';
-import { dtAttribute } from './resources-shared';
+import { dtAttribute, getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
+import { IAttributeComponentDefinition } from '@aurelia/template-compiler';
 
-declare module '@aurelia/kernel' {
-  interface IContainer {
-    find<T extends ICustomAttributeViewModel>(kind: typeof CustomAttribute, name: string): CustomAttributeDefinition<Constructable<T>> | null;
-  }
-}
-
-export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
-  readonly defaultBindingMode?: BindingMode;
+export type PartialCustomAttributeDefinition<TBindables extends string = string> = PartialResourceDefinition<Omit<IAttributeComponentDefinition, 'type'> & {
+  readonly defaultBindingMode?: string | number;
   readonly isTemplateController?: boolean;
-  readonly bindables?: Record<string, PartialBindableDefinition> | readonly string[];
+  readonly bindables?: (Record<TBindables, true | Omit<PartialBindableDefinition, 'name'>>) | (TBindables | PartialBindableDefinition & { name: TBindables })[];
   /**
    * A config that can be used by template compliler to change attr value parsing mode
    * `true` to always parse as a single value, mostly will be string in URL scenario
@@ -47,23 +42,41 @@ export type PartialCustomAttributeDefinition = PartialResourceDefinition<{
   readonly noMultiBindings?: boolean;
   readonly watches?: IWatchDefinition[];
   readonly dependencies?: readonly Key[];
+  /**
+   * **Only used by template controller custom attributes.**
+   *
+   * Container strategy for the view factory of this template controller.
+   *
+   * By default, the view factory will be reusing the container of the parent view (controller),
+   * as this container has information about the resources registered.
+   *
+   * Specify `'new'` to create a new container for the view factory.
+   */
+  readonly containerStrategy?: 'reuse' | 'new';
 }>;
 
+export type CustomAttributeStaticAuDefinition<TBindables extends string = string> = PartialCustomAttributeDefinition<TBindables> & {
+  type: 'custom-attribute';
+};
+
 export type CustomAttributeType<T extends Constructable = Constructable> = ResourceType<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition>;
-export type CustomAttributeKind = IResourceKind<CustomAttributeType, CustomAttributeDefinition> & {
+export type CustomAttributeKind = IResourceKind & {
   for<C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, Type: CustomAttributeType<TType>): ICustomAttributeController<InstanceType<TType>> | null;
+  closest<A extends object | Constructable, TType extends A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A> = A extends Constructable<infer T extends object> ? Constructable<T> : Constructable<A>>(node: Node, name: string): ICustomAttributeController<InstanceType<TType>> | null;
   isType<T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never);
   define<T extends Constructable>(name: string, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(def: PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
   define<T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T>;
-  getDefinition<T extends Constructable>(Type: T): CustomAttributeDefinition<T>;
+  getDefinition<T extends Constructable>(Type: T, context?: DecoratorContext | null): CustomAttributeDefinition<T>;
   // eslint-disable-next-line
-  getDefinition<T extends Constructable>(Type: Function): CustomAttributeDefinition<T>;
+  getDefinition<T extends Constructable>(Type: Function, context?: DecoratorContext | null): CustomAttributeDefinition<T>;
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void;
-  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K): PartialCustomAttributeDefinition[K];
+  getAnnotation<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, context: DecoratorContext | undefined | null): PartialCustomAttributeDefinition[K] | undefined;
+  find(c: IContainer, name: string): CustomAttributeDefinition | null;
 };
 
-export type CustomAttributeDecorator = <T extends Constructable>(Type: T) => CustomAttributeType<T>;
+export type CustomAttributeDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => CustomAttributeType<T>;
 
 /**
  * Decorator: Indicates that the decorated class is a custom attribute.
@@ -72,8 +85,11 @@ export function customAttribute(definition: PartialCustomAttributeDefinition): C
 export function customAttribute(name: string): CustomAttributeDecorator;
 export function customAttribute(nameOrDef: string | PartialCustomAttributeDefinition): CustomAttributeDecorator;
 export function customAttribute(nameOrDef: string | PartialCustomAttributeDefinition): CustomAttributeDecorator {
-  return function (target) {
-    return defineAttribute(nameOrDef, target);
+  return function <T extends Constructable>(target: T, context: ClassDecoratorContext): CustomAttributeType<T> {
+    context.addInitializer(function (this) {
+      defineAttribute(nameOrDef, this as Constructable);
+    });
+    return target as CustomAttributeType<T>;
   };
 }
 
@@ -82,23 +98,26 @@ export function customAttribute(nameOrDef: string | PartialCustomAttributeDefini
  * attribute is placed on should be converted into a template and that this
  * attribute controls the instantiation of the template.
  */
-export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
+export function templateController(definition: Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator;
 export function templateController(name: string): CustomAttributeDecorator;
-export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator;
-export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController'>): CustomAttributeDecorator {
-  return function (target) {
-    return defineAttribute(
-      isString(nameOrDef)
-        ? { isTemplateController: true, name: nameOrDef }
-        : { isTemplateController: true, ...nameOrDef },
-      target
-    );
-  };
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator;
+export function templateController(nameOrDef: string | Omit<PartialCustomAttributeDefinition, 'isTemplateController' | 'type'>): CustomAttributeDecorator {
+  return function (target, context) {
+    context.addInitializer(function (this) {
+      defineAttribute(
+        isString(nameOrDef)
+          ? { isTemplateController: true, name: nameOrDef }
+          : { isTemplateController: true, ...nameOrDef },
+        this as Constructable,
+      );
+    });
+    return target;
+  } as CustomAttributeDecorator;
 }
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
-  public get type(): 'Attribute' { return dtAttribute; }
+  public get type(): 'custom-attribute' { return dtAttribute; }
 
   private constructor(
     public readonly Type: CustomAttributeType<T>,
@@ -111,6 +130,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     public readonly noMultiBindings: boolean,
     public readonly watches: IWatchDefinition[],
     public readonly dependencies: Key[],
+    public readonly containerStrategy: 'reuse' | 'new',
   ) {}
 
   public static create<T extends Constructable = Constructable>(
@@ -127,25 +147,38 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
       def = nameOrDef;
     }
 
+    const mode = firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView) as string | BindingMode;
+
     return new CustomAttributeDefinition(
       Type,
       firstDefined(getAttributeAnnotation(Type, 'name'), name),
       mergeArrays(getAttributeAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       getAttributeKeyFrom(name),
-      firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView),
+      isString(mode) ? BindingMode[mode as keyof typeof BindingMode] ?? defaultMode : mode,
       firstDefined(getAttributeAnnotation(Type, 'isTemplateController'), def.isTemplateController, Type.isTemplateController, false),
-      Bindable.from(Type, ...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
+      Bindable.from(...Bindable.getAll(Type), getAttributeAnnotation(Type, 'bindables'), Type.bindables, def.bindables),
       firstDefined(getAttributeAnnotation(Type, 'noMultiBindings'), def.noMultiBindings, Type.noMultiBindings, false),
-      mergeArrays(Watch.getAnnotation(Type), Type.watches),
+      mergeArrays(Watch.getDefinitions(Type), Type.watches),
       mergeArrays(getAttributeAnnotation(Type, 'dependencies'), def.dependencies, Type.dependencies),
+      firstDefined(getAttributeAnnotation(Type, 'containerStrategy'), def.containerStrategy, Type.containerStrategy, 'reuse'),
     );
   }
 
-  public register(container: IContainer): void {
-    const { Type, key, aliases } = this;
-    transientRegistration(key, Type).register(container);
-    aliasRegistration(key, Type).register(container);
-    registerAliases(aliases, CustomAttribute, key, container);
+  public register(container: IContainer, aliasName?: string | undefined): void {
+    const $Type = this.Type;
+    const key = typeof aliasName === 'string' ? getAttributeKeyFrom(aliasName) : this.key;
+    const aliases = this.aliases;
+
+    if (!container.has(key, false)) {
+      container.register(
+        container.has($Type, false) ? null : singletonRegistration($Type, $Type),
+        aliasRegistration($Type, key),
+        ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
+      );
+    } /* istanbul ignore next */ else if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, this.name)}`);
+    }
   }
 
   public toString() {
@@ -153,20 +186,21 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
   }
 }
 
-/** @internal */
-export const caBaseName = getResourceKeyFor('custom-attribute');
-
-/** @internal */
-export const getAttributeKeyFrom = (name: string): string => `${caBaseName}:${name}`;
+/** @internal */ export const attrTypeName = 'custom-attribute';
+const attributeBaseName = /*@__PURE__*/getResourceKeyFor(attrTypeName);
+const getAttributeKeyFrom = (name: string): string => `${attributeBaseName}:${name}`;
 
 const getAttributeAnnotation = <K extends keyof PartialCustomAttributeDefinition>(
   Type: Constructable,
   prop: K,
-): PartialCustomAttributeDefinition[K] =>getOwnMetadata(getAnnotationKeyFor(prop), Type);
+): PartialCustomAttributeDefinition[K] | undefined => getMetadata(getAnnotationKeyFor(prop), Type);
 
 /** @internal */
 export const isAttributeType = <T>(value: T): value is (T extends Constructable ? CustomAttributeType<T> : never) => {
-  return isFunction(value) && hasOwnMetadata(caBaseName, value);
+  return isFunction(value) && (
+    hasMetadata(attributeBaseName, value)
+    || (value as StaticResourceType).$au?.type === attrTypeName
+  );
 };
 
 /** @internal */
@@ -177,17 +211,18 @@ export const findAttributeControllerFor = <C extends ICustomAttributeViewModel =
 /** @internal */
 export const defineAttribute = <T extends Constructable>(nameOrDef: string | PartialCustomAttributeDefinition, Type: T): CustomAttributeType<T> => {
   const definition = CustomAttributeDefinition.create(nameOrDef, Type as Constructable);
-  defineMetadata(caBaseName, definition, definition.Type);
-  defineMetadata(caBaseName, definition, definition);
-  appendResourceKey(Type, caBaseName);
+  const $Type = definition.Type as CustomAttributeType<T>;
 
-  return definition.Type as CustomAttributeType<T>;
+  defineMetadata(definition, $Type, attributeBaseName, resourceBaseName);
+
+  return $Type;
 };
 
 /** @internal */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const getAttributeDefinition = <T extends Constructable>(Type: T | Function): CustomAttributeDefinition<T> => {
-  const def = getOwnMetadata(caBaseName, Type) as CustomAttributeDefinition<T>;
+  const def: CustomAttributeDefinition<T> = getMetadata<CustomAttributeDefinition<T>>(attributeBaseName, Type)
+    ?? getDefinitionFromStaticAu(Type as CustomAttributeType<T>, attrTypeName, CustomAttributeDefinition.create);
   if (def === void 0) {
     throw createMappedError(ErrorNames.attribute_def_not_found, Type);
   }
@@ -195,15 +230,48 @@ export const getAttributeDefinition = <T extends Constructable>(Type: T | Functi
   return def;
 };
 
-export const CustomAttribute = objectFreeze<CustomAttributeKind>({
-  name: caBaseName,
+const findClosestControllerByName = (node: Node, attrNameOrType: string | CustomAttributeType): ICustomAttributeController | null => {
+  let key = '';
+  let attrName = '';
+  if (isString(attrNameOrType)) {
+    key = getAttributeKeyFrom(attrNameOrType);
+    attrName = attrNameOrType;
+  } else {
+    const definition = getAttributeDefinition(attrNameOrType);
+    key = definition.key;
+    attrName = definition.name;
+  }
+  let cur = node as INode | null;
+  while (cur !== null) {
+    const controller = getRef(cur, key) as Controller | null;
+    if (controller?.is(attrName)) {
+      return controller as ICustomAttributeController;
+    }
+
+    cur = getEffectiveParentNode(cur);
+  }
+
+  return null;
+};
+
+export const CustomAttribute = /*@__PURE__*/ objectFreeze<CustomAttributeKind>({
+  name: attributeBaseName,
   keyFrom: getAttributeKeyFrom,
   isType: isAttributeType,
   for: findAttributeControllerFor,
+  closest: findClosestControllerByName,
   define: defineAttribute,
   getDefinition: getAttributeDefinition,
   annotate<K extends keyof PartialCustomAttributeDefinition>(Type: Constructable, prop: K, value: PartialCustomAttributeDefinition[K]): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, Type);
+    defineMetadata(value, Type, getAnnotationKeyFor(prop));
   },
   getAnnotation: getAttributeAnnotation,
+  find(c, name) {
+    const Type = c.find<CustomAttributeType>(attrTypeName, name);
+    return Type === null
+      ? null
+      : getMetadata<CustomAttributeDefinition>(attributeBaseName, Type)
+      ?? getDefinitionFromStaticAu<CustomAttributeDefinition>(Type, attrTypeName, CustomAttributeDefinition.create)
+      ?? null;
+  },
 });

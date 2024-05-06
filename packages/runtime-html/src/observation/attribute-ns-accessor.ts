@@ -10,6 +10,9 @@ const nsMap: Record<string, AttributeNSAccessor> = createLookup();
  * Wraps [`getAttributeNS`](https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttributeNS).
  */
 export class AttributeNSAccessor implements IAccessor<string | null> {
+  static {
+    mixinNoopSubscribable(AttributeNSAccessor);
+  }
 
   public static forNs(ns: string): AttributeNSAccessor {
     return nsMap[ns] ??= new AttributeNSAccessor(ns);
@@ -39,5 +42,3 @@ export class AttributeNSAccessor implements IAccessor<string | null> {
     }
   }
 }
-
-mixinNoopSubscribable(AttributeNSAccessor);

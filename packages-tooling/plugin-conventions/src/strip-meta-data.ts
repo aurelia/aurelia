@@ -5,6 +5,7 @@ import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 interface IStrippedHtml {
   html: string;
   deps: string[];
+  depsAliases: AliasedModule;
   shadowMode: 'open' | 'closed' | null;
   containerless: boolean;
   hasSlot: boolean;
@@ -13,8 +14,16 @@ interface IStrippedHtml {
   capture: boolean;
 }
 
+type AliasedImports = Record<string, string | null> & {
+  __MAIN__: string | null;
+};
+
+type AliasedModule = Record<string, AliasedImports>;
+
 export function stripMetaData(rawHtml: string): IStrippedHtml {
   const deps: string[] = [];
+  // a map of string module name to its corresponding map of exports aliases
+  const depsAliases: AliasedModule = { };
   let shadowMode: 'open' | 'closed' | null = null;
   let containerless: boolean = false;
   let hasSlot: boolean = false;
@@ -25,8 +34,17 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true });
 
   traverse(tree, node => {
-    stripImport(node, (dep, ranges) => {
-      if (dep) deps.push(dep);
+    stripImport(node, (dep, aliases, ranges) => {
+      if (dep) {
+        deps.push(dep);
+        if (aliases != null) {
+          // when a module is imported twicce
+          // <import from="abc" as="...">
+          // <import from="abc" x.as="y" z.as="zz">
+          // or throw?
+          depsAliases[dep] = { ...depsAliases[dep], ...aliases};
+        }
+      }
       toRemove.push(...ranges);
     });
 
@@ -68,9 +86,10 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   });
   html += rawHtml.slice(lastIdx);
 
-  return { html, deps, shadowMode, containerless, hasSlot, bindables, aliases, capture };
+  return { html, deps, depsAliases, shadowMode, containerless, hasSlot, bindables, aliases, capture };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
   // eslint-disable-next-line
   tree.childNodes.forEach((n: any) => {
@@ -120,9 +139,25 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
 // <require from="./foo">
 // <import from="./foo"></import>
 // <require from="./foo"></require>
-function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, ranges: [number, number][]) => void) {
+// <require from="./foo" as="bar"></require>
+// <require from="./foo" baz.as="bar"></require>
+function stripImport(node: DefaultTreeElement, cb: (dep: string | undefined, aliases: AliasedImports | null, ranges: [number, number][]) => void) {
   return stripTag(node, ['import', 'require'], (attrs, ranges) => {
-    cb(attrs.from, ranges);
+    const aliases: AliasedImports = { __MAIN__: null };
+    let aliasCount = 0;
+    Object.keys(attrs).forEach(attr => {
+      if (attr === 'from') {
+        return;
+      }
+      if (attr === 'as') {
+        aliases.__MAIN__ = attrs[attr];
+        aliasCount++;
+      } else if (attr.endsWith('.as')) {
+        aliases[attr.slice(0, -3)] = attrs[attr];
+        aliasCount++;
+      }
+    });
+    cb(attrs.from, aliasCount > 0 ? aliases : null, ranges);
   });
 }
 

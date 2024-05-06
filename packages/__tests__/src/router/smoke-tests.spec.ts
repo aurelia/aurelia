@@ -72,25 +72,25 @@ function assertIsActive(
 
 describe('router/smoke-tests.spec.ts', function () {
   describe('without any configuration, deps registered globally', function () {
-    @customElement({ name: name(A01), template: `${name(A01)}${vp(0)}` })
+    @customElement({ name: 'a01', template: `a01${vp(0)}` })
     class A01 { }
-    @customElement({ name: name(A02), template: `${name(A02)}${vp(0)}` })
+    @customElement({ name: 'a02', template: `a02${vp(0)}` })
     class A02 { }
     const A0 = [A01, A02];
 
-    @customElement({ name: name(Root1), template: `${name(Root1)}${vp(1)}` })
+    @customElement({ name: 'root1', template: `root1${vp(1)}` })
     class Root1 { }
-    @customElement({ name: name(A11), template: `${name(A11)}${vp(1)}` })
+    @customElement({ name: 'a11', template: `a11${vp(1)}` })
     class A11 { }
-    @customElement({ name: name(A12), template: `${name(A12)}${vp(1)}` })
+    @customElement({ name: 'a12', template: `a12${vp(1)}` })
     class A12 { }
     const A1 = [A11, A12];
 
-    @customElement({ name: name(Root2), template: `${name(Root2)}${vp(2)}` })
+    @customElement({ name: 'root2', template: `root2${vp(2)}` })
     class Root2 { }
-    @customElement({ name: name(A21), template: `${name(A21)}${vp(2)}` })
+    @customElement({ name: 'a21', template: `a21${vp(2)}` })
     class A21 { }
-    @customElement({ name: name(A22), template: `${name(A22)}${vp(2)}` })
+    @customElement({ name: 'a22', template: `a22${vp(2)}` })
     class A22 { }
     const A2 = [A21, A22];
 

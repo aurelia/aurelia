@@ -1,20 +1,40 @@
 import { IContainer, resolve } from '@aurelia/kernel';
-import { IExpressionParser, IObserverLocator } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IObserverLocator } from '@aurelia/runtime';
 
 import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
 import { IPlatform } from '../platform';
-import { ICompliationInstruction, IInstruction, IRenderer, ITemplateCompiler } from '../renderer';
+import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { createLookup, isString } from '../utilities';
 import { IViewFactory, ViewFactory } from './view';
 import type { IHydratableController } from './controller';
 import { createInterface } from '../utilities-di';
 import { ErrorNames, createMappedError } from '../errors';
+import { IInstruction, ITemplateCompiler } from '@aurelia/template-compiler';
 
 export const IRendering = /*@__PURE__*/createInterface<IRendering>('IRendering', x => x.singleton(Rendering));
-export interface IRendering extends Rendering { }
+export interface IRendering {
+  get renderers(): Record<string, IRenderer>;
 
-export class Rendering {
+  compile(
+    definition: CustomElementDefinition,
+    container: IContainer,
+  ): CustomElementDefinition;
+
+  getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory;
+
+  createNodes(definition: CustomElementDefinition): INodeSequence;
+
+  render(
+    controller: IHydratableController,
+    targets: ArrayLike<INode>,
+    definition: CustomElementDefinition,
+    host: INode | null | undefined,
+  ): void;
+}
+
+export class Rendering implements IRendering {
   /** @internal */
   private readonly _ctn: IContainer;
   /** @internal */
@@ -31,43 +51,49 @@ export class Rendering {
   private readonly _fragmentCache: WeakMap<CustomElementDefinition, DocumentFragment | null> = new WeakMap();
   /** @internal */
   private readonly _empty: INodeSequence;
+  /** @internal */
+  private readonly _marker: Node;
 
   public get renderers(): Record<string, IRenderer> {
     return this._renderers ??= this._ctn.getAll(IRenderer, false).reduce((all, r) => {
-      all[r.target] = r;
+      if (__DEV__) {
+        if (all[r.target] !== void 0) {
+          // eslint-disable-next-line no-console
+          console.warn(`[DEV:aurelia] Renderer for target ${r.target} already exists.`);
+        }
+      }
+      all[r.target] ??= r;
       return all;
     }, createLookup<IRenderer>());
   }
 
   public constructor() {
     const ctn = this._ctn = resolve(IContainer).root;
-    this._platform = ctn.get(IPlatform);
+    const p = this._platform = ctn.get(IPlatform);
     this._exprParser= ctn.get(IExpressionParser);
     this._observerLocator = ctn.get(IObserverLocator);
-    this._empty = new FragmentNodeSequence(this._platform, this._platform.document.createDocumentFragment());
+    this._marker = p.document.createElement('au-m');
+    this._empty = new FragmentNodeSequence(p, p.document.createDocumentFragment());
   }
 
   public compile(
-    definition: PartialCustomElementDefinition,
+    definition: CustomElementDefinition,
     container: IContainer,
-    compilationInstruction: ICompliationInstruction | null,
   ): CustomElementDefinition {
-    if (definition.needsCompile !== false) {
-      const compiledMap = this._compilationCache;
-      const compiler = container.get(ITemplateCompiler);
-      let compiled = compiledMap.get(definition);
-      if (compiled == null) {
-        compiledMap.set(definition, compiled = compiler.compile(definition, container, compilationInstruction));
-      } else {
-        // todo:
-        // should only register if the compiled def resolution is string
-        // instead of direct resources
-        container.register(...compiled.dependencies);
-      }
-      return compiled;
+    const compiler = container.get(ITemplateCompiler);
+    const compiledMap = this._compilationCache;
+    let compiled = compiledMap.get(definition);
+    if (compiled == null) {
+      compiledMap.set(definition, compiled = CustomElementDefinition.create(
+        definition.needsCompile
+          ? compiler.compile(
+            definition,
+            container,
+          )
+          : definition
+      ));
     }
-
-    return definition as CustomElementDefinition;
+    return compiled;
   }
 
   public getViewFactory(definition: PartialCustomElementDefinition, container: IContainer): IViewFactory {
@@ -88,7 +114,7 @@ export class Rendering {
     } else {
       const template = definition.template;
       let tpl: HTMLTemplateElement;
-      if (template === null) {
+      if (template == null) {
         fragment = null;
       } else if (template instanceof p.Node) {
         if (template.nodeName === 'TEMPLATE') {
@@ -169,51 +195,60 @@ export class Rendering {
   }
 
   /** @internal */
-  private _marker() {
-    return this._platform.document.createElement('au-m');
-  }
-
-  /** @internal */
   private _transformMarker(fragment: Node | null) {
     if (fragment == null) {
       return null;
     }
-    let parent: Node = fragment;
-    let current: Node | null | undefined = parent.firstChild;
-    let next: Node | null | undefined = null;
-
-    while (current != null) {
-      if (current.nodeType === 8 && current.nodeValue === 'au*') {
-        next = current.nextSibling!;
-        parent.removeChild(current);
-        parent.insertBefore(this._marker(), next);
-        if (next.nodeType === 8) {
-          current = next.nextSibling;
-          // todo: maybe validate?
-        } else {
-          current = next;
-        }
-      }
-
-      next = current?.firstChild;
-      if (next == null) {
-        next = current?.nextSibling;
-        if (next == null) {
-          current = parent.nextSibling;
-          parent = parent.parentNode!;
-          // needs to keep walking up all the way til a valid next node
-          while (current == null && parent != null) {
-            current = parent.nextSibling;
-            parent = parent.parentNode!;
-          }
-        } else {
-          current = next;
-        }
-      } else {
-        parent = current!;
-        current = next;
+    const walker = this._platform.document.createTreeWalker(fragment, /* NodeFilter.SHOW_COMMENT */ 128);
+    let currentNode: Node | null;
+    while ((currentNode = walker.nextNode()) != null) {
+      if (currentNode.nodeValue === 'au*') {
+        currentNode.parentNode!.replaceChild(walker.currentNode = this._marker.cloneNode(), currentNode);
       }
     }
     return fragment;
+    // below is a homemade "comment query selector that seems to be as efficient as the TreeWalker
+    // also it works with very minimal set of APIs (.nextSibling, .parentNode, .insertBefore, .removeChild)
+    // while TreeWalker maynot be always available in platform that we may potentially support
+    //
+    // so leaving it here just in case we need it again, TreeWalker is slightly less code
+
+    // let parent: Node = fragment;
+    // let current: Node | null | undefined = parent.firstChild;
+    // let next: Node | null | undefined = null;
+
+    // while (current != null) {
+    //   if (current.nodeType === 8 && current.nodeValue === 'au*') {
+    //     next = current.nextSibling!;
+    //     parent.removeChild(current);
+    //     parent.insertBefore(this._marker(), next);
+    //     if (next.nodeType === 8) {
+    //       current = next.nextSibling;
+    //       // todo: maybe validate?
+    //     } else {
+    //       current = next;
+    //     }
+    //   }
+
+    //   next = current?.firstChild;
+    //   if (next == null) {
+    //     next = current?.nextSibling;
+    //     if (next == null) {
+    //       current = parent.nextSibling;
+    //       parent = parent.parentNode!;
+    //       // needs to keep walking up all the way til a valid next node
+    //       while (current == null && parent != null) {
+    //         current = parent.nextSibling;
+    //         parent = parent.parentNode!;
+    //       }
+    //     } else {
+    //       current = next;
+    //     }
+    //   } else {
+    //     parent = current!;
+    //     current = next;
+    //   }
+    // }
+    // return fragment;
   }
 }

@@ -20,10 +20,8 @@ import {
   CallMemberExpression,
   CallScopeExpression,
   ConditionalExpression,
-  IConnectableBinding,
   // IsBinary,
   IsBindingBehavior,
-  Scope,
   IsLeftHandSide,
   // IsPrimary,
   // IsUnary,
@@ -38,13 +36,11 @@ import {
   DestructuringAssignmentExpression,
   ArrowFunction,
   BindingIdentifier,
-  IAstEvaluator,
   Unparser,
-  astEvaluate,
-  astAssign,
-  astBind,
   AccessBoundaryExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
+import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { type IAstEvaluator, astAssign, astEvaluate, astBind, IBinding, Scope } from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -67,11 +63,11 @@ const dummyLocatorThatReturnsNull = {
 const dummyBinding = {
   observe: () => { return; },
   locator: dummyLocator
-} as unknown as IConnectableBinding;
+} as unknown as IBinding & IObserverLocatorBasedConnectable;
 const dummyBindingWithLocatorThatReturnsNull = {
   observe: () => { return; },
   locator: dummyLocatorThatReturnsNull,
-} as unknown as IConnectableBinding;
+} as unknown as IBinding & IObserverLocatorBasedConnectable;
 const dummyScope = Scope.create({});
 
 function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {

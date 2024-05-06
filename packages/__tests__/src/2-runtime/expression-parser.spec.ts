@@ -31,7 +31,7 @@ import {
   IsBindingBehavior,
   ArrowFunction,
   AccessBoundaryExpression,
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import {
   assert,
 } from '@aurelia/testing';

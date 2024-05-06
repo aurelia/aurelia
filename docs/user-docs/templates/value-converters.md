@@ -22,7 +22,7 @@ To apply a value converter, you use the pipe `|` character followed by the name 
 
 While Aurelia itself comes with no prebuilt value converters, this is what using them looks like for an imaginary value converter that converts a string to lowercase.
 
-```markup
+```html
 <h1>${someValue | toLowercase}</h1>
 ```
 
@@ -42,7 +42,7 @@ export class ToLowercaseValueConverter {
 
 Value converters can be chained, meaning you can transform a value and then transform it through another value converter. To chain value converters, you separate your value converters using the pipe `|`. In this fictitious example, we are making our value lowercase and then running it through another value converter called bold which will wrap it in `strong` tags to make it bold.
 
-```markup
+```html
 <h1>${someValue | toLowercase | bold }</h1>
 ```
 
@@ -54,7 +54,7 @@ Parameters are supplied using the colon `:` character, and like the pipe, for mu
 
 #### Static parameters
 
-```markup
+```html
 <h1>${someValue | date:'en-UK'}
 ```
 
@@ -62,7 +62,7 @@ Furthermore, value converter parameters also support bound values. Unlike other 
 
 #### Bound parameters
 
-```markup
+```html
 <h1>${someValue | date:format}
 ```
 

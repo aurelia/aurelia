@@ -5,41 +5,10 @@ import {
   type Key,
   type Constructable,
   type IContainer,
-  type IResourceKind,
-  type ResourceDefinition,
-  type IAllResolver,
-  IOptionalResolver,
-  createResolver,
 } from '@aurelia/kernel';
-import { defineMetadata, getAnnotationKeyFor, getOwnMetadata } from './utilities-metadata';
-
-export const resource = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) =>
-    requestor.has(key, false)
-      ? requestor.get(key)
-      : requestor.root.get(key))(key);
-
-export const optionalResource = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) =>
-    (requestor.has(key, false)
-      ? requestor.get(key)
-      : requestor.root.has(key, false)
-        ? requestor.root.get(key)
-        : void 0))(key) as IOptionalResolver<T>;
-/**
- * A resolver builder for resolving all registrations of a key
- * with resource semantic (leaf + root + ignore middle layer container)
- */
-export const allResources = <T extends Key>(key: T) =>
-  createResolver((key, handler, requestor) => {
-    if (/* is root? */requestor.root === requestor) {
-      return requestor.getAll(key, false);
-    }
-
-    return requestor.has(key, false)
-      ? requestor.getAll(key, false).concat(requestor.root.getAll(key, false))
-      : requestor.root.getAll(key, false);
-  })(key) as IAllResolver<T>;
+import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
+import { IResourceKind } from './resources/resources-shared';
+import { IDisposableResolver } from '@aurelia/kernel/dist/types/di';
 
 /** @internal */
 export const createInterface = DI.createInterface;
@@ -60,22 +29,24 @@ export const callbackRegistration = Registration.callback;
 export const transientRegistration = Registration.transient;
 
 /** @internal */
-export const registerResolver = (ctn: IContainer, key: Key, resolver: IResolver): IResolver =>
+export const registerResolver = <T extends IResolver | IDisposableResolver>(ctn: IContainer, key: Key, resolver: T): T =>
   ctn.registerResolver(key, resolver);
 
 export function alias(...aliases: readonly string[]) {
-  return function (target: Constructable) {
-    const key = getAnnotationKeyFor('aliases');
-    const existing = getOwnMetadata(key, target) as string[] | undefined;
-    if (existing === void 0) {
-      defineMetadata(key, aliases, target);
-    } else {
-      existing.push(...aliases);
-    }
+  return function (target: Constructable, context: ClassDecoratorContext) {
+    context.addInitializer(function (this) {
+      const key = getAnnotationKeyFor('aliases');
+      const existing = getMetadata<string[] | undefined>(key, this);
+      if (existing === void 0) {
+        defineMetadata(aliases, this, key);
+      } else {
+        existing.push(...aliases);
+      }
+    });
   };
 }
 
-export function registerAliases(aliases: readonly string[], resource: IResourceKind<Constructable, ResourceDefinition>, key: string, container: IContainer) {
+export function registerAliases(aliases: readonly string[], resource: IResourceKind, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
     Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
   }

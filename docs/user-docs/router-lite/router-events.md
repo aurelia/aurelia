@@ -35,12 +35,13 @@ import {
   NavigationCancelEvent,
   NavigationErrorEvent,
 } from '@aurelia/router-lite';
-import { IDisposable } from 'aurelia';
+import { IDisposable, resolve } from 'aurelia';
 
 export class SomeService implements IDisposable {
   private readonly subscriptions: IDisposable[];
   public log: string[] = [];
-  public constructor(@IRouterEvents events: IRouterEvents) {
+  public constructor() {
+    const events = resolve(IRouterEvents);
     this.subscriptions = [
       events.subscribe('au:router:location-change',   (event: LocationChangeEvent)   => { /* handle event */ }),
       events.subscribe('au:router:navigation-start',  (event: NavigationStartEvent)  => { /* handle event */ }),
@@ -67,11 +68,13 @@ This type information won't be available if you subscribe to the events using th
 The following example demonstrates the usage of router events, where the root component displays a spinner at the start of navigation, and removes it when the navigation ends.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouterEvents } from '@aurelia/router-lite';
 
 export class MyApp {
   private navigating: boolean = false;
-  public constructor(@IRouterEvents events: IRouterEvents) {
+  public constructor() {
+    const events = resolve(IRouterEvents);
     events.subscribe(
       'au:router:navigation-start',
       () => (this.navigating = true)

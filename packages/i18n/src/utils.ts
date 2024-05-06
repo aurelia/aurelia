@@ -1,6 +1,6 @@
-import { BindingBehaviorExpression, IBinding, IsValueConverter, ValueConverterExpression } from '@aurelia/runtime';
+import { BindingBehaviorExpression, IsValueConverter, ValueConverterExpression } from '@aurelia/expression-parser';
 import { Writable } from '@aurelia/kernel';
-import { BindingMode, State } from '@aurelia/runtime-html';
+import { IBinding, BindingMode, State } from '@aurelia/runtime-html';
 
 export const Signals = {
   I18N_EA_CHANNEL: 'i18n:locale:changed',
@@ -31,14 +31,14 @@ export function createIntlFormatValueConverterExpression(name: string, binding: 
 }
 
 /** ExpressionType */
-/** @internal */ export const etInterpolation = 'Interpolation' as const;
-/** @internal */ export const etIsProperty = 'IsProperty' as const;
-
-/** CommandType */
-/** @internal */ export const ctNone = 'None' as const;
+/** @internal */ export const etInterpolation = 'Interpolation';
+/** @internal */ export const etIsProperty = 'IsProperty';
 
 /** BindingMode */
 /** @internal */ export const bmToView = BindingMode.toView;
 
 /** State */
 /** @internal */export const stateActivating = State.activating;
+
+/** @internal */export const behaviorTypeName = 'binding-behavior';
+/** @internal */export const valueConverterTypeName = 'value-converter';

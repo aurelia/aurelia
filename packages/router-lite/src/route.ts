@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, emptyArray, onResolve, Protocol, ResourceType, Writable, IContainer } from '@aurelia/kernel';
+import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, NavigationInstructionType, TypedNavigationInstruction, ViewportInstruction } from './instructions';
@@ -202,26 +202,15 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       ? (fallback as FallbackFunction)(viewportInstruction, routeNode, context)
       : fallback;
   }
-
-  public register(container: IContainer): void {
-    /**
-     * When an instance of the RouteConfig is created, via the static `_create` and `resolveRouteConfiguration`, the component is always resolved to a custom element.
-     * This makes the process to registering to registering the custom element to the DI.
-     * The component can only be null for redirection configurations and that is ignored here.
-     */
-    const component = this.component;
-    if (component == null) return;
-    container.register(component);
-  }
 }
 
 export const Route = {
-  name: Protocol.resource.keyFor('route-configuration'),
+  name: /*@__PURE__*/getResourceKeyFor('route-configuration'),
   /**
    * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
    */
   isConfigured(Type: RouteType): boolean {
-    return Metadata.hasOwn(Route.name, Type);
+    return Metadata.has(Route.name, Type);
   },
   /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
@@ -231,7 +220,7 @@ export const Route = {
     Type: T,
   ): T {
     const config = RouteConfig._create(configOrPath, Type);
-    Metadata.define(Route.name, config, Type);
+    Metadata.define(config, Type, Route.name);
 
     return Type;
   },
@@ -245,12 +234,12 @@ export const Route = {
       Route.configure({}, Type);
     }
 
-    return Metadata.getOwn(Route.name, Type) as RouteConfig;
+    return Metadata.get(Route.name, Type)!;
   },
 };
 
 export type RouteType<T extends Constructable = Constructable> = ResourceType<T, InstanceType<T>, IRouteConfig>;
-export type RouteDecorator = <T extends Constructable>(Type: T) => T;
+export type RouteDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext<T>) => T;
 
 /**
  * Associate a static route configuration with this type.
@@ -275,14 +264,17 @@ export function route(config: IRouteConfig): RouteDecorator;
  */
 export function route(path: string | string[]): RouteDecorator;
 export function route(configOrPath: IRouteConfig | string | string[]): RouteDecorator {
-  return function (target) {
-    return Route.configure(configOrPath, target);
+  return function (target, context) {
+    context.addInitializer(function (this) {
+      Route.configure(configOrPath, this);
+    });
+    return target;
   };
 }
 
 /** @internal */
 export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteConfig | Promise<RouteConfig> {
-  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null/* , false */);
+  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
 
@@ -316,7 +308,7 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
     case NavigationInstructionType.string: {
       if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
-      const component = context.container.find(CustomElement, instruction.value);
+      const component = CustomElement.find(context.container, instruction.value);
       if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
       ceDef = component;

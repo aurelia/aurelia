@@ -117,13 +117,11 @@ export type IPaymentProcessor = PaymentProcessor;
 You can then use this type for injection and for defining the shape of your service without having to declare all methods explicitly:
 
 ```typescript
-import { inject } from 'aurelia';
+import { resolve } from 'aurelia';
 
-@inject()
 export class CheckoutService {
-  constructor(private paymentProcessor: IPaymentProcessor) {
-    // Use paymentProcessor
-  }
+  private paymentProcessor: IPaymentProcessor = resolve(IPaymentProcessor);
+  // Use paymentProcessor
 }
 ```
 

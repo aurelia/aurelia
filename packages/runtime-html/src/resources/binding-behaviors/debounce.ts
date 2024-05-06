@@ -1,13 +1,18 @@
 import { IDisposable, IPlatform, emptyArray, resolve } from '@aurelia/kernel';
-import { bindingBehavior } from '../binding-behavior';
+import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
-import { type BindingBehaviorInstance, type IBinding, type IRateLimitOptions, type Scope } from '@aurelia/runtime';
+import { type Scope } from '../../binding/scope';
 import { isString } from '../../utilities';
+import { type IBinding, type IRateLimitOptions } from '../../binding/interfaces-bindings';
 
 const bindingHandlerMap: WeakMap<IBinding, IDisposable> = new WeakMap();
 const defaultDelay = 200;
 
 export class DebounceBindingBehavior implements BindingBehaviorInstance {
+  public static readonly $au: BindingBehaviorStaticAuDefinition = {
+    type: behaviorTypeName,
+    name: 'debounce',
+  };
   /** @internal */
   private readonly _platform = resolve(IPlatform);
 
@@ -36,5 +41,3 @@ export class DebounceBindingBehavior implements BindingBehaviorInstance {
     bindingHandlerMap.delete(binding);
   }
 }
-
-bindingBehavior('debounce')(DebounceBindingBehavior);

@@ -1,20 +1,28 @@
-import { DI, IContainer, IServiceLocator } from '@aurelia/kernel';
+import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import {
-  astEvaluate,
-  BindingBehaviorExpression,
-  BindingBehaviorInstance,
   connectable,
-  IAstEvaluator,
-  IBinding,
-  IConnectable, IConnectableBinding, IObserverLocator, Scope
+  IConnectable,
+  IObserverLocator,
+  IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
 import {
-  bindingBehavior, BindingTargetSubscriber,
-  IFlushQueue, IPlatform, mixinAstEvaluator, PropertyBinding, type ICustomElementViewModel
+  type IAstEvaluator,
+  type IBinding,
+  astEvaluate,
+  type BindingBehaviorInstance,
+  Scope,
+  BindingBehavior,
+  BindingTargetSubscriber,
+  IFlushQueue,
+  IPlatform,
+  mixinAstEvaluator,
+  PropertyBinding,
+  type ICustomElementViewModel,
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
+import { BindingBehaviorExpression } from '@aurelia/expression-parser';
 
 /**
  * Validation triggers.
@@ -56,23 +64,13 @@ export const IDefaultTrigger = /*@__PURE__*/DI.createInterface<ValidationTrigger
 const validationConnectorMap = new WeakMap<IBinding, ValidatitionConnector>();
 const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();
 
-@bindingBehavior('validate')
 export class ValidateBindingBehavior implements BindingBehaviorInstance {
-  protected static inject = [IPlatform, IObserverLocator];
 
   /** @internal */
-  private readonly _platform: IPlatform;
+  private readonly _platform = resolve(IPlatform);
 
   /** @internal */
-  private readonly _observerLocator: IObserverLocator;
-
-  public constructor(
-    platform: IPlatform,
-    observerLocator: IObserverLocator,
-  ) {
-    this._platform = platform;
-    this._observerLocator = observerLocator;
-  }
+  private readonly _observerLocator = resolve(IObserverLocator);
 
   public bind(scope: Scope, binding: IBinding) {
     if (!(binding instanceof PropertyBinding)) {
@@ -109,14 +107,13 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
     // there's no need to do anything
   }
 }
+BindingBehavior.define('validate', ValidateBindingBehavior);
 
-interface ValidatitionConnector extends IAstEvaluator, IConnectableBinding {}
+interface ValidatitionConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
 class ValidatitionConnector implements ValidationResultsSubscriber {
-  /** @internal */
-  protected static inject = [IPlatform, IObserverLocator, IDefaultTrigger];
   private readonly propertyBinding: BindingWithBehavior;
   private target!: HTMLElement;
   private trigger!: ValidationTrigger;
@@ -156,7 +153,11 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     }
   }
 
-  /** @internal */
+  /**
+   * Entry trigger for when the view value gets changed, either from user input or view model prop changes
+   *
+   * @internal
+   */
   public _onUpdateSource() {
     this.isDirty = true;
     const event = this.triggerEvent;
@@ -358,7 +359,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   }
 }
 
-connectable()(ValidatitionConnector);
+connectable(ValidatitionConnector, null!);
 mixinAstEvaluator(true)(ValidatitionConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
@@ -404,5 +405,5 @@ export class BindingMediator<K extends string> {
   }
 }
 
-connectable()(BindingMediator);
+connectable(BindingMediator, null!);
 mixinAstEvaluator(true)(BindingMediator);

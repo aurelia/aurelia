@@ -1,28 +1,23 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { IOptionalPreprocessOptions, preprocess, preprocessOptions } from '@aurelia/plugin-conventions';
 import { getOptions } from 'loader-utils';
-// @ts-ignore
-import webpack from 'webpack';
+import type webpack from 'webpack';
 
 export default function (
-  // @ts-ignore TODO: fix types
-  this: webpack.loader.LoaderContext,
+  this: webpack.LoaderContext<Record<string, unknown>>,
   contents: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   sourceMap?: object, // ignore existing source map for now
 ) {
   return loader.call(this, contents);
 }
 
 export function loader(
-  // @ts-ignore TODO: fix types
-  this: webpack.loader.LoaderContext,
+  this: webpack.LoaderContext<Record<string, unknown>>,
   contents: string,
   _preprocess = preprocess // for testing
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions, @typescript-eslint/strict-boolean-expressions
-  this.cacheable && this.cacheable();
-  // @ts-ignore TODO: fix types
-  const cb = this.async() as webpack.loader.loaderCallback;
+  this.cacheable?.();
+  const cb = this.async();
   const options = getOptions(this) as IOptionalPreprocessOptions;
 
   const filePath = this.resourcePath;
@@ -39,14 +34,14 @@ export function loader(
     // contains typing error version: string (should be number).
     // use result.map as any to bypass the typing issue.
     if (result) {
-      cb(null, result.code, result.map as any);
+      cb(null, result.code, result.map);
       return;
     }
 
     // bypassed
     cb(null, contents);
   } catch (e) {
-    cb(e);
+    cb(e as Error);
   }
 }
 
@@ -105,8 +100,8 @@ const getHmrCode = (className: string): string => {
 
     if (hot.data?.aurelia) {
       const newDefinition = $$CE.getDefinition(currentClassType);
-      $$M.define(newDefinition.name, newDefinition, currentClassType);
-      $$M.define(newDefinition.name, newDefinition, newDefinition);
+      $$M.define(newDefinition, currentClassType, newDefinition.name);
+      $$M.define(newDefinition, newDefinition, newDefinition.name);
       hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
       const previousControllers = hot.data.controllers ?? [];

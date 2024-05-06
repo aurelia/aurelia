@@ -40,10 +40,11 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
+export const bindables = [];
 let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
+    _e = CustomElement.define({ name, template, dependencies, bindables });
   }
   container.register(_e);
 }
@@ -63,10 +64,11 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ shadowCSS(d0) ];
 export const shadowOptions = { mode: 'open' };
+export const bindables = [];
 let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies, shadowOptions });
+    _e = CustomElement.define({ name, template, dependencies, shadowOptions, bindables });
   }
   container.register(_e);
 }
@@ -89,10 +91,11 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [ cssModules(d0) ];
+export const bindables = [];
 let _e;
 export function register(container) {
   if (!_e) {
-    _e = CustomElement.define({ name, template, dependencies });
+    _e = CustomElement.define({ name, template, dependencies, bindables });
   }
   container.register(_e);
 }
@@ -108,10 +111,11 @@ export function register(container) {
 
   it('transforms js file with html pair', function () {
     const js = 'export class FooBar {}\n';
-    const expected = `import { customElement } from '@aurelia/runtime-html';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
-@customElement(__au2ViewDef)
 export class FooBar {}
+CustomElement.define(__au2ViewDef, FooBar);
+
 `;
     const t = _createTransformer(
       { hmr: false },

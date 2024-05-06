@@ -3,6 +3,94 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+### Refactorings:
+
+* ***:** extract template compiler into own package (#1954) ([ad7ae1e](https://github.com/aurelia/aurelia/commit/ad7ae1e))
+* ***:** cleanup deco code (#1947) ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* **observers:** use static blocks, group related code ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* ***:** move scope to runtime html (#1945) ([bca0290](https://github.com/aurelia/aurelia/commit/bca0290))
+
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### Bug Fixes:
+
+* ***:** residual decorator work (#1942) ([7e8c12f](https://github.com/aurelia/aurelia/commit/7e8c12f))
+
+
+### Refactorings:
+
+* **bindings:** move binding infra to runtime html (#1944) ([1c7608a](https://github.com/aurelia/aurelia/commit/1c7608a))
+* ***:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
+<a name="2.0.0-beta.14"></a>
+# 2.0.0-beta.14 (2024-04-03)
+
+### Features:
+
+* **i18n:** support multiple versions of i18next (#1927) ([0789ee5](https://github.com/aurelia/aurelia/commit/0789ee5))
+
+
+### Bug Fixes:
+
+* **form:** prevent actionless submission (#1931) ([1fc74d4](https://github.com/aurelia/aurelia/commit/1fc74d4))
+
+
+### Refactorings:
+
+* **attr:** treat empty string as no binding (#1930) ([8fc5275](https://github.com/aurelia/aurelia/commit/8fc5275))
+
+<a name="2.0.0-beta.13"></a>
+# 2.0.0-beta.13 (2024-03-15)
+
+### Bug Fixes:
+
+* **router-lite:** dont register config ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+* **router:** dont swallow instantiation error details ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+* ***:** cleanup di & router tests, add timeout ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+* ***:** router errors stringify ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+* ***:** deepscan issues ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+
+
+### Refactorings:
+
+* **event:** no longer call prevent default by default (#1926) ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+* ***:** smaller di files, assert text options, more au slot tests ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### Features:
+
+* **au-compose:** ability to compose string as element name (#1913) ([06aa113](https://github.com/aurelia/aurelia/commit/06aa113))
+
+
+### Bug Fixes:
+
+* **di:** dont jit register resources [skip ci] ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+
+
+### Refactorings:
+
+* ***:** cleanup (#1912) ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Features:
+
+* **event:** ability to add modifier (#1891) ([67a3c22](https://github.com/aurelia/aurelia/commit/67a3c22))
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* ***:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

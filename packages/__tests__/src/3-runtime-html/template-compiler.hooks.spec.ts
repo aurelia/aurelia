@@ -2,8 +2,14 @@ import {
   Registration
 } from '@aurelia/kernel';
 import {
-  CustomElement, ITemplateCompilerHooks, templateCompilerHooks, TemplateCompilerHooks
+  CustomElement,
+  CustomElementDefinition,
 } from '@aurelia/runtime-html';
+import {
+  ITemplateCompilerHooks,
+  templateCompilerHooks,
+  TemplateCompilerHooks,
+} from '@aurelia/template-compiler';
 import {
   assert,
   createFixture,
@@ -325,7 +331,7 @@ describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
         }
       }));
 
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
+      const definition = sut.compile(CustomElementDefinition.create({ name: 'lorem-ipsum', template }), container);
       assert.strictEqual(hookCallCount, 1);
       assert.strictEqual((definition.template as Element).getAttribute('data-hello'), 'world');
     });
@@ -348,7 +354,7 @@ describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
         }
       }));
 
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, container, null);
+      const definition = sut.compile(CustomElementDefinition.create({ name: 'lorem-ipsum', template }), container);
       assert.strictEqual(hookCallCount, 2);
       assert.strictEqual((definition.template as Element).getAttribute('data-hello'), 'world');
       assert.strictEqual((definition.template as Element).getAttribute('data-world'), 'hello');
@@ -359,7 +365,7 @@ describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
       const { container, sut } = createFixture();
 
       container.register(Registration.instance(ITemplateCompilerHooks, {}));
-      assert.doesNotThrow(() => sut.compile({ name: 'lorem-ipsum', template }, container, null));
+      assert.doesNotThrow(() => sut.compile(CustomElementDefinition.create({ name: 'lorem-ipsum', template }), container));
     });
 
     it('invokes hooks with resources semantic - only leaf', function () {
@@ -377,7 +383,7 @@ describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
       middleContainer.register(createResolver());
       leafContainer.register(createResolver());
 
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, leafContainer, null);
+      const definition = sut.compile(CustomElementDefinition.create({ name: 'lorem-ipsum', template }), leafContainer);
       assert.strictEqual(hookCallCount, 1);
       assert.strictEqual((definition.template as Element).getAttribute('data-hello'), 'world');
     });
@@ -398,7 +404,7 @@ describe('3-runtime-html/template-compiler.hooks.spec.ts', function () {
       middleContainer.register(createResolver('middle'));
       leafContainer.register(createResolver('leaf'));
 
-      const definition = sut.compile({ name: 'lorem-ipsum', template }, leafContainer, null);
+      const definition = sut.compile(CustomElementDefinition.create({ name: 'lorem-ipsum', template }), leafContainer);
       assert.strictEqual(hookCallCount, 2);
       assert.strictEqual((definition.template as Element).getAttribute('data-root'), 'root');
       assert.strictEqual((definition.template as Element).getAttribute('data-middle'), null);

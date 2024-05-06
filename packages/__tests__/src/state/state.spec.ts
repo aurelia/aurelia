@@ -362,7 +362,7 @@ describe('state/state.spec.ts', function () {
         .deps(MyEl, StateDefaultConfiguration.init(state))
         .build().started;
 
-      assert.strictEqual(getBy('input').value, '1');
+      assert.strictEqual(getBy('input').value, '1', 'text-input value');
     });
 
     it('works on custom attribute', async function () {

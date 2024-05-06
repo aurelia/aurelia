@@ -36,7 +36,7 @@ export class UserProfileCustomElement implements IRouteViewModel {
 
 **Your view might be something basic like this:**
 
-```markup
+```html
 <div class="user-profile-container">
     <ul>
       <li class="nav-item">

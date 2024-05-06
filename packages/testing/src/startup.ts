@@ -1,14 +1,14 @@
 import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
-import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
 import { getVisibleText } from './specialized-assertions';
 
 const fixtureHooks = new EventAggregator();
-export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown) => {
+export const onFixtureCreated = <T extends object>(callback: (fixture: IFixture<T>) => unknown) => {
   return fixtureHooks.subscribe('fixture:created', (fixture: IFixture<T>) => {
     try {
       callback(fixture);
@@ -19,15 +19,16 @@ export const onFixtureCreated = <T>(callback: (fixture: IFixture<T>) => unknown)
   });
 };
 
-export type ObjectType<T> = T extends Constructable<infer U> ? U : T;
+export type ObjectType<T> = T extends Constructable<infer U extends object> ? U : T;
 
 // eslint-disable-next-line max-lines-per-function
 export function createFixture<T extends object>(
   template: string | Node,
-  $class?: T,
+  $class?: T | Constructable<T>,
   registrations: unknown[] = [],
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
+  appConfig: IFixtureConfig =  {},
 ): IFixture<ICustomElementViewModel & ObjectType<T>> {
   type K = ObjectType<T>;
   const { container } = ctx;
@@ -49,18 +50,18 @@ export function createFixture<T extends object>(
         return $class;
       } as unknown as Constructable<K>;
 
-  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'type' | 'register' | 'toString'>)[] =
-    ['aliases', 'bindables', 'cache', 'capture', 'containerless', 'dependencies', 'enhance'];
+  const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'kind' | 'register' | 'type' | 'toString'>)[] =
+    ['aliases', 'bindables', /* 'cache',  */'capture', 'containerless', 'dependencies', 'enhance'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
-      Metadata.define(anno, CustomElement.getAnnotation($class as unknown as Constructable<K>, anno), $$class);
+      Metadata.define(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, anno);
     });
   }
 
   const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
-  const App = CustomElement.define<Constructable<K>>({
+  const App = CustomElement.define({
     ...existingDefs,
-    name: 'app',
+    name: existingDefs.name ?? 'app',
     template,
   }, $$class);
 
@@ -76,7 +77,7 @@ export function createFixture<T extends object>(
   function startFixtureApp() {
     if (autoStart) {
       try {
-        au.app({ host: host, component });
+        au.app({ host: host, component, ...appConfig });
         fixture.startPromise = startPromise = au.start();
       } catch (ex) {
         try {
@@ -131,16 +132,34 @@ export function createFixture<T extends object>(
     }
     return elements[0];
   }
-  function assertText(selector: string, text?: string) {
-    if (arguments.length === 2) {
-      const el = strictQueryBy(selector);
-      if (el === null) {
-        throw new Error(`No element found for selector "${selector}" to compare text content with "${text}"`);
-      }
-      assert.strictEqual(getVisibleText(el), text);
-    } else {
-      assert.strictEqual(getVisibleText(host), selector);
+  function assertText(selectorOrText: string, text?: string | ITextAssertOptions, options?: ITextAssertOptions) {
+    let $text: string;
+    let $options: ITextAssertOptions | undefined;
+
+    // assertText('some text content')
+    if (arguments.length === 1) {
+      assert.strictEqual(getVisibleText(host, false), selectorOrText);
+      return;
     }
+
+    // assertText('some selector', void 0/ null);
+    if (text == null) {
+      throw new Error('Invalid null/undefined expected html value');
+    }
+
+    // assertHtml('some html content', { compact: true/false })
+    if (typeof text !== 'string') {
+      $text = selectorOrText;
+      $options = text;
+      assert.strictEqual(getVisibleText(host, $options?.compact), $text);
+      return;
+    }
+
+    // assertText('selector', 'some html content')
+    // assertText('selector', 'some html content', { compact: true/false })
+    const el = strictQueryBy(selectorOrText, `to compare text content against "${text}`);
+    $options = options;
+    assert.strictEqual(getVisibleText(el, $options?.compact), text);
   }
   function assertTextContain(selector: string, text?: string) {
     if (arguments.length === 2) {
@@ -157,20 +176,41 @@ export function createFixture<T extends object>(
     let actual = el.innerHTML;
     if (compact) {
       actual = actual
+        .trim()
         .replace(/<!--au-start-->/g, '')
         .replace(/<!--au-end-->/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+        .replace(/\s+/g, ' ');
     }
     return actual;
   }
-  function assertHtml(selectorOrHtml: string, html: string = selectorOrHtml, { compact }: { compact?: boolean } = { compact: false }) {
-    if (arguments.length > 1) {
-      const el = strictQueryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
-      assert.strictEqual(getInnerHtml(el, compact), html);
-    } else {
-      assert.strictEqual(getInnerHtml(host, compact), selectorOrHtml);
+  function assertHtml(selectorOrHtml: string, html?: string | IHtmlAssertOptions, options?: IHtmlAssertOptions) {
+    let $html;
+    let $options: IHtmlAssertOptions | undefined;
+
+    // assertHtml('some html content')
+    if (arguments.length === 1) {
+      assert.strictEqual(getInnerHtml(host), selectorOrHtml);
+      return;
     }
+
+    // assertHtml('some selector', void 0/ null);
+    if (html == null) {
+      throw new Error('Invalid null/undefined expected html value');
+    }
+
+    // assertHtml('some html content', { compact: true/false })
+    if (typeof html !== 'string') {
+      $html = selectorOrHtml;
+      $options = html;
+      assert.strictEqual(getInnerHtml(host, $options?.compact), $html);
+      return;
+    }
+
+    // assertHtml('selector', 'some html content')
+    // assertHtml('selector', 'some html content', { compact: true/false })
+    const el = strictQueryBy(selectorOrHtml, `to compare innerHTML against "${html}`);
+    $options = options;
+    assert.strictEqual(getInnerHtml(el, $options?.compact), html);
   }
   function assertClass(selector: string, ...classes: string[]) {
     const el = strictQueryBy(selector, `to assert className contains "${classes}"`);
@@ -196,15 +236,34 @@ export function createFixture<T extends object>(
     const el = strictQueryBy(selector, `to compare value against "${value}"`);
     assert.strictEqual((el as any).value, value);
   }
-  function trigger(selector: string, event: string, init?: CustomEventInit): void {
+
+  function trigger(selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
     const el = strictQueryBy(selector, `to fire event "${event}"`);
-    el.dispatchEvent(new ctx.CustomEvent(event, init));
+    return $triggerEvent(el, ctx, event, init, overrides);
   }
-  ['click', 'change', 'input', 'scroll'].forEach(event => {
+  mouseEvents.forEach(event => {
     Object.defineProperty(trigger, event, {
-      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit): void => {
-        const el = strictQueryBy(selector, `to fire event "${event}"`);
-        el.dispatchEvent(new ctx.CustomEvent(event, init));
+      configurable: true,
+      writable: true,
+      value: (selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void => {
+        return triggerMouseEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
+      }
+    });
+  });
+  keyboardEvents.forEach(event => {
+    Object.defineProperty(trigger, event, {
+      configurable: true,
+      writable: true,
+      value: (selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void => {
+        return triggerKeyboardEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
+      }
+    });
+  });
+
+  ['change', 'input', 'scroll'].forEach(event => {
+    Object.defineProperty(trigger, event, {
+      configurable: true, writable: true, value: (selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void => {
+        return $triggerEvent(strictQueryBy(selector, `to fire event "${event}"`), ctx, event, init, overrides);
       }
     });
   });
@@ -320,6 +379,22 @@ export function createFixture<T extends object>(
   return fixture;
 }
 
+export interface ITextAssertOptions {
+  /**
+   * Describe the text in a way similar like how the browser renders whitespace
+   * Multiple consecutive whitespaces are collapsed into one, and leading/trailing whitespaces are removed
+   */
+  compact?: boolean;
+}
+
+export interface IHtmlAssertOptions {
+  /**
+   * Describe the html in a way similar like how the browser renders whitespace
+   * Multiple consecutive whitespaces are collapsed into one, and leading/trailing whitespaces are removed
+   */
+  compact?: boolean;
+}
+
 export interface IFixture<T> {
   readonly startPromise: void | Promise<void>;
   readonly ctx: TestContext;
@@ -367,13 +442,13 @@ export interface IFixture<T> {
   /**
    * Assert the text content of the current application host equals to a given string
    */
-  assertText(text: string): void;
+  assertText(text: string, options?: ITextAssertOptions): void;
   /**
    * Assert the text content of an element matching the given selector inside the application host equals to a given string.
    *
    * Will throw if there' more than one elements with matching selector
    */
-  assertText(selector: string, text: string): void;
+  assertText(selector: string, text: string, options?: ITextAssertOptions): void;
 
   /**
    * Assert the text content of the current application host equals to a given string
@@ -389,13 +464,13 @@ export interface IFixture<T> {
   /**
    * Assert the inner html of the current application host equals to the given html string
    */
-  assertHtml(html: string): void;
+  assertHtml(html: string, options?: IHtmlAssertOptions): void;
   /**
    * Assert the inner html of an element matching the selector inside the current application host equals to the given html string.
    *
    * Will throw if there' more than one elements with matching selector
    */
-  assertHtml(selector: string, html: string): void;
+  assertHtml(selector: string, html: string, options?: IHtmlAssertOptions): void;
   /**
    * Assert an element based on the given selector has the given css classes
    */
@@ -445,11 +520,22 @@ export interface IFixture<T> {
   flush(): void;
 }
 
-export type ITrigger = ((selector: string, event: string, init?: CustomEventInit) => void) & {
-  click(selector: string, init?: CustomEventInit): void;
-  change(selector: string, init?: CustomEventInit): void;
-  input(selector: string, init?: CustomEventInit): void;
-  scroll(selector: string, init?: CustomEventInit): void;
+export type ITrigger = {
+  (selector: string, event: 'keydown' | 'keyup' | 'keypress', init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  (selector: string, event: 'click' | 'mousedown' | 'mouseup' | 'mousemove' | 'dbclick' | 'contextmenu', init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  (selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  keydown(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  keyup(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  keypress(selector: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void;
+  click(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mousedown(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mouseup(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  mousemove(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  dbclick(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  contextmenu(selector: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void;
+  change(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  input(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
+  scroll(selector: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void;
 };
 
 export interface IFixtureBuilderBase<T, E = {}> {
@@ -457,9 +543,10 @@ export interface IFixtureBuilderBase<T, E = {}> {
   html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
   component(comp: T): this & E;
   deps(...args: unknown[]): this & E;
+  config(config: IFixtureConfig): this & E;
 }
 
-type BuilderMethodNames = 'html' | 'component' | 'deps';
+type BuilderMethodNames = 'html' | 'component' | 'deps' | 'config';
 type CreateBuilder<T, Availables extends BuilderMethodNames> = {
   [key in Availables]:
     key extends 'html'
@@ -467,17 +554,22 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
         (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
         (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
       }
-      : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
+      : key extends 'component'
+        ? <K>(comp: Constructable<K> | K) => CreateBuilder<K, Exclude<Availables, 'component'>>
+        : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
 } & ('html' extends Availables ? {} : { build(): IFixture<T> });
 
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
 type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
+
+export type IFixtureConfig = Pick<IAppRootConfig, 'allowActionlessForm'>;
 
 class FixtureBuilder<T> {
   private _html?: string | TemplateStringsArray;
   private _htmlArgs?: TemplateValues<T>[];
   private _comp?: T;
   private _args?: unknown[];
+  private _config?: IFixtureConfig;
 
   public html(html: string | TemplateStringsArray, ...htmlArgs: TemplateValues<T>[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>> {
     this._html = html;
@@ -492,7 +584,12 @@ class FixtureBuilder<T> {
 
   public deps(...args: unknown[]): CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>> {
     this._args = args;
-    return this;
+    return this as CreateBuilder<T, Exclude<BuilderMethodNames, 'deps'>>;
+  }
+
+  public config(config: IFixtureConfig): CreateBuilder<T, Exclude<BuilderMethodNames, 'config'>> {
+    this._config = config;
+    return this as CreateBuilder<T, Exclude<BuilderMethodNames, 'config'>>;
   }
 
   public build() {
@@ -518,6 +615,7 @@ function brokenProcessFastTemplate(html: TemplateStringsArray, ..._args: unknown
 createFixture.html = <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => new FixtureBuilder<T>().html(html, ...values);
 createFixture.component = <T, K extends ObjectType<T>>(component: T) => new FixtureBuilder<K>().component(component as unknown as K);
 createFixture.deps = <T = Record<PropertyKey, any>>(...deps: unknown[]) => new FixtureBuilder<T>().deps(...deps);
+createFixture.config = <T = Record<PropertyKey, any>>(config: IFixtureConfig) => new FixtureBuilder<T>().config(config);
 
 /* eslint-disable */
 function testBuilderTypings() {
@@ -570,5 +668,60 @@ function testBuilderTypings() {
     { a: [1, 2] }
   );
   const C1: IsType<{ a: number[] }, typeof component> = 1;
+
+  const a9 = createFixture.html``.component(class Abc { a = 1 }).build().component.a;
 }
 /* eslint-enable */
+
+const mouseEvents = ['click', 'mousedown', 'mouseup', 'mousemove', 'dbclick', 'contextmenu'];
+const keyboardEvents = ['keydown', 'keyup', 'keypress'];
+function $triggerEvent(el: Element, ctx: TestContext, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
+  if (mouseEvents.includes(event)) {
+    return triggerMouseEvent(el, ctx, event, init, overrides);
+  }
+  if (keyboardEvents.includes(event)) {
+    return triggerKeyboardEvent(el, ctx, event, init, overrides);
+  }
+  const e = new ctx.CustomEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+function triggerKeyboardEvent(el: Element, ctx: TestContext, event: string, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void {
+  const e = new ctx.KeyboardEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+function triggerMouseEvent(el: Element, ctx: TestContext, event: string, init?: MouseEventInit, overrides?: Record<string, unknown>): void {
+  const e = new ctx.MouseEvent(event, init);
+  // define props on event based on overrides
+  if (overrides !== void 0) {
+    for (const prop in overrides) {
+      Object.defineProperty(e, prop, { value: overrides[prop] });
+    }
+  }
+  el.dispatchEvent(e);
+}
+mouseEvents.forEach(event => {
+  Object.defineProperty($triggerEvent, event, {
+    configurable: true, writable: true, value: (el: Element, ctx: TestContext, init?: MouseEventInit, overrides?: Record<string, unknown>): void => {
+      return triggerMouseEvent(el, ctx, event, init, overrides);
+    }
+  });
+});
+keyboardEvents.forEach(event => {
+  Object.defineProperty($triggerEvent, event, {
+    configurable: true, writable: true, value: (el: Element, ctx: TestContext, init?: KeyboardEventInit, overrides?: Record<string, unknown>): void => {
+      return triggerKeyboardEvent(el, ctx, event, init, overrides);
+    }
+  });
+});

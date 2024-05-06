@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve } from '@aurelia/kernel';
 import { getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -55,30 +55,40 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
   }
 }
 
+export interface IComputedObserverLocator {
+  getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver;
+}
+export const IComputedObserverLocator = /*@__PURE__*/createInterface<IComputedObserverLocator>(
+  'IComputedObserverLocator',
+  x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
+    public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
+      const observer = new ComputedObserver(obj, pd.get!, pd.set, requestor, true);
+      def(obj, key, {
+        enumerable: pd.enumerable,
+        configurable: true,
+        get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+        set: (/* Computed Observer */v) => {
+          observer.setValue(v);
+        },
+      });
+
+      return observer;
+    }
+  })
+);
+
 export type ExtendedPropertyDescriptor = PropertyDescriptor & {
   get?: ObservableGetter;
-  set?: ObservableSetter;
 };
 export type ObservableGetter = PropertyDescriptor['get'] & {
-  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
-};
-export type ObservableSetter = PropertyDescriptor['set'] & {
-  getObserver?(obj: unknown, requestor: IObserverLocator): IObserver;
+  getObserver?(obj: unknown): IObserver;
 };
 
 export class ObserverLocator {
-  /** @internal */ protected static readonly inject = [IDirtyChecker, INodeObserverLocator];
   /** @internal */ private readonly _adapters: IObjectObservationAdapter[] = [];
-  /** @internal */ private readonly _dirtyChecker: IDirtyChecker;
-  /** @internal */ private readonly _nodeObserverLocator: INodeObserverLocator;
-
-  public constructor(
-    dirtyChecker: IDirtyChecker,
-    nodeObserverLocator: INodeObserverLocator,
-  ) {
-    this._dirtyChecker = dirtyChecker;
-    this._nodeObserverLocator = nodeObserverLocator;
-  }
+  /** @internal */ private readonly _dirtyChecker = resolve(IDirtyChecker);
+  /** @internal */ private readonly _nodeObserverLocator = resolve(INodeObserverLocator);
+  /** @internal */ private readonly _computedObserverLocator = resolve(IComputedObserverLocator);
 
   public addAdapter(adapter: IObjectObservationAdapter): void {
     this._adapters.push(adapter);
@@ -174,12 +184,14 @@ export class ObserverLocator {
     if (pd !== void 0 && !hasOwnProp.call(pd, 'value')) {
       let obs: IObserver | undefined | null = this._getAdapterObserver(obj, key, pd);
       if (obs == null) {
-        obs = (pd.get?.getObserver ?? pd.set?.getObserver)?.(obj, this);
+        obs = (pd.get?.getObserver)?.(obj);
       }
 
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       return obs == null
         ? pd.configurable
-          ? this._createComputedObserver(obj, key, pd, true)
+          // ? this._createComputedObserver(obj, key, pd, true)
+          ? this._computedObserverLocator.getObserver(obj, key, pd, this)
           : this._dirtyChecker.createProperty(obj, key)
         : obs;
     }
@@ -189,20 +201,20 @@ export class ObserverLocator {
     return new SetterObserver(obj, key);
   }
 
-  /** @internal */
-  private _createComputedObserver(obj: object, key: PropertyKey, pd: PropertyDescriptor, useProxy?: boolean) {
-    const observer = new ComputedObserver(obj, pd.get!, pd.set, this, !!useProxy);
-    def(obj, key, {
-      enumerable: pd.enumerable,
-      configurable: true,
-      get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
-      set: (/* Computed Observer */v) => {
-        observer.setValue(v);
-      },
-    });
+  // /** @internal */
+  // private _createComputedObserver(obj: object, key: PropertyKey, pd: PropertyDescriptor, useProxy?: boolean) {
+  //   const observer = new ComputedObserver(obj, pd.get!, pd.set, this, !!useProxy);
+  //   def(obj, key, {
+  //     enumerable: pd.enumerable,
+  //     configurable: true,
+  //     get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+  //     set: (/* Computed Observer */v) => {
+  //       observer.setValue(v);
+  //     },
+  //   });
 
-    return observer;
-  }
+  //   return observer;
+  // }
 
   /** @internal */
   private _getAdapterObserver(obj: IObservable, key: PropertyKey, pd: PropertyDescriptor): IObserver | null {

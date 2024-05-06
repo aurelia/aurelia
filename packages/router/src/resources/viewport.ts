@@ -1,18 +1,18 @@
-import { IContainer, IEventAggregator } from '@aurelia/kernel';
+import { IContainer, IEventAggregator, resolve } from '@aurelia/kernel';
 import {
-  bindable,
   INode,
-  customElement,
   CustomElement,
-  HydrateElementInstruction,
   ICompiledCustomElementController,
   ICustomElementViewModel,
   ICustomElementController,
   IHydratedController,
   IHydratedParentController,
   ISyntheticView,
-  IInstruction,
 } from '@aurelia/runtime-html';
+import {
+  HydrateElementInstruction,
+  IInstruction,
+} from '@aurelia/template-compiler';
 import { IRouter, NavigationFlags } from '../index';
 import { Viewport } from '../endpoints/viewport';
 import { IViewportOptions } from '../endpoints/viewport-options';
@@ -22,36 +22,32 @@ import { arrayRemove } from '../utilities/utils';
 import { OpenPromise } from '../utilities/open-promise';
 import { FallbackAction } from '../router-options';
 
-export const ParentViewport = CustomElement.createInjectable();
+const ParentViewport = CustomElement.createInjectable<ViewportCustomElement>();
 
-@customElement({
-  name: 'au-viewport',
-  injectable: ParentViewport
-})
 export class ViewportCustomElement implements ICustomElementViewModel {
   /**
    * The name of the viewport. Should be unique within the routing scope.
    */
-  @bindable public name: string = 'default';
+  public name: string = 'default';
 
   /**
    * A list of components that is using the viewport. These components
    * can only be loaded into this viewport and this viewport can't
    * load any other components.
    */
-  @bindable public usedBy: string = '';
+  public usedBy: string = '';
 
   /**
    * The default component that's loaded if the viewport is created
    * without having a component specified (in that navigation).
    */
-  @bindable public default: string = '';
+  public default: string = '';
 
   /**
    * The component loaded if the viewport can't load the specified
    * component. The component is passed as a parameter to the fallback.
    */
-  @bindable public fallback: string = '';
+  public fallback: string = '';
 
   /**
    * Whether the fallback action is to load the fallback component in
@@ -59,35 +55,35 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    * instructions or if the fallback is to be called and the processing
    * of the children to be aborted.
    */
-  @bindable public fallbackAction: FallbackAction | '' = '';
+  public fallbackAction: FallbackAction | '' = '';
 
   /**
    * Indicates that the viewport has no scope.
    */
-  @bindable public noScope: boolean = false;
+  public noScope: boolean = false;
 
   /**
    * Indicates that the viewport doesn't add a content link to
    * the Location URL.
    */
-  @bindable public noLink: boolean = false;
+  public noLink: boolean = false;
 
   /**
    * Indicates that the viewport doesn't add a title to the browser
    * window title.
    */
-  @bindable public noTitle: boolean = false;
+  public noTitle: boolean = false;
 
   /**
    * Indicates that the viewport doesn't add history content to
    * the History API.
    */
-  @bindable public noHistory: boolean = false;
+  public noHistory: boolean = false;
 
   /**
    * Whether the components of the viewport are stateful or not.
    */
-  @bindable public stateful: boolean = false;
+  public stateful: boolean = false;
 
   /**
    * The connected Viewport.
@@ -114,19 +110,17 @@ export class ViewportCustomElement implements ICustomElementViewModel {
    */
   private isBound: boolean = false;
 
-  public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode public readonly element: INode<HTMLElement>,
-    @IContainer public container: IContainer,
-    @IEventAggregator private readonly ea: IEventAggregator,
-    @ParentViewport public readonly parentViewport: ViewportCustomElement,
-    @IInstruction private readonly instruction: HydrateElementInstruction,
-  ) { }
+  private readonly router = resolve(IRouter);
+  public readonly element = resolve(INode) as HTMLElement;
+  public readonly container: IContainer = resolve(IContainer);
+  private readonly ea: IEventAggregator = resolve(IEventAggregator);
+  public readonly parentViewport = resolve(ParentViewport);
+  private readonly instruction = resolve(IInstruction) as HydrateElementInstruction;
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
-    this.container = controller.container;
 
+    // eslint-disable-next-line
     const hasDefault = this.instruction.props.filter((instr: any) => instr.to === 'default').length > 0;
     if (hasDefault && this.parentViewport != null) {
       this.parentViewport.pendingChildren.push(this);
@@ -268,3 +262,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     }
   }
 }
+CustomElement.define({
+  name: 'au-viewport',
+  injectable: ParentViewport,
+  bindables: ['name', 'usedBy', 'default', 'fallback', 'fallbackAction', 'noScope', 'noLink', 'noTitle', 'noHistory', 'stateful']
+}, ViewportCustomElement);

@@ -1,30 +1,29 @@
 import { resolve } from "@aurelia/kernel";
 import type { ITask } from '@aurelia/platform';
 import {
-  Scope,
-  BindingIdentifier,
-  IsBindingBehavior,
-  ForOfStatement,
   Collection,
   getCollectionObserver,
   IndexMap,
-  BindingContext,
-  type IOverrideContext,
-  astEvaluate,
 } from '@aurelia/runtime';
 import {
-  customAttribute,
-  IInstruction,
+  astEvaluate,
+  Scope,
+  type IOverrideContext,
+  BindingContext,
   IController,
   IViewFactory,
-  HydrateTemplateController,
   IHydratedComponentController,
-  IteratorBindingInstruction,
   ICustomAttributeViewModel,
   ISyntheticView,
   IRenderLocation,
   IPlatform,
+  type CustomAttributeStaticAuDefinition,
 } from '@aurelia/runtime-html';
+import {
+  IInstruction,
+  HydrateTemplateController,
+  IteratorBindingInstruction,
+} from '@aurelia/template-compiler';
 import {
   unwrapExpression,
 } from "./utilities-repeat";
@@ -42,6 +41,7 @@ import type {
   IVirtualRepeater
 } from "./interfaces";
 import { calcOuterHeight, calcScrollerViewportHeight, getDistanceToScroller } from "./utilities-dom";
+import { IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 
 const noScrollInfo: IScrollerInfo = {
   height: 0,
@@ -50,9 +50,19 @@ const noScrollInfo: IScrollerInfo = {
   width: 0
 };
 
-export interface VirtualRepeat extends ICustomAttributeViewModel {}
+export interface VirtualRepeat extends ICustomAttributeViewModel { }
 
 export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: 'custom-attribute',
+    name: 'virtual-repeat',
+    isTemplateController: true,
+    bindables: {
+      local: true,
+      items: { primary: true }
+    }
+  };
+
   // bindable
   public local: string;
 
@@ -517,23 +527,13 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   }
 }
 
-// avoid excessive code generation, if it doesn't affect readability too much
-customAttribute({
-  isTemplateController: true,
-  name: 'virtual-repeat',
-  bindables: {
-    local: { name: 'local' },
-    items: { name: 'items', primary: true }
-  }
-})(VirtualRepeat);
-
 class CollectionObservationMediator {
   /** @internal */ private _collection!: Collection;
 
   public constructor(
     public repeat: VirtualRepeat,
     public handleCollectionChange: (col: Collection, indexMap: IndexMap) => void,
-  ) {}
+  ) { }
 
   public start(c?: Collection | null): void {
     if (this._collection === c) {
@@ -557,9 +557,9 @@ interface IBufferCalculation {
 }
 
 const enum SizingSignals {
-  none              = 0b0_00000,
-  reset             = 0b0_00001,
-  has_sizing        = 0b0_00010,
+  none = 0b0_00000,
+  reset = 0b0_00001,
+  has_sizing = 0b0_00010,
 }
 
 interface ICalculation {
@@ -578,7 +578,7 @@ class Calculation implements ICalculation {
   private constructor(
     public readonly signals: SizingSignals,
     public readonly minViews: number,
-  ) {}
+  ) { }
 }
 
 interface IRepeaterItemScope extends Scope {

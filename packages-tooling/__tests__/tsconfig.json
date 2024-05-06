@@ -8,7 +8,6 @@
     "lib": ["esnext", "dom"],
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": false,
-    "emitDecoratorMetadata": true,
     "strict": false,
     "alwaysStrict": true,
     "strictNullChecks": true,

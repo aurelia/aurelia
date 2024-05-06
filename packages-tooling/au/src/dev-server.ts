@@ -1,10 +1,9 @@
 import { HttpServerOptions, IHttpServer, RuntimeNodeConfiguration } from '@aurelia/http-server';
-import { DI, IContainer } from '@aurelia/kernel';
+import { DI, IContainer, resolve } from '@aurelia/kernel';
 
 export class DevServer {
   public constructor(
-    @IContainer
-    protected readonly container: IContainer
+    protected readonly container: IContainer = resolve(IContainer),
   ) { }
 
   public static create(container = DI.createContainer()): DevServer {

@@ -1,10 +1,8 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
-import { Scope } from '@aurelia/runtime';
-import { bindable } from '../../bindable';
+import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
-import { IInstruction } from '../../renderer';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {
   Controller,
@@ -16,17 +14,23 @@ import {
   ISyntheticView
 } from '../../templating/controller';
 import { IViewFactory } from '../../templating/view';
-import { attributePattern, AttrSyntax } from '../attribute-pattern';
-import { templateController } from '../custom-attribute';
-import { isPromise, safeString, tsPending, tsRunning } from '../../utilities';
+import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
+import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
+import { isPromise, safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
-@templateController('promise')
 export class PromiseTemplateController implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'promise',
+    isTemplateController: true,
+    bindables: ['value'],
+  };
+
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
   private view!: ISyntheticView;
 
-  @bindable public value!: Promise<unknown>;
+  public value!: Promise<unknown>;
 
   public pending?: PendingTemplateController;
   public fulfilled?: FulfilledTemplateController;
@@ -160,11 +164,19 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController(tsPending)
 export class PendingTemplateController implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'pending',
+    isTemplateController: true,
+    bindables: {
+      value: { mode: toView }
+    }
+  };
+
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: toView }) public value!: Promise<unknown>;
+  public value!: Promise<unknown>;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -182,7 +194,7 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
 
   public activate(initiator: IHydratedController | null, scope: Scope): void | Promise<void> {
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -205,11 +217,19 @@ export class PendingTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('then')
 export class FulfilledTemplateController implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'then',
+    isTemplateController: true,
+    bindables: {
+      value: { mode: fromView }
+    }
+  };
+
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: fromView }) public value!: unknown;
+  public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -228,7 +248,7 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope, resolvedValue: unknown): void | Promise<void> {
     this.value = resolvedValue;
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -251,11 +271,19 @@ export class FulfilledTemplateController implements ICustomAttributeViewModel {
   }
 }
 
-@templateController('catch')
 export class RejectedTemplateController implements ICustomAttributeViewModel {
+  public static readonly $au: CustomAttributeStaticAuDefinition = {
+    type: attrTypeName,
+    name: 'catch',
+    isTemplateController: true,
+    bindables: {
+      value: { mode: fromView }
+    }
+  };
+
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
-  @bindable({ mode: fromView }) public value!: unknown;
+  public value!: unknown;
 
   public view: ISyntheticView | undefined = void 0;
 
@@ -274,7 +302,7 @@ export class RejectedTemplateController implements ICustomAttributeViewModel {
   public activate(initiator: IHydratedController | null, scope: Scope, error: unknown): void | Promise<void> {
     this.value = error;
     let view = this.view;
-    if(view === void 0) {
+    if (view === void 0) {
       view = this.view = this._factory.create().setLocation(this._location);
     }
     if (view.isActive) { return; }
@@ -306,23 +334,23 @@ function getPromiseController(controller: IHydratableController) {
   throw createMappedError(ErrorNames.promise_invalid_usage);
 }
 
-@attributePattern({ pattern: 'promise.resolve', symbols: '' })
 export class PromiseAttributePattern {
-  public 'promise.resolve'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
+AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
 
-@attributePattern({ pattern: 'then', symbols: '' })
 export class FulfilledAttributePattern {
-  public 'then'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
+AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
 
-@attributePattern({ pattern: 'catch', symbols: '' })
 export class RejectedAttributePattern {
-  public 'catch'(name: string, value: string, _parts: string[]): AttrSyntax {
+  public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }
 }
+AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);

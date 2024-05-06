@@ -16,20 +16,18 @@ A good example of where using events might be more appropriate is showing and hi
 To listen to these events, you subscribe to them using the event aggregator like this:
 
 ```typescript
-import { IEventAggregator } from 'aurelia';
-import { IRouteableComponent } from '@aurelia/router'; 
+import { IEventAggregator, resolve } from 'aurelia';
+import { IRouteableComponent } from '@aurelia/router';
 
-export class MyComponent implements IRouteableComponent {    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
+export class MyComponent implements IRouteableComponent {
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
 
-    }
-    
     bound() {
         this.ea.subscribe('au:router:navigation-start', payload => {
             // Do stuff inside of this callback
         });
     }
- }   
+ }
 ```
 
 As you might expect, these events are named in an intuitive way depending on the action taking place inside of the router.

@@ -5,9 +5,7 @@
  *
  */
 import {
-  bindable,
   INode,
-  customElement,
   CustomElement,
   ICompiledCustomElementController,
   ICustomElementViewModel,
@@ -16,23 +14,17 @@ import {
   IHydratedController,
   ISyntheticView,
 } from '@aurelia/runtime-html';
-import { IContainer, Writable } from '@aurelia/kernel';
+import { IContainer, Writable, resolve } from '@aurelia/kernel';
 import { IRouter } from '../index';
 import { ViewportScope, IViewportScopeOptions } from '../endpoints/viewport-scope';
 
-export const ParentViewportScope = CustomElement.createInjectable();
+const ParentViewportScope = CustomElement.createInjectable<ViewportScopeCustomElement>();
 
-@customElement({
-  name: 'au-viewport-scope',
-  template: '<template></template>',
-  containerless: false,
-  injectable: ParentViewportScope
-})
 export class ViewportScopeCustomElement implements ICustomElementViewModel {
-  @bindable public name: string = 'default';
-  @bindable public catches: string = '';
-  @bindable public collection: boolean = false;
-  @bindable public source: unknown[] | null = null;
+  public name: string = 'default';
+  public catches: string = '';
+  public collection: boolean = false;
+  public source: unknown[] | null = null;
   public viewportScope: ViewportScope | null = null;
 
   public readonly $controller!: ICustomElementController<this>;
@@ -41,13 +33,11 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
 
   private isBound: boolean = false;
 
-  public constructor(
-    @IRouter private readonly router: IRouter,
-    @INode public readonly element: INode<HTMLElement>,
-    @IContainer public container: IContainer,
-    @ParentViewportScope private readonly parent: ViewportScopeCustomElement,
-    @IController private readonly parentController: IHydratedController,
-  ) { }
+  private readonly router = resolve(IRouter);
+  public readonly element = resolve(INode) as HTMLElement;
+  public container = resolve(IContainer);
+  private readonly parent = resolve(ParentViewportScope);
+  private readonly parentController = resolve(IController) as IHydratedController;
 
   // Maybe this really should be here. Check with Binh.
   // public create(
@@ -112,7 +102,7 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     }
 
     // TODO: Needs to be bound? How to solve?
-    options.source = this.source || null;
+    options.source = this.source ?? null;
 
     this.viewportScope = this.router.connectEndpoint(this.viewportScope, 'ViewportScope', this, name, options) as ViewportScope;
   }
@@ -141,3 +131,10 @@ export class ViewportScopeCustomElement implements ICustomElementViewModel {
     return void 0;
   }
 }
+CustomElement.define({
+  name: 'au-viewport-scope',
+  template: '<template></template>',
+  containerless: false,
+  injectable: ParentViewportScope,
+  bindables: ['name', 'catches', 'collection', 'source'],
+}, ViewportScopeCustomElement);

@@ -1,7 +1,7 @@
 import { DI, IContainer, Registration } from '@aurelia/kernel';
-import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, IAppRoot, CustomElementType, CustomElement, IHydratedParentController, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { StandardConfiguration, Aurelia as $Aurelia, IPlatform, CustomElementType, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import type { ISinglePageApp, IEnhancementConfig } from '@aurelia/runtime-html';
+import type { ISinglePageAppConfig, IEnhancementConfig } from '@aurelia/runtime-html';
 
 export const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
 export { IPlatform };
@@ -19,23 +19,19 @@ export class Aurelia extends $Aurelia {
     super(container);
   }
 
-  public static start(root: IAppRoot | undefined): void | Promise<void> {
-    return new Aurelia().start(root);
-  }
-
-  public static app(config: ISinglePageApp | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
-  public static enhance<T extends ICustomElementViewModel>(config: IEnhancementConfig<T>, parentController?: IHydratedParentController): ReturnType<$Aurelia['enhance']> {
-    return new Aurelia().enhance(config, parentController);
+  public static enhance<T extends ICustomElementViewModel>(config: IEnhancementConfig<T>): ReturnType<$Aurelia['enhance']> {
+    return new Aurelia().enhance(config);
   }
 
   public static register(...params: readonly unknown[]): Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageApp | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config);
@@ -58,31 +54,6 @@ export class Aurelia extends $Aurelia {
 export default Aurelia;
 
 export {
-  type Interceptor,
-  // RetryConfiguration,
-  // RetryableRequest,
-  // ValidInterceptorMethodName,
-
-  json,
-
-  // retryStrategy,
-  // RetryInterceptor,
-
-  HttpClientConfiguration,
-
-  HttpClient,
-  IHttpClient,
-} from '@aurelia/fetch-client';
-
-export {
-  Metadata,
-  // isNullOrUndefined,
-  // isObject,
-  // metadata,
-  // applyMetadataPolyfill,
-} from '@aurelia/metadata';
-
-export {
   type ITask,
   Platform,
   type QueueTaskOptions,
@@ -96,8 +67,7 @@ export {
   all,
   DI,
   IContainer,
-  // IDefaultableInterfaceSymbol,
-  // IFactory,
+  type IFactory,
   inject,
   resolve,
   type IRegistration,
@@ -106,10 +76,14 @@ export {
   IServiceLocator,
   type Key,
   lazy,
+  factory,
+  newInstanceOf,
+  newInstanceForScope,
   optional,
-  // RegisterSelf,
+  resource,
+  allResources,
+  ignore,
   Registration,
-  // ResolveCallback,
   singleton,
   transient,
   // Injectable,
@@ -206,9 +180,13 @@ export {
 } from '@aurelia/kernel';
 
 export {
+  IExpressionParser,
+  CustomExpression,
+} from '@aurelia/expression-parser';
+
+export {
   type CollectionKind,
   batch,
-  // CallFunctionExpression,
   // connects,
   // observes,
   // callsFunction,
@@ -222,85 +200,15 @@ export {
   // isLiteral,
   // arePureLiterals,
   // isPureLiteral,
-  // CustomExpression,
-  // BindingBehaviorExpression,
-  // ValueConverterExpression,
-  // AssignExpression,
-  // ConditionalExpression,
-  // AccessThisExpression,
-  // AccessScopeExpression,
-  // AccessMemberExpression,
-  // AccessKeyedExpression,
-  // CallScopeExpression,
-  // CallMemberExpression,
-  // BinaryExpression,
-  // UnaryExpression,
-  // PrimitiveLiteralExpression,
-  // ArrayLiteralExpression,
-  // ObjectLiteralExpression,
-  // TemplateExpression,
-  // TaggedTemplateExpression,
-  // ArrayBindingPattern,
-  // ObjectBindingPattern,
-  // BindingIdentifier,
-  // ForOfStatement,
-  // Interpolation,
 
-  // AnyBindingExpression,
-  // IsPrimary,
-  // IsLiteral,
-  // IsLeftHandSide,
-  // IsUnary,
-  // IsBinary,
-  // IsConditional,
-  // IsAssign,
-  // IsValueConverter,
-  // IsBindingBehavior,
-  // IsAssignable,
-  // IsExpression,
-  // IsExpressionOrStatement,
-  // Connects,
-  // Observes,
-  // CallsFunction,
   // IsResource,
   // HasBind,
   // HasUnbind,
   // HasAncestor,
-  // IVisitor,
-  // IExpression,
-  // IAccessKeyedExpression,
-  // IAccessMemberExpression,
-  // IAccessScopeExpression,
-  // IAccessThisExpression,
-  // IArrayBindingPattern,
-  // IArrayLiteralExpression,
-  // IAssignExpression,
-  // IBinaryExpression,
-  // IBindingBehaviorExpression,
-  // IBindingIdentifier,
-  // ICallFunctionExpression,
-  // ICallMemberExpression,
-  // ICallScopeExpression,
-  // IConditionalExpression,
-  // ForOfStatement,
-  // Interpolation,
-  // IObjectBindingPattern,
-  // IObjectLiteralExpression,
-  // IPrimitiveLiteralExpression,
-  // ITaggedTemplateExpression,
-  // ITemplateExpression,
-  // IUnaryExpression,
-  // IValueConverterExpression,
-  // BinaryOperator,
-  // BindingIdentifierOrPattern,
-  // UnaryOperator,
 
   // IObserverLocatorBasedConnectable,
   // IConnectableBinding,
   // connectable,
-
-  // IExpressionParser,
-  // ExpressionType,
 
   // ArrayObserver,
   // enableArrayObservation,
@@ -340,24 +248,7 @@ export {
 
   // SetterObserver,
 
-  ISignaler,
-
   subscriberCollection,
-
-  type BindingBehaviorInstance,
-  // PartialBindingBehaviorDefinition,
-  // BindingBehaviorKind,
-  // BindingBehaviorDecorator,
-  // BindingBehaviorInstance,
-  // BindingBehaviorType,
-
-  // BindingModeBehavior,
-  // OneTimeBindingBehavior,
-  // ToViewBindingBehavior,
-  // FromViewBindingBehavior,
-  // TwoWayBindingBehavior,
-
-  // DebounceBindingBehavior,
 
   // SignalableBinding,
   // SignalBindingBehavior,
@@ -370,15 +261,7 @@ export {
 
   observable,
 
-  // IfRegistration,
-  // ElseRegistration,
-  // RepeatRegistration,
-  // ReplaceableRegistration,
-  // WithRegistration,
-
   // DefaultResources as RuntimeDefaultResources,
-  // IObserverLocatorRegistration,
-  // IRendererRegistration,
   // RuntimeConfiguration,
 
   // ExpressionKind,
@@ -402,7 +285,6 @@ export {
   // IController,
   // IContainer,
   // IViewCache,
-  // IViewFactory,
   // MountStrategy,
 
   // AccessorOrObserver,
@@ -414,22 +296,45 @@ export {
   // ICollectionChangeTracker,
   // ICollectionSubscriber,
 
-  // ValueConverterDefinition,
-  // PartialValueConverterDefinition,
-  // ValueConverterKind,
-  // ValueConverterDecorator,
-  type ValueConverterInstance,
-  // ValueConverterType,
   type IndexMap,
 
 } from '@aurelia/runtime';
 
 export {
+  attributePattern,
+  AttributePattern,
+  IAttrMapper,
+  IAttributeParser,
+  IAttributePattern,
+
+  bindingCommand,
+  BindingCommand,
+  type BindingCommandInstance,
+
+  ITemplateCompiler,
+  ITemplateElementFactory,
+  ITemplateCompilerHooks,
+  TemplateCompilerHooks,
+  templateCompilerHooks,
+
+  type BindingCommandStaticAuDefinition,
+
+} from '@aurelia/template-compiler';
+
+export {
+  // BindingBehaviorDefinition,
   // PartialBindingBehaviorDefinition,
   // BindingBehaviorKind,
   // BindingBehaviorDecorator,
-  // BindingBehaviorInstance,
   // BindingBehaviorType,
+  type BindingBehaviorInstance,
+
+  // ValueConverterDefinition,
+  // PartialValueConverterDefinition,
+  // ValueConverterKind,
+  // ValueConverterDecorator,
+  // ValueConverterType,
+  type ValueConverterInstance,
 
   // BindingModeBehavior,
   // OneTimeBindingBehavior,
@@ -445,7 +350,6 @@ export {
   // ThrottleBindingBehavior,
 
   customAttribute,
-  // CustomAttributeDecorator,
   CustomAttribute,
   // CustomAttributeDefinition
   // CustomAttributeKind,
@@ -494,7 +398,7 @@ export {
   Bindable,
   coercer,
 
-  PartialChildrenDefinition,
+  type PartialChildrenDefinition,
   // Children,
   children,
 
@@ -509,30 +413,10 @@ export {
 
   // Aurelia, // Replaced by quick-start wrapper
   // IDOMInitializer,
-  // ISinglePageApp,
+  type ISinglePageAppConfig,
   IAppRoot,
 
-  // IfRegistration,
-  // ElseRegistration,
-  // RepeatRegistration,
-  // ReplaceableRegistration,
-  // WithRegistration,
-
-  // SanitizeValueConverterRegistration,
-
-  // DebounceBindingBehaviorRegistration,
-  // OneTimeBindingBehaviorRegistration,
-  // ToViewBindingBehaviorRegistration,
-  // FromViewBindingBehaviorRegistration,
-  // SignalBindingBehaviorRegistration,
-  // ThrottleBindingBehaviorRegistration,
-  // TwoWayBindingBehaviorRegistration,
-
-  // CallBindingRendererRegistration,
-
   // DefaultResources as RuntimeDefaultResources,
-  // IObserverLocatorRegistration,
-  // IRendererRegistration,
   // RuntimeConfiguration,
 
   // AttributeInstruction,
@@ -545,7 +429,6 @@ export {
   // IIteratorBindingInstruction,
   // ILetBindingInstruction,
   // IInstructionRow,
-  // InstructionTypeName,
   // IPropertyBindingInstruction,
   // IRefBindingInstruction,
   // ISetPropertyInstruction,
@@ -566,10 +449,10 @@ export {
   // IViewModel,
   type ICustomAttributeViewModel,
   type ICustomElementViewModel,
-  // IController,
+  IController,
   // IContainer,
   // IViewCache,
-  // IViewFactory,
+  IViewFactory,
   // MountStrategy,
 
   // AccessorOrObserver,
@@ -583,7 +466,7 @@ export {
 
   IFlushQueue,
   FlushQueue,
-  IFlushable,
+  type IFlushable,
 
   renderer,
 
@@ -666,44 +549,27 @@ export {
 
   // Subject,
   // Compose,
-  IAuSlot,
+  type IAuSlot,
   IAuSlotsInfo,
   AuSlotsInfo,
   IAuSlotWatcher,
   slotted,
-
-  // IProjectorLocatorRegistration,
-  // ITargetAccessorLocatorRegistration,
-  // ITargetObserverLocatorRegistration,
-  // ITemplateFactoryRegistration,
 
   // DefaultComponents as RuntimeHtmlDefaultComponents,
 
   // CompiledTemplate,
   ChildrenBinding,
   // IRenderer,
-  // IInstructionTypeClassifier,
   // IRenderingEngine,
   // ITemplate,
-  ITemplateCompiler,
-  // ITemplateFactory,
-  ITemplateCompilerHooks,
-  TemplateCompilerHooks,
-  templateCompilerHooks,
+
+  RuntimeTemplateCompilerImplementation,
 
   // RenderContext
 
   // AttrSyntax,
 
   // IAttributeParser,
-
-  attributePattern,
-  // AttributePatternDefinition,
-  IAttributePattern,
-  // IAttributePatternHandler,
-  // Interpretation,
-  // ISyntaxInterpreter,
-  IAttrMapper,
 
   // AtPrefixedTriggerAttributePattern,
   // ColonPrefixedBindAttributePattern,
@@ -719,9 +585,6 @@ export {
   valueConverter,
   ValueConverter,
 
-  bindingCommand,
-  // BindingCommand,
-  type BindingCommandInstance,
   // BindingCommandDefinition,
   // BindingCommandKind,
   // BindingCommandType,
@@ -737,31 +600,11 @@ export {
   type IEnhancementConfig,
   type IHydratedParentController,
 
-  // IExpressionParserRegistration,
-
   // DefaultComponents as JitDefaultComponents,
-
-  // RefAttributePatternRegistration,
-  // DotSeparatedAttributePatternRegistration,
 
   // DefaultBindingSyntax,
 
-  // AtPrefixedTriggerAttributePatternRegistration,
-  // ColonPrefixedBindAttributePatternRegistration,
-
   ShortHandBindingSyntax,
-
-  // CallBindingCommandRegistration,
-  // DefaultBindingCommandRegistration,
-  // ForBindingCommandRegistration,
-  // FromViewBindingCommandRegistration,
-  // OneTimeBindingCommandRegistration,
-  // ToViewBindingCommandRegistration,
-  // TwoWayBindingCommandRegistration,
-
-  // SelfBindingBehaviorRegistration,
-  // UpdateTriggerBindingBehaviorRegistration,
-  // ComposeRegistration,
 
   // DefaultResources as RuntimeHtmlDefaultResources,
 
@@ -802,47 +645,27 @@ export {
   // ShadowDOMRegistry,
   // IShadowDOMStyleFactory,
   shadowCSS,
+  processContent,
 
   // AdoptedStyleSheetsStyles,
   // StyleElementStyles,
   // IShadowDOMStyles,
   // IShadowDOMGlobalStyles
 
-  // IAttrSyntaxTransformer,
-
-  // TriggerBindingCommand,
-  // DelegateBindingCommand,
-  // CaptureBindingCommand,
-  // AttrBindingCommand,
-  // ClassBindingCommand,
-  // StyleBindingCommand,
-
-  // ITemplateCompilerRegistration,
-  // ITemplateElementFactoryRegistration,
-  // IAttrSyntaxTransformerRegistation,
-
-  // DefaultComponents as JitHtmlDefaultComponents,
-
-  // TriggerBindingCommandRegistration,
-  // DelegateBindingCommandRegistration,
-  // CaptureBindingCommandRegistration,
-  // AttrBindingCommandRegistration,
-  // ClassBindingCommandRegistration,
-  // StyleBindingCommandRegistration,
-
-  // DefaultBindingLanguage as JitHtmlDefaultBindingLanguage,
-
   // StandardConfiguration,
 
-  // stringifyDOM,
-  // stringifyInstructions,
-  // stringifyTemplateDefinition,
-
-  // TemplateBinder,
-
-  // ITemplateElementFactory,
   ILifecycleHooks,
   type LifecycleHook,
   LifecycleHooks,
   lifecycleHooks,
+
+  watch,
+
+  IKeyMapping,
+  IModifiedEventHandlerCreator,
+  IEventModifier,
+  type IModifiedEventHandler,
+
+  Scope,
+  ISignaler,
 } from '@aurelia/runtime-html';

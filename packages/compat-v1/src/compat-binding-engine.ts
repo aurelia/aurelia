@@ -1,17 +1,11 @@
-import { IDisposable } from '@aurelia/kernel';
-import { Collection, getCollectionObserver, ICollectionSubscriber, IExpressionParser, IndexMap, IObserverLocator, ISubscriber, Scope } from '@aurelia/runtime';
-import { ExpressionWatcher } from '@aurelia/runtime-html';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IDisposable, resolve } from '@aurelia/kernel';
+import { Collection, getCollectionObserver, ICollectionSubscriber, IndexMap, IObserverLocator, ISubscriber } from '@aurelia/runtime';
+import { ExpressionWatcher, Scope } from '@aurelia/runtime-html';
 
 export class BindingEngine {
-  /** @internal */
-  protected static inject = [IExpressionParser, IObserverLocator];
-
-  public constructor(
-    public readonly parser: IExpressionParser,
-    public readonly observerLocator: IObserverLocator,
-  ) {
-
-  }
+  public readonly parser = resolve(IExpressionParser);
+  public readonly observerLocator = resolve(IObserverLocator);
 
   public propertyObserver(object: {}, prop: PropertyKey): IBindingEnginePropertyObserver {
     return {

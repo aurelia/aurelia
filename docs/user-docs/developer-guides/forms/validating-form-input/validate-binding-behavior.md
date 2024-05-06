@@ -4,7 +4,7 @@ The `validate` binding behavior, as the name suggests adds the validation behavi
 
 You must have noticed plenty example of the `validate` binding behavior in the demos so far. For completeness, this can be used as follows.
 
-```markup
+```html
 <html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
 ```
 
@@ -57,7 +57,7 @@ Aurelia
 
 ## Explicit validation controller
 
-The binding behavior by default registers the binding to the closest \(in terms of dependency injection container\) available instance of validation controller. Note that the validation controller instance can be made available for the scope using the `@newInstanceForScope` decorator \(refer [Injecting a controller instance](validation-controller.md#injecting-a-controller-instance) for more details\). If no instance of validation controller is available, it throws error.
+The binding behavior by default registers the binding to the closest \(in terms of dependency injection container\) available instance of validation controller. Note that the validation controller instance can be made available for the scope using the `newInstanceForScope` resolver \(refer [Injecting a controller instance](validation-controller.md#injecting-a-controller-instance) for more details\). If no instance of validation controller is available, it throws error.
 
 However, an instance of validation can be explicitly bound to the binding behavior, using the positional argument. This is useful when you need to use multiple instances of validation controller to perform different set of validation. In the example below, there are two injected controllers and the property `person.age` the `validationController2` is used. Playing with the example you can see that the `person.age` does not get validated by the scoped validation controller instance.
 

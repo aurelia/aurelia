@@ -143,7 +143,7 @@ export const ITenant = DI.createInterface<string>('tenant');
 @customElement({ name: 'my-app', template })
 export class MyApp {
   private baseUrl = location.origin;
-  public constructor(@ITenant private readonly tenant: string) {}
+  private readonly tenant: string = resolve(ITenant);
 }
 ```
 {% endtab %}
@@ -345,17 +345,16 @@ import { MyApp as component } from './my-app';
 To demonstrate the `push` behavior, there is a small piece of code in the `my-app.ts` that listens to router events to create informative text (the `history` property in the class) from the browser history object that is used in the view to display the information.
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { IHistory } from '@aurelia/runtime-html';
 import { IRouterEvents } from '@aurelia/router-lite';
 
 export class MyApp {
   private history: string;
-  public constructor(
-    @IHistory history: IHistory,
-    @IRouterEvents events: IRouterEvents
-  ) {
+  public constructor() {
     let i = 0;
-    events.subscribe('au:router:navigation-end', () => {
+    const history = resolve(IHistory);
+    resolve(IRouterEvents).subscribe('au:router:navigation-end', () => {
       this.history = `#${++i} - len: ${history.length} - state: ${JSON.stringify(history.state)}`;
     });
   }

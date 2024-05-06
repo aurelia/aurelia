@@ -11,13 +11,11 @@ The Event Aggregator is not for listening to native events. For those, you still
 To use the Event Aggregator, we inject the `IEventAggregator` interface into our component. We inject it as `IEventAggregator` on our component class in the following code example.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator } from 'aurelia';
+import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
-
-    }
- }   
+export class MyComponent implements ICustomElementViewModel {
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
+}
 ```
 
 ### Subscribing to events
@@ -25,37 +23,33 @@ export class MyComponent implements ICustomElementViewModel {
 The Event Aggregator provides a subscription method to subscribe to published events.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator } from 'aurelia';
+import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
+export class MyComponent implements ICustomElementViewModel {
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
 
-    }
-    
     bound() {
         this.ea.subscribe('event name', payload => {
             // Do stuff inside of this callback
         });
     }
- }   
+ }
 ```
 
 Sometimes, you might only want to subscribe to an event once. To do that, we can use the `subscribeOnce` method to listen to the event and dispose of itself once it has been fired.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator } from 'aurelia';
+import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
+export class MyComponent implements ICustomElementViewModel {
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
 
-    }
-    
     bound() {
         this.ea.subscribeOnce('event name', payload => {
             // Do stuff inside of this callback just once
         });
     }
- }   
+ }
 ```
 
 ### Publishing events
@@ -63,13 +57,11 @@ export class MyComponent implements ICustomElementViewModel {
 To publish (emit) an event, we use the `publish` method. You can provide an object to the `publish` method, which allows you to emit data via the event (accessible as a parameter on the subscribe method).
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator } from 'aurelia';
+import { ICustomElementViewModel, IEventAggregator, resolve } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
+export class MyComponent implements ICustomElementViewModel {
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
 
-    }
-    
     bound() {
         const payload = {
             component: 'my-component',
@@ -78,10 +70,10 @@ export class MyComponent implements ICustomElementViewModel {
                 prop: 'value'
             }
         };
-        
+
         this.ea.publish('component bound', payload);
     }
- }   
+ }
 ```
 
 ### Disposing of event listeners
@@ -89,25 +81,23 @@ export class MyComponent implements ICustomElementViewModel {
 It's considered best practice to dispose of your event listeners when you are finished with them. Inside a component, you would usually do this inside of the `unbinding` method. The event will be of type `IDisposable` that we will use to type our class property strongly.
 
 ```typescript
-import { ICustomElementViewModel, IEventAggregator, IDisposable } from 'aurelia';
+import { ICustomElementViewModel, IEventAggregator, IDisposable, resolve } from 'aurelia';
 
-export class MyComponent implements ICustomElementViewModel {    
+export class MyComponent implements ICustomElementViewModel {
     private myEvent: IDisposable;
-    
-    constructor(@IEventAggregator readonly ea: IEventAggregator) {
 
-    }
-    
+    readonly ea: IEventAggregator = resolve(IEventAggregator);
+
     bound() {
         this.myEvent = this.ea.subscribe('event name', payload => {
             // Do stuff inside of this callback
         });
     }
-    
+
     unbinding() {
         this.myEvent.dispose();
     }
- }   
+ }
 ```
 
 {% hint style="warning" %}

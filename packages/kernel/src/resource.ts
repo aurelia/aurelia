@@ -1,7 +1,13 @@
 import { IContainer } from './di';
 import { Constructable } from './interfaces';
-import { emptyArray } from './platform';
-import { defineMetadata, hasOwnMetadata, getOwnMetadata, objectFreeze } from './utilities';
+import { defineMetadata, getMetadata, objectFreeze } from './utilities';
+
+export type StaticResourceType<TDef extends object = object> = {
+  readonly aliases?: string[];
+  readonly $au?: PartialResourceDefinition<{
+    type: string;
+  } & TDef>;
+};
 
 export type ResourceType<
   TUserType extends Constructable = Constructable,
@@ -11,9 +17,7 @@ export type ResourceType<
 > = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   new (...args: any[]) => TResInstance & TUserInstance
-) & {
-  readonly aliases?: readonly string[];
-} & TResType & TUserType;
+) & StaticResourceType & TResType & TUserType;
 
 export type ResourceDefinition<
   TUserType extends Constructable = Constructable,
@@ -22,14 +26,24 @@ export type ResourceDefinition<
   TResType extends {} = {},
   TUserInstance extends InstanceType<TUserType> = InstanceType<TUserType>,
 > = {
+  /**
+   * Unique key to identify the resource.
+   */
+  readonly key: string;
+  /**
+   * A common name for the resource.
+   */
   readonly name: string;
   readonly Type: ResourceType<TUserType, TResInstance, TResType, TUserInstance>;
   readonly aliases?: readonly string[];
 
-  register(container: IContainer): void;
+  /**
+   * @param aliasName - If provided, the resource will be registered with this alias key.
+   */
+  register(container: IContainer, aliasName?: string): void;
 } & TDef;
 
-export type PartialResourceDefinition<TDef extends {} = {}> = {
+export type PartialResourceDefinition<TDef extends object = object> = {
   readonly name: string;
   readonly aliases?: readonly string[];
 } & TDef;
@@ -51,24 +65,25 @@ export const getAnnotationKeyFor = (name: string, context?: string): string => {
 };
 /** @internal */
 export const appendAnnotation = (target: Constructable, key: string): void => {
-  const keys = getOwnMetadata(annoBaseName, target) as string[];
+  const keys = getMetadata<string[]>(annoBaseName, target);
   if (keys === void 0) {
-    defineMetadata(annoBaseName, [key], target);
+    defineMetadata([key], target, annoBaseName);
   } else {
     keys.push(key);
   }
 };
+
 const annotation = /*@__PURE__*/ objectFreeze({
   name: 'au:annotation',
   appendTo: appendAnnotation,
   set(target: Constructable, prop: string, value: unknown): void {
-    defineMetadata(getAnnotationKeyFor(prop), value, target);
+    defineMetadata(value, target, getAnnotationKeyFor(prop));
   },
-  get: (target: Constructable, prop: string): unknown => getOwnMetadata(getAnnotationKeyFor(prop), target),
+  get: (target: Constructable, prop: string): unknown => getMetadata(getAnnotationKeyFor(prop), target),
   getKeys(target: Constructable): readonly string[] {
-    let keys = getOwnMetadata(annoBaseName, target) as string[];
+    let keys = getMetadata<string[]>(annoBaseName, target);
     if (keys === void 0) {
-      defineMetadata(annoBaseName, keys = [], target);
+      defineMetadata(keys = [], target, annoBaseName);
     }
     return keys;
   },
@@ -76,50 +91,23 @@ const annotation = /*@__PURE__*/ objectFreeze({
   keyFor: getAnnotationKeyFor,
 });
 
-const resBaseName = 'au:resource';
-export const hasResources = (target: unknown): target is Constructable => hasOwnMetadata(resBaseName, target);
-/** @internal */
-export const getAllResources = (target: Constructable): readonly ResourceDefinition[] => {
-  const keys = getOwnMetadata(resBaseName, target) as string[];
-  if (keys === void 0) {
-    return emptyArray;
-  } else {
-    return keys.map(k => getOwnMetadata(k, target));
+export const resourceBaseName = 'au:resource';
+/**
+ * Builds a resource key from the provided parts.
+ */
+export const getResourceKeyFor = (type: string, name?: string, context?: string): string => {
+  if (name == null) {
+    return `${resourceBaseName}:${type}`;
   }
+  if (context == null) {
+    return `${resourceBaseName}:${type}:${name}`;
+  }
+
+  return `${resourceBaseName}:${type}:${name}:${context}`;
 };
-
-const resource = /*@__PURE__*/ objectFreeze({
-  name: resBaseName,
-  appendTo(target: Constructable, key: string): void {
-    const keys = getOwnMetadata(resBaseName, target) as string[];
-    if (keys === void 0) {
-      defineMetadata(resBaseName, [key], target);
-    } else {
-      keys.push(key);
-    }
-  },
-  has: hasResources,
-  getAll: getAllResources,
-  getKeys(target: Constructable): readonly string[] {
-    let keys = getOwnMetadata(resBaseName, target) as string[];
-    if (keys === void 0) {
-      defineMetadata(resBaseName, keys = [], target);
-    }
-    return keys;
-  },
-  isKey: (key: string): boolean => key.startsWith(resBaseName),
-  keyFor(name: string, context?: string): string {
-    if (context === void 0) {
-      return `${resBaseName}:${name}`;
-    }
-
-    return `${resBaseName}:${name}:${context}`;
-  },
-});
 
 export const Protocol = {
   annotation,
-  resource,
 };
 
 const hasOwn = Object.prototype.hasOwnProperty;
@@ -140,7 +128,7 @@ export function fromAnnotationOrDefinitionOrTypeOrDefault<
   Type: Constructable,
   getDefault: () => Required<TDef>[K],
 ): Required<TDef>[K] {
-  let value = getOwnMetadata(getAnnotationKeyFor(name as string), Type) as TDef[K] | undefined;
+  let value = getMetadata<TDef[K] | undefined>(getAnnotationKeyFor(name as string), Type);
   if (value === void 0) {
     value = def[name];
     if (value === void 0) {
@@ -166,7 +154,7 @@ export function fromAnnotationOrTypeOrDefault<T, K extends keyof T, V>(
   Type: T,
   getDefault: () => V,
 ): V {
-  let value = getOwnMetadata(getAnnotationKeyFor(name as string), Type) as V;
+  let value = getMetadata<V>(getAnnotationKeyFor(name as string), Type);
   if (value === void 0) {
     value = Type[name] as unknown as V;
     if (value === void 0 || !hasOwn.call(Type, name)) { // First just check the value (common case is faster), but do make sure it doesn't come from the proto chain

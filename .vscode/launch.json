@@ -56,26 +56,24 @@
       "type": "node",
       "request": "launch",
       "name": "Launch mocha kernel tests",
-      "runtimeArgs": [
-        "mocha"
-      ],
-      "outputCapture": "std",
-      "runtimeExecutable": "npx",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
       "args": [
-        "${workspaceRoot}/packages/__tests__/setup-node.ts",
-        "${workspaceRoot}/packages/__tests__/1-kernel",
-        "--color",
-        "--require",
-        "source-map-support/register",
-        "--require",
-        "ts-node/register",
-        "--require",
-        "esm",
-        "--recursive",
-        "--globals",
-        "expect",
-        "--timeout",
-        "999999"
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "50000",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
+       "${workspaceRoot}/packages/__tests__/dist/1-kernel/*.spec.js",
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
@@ -241,12 +239,19 @@
         "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
       },
       "args": [
-        "-r",
-        "esm",
-        "--opts",
-        "${workspaceRoot}/packages/__tests__/mocha.opts",
-        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/setup-node.js",
-        "${workspaceRoot}/packages/__tests__/dist/esnext/__tests__/validation*/**/*.spec.js"
+        "--ui",
+        "bdd",
+        "--reporter",
+        "min",
+        "--colors",
+        "--recursive",
+        "--timeout",
+        "50000",
+        "--watch-extensions",
+        "js",
+        "--bail",
+        "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
+        "${workspaceRoot}/packages/__tests__/dist/validation*/**/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"
@@ -287,6 +292,57 @@
        "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
        "${workspaceRoot}/packages/__tests__/dist/2-runtime/*.spec.js",
        "${workspaceRoot}/packages/__tests__/dist/3-runtime-html/*.spec.js"
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha state tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "50000",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
+       "${workspaceRoot}/packages/__tests__/dist/state/**/*.spec.js",
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch mocha convention tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages-tooling/__tests__/tsconfig.json"
+      },
+      "args": [
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "50000",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages-tooling/__tests__/dist/cjs/plugin-conventions/**/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart"

@@ -1,11 +1,15 @@
 import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
-import { IBinding, IExpressionParser, IObserverLocator, Scope } from '@aurelia/runtime';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IObserverLocator } from '@aurelia/runtime';
+import { type Scope } from './scope';
 import { createMappedError, ErrorNames } from '../errors';
 import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
 import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';
-import { IHasController, IInstruction, ITemplateCompiler, spreadBinding as $spreadBinding, SpreadElementPropBindingInstruction, spreadElementProp } from '../renderer';
+import { IHasController,} from '../renderer';
+import { IInstruction, ITemplateCompiler, SpreadElementPropBindingInstruction, InstructionType } from '@aurelia/template-compiler';
 import { IRendering } from '../templating/rendering';
 import { IPlatform } from '../platform';
+import { IBinding } from './interfaces-bindings';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -60,10 +64,10 @@ export class SpreadBinding implements IBinding, IHasController {
       let inst: IInstruction;
       for (inst of instructions) {
         switch (inst.type) {
-          case $spreadBinding:
+          case InstructionType.spreadBinding:
             renderSpreadInstruction(ancestor + 1);
             break;
-          case spreadElementProp:
+          case InstructionType.spreadElementProp:
             renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
               spreadBinding,
               findElementControllerFor(target),
@@ -102,12 +106,12 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   /** @internal */ private readonly _innerBindings: IBinding[] = [];
+  /** @internal */ private readonly _hydrationContext: IHydrationContext<object>;
 
   public constructor(
-      /** @internal */ private readonly _hydrationContext: IHydrationContext<object>,
+    hydrationContext: IHydrationContext<object>,
   ) {
-    this.$controller = _hydrationContext.controller;
-    this.locator = this.$controller.container;
+    this.locator = (this.$controller = (this._hydrationContext = hydrationContext).controller).container;
   }
 
   public get(key: Key) {

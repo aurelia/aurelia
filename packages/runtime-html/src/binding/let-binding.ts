@@ -1,22 +1,38 @@
 import {
+  ICollectionSubscriber,
+  IObserverLocatorBasedConnectable,
+  ISubscriber,
+  connectable,
+  type IObservable,
+  type IObserverLocator,
+} from '@aurelia/runtime';
+import { type Scope } from './scope';
+import {
   astBind,
   astEvaluate,
   astUnbind,
-  connectable,
   type IAstEvaluator,
-  type IBinding,
-  type IConnectableBinding,
-  type IObservable,
-  type IObserverLocator,
-  type IsExpression,
-  type Scope
-} from '@aurelia/runtime';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+} from '../ast.eval';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
-export interface LetBinding extends IAstEvaluator, IConnectableBinding {}
+import { IsExpression } from '@aurelia/expression-parser';
+import { IBinding } from './interfaces-bindings';
+export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
-export class LetBinding implements IBinding {
+export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  /**
+   * The renderer can call this method to prepare the prototype,
+   * so that it can be effectively tree shaken before decorator can be officially applied with tree shaking.
+   * @internal
+   */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+    mixinUseScope(LetBinding);
+    mixingBindingLimited(LetBinding, () => 'updateTarget');
+    connectable(LetBinding, null!);
+    mixinAstEvaluator(true)(LetBinding);
+  });
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -106,8 +122,3 @@ export class LetBinding implements IBinding {
     this.obs.clearAll();
   }
 }
-
-mixinUseScope(LetBinding);
-mixingBindingLimited(LetBinding, () => 'updateTarget');
-connectable(LetBinding);
-mixinAstEvaluator(true)(LetBinding);

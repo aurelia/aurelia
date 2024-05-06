@@ -1,4 +1,12 @@
 export {
+  type IAstEvaluator,
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from './ast.eval';
+
+export {
   bindable,
   Bindable,
   BindableDefinition,
@@ -11,9 +19,11 @@ export {
   BindingBehavior,
   BindingBehaviorDefinition,
   type PartialBindingBehaviorDefinition,
+  type BindingBehaviorStaticAuDefinition,
   type BindingBehaviorKind,
   type BindingBehaviorDecorator,
   type BindingBehaviorType,
+  type BindingBehaviorInstance,
 } from './resources/binding-behavior';
 
 export {
@@ -37,9 +47,15 @@ export {
   Aurelia,
   IAurelia,
   type IEnhancementConfig,
+  /**
+   * @deprecated
+   * Use `ISinglePageAppConfig` instead
+   */
+  type ISinglePageAppConfig as ISinglePageApp,
+  type ISinglePageAppConfig,
 } from './aurelia';
 export {
-  type ISinglePageApp,
+  type IAppRootConfig,
   AppRoot,
   IAppRoot,
 } from './app-root';
@@ -50,48 +66,12 @@ export {
   type AppTaskCallback,
   type AppTaskCallbackNoArg,
 } from './app-task';
-export {
-  AttrSyntax,
-  IAttributeParser,
-  attributePattern,
-  type AttributePatternDefinition,
-  IAttributePattern,
-  AttributePattern,
-  Interpretation,
-  ISyntaxInterpreter,
-  AtPrefixedTriggerAttributePattern,
-  ColonPrefixedBindAttributePattern,
-  DotSeparatedAttributePattern,
-  RefAttributePattern,
-} from './resources/attribute-pattern';
-export {
-  bindingCommand,
-  type ICommandBuildInfo,
-  BindingCommand ,
-  type BindingCommandInstance,
-  BindingCommandDefinition,
-  type BindingCommandKind,
-  type BindingCommandType,
-  type CommandType,
-  DefaultBindingCommand,
-  ForBindingCommand,
-  FromViewBindingCommand,
-  OneTimeBindingCommand,
-  ToViewBindingCommand,
-  TwoWayBindingCommand,
-  TriggerBindingCommand,
-  CaptureBindingCommand,
-  AttrBindingCommand,
-  ClassBindingCommand,
-  StyleBindingCommand,
-} from './resources/binding-command';
-export {
-  IAttrMapper,
-  type IsTwoWayPredicate,
-} from './compiler/attribute-mapper';
+
 export {
   BindingMode,
   type IBindingController,
+  type IBinding,
+  type IRateLimitOptions,
 } from './binding/interfaces-bindings';
 export {
   IFlushQueue,
@@ -105,10 +85,16 @@ export {
 export {
   ListenerBinding,
   ListenerBindingOptions,
+  type IModifiedEventHandler,
+  IEventModifier,
+  EventModifier,
+  EventModifierRegistration,
+  IModifiedEventHandlerCreator,
+  IKeyMapping,
 } from './binding/listener-binding';
 export {
   AttributeBinding,
-} from './binding/attribute';
+} from './binding/attribute-binding';
 export {
   InterpolationBinding,
   InterpolationPartBinding,
@@ -125,41 +111,21 @@ export {
 export {
   RefBinding,
 } from './binding/ref-binding';
+export {
+  Scope,
+  BindingContext,
+  type IBindingContext,
+  type IOverrideContext
+} from './binding/scope';
 
 export {
   IRenderer,
-  type IInstructionTypeClassifier,
-  ITemplateCompiler,
-  type ICompliationInstruction,
   renderer,
-  HydrateAttributeInstruction,
-  HydrateElementInstruction,
-  HydrateTemplateController,
-  InterpolationInstruction,
-  IteratorBindingInstruction,
-  LetBindingInstruction,
-  HydrateLetElementInstruction,
-  RefBindingInstruction,
-  SetPropertyInstruction,
-  AttributeBindingInstruction,
-  ListenerBindingInstruction,
-  PropertyBindingInstruction,
-  SetAttributeInstruction,
-  SetClassAttributeInstruction,
-  SetStyleAttributeInstruction,
-  StylePropertyBindingInstruction,
-  TextBindingInstruction,
-  SpreadBindingInstruction,
-  SpreadElementPropBindingInstruction,
-
-  isInstruction,
-  type InstructionTypeName,
-  IInstruction,
-  InstructionType,
 
   PropertyBindingRenderer,
   TextBindingRenderer,
   ListenerBindingRenderer,
+  IListenerBindingOptions,
   LetElementRenderer,
   TemplateControllerRenderer,
   AttributeBindingRenderer,
@@ -167,7 +133,6 @@ export {
   CustomElementRenderer,
   InterpolationBindingRenderer,
   IteratorBindingRenderer,
-  MultiAttrInstruction,
   RefBindingRenderer,
   SetAttributeRenderer,
   SetClassAttributeRenderer,
@@ -176,6 +141,14 @@ export {
   SpreadRenderer,
   StylePropertyBindingRenderer,
 } from './renderer';
+
+export {
+  AttrMapper,
+} from './compiler/attribute-mapper';
+
+export {
+  RuntimeTemplateCompilerImplementation,
+} from './compiler/template-compiler';
 
 export {
   AttributeNSAccessor,
@@ -230,6 +203,7 @@ export {
   type CustomAttributeKind,
   type CustomAttributeType,
   type PartialCustomAttributeDefinition,
+  type CustomAttributeStaticAuDefinition,
   templateController,
 } from './resources/custom-attribute';
 export {
@@ -267,9 +241,6 @@ export {
 export {
   AuSlot,
 } from './resources/custom-elements/au-slot';
-export type {
-  DefinitionType,
-} from './resources/resources-shared';
 
 export {
   capture,
@@ -281,6 +252,7 @@ export {
   type CustomElementType,
   CustomElementDefinition,
   type PartialCustomElementDefinition,
+  type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
 } from './resources/custom-element';
@@ -294,9 +266,11 @@ export {
   ValueConverter,
   ValueConverterDefinition,
   type PartialValueConverterDefinition,
+  type ValueConverterStaticAuDefinition,
   type ValueConverterKind,
   type ValueConverterDecorator,
   type ValueConverterType,
+  type ValueConverterInstance,
   valueConverter,
 } from './resources/value-converter';
 
@@ -306,6 +280,8 @@ export {
 } from './resources/value-converters/sanitize';
 
 export {
+  type ConfigurationOptionsProvider,
+
   DefaultComponents,
 
   DefaultBindingSyntax,
@@ -321,19 +297,9 @@ export {
   StandardConfiguration,
 } from './configuration';
 export {
-  ITemplateElementFactory
-} from './compiler/template-element-factory';
-export {
-  BindablesInfo,
-  TemplateCompiler,
-  ITemplateCompilerHooks,
-  TemplateCompilerHooks,
-  templateCompilerHooks,
-} from './compiler/template-compiler';
-
-export {
-  allResources,
-} from './utilities-di';
+  /** @deprecated - Should be imported directly from `aurelia` or `@aurelia/template-compiler` package */
+  BindingCommand,
+} from '@aurelia/template-compiler';
 
 export {
   type PartialChildrenDefinition,
@@ -420,9 +386,9 @@ export {
   CSSModulesProcessorRegistry,
   cssModules,
   ShadowDOMRegistry,
-  type IShadowDOMStyleFactory,
   shadowCSS,
   StyleConfiguration,
+  IShadowDOMStyleFactory,
   type IShadowDOMConfiguration,
   AdoptedStyleSheetsStyles,
   StyleElementStyles,
@@ -442,6 +408,10 @@ export {
   ComputedWatcher,
   ExpressionWatcher,
 } from './templating/watchers';
+
+export {
+  ISignaler,
+} from './signaler';
 
 export {
   alias,

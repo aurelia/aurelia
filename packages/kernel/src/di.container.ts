@@ -1,36 +1,91 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
 import { isObject } from '@aurelia/metadata';
-import { isNativeFunction } from './functions';
-import { type Class, type Constructable, type IDisposable } from './interfaces';
-import { emptyArray } from './platform';
-import { type IResourceKind, type ResourceDefinition, type ResourceType, getAllResources, hasResources } from './resource';
-import { getOwnMetadata, isFunction, isString } from './utilities';
 import {
   IContainer,
-  type Key,
-  type IResolver,
-  type IDisposableResolver,
-  ContainerConfiguration,
-  type IRegistry,
-  Registration,
+  InterfaceSymbol,
   Resolver,
   ResolverStrategy,
-  type Transformer,
+  getDependencies,
+  type IContainerConfiguration,
+  type IFactory,
+  type IRegistry,
+  type IResolver,
+  type Key,
   type RegisterSelf,
   type Resolved,
-  getDependencies,
-  type IFactory,
-  type IContainerConfiguration,
-  type IFactoryResolver,
-  type ILazyResolver,
-  type INewInstanceResolver,
-  type IResolvedFactory,
-  type IResolvedLazy,
-  type IAllResolver,
-  type IOptionalResolver,
+  type Transformer,
 } from './di';
-import { ErrorNames, createMappedError } from './errors';
+import { aliasToRegistration, singletonRegistration } from './di.registration';
+import type {
+  IAllResolver,
+  IFactoryResolver,
+  ILazyResolver,
+  INewInstanceResolver,
+  IOptionalResolver,
+  IResolvedFactory,
+  IResolvedLazy,
+} from './di.resolvers';
+import { ErrorNames, createMappedError, logError, logWarn } from './errors';
+import { isNativeFunction } from './functions';
+import { type Class, type Constructable } from './interfaces';
+import { emptyArray } from './platform';
+import { ResourceDefinition, StaticResourceType, resourceBaseName, type ResourceType } from './resource';
+import { getMetadata, isFunction, isString, objectFreeze } from './utilities';
+
+export const Registrable = /*@__PURE__*/(() => {
+  const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
+  return objectFreeze({
+    /**
+     * Associate an object as a registrable, making the container recognize & use
+     * the specific given register function during the registration
+     */
+    define: <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
+      if (__DEV__) {
+        if (map.has(object) && map.get(object) !== register) {
+          logWarn(`Overriding registrable found for key:`, object);
+        }
+      }
+      map.set(object, register);
+      return object;
+    },
+    get: <T extends WeakKey>(object: T) => map.get(object),
+    has: <T extends WeakKey>(object: T) => map.has(object),
+  });
+})();
+
+export const DefaultResolver = {
+  none(key: Key): IResolver {
+    throw createMappedError(ErrorNames.none_resolver_found, key);
+  },
+  singleton: (key: Key): IResolver => new Resolver(key, ResolverStrategy.singleton, key),
+  transient: (key: Key): IResolver => new Resolver(key, ResolverStrategy.transient, key),
+};
+
+export class ContainerConfiguration implements IContainerConfiguration {
+  public static readonly DEFAULT: ContainerConfiguration = ContainerConfiguration.from({});
+
+  private constructor(
+    public readonly inheritParentResources: boolean,
+    public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
+  ) { }
+
+  public static from(config?: IContainerConfiguration): ContainerConfiguration {
+    if (
+      config === void 0 ||
+      config === ContainerConfiguration.DEFAULT
+    ) {
+      return ContainerConfiguration.DEFAULT;
+    }
+    return new ContainerConfiguration(
+      config.inheritParentResources ?? false,
+      config.defaultResolver ?? DefaultResolver.singleton,
+    );
+  }
+}
+
+/** @internal */
+export const createContainer = (config?: Partial<IContainerConfiguration>): IContainer => new Container(null, ContainerConfiguration.from(config));
 
 const InstrinsicTypeNames = new Set<string>('Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(' '));
 // const factoryKey = 'di:factory';
@@ -55,7 +110,7 @@ export class Container implements IContainer {
    *
    * @internal
    */
-  private readonly _resolvers: Map<Key, IResolver | IDisposableResolver>;
+  private readonly _resolvers: Map<Key, IResolver>;
   /**
    * A map of Factory per Constructor (Type) of this container tree.
    *
@@ -68,10 +123,10 @@ export class Container implements IContainer {
   /**
    * A map of all resources resolver by their key
    */
-  private res: Record<string, IResolver | IDisposableResolver | undefined>;
+  private res: Record<string, IResolver | undefined>;
 
   /** @internal */
-  private readonly _disposableResolvers: Map<Key, IDisposableResolver> = new Map<Key, IDisposableResolver>();
+  private readonly _disposableResolvers = new Map<Key, IResolver>();
 
   public get parent(): IContainer | null {
     return this._parent as (IContainer | null);
@@ -124,6 +179,8 @@ export class Container implements IContainer {
     let i = 0;
     // eslint-disable-next-line
     let ii = params.length;
+    let def: ResourceDefinition;
+
     for (; i < ii; ++i) {
       current = params[i];
       if (!isObject(current)) {
@@ -131,21 +188,42 @@ export class Container implements IContainer {
       }
       if (isRegistry(current)) {
         current.register(this);
-      } else if (hasResources(current)) {
-        const defs = getAllResources(current);
-        if (defs.length === 1) {
-          // Fast path for the very common case
-          defs[0].register(this);
-        } else {
-          j = 0;
-          jj = defs.length;
-          while (jj > j) {
-            defs[j].register(this);
-            ++j;
+      } else if (Registrable.has(current)) {
+        Registrable.get(current)!.call(current, this);
+      } else if ((def = getMetadata(resourceBaseName, current)!) != null) {
+        def.register(this);
+      } else if (isClass<StaticResourceType>(current)) {
+        if (isString((current).$au?.type)) {
+          const $au = current.$au;
+          const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
+          let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
+          if (this.has(key, false)) {
+            if (__DEV__) {
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              (globalThis as any).console?.warn(createMappedError(ErrorNames.resource_already_exists, key));
+            }
+            continue;
           }
+          aliasToRegistration(current, key).register(this);
+          if (!this.has(current, false)) {
+            singletonRegistration(current, current).register(this);
+          }
+          j = 0;
+          jj = aliases.length;
+          for (; j < jj; ++j) {
+            key = `${resourceBaseName}:${$au.type}:${aliases[j]}`;
+            if (this.has(key, false)) {
+              if (__DEV__) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                (globalThis as any).console?.warn(createMappedError(ErrorNames.resource_already_exists, key));
+              }
+              continue;
+            }
+            aliasToRegistration(current, key).register(this);
+          }
+        } else {
+          singletonRegistration(current, current as Constructable).register(this);
         }
-      } else if (isClass(current)) {
-        Registration.singleton(current, current as Constructable).register(this);
       } else {
         keys = Object.keys(current);
         j = 0;
@@ -159,6 +237,8 @@ export class Container implements IContainer {
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
             value.register(this);
+          } else if (Registrable.has(value)) {
+            Registrable.get(value)!.call(value, this);
           } else {
             this.register(value);
           }
@@ -169,7 +249,7 @@ export class Container implements IContainer {
     return this;
   }
 
-  public registerResolver<K extends Key, T = K>(key: K, resolver: IResolver<T>, isDisposable: boolean = false): IResolver<T> {
+  public registerResolver<K extends Key, T extends IResolver<K>>(key: K, resolver: T, isDisposable: boolean = false): T {
     validateKey(key);
 
     const resolvers = this._resolvers;
@@ -186,11 +266,11 @@ export class Container implements IContainer {
     } else if (result instanceof Resolver && result._strategy === ResolverStrategy.array) {
       (result._state as IResolver[]).push(resolver);
     } else {
-      resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]));
+      resolvers.set(key, new Resolver(key, ResolverStrategy.array, [result, resolver]) as IResolver<K>);
     }
 
     if (isDisposable) {
-      this._disposableResolvers.set(key, resolver as IDisposableResolver<T>);
+      this._disposableResolvers.set(key, resolver);
     }
 
     return resolver;
@@ -285,11 +365,9 @@ export class Container implements IContainer {
   }
 
   public has<K extends Key>(key: K, searchAncestors: boolean = false): boolean {
-    return this._resolvers.has(key) || isResourceKey(key) && key in this.res
-      ? true
-      : searchAncestors && this._parent != null
-        ? this._parent.has(key, true)
-        : false;
+    return this._resolvers.has(key)
+      || isResourceKey(key) && key in this.res
+      || ((searchAncestors && this._parent?.has(key, true)) ?? false);
   }
 
   public get<K extends Key>(key: K): Resolved<K> {
@@ -325,7 +403,7 @@ export class Container implements IContainer {
     throw createMappedError(ErrorNames.unable_resolve_key, key);
   }
 
-  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): readonly Resolved<K>[] {
+  public getAll<K extends Key>(key: K, searchAncestors: boolean = false): Resolved<K>[] {
     validateKey(key);
 
     const previousContainer = currentContainer;
@@ -367,12 +445,35 @@ export class Container implements IContainer {
   }
 
   public invoke<T extends {}, TDeps extends unknown[] = unknown[]>(Type: Constructable<T>, dynamicDependencies?: TDeps): T {
+    if (isNativeFunction(Type)) {
+      throw createMappedError(ErrorNames.no_construct_native_fn, Type);
+    }
     const previousContainer = currentContainer;
     currentContainer = this;
-    try {
-      if (isNativeFunction(Type)) {
-        throw createMappedError(ErrorNames.no_construct_native_fn, Type);
+    if (__DEV__) {
+      let resolvedDeps: unknown[];
+      let dep: Key | undefined;
+
+      try {
+        resolvedDeps = getDependencies(Type).map(_ => this.get(dep = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}, caused by dependency: ${String(dep)}`);
+        currentContainer = previousContainer;
+        throw ex;
       }
+
+      try {
+        return dynamicDependencies === void 0
+          ? new Type(...resolvedDeps)
+          : new Type(...resolvedDeps, ...dynamicDependencies);
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${!Type.name ? `(Anonymous) ${String(Type)}` : Type.name}`);
+        throw ex;
+      } finally {
+        currentContainer = previousContainer;
+      }
+    }
+    try {
       return dynamicDependencies === void 0
         ? new Type(...getDependencies(Type).map(containerGetKey, this))
         : new Type(...getDependencies(Type).map(containerGetKey, this), ...dynamicDependencies);
@@ -420,11 +521,11 @@ export class Container implements IContainer {
     const resolvers = this._resolvers;
     const disposableResolvers = this._disposableResolvers;
 
-    let disposable: IDisposable;
+    let disposable: IResolver;
     let key: Key;
 
     for ([key, disposable] of disposableResolvers.entries()) {
-      disposable.dispose();
+      disposable.dispose?.();
       resolvers.delete(key);
     }
     disposableResolvers.clear();
@@ -437,50 +538,20 @@ export class Container implements IContainer {
     }
   }
 
-  public find<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): TDef | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.res[key];
-    if (resolver === void 0) {
-      resolver = this.root.res[key];
-      if (resolver === void 0) {
-        return null;
-      }
+  public find<TResType extends ResourceType>(kind: string, name: string): TResType | null;
+  public find<TResType extends ResourceType>(key: string): TResType | null;
+  public find<TResType extends ResourceType>(keyOrKind: string, name?: string): TResType | null {
+    const key = isString(name) ? `${resourceBaseName}:${keyOrKind}:${name}` : keyOrKind;
+    let container: Container = this;
+    let resolver = container.res[key];
+    if (resolver == null) {
+      container = container.root;
+      resolver = container.res[key];
     }
-
-    if (resolver === null) {
+    if (resolver == null) {
       return null;
     }
-
-    if (isFunction(resolver.getFactory)) {
-      const factory = resolver.getFactory(this);
-      if (factory === null || factory === void 0) {
-        return null;
-      }
-
-      const definition = getOwnMetadata(kind.name, factory.Type);
-      if (definition === void 0) {
-        // TODO: we may want to log a warning here, or even throw. This would happen if a dependency is registered with a resource-like key
-        // but does not actually have a definition associated via the type's metadata. That *should* generally not happen.
-        return null;
-      }
-
-      return definition;
-    }
-
-    return null;
-  }
-
-  public create<TType extends ResourceType, TDef extends ResourceDefinition>(kind: IResourceKind<TType, TDef>, name: string): InstanceType<TType> | null {
-    const key = kind.keyFrom(name);
-    let resolver = this.res[key];
-    if (resolver === void 0) {
-      resolver = this.root.res[key];
-      if (resolver === void 0) {
-        return null;
-      }
-      return resolver.resolve(this.root, this) ?? null;
-    }
-    return resolver.resolve(this, this) ?? null;
+    return resolver.getFactory?.(container)?.Type as TResType ?? null;
   }
 
   public dispose(): void {
@@ -488,11 +559,16 @@ export class Container implements IContainer {
       this.disposeResolvers();
     }
     this._resolvers.clear();
+    if (this.root === this) {
+      this._factories.clear();
+      this.res = {};
+    }
   }
 
   /** @internal */
   private _jitRegister(keyAsValue: any, handler: Container): IResolver {
-    if (!isFunction(keyAsValue)) {
+    const $isRegistry = isRegistry(keyAsValue);
+    if (!isFunction(keyAsValue) && !$isRegistry) {
       throw createMappedError(ErrorNames.unable_jit_non_constructor, keyAsValue);
     }
 
@@ -500,7 +576,7 @@ export class Container implements IContainer {
       throw createMappedError(ErrorNames.no_jit_intrinsic_type, keyAsValue);
     }
 
-    if (isRegistry(keyAsValue)) {
+    if ($isRegistry) {
       const registrationResolver = keyAsValue.register(handler, keyAsValue);
       if (!(registrationResolver instanceof Object) || (registrationResolver as IResolver).resolve == null) {
         const newResolver = handler._resolvers.get(keyAsValue);
@@ -512,24 +588,7 @@ export class Container implements IContainer {
       return registrationResolver as IResolver;
     }
 
-    if (hasResources(keyAsValue)) {
-      const defs = getAllResources(keyAsValue);
-      if (defs.length === 1) {
-        // Fast path for the very common case
-        defs[0].register(handler);
-      } else {
-        const len = defs.length;
-        for (let d = 0; d < len; ++d) {
-          defs[d].register(handler);
-        }
-      }
-      const newResolver = handler._resolvers.get(keyAsValue);
-      if (newResolver != null) {
-        return newResolver;
-      }
-      throw createMappedError(ErrorNames.null_resolver_from_register, keyAsValue);
-    }
-
+    // TODO(sayan): remove potential dead code
     if (keyAsValue.$isInterface) {
       throw createMappedError(ErrorNames.no_jit_interface, keyAsValue.friendlyName);
     }
@@ -546,18 +605,49 @@ class Factory<T extends Constructable = any> implements IFactory<T> {
   public constructor(
     public Type: T,
     private readonly dependencies: Key[],
-  ) {}
+  ) { }
 
   public construct(container: IContainer, dynamicDependencies?: unknown[]): Resolved<T> {
     const previousContainer = currentContainer;
     currentContainer = container;
     let instance: Resolved<T>;
-    try {
+    /* istanbul ignore next */
+    if (__DEV__) {
+      let resolvedDeps: unknown[];
+      let dep: Key | undefined;
+      try {
+        resolvedDeps = this.dependencies.map(_ => container.get(dep = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${!this.Type.name ? `(Anonymous) ${String(this.Type)}` : this.Type.name}, caused by dependency: ${String(dep)}`);
+        currentContainer = previousContainer;
+        throw ex;
+      }
+
+      try {
         if (dynamicDependencies === void 0) {
-          instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
+          instance = new this.Type(...resolvedDeps) as Resolved<T>;
         } else {
-          instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
+          instance = new this.Type(...resolvedDeps, ...dynamicDependencies) as Resolved<T>;
         }
+
+        if (this.transformers == null) {
+          return instance;
+        }
+
+        return this.transformers.reduce(transformInstance, instance);
+      } catch (ex) {
+        logError(`[DEV:aurelia] Error during construction of ${!this.Type.name ? `(Anonymous) ${String(this.Type)}` : this.Type.name}`);
+        throw ex;
+      } finally {
+        currentContainer = previousContainer;
+      }
+    }
+    try {
+      if (dynamicDependencies === void 0) {
+        instance = new this.Type(...this.dependencies.map(containerGetKey, container)) as Resolved<T>;
+      } else {
+        instance = new this.Type(...this.dependencies.map(containerGetKey, container), ...dynamicDependencies) as Resolved<T>;
+      }
 
       if (this.transformers == null) {
         return instance;
@@ -590,7 +680,7 @@ function containerGetKey(this: IContainer, d: Key) {
 
 export type IResolvedInjection<K extends Key> =
   K extends IAllResolver<infer R>
-    ? readonly Resolved<R>[]
+    ? Resolved<R>[]
     : K extends INewInstanceResolver<infer R>
       ? Resolved<R>
       : K extends ILazyResolver<infer R>
@@ -603,7 +693,9 @@ export type IResolvedInjection<K extends Key> =
               ? Resolved<R>
               : K extends [infer R1 extends Key, ...infer R2]
                 ? [IResolvedInjection<R1>, ...IResolvedInjection<R2>]
-                : Resolved<K>;
+                : K extends InterfaceSymbol<infer T>
+                  ? T
+                  : Resolved<K>;
 
 /**
  * Retrieve the resolved value of a key, or values of a list of keys from the currently active container.
@@ -615,6 +707,25 @@ export function resolve<K extends Key[]>(...keys: K): IResolvedInjection<K>;
 export function resolve<K extends Key, A extends K[]>(...keys: A): Resolved<K> | Resolved<K>[] {
   if (currentContainer == null) {
     throw createMappedError(ErrorNames.no_active_container_for_resolve, ...keys);
+  }
+  /* istanbul ignore next */
+  if (__DEV__) {
+    if (keys.length === 1) {
+      try {
+        return currentContainer.get(keys[0]);
+      } catch (ex) {
+        logError(`[DEV:aurelia] resolve() call error for: ${String(keys[0])}`);
+        throw ex;
+      }
+    } else {
+      let key: Key | undefined;
+      try {
+        return keys.map(_ => currentContainer!.get(key = _));
+      } catch (ex) {
+        logError(`[DEV:aurelia] resolve() call error for: ${String(key)}`);
+        throw ex;
+      }
+    }
   }
   return keys.length === 1
     ? currentContainer.get(keys[0])
@@ -654,8 +765,8 @@ const isSelfRegistry = <T extends Constructable>(obj: RegisterSelf<T>): obj is R
 const isRegisterInRequester = <T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> =>
   isSelfRegistry(obj) && obj.registerInRequestor;
 
-const isClass = <T extends { prototype?: any }>(obj: T): obj is Class<any, T> =>
-  obj.prototype !== void 0;
+const isClass = <T>(obj: unknown): obj is Class<any, T> =>
+  (obj as { prototype: object }).prototype !== void 0;
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;

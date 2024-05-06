@@ -25,12 +25,10 @@ npm i emotion --save
 Define a custom attribute and name it Emotion, just like the following code
 
 ```typescript
-import { inject } from "aurelia";
+import { resolve } from "aurelia";
 import { css, cache } from 'emotion'
-@inject(Element)
 export class EmotionCustomAttribute {
-    constructor(private element: Element) {
-    }
+    private element: Element = resolve(Element);
     attached() {
         if (this.isInShadow(this.element))
             cache.sheet.container = this.element.getRootNode() as HTMLElement;
@@ -81,6 +79,6 @@ export class MyApp {
 
 Go to your view and add emotion custom attribute to an HTML tag.
 
-```markup
+```html
 <div class="message" emotion.bind="cssObject">${message}</div>
 ```

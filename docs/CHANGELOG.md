@@ -3,6 +3,167 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+### Bug Fixes:
+
+* **au-slot:** ensure passthrough slot get the right host value (#1959) ([f266ddd](https://github.com/aurelia/aurelia/commit/f266ddd))
+* **rendering:** correctly handle compilation cache (#1955) ([c11491b](https://github.com/aurelia/aurelia/commit/c11491b))
+
+
+### Refactorings:
+
+* **router-lite:** avoided duplicate CE defn reg to same container (#1956) ([6578e54](https://github.com/aurelia/aurelia/commit/6578e54))
+* **compiler:** extract template compiler into own package (#1954) ([ad7ae1e](https://github.com/aurelia/aurelia/commit/ad7ae1e))
+* **compiler:** simplify definition creation (#1950) ([bb0fcab](https://github.com/aurelia/aurelia/commit/bb0fcab))
+* **observers:** use static blocks, group related code ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* **runtime:** move scope to runtime html (#1945) ([bca0290](https://github.com/aurelia/aurelia/commit/bca0290))
+
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### BREAKING CHANGES:
+
+* **expression-parser:** move exp parser to its own package (#1943) ([6e7dcad](https://github.com/aurelia/aurelia/commit/6e7dcad))
+* **bindings:** move binding infra to runtime html (#1944) ([1c7608a](https://github.com/aurelia/aurelia/commit/1c7608a))
+* **runtime:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
+### Features:
+
+* **resources:** support static `$au` property for definition (#1939) ([877a385](https://github.com/aurelia/aurelia/commit/877a385))
+
+
+### Bug Fixes:
+
+* **ts-jest:** add isolated modules for internal ts-jest instance (#1941) ([7eb31f4](https://github.com/aurelia/aurelia/commit/7eb31f4))
+* **vite-plugin:** missed some default options in "load" preprocess (#1936) ([794f3c6](https://github.com/aurelia/aurelia/commit/794f3c6))
+* **vite-plugin:** when using ShadowDOM, need to load css as string (#1934) ([32e8cc1](https://github.com/aurelia/aurelia/commit/32e8cc1))
+
+
+<a name="2.0.0-beta.14"></a>
+# 2.0.0-beta.14 (2024-04-03)
+
+### Features:
+
+* **custom-attribute:** ability to find closest attr by name or ctor (#1928) ([ab28585](https://github.com/aurelia/aurelia/commit/ab28585))
+* **i18n:** support multiple versions of i18next (#1927) ([0789ee5](https://github.com/aurelia/aurelia/commit/0789ee5))
+
+
+### Bug Fixes:
+
+* **enhance:** dont call app tasks from parent container (#1933) ([e7119ec](https://github.com/aurelia/aurelia/commit/e7119ec))
+* **form:** prevent actionless submission (#1931) ([1fc74d4](https://github.com/aurelia/aurelia/commit/1fc74d4))
+
+
+### Refactorings:
+
+* **attr:** treat empty string as no binding (#1930) ([8fc5275](https://github.com/aurelia/aurelia/commit/8fc5275))
+
+<a name="2.0.0-beta.13"></a>
+# 2.0.0-beta.13 (2024-03-15)
+
+### BREAKING CHANGE:
+
+* **event:** no longer call prevent default by default (#1926) ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+* **exports:** no longer re-export fetch client package (#1926) ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+
+### Features:
+
+* **process-content:** ability to add template information to a data object (#1925) ([2a4c436](https://github.com/aurelia/aurelia/commit/2a4c436))
+* **template-controller:** ability to have a container per factory (#1924) ([6727b56](https://github.com/aurelia/aurelia/commit/6727b56))
+* **convention:** add import as support (#1920) ([7a15551](https://github.com/aurelia/aurelia/commit/7a15551))
+* **resources:** api to register resources with alias key ([7a15551](https://github.com/aurelia/aurelia/commit/7a15551))
+* **dev:** better DI error messages for instantiation (#1917) ([2fca6ea](https://github.com/aurelia/aurelia/commit/2fca6ea))
+
+
+### Bug Fixes:
+
+* **router-lite:** dont register config ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+* **di:** cache factory on singleton resolution ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+
+
+### Refactorings:
+
+* **router:** (DEV) dont swallow instantiation error details ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+* **compiler:** remove special treatment for au slot ([2a4c436](https://github.com/aurelia/aurelia/commit/2a4c436))
+* **kernel:** smaller di files, assert text options, more au slot tests ([deee8e6](https://github.com/aurelia/aurelia/commit/deee8e6))
+* **runtime:** move constructor registration into controller ([7a15551](https://github.com/aurelia/aurelia/commit/7a15551))
+* **resource:** cleanup registration, APIs (#1918) ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resources:** cleanup util fn, move to kernel package ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resources:** move find to corresponding resource kind ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **di:** add registrable, remove unecessary infra for attr pattern ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resource:** remove resource protocol, simplify resource metadata ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+
+### Docs:
+
+* **docs:** add key documentation for the repeater (#1921) ([c3d0ed3](https://github.com/aurelia/aurelia/commit/c3d0ed3))
+* **docs:** add documentation for event preventDefault breaking change (#1926) ([f71e9e7](https://github.com/aurelia/aurelia/commit/f71e9e7))
+
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+### BREAKING CHANGE:
+
+* **enhance:** call app tasks with `.enhance` API, return app root instead of controller (#1916) ([4d522b2](https://github.com/aurelia/aurelia/commit/4d522b2))
+* **au-compose:** always create host for non custom element composition (#1906) ([8a28e0a](https://github.com/aurelia/aurelia/commit/8a28e0a))
+
+
+### Features:
+
+* **au-compose:** ability to compose string as element name (#1913) ([06aa113](https://github.com/aurelia/aurelia/commit/06aa113))
+
+
+### Bug Fixes:
+
+* **router:** prevent multiple navigation at the same time (#1895) ([deed11e](https://github.com/aurelia/aurelia/commit/deed11e))
+* **router:** properly handle false in conditional router hooks (#1900) ([a671463](https://github.com/aurelia/aurelia/commit/a671463))
+* **di:** dont jit register resources ([8ffde34](https://github.com/aurelia/aurelia/commit/8ffde34))
+* **di:** new instance resolver (#1909) ([efe208c](https://github.com/aurelia/aurelia/commit/efe208c))
+* **runtime:** tweak typings of injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+
+### Refactorings:
+
+* **runtime:** delay overriding array prototypes (#1914) ([d8be144](https://github.com/aurelia/aurelia/commit/d8be144))
+* **router:** use resolve ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **runtime:** better type inferrence for injectable token ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+* **di:** simplify container has, cleanup router ([89f76eb](https://github.com/aurelia/aurelia/commit/89f76eb))
+
+### Docs:
+
+* **docs:** add JS examples using resolve for IHttpClient (#1907) ([d57c1f1](https://github.com/aurelia/aurelia/commit/d57c1f1))
+* **doc:** remove define hook from documentation (#1903) ([f684141](https://github.com/aurelia/aurelia/commit/f684141))
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### BREAKING CHANGE:
+
+* **templating:** custom element takes priority over custom attribute (#1897) ([e8b2c80](https://github.com/aurelia/aurelia/commit/e8b2c80))
+* **fetch-client:** cleanup, add tests, tweak doc & prepare cache interceptor (#1756) ([a931dac](https://github.com/aurelia/aurelia/commit/a931dac))
+    * rename interfaces
+* **controller:** remove define lifecycle hook (#1899) ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+
+
+### Features:
+
+* **event:** ability to add modifier (#1891) ([67a3c22](https://github.com/aurelia/aurelia/commit/67a3c22))
+* **runtime:** impl 'this' / AccessBoundary (#1892) ([6d3d250](https://github.com/aurelia/aurelia/commit/6d3d250))
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* **i18n:** unsubscribe locale change ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+* **convention:** no longer process shadowdom + `<slot>` (#1889) ([e29bbef](https://github.com/aurelia/aurelia/commit/e29bbef))
+
+
+### Refactorings:
+
+* **build:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

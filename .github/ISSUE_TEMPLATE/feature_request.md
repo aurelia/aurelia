@@ -21,7 +21,12 @@ Search open/closed issues before submitting since someone might have asked the s
 
 <!--- Explain the difference from current behavior -->
 
-Repro link https://stackblitz.com/edit/au2-conventions?file=src%2Fmy-app.html
+<!--
+  Repro link: You may fork one of the following starter app to provide a reproduction of the issue.
+  - Using convention: https://stackblitz.com/edit/au2-conventions-trstax
+  - Without convention: https://stackblitz.com/edit/au2-hello-world
+-->
+Repro link:
 
 ## 💁 Possible Solution
 

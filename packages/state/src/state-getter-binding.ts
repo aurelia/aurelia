@@ -1,10 +1,8 @@
 
-import { IDisposable, IIndexable, type Writable } from '@aurelia/kernel';
+import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aurelia/kernel';
 import {
   connectable,
-  Scope,
-  type IConnectableBinding,
-  type IOverrideContext,
+  IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
 import {
   IStore,
@@ -12,13 +10,13 @@ import {
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope, isSubscribable } from './state-utilities';
+import { IBinding, Scope, type IOverrideContext, } from '@aurelia/runtime-html';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateGetterBinding extends IConnectableBinding { }
-@connectable()
-export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber<object> {
+export interface StateGetterBinding extends IObserverLocatorBasedConnectable, IServiceLocator { }
+export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
   /** @internal */
@@ -120,3 +118,4 @@ export class StateGetterBinding implements IConnectableBinding, IStoreSubscriber
     this._sub = void 0;
   }
 }
+connectable(StateGetterBinding, null!);

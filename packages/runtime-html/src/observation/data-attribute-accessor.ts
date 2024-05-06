@@ -13,6 +13,10 @@ import { atLayout, atNode } from '../utilities';
  * @see PropertyAccessor
  */
 export class DataAttributeAccessor implements IAccessor<string | null>, IObserver {
+  static {
+    mixinNoopSubscribable(DataAttributeAccessor);
+  }
+
   // ObserverType.Layout is not always true, it depends on the property
   // but for simplicity, always treat as such
   public type: AccessorType = (atNode | atLayout) as AccessorType;
@@ -34,6 +38,4 @@ export class DataAttributeAccessor implements IAccessor<string | null>, IObserve
   }
 }
 
-mixinNoopSubscribable(DataAttributeAccessor);
-
-export const attrAccessor = new DataAttributeAccessor();
+export const attrAccessor = /*@__PURE__*/new DataAttributeAccessor();

@@ -1,7 +1,6 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
-import { ISignaler } from '@aurelia/runtime';
-import { Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
+import { ISignaler, Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
@@ -72,7 +71,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       interpolation_greeting: 'hello {{name}}',
 
       itemWithCount: '{{count}} item',
-      itemWithCount_plural: '{{count}} items',
+      itemWithCount_other: '{{count}} items',
 
       html: 'this is a <i>HTML</i> content',
       pre: 'tic ',
@@ -91,7 +90,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       },
 
       status: 'Status ist unbekannt',
-      status_dispatched: 'Versand am {{date}}',
+      status_dispatched: 'Versand am {{datetime}}',
       status_delivered: 'geliefert am {{date}}',
       custom_interpolation_brace: 'geliefert am {date}',
       custom_interpolation_es6_syntax: `geliefert am \${date}`,
@@ -99,8 +98,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       interpolation_greeting: 'Hallo {{name}}',
 
       itemWithCount: '{{count}} Artikel',
-      itemWithCount_plural: '{{count}} Artikel',
-      itemWithCount_interval: '(0)$t(itemWithCount_plural);(1)$t(itemWithCount);(2-7)$t(itemWithCount_plural);(7-inf){viele Artikel};',
+      itemWithCount_other: '{{count}} Artikel',
+      itemWithCount_interval: '(0)$t(itemWithCount_other);(1)$t(itemWithCount);(2-7)$t(itemWithCount_other);(7-inf){viele Artikel};',
 
       html: 'Dies ist ein <i>HTML</i> Inhalt',
       pre: 'Tic ',
@@ -116,7 +115,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       I18nConfiguration.customize((config) => {
         config.initOptions = {
           resources: { en: { translation }, de: { translation: deTranslation } },
-          skipTranslationOnMissingKey
+          skipTranslationOnMissingKey,
         };
         config.translationAttributeAliases = aliases;
       }));
@@ -458,7 +457,12 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, `span#a`, translation.simple.text);
       assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
       assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
-      assertTextContent(host, `span#d`, 'dispatched on ');
+      // v20 and before of i18next, non existing params will be relaced with empty string
+      // though it seems v21+ is leaving it as is
+      // so the next assertion works with before, now it doesn't
+      //
+      // assertTextContent(host, `span#d`, 'dispatched on ');
+      assertTextContent(host, `span#d`, 'dispatched on {{date}}');
     }, { component: App });
   }
   {
@@ -956,16 +960,16 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       })
       class App { public count: number = 0; public cm: CustomMessage; }
       $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
-        assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
         assert.strictEqual(
           app.cm.message,
-          en.itemWithCount_plural.replace('{{count}}', '10'),
+          en.itemWithCount_other.replace('{{count}}', '10'),
           '<CustomMessage/> message prop should have been updated immediately'
         );
-        assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
         ctx.platform.domWriteQueue.flush();
-        assertTextContent(host, 'custom-message div', en.itemWithCount_plural.replace('{{count}}', '10'));
+        assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
     {
@@ -997,16 +1001,16 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       })
       class App { public count: number = 0; public cm: CeWithCamelCaseBindable; }
       $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
-        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
         assert.strictEqual(
           app.cm.someMessage,
-          en.itemWithCount_plural.replace('{{count}}', '10'),
+          en.itemWithCount_other.replace('{{count}}', '10'),
           '<camel-ce/> message prop should have been updated immediately'
         );
-        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '0'));
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
         ctx.platform.domWriteQueue.flush();
-        assertTextContent(host, 'camel-ce div', en.itemWithCount_plural.replace('{{count}}', '10'));
+        assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
     {
@@ -1042,7 +1046,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${'itemWithCount' | t: {count:10}}</span>` })
       class App { }
       $it('with `t-params`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
-        assertTextContent(host, 'span', translation.itemWithCount_plural.replace('{{count}}', '10'));
+        assertTextContent(host, 'span', translation.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
     {
@@ -1056,7 +1060,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('attribute translation', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
-        assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
+        assertTextContent(host, `span#c[title='${translation.itemWithCount_other.replace('{{count}}', '10')}']`, 't-vc-attr-target');
       }, { component: App });
     }
     {
@@ -1090,7 +1094,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${'itemWithCount' & t : {count:10}}</span>` })
       class App { }
       $it('with `t-params`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
-        assertTextContent(host, 'span', translation.itemWithCount_plural.replace('{{count}}', '10'));
+        assertTextContent(host, 'span', translation.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
     {
@@ -1104,7 +1108,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('attribute translation', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
-        assertTextContent(host, `span#c[title='${translation.itemWithCount_plural.replace('{{count}}', '10')}']`, 't-vc-attr-target');
+        assertTextContent(host, `span#c[title='${translation.itemWithCount_other.replace('{{count}}', '10')}']`, 't-vc-attr-target');
       }, { component: App });
     }
     {

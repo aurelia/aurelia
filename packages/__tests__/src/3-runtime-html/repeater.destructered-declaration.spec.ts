@@ -26,7 +26,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
     app: Class<TApp>;
   }
   const $it = createSpecFunction(testRepeatForCustomElement);
-  async function testRepeatForCustomElement<TApp>(
+  async function testRepeatForCustomElement<TApp extends object>(
     testFunction: TestFunction<TestExecutionContext<TApp>>,
     {
       template,

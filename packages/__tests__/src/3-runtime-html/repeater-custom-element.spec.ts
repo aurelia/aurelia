@@ -27,7 +27,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
     registrations: any[];
     app: Class<TApp>;
   }
-  async function testRepeatForCustomElement<TApp>(
+  async function testRepeatForCustomElement<TApp extends object>(
     testFunction: TestFunction<TestExecutionContext<TApp>>,
     {
       template,

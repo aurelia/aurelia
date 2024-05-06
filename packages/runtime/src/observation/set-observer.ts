@@ -1,7 +1,7 @@
 import { createIndexMap, type AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, atObserver } from '../observation';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getOwnMetadata } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getMetadata } from '../utilities';
 import { batching, addCollectionBatch } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
@@ -112,8 +112,8 @@ let enableSetObservationCalled = false;
 const observationEnabledKey = '__au_set_on__';
 export function enableSetObservation(): void {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getOwnMetadata(observationEnabledKey, Set) ?? false)) {
-    defineMetadata(observationEnabledKey, true, Set);
+  if (!(getMetadata(observationEnabledKey, Set) ?? false)) {
+    defineMetadata(true, Set, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
         def(proto, method, { ...descriptorProps, value: observe[method] });
@@ -133,6 +133,10 @@ export function disableSetObservation(): void {
 export interface SetObserver extends ICollectionObserver<'set'>, ICollectionSubscriberCollection {}
 
 export class SetObserver {
+  static {
+    subscriberCollection(SetObserver, null!);
+  }
+
   public type: AccessorType = atObserver;
   private lenObs?: CollectionSizeObserver;
 
@@ -169,8 +173,6 @@ export class SetObserver {
     return this.lenObs ??= new CollectionSizeObserver(this);
   }
 }
-
-subscriberCollection(SetObserver);
 
 export function getSetObserver(observedSet: Set<unknown>): SetObserver {
   let observer = observerLookup.get(observedSet);

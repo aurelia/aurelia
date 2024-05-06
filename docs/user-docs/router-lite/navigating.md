@@ -513,15 +513,14 @@ The routing works in this case, because the routes are searched in the same rout
 However, this default behavior can be changed by binding the `context` property of the `load` custom attribute explicitly.
 To this end, you need to bind the instance of `IRouteContext` in which you want to perform the navigation.
 The most straightforward way to select a parent routing context is to use the `parent` property of the `IRouteContext`.
-The current `IRouteContext` can be injected using the `@IRouteContext` in the class constructor.
+The current `IRouteContext` can be injected using the `resolve(IRouteContext)`.
 Then one can use `context.parent`, `context.parent?.parent` etc. to select an ancestor context.
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
+
 export class ChildOne {
-  private readonly parentCtx: IRouteContext;
-  public constructor(@IRouteContext ctx: IRouteContext) {
-    this.parentCtx = ctx.parent;
-  }
+  private readonly parentCtx: IRouteContext = resolve(IRouteContext).parent;
 }
 ```
 Such ancestor context can then be used to bind the `context` property of the `load` attribute as follows.
@@ -603,10 +602,11 @@ To this end, you have to first inject the router into your component.
 This can be done by using the `IRouter` decorator on your component constructor method as shown in the example below.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, IRouteableComponent } from '@aurelia/router-lite';
 
 export class MyComponent {
-  public constructor(@IRouter private readonly router: IRouter) { }
+  private readonly router: IRouter = resolve(IRouter);
 }
 ```
 
@@ -894,10 +894,11 @@ Take a look at the `child1.ts` or `child2.ts` that demonstrates this.
 
 
 You can also use an **instance of `IRouteContext`** directly.
-One way to grab the instance of `IRouteContext` is to get it inject via `constructor` using the `@IRouteContext` decorator.
+One way to grab the instance of `IRouteContext` is to get it inject via `constructor` using `resolve(IRouteContext)`.
 An example looks like as follows.
 
 ```typescript
+import { resolve } from '@aurelia/kernel';
 import { IRouteContext, IRouter, Params, route } from '@aurelia/router-lite';
 import { customElement } from '@aurelia/runtime-html';
 
@@ -927,11 +928,9 @@ class GrandChildTwoTwo {}
 })
 export class ChildTwo {
   private id: string;
-  public constructor(
-    @IRouter private readonly router: IRouter,
-    // injected instance of IRouteContext
-    @IRouteContext private readonly context: IRouteContext
-  ) {}
+  private readonly router: IRouter = resolve(IRouter);
+  // injected instance of IRouteContext
+  private readonly context: IRouteContext = resolve(IRouteContext);
 
   private load(route: string, useCurrentContext: boolean = false) {
     void this.router.load(
@@ -958,6 +957,7 @@ Using a **custom element controller** instance is also supported to be used as a
 An example looks as follows.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IRouter, route } from '@aurelia/router-lite';
 import {
   customElement,
@@ -991,7 +991,7 @@ class GrandChildOneTwo {}
 export class ChildOne implements IHydratedCustomElementViewModel {
   // set by aurelia pipeline
   public readonly $controller: ICustomElementController<this>;
-  public constructor(@IRouter private readonly router: IRouter) {}
+  private readonly router: IRouter = resolve(IRouter);
 
   private load(route: string, useCurrentContext: boolean = false) {
     void this.router.load(
@@ -1074,7 +1074,7 @@ The following example demonstrates that even though the routes are configured wi
 `,
 })
 export class MyApp {
-  public constructor(@IRouter private readonly router: IRouter) {}
+  private readonly router: IRouter = resolve(IRouter);
   private navigate(
     path: string,
     transitionPlan?: 'replace' | 'invoke-lifecycles'

@@ -1,4 +1,4 @@
-export type ResourceType = 'view' | 'customElement' | 'customAttribute' | 'valueConverter' | 'bindingBehavior' | 'bindingCommand' | 'templateController';
+export type ResourceType = 'customElement' | 'customAttribute' | 'valueConverter' | 'bindingBehavior' | 'bindingCommand' | 'templateController';
 
 export interface INameConvention {
   name: string;

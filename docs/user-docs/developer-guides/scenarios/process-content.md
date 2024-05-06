@@ -21,7 +21,7 @@ First is the `node` argument.
 It is the DOM tree on the usage-side for the custom element.
 For example, if there is a custom element named `my-element`, on which a 'processContent' hook is defined, and it is used somewhere as shown in the following markup, then when the hook is invoked, the `node` argument will provide the DOM tree that represents the following markup.
 
-```markup
+```html
 <my-element>
  <foo></foo>
  <bar></bar>
@@ -49,12 +49,6 @@ function processContent(node: INode, platform: IPlatform) { }
 @customElement({ name: 'my-element', processContent })
 export class MyElement { }
 
-// ... or use a static method explicitly
-@customElement({ name: 'my-element', processContent: MyElement.processContent })
-export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
-}
-
 // ... or use a static method named 'processContent' (convention)
 @customElement({ name: 'my-element' })
 export class MyElement {
@@ -66,12 +60,6 @@ Apart from this, there is also the `@processContent` decorator which can used cl
 
 ```typescript
 import { customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
-
-// Reference a static method
-@processContent(MyElement.processContent)
-export class MyElement {
-  static processContent(node: INode, platform: IPlatform) { }
-}
 
 // ...or a standalone method
 function processContent(this: typeof MyElement, node: INode, platform: IPlatform) { }
@@ -92,7 +80,7 @@ Let us say that we want to create a custom elements that behaves as a tabs contr
 That is this custom element shows different sets of information grouped under a set of headers, and when the header is clicked the associated content is shown.
 To this end, we can conceptualize the markup for this custom element as follows.
 
-```markup
+```html
 <!--tabs.html-->
 <div class="header">
   <au-slot name="header"></au-slot>
@@ -110,7 +98,7 @@ If you are unfamiliar with the `au-slot` then visit the [documentation](#au-slot
 'processContent' can be very potent with `au-slot`.
 {% endhint %}
 
-```markup
+```html
 <!--app.html-->
 <tabs>
   <tab header="Tab one">
@@ -135,9 +123,9 @@ A prototype implementation is shown below.
 // tabs.ts
 import { INode, IPlatform, processContent } from '@aurelia/runtime-html';
 
-@processContent(Tabs.processTabs)
 class Tabs {
 
+  @processContent()
   public static processTabs(node: INode, p: IPlatform): boolean {
     const el = node as Element;
 

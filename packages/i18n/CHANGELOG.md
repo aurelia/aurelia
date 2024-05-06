@@ -3,6 +3,81 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+### Refactorings:
+
+* ***:** extract template compiler into own package (#1954) ([ad7ae1e](https://github.com/aurelia/aurelia/commit/ad7ae1e))
+* ***:** cleanup deco code (#1947) ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* **observers:** use static blocks, group related code ([ca22bc8](https://github.com/aurelia/aurelia/commit/ca22bc8))
+* ***:** move scope to runtime html (#1945) ([bca0290](https://github.com/aurelia/aurelia/commit/bca0290))
+
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### Features:
+
+* **resources:** support static `$au` property for definition (#1939) ([877a385](https://github.com/aurelia/aurelia/commit/877a385))
+
+
+### Refactorings:
+
+* **bindings:** move binding infra to runtime html (#1944) ([1c7608a](https://github.com/aurelia/aurelia/commit/1c7608a))
+* **expression-parser:** move exp parser to its own package (#1943) ([6e7dcad](https://github.com/aurelia/aurelia/commit/6e7dcad))
+* ***:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
+<a name="2.0.0-beta.14"></a>
+# 2.0.0-beta.14 (2024-04-03)
+
+### Features:
+
+* **i18n:** support multiple versions of i18next (#1927) ([0789ee5](https://github.com/aurelia/aurelia/commit/0789ee5))
+
+<a name="2.0.0-beta.13"></a>
+# 2.0.0-beta.13 (2024-03-15)
+
+### Bug Fixes:
+
+* ***:** element get own metadata call ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **di:** cache factory on singleton resolution ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+
+
+### Refactorings:
+
+* **resource:** cleanup registration, APIs (#1918) ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* ***:** cleanup util fn ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resources:** move find to corresponding resource kind ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **di:** add registrable, remove unecessary infra for attr pattern ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resources:** use registrable ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **di:** dont search for resources when register ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resource:** remove resource protocol, simplify resource metadata ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resources:** add get for vc & bb resource kinds ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+* **resource:** binding command resolution ([dc22fb7](https://github.com/aurelia/aurelia/commit/dc22fb7))
+
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+**Note:** Version bump only for package @aurelia/i18n
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+### Features:
+
+* **state:** support redux devtools for the state plugin (#1888) ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Bug Fixes:
+
+* **i18n:** ability to unsubscribe locale change ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+* ***:** upgrade rollup, tweak build scripts ([bd07160](https://github.com/aurelia/aurelia/commit/bd07160))
+
+
+### Refactorings:
+
+* **controller:** remove define lifecycle hook (#1899) ([ec2e270](https://github.com/aurelia/aurelia/commit/ec2e270))
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

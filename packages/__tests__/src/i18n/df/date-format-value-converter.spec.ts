@@ -1,13 +1,13 @@
-import { DateFormatValueConverter, I18nService } from '@aurelia/i18n';
-import { EventAggregator } from '@aurelia/kernel';
-import { assert, MockSignaler } from '@aurelia/testing';
-import i18next from 'i18next';
+import { DateFormatValueConverter, I18N } from '@aurelia/i18n';
+import { assert } from '@aurelia/testing';
+import { createI18NContainer } from '../util.js';
 
 describe('i18n/df/date-format-value-converter.spec.ts', function () {
 
   async function createFixture() {
-    const i18n = new I18nService({ i18next }, {}, new EventAggregator(), new MockSignaler());
-    const sut = new DateFormatValueConverter(i18n);
+    const container = createI18NContainer();
+    const i18n = container.get(I18N);
+    const sut = container.invoke(DateFormatValueConverter);
     await i18n.setLocale('en');
     return { i18n, sut };
   }

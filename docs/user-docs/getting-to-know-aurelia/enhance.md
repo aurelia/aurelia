@@ -27,13 +27,13 @@ Key Points to Understand:
 1. **Anonymous Custom Element Hydration:** The enhancement treats the target node as an anonymous custom element, allowing Aurelia to apply its behavior to the existing DOM structure.
 2. **Component Flexibility:** The component parameter in enhance can be a custom element class, a class instance, or an object literal. If a class is provided, it's instantiated by Aurelia's dependency injection container, which can be either provided or automatically created.
 3. **Host Element:** The host is typically an existing DOM node that is not yet under Aurelia's control. It's crucial to note that `enhance ' neither detaches nor attaches the `host` to the DOM. Existing event handlers on the `host` or its descendants remain unaffected.
-4. **Controller Deactivation:** an `enhance` call results in a custom element controller that requires manual deactivation or integration into an existing controller hierarchy for automatic framework management.
+4. **Controller Deactivation:** an `enhance` call results in an application root that requires manual deactivation or integration into an existing controller hierarchy for automatic framework management.
 
-Example of deactivating a controller:
+Example of deactivating an application root:
 
 ```typescript
-const controller = au.enhance({ host, component });
-controller.deactivate(controller, null, LifecycleFlags.none);
+const root = au.enhance({ host, component });
+root.deactivate();
 ```
 
 ## Enhancing During Application Startup
@@ -59,18 +59,37 @@ Now, let's enhance our application by using the `enhance`API inside of `main.ts`
 ```typescript
 import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
+try {
+Aurelia
+  .register(MyApp)
+  .enhance({
+      host: document.querySelector('div#app'),
+      component: {},
+  });
+} catch (error) {
+  console.error(error);
+}
+```
+Or if your component has one of its lifecycle return a promise:
+```typescript
+import Aurelia from 'aurelia';
+import { MyApp } from './my-app';
 
-(async () => {
+;(async () => {
+  try {
     await Aurelia
-        .register(MyApp)
-        .enhance({
-            host: document.querySelector('div#app'),
-            component: {},
-        });
-})().catch(console.error);
+      .register(MyApp)
+      .enhance({
+          host: document.querySelector('div#app'),
+          component: {},
+      });
+  } catch (error) {
+    console.error(error);
+  }
+})();
 ```
 
-We first wrap our async code in an anonymous async function. This allows us to catch errors and throw them to the console if enhancement fails, but take note of the `enhance` call itself. We supply the container (in our case, it's a DIV with an ID of `app` as the host).
+We first wrap our async code in an anonymous async function. This allows us to catch errors and throw them to the console if enhancement fails, but take note of the `enhance` call itself. We supply the host element (in our case, it's a DIV with an ID of `app` as the host).
 
 Above our `enhance` call, we register our main component, `MyApp`, the initial component our application will render.
 
@@ -82,17 +101,17 @@ This approach will work for existing applications as well. Say you have a WordPr
 
 ## Enhancing on the fly within components
 
-While using the `enhance` During registration, the `enhance` API is convenient for situations where you want to control how an Aurelia application is enhanced. There are times when you want to enhance HTML programmatically from within components. This may be HTML loaded from the server or elements created on the fly.
+While using the `enhance` during registration, the `enhance` API is convenient for situations where you want to control how an Aurelia application is enhanced. There are times when you want to enhance HTML programmatically from within components. This may be HTML loaded from the server or elements created on the fly.
 
 In the following example, we query our markup for an `item-list` element and insert some Aurelia-specific markup into it (a repeater).
 
 ```typescript
-import Aurelia, { IAurelia } from 'aurelia';
+import Aurelia, { IAurelia, resolve } from 'aurelia';
 
 export class MyApp {
   items = [1, 2, 3];
 
-  constructor(@IAurelia private readonly au: Aurelia) {}
+  constructor(private readonly au = resolve(Aurelia)) {}
 
   attached() {
     const itemList = document.getElementById('item-list');

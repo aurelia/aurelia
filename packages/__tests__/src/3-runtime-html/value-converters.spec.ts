@@ -6,6 +6,7 @@ import {
   INode,
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
+import { resolve } from '@aurelia/kernel';
 
 // TemplateCompiler - value converter integration
 describe('3-runtime-html/value-converters.spec.ts', function () {
@@ -33,7 +34,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     class FooAttribute {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -45,7 +46,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     class FooAttribute2 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);

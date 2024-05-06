@@ -1,5 +1,6 @@
-import { Interceptor, RetryConfiguration } from './interfaces';
-import { RetryInterceptor } from './retry-interceptor';
+import { IContainer, resolve } from '@aurelia/kernel';
+import { IRetryConfiguration, RetryInterceptor } from './interceptors';
+import { IFetchInterceptor } from './interfaces';
 
 /**
  * A class for configuring HttpClients.
@@ -21,9 +22,12 @@ export class HttpClientConfiguration {
   /**
    * Interceptors to be added to the HttpClient.
    */
-  public interceptors: Interceptor[] = [];
+  public interceptors: IFetchInterceptor[] = [];
 
   public dispatcher: Node | null = null;
+
+  /** @internal */
+  private readonly _container = resolve(IContainer);
 
   /**
    * Sets the baseUrl.
@@ -60,7 +64,7 @@ export class HttpClientConfiguration {
    * @returns The chainable instance of this configuration object.
    * @chainable
    */
-  public withInterceptor(interceptor: Interceptor): HttpClientConfiguration {
+  public withInterceptor(interceptor: IFetchInterceptor): HttpClientConfiguration {
     this.interceptors.push(interceptor);
     return this;
   }
@@ -93,11 +97,17 @@ export class HttpClientConfiguration {
     return this.withInterceptor({ response: rejectOnError });
   }
 
-  public withRetry(config?: RetryConfiguration): HttpClientConfiguration {
-    const interceptor: Interceptor = new RetryInterceptor(config);
+  public withRetry(config?: IRetryConfiguration): HttpClientConfiguration {
+    const interceptor = this._container.invoke(RetryInterceptor, [config]);
 
     return this.withInterceptor(interceptor);
   }
+
+  // public withCache(config?: ICacheConfiguration): HttpClientConfiguration {
+  //   const interceptor = this._container.invoke(CacheInterceptor, [config]);
+
+  //   return this.withInterceptor(interceptor);
+  // }
 
   public withDispatcher(dispatcher: Node): HttpClientConfiguration {
     this.dispatcher = dispatcher;

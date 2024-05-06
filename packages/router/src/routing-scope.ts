@@ -11,7 +11,7 @@ import { IViewportOptions } from './endpoints/viewport-options';
 import { IConfigurableRoute, RouteRecognizer } from './route-recognizer';
 import { Runner, Step } from './utilities/runner';
 import { IRoute, Route } from './route';
-import { Endpoint, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint';
+import { Endpoint, EndpointTypeName, IConnectedCustomElement, IEndpoint } from './endpoints/endpoint';
 import { EndpointMatcher } from './endpoint-matcher';
 import { EndpointContent, Navigation, Router, RoutingHook, ViewportCustomElement } from './index';
 import { IContainer } from '@aurelia/kernel';
@@ -59,9 +59,10 @@ export type TransitionAction = 'skip' | 'reload' | 'swap' | '';
  */
 
 export class RoutingScope {
-  public static lastId = 0;
+  /** @internal */
+  private static lastId = 0;
 
-  public id = -1;
+  public id = ++RoutingScope.lastId;
 
   /**
    * The parent of the routing scope (parent/child hierarchy)
@@ -72,31 +73,50 @@ export class RoutingScope {
    */
   public children: RoutingScope[] = [];
 
-  // public path: string | null = null;
+  public readonly router: IRouter;
+  /**
+   * Whether the routing scope has a scope and can own other scopes
+   */
+  public readonly hasScope: boolean;
+
+  /**
+   * The routing scope that owns this routing scope (owner/owning hierarchy)
+   */
+  public owningScope: RoutingScope | null;
+
+  /**
+   * The endpoint content the routing scope is connected to
+   */
+  public endpointContent: EndpointContent;
 
   public constructor(
-    public readonly router: IRouter,
+    router: IRouter,
     /**
      * Whether the routing scope has a scope and can own other scopes
      */
-    public readonly hasScope: boolean,
+    hasScope: boolean,
 
     /**
      * The routing scope that owns this routing scope (owner/owning hierarchy)
      */
-    public owningScope: RoutingScope | null,
+    owningScope: RoutingScope | null,
 
     /**
      * The endpoint content the routing scope is connected to
      */
-    public endpointContent: EndpointContent,
+    endpointContent: EndpointContent,
   ) {
-    this.id = ++RoutingScope.lastId;
+    this.router = router;
+    this.hasScope = hasScope;
     this.owningScope = owningScope ?? this;
-    // console.log('Created RoutingScope', this.id, this);
+    this.endpointContent = endpointContent;
   }
 
-  public static for(origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null, instruction?: string): { scope: RoutingScope | null; instruction: string | undefined } {
+  public static for(
+    origin: Element | ICustomElementViewModel | Viewport | ViewportScope | RoutingScope | ICustomElementController | IContainer | null,
+    instruction?: string
+  ): { scope: RoutingScope | null; instruction: string | undefined } {
+
     if (origin == null) {
       return { scope: null, instruction };
     }
@@ -123,6 +143,7 @@ export class RoutingScope {
     }
     if (container == null) {
       if (__DEV__) {
+        // eslint-disable-next-line no-console
         console.warn("RoutingScope failed to find a container for provided origin", origin);
       }
       return { scope: null, instruction };
@@ -274,12 +295,13 @@ export class RoutingScope {
         && !foundRoute.foundInstructions) {
         // ...call unknownRoute hook if we didn't...
         // TODO: Add unknownRoute hook here and put possible result in instructions
-        this.unknownRoute(nonRouteInstructions);
+        throw this.createUnknownRouteError(nonRouteInstructions);
       }
       // ...and use any already found and the newly found routing instructions.
       instructions = [...instructions.filter(instruction => instruction.route instanceof Route), ...foundRoute.instructions];
 
       if (instructions.some(instr => instr.scope !== this)) {
+        // eslint-disable-next-line no-console
         console.warn('Not the current scope for instruction(s)!', this, instructions);
       }
 
@@ -340,6 +362,7 @@ export class RoutingScope {
         .map(endpoint => RoutingInstruction.createClear(router, endpoint)));
 
       // TODO: Review whether this await poses a problem (it's currently necessary for new viewports to load)
+      // eslint-disable-next-line no-await-in-loop
       const hooked = await RoutingHook.invokeBeforeNavigation(matchedInstructions, navigation);
       if (hooked === false) {
         router.cancelNavigation(navigation, coordinator);
@@ -395,6 +418,7 @@ export class RoutingScope {
           // If the endpoint has not been changed/swapped and there are no next scope
           // instructions the endpoint's scope (its children) needs to be cleared
           if (action === 'skip' && !matchedInstruction.hasNextScopeInstructions) {
+            // eslint-disable-next-line no-await-in-loop
             allChangedEndpoints.push(...(await endpoint.scope.processInstructions([], earlierMatchedInstructions, navigation, coordinator, configuredRoutePath)));
           }
         }
@@ -418,6 +442,7 @@ export class RoutingScope {
         if (coordinator.hasAllEndpoints) {
           const guardedUnload = coordinator.waitForSyncState('guardedUnload');
           if (guardedUnload instanceof Promise) {
+            // eslint-disable-next-line no-await-in-loop
             await guardedUnload;
           }
         }
@@ -455,6 +480,7 @@ export class RoutingScope {
         coordinator.running) {
         const waitForSwapped = coordinator.waitForSyncState('swapped');
         if (waitForSwapped instanceof Promise) {
+          // eslint-disable-next-line no-await-in-loop
           await waitForSwapped;
         }
       }
@@ -470,6 +496,7 @@ export class RoutingScope {
           const nextScope = instruction.endpoint.instance?.scope ?? instruction.endpoint.scope as RoutingScope;
           nextProcesses.push(nextScope.processInstructions(instruction.nextScopeInstructions!, earlierMatchedInstructions, navigation, coordinator, configuredRoutePath));
         }
+        // eslint-disable-next-line no-await-in-loop
         allChangedEndpoints.push(...(await Promise.all(nextProcesses)).flat());
       }
 
@@ -491,6 +518,7 @@ export class RoutingScope {
           .filter(promise => promise != null);
         // ...and await first one...
         if (pendingEndpoints.length > 0) {
+          // eslint-disable-next-line no-await-in-loop
           await Promise.any(pendingEndpoints);
           // ...and dequeue them.
           ({ matchedInstructions, remainingInstructions } =
@@ -503,6 +531,7 @@ export class RoutingScope {
       // If there are any unresolved components (functions or promises) to be appended, resolve them
       const unresolvedPromise = RoutingInstruction.resolve(matchedInstructions);
       if (unresolvedPromise instanceof Promise) {
+        // eslint-disable-next-line no-await-in-loop
         await unresolvedPromise;
       }
 
@@ -522,22 +551,23 @@ export class RoutingScope {
    *
    * @param instructions - The failing instructions
    */
-  private unknownRoute(instructions: RoutingInstruction[]) {
+  private createUnknownRouteError(instructions: RoutingInstruction[]) {
     const options = this.router.configuration.options;
     const route = RoutingInstruction.stringify(this.router, instructions);
     // TODO: Add missing/unknown route handling
+    //       shouldn't this check all routes, instead of only the first one?
     if (instructions[0].route != null) {
       if (!options.useConfiguredRoutes) {
-        throw new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");
+        return new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");
       } else {
-        throw new Error("No matching configured route found for '" + route + "'.");
+        return new Error("No matching configured route found for '" + route + "'.");
       }
     } else if (options.useConfiguredRoutes && options.useDirectRouting) {
-      throw new Error("No matching configured route or component found for '" + route + "'.");
+      return new Error("No matching configured route or component found for '" + route + "'.");
     } else if (options.useConfiguredRoutes) {
-      throw new Error("No matching configured route found for '" + route + "'.");
+      return new Error("No matching configured route found for '" + route + "'.");
     } else {
-      throw new Error("No matching route/component found for '" + route + "'.");
+      return new Error("No matching route/component found for '" + route + "'.");
     }
   }
 
@@ -645,10 +675,11 @@ export class RoutingScope {
     return { matchedInstructions: allMatchedInstructions, remainingInstructions: allRemainingInstructions };
   }
 
-  public addEndpoint(type: string, name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions | IViewportScopeOptions = {}): Viewport | ViewportScope {
+  public addEndpoint(type: EndpointTypeName, name: string, connectedCE: IConnectedCustomElement | null, options: IViewportOptions | IViewportScopeOptions = {}): Viewport | ViewportScope {
     let endpoint: Endpoint | null = this.getOwnedScopes()
       .find(scope => scope.type === type &&
         scope.endpoint.name === name)?.endpoint ?? null;
+
     // Each endpoint element has its own Endpoint
     if (connectedCE != null && endpoint?.connectedCE != null && endpoint.connectedCE !== connectedCE) {
       endpoint = this.getOwnedScopes(true)
@@ -657,6 +688,7 @@ export class RoutingScope {
           scope.endpoint.connectedCE === connectedCE)?.endpoint
         ?? null;
     }
+
     if (endpoint == null) {
       endpoint = type === 'Viewport'
         ? new Viewport(this.router, name, connectedCE, this.scope, !!(options as IViewportOptions).scope, options)

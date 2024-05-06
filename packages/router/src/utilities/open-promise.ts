@@ -10,17 +10,19 @@ export class OpenPromise<T = void> {
   /**
    * The actual promise
    */
-  public promise!: Promise<T>;
+  public promise: Promise<T>;
 
   /**
    * The resolve method of the promise
+   * @internal
    */
   private _resolve!: (value?: T | PromiseLike<T>) => void;
 
   /**
    * The reject method of the promise
+   * @internal
    */
-  private _reject!: (reason?: any) => void;
+  private _reject!: (reason?: unknown) => void;
 
   public constructor() {
     this.promise = new Promise((resolve, reject) => {
@@ -44,7 +46,7 @@ export class OpenPromise<T = void> {
    *
    * @param reason - The reason the promise is rejected
    */
-  public reject(reason?: any): void {
+  public reject(reason?: unknown): void {
     this._reject(reason);
     this.isPending = false;
   }

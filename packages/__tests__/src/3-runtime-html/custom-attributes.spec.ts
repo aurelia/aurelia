@@ -1,13 +1,18 @@
-import { resolve } from '@aurelia/kernel';
+import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 import {
+  CustomAttribute,
+  IAurelia,
+  IHydratedComponentController,
+  INode,
+  IRenderLocation,
+  IViewFactory,
   alias,
   bindable,
   customAttribute,
-  INode,
-  CustomAttribute,
-  IAurelia
+  customElement,
+  templateController
 } from '@aurelia/runtime-html';
-import { assert, eachCartesianJoin, createFixture } from '@aurelia/testing';
+import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-attributes.spec.ts', function () {
   // custom elements
@@ -18,7 +23,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class Fooatt5 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -30,7 +35,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class Fooatt4 {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -43,7 +48,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
     class FooMultipleAlias {
       @bindable({ primary: true })
       public value: any;
-      public constructor(@INode private readonly element: INode<Element>) {}
+      private readonly element: INode<Element> = resolve(INode) as INode<Element>;
 
       public bound() {
         this.element.setAttribute('test', this.value);
@@ -135,7 +140,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       @bindable public b: string;
       public aResult: boolean;
       public bResult: string;
-      public constructor(@INode private readonly element: INode<Element>) {
+      public constructor(private readonly element: INode<Element> = resolve(INode) as INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {
@@ -160,7 +165,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       @bindable({ primary: true }) public b: string;
       public aResult: boolean;
       public bResult: string;
-      public constructor(@INode private readonly element: INode<Element>) {
+      public constructor(private readonly element: INode<Element> = resolve(INode) as INode<Element>) {
         this.element.innerHTML = 'Created';
       }
       public bound() {
@@ -865,6 +870,177 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       component.attr._m[1].v = 'world+';
       assert.strictEqual(component.value, 'hello world+');
+    });
+  });
+
+  describe('template controller', function () {
+    interface IExample {/* */}
+    const IExample = DI.createInterface<IExample>("IExample");
+
+    @templateController({
+      name: 'example',
+      containerStrategy: 'new'
+    })
+    class ExampleTemplateController {
+      $controller: IHydratedComponentController;
+      @bindable value;
+      viewFactory = resolve(IViewFactory);
+      location = resolve(IRenderLocation);
+
+      bound() {
+        this.viewFactory.container.register(Registration.instance(IExample, this.value));
+        const view = this.viewFactory.create();
+        view.setLocation(this.location);
+        return view.activate(view, this.$controller, this.$controller.scope!);
+      }
+    }
+
+    it('creates new container for factory when containerStrategy is "new"', function () {
+
+      @customAttribute('my-attr')
+      class MyAttr {
+        v = resolve(IExample);
+        host = resolve(INode) as HTMLElement;
+
+        bound() {
+          this.host.textContent = String(this.v);
+        }
+      }
+
+      let examples: IExample[];
+
+      @customElement({
+        name: 'my-el',
+        template: `<div example.bind="5" my-attr></div>
+        <div example.bind="6" my-attr></div>`,
+      })
+      class MyEl {
+        c = resolve(IContainer);
+
+        attached() {
+          examples = this.c.getAll(IExample, false);
+        }
+      }
+
+      const { assertText } = createFixture(
+        '<my-el>',
+        class App {},
+        [ExampleTemplateController, MyAttr, MyEl]
+      );
+
+      assertText('5 6', { compact: true });
+      assert.deepStrictEqual(examples, []);
+    });
+
+    it('new container strategy does not get affected by nesting', function () {
+      @customElement('my-ce')
+      class MyCe {
+        e = resolve(IExample);
+        host = resolve(INode) as HTMLElement;
+
+        attached() {
+          this.host.textContent = String(this.e);
+        }
+      }
+
+      const { getAllBy } = createFixture(
+        `<div example.bind="1">
+          <my-ce></my-ce>
+          <div example.bind="2">
+            <my-ce></my-ce>
+            <my-ce></my-ce>
+          </div>
+          <my-ce />
+        </div>`,
+        class App {},
+        [ExampleTemplateController, MyCe]
+      );
+
+      assert.deepStrictEqual(
+        getAllBy('my-ce').map(el => el.textContent),
+        ['1', '2', '2', '1']
+      );
+    });
+  });
+
+  describe('finding closest', function () {
+    const Foo = CustomAttribute.define('foo', class Foo {
+      host = resolve(INode);
+      value: any;
+    });
+    const Baz = CustomAttribute.define('baz', class Baz {
+      host = resolve(INode);
+      value: any;
+      parent = CustomAttribute.closest<typeof Foo>(this.host, 'foo')?.viewModel;
+      bound() {
+        this.host.textContent = this.parent?.value ?? this.value;
+      }
+    });
+    const Bar = CustomAttribute.define('bar', class Bar {
+      host = resolve(INode);
+      value: any;
+      parent = CustomAttribute.closest(this.host, Foo)?.viewModel;
+      bound() {
+        this.host.textContent = this.parent?.value ?? this.value;
+      }
+    });
+
+    it('finds closest custom attribute using string', function () {
+      const { assertText } = createFixture(`<div foo="1"><div baz="2"></div></div>`, class App {}, [Foo, Baz]);
+      assertText('1');
+    });
+
+    it('finds closest custom attribute using view model constructor', function () {
+      const { assertText } = createFixture(`<div foo="1"><div bar="2"></div></div>`, class App {}, [Foo, Bar]);
+      assertText('1');
+    });
+
+    it('returns null if no controller for the name can be found', function () {
+      const { assertText } = createFixture(
+        // Bar is not on an child element that hosts Foo
+      `
+        <div foo="1"></div>
+        <div bar="2"></div>
+        <div baz="3"></div>
+      `, class App {}, [Foo, Bar, Baz]);
+      assertText('2 3', { compact: true });
+    });
+
+    it('finds closest custom attribute when nested multiple dom layers', function () {
+      const { assertText } = createFixture(`
+        <div foo="1">
+          <center>
+            <div bar="2"></div>
+            <div baz="3"></div>
+          </center>
+        </div>
+        `,
+        class App {},
+        [Foo, Bar, Baz]
+      );
+      assertText('1 1', { compact: true });
+    });
+
+    it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', function () {
+      const { assertText } = createFixture(`
+        <div foo="1">
+          <center>
+            <div foo="3">
+              <div bar="2"></div>
+            </div>
+            <div baz="4"></div>
+          </center>
+        </div>
+        `,
+        class App {},
+        [Foo, Bar, Baz]
+      );
+      assertText('3 1', { compact: true });
+    });
+
+    it('throws when theres no attribute definition associated with the type', function () {
+      const { appHost } = createFixture('');
+      assert.throws(() => CustomAttribute.closest(appHost, class NotAttr {}));
     });
   });
 });

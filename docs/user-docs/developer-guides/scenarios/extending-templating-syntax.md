@@ -10,7 +10,7 @@ description: >-
 
 Sometimes you will see the following template in an Aurelia application:
 
-```markup
+```html
 <input value.bind="message">
 ```
 
@@ -29,7 +29,7 @@ You may sometimes come across some custom input element in a component library, 
 
 Regardless of the lib choice an application takes, what is needed in common is the ability to have a concise syntax to describe the two way binding intention with those custom elements. Some examples for the above custom input elements:
 
-```markup
+```html
 <fast-text-field value.bind="message">
 <ion-input value.bind="message">
 <paper-input value.bind="message">
@@ -37,7 +37,7 @@ Regardless of the lib choice an application takes, what is needed in common is t
 
 should be treated as:
 
-```markup
+```html
 <fast-text-field value.two-way="message">
 <ion-input value.two-way="message">
 <paper-input value.two-way="message">
@@ -50,11 +50,11 @@ In the next section, we will look into how to teach Aurelia such knowledge.
 As mentioned earlier, the Attribute Syntax Mapper will be used to map `value.bind` into `value.two-way`. Every Aurelia application uses a single instance of this class. The instance can be retrieved via the injection of interface `IAttrMapper`, like the following example:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { inject, IAttrMapper } from '@aurelia/runtime-html';
 
-@inject(IAttrMapper)
 export class MyCustomElement {
-  constructor(attrMapper) {
+  constructor(attrMapper = resolve(IAttrMapper)) {
     // do something with the attr mapper
   }
 }
@@ -83,11 +83,11 @@ attrMapper.useTwoWay(function(element, property) {
 Teaching Aurelia to map `value.bind` to `value.two-way` is the first half of the story. The second half is about how we can teach Aurelia to observe the `value` property for changes on those custom input elements. We can do this via the Node Observer Locator. Every Aurelia application uses a single instance of this class, and this instance can be retrieved via the injection of interface `INodeObserverLocator` like the following example:
 
 ```typescript
+import { resolve } from 'aurelia';
 import { inject, INodeObserverLocator } from '@aurelia/runtime-html';
 
-@inject(INodeObserverLocator)
 export class MyCustomElement {
-  constructor(nodeObserverLocator) {
+  constructor(nodeObserverLocator = resolve(INodeObserverLocator)) {
     // do something with the locator
   }
 }
@@ -161,7 +161,7 @@ Aurelia
 
 And with the above, your Aurelia application will get two way binding flow seamlessly:
 
-```markup
+```html
 <fast-text-field value.bind="message"></fast-text-field>
 <fast-text-area value.bind="description"></fast-text-area>
 <fast-slider value.bind="fontSize"></fast-slider>

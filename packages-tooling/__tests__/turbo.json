@@ -3,8 +3,7 @@
   "extends": ["//"],
   "pipeline": {
     "build": {
-      "inputs": ["src/**/*.ts"],
-      "outputs": ["dist/**/*"]
+      "inputs": ["./src/**/*.ts"]
     }
   }
 }

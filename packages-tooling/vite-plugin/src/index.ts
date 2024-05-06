@@ -2,6 +2,9 @@ import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventi
 import { createFilter, FilterPattern } from '@rollup/pluginutils';
 import { resolve, dirname } from 'path';
 import { promises } from 'fs';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 export default function au(options: {
   include?: FilterPattern;
@@ -25,7 +28,7 @@ export default function au(options: {
   const devPlugin: import('vite').Plugin = {
     name: 'aurelia:dev-alias',
     config(config) {
-      const isDev = useDev || (!useDev && config.mode !== 'production');
+      const isDev = useDev === true || (useDev == null && config.mode !== 'production');
       if (!isDev) {
         return;
       }
@@ -44,7 +47,9 @@ export default function au(options: {
         'route-recognizer',
         'compat-v1',
         'dialog',
+        'expression-parser',
         'runtime',
+        'template-compiler',
         'runtime-html',
         'router-lite',
       ].reduce((aliases, pkg) => {
@@ -79,6 +84,7 @@ export default function au(options: {
             ? s
             : s.replace(/\.html$/, '.$au.ts');
         },
+        stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions
       });
       return result;
@@ -103,7 +109,9 @@ export default function au(options: {
         contents: code,
       }, {
         hmrModule: 'import.meta',
-        transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts')
+        transformHtmlImportSpecifier: s => s.replace(/\.html$/, '.$au.ts'),
+        stringModuleWrap: (id) => `${id}?inline`,
+        ...additionalOptions
       });
       return result!.code;
     }
@@ -114,8 +122,8 @@ export default function au(options: {
 
 function getHmrCode(className: string, moduleNames: string = ''): string {
   const moduleText = 'import.meta';
-  const code =
-`import { Metadata as $$M } from '@aurelia/metadata';
+  const code = `
+import { Metadata as $$M } from '@aurelia/metadata';
 import {
   Controller as $$C,
   CustomElement as $$CE,
@@ -165,8 +173,8 @@ if (${moduleText}.hot) {
 
   if (${moduleText}.hot.data?.aurelia) {
     const newDefinition = $$CE.getDefinition(currentClassType);
-    $$M.define(newDefinition.name, newDefinition, currentClassType);
-    $$M.define(newDefinition.name, newDefinition, newDefinition);
+    $$M.define(newDefinition, currentClassType, newDefinition.name);
+    $$M.define(newDefinition, newDefinition, newDefinition.name);
     ${moduleText}.hot.data.aurelia.container.res[$$CE.keyFrom(newDefinition.name)] = newDefinition;
 
     const previousControllers = ${moduleText}.hot.data.controllers;

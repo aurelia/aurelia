@@ -112,7 +112,7 @@ export {
 } from './viewport-agent';
 
 export {
-  IUrlParser,
+  type IUrlParser,
   pathUrlParser,
   fragmentUrlParser,
 } from './url-parser';

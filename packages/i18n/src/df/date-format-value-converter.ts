@@ -1,14 +1,17 @@
-import { valueConverter } from '@aurelia/runtime-html';
+import { type ValueConverterInstance, type ValueConverterStaticAuDefinition } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
 import { I18N } from '../i18n';
-import { Signals, ValueConverters } from '../utils';
+import { Signals, ValueConverters, valueConverterTypeName } from '../utils';
 
-@valueConverter(ValueConverters.dateFormatValueConverterName)
-export class DateFormatValueConverter {
+export class DateFormatValueConverter implements ValueConverterInstance {
+  public static readonly $au: ValueConverterStaticAuDefinition = {
+    type: valueConverterTypeName,
+    name: ValueConverters.dateFormatValueConverterName,
+  };
+
   public readonly signals: string[] = [Signals.I18N_SIGNAL];
 
-  public constructor(
-    @I18N private readonly i18n: I18N,
-  ) {}
+  private readonly i18n: I18N = resolve(I18N);
 
   public toView(value: string | number | Date, options?: Intl.DateTimeFormatOptions, locale?: string) {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions

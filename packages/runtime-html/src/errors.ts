@@ -13,8 +13,32 @@ _START_CONST_ENUM();
 export const enum ErrorNames {
   method_not_implemented = 99,
 
+  ast_behavior_not_found = 101,
+  ast_behavior_duplicated = 102,
+  ast_converter_not_found = 103,
+  ast_$host_not_found = 105,
+  ast_no_assign_$host = 106,
+  ast_not_a_function = 107,
+  ast_unknown_binary_operator = 108,
+  ast_unknown_unary_operator = 109,
+  ast_tagged_not_a_function = 110,
+  ast_name_is_not_a_function = 111,
+  ast_destruct_null = 112,
+
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
+  element_existed = 153,
+  attribute_existed = 154,
+  value_converter_existed = 155,
+  binding_behavior_existed = 156,
+  binding_command_existed = 157,
+
+  null_scope = 203,
+  create_scope_with_null_context = 204,
+
+  invalid_bindable_decorator_usage_symbol = 227,
+  invalid_bindable_decorator_usage_class_without_configuration = 228,
+  invalid_bindable_decorator_usage_class_without_property_name_configuration = 229,
 
   controller_cached_not_found = 500,
   controller_no_shadow_on_containerless = 501,
@@ -89,8 +113,7 @@ export const enum ErrorNames {
   update_trigger_behavior_no_triggers = 802,
   update_trigger_invalid_usage = 803,
   au_compose_invalid_scope_behavior = 805,
-  // originally not supported
-  // au_compose_containerless = 806,
+  au_compose_component_name_not_found = 806,
   au_compose_invalid_run = 807,
   au_compose_duplicate_deactivate = 808,
   else_without_if = 810,
@@ -120,8 +143,32 @@ _END_CONST_ENUM();
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
+  [ErrorNames.ast_behavior_not_found]: `Ast eval error: binding behavior "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+  [ErrorNames.ast_behavior_duplicated]: `Ast eval error: binding behavior "{{0}}" already applied.`,
+  [ErrorNames.ast_converter_not_found]: `Ast eval error: value converter "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+  [ErrorNames.ast_$host_not_found]: `Ast eval error: unable to find $host context. Did you forget [au-slot] attribute?`,
+  [ErrorNames.ast_no_assign_$host]: `Ast eval error: invalid assignment. "$host" is a reserved keyword.`,
+  [ErrorNames.ast_not_a_function]: `Ast eval error: expression is not a function.`,
+  [ErrorNames.ast_unknown_unary_operator]: `Ast eval error: unknown unary operator: "{{0}}"`,
+  [ErrorNames.ast_unknown_binary_operator]: `Ast eval error: unknown binary operator: "{{0}}"`,
+  [ErrorNames.ast_tagged_not_a_function]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
+  [ErrorNames.ast_name_is_not_a_function]: `Ast eval error: expected "{{0}}" to be a function`,
+  [ErrorNames.ast_destruct_null]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
+
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
+  [ErrorNames.element_existed]: `Element {{0}} has already been registered.`,
+  [ErrorNames.attribute_existed]: `Attribute {{0}} has already been registered.`,
+  [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
+  [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
+  [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,
+
+  [ErrorNames.null_scope]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
+  [ErrorNames.create_scope_with_null_context]: 'Trying to create a scope with null/undefined binding context',
+
+  [ErrorNames.invalid_bindable_decorator_usage_symbol]: `@bindable is not supported for properties that uses a symbol for name. Use a string for the property name instead.`,
+  [ErrorNames.invalid_bindable_decorator_usage_class_without_configuration]: `@bindable cannot be used as a class decorator when no configuration object is supplied.`,
+  [ErrorNames.invalid_bindable_decorator_usage_class_without_property_name_configuration]: `@bindable cannot be used as a class decorator when no property name is supplied in the configuration object.`,
 
   [ErrorNames.controller_cached_not_found]: `There is no cached controller for the provided ViewModel: {{0}}`,
   [ErrorNames.controller_no_shadow_on_containerless]: `Invalid combination: cannot combine the containerless custom element option with Shadow DOM.`,
@@ -171,7 +218,7 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.root_not_found]: `Aurelia.root was accessed without a valid root.`,
   [ErrorNames.aurelia_instance_existed_in_container]: `An instance of Aurelia is already registered with the container or an ancestor of it.`,
-  [ErrorNames.invalid_platform_impl]: `Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView`,
+  [ErrorNames.invalid_platform_impl]: `Failed to initialize the platform object. The host element's ownerDocument does not have a defaultView, did you create the host from a DOMParser and forget to call adoptNode()?`,
   [ErrorNames.no_composition_root]: `Aurelia.start() was called without a composition root`,
   [ErrorNames.invalid_dispose_call]: `The aurelia instance must be fully stopped before it can be disposed`,
   [ErrorNames.not_supported_view_ref_api]: `view.ref is not supported. If you are migrating from v1, this can be understood as the controller.`,
@@ -200,7 +247,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.update_trigger_invalid_usage]: `"& updateTrigger" invalid usage. This binding behavior can only be applied to two-way/ from-view bindings.`,
   [ErrorNames.au_compose_invalid_scope_behavior]: `Invalid scope behavior "{{0}}" on <au-compose />. Only "scoped" or "auto" allowed.`,
   // originally not supported
-  // [ErrorNames.au_compose_containerless]: `Containerless custom element {{0:name}} is not supported by <au-compose />`,
+  [ErrorNames.au_compose_component_name_not_found]: `<au-compose /> couldn't find a custom element with name "{{0}}", did you forget to register it locally or globally?`,
   [ErrorNames.au_compose_invalid_run]: `Composition has already been activated/deactivated. Id: {{0:controller}}`,
   [ErrorNames.au_compose_duplicate_deactivate]: `Composition has already been deactivated.`,
   [ErrorNames.else_without_if]: `Invalid [else] usage, it should follow an [if]`,

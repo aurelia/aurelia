@@ -1,38 +1,29 @@
-import { all, IContainer, ILogger, lazy, MaybePromise, optional, Registration } from '@aurelia/kernel';
+import { all, IContainer, ILogger, lazy, MaybePromise, optional, Registration, resolve } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
 export class Store<T extends object, TAction = unknown> implements IStore<T> {
   public static register(c: IContainer) {
-    Registration.singleton(IStore, this).register(c);
+    c.register(
+      Registration.singleton(this, this),
+      Registration.aliasTo(this, IStore),
+    );
   }
-
-  /** @internal */ protected static inject = [
-    optional(IState),
-    all(IActionHandler),
-    ILogger,
-    lazy(IDevToolsExtension)
-  ];
 
   /** @internal */ private readonly _initialState: any;
   /** @internal */ private _state: any;
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
-  /** @internal */ private readonly _handlers: IActionHandler<T>[];
+  /** @internal */ private readonly _handlers: readonly IActionHandler<T>[];
   /** @internal */ private _dispatching = 0;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
   /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
 
-  public constructor(
-    initialState: T | null,
-    actionHandlers: IActionHandler<T>[],
-    logger: ILogger,
-    getDevTools: () => IDevToolsExtension
-  ) {
-    this._initialState = this._state = initialState ?? new State() as T;
-    this._handlers = actionHandlers;
-    this._logger = logger;
-    this._getDevTools = getDevTools;
+  public constructor() {
+    this._initialState = this._state = resolve(optional(IState)) ?? new State() as T;
+    this._handlers = resolve(all(IActionHandler));
+    this._logger = resolve(ILogger);
+    this._getDevTools = resolve(lazy(IDevToolsExtension));
   }
 
   public subscribe(subscriber: IStoreSubscriber<T>): void {

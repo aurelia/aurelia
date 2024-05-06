@@ -145,8 +145,8 @@ export function getEffectiveParentNode(node: Node): Node | null {
 
   if (node.parentNode === null && node.nodeType === NodeType.DocumentFragment) {
     // Could be a shadow root; see if there's a controller and if so, get the original host via the projector
-    const controller = findElementControllerFor(node);
-    if (controller === void 0) {
+    const controller = findElementControllerFor(node, { optional: true });
+    if (controller == null) {
       // Not a shadow root (or at least, not one created by Aurelia)
       // Nothing more we can try, just return null
       return null;

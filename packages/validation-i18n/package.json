@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation-i18n",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.16",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -21,7 +21,8 @@
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aurelia/aurelia"
+    "url": "https://github.com/aurelia/aurelia.git",
+    "directory": "packages/validation-i18n"
   },
   "bugs": {
     "url": "https://github.com/aurelia/aurelia/issues"
@@ -54,19 +55,20 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/i18n": "2.0.0-beta.10",
-    "@aurelia/kernel": "2.0.0-beta.10",
-    "@aurelia/metadata": "2.0.0-beta.10",
-    "@aurelia/platform": "2.0.0-beta.10",
-    "@aurelia/platform-browser": "2.0.0-beta.10",
-    "@aurelia/runtime": "2.0.0-beta.10",
-    "@aurelia/runtime-html": "2.0.0-beta.10",
-    "@aurelia/validation": "2.0.0-beta.10",
-    "@aurelia/validation-html": "2.0.0-beta.10",
-    "i18next": "^17.0.0"
+    "@aurelia/i18n": "2.0.0-beta.16",
+    "@aurelia/kernel": "2.0.0-beta.16",
+    "@aurelia/metadata": "2.0.0-beta.16",
+    "@aurelia/platform": "2.0.0-beta.16",
+    "@aurelia/platform-browser": "2.0.0-beta.16",
+    "@aurelia/expression-parser": "2.0.0-beta.16",
+    "@aurelia/runtime": "2.0.0-beta.16",
+    "@aurelia/runtime-html": "2.0.0-beta.16",
+    "@aurelia/validation": "2.0.0-beta.16",
+    "@aurelia/validation-html": "2.0.0-beta.16",
+    "i18next": ">= 17.3.1"
   },
   "devDependencies": {
-    "typescript": "5.2.2"
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

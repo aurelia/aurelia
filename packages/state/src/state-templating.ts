@@ -1,46 +1,45 @@
-import { camelCase } from '@aurelia/kernel';
+import { camelCase, resolve } from '@aurelia/kernel';
+import { IExpressionParser, ExpressionType, type IsBindingBehavior } from '@aurelia/expression-parser';
 import {
-  type ExpressionType,
-  IExpressionParser,
   IObserverLocator,
-  type IsBindingBehavior,
 } from '@aurelia/runtime';
 import {
-  attributePattern,
-  AttrSyntax,
-  bindingCommand,
-  type CommandType,
-  IAttrMapper,
   IHydratableController,
   IPlatform,
   renderer,
+  type IRenderer,
+} from '@aurelia/runtime-html';
+import {
+  AttrSyntax,
+  IAttrMapper,
   type BindingCommandInstance,
   type ICommandBuildInfo,
   type IInstruction,
-  type IRenderer
-} from '@aurelia/runtime-html';
+  type BindingCommandStaticAuDefinition
+} from '@aurelia/template-compiler';
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
 
-@attributePattern({ pattern: 'PART.state', symbols: '.' })
 export class StateAttributePattern {
-  public 'PART.state'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.state'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'state');
   }
 }
 
-@attributePattern({ pattern: 'PART.dispatch', symbols: '.' })
 export class DispatchAttributePattern {
-  public 'PART.dispatch'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  public 'PART.dispatch'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'dispatch');
   }
 }
 
-@bindingCommand('state')
 export class StateBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return 'None'; }
-  public get name(): string { return 'state'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'state',
+  };
+
+  public get ignoreAttr() { return false; }
 
   public build(info: ICommandBuildInfo, parser: IExpressionParser, attrMapper: IAttrMapper): IInstruction {
     const attr = info.attr;
@@ -54,7 +53,7 @@ export class StateBindingCommand implements BindingCommandInstance {
     } else {
       // if it looks like: <my-el value.bind>
       // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === 'Element') {
+      if (value === '' && info.def.type === 'custom-element') {
         value = camelCase(target);
       }
       target = info.bindable.name;
@@ -63,10 +62,12 @@ export class StateBindingCommand implements BindingCommandInstance {
   }
 }
 
-@bindingCommand('dispatch')
 export class DispatchBindingCommand implements BindingCommandInstance {
-  public get type(): CommandType { return 'IgnoreAttr'; }
-  public get name(): string { return 'dispatch'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'dispatch',
+  };
+  public get ignoreAttr() { return true; }
 
   public build(info: ICommandBuildInfo): IInstruction {
     const attr = info.attr;
@@ -90,14 +91,10 @@ export class DispatchBindingInstruction {
   ) {}
 }
 
-@renderer('sb')
-export class StateBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
-  public readonly target!: 'sb';
+export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindingInstructionRenderer implements IRenderer {
+  public readonly target = 'sb';
 
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+  /** @internal */ public readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -118,16 +115,11 @@ export class StateBindingInstructionRenderer implements IRenderer {
       this._stateContainer,
     ));
   }
-}
+}, null!);
 
-@renderer('sd')
-export class DispatchBindingInstructionRenderer implements IRenderer {
-  /** @internal */ protected static inject = [IStore];
-  public readonly target!: 'sd';
-
-  public constructor(
-    /** @internal */ private readonly _stateContainer: IStore<object>,
-  ) {}
+export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer implements IRenderer {
+  public readonly target = 'sd';
+  /** @internal */ public readonly _stateContainer = resolve(IStore);
 
   public render(
     renderingCtrl: IHydratableController,
@@ -145,7 +137,7 @@ export class DispatchBindingInstructionRenderer implements IRenderer {
       this._stateContainer,
     ));
   }
-}
+}, null!);
 
 function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom, expressionType: ExpressionType): Exclude<TFrom, string> {
   if (typeof srcOrExpr === 'string') {

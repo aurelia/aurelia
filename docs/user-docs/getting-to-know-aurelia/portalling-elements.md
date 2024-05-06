@@ -10,7 +10,7 @@ While the location of the rendered element changes, it retains its current bindi
 
 Using the `portal` attribute without any configuration options will portal the element to beneath the document body (before the closing body tag).
 
-```markup
+```html
 <div portal>My markup moves to beneath the body by default</div>
 ```
 
@@ -21,7 +21,7 @@ If you want to choose where a portalled element is moved to, you can supply a CS
 Target an element with an ID of `somewhere:`
 
 {% code overflow="wrap" %}
-```markup
+```html
 <div portal="#somewhere">My markup moves toto DIV with ID somewhere</div>
 
 <div id="somewhere"><!-- The element will be portalled here --></div>
@@ -62,10 +62,10 @@ You can also target elements not using the `ref` attribute too. A good example i
 
 {% code overflow="wrap" %}
 ```typescript
-import { INode } from 'aurelia';
+import { INode, resolve } from 'aurelia';
 
 export class MyComponent {
-    constructor(@INode readonly element: HTMLElement) {}
+    readonly element: HTMLElement = resolve(INode);
 }
 ```
 {% endcode %}

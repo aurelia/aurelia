@@ -1,9 +1,11 @@
-import { I18nInitOptions, I18nService, Signals } from '@aurelia/i18n';
+import { I18N, I18nInitOptions, Signals } from '@aurelia/i18n';
 import { EventAggregator } from '@aurelia/kernel';
 import { nowrap } from '@aurelia/runtime';
 import { assert, MockSignaler, createFixture } from '@aurelia/testing';
-import i18next from 'i18next';
+import { ISignaler } from '@aurelia/runtime-html';
+import i18next, { PostProcessorModule } from 'i18next';
 import { Spy } from '../Spy.js';
+import { createI18NContainer } from './util.js';
 
 const translation = {
   simple: {
@@ -16,16 +18,15 @@ describe('i18n/i18n.spec.ts', function () {
   async function $createFixture(options: I18nInitOptions = {}) {
     const i18nextSpy = new Spy();
     const eaSpy: Spy = new Spy();
-    const mockSignaler = new MockSignaler();
-    const sut = new I18nService(
-      { i18next: i18nextSpy.getMock(i18next) },
-      options,
-      eaSpy.getMock(new EventAggregator()),
-      mockSignaler
-    );
+    const container = createI18NContainer({
+      ea: eaSpy.getMock(new EventAggregator()),
+      i18nextWrapper: { i18next: i18nextSpy.getMock(i18next) },
+      initOptions: options,
+    });
+    const sut = container.get(I18N);
     await sut.initPromise;
     await sut.setLocale('en');
-    return { i18nextSpy, sut, eaSpy, mockSignaler };
+    return { i18nextSpy, sut, eaSpy, mockSignaler: container.get<MockSignaler>(ISignaler) };
   }
 
   it('initializes i18next with default options on instantiation', async function () {
@@ -68,7 +69,7 @@ describe('i18n/i18n.spec.ts', function () {
           name: 'custom2',
           process: function (value: string, _key: string, _options: any, _translator: any) { return value; }
         }
-      ] as i18next.PostProcessorModule[]
+      ] as PostProcessorModule[]
     };
     const { i18nextSpy } = await $createFixture(customization);
 

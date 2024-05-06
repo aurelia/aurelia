@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import * as AST from '@aurelia/runtime';
+import * as AST from '@aurelia/expression-parser';
 
 const astVisit = AST.astVisit;
 
@@ -182,7 +182,7 @@ export class Deserializer implements IExpressionHydrator {
   }
 }
 export class Serializer implements AST.IVisitor<string> {
-  public static serialize(expr: AST.IsExpressionOrStatement): string {
+  public static serialize(expr: AST.IsExpressionOrStatement | AST.CustomExpression): string {
     const visitor = new Serializer();
     if (expr == null) {
       return `${expr}`;
@@ -198,6 +198,7 @@ export class Serializer implements AST.IVisitor<string> {
   public visitAccessThis(expr: AST.AccessThisExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessThisExpression}","ancestor":${expr.ancestor}}`;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public visitAccessBoundary(expr: AST.AccessBoundaryExpression): string {
     return `{"$TYPE":"${ASTExpressionTypes.AccessBoundaryExpression}"}`;
   }

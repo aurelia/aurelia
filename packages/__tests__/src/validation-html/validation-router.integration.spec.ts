@@ -1,7 +1,8 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import {
   newInstanceForScope,
-  Registration
+  Registration,
+  resolve
 } from '@aurelia/kernel';
 import {
   IRouter,
@@ -16,7 +17,6 @@ import {
   IHistory,
   ILocation,
   IPlatform,
-  StandardConfiguration
 } from '@aurelia/runtime-html';
 import {
   assert,
@@ -57,12 +57,10 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
     })
     class ViewWithValidation {
       public person: Person;
-      public constructor(
-        @newInstanceForScope(IValidationController) public readonly validationController: IValidationController,
-        @IRouter public readonly router: IRouter,
-        @IValidationRules rules: IValidationRules,
-      ) {
-        rules.on(this.person = new Person(void 0, void 0))
+      public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+      public readonly router: IRouter = resolve(IRouter);
+      public constructor() {
+        resolve(IValidationRules).on(this.person = new Person(void 0, void 0))
           .ensure('name')
           .required();
       }
@@ -80,9 +78,7 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       template: `<button id="navigate" click.delegate="navigate()"></button>`
     })
     class RedirectingView {
-      public constructor(
-        @IRouter public readonly router: IRouter,
-      ) { }
+      public readonly router: IRouter = resolve(IRouter);
 
       public async navigate() {
         await this.router.load('view-with-val');
@@ -113,7 +109,6 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
 
       await au
         .register(
-          StandardConfiguration,
           Registration.instance(IHistory, mockBrowserHistoryLocation),
           Registration.instance(ILocation, mockBrowserHistoryLocation),
           RouterConfiguration,

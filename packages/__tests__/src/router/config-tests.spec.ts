@@ -6,6 +6,7 @@ import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-
 import { HookSpecs, TestRouteViewModelBase } from './_shared/view-models.js';
 import { hookSpecsMap, verifyInvocationsEqual } from './_shared/hook-spec.js';
 import { createFixture, DeferralJuncture, IActivityTracker, SwapStrategy, translateOptions } from './_shared/create-fixture.js';
+import { resolve } from '@aurelia/kernel';
 
 function vp(count: number): string {
   if (count === 1) {
@@ -94,9 +95,7 @@ export interface IComponentSpec {
 export abstract class SimpleActivityTrackingVMBase {
   public readonly $controller!: ICustomElementController;
 
-  public constructor(
-    @IActivityTracker public readonly tracker: IActivityTracker,
-  ) { }
+  public readonly tracker: IActivityTracker = resolve(IActivityTracker);
 
   public attached(): void {
     this.tracker.setActive(this.$controller.definition.name);
@@ -160,57 +159,57 @@ describe('router/config-tests.spec.ts', function () {
 
       @customElement({ name: 'a01', template: null })
       class A01 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a02', template: null })
       class A02 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a03', template: null })
       class A03 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a04', template: null })
       class A04 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
 
       const A0 = [A01, A02, A03, A04];
 
       @customElement({ name: 'root1', template: vp(1) })
       class Root1 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a11', template: vp(1) })
       class A11 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a12', template: vp(1) })
       class A12 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a13', template: vp(1) })
       class A13 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a14', template: vp(1) })
       class A14 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
 
       const A1 = [A11, A12, A13, A14];
 
       @customElement({ name: 'root2', template: vp(2) })
       class Root2 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a21', template: vp(2) })
       class A21 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
       @customElement({ name: 'a22', template: vp(2) })
       class A22 extends TestRouteViewModelBase {
-        public constructor(@IHookInvocationAggregator hia: IHookInvocationAggregator) { super(hia, hookSpecs); }
+        public constructor() { super(resolve(IHookInvocationAggregator), hookSpecs); }
       }
 
       const A2 = [A21, A22];
@@ -320,16 +319,19 @@ describe('router/config-tests.spec.ts', function () {
                   t3: ['1', 'a01'],
                   t4: ['2', 'a02'],
                   configure() {
-                    Routes.configure([
-                      {
-                        path: '1',
-                        component: A01,
-                      },
-                      {
-                        path: '2',
-                        component: A02,
-                      },
-                    ], Root1);
+                    Routes.configure(
+                      [
+                        {
+                          path: '1',
+                          component: A01,
+                        },
+                        {
+                          path: '2',
+                          component: A02,
+                        },
+                      ],
+                      Root1,
+                    );
                   },
                 },
               ];

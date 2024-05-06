@@ -6,6 +6,10 @@ import { mixinNoopSubscribable } from './observation-utils';
 const customPropertyPrefix: string = '--';
 
 export class StyleAttributeAccessor implements IAccessor {
+  static {
+    mixinNoopSubscribable(StyleAttributeAccessor);
+  }
+
   public type: AccessorType = (atNode | atLayout) as AccessorType;
 
   /** @internal */
@@ -185,5 +189,3 @@ export class StyleAttributeAccessor implements IAccessor {
   /** @internal */ public subscribe!: () => void;
   /** @internal */ public unsubscribe!: () => void;
 }
-
-mixinNoopSubscribable(StyleAttributeAccessor);

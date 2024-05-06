@@ -1,26 +1,7 @@
-import { DI, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
+import { DI, IIndexable } from '@aurelia/kernel';
 import { isArray, objectFreeze } from './utilities';
 
-import type { Scope } from './observation/scope';
 import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
-import { TaskQueue } from '@aurelia/platform';
-
-export interface IBinding {
-  readonly isBound: boolean;
-  bind(scope: Scope): void;
-  unbind(): void;
-  get: IServiceLocator['get'];
-  useScope?(scope: Scope): void;
-  limit?(opts: IRateLimitOptions): IDisposable;
-}
-
-export interface IRateLimitOptions {
-  type: 'throttle' | 'debounce';
-  delay: number;
-  queue: TaskQueue;
-  now: () => number;
-  signals: string[];
-}
 
 export const ICoercionConfiguration = /*@__PURE__*/DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
 export interface ICoercionConfiguration {
@@ -254,16 +235,6 @@ export interface ICollectionObserver<T extends CollectionKind> extends
   notify(): void;
 }
 export type CollectionObserver = ICollectionObserver<CollectionKind>;
-
-export interface IBindingContext {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: PropertyKey]: any;
-}
-
-export interface IOverrideContext {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: PropertyKey]: any;
-}
 
 export type IObservable<T = IIndexable> = T & {
   $observers?: IIndexable<{}, AccessorOrObserver>;

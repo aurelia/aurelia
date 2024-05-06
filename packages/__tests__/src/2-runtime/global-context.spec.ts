@@ -1,4 +1,4 @@
-import { AccessGlobalExpression, IExpressionParser } from '@aurelia/runtime';
+import { AccessGlobalExpression, IExpressionParser } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 

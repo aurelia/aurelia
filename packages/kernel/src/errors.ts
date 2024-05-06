@@ -31,6 +31,8 @@ export const enum ErrorNames {
   event_aggregator_subscribe_invalid_event_name = 19,
   first_defined_no_value = 20,
   invalid_module_transform_input = 21,
+  invalid_inject_decorator_usage = 22,
+  resource_key_already_registered = 23,
 }
 _END_CONST_ENUM();
 
@@ -52,12 +54,15 @@ const errorsMap: Record<ErrorNames, string>  = {
     `A common cause is circular dependency with bundler, did you accidentally introduce circular dependency into your module graph?`,
   [ErrorNames.no_construct_native_fn]: `'{{0}}' is a native function and cannot be safely constructed by DI. If this is intentional, please use a callback or cachedCallback resolver.`,
   [ErrorNames.no_active_container_for_resolve]: `There is not a currently active container to resolve "{{0}}". Are you trying to "new Class(...)" that has a resolve(...) call?`,
-  [ErrorNames.invalid_new_instance_on_interface]: `Failed to instantiate '{{0}}' via @newInstanceOf/@newInstanceForScope, there's no registration and no default implementation.`,
+  [ErrorNames.invalid_new_instance_on_interface]: `Failed to instantiate '{{0}}' via @newInstanceOf/@newInstanceForScope, there's no registration and no default implementation,`
+    + ` or the default implementation does not result in factory for constructing the instances.`,
   [ErrorNames.event_aggregator_publish_invalid_event_name]: `Invalid channel name or instance: '{{0}}'.`,
   [ErrorNames.event_aggregator_subscribe_invalid_event_name]: `Invalid channel name or type: {{0}}.`,
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,
-  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`
+  [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
   // [ErrorNames.module_loader_received_null]: `Module loader received null/undefined input. Expected Object.`,
+  [ErrorNames.invalid_inject_decorator_usage]: `The @inject decorator on the target ('{{0}}') type '{{1}}' is not supported.`,
+  [ErrorNames.resource_key_already_registered]: `Resource key '{{0}}' has already been registered.`,
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -76,3 +81,11 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
     + `https://github.com/aurelia/aurelia/issues/new?title=${encodeURIComponent(title)}`
     + (body != null ? `&body=${encodeURIComponent(body)}` : '&template=bug_report.md');
 }
+
+/** @internal */
+// eslint-disable-next-line
+export const logError = (...args: unknown[]) => (globalThis as any).console.error(...args);
+
+/** @internal */
+// eslint-disable-next-line
+export const logWarn = (...args: unknown[]) => (globalThis as any).console.warn(...args);

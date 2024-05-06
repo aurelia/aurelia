@@ -1,17 +1,36 @@
-import { camelCase, IIndexable, type IContainer, type IServiceLocator } from '@aurelia/kernel';
-import { astBind, astEvaluate, astUnbind, IAccessor, IAstEvaluator, IBinding, IConnectableBinding, IExpressionParser, IObserverLocator, IsBindingBehavior, Scope } from '@aurelia/runtime';
-import { bindingCommand, BindingCommandInstance, ICommandBuildInfo, IController, IHydratableController, IInstruction, IRenderer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, renderer, IPlatform } from '@aurelia/runtime-html';
+import { camelCase, type IContainer, type IServiceLocator } from '@aurelia/kernel';
+import { IAccessor, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import {
+  astBind,
+  astEvaluate,
+  astUnbind,
+  IController,
+  IHydratableController,
+  IRenderer,
+  mixinAstEvaluator,
+  mixinUseScope,
+  mixingBindingLimited,
+  renderer,
+  IPlatform,
+  type IAstEvaluator,
+  type IBinding,
+  Scope,
+} from '@aurelia/runtime-html';
+import {
+  type BindingCommandInstance,
+  type ICommandBuildInfo,
+  type IInstruction,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 import { ensureExpression, etIsFunction } from './utilities';
+import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
-const registeredSymbol = Symbol('.call');
+const callRegisteredContainer = new WeakSet<IContainer>();
 
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 export const callSyntax = {
   register(container: IContainer) {
-    /* istanbul ignore next */
-    if (!(container as unknown as IIndexable)[registeredSymbol]) {
-      /* istanbul ignore next */
-      (container as unknown as IIndexable)[registeredSymbol] = true;
+    if (!callRegisteredContainer.has(container)) {
+      callRegisteredContainer.add(container);
       container.register(
         CallBindingCommand,
         CallBindingRenderer,
@@ -31,9 +50,13 @@ export class CallBindingInstruction {
   ) { }
 }
 
-@bindingCommand('call')
 export class CallBindingCommand implements BindingCommandInstance {
-  public get type(): 'None' { return 'None'; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: 'call',
+  };
+
+  public get ignoreAttr() { return false; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     const target = info.bindable === null
@@ -46,9 +69,8 @@ export class CallBindingCommand implements BindingCommandInstance {
   }
 }
 
-@renderer(instructionType)
-export class CallBindingRenderer implements IRenderer {
-  public target!: typeof instructionType;
+export const CallBindingRenderer = /*@__PURE__*/ renderer(class CallBindingRenderer implements IRenderer {
+  public readonly target = instructionType;
 
   public render(
     renderingCtrl: IHydratableController,
@@ -61,7 +83,7 @@ export class CallBindingRenderer implements IRenderer {
     const expr = ensureExpression(exprParser, instruction.from, etIsFunction);
     renderingCtrl.addBinding(new CallBinding(renderingCtrl.container, observerLocator, expr, getTarget(target), instruction.to));
   }
-}
+}, null!);
 
 function getTarget(potentialTarget: object): object {
   if ((potentialTarget as { viewModel?: object }).viewModel != null) {
@@ -73,8 +95,14 @@ function getTarget(potentialTarget: object): object {
 /**
  * A binding for handling .call syntax
  */
-export interface CallBinding extends IAstEvaluator, IConnectableBinding { }
+export interface CallBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class CallBinding implements IBinding {
+  static {
+    mixinUseScope(CallBinding);
+    mixingBindingLimited(CallBinding, () => 'callSource');
+    mixinAstEvaluator(true)(CallBinding);
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -137,7 +165,3 @@ export class CallBinding implements IBinding {
     this.targetObserver.setValue(null, this.target, this.targetProperty);
   }
 }
-
-mixinUseScope(CallBinding);
-mixingBindingLimited(CallBinding, () => 'callSource');
-mixinAstEvaluator(true)(CallBinding);

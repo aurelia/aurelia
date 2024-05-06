@@ -1,8 +1,7 @@
-import { CustomElement, Aurelia } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, valueConverter } from '@aurelia/runtime-html';
 import {
   eachCartesianJoin,
   TestContext,
-  TestConfiguration,
   assert,
 } from '@aurelia/testing';
 
@@ -19,6 +18,20 @@ describe('3-runtime-html/repeater.spec.ts', function () {
   interface TemplateSpec extends Spec {
     createTemplate(forof: string, item: string): string;
   }
+  @valueConverter('sort')
+  class SortValueConverter {
+    public toView(arr: unknown[], prop?: string, dir: 'asc' | 'desc' = 'asc'): unknown[] {
+      if (Array.isArray(arr)) {
+        const factor = dir === 'asc' ? 1 : -1;
+        if (prop?.length) {
+          arr.sort((a: any, b: any) => a[prop] - b[prop] * factor);
+        } else {
+          arr.sort((a, b) => (a as number) - (b as number) * factor);
+        }
+      }
+      return arr;
+    }
+  }
 
   const bindSpecs: BindSpec[] = [
     {
@@ -26,7 +39,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `[a,b,c]`,
       item: `\${item}`,
       expected: `123`,
-      initialize(c: {a: number; b: number; c: number}) {
+      initialize(c: { a: number; b: number; c: number }) {
         c.a = 1;
         c.b = 2;
         c.c = 3;
@@ -37,7 +50,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `[c,b,a]|sort`,
       item: `\${item}`,
       expected: `123`,
-      initialize(c: {a: number; b: number; c: number}) {
+      initialize(c: { a: number; b: number; c: number }) {
         c.a = 1;
         c.b = 2;
         c.c = 3;
@@ -83,7 +96,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `[[a],[b],[c]]`,
       item: `\${item[0]}`,
       expected: `123`,
-      initialize(c: {a: number; b: number; c: number}) {
+      initialize(c: { a: number; b: number; c: number }) {
         c.a = 1;
         c.b = 2;
         c.c = 3;
@@ -115,7 +128,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items`,
       item: `\${item}`,
       expected: `123`,
-      initialize(c: {items: string[]}) {
+      initialize(c: { items: string[] }) {
         c.items = ['1', '2', '3'];
       }
     },
@@ -124,7 +137,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items|sort`,
       item: `\${item}`,
       expected: `123`,
-      initialize(c: {items: string[]}) {
+      initialize(c: { items: string[] }) {
         c.items = ['3', '2', '1'];
       }
     },
@@ -133,8 +146,8 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items`,
       item: `\${item.i}`,
       expected: `123`,
-      initialize(c: {items: {i: number}[]}) {
-        c.items = [{i: 1}, {i: 2}, {i: 3}];
+      initialize(c: { items: { i: number }[] }) {
+        c.items = [{ i: 1 }, { i: 2 }, { i: 3 }];
       }
     },
     {
@@ -142,8 +155,8 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items|sort:'i'`,
       item: `\${item.i}`,
       expected: `123`,
-      initialize(c: {items: {i: number}[]}) {
-        c.items = [{i: 3}, {i: 2}, {i: 1}];
+      initialize(c: { items: { i: number }[] }) {
+        c.items = [{ i: 3 }, { i: 2 }, { i: 1 }];
       }
     },
     {
@@ -151,7 +164,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items`,
       item: `\${item}`,
       expected: `123`,
-      initialize(c: {items: Set<string>}) {
+      initialize(c: { items: Set<string> }) {
         c.items = new Set(['1', '2', '3']);
       }
     },
@@ -160,7 +173,7 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       forof: `items`,
       item: `\${item[0]}\${item[1]}`,
       expected: `1a2b3c`,
-      initialize(c: {items: Map<string, string>}) {
+      initialize(c: { items: Map<string, string> }) {
         c.items = new Map([['1', 'a'], ['2', 'b'], ['3', 'c']]);
       }
     }
@@ -218,10 +231,10 @@ describe('3-runtime-html/repeater.spec.ts', function () {
 
       const ctx = TestContext.create();
       const { container } = ctx;
-      container.register(TestConfiguration);
+      container.register(SortValueConverter);
 
       const markup = createTemplate(forof, item);
-      const App = CustomElement.define({ name: 'app', template: markup }, class {});
+      const App = CustomElement.define({ name: 'app', template: markup }, class { });
 
       const host = ctx.createElement('div');
       const component = new App();
@@ -238,6 +251,6 @@ describe('3-runtime-html/repeater.spec.ts', function () {
       assert.strictEqual(host.textContent, '', 'host.textContent');
 
       au.dispose();
-      });
+    });
   });
 });

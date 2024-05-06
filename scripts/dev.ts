@@ -36,20 +36,21 @@ const args = yargs
   })
   .parseSync();
 
-const envVars = { DEV_MODE: true };
+const envVars = { DEV_MODE: false };
 const testPatterns = (args.t ?? []).join(' ');
 const hasValidTestPatterns = testPatterns !== '';
 
 const e2e = args.e2e;
 const validE2e = [
-  'router',
-  'router-lite',
-  'hmr-vite',
-  'hmr-webpack',
+  '1-gh-issues',
+  '2-hmr-vite',
+  '3-hmr-webpack',
+  '4-i18n',
+  '5-router',
+  '6-router-lite',
   'hmr-parcel',
-  'select-safari16',
-  'i18n',
-  'ui-virtualization',
+  '7-select-safari16',
+  '8-ui-virtualization',
 ];
 const hasValidE2e = e2e?.length && e2e.every(e => validE2e.includes(e));
 
@@ -64,12 +65,20 @@ If it is intended to run e2e test, then specified --e2e + one of the following: 
 const devCmd = 'npm run dev';
 const buildCmd = 'npm run build';
 
+const alwaysBuildPackages = [
+  'runtime',
+  'runtime-html',
+  'template-compiler',
+];
+
 const validPackages = [
   'metadata',
   'platform',
   'platform-browser',
   'kernel',
+  'expression-parser',
   'runtime',
+  'template-compiler',
   'runtime-html',
   'dialog',
   'web-components',
@@ -90,7 +99,7 @@ const validPackages = [
   'testing',
 ];
 
-const devPackages = (args.d ?? []) as string[];
+const devPackages = ((args.d ?? []) as string[]).filter(pkg => !alwaysBuildPackages.includes(pkg));
 if (devPackages.some(d => !validPackages.includes(d))) {
   throw new Error(`Invalid package config, valid packages are: ${validPackages}`);
 }
@@ -148,8 +157,16 @@ if (apps.length > 0) {
 const baseAppPort = 9000;
 concurrently([
   { command: devCmd, cwd: 'packages/runtime', name: 'runtime', env: envVars },
+  { command: devCmd, cwd: 'packages/template-compiler', name: 'template-compiler', env: envVars },
   { command: devCmd, cwd: 'packages/runtime-html', name: 'runtime-html', env: envVars },
-  { command: devCmd, cwd: 'packages/__tests__', name: '__tests__(build)', env: envVars },
+  hasValidTestPatterns
+    ? {
+      command: `npm run dev:tsc ${testPatterns === '*' ? '*' : testPatterns}`,
+      cwd: 'packages/__tests__',
+      name: '__tests__(build)',
+      env: envVars
+    }
+    : null,
   ...devPackages.map((folder: string) => ({
     command: devCmd,
     cwd: `packages/${folder}`,
@@ -157,7 +174,12 @@ concurrently([
     env: envVars
   })),
   hasValidTestPatterns
-    ? { command: `npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`, cwd: 'packages/__tests__', name: '__tests__(run)', env: envVars }
+    ? {
+      command: `node -e "new Promise(r => setTimeout(r, 6000))" && npm run test-chrome:debugger ${testPatterns === '*' ? '' : testPatterns}`,
+      cwd: 'packages/__tests__',
+      name: '__tests__(run)',
+      env: envVars
+    }
     : null,
   ...(e2e ?? []).map(e => ({ command: 'npm run test:watch', cwd: `packages/__e2e__/${e}`, env: envVars, name: `__e2e__(${e})` })),
   ...apps.map((appFolder, i) => ({
@@ -174,7 +196,7 @@ concurrently([
   }))
 ].filter(Boolean), {
   prefix: '[{name}]',
-  killOthers: 'failure',
+  killOthers: ['failure', 'success'],
   prefixColors: [
     'green',
     'blue',

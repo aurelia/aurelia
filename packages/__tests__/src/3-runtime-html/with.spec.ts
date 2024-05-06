@@ -1,13 +1,13 @@
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/with.spec.ts', function () {
-  it('works with static scope', async function () {
+  it('works with static scope', function () {
     const template = `Application name: \${name}
     <div with.bind="contract">
       Contact name: <input value.bind="name">
       Contact address: <input value.bind="address">
     </div>`;
-    const { ctx, appHost, component, startPromise, tearDown } = createFixture(
+    const { ctx, appHost, component } = createFixture(
       template,
       class App {
         public name = 'Contract editor';
@@ -18,8 +18,6 @@ describe('3-runtime-html/with.spec.ts', function () {
       }
     );
 
-    await startPromise;
-
     assert.includes(appHost.textContent, 'Application name: Contract editor');
     const [input1, input2] = Array.from(appHost.querySelectorAll('input'));
 
@@ -29,8 +27,6 @@ describe('3-runtime-html/with.spec.ts', function () {
     input1.value = 'name-11';
     input1.dispatchEvent(new ctx.Event('change'));
     assert.strictEqual(component.contract.name, 'name-11');
-
-    await tearDown();
   });
 
   it('works with dynamic scope', async function () {

@@ -20,9 +20,10 @@ import {
   ISink,
   LogLevel,
   Registration,
+  resolve,
 } from '@aurelia/kernel';
 import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks, StandardConfiguration } from '@aurelia/runtime-html';
+import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
@@ -31,7 +32,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];
-    public constructor(@IKnownScopes private readonly scopes: string[]) { }
+    private readonly scopes: string[] = resolve(IKnownScopes);
     public handleEvent(event: DefaultLogEvent): void {
       if (!event.scope.some(x => this.scopes.includes(x))) return;
       this.log.push(event.toString());
@@ -73,7 +74,6 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     const { container } = ctx;
 
     container.register(
-      StandardConfiguration,
       TestRouterConfiguration.for(
         LogLevel.trace,
         [
@@ -88,7 +88,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     const au = new Aurelia(container);
     const host = ctx.createElement('div');
 
-    await au.app({ component: rootComponent, host }).start();
+    await au.app({ component: rootComponent as object, host }).start();
     return { au, container, host };
   }
 
@@ -113,11 +113,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       if (typeof val === 'number') return val;
       return val[hook] ?? null;
     }
-    public constructor(
-      @ILogger protected readonly logger: ILogger,
-    ) {
-      this.logger = logger.scopeTo(this.constructor.name);
-    }
+    protected readonly logger: ILogger = resolve(ILogger).scopeTo(this.constructor.name);
+
     public async canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
       await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
       return true;
@@ -135,11 +132,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
   }
 
   abstract class BaseHook implements ILifecycleHooks<IRouteViewModel, 'canLoad' | 'loading' | 'canUnload' | 'unloading'> {
-    public constructor(
-      @ILogger private readonly logger: ILogger,
-    ) {
-      this.logger = logger.scopeTo(this.constructor.name);
-    }
+    protected readonly logger: ILogger = resolve(ILogger).scopeTo(this.constructor.name);
     public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
       this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
       return true;
@@ -164,11 +157,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       if (typeof val === 'number') return val;
       return val[hook] ?? null;
     }
-    public constructor(
-      @ILogger protected readonly logger: ILogger,
-    ) {
-      this.logger = logger.scopeTo(this.constructor.name);
-    }
+    protected readonly logger: ILogger = resolve(ILogger).scopeTo(this.constructor.name);
     public async canLoad(_params: Params, next: RouteNode, _current: RouteNode): Promise<boolean | NavigationInstruction> {
       await log('canLoad', next, this.getWaitTime('canLoad'), this.logger);
       return true;
@@ -194,12 +183,10 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     private get ceName(): string {
       return this._ceName ??= CustomElement.getDefinition(this.constructor).name;
     }
+    protected readonly logger: ILogger = resolve(ILogger).scopeTo(this.constructor.name);
     public constructor(
-      @ILogger protected readonly logger: ILogger,
       private readonly ticks: number,
-    ) {
-      this.logger = logger.scopeTo(this.constructor.name);
-    }
+    ) { }
 
     public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
       return log('binding', this.ceName, this.ticks, this.logger);
@@ -252,12 +239,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
 
     @lifecycleHooks()
     class AuthorizationHook implements ILifecycleHooks<IRouteViewModel, 'canLoad'> {
-      public constructor(
-        @IAuthenticationService private readonly authService: IAuthenticationService,
-        @ILogger private readonly logger: ILogger,
-      ) {
-        this.logger = logger.scopeTo('AuthHook');
-      }
+      protected readonly logger: ILogger = resolve(ILogger).scopeTo('AuthHook');
+      private readonly authService: IAuthenticationService = resolve(IAuthenticationService);
 
       public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
         this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
@@ -345,11 +328,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -409,11 +389,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -495,11 +472,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -581,11 +555,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -677,11 +648,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -753,11 +721,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -827,11 +792,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -952,12 +914,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
-      Bar,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
     );
     const router = container.get(IRouter);
@@ -1061,12 +1019,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
-      Bar,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
     );
     const router = container.get(IRouter);
@@ -1168,12 +1122,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
-      Bar,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name, Bar.name])
     );
     const router = container.get(IRouter);
@@ -1314,11 +1264,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -1383,11 +1330,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -1452,11 +1396,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await createFixture(Root,
-      Home,
       Hook1,
       Hook2,
-      Home,
-      Foo,
       Registration.instance(IKnownScopes, [Hook1.name, Hook2.name, Home.name, Foo.name])
     );
     const router = container.get(IRouter);
@@ -1631,10 +1572,6 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       class Root { }
 
       const { au, container } = await createFixture(Root,
-        A1,
-        A2,
-        B1,
-        B2,
         Registration.instance(IKnownScopes, [A1.name, A2.name, B1.name, B2.name])
       );
       const router = container.get(IRouter);
@@ -1666,8 +1603,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
   function* getSiblingHookTestData(): Generator<SiblingHookTestData> {
     function createRoot(ticks: number): [root: Class<unknown>, scopes: string[]] {
       abstract class Base extends AsyncBaseViewModelWithAllHooks {
-        public constructor(@ILogger logger: ILogger) {
-          super(logger, ticks);
+        public constructor() {
+          super(ticks);
         }
       }
       @customElement({ name: 'a01', template: null })
@@ -6168,16 +6105,16 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     const ticks = 0;
     @customElement({ name: 'l-121', template: `l-121 <a load="../l122/1"></a><a load="../l122/2"></a>` })
     class L121 extends AsyncBaseViewModelWithAllHooks {
-      public constructor(@ILogger logger: ILogger) {
-        super(logger, ticks);
+      public constructor() {
+        super(ticks);
       }
     }
 
     @customElement({ name: 'l-122', template: `l-122 \${id} <a load="../../l1"></a>` })
     class L122 extends AsyncBaseViewModelWithAllHooks {
       id: unknown;
-      public constructor(@ILogger logger: ILogger) {
-        super(logger, ticks);
+      public constructor() {
+        super(ticks);
       }
       public async canLoad(params: Params, _next: RouteNode, _current: RouteNode): Promise<boolean> {
         await super.canLoad(params, _next, _current);
@@ -6194,8 +6131,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     })
     @customElement({ name: 'l-1', template: `<au-viewport></au-viewport>` })
     class L1 extends AsyncBaseViewModelWithAllHooks {
-      public constructor(@ILogger logger: ILogger) {
-        super(logger, ticks);
+      public constructor() {
+        super(ticks);
       }
     }
 
@@ -6207,8 +6144,8 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     })
     @customElement({ name: 'ro-ot', template: '<au-viewport name="root"></au-viewport>' })
     class Root extends AsyncBaseViewModelWithAllHooks {
-      public constructor(@ILogger logger: ILogger) {
-        super(logger, ticks);
+      public constructor() {
+        super(ticks);
       }
     }
 

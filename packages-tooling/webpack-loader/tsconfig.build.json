@@ -4,6 +4,7 @@
     "composite": false,
     "declaration": false,
     "declarationMap": false,
+    "allowSyntheticDefaultImports": true,
     "rootDir": "src",
     "lib": ["esnext", "dom"],
     "types": ["node"]

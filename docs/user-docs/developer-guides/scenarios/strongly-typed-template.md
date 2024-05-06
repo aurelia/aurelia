@@ -60,7 +60,7 @@ The idea behind the code is really simple. First, we separate strings and variab
 
 string(s):
 
-```markup
+```html
 <button class="btn btn-primary btn-lg" ref="atButtonTemplate">
 
 </button>

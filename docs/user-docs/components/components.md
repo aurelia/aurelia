@@ -39,7 +39,7 @@ export class AppLoader {
 {% endtab %}
 
 {% tab title="app-loader.html" %}
-```markup
+```html
 <p>Loading...</p>
 ```
 {% endtab %}
@@ -183,6 +183,24 @@ The `CustomElement.define` method allows for a syntax similar to the `@customEle
 While it's useful to know about this API, it's typically unnecessary to define custom elements within Aurelia applications. This method is more relevant for writing tests, which you can learn about [here](../developer-guides/testing.md).
 {% endhint %}
 
+## Components declaration with static property `$au`
+
+Beside the custom element and `CustomElement.define` usages, it's also possible to to delcare a components using static `$au` property, like the following example:
+
+```typescript
+export class AppLoader {
+  static $au = {
+    type: 'custom-element',
+    name: 'app-loader',
+    dependencies: [...]
+  }
+  // Component logic goes here
+}
+```
+{% hint style="info" %}
+Similar to custom element components, custom attributes, binding behaviors and value converters can also be declared using the static property `$au`.
+{% endhint %}
+
 ## HTML-Only Components
 
 It's possible to create components in Aurelia using only HTML without a corresponding view model.
@@ -288,6 +306,22 @@ To use a component within a specific template, import it using the `<import>` ta
 ```html
 <import from="./path-to/some-element"></import>
 ```
+
+To use a component but with an alias, import it using the `<import>` tag, together with the `as` attribute for the new name:
+
+```html
+<import from="./path-to/some-element" as="the-element"></import>
+```
+
+To use alias for a specific resource on an import, using the `<import>` tag, together with the `{name}.as` attribute for the new name, with `{name}` being the resource name:
+
+```html
+<import from="./path-to/some-element" my-element.as="the-element"></import>
+```
+
+{% hint style="info" %}
+If there are multiple resource exports with the same resource name (an element and an attribute with the same `foo` name, for example), the alias will be applied to both of them.
+{% endhint %}
 
 ## Containerless Components
 

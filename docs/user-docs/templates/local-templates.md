@@ -13,7 +13,7 @@ In many instances, when working with templated views in Aurelia, you will be app
 
 {% tabs %}
 {% tab title="my-app.html" %}
-```markup
+```html
 <template as-custom-element="person-info">
   <bindable name="person"></bindable>
   <div>
@@ -63,7 +63,7 @@ In this case, it is named as `person-info`. A custom element defined that way ca
 
 Local templates can also optionally specify bindable properties using the `<bindable>` tag as shown above. Apart from `property`, other allowed attributes that can be used in this tag are `attribute`, and `mode`. In that respect, the following two declarations are synonymous.
 
-```markup
+```html
 <bindable name="foo" mode="twoWay" attribute="fiz-baz"></bindable>
 ```
 
@@ -85,7 +85,7 @@ This means that the following is a perfectly valid example. Note that the local 
 
 {% tabs %}
 {% tab title="level-one.html" %}
-```markup
+```html
 <template as-custom-element="foo-bar">
   <bindable name='prop'></bindable>
 
@@ -104,7 +104,7 @@ class LevelOne {
 {% endtab %}
 
 {% tab title="level-two.html" %}
-```markup
+```html
 <template as-custom-element="foo-bar">
   <bindable name='prop'></bindable>
   Level Two ${prop}
@@ -124,7 +124,7 @@ class LevelTwo {
 {% endtab %}
 
 {% tab title="my-app.html" %}
-```markup
+```html
 <level-two prop="foo2"></level-two>
 <level-one prop="foo1"></level-one>
 ```
@@ -137,7 +137,7 @@ Like anything, there is always an upside and downside: local templates are no di
 
 ### Local templates are hoisted.
 
-```markup
+```html
 <foo-bar foo.bind="'John'"></foo-bar>
 
 <template as-custom-element="foo-bar">
@@ -152,7 +152,7 @@ Although it might provide a stronger cohesion, as the level of nesting grows, it
 
 In this respect, a good thumb rule is to keep the local function analogy in mind.
 
-```markup
+```html
 <template as-custom-element="el-one">
 <template as-custom-element="one-two">
   1
@@ -177,7 +177,7 @@ The following examples will cause a (jit) compilation error.
 
 {% tabs %}
 {% tab title="invalid-example2.html" %}
-```markup
+```html
 <!--Having such custom element does not help much either.-->
 <template as-custom-element="foo-bar">Does this work?</template>
 <template as-custom-element="fiz-baz">Of course not!</template>
@@ -191,7 +191,7 @@ The following example will cause a (jit) compilation error.
 
 {% tabs %}
 {% tab title="invalid-example1.html" %}
-```markup
+```html
 <div>
   <template as-custom-element="foo-bar">This does not work.</template>
 </div>
@@ -203,7 +203,7 @@ The following example will cause a (jit) compilation error.
 
 The following example will cause a (jit) compilation error.
 
-```markup
+```html
 <template as-custom-element="">foo-bar</template>
 <div></div>
 ```
@@ -212,7 +212,7 @@ The following example will cause a (jit) compilation error.
 
 The following example will cause a (jit) compilation error.
 
-```markup
+```html
 <template as-custom-element="foo-bar">foo-bar1</template>
 <template as-custom-element="foo-bar">foo-bar2</template>
 <div></div>
@@ -222,7 +222,7 @@ The following example will cause a (jit) compilation error.
 
 The following example will cause a (jit) compilation error.
 
-```markup
+```html
 <template as-custom-element="foo-bar">
   <div>
     <bindable name="prop"></bindable>
@@ -235,7 +235,7 @@ The following example will cause a (jit) compilation error.
 
 The following example will cause a (jit) compilation error.
 
-```markup
+```html
 <template as-custom-element="foo-bar">
   <bindable attribute="prop"></bindable>
 </template>

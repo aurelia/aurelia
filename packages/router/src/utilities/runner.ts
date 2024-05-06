@@ -55,8 +55,8 @@ export class Runner {
    * case, the return value will be the first new step and not the result (since it doesn't exist yet).
    */
   public static run<T = unknown>(predecessor: Step<T> | null, ...steps: unknown[]): T | Promise<T> | Step<T> {
-    if ((steps?.length ?? 0) === 0) {
-      return steps?.[0] as T | Promise<T>;
+    if (steps.length === 0) {
+      return void 0 as T;
     }
 
     let newRoot = false;
@@ -208,7 +208,7 @@ export class Runner {
     return step;
   }
 
-  public static roots: any = {};
+  public static roots: Record<string, Step> = {};
   // Always set and resolve root OpenPromise as soon as there's a promise somewhere
   // Subsequent calls work on the origin promise(s)
   // root is the top root of the connected steps

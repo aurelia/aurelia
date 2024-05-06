@@ -1,26 +1,29 @@
 import {
-  AccessorOrObserver,
+  connectable,
+} from '@aurelia/runtime';
+import {
   astBind,
   astEvaluate,
   astUnbind,
-  connectable,
   IAstEvaluator,
-  IConnectableBinding
-} from '@aurelia/runtime';
+} from '../ast.eval';
 import { activating } from '../templating/controller';
-import { mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
-  IBinding, ICollectionSubscriber,
-  Interpolation,
+  AccessorOrObserver,
+  ICollectionSubscriber,
   IObserverLocator,
-  IsExpression, Scope
+  IObserverLocatorBasedConnectable,
+  ISubscriber,
 } from '@aurelia/runtime';
+import { type Scope } from './scope';
 import { atLayout, isArray } from '../utilities';
-import type { BindingMode, IBindingController } from './interfaces-bindings';
+import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
+import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
   reusable: false,
@@ -33,9 +36,8 @@ const queueTaskOptions: QueueTaskOptions = {
 // value converters and binding behaviors.
 // Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
 // in which case the renderer will create the TextBinding directly
-export interface InterpolationBinding extends IBinding {}
-export class InterpolationBinding implements IBinding {
-
+export interface InterpolationBinding extends IObserverLocatorBasedConnectable, IAstEvaluator, IServiceLocator {}
+export class InterpolationBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
 
   /** @internal */
@@ -70,7 +72,7 @@ export class InterpolationBinding implements IBinding {
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
-    public mode: BindingMode,
+    public mode: BindingMode
   ) {
     this._controller = controller;
     this.oL = observerLocator;
@@ -168,9 +170,16 @@ export class InterpolationBinding implements IBinding {
 
 // a pseudo binding, part of a larger interpolation binding
 // employed to support full expression per expression part of an interpolation
-export interface InterpolationPartBinding extends IAstEvaluator, IConnectableBinding {}
+export interface InterpolationPartBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class InterpolationPartBinding implements IBinding, ICollectionSubscriber {
+  /** @internal */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+    mixinUseScope(InterpolationPartBinding);
+    mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
+    connectable(InterpolationPartBinding, null!);
+    mixinAstEvaluator(true)(InterpolationPartBinding);
+  });
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
@@ -277,8 +286,3 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     this.obs.clearAll();
   }
 }
-
-mixinUseScope(InterpolationPartBinding);
-mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
-connectable(InterpolationPartBinding);
-mixinAstEvaluator(true)(InterpolationPartBinding);

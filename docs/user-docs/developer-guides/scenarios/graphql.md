@@ -50,7 +50,7 @@ export class GraphQLClient {
 ## Using Apollo Client in Components
 With the Apollo Client service set up, you can inject it into any Aurelia component and use it to perform GraphQL queries, mutations, or subscriptions.
 
-1. In your component, import the `IGraphQLClient` interface and use Aurelia's `@inject` decorator to inject the Apollo Client instance.
+1. In your component, import the `IGraphQLClient` interface and use Aurelia's `resolve` method to inject the Apollo Client instance.
 
 2. Use the `clientInstance` to send a query to your GraphQL server.
 
@@ -58,7 +58,7 @@ Here's an example component that fetches a list of items from a GraphQL API:
 
 ```typescript
 // src/my-component.ts
-import { customElement, ICustomElementViewModel } from 'aurelia';
+import { customElement, ICustomElementViewModel, resolve } from 'aurelia';
 import { gql } from '@apollo/client/core';
 import { IGraphQLClient } from './graphql-client';
 
@@ -66,7 +66,7 @@ import { IGraphQLClient } from './graphql-client';
 export class MyComponent implements ICustomElementViewModel {
   public items: any[] = [];
 
-  constructor(@IGraphQLClient private readonly graphQLClient: IGraphQLClient) {}
+  private readonly graphQLClient: IGraphQLClient = resolve(IGraphQLClient);
 
   public async binding(): Promise<void> {
     const { data } = await this.graphQLClient.clientInstance.query({

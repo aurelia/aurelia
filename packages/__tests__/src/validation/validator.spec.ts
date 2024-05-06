@@ -373,7 +373,7 @@ describe('validation/validator.spec.ts', function () {
             { name: messageKey, defaultMessage: '${$displayName} foobar fizbaz' }
           ],
         };
-        ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, customMessages);
+        ValidationRuleAliasMessage.setDefaultMessage(RequiredRule, customMessages, true);
 
         const person: Person = new Person((void 0)!, (void 0)!, { line1: (void 0)!, city: (void 0)!, pin: (void 0)! });
 

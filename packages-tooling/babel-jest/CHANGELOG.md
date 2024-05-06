@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.16"></a>
+# 2.0.0-beta.16 (2024-05-03)
+
+**Note:** Version bump only for package @aurelia/babel-jest
+
+<a name="2.0.0-beta.15"></a>
+# 2.0.0-beta.15 (2024-04-17)
+
+### Refactorings:
+
+* ***:** migration to TC39 decorators + metadata simplification (#1932) ([22f90ad](https://github.com/aurelia/aurelia/commit/22f90ad))
+
+<a name="2.0.0-beta.14"></a>
+# 2.0.0-beta.14 (2024-04-03)
+
+### Features:
+
+* **i18n:** support multiple versions of i18next (#1927) ([0789ee5](https://github.com/aurelia/aurelia/commit/0789ee5))
+
+<a name="2.0.0-beta.13"></a>
+# 2.0.0-beta.13 (2024-03-15)
+
+**Note:** Version bump only for package @aurelia/babel-jest
+
+<a name="2.0.0-beta.12"></a>
+# 2.0.0-beta.12 (2024-03-02)
+
+**Note:** Version bump only for package @aurelia/babel-jest
+
+<a name="2.0.0-beta.11"></a>
+# 2.0.0-beta.11 (2024-02-13)
+
+**Note:** Version bump only for package @aurelia/babel-jest
+
 <a name="2.0.0-beta.10"></a>
 # 2.0.0-beta.10 (2024-01-26)
 

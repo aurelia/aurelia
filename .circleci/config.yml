@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   common: aurelia/common@volatile
-  browser-tools: circleci/browser-tools@1.4.6
+  browser-tools: circleci/browser-tools@1.4.7
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -297,7 +297,9 @@ jobs:
             - packages/route-recognizer/dist
             - packages/router/dist
             - packages/router-lite/dist
+            - packages/expression-parser/dist
             - packages/runtime/dist
+            - packages/template-compiler/dist
             - packages/runtime-html/dist
             - packages/state/dist
             - packages/store-v1/dist
@@ -813,38 +815,44 @@ workflows:
       #       - check_doc_abort
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_gh_issues
+          path: "packages/__e2e__/1-gh-issues"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
-          path: "packages/__e2e__/hmr-vite"
+          path: "packages/__e2e__/2-hmr-vite"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
-          path: "packages/__e2e__/hmr-webpack"
+          path: "packages/__e2e__/3-hmr-webpack"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite
-          path: "packages/__e2e__/router-lite"
+          path: "packages/__e2e__/6-router-lite"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router
-          path: "packages/__e2e__/router"
+          path: "packages/__e2e__/5-router"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
-          path: "packages/__e2e__/i18n"
+          path: "packages/__e2e__/4-i18n"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_virtual_repeat
-          path: "packages/__e2e__/ui-virtualization"
+          path: "packages/__e2e__/8-ui-virtualization"
           requires:
             - build_release
       - tacho_benchmark_prep:
@@ -899,6 +907,7 @@ workflows:
             - test_toolings
             # - lint_packages
             - e2e_verdaccio_parcel_ts
+            - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
@@ -982,38 +991,44 @@ workflows:
 
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_gh_issues
+          path: "packages/__e2e__/1-gh-issues"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
-          path: "packages/__e2e__/hmr-vite"
+          path: "packages/__e2e__/2-hmr-vite"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
-          path: "packages/__e2e__/hmr-webpack"
+          path: "packages/__e2e__/3-hmr-webpack"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite
-          path: "packages/__e2e__/router-lite"
+          path: "packages/__e2e__/6-router-lite"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router
-          path: "packages/__e2e__/router"
+          path: "packages/__e2e__/5-router"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
-          path: "packages/__e2e__/i18n"
+          path: "packages/__e2e__/4-i18n"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_virtual_repeat
-          path: "packages/__e2e__/ui-virtualization"
+          path: "packages/__e2e__/8-ui-virtualization"
           requires:
             - build_release
 
@@ -1032,6 +1047,7 @@ workflows:
             # - test_firefox
             - test_node
             - test_toolings
+            - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite

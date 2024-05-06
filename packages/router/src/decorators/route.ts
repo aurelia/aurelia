@@ -2,7 +2,7 @@ import { Constructable, ResourceType } from '@aurelia/kernel';
 import { IRoute, Route } from '../route';
 
 export type RouteType<T extends Constructable = Constructable> = ResourceType<T, InstanceType<T>, IRoute>;
-export type RouteDecorator = <T extends Constructable>(Type: T) => T;
+export type RouteDecorator = <T extends Constructable>(Type: T, context: ClassDecoratorContext) => T;
 
 /**
  * Associate a static route configuration with this type.
@@ -29,7 +29,10 @@ export function route(config: IRoute): RouteDecorator;
  */
 export function route(path: string): RouteDecorator;
 export function route(configOrPath?: IRoute | string): RouteDecorator {
-  return function (target) {
-    return Route.configure(configOrPath, target);
+  return function (target, context) {
+    context.addInitializer(function (this) {
+      Route.configure(configOrPath, target);
+    });
+    return target;
   };
 }

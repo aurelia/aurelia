@@ -1,4 +1,4 @@
-import { IContainer, noop } from '@aurelia/kernel';
+import { IContainer, noop, resolve } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
 import { ICssModulesMapping, INode } from '../dom';
 import { ClassAttributeAccessor } from '../observation/class-attribute-accessor';
@@ -9,6 +9,20 @@ import { createInterface, instanceRegistration } from '../utilities-di';
 import type { IRegistry } from '@aurelia/kernel';
 import { objectAssign } from '../utilities';
 
+/**
+ * There are 2 implementations of CSS registry: css module registry and shadow dom registry.
+ *
+ * CSS registry alters the way class attribute works instead.
+ *
+ * Shadow dom registry regisiters some interfaces with the custom element container to handle shadow dom styles.
+ * abtraction summary:
+ * CSS registry ---(register)---> IShadowDOMStyleFactory ---(createStyles)---> IShadowDOMStyles ---(applyTo)---> ShadowRoot
+ */
+
+/**
+ * create a registry to register CSS module handling for a custom element.
+ * The resulting registry can be registered as a dependency of a custom element.
+ */
 export function cssModules(...modules: (Record<string, string>)[]): CSSModulesProcessorRegistry {
   return new CSSModulesProcessorRegistry(modules);
 }
@@ -30,16 +44,10 @@ export class CSSModulesProcessorRegistry implements IRegistry {
       bindables: ['value'],
       noMultiBindings: true,
     }, class CustomAttributeClass {
-      public static inject: unknown[] = [INode];
       /** @internal */
-      private readonly _accessor: ClassAttributeAccessor;
+      private readonly _accessor = new ClassAttributeAccessor(resolve(INode) as HTMLElement);
 
-      public value!: string;
-      public constructor(
-        element: INode<HTMLElement>,
-      ) {
-        this._accessor = new ClassAttributeAccessor(element);
-      }
+      public value: string = '';
 
       public binding() {
         this.valueChanged();
@@ -57,6 +65,10 @@ export class CSSModulesProcessorRegistry implements IRegistry {
   }
 }
 
+/**
+ * Creates a registry to register shadow dom styles handling for a custom element.
+ * The resulting registry can be registered as a dependency of a custom element.
+ */
 export function shadowCSS(...css: (string | CSSStyleSheet)[]): ShadowDOMRegistry {
   return new ShadowDOMRegistry(css);
 }
@@ -84,20 +96,20 @@ export class ShadowDOMRegistry implements IRegistry {
   }
 }
 
-class AdoptedStyleSheetsStylesFactory {
-  public static inject = [IPlatform];
+class AdoptedStyleSheetsStylesFactory implements IShadowDOMStyleFactory {
+  private readonly p = resolve(IPlatform);
   private readonly cache = new Map<string, CSSStyleSheet>();
-
-  public constructor(private readonly p: IPlatform) {}
 
   public createStyles(localStyles: (string | CSSStyleSheet)[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new AdoptedStyleSheetsStyles(this.p, localStyles, this.cache, sharedStyles);
   }
 }
 
-class StyleElementStylesFactory {
-  public static inject = [IPlatform];
-  public constructor(private readonly p: IPlatform) {}
+// not really needed nowadays since all browsers support adopted style sheet
+// though keep it here for a bit longer before removing
+/* istanbul ignore next */
+class StyleElementStylesFactory implements IShadowDOMStyleFactory {
+  private readonly p = resolve(IPlatform);
 
   public createStyles(localStyles: string[], sharedStyles: IShadowDOMStyles | null): IShadowDOMStyles {
     return new StyleElementStyles(this.p, localStyles, sharedStyles);
@@ -134,8 +146,7 @@ export class AdoptedStyleSheetsStyles implements IShadowDOMStyles {
 
         if (sheet === void 0) {
           sheet = new p.CSSStyleSheet();
-          // eslint-disable-next-line
-          (sheet as any).replaceSync(x);
+          sheet.replaceSync(x);
           styleSheetCache.set(x, sheet);
         }
       }

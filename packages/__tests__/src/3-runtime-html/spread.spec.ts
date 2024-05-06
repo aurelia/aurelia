@@ -208,7 +208,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         name: 'form-input',
         template: '<input value.bind="value">',
         bindables: {
-          value: { name: 'value', attribute: 'value', mode: BindingMode.twoWay }
+          value: { mode: BindingMode.twoWay }
         }
       }),
     ];

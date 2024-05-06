@@ -12,6 +12,11 @@ export interface ValueAttributeObserver extends ISubscriberCollection {}
  * Observer for non-radio, non-checkbox input.
  */
 export class ValueAttributeObserver implements INodeObserver {
+  static {
+    mixinNodeObserverUseConfig(ValueAttributeObserver);
+    subscriberCollection(ValueAttributeObserver, null!);
+  }
+
   // ObserverType.Layout is not always true, it depends on the element & property combo
   // but for simplicity, always treat as such
   public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
@@ -103,15 +108,8 @@ export class ValueAttributeObserver implements INodeObserver {
 
   /** @internal */
   private _flush() {
-    oV = this._oldValue;
+    const oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
   }
 }
-
-mixinNodeObserverUseConfig(ValueAttributeObserver);
-subscriberCollection(ValueAttributeObserver);
-
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;

@@ -6,7 +6,7 @@ This is how the validation controller comes to know of the bindings that need to
 
 You must have noticed plenty examples of the `validate` binding behavior in the demos so far. For completeness, this can be used as follows.
 
-```markup
+```html
 <html-element target.bind="source & validate:[trigger]:[validationController]:[rules]"></html-element>
 ```
 
@@ -63,7 +63,7 @@ Aurelia
 
 ## Explicit validation controller
 
-The binding behavior, by default, registers the binding to the closest (in terms of dependency injection container) available instance of the validation controller. Note that the validation controller instance can be made available for the scope using the `@newInstanceForScope` decorator (refer [Injecting a controller instance](validation-controller.md#injecting-a-controller-instance) for more details). If no instance of validation controller is available, it throws an error.
+The binding behavior, by default, registers the binding to the closest (in terms of dependency injection container) available instance of the validation controller. Note that the validation controller instance can be made available for the scope using the `newInstanceForScope` resolver (refer [Injecting a controller instance](validation-controller.md#injecting-a-controller-instance) for more details). If no instance of validation controller is available, it throws an error.
 
 However, an instance of validation can be explicitly bound to the binding behavior, using the positional argument. This is useful when you use multiple instances of validation controllers to perform a different validation set.&#x20;
 

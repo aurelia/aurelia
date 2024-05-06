@@ -77,8 +77,8 @@ export class Store<T> {
 
   public constructor(
     private readonly initialState: T,
-    @ILogger private readonly logger: ILogger,
-    @IWindow private readonly _window: IStoreWindow,
+    private readonly logger: ILogger,
+    private readonly _window: IStoreWindow,
     options?: Partial<StoreOptions>
   ) {
     this.options = options ?? {};

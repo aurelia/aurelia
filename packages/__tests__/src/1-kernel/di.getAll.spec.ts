@@ -16,7 +16,7 @@ describe('1-kernel/di.getAll.spec.ts', function () {
       // eslint-enable
       it(`@all(_, ${searchAncestors}) + [child ${regInChild}] + [parent ${regInParent}]`, function () {
         class Foo {
-          public constructor(@all('test', searchAncestors) public readonly test: string[]) {}
+          public readonly test: readonly string[] = resolve(all('test', searchAncestors));
         }
         const child = container.createChild();
         if (regInParent) {
@@ -47,7 +47,7 @@ describe('1-kernel/di.getAll.spec.ts', function () {
       // eslint-enable
       it(`@all(IAttrPattern, ${searchAncestors}) + [child ${regInChild}] + [parent ${regInParent}]`, function () {
         class Foo {
-          public constructor(@all(IAttrPattern, searchAncestors) public readonly attrPatterns: IAttrPattern[]) {}
+          public readonly attrPatterns: readonly IAttrPattern[] = resolve(all(IAttrPattern, searchAncestors));
           public patterns(): number[] {
             return this.attrPatterns.map(ap => ap.id);
           }

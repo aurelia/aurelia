@@ -1,8 +1,9 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IContainer, IPlatform } from '@aurelia/kernel';
-import { AppTask, CustomElement, IAttrMapper, NodeObserverLocator } from '@aurelia/runtime-html';
+import { AppTask, CustomElement, NodeObserverLocator } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
+import { IAttrMapper } from '@aurelia/template-compiler';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
   if (isNode()) {

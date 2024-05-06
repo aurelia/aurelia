@@ -504,7 +504,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
     renderContext?: HTMLElement;
   }
 
-  function $setup<T>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
+  function $setup<T extends object>(options: { root: Constructable<T>; resources?: IRegistry[] }) {
     const { root: Root, resources = []} = options;
     const ctx = TestContext.create();
     ctx.container.register(...resources);

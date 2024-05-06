@@ -31,11 +31,11 @@ After installing Sinon, import it in your test files to access its functionality
 {% code title="my-component.ts" %}
 ```typescript
 import { IRouter } from '@aurelia/router';
-import { customElement } from 'aurelia';
+import { customElement, resolve } from 'aurelia';
 
 @customElement('my-component')
 export class MyComponent {
-    constructor(@IRouter private router: IRouter) {}
+    constructor(private router: IRouter = resolve(IRouter)) {}
 
     navigate(path: string) {
         return this.router.load(path);

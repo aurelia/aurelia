@@ -1,38 +1,42 @@
 import { camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
-  IExpressionParser,
   IObserverLocator,
-  type IsBindingBehavior,
 } from '@aurelia/runtime';
+import { IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IHydratableController,
   IRenderer,
   renderer,
-  attributePattern,
-  AttrSyntax,
-  bindingCommand,
   IPlatform,
-  IAttrMapper,
-  ICommandBuildInfo,
 } from '@aurelia/runtime-html';
+import {
+  AttrSyntax,
+  AttributePattern,
+  type IAttrMapper,
+  type ICommandBuildInfo,
+  type BindingCommandInstance,
+  type BindingCommandStaticAuDefinition,
+} from '@aurelia/template-compiler';
 
 import type {
   BindingMode,
-  BindingCommandInstance,
 } from '@aurelia/runtime-html';
-import { bmToView, ctNone, etIsProperty } from '../utils';
+
+import { bmToView, etIsProperty } from '../utils';
 
 export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
-@attributePattern({ pattern: attribute, symbols: '' })
-export class TranslationParametersAttributePattern {
-  public [attribute](rawName: string, rawValue: string, _parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, '', attribute);
+export const TranslationParametersAttributePattern = AttributePattern.define(
+  [{ pattern: attribute, symbols: '' }],
+  class TranslationParametersAttributePattern {
+    public [attribute](rawName: string, rawValue: string): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, '', attribute);
+    }
   }
-}
+);
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;
@@ -44,10 +48,13 @@ export class TranslationParametersBindingInstruction {
   ) {}
 }
 
-@bindingCommand(attribute)
 export class TranslationParametersBindingCommand implements BindingCommandInstance {
-  public readonly type: 'None' = ctNone;
-  public get name() { return attribute; }
+  public static readonly $au: BindingCommandStaticAuDefinition = {
+    type: 'binding-command',
+    name: attribute,
+  };
+
+  public readonly ignoreAttr = false;
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): TranslationParametersBindingInstruction {
     const attr = info.attr;
@@ -64,9 +71,8 @@ export class TranslationParametersBindingCommand implements BindingCommandInstan
   }
 }
 
-@renderer(TranslationParametersInstructionType)
-export class TranslationParametersBindingRenderer implements IRenderer {
-  public target!: typeof TranslationParametersInstructionType;
+export const TranslationParametersBindingRenderer = /*@__PURE__*/ renderer(class TranslationParametersBindingRenderer implements IRenderer {
+  public readonly target = TranslationParametersInstructionType;
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
@@ -86,4 +92,4 @@ export class TranslationParametersBindingRenderer implements IRenderer {
       platform,
     });
   }
-}
+}, null!);

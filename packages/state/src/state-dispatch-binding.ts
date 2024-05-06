@@ -1,28 +1,32 @@
 
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
 import {
-  type IOverrideContext,
-  Scope,
-  type IsBindingBehavior,
   connectable,
+  IObserverLocatorBasedConnectable,
+} from '@aurelia/runtime';
+import {
+  mixinAstEvaluator,
+  mixingBindingLimited,
   astEvaluate,
   astBind,
   astUnbind,
   IBinding,
   IAstEvaluator,
-  IConnectableBinding
-} from '@aurelia/runtime';
-import { mixinAstEvaluator, mixingBindingLimited } from '@aurelia/runtime-html';
+  type Scope,
+  type IOverrideContext,
+} from '@aurelia/runtime-html';
 import {
+  IStoreSubscriber,
   type IStore
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
-export interface StateDispatchBinding extends IAstEvaluator, IConnectableBinding { }
-export class StateDispatchBinding implements IBinding {
+export interface StateDispatchBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
+export class StateDispatchBinding implements IBinding, IStoreSubscriber<object> {
   public isBound: boolean = false;
 
   /** @internal */
@@ -96,6 +100,6 @@ export class StateDispatchBinding implements IBinding {
   }
 }
 
-connectable(StateDispatchBinding);
+connectable(StateDispatchBinding, null!);
 mixinAstEvaluator(true)(StateDispatchBinding);
 mixingBindingLimited(StateDispatchBinding, () => 'callSource');

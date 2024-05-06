@@ -1,5 +1,5 @@
 import { Metadata } from '@aurelia/metadata';
-import { Constructable, Protocol, ResourceType, Writable } from '@aurelia/kernel';
+import { Constructable, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
 import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, type ReloadBehavior } from './interfaces';
 
@@ -31,7 +31,7 @@ export class Route {
   /**
    * The metadata resource key for a configured route.
    */
-  private static readonly resourceKey = Protocol.resource.keyFor('route');
+  private static readonly resourceKey = getResourceKeyFor('route');
 
   protected constructor(
     /**
@@ -91,20 +91,11 @@ export class Route {
   ) { }
 
   /**
-   * Returns `true` if the specified type has any static route configuration (either via static properties or a &#64;route decorator)
-   */
-  public static isConfigured(Type: RouteType): boolean {
-    return Metadata.hasOwn(Route.resourceKey, Type)
-      || 'parameters' in Type
-      || 'title' in Type;
-  }
-
-  /**
    * Apply the specified configuration to the specified type, overwriting any existing configuration.
    */
   public static configure<T extends RouteType>(configOrPath: IRoute | string | undefined, Type: T): T {
     const config = Route.create(configOrPath as IRoute, Type as RouteableComponentType);
-    Metadata.define(Route.resourceKey, config, Type);
+    Metadata.define(config, Type, Route.resourceKey);
 
     return Type;
   }
@@ -113,7 +104,7 @@ export class Route {
    * Get the `Route` configured with the specified type or null if there's nothing configured.
    */
   public static getConfiguration(Type: RouteableComponentType): Route | IRoute {
-    const config = (Metadata.getOwn(Route.resourceKey, Type) ?? {}) as IRoute ;
+    const config = Metadata.get<IRoute>(Route.resourceKey, Type) ?? {};
 
     if (Array.isArray(Type.parameters)) {
       config.parameters = Type.parameters;
@@ -180,7 +171,7 @@ export class Route {
 
     // Clone it so that original route isn't affected
     // NOTE that it's not a deep clone (yet)
-    const config: IRoute = { ...configOrType } ?? {};
+    const config: IRoute = { ...configOrType };
 
     if ('component' in config || 'instructions' in config) {
       throw new Error(`Invalid route configuration: The 'component' and 'instructions' properties ` +

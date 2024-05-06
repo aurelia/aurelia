@@ -20,7 +20,9 @@ export default [{
         ...[
           'kernel',
           'metadata',
+          'expression-parser',
           'runtime',
+          'template-compiler',
           'runtime-html',
           'platform',
           'platform-browser',
@@ -45,7 +47,9 @@ export default [{
         ...[
           'kernel',
           'metadata',
+          'expression-parser',
           'runtime',
+          'template-compiler',
           'runtime-html',
           'platform',
           'platform-browser',

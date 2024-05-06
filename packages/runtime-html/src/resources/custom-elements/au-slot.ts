@@ -1,25 +1,49 @@
-import { Scope } from '@aurelia/runtime';
+import { Scope } from '../../binding/scope';
 import { IRenderLocation } from '../../dom';
-import { bindable } from '../../bindable';
-import { customElement } from '../custom-element';
-import { IInstruction } from '../../renderer';
+import { CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { IHydrationContext } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
-import { createMutationObserver } from '../../utilities-dom';
+import { createMutationObserver, isElement } from '../../utilities-dom';
 
+import { IInstruction, type HydrateElementInstruction } from '@aurelia/template-compiler';
 import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
-import type { HydrateElementInstruction } from '../../renderer';
-import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher } from '../../templating/controller.projection';
+import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, auslotAttr } from '../../templating/controller.projection';
 
-@customElement({
-  name: 'au-slot',
-  template: null,
-  containerless: true
-})
+let emptyTemplate: CustomElementDefinition;
+
 export class AuSlot implements ICustomElementViewModel, IAuSlot {
+  public static readonly $au: CustomElementStaticAuDefinition = {
+    type: elementTypeName,
+    name: 'au-slot',
+    template: null,
+    containerless: true,
+    processContent(el, p, data) {
+      data.name = el.getAttribute('name') ?? defaultSlotName;
+
+      let node: Node | null = el.firstChild;
+      let next: Node | null = null;
+      while (node !== null) {
+        next = node.nextSibling;
+        if (isElement(node) && node.hasAttribute(auslotAttr)) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `[DEV:aurelia] detected [au-slot] attribute on a child node`,
+              `of an <au-slot> element: "<${node.nodeName} au-slot>".`,
+              `This element will be ignored and removed`
+            );
+          }
+          el.removeChild(node);
+        }
+        node = next;
+      }
+    },
+    bindables: ['expose', 'slotchange'],
+  };
+
   public readonly view: ISyntheticView;
   /** @internal */
   public readonly $controller!: ICustomElementController<this>; // This is set by the controller after this instance is constructed
@@ -36,30 +60,35 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
   /**
    * The binding context that will be exposed to slotted content
    */
-  @bindable
   public expose: object | null = null;
 
   /**
    * A callback that will be called when the content of this slot changed
    */
-  @bindable
   public slotchange: ((name: string, nodes: readonly Node[]) => void) | null = null;
 
   public constructor() {
     const hdrContext = resolve(IHydrationContext);
     const location = resolve(IRenderLocation);
-    const instruction = resolve(IInstruction) as HydrateElementInstruction;
+    const instruction = resolve(IInstruction) as HydrateElementInstruction<{ name: string }>;
     const rendering = resolve(IRendering);
-    const slotInfo = instruction.auSlot!;
-    const projection = hdrContext.instruction?.projections?.[slotInfo.name];
+    const slotName = this.name = instruction.data.name;
+    // when <au-slot> is empty, there's not even projections
+    // hence ?. operator is used
+    // for fallback, there's only default slot used
+    const fallback = instruction.projections?.[defaultSlotName];
+    const projection = hdrContext.instruction?.projections?.[slotName];
     const contextContainer = hdrContext.controller.container;
     let factory: IViewFactory;
     let container: IContainer;
 
-    this.name = slotInfo.name;
     if (projection == null) {
       container = contextContainer.createChild({ inheritParentResources: true });
-      factory = rendering.getViewFactory(slotInfo.fallback, container);
+      factory = rendering.getViewFactory(fallback ?? (emptyTemplate ??= CustomElementDefinition.create({
+        name: 'au-slot-empty-template',
+        template: '',
+        needsCompile: false,
+      })), container);
       this._hasProjection = false;
     } else {
       // projection could happen within a projection, example:
@@ -73,7 +102,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // we won't find the information in the hydration context hierarchy <MyApp>/<S3>
       // as it's a flat wysiwyg structure based on the template html
       //
-      // since we are construction the projection (2) view based on the
+      // since we are constructing the projection (2) view based on the
       // container of <my-app>, we need to pre-register all information stored
       // in projection (1) into the container created for the projection (2) view
       // =============================
@@ -98,14 +127,18 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       registerResolver(container, IHydrationContext, new InstanceProvider(void 0, hdrContext.parent));
       factory = rendering.getViewFactory(projection, container);
       this._hasProjection = true;
-      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotInfo.name) ?? emptyArray;
+      this._slotwatchers = contextContainer.getAll(IAuSlotWatcher, false)?.filter(w => w.slotName === '*' || w.slotName === slotName) ?? emptyArray;
     }
     this._hasSlotWatcher = (this._slotwatchers ??= emptyArray).length > 0;
     this._hdrContext = hdrContext;
     this.view = factory.create().setLocation(this._location = location);
   }
 
+  // all the following properties (name, nodes, _subs, subscribe & unsubscribe) are relevant to the slot watcher feature
+  // so grouping them here for better readability
+
   public readonly name: string;
+
   public get nodes() {
     const nodes = [];
     const location = this._location;
@@ -118,7 +151,6 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     }
     return nodes;
   }
-
   /** @internal */
   private readonly _subs = new Set<IAuSlotSubscriber>();
 
@@ -132,9 +164,24 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
 
   public binding(
     _initiator: IHydratedController,
-    _parent: IHydratedParentController,
+    parent: IHydratedParentController,
   ): void | Promise<void> {
-    this._parentScope = this.$controller.scope.parent!;
+    this._parentScope = parent.scope;
+
+    // The following block finds the real host scope for the content of this <au-slot>
+    //
+    // if this <au-slot> was created by another au slot, the controller hierarchy will be like this:
+    // C(au-slot)#1 --> C(synthetic)#1 --> C(au-slot)#2 --> C(synthetic)#2
+    //
+    // C(synthetic)#2 is what will provide the content for C(au-slot)#1
+    // but C(au-slot)#1 is what will provide the $host value for the content of C(au-slot)#2
+    //
+    // because of this structure, walk 2 level of controller at once to find the right parent scope for $host value
+    while (parent.vmKind === 'synthetic' && parent.parent?.viewModel instanceof AuSlot) {
+      parent = parent.parent.parent as IHydratedParentController;
+    }
+    const host = parent.scope.bindingContext;
+
     let outerScope: Scope;
     if (this._hasProjection) {
       // if there is a projection,
@@ -144,7 +191,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       // - override context has the $host pointing to inner scope binding context
       outerScope = this._hdrContext.controller.scope.parent!;
       (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
-        .overrideContext.$host = this.expose ?? this._parentScope.bindingContext;
+        .overrideContext.$host = this.expose ?? host;
     }
   }
 

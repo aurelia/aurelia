@@ -75,12 +75,11 @@ A good practice when working with APIs in Aurelia is to create a service (a sing
 Create a new directory inside of `src` called `services` and then create a new file called `api.ts`. Let's inject the Aurelia Fetch Client and write a method to fetch the prices.
 
 ```typescript
+import { resolve } from 'aurelia';
 import { IHttpClient } from '@aurelia/fetch-client';
 
 export class Api {
-    constructor(@IHttpClient private http: IHttpClient) {
-
-    }
+    private http: IHttpClient = resolve(IHttpClient);
 
     async getPrices(ids: string[]) {
         try {
@@ -139,7 +138,7 @@ export class MyApp {
 
 We now have our crypto prices. Let's display them. Inside of `my-app.html` (our view for the app) we'll reference these price values.
 
-```markup
+```html
 <div class="panels">
     <div class="panel"><h4>Bitcoin</h4> ${prices.bitcoin.usd}</div>
     <div class="panel"><h4>Ethereum</h4> ${prices.ethereum.usd}</div>
@@ -229,7 +228,7 @@ If you want to learn about other ways you can inject dependencies, consult the d
 
 Open up `my-app.html` again and add in the following:
 
-```markup
+```html
 <import from="./resources/value-converters/currency-value-converter"></import>
 
 <div class="panels">
@@ -288,7 +287,7 @@ This now injects Bootstrap styles into all of our Shadow DOM components. The onl
 
 However, you can fix this by adding the Bootstrap CSS into the header of our `index.html` if you want those. Or, you can add them yourself. If you want them, add the Bootstrap CDN include in the header of `index.html`. You can get the most up-to-date style include [here](https://getbootstrap.com/docs/5.0/getting-started/introduction/).
 
-```markup
+```html
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 ```
 
@@ -296,7 +295,7 @@ However, you can fix this by adding the Bootstrap CSS into the header of our `in
 
 Now we have Bootstrap added. It's time to update the markup in `my-app.html` to add the data into a styled table. This is all purely markup, so we are not using any new Aurelia concepts here. You can safely copy and paste this.
 
-```markup
+```html
 <import from="./resources/value-converters/currency"></import>
 
 <div class="container">

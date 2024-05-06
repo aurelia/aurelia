@@ -3,23 +3,23 @@
   "pipeline": {
     "lint": {
       "inputs": [
-        "src/**/*.ts",
-        ".eslintrc.cjs",
+        "./src/**/*.ts",
+        "./.eslintrc.cjs",
         "../../.eslintrc.cjs"
       ]
     },
     "lint:ci": {
       "inputs": [
-        "src/**/*.ts",
-        ".eslintrc.cjs",
+        "./src/**/*.ts",
+        "./.eslintrc.cjs",
         "../../.eslintrc.cjs"
       ]
     },
     "build": {
       "dependsOn": ["^build"],
       "inputs": [
-        "src/**/*.ts",
-        "rollup.config.js",
+        "./src/**/*.ts",
+        "./rollup.config.js",
         "../global.d.ts",
         "../mangle-namecache.js",
         "../rollup-utils.js",
@@ -27,14 +27,14 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/**/*"
+        "./dist/**/*"
       ]
     },
     "build:release": {
       "dependsOn": ["^build:release"],
       "inputs": [
-        "src/**/*.ts",
-        "rollup.config.js",
+        "./src/**/*.ts",
+        "./rollup.config.js",
         "../global.d.ts",
         "../mangle-namecache.js",
         "../rollup-utils.js",
@@ -42,14 +42,14 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/**/*"
+        "./dist/**/*"
       ]
     },
     "rollup": {
       "dependsOn": ["^rollup"],
       "inputs": [
-        "src/**/*.ts",
-        "rollup.config.js",
+        "./src/**/*.ts",
+        "./rollup.config.js",
         "../global.d.ts",
         "../mangle-namecache.js",
         "../rollup-utils.js",
@@ -57,7 +57,7 @@
         "../tsconfig.json"
       ],
       "outputs": [
-        "dist/**/*"
+        "./dist/**/*"
       ]
     }
   }

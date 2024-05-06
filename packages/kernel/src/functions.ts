@@ -1,8 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createObject } from './utilities';
-
-const isNumericLookup: Record<string, boolean> = {};
+import { createObject, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -14,33 +12,39 @@ const isNumericLookup: Record<string, boolean> = {};
  *
  * Results are cached.
  */
-export const isArrayIndex = (value: unknown): value is number | string => {
-  switch (typeof value) {
-    case 'number':
-      return value >= 0 && (value | 0) === value;
-    case 'string': {
-      const result = isNumericLookup[value];
-      if (result !== void 0) {
-        return result;
-      }
-      const length = value.length;
-      if (length === 0) {
-        return isNumericLookup[value] = false;
-      }
-      let ch = 0;
-      let i = 0;
-      for (; i < length; ++i) {
-        ch = charCodeAt(value, i);
-        if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
+export const isArrayIndex = (() => {
+  const isNumericLookup: Record<string, boolean> = {};
+  let result: boolean | undefined = false;
+  let length = 0;
+  let ch = 0;
+  let i = 0;
+  return (value: unknown): value is number | string => {
+    switch (typeof value) {
+      case 'number':
+        return value >= 0 && (value | 0) === value;
+      case 'string':
+        result = isNumericLookup[value];
+        if (result !== void 0) {
+          return result;
+        }
+        length = value.length;
+        if (length === 0) {
           return isNumericLookup[value] = false;
         }
-      }
-      return isNumericLookup[value] = true;
+        ch = 0;
+        i = 0;
+        for (; i < length; ++i) {
+          ch = charCodeAt(value, i);
+          if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
+            return isNumericLookup[value] = false;
+          }
+        }
+        return isNumericLookup[value] = true;
+      default:
+        return false;
     }
-    default:
-      return false;
-  }
-};
+  };
+})();
 
 /**
  * Base implementation of camel and kebab cases
@@ -56,7 +60,7 @@ const baseCase = /*@__PURE__*/(function () {
   _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = Object.assign(createObject(), {
+  const isDigit = objectAssign(createObject(), {
     '0': true,
     '1': true,
     '2': true,
@@ -235,22 +239,22 @@ export const toArray = <T = unknown>(input: ArrayLike<T>): T[] => {
 /**
  * Decorator. (lazily) bind the method to the class instance on first call.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const bound = <T extends Function>(target: Object, key: string | symbol, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> => {
-  return {
-    configurable: true,
-    enumerable: descriptor.enumerable,
-    get(): T {
-      const boundFn = descriptor.value!.bind(this) as TypedPropertyDescriptor<T>;
-      Reflect.defineProperty(this, key, {
-        value: boundFn,
-        writable: true,
-        configurable: true,
-        enumerable: descriptor.enumerable,
-      });
-      return boundFn as T;
-    },
-  };
+export const bound = <
+  TThis extends object,
+  TArgs extends unknown[],
+  TReturn>(
+  originalMethod: (this: TThis, ...args: TArgs) => TReturn,
+  context: ClassMethodDecoratorContext<TThis, (this: TThis, ...args: TArgs) => TReturn>,
+): void => {
+  const methodName = context.name as string;
+  context.addInitializer(function (this: TThis) {
+    Reflect.defineProperty(this, methodName, {
+      value: originalMethod.bind(this),
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
+  });
 };
 
 export const mergeArrays = <T>(...arrays: (readonly T[] | undefined)[]): T[] => {
@@ -366,8 +370,9 @@ export function toLookup<
   obj4: T4,
   obj5: T5,
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
+/** @internal */
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return Object.assign(createObject(), ...objs);
+  return objectAssign(createObject(), ...objs);
 }
 
 /**
@@ -412,9 +417,8 @@ export const isNativeFunction = /*@__PURE__*/(function () {
         charCodeAt(sourceText, i - 12) === 0x74 && // t
         charCodeAt(sourceText, i - 13) === 0x61 && // a
         charCodeAt(sourceText, i - 14) === 0x6E && // n
-        charCodeAt(sourceText, i - 15) === 0x58    // [
+        charCodeAt(sourceText, i - 15) === 0x5B    // [
       );
-
       lookup.set(fn, isNative);
     }
     return isNative;

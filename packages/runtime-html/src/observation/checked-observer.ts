@@ -31,6 +31,11 @@ export interface CheckedObserver extends
   ISubscriberCollection { }
 
 export class CheckedObserver implements INodeObserver {
+  static {
+    mixinNodeObserverUseConfig(CheckedObserver);
+    subscriberCollection(CheckedObserver, null!);
+  }
+
   public type: AccessorType = (atNode | atObserver | atLayout) as AccessorType;
 
   /** @internal */
@@ -295,9 +300,6 @@ export class CheckedObserver implements INodeObserver {
     }
   }
 }
-
-mixinNodeObserverUseConfig(CheckedObserver);
-subscriberCollection(CheckedObserver);
 
 // a reusable variable for `.flush()` methods of observers
 // so that there doesn't need to create an env record for every call

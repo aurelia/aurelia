@@ -1,10 +1,14 @@
 import { emptyArray } from '@aurelia/kernel';
-import { atLayout, atNode, isString } from '../utilities';
+import { atLayout, atNode, isArray, isString } from '../utilities';
 
 import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 
 export class ClassAttributeAccessor implements IAccessor {
+  static {
+    mixinNoopSubscribable(ClassAttributeAccessor);
+  }
+
   public get doNotCache(): true { return true; }
   public type: AccessorType = (atNode | atLayout) as AccessorType;
 
@@ -80,7 +84,7 @@ function getClassesToAdd(object: Record<string, unknown> | [] | string): string[
     return emptyArray;
   }
 
-  if (object instanceof Array) {
+  if (isArray(object)) {
     const len = object.length;
     if (len > 0) {
       const classes: string[] = [];
@@ -118,5 +122,3 @@ function splitClassString(classString: string): string[] {
   }
   return matches;
 }
-
-mixinNoopSubscribable(ClassAttributeAccessor);

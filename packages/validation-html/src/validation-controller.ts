@@ -6,16 +6,17 @@ import {
   type Constructable,
   type Transformer,
   type Key,
+  resolve,
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   IExpressionParser,
-  astEvaluate,
-  // IsBindingBehavior
-} from '@aurelia/runtime';
+} from '@aurelia/expression-parser';
 import {
+  astEvaluate,
   IPlatform,
   PropertyBinding,
+  type Scope,
 } from '@aurelia/runtime-html';
 import {
   parsePropertyName,
@@ -27,8 +28,6 @@ import {
   type IValidationRule,
   type IValidateable,
 } from '@aurelia/validation';
-
-import type { Scope } from '@aurelia/runtime';
 
 export type BindingWithBehavior = PropertyBinding & {
   ast: BindingBehaviorExpression;
@@ -98,7 +97,7 @@ export class BindingInfo {
    * @param {Element} target - The HTMLElement associated with the binding.
    * @param {Scope} scope - The binding scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
-   * @param {(PropertyInfo | undefined)} [propertyInfo=void 0] - Information describing the associated property for the binding.
+   * @param {(PropertyInfo | undefined)} [propertyInfo] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
   public constructor(
@@ -307,12 +306,10 @@ export class ValidationController implements IValidationController {
   private readonly elements: WeakMap<ValidationResult, Element[]> = new WeakMap();
   public readonly objects: Map<IValidateable, PropertyRule[] | undefined> = new Map<IValidateable, PropertyRule[] | undefined>();
 
-  public constructor(
-    @IValidator public readonly validator: IValidator,
-    @IExpressionParser private readonly parser: IExpressionParser,
-    @IPlatform private readonly platform: IPlatform,
-    @IServiceLocator private readonly locator: IServiceLocator,
-  ) { }
+  public readonly validator: IValidator = resolve(IValidator);
+  private readonly parser: IExpressionParser = resolve(IExpressionParser);
+  private readonly platform: IPlatform = resolve(IPlatform);
+  private readonly locator: IServiceLocator = resolve(IServiceLocator);
 
   public addObject(object: IValidateable, rules?: PropertyRule[]): void {
     this.objects.set(object, rules);

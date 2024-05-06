@@ -110,10 +110,7 @@ import template from './products.html';
 })
 @customElement({ name: 'pro-ducts', template })
 export class Products {
-  promise: Promise<ProductDetail[]>;
-  public constructor(@IProductService productService: IProductService) {
-    this.promise = productService.getAll();
-  }
+  promise: Promise<ProductDetail[]> = resolve(IProductService).getAll();
 }
 ```
 {% endtab %}
@@ -321,7 +318,7 @@ Note that specifying a value for the `name` attribute of viewport is optional, a
 
 In the following example, we have the `main` viewport for our main content and then another viewport called `sidebar` for our sidebar content.
 
-```markup
+```html
 <main>
     <au-viewport name="main"></au-viewport>
 </main>

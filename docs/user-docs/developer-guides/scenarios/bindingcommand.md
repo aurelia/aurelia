@@ -29,7 +29,7 @@ interface BindingCommandInstance {
 }
 ```
 
-A binding command must return `'IgnoreAttr'` from the `type` property. This tells the template compiler that the binding command takes over the processing of the attribute.
+A binding command must return `true` from the `ignoreAttr` property. This tells the template compiler that the binding command takes over the processing of the attribute, so the template compiler will not try to check further whether it's a custom attribute, custom element bindable etc...
 
 The more interesting part of the interface is the `build` method. The template compiler calls this method to build binding instructions. The `info` parameter contains information about the element, the attribute name, the bindable definition (if present), and the custom element/attribute definition (if present). The `parser` parameter is used to parse the attribute value into an expression. The `mapper` parameter of [type `IAttrMapper`](./attributemapper.md) is used to determine the binding mode, the target property name, etc. (for more information, refer to the [documentation](./extending-templating-syntax.md)). In short, here comes your logic to convert the attribute information into a binding instruction.
 
@@ -59,9 +59,7 @@ import {
 
 @bindingCommand('bs')
 export class BsBindingCommand implements BindingCommandInstance {
-  public get type(): 'IgnoreAttr' {
-    return 'IgnoreAttr';
-  }
+  public ignoreAttr = true;
 
   public build(
     info: ICommandBuildInfo,

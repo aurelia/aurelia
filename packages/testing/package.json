@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/testing",
-  "version": "2.0.0-beta.10",
+  "version": "2.0.0-beta.16",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -21,7 +21,8 @@
   "homepage": "https://aurelia.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aurelia/aurelia"
+    "url": "https://github.com/aurelia/aurelia.git",
+    "directory": "packages/testing"
   },
   "bugs": {
     "url": "https://github.com/aurelia/aurelia/issues"
@@ -52,18 +53,19 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.0.0-beta.10",
-    "@aurelia/metadata": "2.0.0-beta.10",
-    "@aurelia/platform": "2.0.0-beta.10",
-    "@aurelia/platform-browser": "2.0.0-beta.10",
-    "@aurelia/runtime": "2.0.0-beta.10",
-    "@aurelia/runtime-html": "2.0.0-beta.10"
+    "@aurelia/kernel": "2.0.0-beta.16",
+    "@aurelia/metadata": "2.0.0-beta.16",
+    "@aurelia/platform": "2.0.0-beta.16",
+    "@aurelia/platform-browser": "2.0.0-beta.16",
+    "@aurelia/runtime": "2.0.0-beta.16",
+    "@aurelia/template-compiler": "2.0.0-beta.16",
+    "@aurelia/runtime-html": "2.0.0-beta.16"
   },
   "devDependencies": {
-    "@types/mocha": "10.0.0",
-    "jsdom": "22.1.0",
-    "mocha": "10.0.0",
-    "typescript": "5.2.2"
+    "@types/mocha": "10.0.6",
+    "jsdom": "24.0.0",
+    "mocha": "10.3.0",
+    "typescript": "5.4.2"
   },
   "engines": {
     "node": ">=14.17.0"

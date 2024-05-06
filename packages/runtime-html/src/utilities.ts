@@ -42,6 +42,8 @@ const IsDataAttribute: Record<string, boolean> = /*@__PURE__*/createLookup();
 
 /** @internal */ export const isPromise = <T>(v: unknown): v is Promise<T> => v instanceof Promise;
 /** @internal */ export const isArray = <T>(v: unknown): v is T[] => v instanceof Array;
+/** @internal */ export const isSet = <T>(v: unknown): v is Set<T> => v instanceof Set;
+/** @internal */ export const isMap = <T, K>(v: unknown): v is Map<T, K> => v instanceof Map;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 /** @internal */ export const isFunction = <K extends Function>(v: unknown): v is K => typeof v === 'function';

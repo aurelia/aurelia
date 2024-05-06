@@ -211,7 +211,10 @@ export {
   Else,
 } from './resources/template-controllers/if';
 export {
-  Repeat
+  Repeat,
+  IRepeatableHandlerResolver,
+  IRepeatableHandler,
+  ArrayLikeHandler,
 } from './resources/template-controllers/repeat';
 export {
   With

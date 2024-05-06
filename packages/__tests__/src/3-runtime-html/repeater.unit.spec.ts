@@ -1,4 +1,4 @@
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier, IExpressionParser } from '@aurelia/expression-parser';
 import { DirtyChecker } from '@aurelia/runtime';
 import {
   Scope,
@@ -13,8 +13,11 @@ import {
   NodeObserverLocator,
   IRendering,
   PropertyBinding,
+  IController,
+  IViewFactory,
 } from '@aurelia/runtime-html';
 import {
+  IInstruction,
   TextBindingInstruction,
   HydrateTemplateController,
   ITemplateCompiler,
@@ -554,7 +557,13 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         const instruction: HydrateTemplateController = {
           props: [{ props: [] }]
         } as any;
-        const sut = new Repeat(instruction, null!, loc, hydratable, itemFactory);
+        const child = container.createChild();
+        child.register(Registration.instance(IInstruction, instruction));
+        child.register(Registration.instance(IExpressionParser, null));
+        child.register(Registration.instance(IRenderLocation, loc));
+        child.register(Registration.instance(IController, hydratable));
+        child.register(Registration.instance(IViewFactory, itemFactory));
+        const sut = child.invoke(Repeat);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
         binding.target = sut as any;
 

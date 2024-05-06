@@ -306,3 +306,78 @@ Our value converter uses the Javascript `Reflect` API to get the keys of our obj
 {% hint style="info" %}
 When creating utility value converters and other resources, we recommend globally registering them using Aurelia's DI. You can learn how to use Dependency Injection [here](../getting-to-know-aurelia/dependency-injection-di/).
 {% endhint %}
+
+### Custom collection handling strategy
+
+In the previous section, we see that any object can be iterated after using a value converter to convert it into an array, or any other form that Aurelia understands how to iterate. There is another way to teach Aurelia how to iterate an object using the `IRepeatableHandler` interface.
+
+An example of teaching Aurelia to iterate over any array like objects (HTMLCollection, NodeList, FileList etc...), is as follow:
+
+```typescript
+import Aurelia, { Registration, IRepeatableHandler } from 'aurelia';
+import { MyApp } from './my-app';
+
+class ArrayLikeHandler {
+  static register(c) {
+    Registration.singleton(IRepeatableHandler, ArrayLikeHandler).register(c)
+  }
+
+  handles(v) {
+    return 'length' in v && v.length > 0;
+  }
+
+  iterate(items, func) {
+    for (let i = 0, ii = items.length; i < ii; ++i) {
+      func(items[i], i);
+    }
+  }
+}
+
+Aurelia
+  .register(
+    ArrayLikeHandler,
+    ...
+  )
+  .app(MyApp)
+  .start()
+```
+
+{% hint style="success" %}
+Aurelia provide a default implementation for `ArrayLikeHandler` similar to the above code that you can import and use it like the following:
+
+```typescript
+import Aurelia, { ArrayLikeHandler } from 'aurelia';
+
+...
+```
+{% endhint %}
+
+In the above example, `ArrayLikeHandler` is registered with the key `IRepeatableHandler`, which is used by `IRepeatableHandlerResolver`.
+The default implementation of `IRepeatableHandlerResolver` will search for handler by the following order:
+
+- array
+- set
+- map
+- number (range)
+- null/undefined
+- custom
+- unknown (will throw an error)
+
+If you don't want this order, you can override with your own implementation of `IRepeatableHandlerResolver`, like the following example:
+
+```typescript
+class MyRepeatableHandlerResolver {
+  resolve(value) {
+    if (typeof value?.length === 'number') {
+      return {
+        iterate(items, callback) {
+          for (let i = 0; i < items.length; ++i) {
+            callback(items[i], i, items);
+          }
+        }
+      }
+    }
+    throw new Error('The repeater should only iterate array/array like objects');
+  }
+}
+```

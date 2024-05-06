@@ -2083,6 +2083,30 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     assertHtml('p > a', 'hello');
   });
 
+  // bug reported by @MaxB on Discord
+  // https://discord.com/channels/448698263508615178/1236855768058302526
+  it('rightly chooses the scope for projected content', function () {
+    @customElement({
+      name: 'mdc-lookup',
+      template:
+      '<div repeat.for="option of options">' +
+        '<mdc-option>' +
+          '<au-slot>${$parent.option} -- ${option}</au-slot>' +
+        '</mdc-option>' +
+      '</div>',
+    })
+    class MdcLookup {
+      options = ['option1'];
+    }
+
+    @customElement({ name: 'mdc-option', template: '<au-slot></au-slot>' })
+    class MdcOption {}
+
+    const { assertHtml } = createFixture('<mdc-lookup></mdc-lookup>', class {}, [MdcLookup, MdcOption]);
+
+    assertHtml('<mdc-lookup><div><mdc-option>option1 -- option1</mdc-option></div></mdc-lookup>', { compact: true });
+  });
+
   describe('with multi layers of repeaters', function () {
     // au-slot creates a layer of scope
     // making $parent from the inner repeater not reaching to the outer repeater
@@ -2137,7 +2161,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
     });
   });
 
-  // bug discorverd by @MaxB on Discord
+  // bug discorvered by @MaxB on Discord
   // https://discord.com/channels/448698263508615178/448699089513611266/1234665951467929666
   it('passes $host value through 1 layer of <au-slot>', function () {
 
@@ -2170,7 +2194,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
       class MyApp {},
       [MdcLookup, MdcFilter, MdcOption, class {
         static $au = { type: 'value-converter', name: 'json' };
-        toView = (v: unknown, tag = '') => { console.log({ ctor: `${tag}:${v?.constructor.name ?? '<undefined>'}` }); return v; };
+        toView = (v: unknown) => v;
       }]
     );
 

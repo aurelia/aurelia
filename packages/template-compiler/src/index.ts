@@ -68,7 +68,7 @@ export {
 
 export {
   IResourceResolver,
-  IBindablesInfoResolver,
+  IBindingCommandResolver,
   type IElementBindablesInfo,
   type IAttributeBindablesInfo,
   ITemplateCompilerHooks,

@@ -10,12 +10,8 @@ import {
   type IRegistry
 } from '@aurelia/kernel';
 import {
-  BindingCommand,
-  BindingCommandDefinition,
-  type BindingCommandInstance,
   type IAttributeBindablesInfo,
   type IElementBindablesInfo,
-  IBindablesInfoResolver,
   IResourceResolver,
   TemplateCompiler,
 } from '@aurelia/template-compiler';
@@ -31,21 +27,48 @@ export const RuntimeTemplateCompilerImplementation: IRegistry = {
     container.register(
       TemplateCompiler,
       AttrMapper,
-      BindablesInfoResolver,
       ResourceResolver,
     );
   }
 };
 
-class BindablesInfoResolver implements IBindablesInfoResolver<CustomElementDefinition, CustomAttributeDefinition> {
-  public static register = /*@__PURE__*/ createImplementationRegister(IBindablesInfoResolver);
-  /** @internal */
-  private readonly _cache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
+class BindablesInfo {
+  public constructor(
+    public readonly attrs: Record<string, BindableDefinition>,
+    public readonly bindables: Record<string, BindableDefinition>,
+    public readonly primary: BindableDefinition | null,
+  ) {}
+}
 
-  public get(def: CustomAttributeDefinition): IAttributeBindablesInfo;
-  public get(def: CustomElementDefinition): IElementBindablesInfo;
-  public get(def: CustomAttributeDefinition | CustomElementDefinition): IAttributeBindablesInfo | IElementBindablesInfo {
-    let info = this._cache.get(def);
+class ResourceResolver implements IResourceResolver<CustomElementDefinition, CustomAttributeDefinition> {
+  public static register = /*@__PURE__*/ createImplementationRegister(IResourceResolver);
+
+  /** @internal */
+  private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();
+
+  public el(c: IContainer, name: string): CustomElementDefinition | null {
+    let record = this._resourceCache.get(c);
+    if (record == null) {
+      this._resourceCache.set(c, record = new RecordCache());
+    }
+    return name in record._element ? record._element[name] : (record._element[name] = CustomElement.find(c, name));
+  }
+
+  public attr(c: IContainer, name: string): CustomAttributeDefinition | null {
+    let record = this._resourceCache.get(c);
+    if (record == null) {
+      this._resourceCache.set(c, record = new RecordCache());
+    }
+    return name in record._attr ? record._attr[name] : (record._attr[name] = CustomAttribute.find(c, name));
+  }
+
+  /** @internal */
+  private readonly _bindableCache = new WeakMap<CustomElementDefinition | CustomAttributeDefinition, BindablesInfo>();
+
+  public bindables(def: CustomAttributeDefinition): IAttributeBindablesInfo;
+  public bindables(def: CustomElementDefinition): IElementBindablesInfo;
+  public bindables(def: CustomAttributeDefinition | CustomElementDefinition): IAttributeBindablesInfo | IElementBindablesInfo {
+    let info = this._bindableCache.get(def);
     if (info == null) {
       const bindables = def.bindables;
       const attrs = createLookup<BindableDefinition>();
@@ -81,66 +104,13 @@ class BindablesInfoResolver implements IBindablesInfoResolver<CustomElementDefin
         );
       }
 
-      this._cache.set(def, info = new BindablesInfo(attrs, bindables, primary ?? null));
+      this._bindableCache.set(def, info = new BindablesInfo(attrs, bindables, primary ?? null));
     }
     return info;
   }
 }
 
-class BindablesInfo {
-  public constructor(
-    public readonly attrs: Record<string, BindableDefinition>,
-    public readonly bindables: Record<string, BindableDefinition>,
-    public readonly primary: BindableDefinition | null,
-  ) {}
-}
-
-class ResourceResolver implements IResourceResolver<CustomElementDefinition, CustomAttributeDefinition> {
-  public static register = /*@__PURE__*/ createImplementationRegister(IResourceResolver);
-
-  private readonly _resourceCache = new WeakMap<IContainer, RecordCache>();
-  private readonly _commandCache = new WeakMap<IContainer, Record<string, BindingCommandInstance | null>>();
-
-  public el(c: IContainer, name: string): CustomElementDefinition | null {
-    let record = this._resourceCache.get(c);
-    if (record == null) {
-      this._resourceCache.set(c, record = new RecordCache());
-    }
-    return name in record.element ? record.element[name] : (record.element[name] = CustomElement.find(c, name));
-  }
-
-  public attr(c: IContainer, name: string): CustomAttributeDefinition | null {
-    let record = this._resourceCache.get(c);
-    if (record == null) {
-      this._resourceCache.set(c, record = new RecordCache());
-    }
-    return name in record.attr ? record.attr[name] : (record.attr[name] = CustomAttribute.find(c, name));
-  }
-
-  public command(c: IContainer, name: string): BindingCommandInstance | null {
-    let commandInstanceCache = this._commandCache.get(c);
-    if (commandInstanceCache == null) {
-      this._commandCache.set(c, commandInstanceCache = createLookup());
-    }
-    let result = commandInstanceCache[name];
-    if (result === void 0) {
-      let record = this._resourceCache.get(c);
-      if (record == null) {
-        this._resourceCache.set(c, record = new RecordCache());
-      }
-
-      const commandDef = name in record.command ? record.command[name] : (record.command[name] = BindingCommand.find(c, name));
-      if (commandDef == null) {
-        throw createMappedError(ErrorNames.compiler_unknown_binding_command, name);
-      }
-      commandInstanceCache[name] = result = BindingCommand.get(c, name);
-    }
-    return result;
-  }
-}
-
 class RecordCache {
-  public element = createLookup<CustomElementDefinition | null>();
-  public attr = createLookup<CustomAttributeDefinition | null>();
-  public command = createLookup<BindingCommandDefinition | null>();
+  public _element = createLookup<CustomElementDefinition | null>();
+  public _attr = createLookup<CustomAttributeDefinition | null>();
 }

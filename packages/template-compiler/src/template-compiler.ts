@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Registrable, getResourceKeyFor, allResources, resolve, IPlatform, pascalCase, createImplementationRegister } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, Registrable, getResourceKeyFor, allResources, IPlatform, pascalCase, createImplementationRegister } from '@aurelia/kernel';
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
@@ -25,9 +25,9 @@ import {
   IInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
-import { BindingCommandInstance, ICommandBuildInfo } from './binding-command';
+import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
 import { etInterpolation, etIsProperty, isString, objectFreeze, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
-import { appendManyToTemplate, appendToTemplate, createComment, createElement, createText, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
+import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
   IContainer,
@@ -56,9 +56,6 @@ const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register = /*@__PURE__*/ createImplementationRegister(ITemplateCompiler);
-
-  /** @internal */
-  private readonly _bindableResolver = resolve(IBindablesInfoResolver);
 
   public debug: boolean = false;
   public resolveResources: boolean = true;
@@ -142,7 +139,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrTarget = attrSyntax.target;
       attrValue = attrSyntax.rawValue;
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.ignoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -165,7 +162,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.no_spread_template_controller, attrTarget);
         }
-        bindablesInfo = this._bindableResolver.get(attrDef);
+        bindablesInfo = context._getBindables(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -224,7 +221,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
         if (isCustomElement) {
-          bindablesInfo = this._bindableResolver.get(elDef);
+          bindablesInfo = context._getBindables(elDef);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
             expr = exprParser.parse(attrValue, etInterpolation);
@@ -267,7 +264,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (isCustomElement) {
           // if the element is a custom element
           // - prioritize bindables on a custom element before plain attributes
-          bindablesInfo = this._bindableResolver.get(elDef);
+          bindablesInfo = context._getBindables(elDef);
           bindable = bindablesInfo.attrs[attrTarget];
           if (bindable !== void 0) {
             commandBuildInfo.node = target;
@@ -335,7 +332,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         throw createMappedError(ErrorNames.compiler_invalid_surrogate_attr, attrName);
       }
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.ignoreAttr) {
         // when the binding command overrides everything
         // just pass the target as is to the binding command, and treat it as a normal attribute:
@@ -358,7 +355,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         if (attrDef.isTemplateController) {
           throw createMappedError(ErrorNames.compiler_no_tc_on_surrogate, realAttrTarget);
         }
-        bindableInfo = this._bindableResolver.get(attrDef);
+        bindableInfo = context._getBindables(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -528,7 +525,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
 
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null) {
         if (attrSyntax.command === 'bind') {
           letInstructions.push(new LetBindingInstruction(
@@ -698,7 +695,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       attrSyntax = context._attrParser.parse(attrName, attrValue);
-      bindingCommand = context._createCommand(attrSyntax);
+      bindingCommand = context._getCommand(attrSyntax);
 
       realAttrTarget = attrSyntax.target;
       realAttrValue = attrSyntax.rawValue;
@@ -712,7 +709,7 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         canCapture = realAttrTarget !== auslotAttr && realAttrTarget !== 'slot';
         if (canCapture) {
-          bindablesInfo = this._bindableResolver.get(elDef);
+          bindablesInfo = context._getBindables(elDef);
           // if capture is on, capture everything except:
           // - as-element
           // - containerless
@@ -751,7 +748,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       if (isCustomElement) {
         // if the element is a custom element
         // - prioritize bindables on a custom element before plain attributes
-        bindablesInfo = this._bindableResolver.get(elDef);
+        bindablesInfo = context._getBindables(elDef);
         bindable = bindablesInfo.attrs[realAttrTarget];
         if (bindable !== void 0) {
           if (bindingCommand === null) {
@@ -798,7 +795,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       // check for custom attributes before plain attributes
       attrDef = context._findAttr(realAttrTarget);
       if (attrDef !== null) {
-        bindablesInfo = this._bindableResolver.get(attrDef);
+        bindablesInfo = context._getBindables(attrDef);
         // Custom attributes are always in multiple binding mode,
         // except when they can't be
         // When they cannot be:
@@ -959,8 +956,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         appendManyToTemplate(template, [
           // context.h(MARKER_NODE_NAME),
           context._marker(),
-          context._comment(auStartComment),
-          context._comment(auEndComment),
+          context._comment(auLocationStart),
+          context._comment(auLocationEnd),
         ]);
       } else {
         // assumption: el.parentNode is not null
@@ -1138,8 +1135,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         marker = context._marker();
         appendManyToTemplate(template, [
           marker,
-          context._comment(auStartComment),
-          context._comment(auEndComment),
+          context._comment(auLocationStart),
+          context._comment(auLocationEnd),
         ]);
 
         tcInstruction.def = {
@@ -1345,7 +1342,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     // my-attr="prop1: literal1 prop2.bind: ...; prop3: literal3"
     // my-attr="prop1.bind: ...; prop2.bind: ..."
     // my-attr="prop1: ${}; prop2.bind: ...; prop3: ${}"
-    const bindableAttrsInfo = this._bindableResolver.get(attrDef);
+    const bindableAttrsInfo = context._getBindables(attrDef);
     const valueLength = attrRawValue.length;
     const instructions: IInstruction[] = [];
 
@@ -1394,7 +1391,7 @@ export class TemplateCompiler implements ITemplateCompiler {
         // todo: should it always camel case???
         // const attrTarget = camelCase(attrSyntax.target);
         // ================================================
-        command = context._createCommand(attrSyntax);
+        command = context._getCommand(attrSyntax);
         bindable = bindableAttrsInfo.attrs[attrSyntax.target];
         if (bindable == null) {
           throw createMappedError(ErrorNames.compiler_binding_to_non_bindable, attrSyntax.target, attrDef.name);
@@ -1618,19 +1615,15 @@ export class TemplateCompiler implements ITemplateCompiler {
     // insertBefore(parent, marker, node);
     insertManyBefore(parent, node, [
       marker,
-      context._comment(auStartComment),
-      context._comment(auEndComment),
+      context._comment(auLocationStart),
+      context._comment(auLocationEnd),
     ]);
     parent.removeChild(node);
     return marker;
   }
 }
 
-// let nextSibling: Node | null;
-// const MARKER_NODE_NAME = 'AU-M';
 const TEMPLATE_NODE_NAME = 'TEMPLATE';
-const auStartComment = 'au-start';
-const auEndComment = 'au-end';
 const isMarker = (el: Node): el is Comment =>
   el.nodeValue === 'au*';
     // && isComment(nextSibling = el.nextSibling) && nextSibling.textContent === auStartComment
@@ -1648,6 +1641,7 @@ class CompilationContext {
   public readonly parent: CompilationContext | null;
   public readonly def: IElementComponentDefinition;
   public readonly _resourceResolver: IResourceResolver;
+  public readonly _commandResolver: IBindingCommandResolver;
   public readonly _templateFactory: ITemplateElementFactory;
   public readonly _logger: ILogger;
   public readonly _attrParser: IAttributeParser;
@@ -1676,6 +1670,7 @@ class CompilationContext {
     this.def = def;
     this.parent = parent;
     this._resourceResolver = hasParent ? parent._resourceResolver : container.get(IResourceResolver);
+    this._commandResolver = hasParent ? parent._commandResolver : container.get(IBindingCommandResolver);
     this._templateFactory = hasParent ? parent._templateFactory : container.get(ITemplateElementFactory);
     // todo: attr parser should be retrieved based in resource semantic (current leaf + root + ignore parent)
     this._attrParser = hasParent ? parent._attrParser : container.get(IAttributeParser);
@@ -1696,11 +1691,11 @@ class CompilationContext {
   }
 
   public _text(text: string) {
-    return createText(this.p, text);
+    return this.p.document.createTextNode(text);
   }
 
   public _comment(text: string) {
-    return createComment(this.p, text);
+    return this.p.document.createComment(text);
   }
 
   public _marker() {
@@ -1710,7 +1705,7 @@ class CompilationContext {
   public h<K extends keyof HTMLElementTagNameMap>(name: K): HTMLElementTagNameMap[K];
   public h(name: string): HTMLElement;
   public h(name: string): HTMLElement {
-    const el = createElement(this.p, name);
+    const el = this.p.document.createElement(name);
     if (name === 'template') {
       this.p.document.adoptNode((el as HTMLTemplateElement).content);
     }
@@ -1735,6 +1730,12 @@ class CompilationContext {
     return this._resourceResolver.attr(this.c, name);
   }
 
+  public _getBindables(def: IAttributeComponentDefinition): IAttributeBindablesInfo;
+  public _getBindables(def: IElementComponentDefinition): IElementBindablesInfo;
+  public _getBindables(def: IAttributeComponentDefinition | IElementComponentDefinition): IAttributeBindablesInfo | IElementBindablesInfo {
+    return this._resourceResolver.bindables(def);
+  }
+
   /**
    * Create a new child compilation context
    */
@@ -1749,12 +1750,12 @@ class CompilationContext {
    *
    * @returns An instance of the command if it exists, or `null` if it does not exist.
    */
-  public _createCommand(syntax: AttrSyntax): BindingCommandInstance | null {
+  public _getCommand(syntax: AttrSyntax): BindingCommandInstance | null {
     const name = syntax.command;
     if (name === null) {
       return null;
     }
-    return this._resourceResolver.command(this.c, name);
+    return this._commandResolver.get(this.c, name);
   }
 }
 
@@ -1815,26 +1816,36 @@ export interface IElementBindablesInfo {
   readonly primary: null;
 }
 
-export interface IBindablesInfoResolver<
-  TElementDef extends IElementComponentDefinition = IElementComponentDefinition,
-  TAttrDef extends IAttributeComponentDefinition = IAttributeComponentDefinition,
-> {
-  get(def: TAttrDef): IAttributeBindablesInfo;
-  get(def: TElementDef): IElementBindablesInfo;
-}
-
-export const IBindablesInfoResolver = /*@__PURE__*/createInterface<IBindablesInfoResolver>('IBindablesInfoResolver');
-
 export interface IResourceResolver<
   TElementDef extends IElementComponentDefinition = IElementComponentDefinition,
   TAttrDef extends IAttributeComponentDefinition = IAttributeComponentDefinition,
 > {
   el(c: IContainer, name: string): TElementDef | null;
   attr(c: IContainer, name: string): TAttrDef | null;
-  command(c: IContainer, name: string): BindingCommandInstance | null;
+  bindables(def: TAttrDef): IAttributeBindablesInfo;
+  bindables(def: TElementDef): IElementBindablesInfo;
+  bindables(def: TAttrDef | TElementDef): IAttributeBindablesInfo | IElementBindablesInfo;
 }
 
-export const IResourceResolver = /*@__PURE__*/createInterface<IResourceResolver>('IResourceResolver');
+export const IResourceResolver = /*@__PURE__*/ createInterface<IResourceResolver>('IResourceResolver');
+
+export interface IBindingCommandResolver {
+  get(c: IContainer, name: string): BindingCommandInstance | null;
+}
+export const IBindingCommandResolver = /*@__PURE__*/ createInterface<IBindingCommandResolver>('IBindingCommandResolver', x => {
+  class DefaultBindingCommandResolver implements IBindingCommandResolver {
+    private readonly _cache = new WeakMap<IContainer, Record<string, BindingCommandInstance>>();
+    public get(c: IContainer, name: string): BindingCommandInstance | null {
+      let record = this._cache.get(c);
+      if (!record) {
+        this._cache.set(c, record = {});
+      }
+      return name in record ? record[name] : (record[name] = BindingCommand.get(c, name));
+    }
+  }
+
+  return x.singleton(DefaultBindingCommandResolver);
+});
 
 _START_CONST_ENUM();
 const enum LocalTemplateBindableAttributes {

@@ -211,7 +211,9 @@ export {
   Else,
 } from './resources/template-controllers/if';
 export {
-  Repeat
+  Repeat,
+  IRepeatableHandlerResolver,
+  IRepeatableHandler,
 } from './resources/template-controllers/repeat';
 export {
   With

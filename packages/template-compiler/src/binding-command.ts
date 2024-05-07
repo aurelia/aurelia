@@ -11,7 +11,7 @@ import {
   RefBindingInstruction,
   SpreadBindingInstruction,
 } from './instructions';
-import { aliasRegistration, definitionTypeElement, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
+import { aliasRegistration, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
 
 import type {
   Constructable,
@@ -214,17 +214,13 @@ export class OneTimeBindingCommand implements BindingCommandInstance {
     const attr = info.attr;
     let target = attr.target;
     let value = info.attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
     if (info.bindable == null) {
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      // if it looks like: <my-el value.bind>
-      // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === definitionTypeElement) {
-        value = camelCase(target);
-      }
       target = info.bindable.name;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.oneTime);
@@ -242,17 +238,13 @@ export class ToViewBindingCommand implements BindingCommandInstance {
     const attr = info.attr;
     let target = attr.target;
     let value = info.attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
     if (info.bindable == null) {
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      // if it looks like: <my-el value.bind>
-      // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === definitionTypeElement) {
-        value = camelCase(target);
-      }
       target = info.bindable.name;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.toView);
@@ -270,17 +262,13 @@ export class FromViewBindingCommand implements BindingCommandInstance {
     const attr = info.attr;
     let target = attr.target;
     let value = attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
     if (info.bindable == null) {
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      // if it looks like: <my-el value.bind>
-      // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === definitionTypeElement) {
-        value = camelCase(target);
-      }
       target = info.bindable.name;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.fromView);
@@ -298,17 +286,13 @@ export class TwoWayBindingCommand implements BindingCommandInstance {
     const attr = info.attr;
     let target = attr.target;
     let value = attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
     if (info.bindable == null) {
       target = attrMapper.map(info.node, target)
         // if the mapper doesn't know how to map it
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      // if it looks like: <my-el value.bind>
-      // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === definitionTypeElement) {
-        value = camelCase(target);
-      }
       target = info.bindable.name;
     }
     return new PropertyBindingInstruction(exprParser.parse(value, etIsProperty), target, InternalBindingMode.twoWay);
@@ -325,10 +309,11 @@ export class DefaultBindingCommand implements BindingCommandInstance {
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser, attrMapper: IAttrMapper): PropertyBindingInstruction {
     const attr = info.attr;
     const bindable = info.bindable;
+    let value = attr.rawValue;
+    let target = attr.target;
     let defDefaultMode: string | number;
     let mode: string | number;
-    let target = attr.target;
-    let value = attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
     if (bindable == null) {
       mode = attrMapper.isTwoWay(info.node, target) ? InternalBindingMode.twoWay : InternalBindingMode.toView;
       target = attrMapper.map(info.node, target)
@@ -336,11 +321,6 @@ export class DefaultBindingCommand implements BindingCommandInstance {
         // use the default behavior, which is camel-casing
         ?? camelCase(target);
     } else {
-      // if it looks like: <my-el value.bind>
-      // it means        : <my-el value.bind="value">
-      if (value === '' && info.def.type === definitionTypeElement) {
-        value = camelCase(target);
-      }
       defDefaultMode = (info.def as IAttributeComponentDefinition).defaultBindingMode ?? 0;
       mode = bindable.mode === 0 || bindable.mode == null
         ? defDefaultMode == null || defDefaultMode === 0
@@ -435,7 +415,11 @@ export class AttrBindingCommand implements BindingCommandInstance {
   public get ignoreAttr() { return true; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction(info.attr.target, exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
+    const attr = info.attr;
+    const target = attr.target;
+    let value = attr.rawValue;
+    value = value === '' ? camelCase(target) : value;
+    return new AttributeBindingInstruction(target, exprParser.parse(value, etIsProperty), target);
   }
 }
 

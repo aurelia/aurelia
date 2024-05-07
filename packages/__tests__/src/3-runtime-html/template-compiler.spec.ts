@@ -1635,7 +1635,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           result.instructions[0],
-          [new PropertyBindingInstruction(new PrimitiveLiteralExpression(''), 'id', BindingMode.toView)]
+          [new PropertyBindingInstruction(new AccessScopeExpression('id'), 'id', BindingMode.toView)]
         );
       });
 

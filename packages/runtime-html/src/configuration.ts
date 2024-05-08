@@ -40,6 +40,7 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
   SpreadRenderer,
+  SpreadValueRenderer,
 } from './renderer';
 import {
   FromViewBindingBehavior,
@@ -212,6 +213,7 @@ export const DefaultRenderers = [
   StylePropertyBindingRenderer,
   TextBindingRenderer,
   SpreadRenderer,
+  SpreadValueRenderer,
 ];
 
 export const StandardConfiguration = /*@__PURE__*/createConfiguration(noop);

@@ -1,15 +1,19 @@
+import { AccessScopeExpression, IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
-import { IObserverLocator } from '@aurelia/runtime';
-import { type Scope } from './scope';
-import { createMappedError, ErrorNames } from '../errors';
-import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
-import { ICustomElementController, IHydrationContext, IController, IHydratableController, vmkCa } from '../templating/controller';
-import { IHasController,} from '../renderer';
-import { IInstruction, ITemplateCompiler, SpreadElementPropBindingInstruction, InstructionType } from '@aurelia/template-compiler';
-import { IRendering } from '../templating/rendering';
+import { TaskQueue } from '@aurelia/platform';
+import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
+import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
+import { IAstEvaluator, astBind, astEvaluate } from '../ast.eval';
+import { ErrorNames, createMappedError } from '../errors';
 import { IPlatform } from '../platform';
-import { IBinding } from './interfaces-bindings';
+import { IHasController, } from '../renderer';
+import { CustomElementDefinition, findElementControllerFor } from '../resources/custom-element';
+import { IController, ICustomElementController, IHydratableController, IHydrationContext, vmkCa } from '../templating/controller';
+import { IRendering } from '../templating/rendering';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { IBinding, IBindingController } from './interfaces-bindings';
+import { PropertyBinding } from './property-binding';
+import { Scope } from './scope';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -68,10 +72,10 @@ export class SpreadBinding implements IBinding, IHasController {
             renderSpreadInstruction(ancestor + 1);
             break;
           case InstructionType.spreadElementProp:
-            renderers[(inst as SpreadElementPropBindingInstruction).instructions.type].render(
+            renderers[(inst as SpreadElementPropBindingInstruction).instruction.type].render(
               spreadBinding,
               findElementControllerFor(target),
-              (inst as SpreadElementPropBindingInstruction).instructions,
+              (inst as SpreadElementPropBindingInstruction).instruction,
               platform,
               exprParser,
               observerLocator,
@@ -146,5 +150,165 @@ export class SpreadBinding implements IBinding, IHasController {
       throw createMappedError(ErrorNames.no_spread_template_controller);
     }
     this.$controller.addChild(controller);
+  }
+}
+
+export interface SpreadValueBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
+export class SpreadValueBinding implements IBinding {
+  /** @internal */
+  public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+    mixinUseScope(SpreadValueBinding);
+    mixingBindingLimited(SpreadValueBinding, () => 'updateTarget');
+    connectable(SpreadValueBinding, null!);
+    mixinAstEvaluator(true, false)(SpreadValueBinding);
+  });
+
+  public isBound = false;
+
+  /** @internal */
+  public _scope?: Scope = void 0;
+
+  /**
+   * A semi-private property used by connectable mixin
+   *
+   * @internal
+   */
+  public readonly oL: IObserverLocator;
+
+  /** @internal */
+  public l: IServiceLocator;
+
+  /** @internal */
+  private readonly _taskQueue: TaskQueue;
+
+  // see Listener binding for explanation
+  /** @internal */
+  public readonly boundFn = false;
+
+  private readonly _controller: IBindingController;
+  private readonly _bindings: PropertyBinding[] = [];
+  private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
+
+  public constructor(
+    controller: IBindingController,
+    public target: object,
+    public targetKeys: string[],
+    public ast: IsBindingBehavior,
+    ol: IObserverLocator,
+    l: IServiceLocator,
+    taskQueue: TaskQueue,
+  ) {
+    this._controller = controller;
+    this.oL = ol;
+    this.l = l;
+    this._taskQueue = taskQueue;
+  }
+
+  public updateTarget(): void {
+    // do nothing
+    this.obs.version++;
+    let newValue = astEvaluate(
+      this.ast,
+      this._scope!,
+      this,
+      this
+    ) as Record<PropertyKey, unknown> | null;
+    this.obs.clear();
+
+    if (newValue == null) {
+      // dev logging
+      newValue = {};
+    } else if (!(newValue instanceof Object)) {
+      // dev logging
+      newValue = {};
+    }
+
+    this.targetKeys.forEach(key => {
+      let binding = this._bindingCache[key];
+      if (key in newValue) {
+        if (binding == null) {
+          binding = this._bindingCache[key] = new PropertyBinding(
+            this._controller,
+            this.l,
+            this.oL,
+            this._taskQueue,
+            new AccessScopeExpression(key, 0),
+            this.target,
+            key,
+            BindingMode.toView
+          );
+        }
+        binding.bind(Scope.fromParent(this._scope!, newValue));
+        this._bindings.push(binding);
+      }
+    });
+  }
+
+  public handleChange(): void {
+    /* istanbul ignore next */
+    if (!this.isBound) {
+      return;
+    }
+    this.updateTarget();
+  }
+
+  public handleCollectionChange(): void {
+    /* istanbul ignore next */
+    if (!this.isBound) {
+      return;
+    }
+    this.updateTarget();
+  }
+
+  public bind(scope: Scope) {
+    /* istanbul ignore next */
+    if (this.isBound) {
+      return;
+    }
+    this.isBound = true;
+    this._scope = scope;
+
+    astBind(this.ast, scope, this);
+
+    let value = astEvaluate(this.ast, scope, this, this) as Record<string, unknown> | null;
+
+    if (value == null) {
+      // dev logging
+      value = {};
+    } else if (!(value instanceof Object)) {
+      // dev logging
+      value = {};
+    }
+
+    this.targetKeys.forEach(key => {
+      let binding = this._bindingCache[key];
+      if (key in value) {
+        if (binding == null) {
+          binding = this._bindingCache[key] = new PropertyBinding(
+            this._controller,
+            this.l,
+            this.oL,
+            this._taskQueue,
+            new AccessScopeExpression(key, 0),
+            this.target,
+            key,
+            BindingMode.toView
+          );
+        }
+        binding.bind(Scope.fromParent(scope, value));
+        this._bindings.push(binding);
+      }
+    });
+  }
+
+  public unbind(): void {
+    /* istanbul ignore next */
+    if (!this.isBound) {
+      return;
+    }
+    this.isBound = false;
+    this._scope = void 0;
+    this._bindings.forEach(b => b.unbind());
+    this._bindings.length = 0;
   }
 }

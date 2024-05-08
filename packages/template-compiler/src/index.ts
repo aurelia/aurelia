@@ -102,6 +102,7 @@ export {
   SetStyleAttributeInstruction,
   SpreadBindingInstruction,
   SpreadElementPropBindingInstruction,
+  SpreadValueBindingInstruction,
   StylePropertyBindingInstruction,
   TextBindingInstruction
 } from './instructions';

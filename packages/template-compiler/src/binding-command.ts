@@ -10,6 +10,7 @@ import {
   PropertyBindingInstruction,
   RefBindingInstruction,
   SpreadBindingInstruction,
+  SpreadValueBindingInstruction,
 } from './instructions';
 import { aliasRegistration, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
 
@@ -471,11 +472,16 @@ export class RefBindingCommand implements BindingCommandInstance {
 export class SpreadBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
     type: bindingCommandTypeName,
-    name: '...$attrs',
+    name: 'spread',
   };
   public get ignoreAttr() { return true; }
 
-  public build(_info: ICommandBuildInfo): IInstruction {
-    return new SpreadBindingInstruction();
+  public build(info: ICommandBuildInfo): IInstruction {
+    const attr = info.attr;
+    if (attr.target === '$attrs') {
+      return new SpreadBindingInstruction();
+    } else {
+      return new SpreadValueBindingInstruction(attr.target, attr.rawValue);
+    }
   }
 }

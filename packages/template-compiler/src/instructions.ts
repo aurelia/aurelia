@@ -28,6 +28,7 @@ import { BindingMode } from './binding-mode';
 /** @internal */ export const setStyleAttribute = 'hg';
 /** @internal */ export const spreadBinding = 'hs';
 /** @internal */ export const spreadElementProp = 'hp';
+/** @internal */ export const spreadValueBinding = 'svb';
 
 export const InstructionType = /*@__PURE__*/ objectFreeze({
   hydrateElement,
@@ -50,6 +51,7 @@ export const InstructionType = /*@__PURE__*/ objectFreeze({
   setStyleAttribute,
   spreadBinding,
   spreadElementProp,
+  spreadValueBinding,
 });
 export type InstructionType = typeof InstructionType[keyof typeof InstructionType];
 
@@ -288,6 +290,14 @@ export class SpreadBindingInstruction {
 export class SpreadElementPropBindingInstruction {
   public readonly type = spreadElementProp;
   public constructor(
-    public readonly instructions: IInstruction,
+    public readonly instruction: IInstruction,
+  ) {}
+}
+
+export class SpreadValueBindingInstruction {
+  public readonly type = spreadValueBinding;
+  public constructor(
+    public target: string,
+    public from: string,
   ) {}
 }

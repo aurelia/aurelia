@@ -612,10 +612,27 @@ export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.
 );
 
 export const SpreadAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [{ pattern: '...$attrs', symbols: '' }],
+  [
+    { pattern: '...$attrs', symbols: '' },
+    { pattern: '...PART', symbols: '.' },
+    { pattern: '...bindables', symbols: '' },
+    { pattern: '...element', symbols: '' },
+  ],
   class SpreadAttributePattern {
     public '...$attrs'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, '', '...$attrs');
+      return new AttrSyntax(rawName, rawValue, '$attrs', 'spread');
+    }
+
+    public '...PART'(rawName: string, _rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawName.slice(3), 'bindables', 'spread');
+    }
+
+    public '...bindables'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, 'bindables', 'spread');
+    }
+
+    public '...element'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, 'element', 'spread');
     }
   }
 );

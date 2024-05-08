@@ -333,6 +333,35 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assert.throws(() => createFixture('<div element.spread="">'));
     });
 
+    it('does not affect non bindable properties', function () {
+      const { assertHtml, component, flush } = createFixture('<el repeat.for="item of items" ...item>', {
+        items: [
+          { id: 1, class: 'a', prop: 'alien' },
+          { id: 2, class: 'b', prop: 'alien' },
+        ]
+      }, [CustomElement.define({ name: 'el', template: '${id}--${class}--${prop}', bindables: ['id', 'class'] }, class { prop = '1'; })]);
+
+      assertHtml('<el>1--a--1</el><el>2--b--1</el>', { compact: true });
+
+      component.items[0].id = 3;
+      flush();
+      assertHtml('<el>3--a--1</el><el>2--b--1</el>', { compact: true });
+    });
+
+    it('does not try to match attribute config of a bindable', function () {
+      const { assertHtml } = createFixture('<el repeat.for="item of items" ...item>', {
+        items: [
+          { 'my-id': 1, class: 'a' },
+          { 'my-id': 2, class: 'b' },
+        ]
+      }, [CustomElement.define({
+        name: 'el',
+        template: '${id}--${class}',
+        bindables: [ { name: 'id', attribute: 'my-id' }, 'class'] })]);
+
+      assertHtml('<el>--a</el><el>--b</el>', { compact: true });
+    });
+
     it('does not create more binding than what is available in the object', function () {
       const { assertHtml, component, flush } = createFixture('<el ...bindables="item">', {
         item: { id: 1 } as any,
@@ -413,6 +442,19 @@ describe('3-runtime-html/spread.spec.ts', function () {
         items: [
           { id: 1, class: 'a' },
           { id: 2, class: 'b' },
+        ]
+      }, [El]);
+
+      assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
+    });
+
+    // todo: improve the attr parser to support this
+    // eslint-disable-next-line mocha/no-skipped-tests
+    it.skip('spreads with member access expression using shorthand syntax', function () {
+      const { assertHtml } = createFixture('<el repeat.for="item of items" ...item.details>', {
+        items: [
+          { details: { id: 1, class: 'a' } },
+          { details: { id: 2, class: 'b' } },
         ]
       }, [El]);
 

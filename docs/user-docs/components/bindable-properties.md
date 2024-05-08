@@ -547,6 +547,60 @@ export class MyEl {
 Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s (that is when the automatic type-coercion is enabled).
 {% endhint %}
 
+## Bindables spreading
+
+Spreading syntaxes are supported for simpler binding of multiple bindable properties.
+
+Given the following component:
+```typescript
+export class NameTag {
+  @bindable first
+  @bindable last
+}
+```
+with template:
+
+```html
+<b>${fist.toUpperCase()}</b> ${last}
+```
+and its usage template:
+
+```html
+<name-tag ...bindables="{ first: 'John', last: 'Doe' }"></name-tag>
+```
+
+The rendered html will be:
+```html
+<b>JOHN</b> Doe
+```
+
+Here we are using `...bindables` to express we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
+The `...bindables="..."` syntax will only connect properties that are matching with bindable properties on `<name-tag>`, so even if an object with hundreds of properties are given to a `...bindables` binding, it will still resulted in 2 bindings for `first` and `last`.
+
+`...bindables` also work with any expression, rather than literal object, per the following examples:
+
+```html
+<name-tag bindables.spread="customer1">
+<name-tag bindables.spread="customer.details">
+<name-tag bindables.spread="customer[this_that]">
+```
+
+### Shorthand syntax
+
+Sometimes when the expression of the spread binding is simple, we can simplify the binding even further. Default templating syntax of Aurelia supports a shorter version of the above examples:
+
+```html
+<name-tag ...customer1>
+<name-tag bindables.spread="customer1">
+```
+These bindings would behave the same.
+
+The following template won't work:
+```html
+<name-tag ...customer.details>
+<name-tag ...customer[this_that]>
+```
+
 ## Attributes Transferring
 
 Attribute transferring is a way to relay the binding(s) on a custom element to its child element(s).

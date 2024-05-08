@@ -86,9 +86,9 @@ export class AppRoot<
       if (!config.allowActionlessForm !== false) {
         host.addEventListener('submit', (e: Event) => {
           const target = e.target as HTMLFormElement;
-          const hasAction = (target.getAttribute('action')?.length ?? 0) > 0;
+          const noAction = !target.getAttribute('action');
 
-          if (target.tagName === 'FORM' && !hasAction) {
+          if (target.tagName === 'FORM' && noAction) {
             e.preventDefault();
           }
         }, false);

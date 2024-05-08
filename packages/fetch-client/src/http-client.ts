@@ -222,7 +222,6 @@ export class HttpClient {
       requestContentType = new Headers(requestInit.headers as Headers).get('Content-Type');
       request = new Request(getRequestUrl(this.baseUrl, input), requestInit);
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!requestContentType) {
       if (new Headers(parsedDefaultHeaders).has('content-type')) {
         if (__DEV__) {

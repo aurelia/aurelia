@@ -32,8 +32,7 @@ export const getElementDistanceToTopOfDocument = (element: Element): number => {
  */
 export const hasOverflowScroll = (element: Element): boolean => {
   const style = window.getComputedStyle(element);
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  return style && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
+  return style != null && (style.overflowY === 'scroll' || style.overflow === 'scroll' || style.overflowY === 'auto' || style.overflow === 'auto');
 };
 
 /**

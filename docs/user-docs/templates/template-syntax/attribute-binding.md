@@ -10,7 +10,21 @@ The basic syntax for binding to attributes in Aurelia is straightforward:
 <div attribute-name.bind="value"></div>
 ```
 
+- `attribute-name.bind="value"` is a binding
+- `attribute-name` is the target of the binding
+- `bind` is the command of the binding
+- `value` is the expression of the binding
+
 You can bind to almost any attribute listed in the comprehensive HTML attributes list, which can be found [here](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes).
+
+{% hint style="info" %}
+In a binding with empty expression, i.e `attribute-name.bind` or `attribute-name.bind=""`, the `expression` is automatically inferred based on the `target`: it'll have the value of the camel-case version of the `target`, so `attribute-name.bind=""` would mean `attribute-name.bind="attributeName"`. This behavior is also present in other commands:
+- `.one-time`
+- `.to-view`
+- `.from-view`
+- `.two-way`
+- `.attr`
+{% endhint %}
 
 ## Binding Techniques and Syntax
 

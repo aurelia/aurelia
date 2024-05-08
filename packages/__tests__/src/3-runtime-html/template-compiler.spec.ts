@@ -43,6 +43,7 @@ import {
   SetPropertyInstruction,
   IElementComponentDefinition,
   ITemplateCompiler,
+  SpreadValueBindingInstruction,
 } from '@aurelia/template-compiler';
 import {
   assert,
@@ -782,7 +783,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
   }
 
   describe(`combination assertions`, function () {
-    function createFixture(ctx: TestContext, ...globals: any[]) {
+    function createFixture(ctx: TestContext = TestContext.create(), ...globals: any[]) {
       const container = ctx.container;
       container.register(...globals, delegateSyntax);
       const sut = createCompilerWrapper(ctx.templateCompiler);
@@ -1526,7 +1527,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
       });
     });
 
-    describe('TemplateCompiler - combinations -- captures & ...$attrs', function () {
+    describe('TemplateCompiler - combinations -- captures & ...$attrs & ...', function () {
       const MyElement = CustomElement.define({
         name: 'my-element',
         capture: true,
@@ -1595,7 +1596,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
-          [new AttrSyntax('...$attrs', '', '', '...$attrs')]
+          [new AttrSyntax('...$attrs', '', '$attrs', 'spread')]
         );
       });
 
@@ -1610,6 +1611,16 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
           ((definition.instructions[0][0] as HydrateTemplateController).def.instructions[0][0] as any).captures,
           []
         );
+      });
+
+      it('compiles shorthand spread syntax', function () {
+        const { sut, container } = createFixture(TestContext.create(), CustomElement.define({ name: 'my-element', bindables: ['item'] }));
+        sut.resolveResources = false;
+        const definition = sut.compile({ name: 'rando', template: '<my-element ...item>' }, container);
+        verifyBindingInstructionsEqual(definition.instructions[0], [
+          new HydrateElementInstruction('my-element', [], null, false, [], {}),
+          new SpreadValueBindingInstruction('bindables', 'item')
+        ]);
       });
     });
 

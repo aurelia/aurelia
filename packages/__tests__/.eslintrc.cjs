@@ -39,7 +39,7 @@ module.exports = {
     'no-inner-declarations': 'off',
     'no-await-in-loop': 'off',
     'require-atomic-updates': 'off',
-    'quote-props': ['error', 'as-needed'],
+    'quote-props': 'off',
 
     // can only allow 1, to produce proper junit test format for later consumption
     "mocha/max-top-level-suites": ['error', {limit: 1}],

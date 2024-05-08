@@ -280,6 +280,11 @@ export class SpreadBindingInstruction {
   public readonly type = spreadBinding;
 }
 
+/**
+ * When spreading any attribute bindings onto an element,
+ * it's possible that some attributes will be targeting the bindable properties of a custom element
+ * This instruction is used to express that
+ */
 export class SpreadElementPropBindingInstruction {
   public readonly type = spreadElementProp;
   public constructor(

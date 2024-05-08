@@ -88,7 +88,6 @@ export function bindable(
           $prop = configOrProp;
         } else {
           const prop = configOrProp.name;
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
           if (!prop) throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_class_without_property_name_configuration);
           if (typeof prop !== 'string') throw createMappedError(ErrorNames.invalid_bindable_decorator_usage_symbol);
           $prop = prop;

@@ -72,7 +72,6 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
     if (elDef.containerless) {
       throw createError('Containerless custom element is not supported. Consider using buitl-in extends instead');
     }
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     const BaseClass = options?.extends
       ? this.p.document.createElement(options.extends).constructor as Constructable<HTMLElement>
       : this.p.HTMLElement;

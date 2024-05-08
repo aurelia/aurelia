@@ -226,7 +226,7 @@ export const {
         return func;
       }
       case ekAccessMember: {
-        const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
+        const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
         let ret: unknown;
         if (e?.strict) {
           if (instance == null) {
@@ -244,7 +244,6 @@ export const {
         if (c !== null && isObject(instance) && !ast.accessGlobal) {
           c.observe(instance, ast.name);
         }
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         if (instance) {
           ret = instance[ast.name];
           if (e?.boundFn && isFunction(ret)) {

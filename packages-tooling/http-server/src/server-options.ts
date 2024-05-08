@@ -31,7 +31,6 @@ export class HttpServerOptions implements IHttpServerOptions {
     const useHttps = this.useHttps;
     const key = this.key;
     const cert = this.cert;
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if ((useHttp2 || useHttps) && !(key && cert)) { // boolean coercion is needed
       throw new Error(`key and cert are required for a HTTP/2 server`);
     }

@@ -3,7 +3,7 @@ import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
 import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
-import { IAstEvaluator, astBind, astEvaluate } from '../ast.eval';
+import { IAstEvaluator, astBind, astEvaluate, astUnbind } from '../ast.eval';
 import { ErrorNames, createMappedError } from '../errors';
 import { IPlatform } from '../platform';
 import { IHasController, } from '../renderer';
@@ -124,11 +124,12 @@ export class SpreadBinding implements IBinding, IHasController {
 
   public bind(_scope: Scope): void {
     if (this.isBound) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
       return;
     }
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
+    /* istanbul ignore next */
     if (innerScope == null) {
       throw createMappedError(ErrorNames.no_spread_scope_context_found);
     }
@@ -185,8 +186,10 @@ export class SpreadValueBinding implements IBinding {
   /** @internal */
   public readonly boundFn = false;
 
+  /** @internal */
   private readonly _controller: IBindingController;
-  private readonly _bindings: PropertyBinding[] = [];
+
+  /** @internal */
   private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
 
   public constructor(
@@ -205,73 +208,72 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public updateTarget(): void {
-    // do nothing
     this.obs.version++;
-    let newValue = astEvaluate(
+    const newValue = astEvaluate(
       this.ast,
       this._scope!,
       this,
       this
-    ) as Record<PropertyKey, unknown> | null;
+    );
     this.obs.clear();
 
-    if (newValue == null) {
-      // dev logging
-      newValue = {};
-    } else if (!(newValue instanceof Object)) {
-      // dev logging
-      newValue = {};
-    }
-
-    this.targetKeys.forEach(key => {
-      let binding = this._bindingCache[key];
-      if (key in newValue) {
-        if (binding == null) {
-          binding = this._bindingCache[key] = new PropertyBinding(
-            this._controller,
-            this.l,
-            this.oL,
-            this._taskQueue,
-            new AccessScopeExpression(key, 0),
-            this.target,
-            key,
-            BindingMode.toView
-          );
-        }
-        binding.bind(Scope.fromParent(this._scope!, newValue));
-        this._bindings.push(binding);
-      }
-    });
+    this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
   }
 
   public handleChange(): void {
-    /* istanbul ignore next */
     if (!this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
   }
 
   public handleCollectionChange(): void {
-    /* istanbul ignore next */
     if (!this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
   }
 
   public bind(scope: Scope) {
-    /* istanbul ignore next */
     if (this.isBound) {
-      return;
+      if (scope === this._scope) {
+        /* istanbul ignore next */
+        return;
+      }
     }
     this.isBound = true;
     this._scope = scope;
 
     astBind(this.ast, scope, this);
 
-    let value = astEvaluate(this.ast, scope, this, this) as Record<string, unknown> | null;
+    const value = astEvaluate(this.ast, scope, this, this);
 
+    this._createBindings(value as Record<string, unknown> | null, false);
+  }
+
+  public unbind(): void {
+    if (!this.isBound) {
+      /* istanbul ignore next */
+      return;
+    }
+    this.isBound = false;
+    astUnbind(this.ast, this._scope!, this);
+    this._scope = void 0;
+    let key: string;
+    // can also try to keep track of what the active bindings are
+    // but we know in our impl, all unbind are idempotent
+    // so just be simple and unbind all
+    for (key in this._bindingCache) {
+      this._bindingCache[key].unbind();
+    }
+  }
+
+  /**
+   * @internal
+   */
+  private _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
     if (value == null) {
       // dev logging
       value = {};
@@ -280,8 +282,11 @@ export class SpreadValueBinding implements IBinding {
       value = {};
     }
 
-    this.targetKeys.forEach(key => {
-      let binding = this._bindingCache[key];
+    let key: string;
+    let binding: PropertyBinding;
+    const scope = Scope.fromParent(this._scope!, value);
+    for (key of this.targetKeys) {
+      binding = this._bindingCache[key];
       if (key in value) {
         if (binding == null) {
           binding = this._bindingCache[key] = new PropertyBinding(
@@ -289,26 +294,19 @@ export class SpreadValueBinding implements IBinding {
             this.l,
             this.oL,
             this._taskQueue,
-            new AccessScopeExpression(key, 0),
+            SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,
             BindingMode.toView
           );
         }
-        binding.bind(Scope.fromParent(scope, value));
-        this._bindings.push(binding);
+        binding.bind(scope);
+      } else if (unbind) {
+        binding?.unbind();
       }
-    });
+    }
   }
 
-  public unbind(): void {
-    /* istanbul ignore next */
-    if (!this.isBound) {
-      return;
-    }
-    this.isBound = false;
-    this._scope = void 0;
-    this._bindings.forEach(b => b.unbind());
-    this._bindings.length = 0;
-  }
+  /** @internal */
+  private static readonly _astCache: Record<string, AccessScopeExpression> = {};
 }

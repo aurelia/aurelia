@@ -23,6 +23,8 @@ import {
   SpreadElementPropBindingInstruction,
   propertyBinding,
   IInstruction,
+  SpreadBindingInstruction,
+  SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
@@ -52,7 +54,7 @@ import { ITemplateCompiler } from './interfaces-template-compiler';
 
 const auslotAttr = 'au-slot';
 const defaultSlotName = 'default';
-const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
+export const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register = /*@__PURE__*/ createImplementationRegister(ITemplateCompiler);
@@ -138,6 +140,11 @@ export class TemplateCompiler implements ITemplateCompiler {
 
       attrTarget = attrSyntax.target;
       attrValue = attrSyntax.rawValue;
+
+      if (attrTarget === '...$attrs') {
+        instructions.push(new SpreadBindingInstruction());
+        continue;
+      }
 
       bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.ignoreAttr) {
@@ -657,6 +664,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let canCapture = false;
     let needsMarker = false;
     let elementMetadata: Record<PropertyKey, unknown>;
+    let spreadIndex = 0;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -685,12 +693,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       switch (attrName) {
+        // ignore these 2 attributes
         case 'as-element':
         case 'containerless':
           removeAttr();
-          if (!hasContainerless) {
-            hasContainerless = attrName === 'containerless';
-          }
+          hasContainerless = hasContainerless || attrName === 'containerless';
           continue;
       }
 
@@ -707,7 +714,14 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        canCapture = realAttrTarget !== auslotAttr && realAttrTarget !== 'slot';
+        canCapture = realAttrTarget !== auslotAttr
+          && realAttrTarget !== 'slot'
+          && ((spreadIndex = realAttrTarget.indexOf('...')) === -1
+            // the following condition will allow syntaxes:
+            // ...$bindables
+            // ...some.expression
+            || (spreadIndex === 0 && (realAttrTarget === '...$attrs' /* || realAttrTarget === '...$element' */))
+          );
         if (canCapture) {
           bindablesInfo = context._getBindables(elDef);
           // if capture is on, capture everything except:
@@ -715,13 +729,18 @@ export class TemplateCompiler implements ITemplateCompiler {
           // - containerless
           // - bindable properties
           // - template controller
-          // - custom attribute
           if (bindablesInfo.attrs[realAttrTarget] == null && !context._findAttr(realAttrTarget)?.isTemplateController) {
             removeAttr();
             captures.push(attrSyntax);
             continue;
           }
         }
+      }
+
+      if (realAttrTarget === '...$attrs') {
+        (plainAttrInstructions ??= []).push(new SpreadBindingInstruction());
+        removeAttr();
+        continue;
       }
 
       if (bindingCommand?.ignoreAttr) {
@@ -736,10 +755,29 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
-
         removeAttr();
         // to next attribute
         continue;
+      }
+
+      if ((spreadIndex = realAttrTarget.indexOf('...')) > -1) {
+        if ((realAttrTarget = realAttrTarget.slice(3)) === '$element') {
+          throw new Error(`Spreading syntax "...$element" is reserved.`);
+        }
+        // console.log(spreadIndex, realAttrTarget);
+        if (isCustomElement) {
+          // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
+          if (realAttrTarget[0] === '$' && realAttrTarget !== '$bindables') {
+            throw new Error(`Spreading syntax "...$xxx" on custom element is reserved. Encountered "...${realAttrTarget}"`);
+          }
+          (elBindableInstructions ??= []).push(new SpreadValueBindingInstruction(
+            '$bindables',
+            realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
+          ));
+          removeAttr();
+          continue;
+        }
+        throw new Error(`Spreading syntax "...$bindables" on non custom element is not supported.`);
       }
 
       // reaching here means:
@@ -783,6 +821,46 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           continue;
         }
+
+        if (realAttrTarget === '$bindables') {
+          if (bindingCommand != null) {
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = null;
+            commandBuildInfo.def = elDef;
+
+            if (__DEV__) {
+              const instruction = bindingCommand.build(
+                commandBuildInfo,
+                context._exprParser,
+                context._attrMapper
+              );
+              if (!(instruction instanceof SpreadValueBindingInstruction)) {
+                // eslint-disable-next-line no-console
+                console.warn(`[DEV:aurelia] Binding with "$bindables" on custom element "${elDef.name}" with command ${attrSyntax.command} ` +
+                  ` did not result in a spread binding instruction. This likely won't work as expected.`
+                );
+              }
+              (elBindableInstructions ??= []).push(instruction);
+            } else {
+              (elBindableInstructions ??= []).push(bindingCommand.build(
+                commandBuildInfo,
+                context._exprParser,
+                context._attrMapper
+              ));
+            }
+          } else if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] Usage of "$bindables" on custom element "<${elDef.name}>" is ignored.`);
+          }
+
+          removeAttr();
+          continue;
+        }
+      }
+
+      if (realAttrTarget === '$bindables') {
+        throw new Error(`Usage of $bindables is only allowed on custom element. Encountered: <${el.nodeName} ${realAttrTarget}="${realAttrValue}">`);
       }
 
       // reaching here means:

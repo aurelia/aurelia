@@ -114,7 +114,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
 
   public handleChange(): void {
     if (!this.isBound) {
-      /* istanbul-ignore-next */
+      /* istanbul ignore next */
       return;
     }
     this.obs.version++;

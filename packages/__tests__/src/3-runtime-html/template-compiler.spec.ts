@@ -191,7 +191,6 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
           it('does not create a prop binding when attribute value is an empty string', function () {
             const { instructions, surrogates } = compileWith(`<template foo>hello</template>`);
-            console.log(surrogates);
             verifyInstructions(instructions, [], 'normal');
             verifyInstructions(surrogates, [
               { toVerify: ['type', 'to', 'res', 'props'], type: TT.hydrateAttribute, res: 'foo', props: [] }
@@ -1596,7 +1595,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
 
         assert.deepStrictEqual(
           (definition.instructions[0][0] as any).captures,
-          [new AttrSyntax('...$attrs', '', '$attrs', 'spread')]
+          [new AttrSyntax('...$attrs', '', '...$attrs', null)]
         );
       });
 
@@ -1618,8 +1617,16 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         sut.resolveResources = false;
         const definition = sut.compile({ name: 'rando', template: '<my-element ...item>' }, container);
         verifyBindingInstructionsEqual(definition.instructions[0], [
-          new HydrateElementInstruction('my-element', [], null, false, [], {}),
-          new SpreadValueBindingInstruction('bindables', 'item')
+          new HydrateElementInstruction('my-element', [new SpreadValueBindingInstruction('$bindables', 'item')], null, false, [], {}),
+        ]);
+      });
+
+      it('compiles shorthand $bindables syntax', function () {
+        const { sut, container } = createFixture(TestContext.create(), CustomElement.define({ name: 'my-element', bindables: ['item'] }));
+        sut.resolveResources = false;
+        const definition = sut.compile({ name: 'rando', template: '<my-element ...$bindables="item">' }, container);
+        verifyBindingInstructionsEqual(definition.instructions[0], [
+          new HydrateElementInstruction('my-element', [new SpreadValueBindingInstruction('$bindables', 'item')], null, false, [], {}),
         ]);
       });
     });

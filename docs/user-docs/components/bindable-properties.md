@@ -566,7 +566,7 @@ with template:
 and its usage template:
 
 ```html
-<name-tag ...bindables="{ first: 'John', last: 'Doe' }"></name-tag>
+<name-tag ...$bindables="{ first: 'John', last: 'Doe' }"></name-tag>
 ```
 
 The rendered html will be:
@@ -574,15 +574,15 @@ The rendered html will be:
 <b>JOHN</b> Doe
 ```
 
-Here we are using `...bindables` to express we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
-The `...bindables="..."` syntax will only connect properties that are matching with bindable properties on `<name-tag>`, so even if an object with hundreds of properties are given to a `...bindables` binding, it will still resulted in 2 bindings for `first` and `last`.
+Here we are using `...$bindables` to express we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
+The `...$bindables="..."` syntax will only connect properties that are matching with bindable properties on `<name-tag>`, so even if an object with hundreds of properties are given to a `...$bindables` binding, it will still resulted in 2 bindings for `first` and `last`.
 
-`...bindables` also work with any expression, rather than literal object, per the following examples:
+`...$bindables` also work with any expression, rather than literal object, per the following examples:
 
 ```html
-<name-tag bindables.spread="customer1">
-<name-tag bindables.spread="customer.details">
-<name-tag bindables.spread="customer[this_that]">
+<name-tag $bindables.spread="customer1">
+<name-tag $bindables.spread="customer.details">
+<name-tag $bindables.spread="customer[this_that]">
 ```
 
 ### Shorthand syntax
@@ -591,15 +591,14 @@ Sometimes when the expression of the spread binding is simple, we can simplify t
 
 ```html
 <name-tag ...customer1>
-<name-tag bindables.spread="customer1">
-```
-These bindings would behave the same.
-
-The following template won't work:
-```html
 <name-tag ...customer.details>
 <name-tag ...customer[this_that]>
 ```
+
+{% hint style="warning" %}
+- Remember that HTML is case insensitive, so `...firstName` actually will be seen as `...firstname`, for example
+- If the expression contains space, it will result into multiple attributes and thus won't work as intended with spread syntax `...`
+{% endhint %}
 
 ## Attributes Transferring
 

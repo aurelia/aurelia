@@ -297,7 +297,7 @@ export class SpreadElementPropBindingInstruction {
 export class SpreadValueBindingInstruction {
   public readonly type = spreadValueBinding;
   public constructor(
-    public target: string,
+    public target: '$bindables' | '$element',
     public from: string,
   ) {}
 }

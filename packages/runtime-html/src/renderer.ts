@@ -726,9 +726,6 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
 }, null!);
 
 export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRenderer implements IRenderer {
-  /** @internal */ public readonly _compiler = resolve(ITemplateCompiler);
-  /** @internal */ public readonly _rendering = resolve(IRendering);
-
   public readonly target = InstructionType.spreadValueBinding;
   public constructor() {
     SpreadValueBinding.mix();
@@ -736,26 +733,22 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
 
   public render(
     renderingCtrl: IHydratableController,
-    target: HTMLElement,
+    target: ICustomElementController | HTMLElement,
     instruction: SpreadValueBindingInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
     const instructionTarget = instruction.target;
-    if (instructionTarget === 'bindables') {
-      const targetController = CustomElement.for(target, { optional: true });
-      const isCustomElement = targetController != null;
-
-      if (!isCustomElement) {
-        throw new Error('Spreading to bindables on not a csutom element');
+    if (instructionTarget === '$bindables') {
+      if ('nodeType' in target) {
+        throw new Error('Spreading to bindables onto non custom element');
       }
-
       renderingCtrl.addBinding(new SpreadValueBinding(
         renderingCtrl,
-        targetController.viewModel,
-        Object.keys(targetController.definition.bindables),
-        exprParser.parse(instruction.from, 'IsProperty'),
+        target.viewModel,
+        objectKeys(target.definition.bindables),
+        exprParser.parse(instruction.from, etIsProperty),
         observerLocator,
         renderingCtrl.container,
         platform.domWriteQueue

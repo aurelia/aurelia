@@ -14,6 +14,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
 import { Scope } from './scope';
+import { isObject } from '../utilities';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -123,13 +124,13 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   public bind(_scope: Scope): void {
+    /* istanbul ignore if */
     if (this.isBound) {
-      /* istanbul ignore next */
       return;
     }
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
-    /* istanbul ignore next */
+    /* istanbul ignore if */
     if (innerScope == null) {
       throw createMappedError(ErrorNames.no_spread_scope_context_found);
     }
@@ -164,6 +165,9 @@ export class SpreadValueBinding implements IBinding {
     mixinAstEvaluator(true, false)(SpreadValueBinding);
   });
 
+  /** @internal */
+  private static readonly _astCache: Record<string, AccessScopeExpression> = {};
+
   public isBound = false;
 
   /** @internal */
@@ -191,6 +195,10 @@ export class SpreadValueBinding implements IBinding {
 
   /** @internal */
   private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
+  // not a static weakmap because we want to clear the cache when the binding is disposed
+  // also different binding at different logic with the same object shouldn't be sharing the same override context
+  /** @internal */
+  private readonly _scopeCache = new WeakMap<object, Scope>();
 
   public constructor(
     controller: IBindingController,
@@ -221,25 +229,25 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public handleChange(): void {
+      /* istanbul ignore if */
     if (!this.isBound) {
-      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
   }
 
   public handleCollectionChange(): void {
+      /* istanbul ignore if */
     if (!this.isBound) {
-      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
   }
 
   public bind(scope: Scope) {
+      /* istanbul ignore if */
     if (this.isBound) {
       if (scope === this._scope) {
-        /* istanbul ignore next */
         return;
       }
     }
@@ -254,8 +262,8 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public unbind(): void {
+      /* istanbul ignore if */
     if (!this.isBound) {
-      /* istanbul ignore next */
       return;
     }
     this.isBound = false;
@@ -275,16 +283,30 @@ export class SpreadValueBinding implements IBinding {
    */
   private _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
     if (value == null) {
-      // dev logging
       value = {};
-    } else if (!(value instanceof Object)) {
-      // dev logging
+      /* istanbul ignore if */
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] $bindable spread is given a null/undefined value for properties: "${this.targetKeys.join(', ')}"`);
+      }
+    } else if (!isObject(value)) {
       value = {};
+      /* istanbul ignore if */
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] $bindable spread is given a non-object value for properties: "${this.targetKeys.join(', ')}"`);
+      }
     }
 
     let key: string;
     let binding: PropertyBinding;
-    const scope = Scope.fromParent(this._scope!, value);
+
+    // use a cache as we don't wanna cause bindings to "move" (bind/unbind)
+    // whenever there's a new evaluation
+    let scope = this._scopeCache.get(value);
+    if (scope == null) {
+      this._scopeCache.set(value, scope = Scope.fromParent(this._scope!, value));
+    }
     for (key of this.targetKeys) {
       binding = this._bindingCache[key];
       if (key in value) {
@@ -306,7 +328,4 @@ export class SpreadValueBinding implements IBinding {
       }
     }
   }
-
-  /** @internal */
-  private static readonly _astCache: Record<string, AccessScopeExpression> = {};
 }

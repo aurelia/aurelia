@@ -756,7 +756,7 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
 
   public render(
     renderingCtrl: IHydratableController,
-    target: ICustomElementController | HTMLElement,
+    target: ICustomElementController,
     instruction: SpreadValueBindingInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
@@ -764,9 +764,6 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
   ): void {
     const instructionTarget = instruction.target;
     if (instructionTarget === '$bindables') {
-      if ('nodeType' in target) {
-        throw createMappedError(ErrorNames.spreading_bindable_onto_non_component);
-      }
       renderingCtrl.addBinding(new SpreadValueBinding(
         renderingCtrl,
         target.viewModel,

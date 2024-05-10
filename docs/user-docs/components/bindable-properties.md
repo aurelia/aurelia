@@ -583,6 +583,9 @@ The `...$bindables="..."` syntax will only connect properties that are matching 
 <name-tag $bindables.spread="customer1">
 <name-tag $bindables.spread="customer.details">
 <name-tag $bindables.spread="customer[this_that]">
+<name-tag $bindables="customer1 | mapDetails">
+<name-tag $bindables="customer.details | simplify">
+<name-tag $bindables="customer[this_that] | addDetails">
 ```
 
 ### Shorthand syntax
@@ -593,10 +596,16 @@ Sometimes when the expression of the spread binding is simple, we can simplify t
 <name-tag ...customer1>
 <name-tag ...customer.details>
 <name-tag ...customer[this_that]>
+
+or if you need space in the expression:
+<name-tag ...$bindables="customer1 | mapDetails">
+<name-tag ...$bindables="customer.details | simplify">
+<name-tag ...$bindables="customer[this_that] | addDetails">
 ```
 
 {% hint style="warning" %}
 - Remember that HTML is case insensitive, so `...firstName` actually will be seen as `...firstname`, for example
+- Bindables properties will be tried to matched as is, which means a `firstName` bindable property will match an object `firstName` property, but not `first-name`
 - If the expression contains space, it will result into multiple attributes and thus won't work as intended with spread syntax `...`.
 For example `...a + b` will be actually turned into 3 attributes: `...a`, `+` and `b`
 {% endhint %}
@@ -642,9 +651,11 @@ If it's desirable to reset the observation, give a new object to the spread bind
 ```
 
 {% hint style="success" %}
-With the above behavior of non-eager binding, applications can have the opportunity to leave some bindable properties alone,
-while with the opposite of always observing all properties on the given object based on the number of bindable properties,
+- With the above behavior of non-eager binding, applications can have the opportunity to leave some bindable properties untouched,
+while with the opposite behavior of always observing all properties on the given object based on the number of bindable properties,
 missing value (`null`/`undefined`) will start flowing in in an unwanted way.
+- All bindings created with `$bindables.spread` or `...` syntax will have binding mode equivalent to `to-view`, binding behavior cannot alter this.
+Though other binding behavior like `throttle`/`debounce` can still work.
 {% endhint %}
 
 ## Attributes Transferring

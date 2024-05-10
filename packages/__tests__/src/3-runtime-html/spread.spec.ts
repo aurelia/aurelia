@@ -1,5 +1,5 @@
 import { Constructable, resolve } from '@aurelia/kernel';
-import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
+import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/spread.spec.ts', function () {
@@ -368,11 +368,11 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('does not throw when expression returns null/undefined', function () {
-      assert.doesNotThrow(() => createFixture('<el repeat.for="item of items" ...$bindables="null">', {}, [El]));
+      assert.doesNotThrow(() => createFixture('<el ...null $bindables.spread="null" ...$bindables="null">', {}, [El]));
     });
 
     it('does not throw when expression returns a primitive', function () {
-      assert.doesNotThrow(() => createFixture('<el repeat.for="item of items" ...$bindables="1">', {}, [El]));
+      assert.doesNotThrow(() => createFixture('<el $bindables.spread="1" ...$bindables="1" ...1>', {}, [El]));
     });
 
     it('does not affect non bindable properties', function () {
@@ -537,6 +537,20 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
+    it('works with collection mutation', function () {
+      const { assertHtml, component, flush } = createFixture('<el ...items[0].details>', {
+        items: [
+          { details: { id: 1, class: 'a' } },
+          { details: { id: 2, class: 'b' } },
+        ]
+      }, [El]);
+
+      assertHtml('<el>1--a</el>');
+      component.items.push({ details: { id: 3, class: 'c' } });
+      flush();
+      assertHtml('<el>1--a</el>');
+    });
+
     it('cannot be transferred by ...$attrs', function () {
       const ElWithAttrs = CustomElement.define({
         name: 'el-with-attrs',
@@ -547,6 +561,43 @@ describe('3-runtime-html/spread.spec.ts', function () {
 
       const { assertHtml } = createFixture('<el-with-attrs ...item>', { item: { id: 1, class: 'a' } }, [El, ElWithAttrs]);
       assertHtml('<el-with-attrs><el>--</el></el-with-attrs>');
+    });
+
+    it('does not cause child property bindings to be bound again when the new evaluation returns the same object', function () {
+      let id = 0;
+      let idCount = 0;
+      let classValue = 'a';
+      let classCount = 0;
+      const El = CustomElement.define({ name: 'el', template: '${id}--${class}', bindables: ['id', 'class'] }, class {
+        get id() {
+          return id;
+        }
+        set id(v) {
+          idCount++;
+          id = v;
+        }
+        get class() {
+          return classValue;
+        }
+        set class(v) {
+          classCount++;
+          classValue = v;
+        }
+      });
+      const { assertHtml, component, flush } = createFixture('<el ...$bindables="item | move:i">', {
+        i: 0,
+        item: { id: 1, class: 'a' },
+      }, [El, ValueConverter.define('move', class { })]);
+
+      assert.strictEqual(idCount, 1);
+      assert.strictEqual(classCount, 1);
+
+      component.i = 1;
+      flush();
+      // when child bindings of a spread binding are not re-bound, the count should not increase
+      assert.strictEqual(idCount, 1);
+      assert.strictEqual(classCount, 1);
+      assertHtml('<el>1--a</el>');
     });
 
     it('works with $attr when used before ...$attrs on the same element', function () {

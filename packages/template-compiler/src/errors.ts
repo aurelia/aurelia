@@ -31,6 +31,9 @@ export const enum ErrorNames {
   compiler_slot_without_shadowdom = 717,
   compiler_no_spread_tc = 718,
   compiler_attr_mapper_duplicate_mapping = 719,
+  compiler_no_reserved_spread_syntax = 720,
+  compiler_no_reserved_$bindable = 721,
+  compiler_no_dom_api = 722,
   no_spread_template_controller = 9998,
 }
 _END_CONST_ENUM();
@@ -56,8 +59,11 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.compiler_local_name_empty]: `Template compilation error: the value of "as-custom-element" attribute cannot be empty for local element in element "{{0}}"`,
   [ErrorNames.compiler_duplicate_local_name]: `Template compilation error: duplicate definition of the local template named "{{0}} in element {{1}}"`,
   [ErrorNames.compiler_slot_without_shadowdom]: `Template compilation error: detected a usage of "<slot>" element without specifying shadow DOM options in element: {{0}}`,
-  [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
   [ErrorNames.compiler_no_spread_tc]: `Spreading template controller "{{0}}" is not supported.`,
+  [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
+  [ErrorNames.compiler_no_reserved_spread_syntax]: `Spreading syntax "...xxx" is reserved. Encountered "...{{0}}"`,
+  [ErrorNames.compiler_no_reserved_$bindable]: `Usage of $bindables is only allowed on custom element. Encountered: <{{0}} {{1}}="{{2}}">`,
+  [ErrorNames.compiler_no_dom_api]: 'Invalid platform object provided to the compilation, no DOM API found.',
 
   [ErrorNames.no_spread_template_controller]: 'Spread binding does not support spreading custom attributes/template controllers. Did you build the spread instruction manually?',
 };

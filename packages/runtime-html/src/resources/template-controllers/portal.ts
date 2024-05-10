@@ -298,7 +298,7 @@ export class Portal implements ICustomAttributeViewModel {
         insertManyBefore(parent, target.nextSibling, nodes);
         break;
       default:
-        throw new Error('Invalid portal insertion position');
+        throw createMappedError(ErrorNames.portal_invalid_insert_position, position);
     }
   }
 

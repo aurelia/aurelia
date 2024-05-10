@@ -615,6 +615,37 @@ Then the value of the `first` property in `NameTag` with `id=1` will be `Jane`, 
 - An exception of this order is when bindables spreading is used together with [`...$attrs`](#attributes-transferring), `...$attrs` will always result in bindings after `...$bindables`/`$bindables.spread`/`...expression`.
 {% endhint %}
 
+### Observation behavior
+
+Bindings will be created based on the keys available in the object evaluated from the `expression` of a spread binding. The following example illustrate the behavior:
+
+For the `NameTag` component above:
+```html
+<let item.bind="{ first: 'John' }">
+<name-tag ...item></name-tag>
+<button click.trigger="item.last = 'Doe'">Change last name</button>
+```
+
+The rendered HTML of `<name-tag>` will be
+```html
+<b>JOHN</b>
+```
+
+When clicking on the button with text `Change last name`, the rendered html of `<name-tag>` won't be changed,
+as the original object given to `<name-tag>` doesn't contain `last`, hence it wasn't observed, which ignore our new value set from the button click.
+If it's desirable to reset the observation, give a new object to the spread binding, like the following example:
+
+```html
+<let item.bind="{ first: 'John' }">
+<name-tag ...item></name-tag>
+<button click.trigger="item = { first: item.name, last: 'Doe' }">Change last name</button>
+```
+
+{% hint style="success" %}
+With the above behavior of non-eager binding, applications can have the opportunity to leave some bindable properties alone,
+while with the opposite of always observing all properties on the given object based on the number of bindable properties,
+missing value (`null`/`undefined`) will start flowing in in an unwanted way.
+{% endhint %}
 
 ## Attributes Transferring
 

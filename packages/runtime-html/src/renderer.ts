@@ -765,7 +765,7 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
     const instructionTarget = instruction.target;
     if (instructionTarget === '$bindables') {
       if ('nodeType' in target) {
-        throw new Error('Spreading to bindables onto non custom element');
+        throw createMappedError(ErrorNames.spreading_bindable_onto_non_component);
       }
       renderingCtrl.addBinding(new SpreadValueBinding(
         renderingCtrl,
@@ -777,7 +777,7 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
         platform.domWriteQueue
       ));
     } else {
-      throw new Error(`Invalid spread target ${instructionTarget}`);
+      throw createMappedError(ErrorNames.spreading_invalid_target, instructionTarget);
     }
   }
 }, null!);

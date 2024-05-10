@@ -54,25 +54,8 @@ export const enum ErrorNames {
   node_observer_mapping_existed = 653,
   select_observer_array_on_non_multi_select = 654,
 
-  compiler_root_is_local = 701,
-  compiler_invalid_surrogate_attr = 702,
-  compiler_no_tc_on_surrogate = 703,
-  compiler_invalid_let_command = 704,
-  compiler_au_slot_on_non_element = 706,
-  compiler_binding_to_non_bindable = 707,
-  compiler_template_only_local_template = 708,
-  compiler_local_el_not_under_root = 709,
-  compiler_local_el_bindable_not_under_root = 710,
-  compiler_local_el_bindable_name_missing = 711,
-  compiler_local_el_bindable_duplicate = 712,
-  compiler_unknown_binding_command = 713,
   compiler_primary_already_existed = 714,
-  compiler_local_name_empty = 715,
-  compiler_duplicate_local_name = 716,
-  compiler_slot_without_shadowdom = 717,
-  compiler_no_spread_tc = 718,
   compiler_attr_mapper_duplicate_mapping = 719,
-
   root_not_found = 767,
   aurelia_instance_existed_in_container = 768,
   invalid_platform_impl = 769,
@@ -109,6 +92,8 @@ export const enum ErrorNames {
   repeat_non_countable = 778,
   repeat_mismatch_length = 814,
 
+  portal_invalid_insert_position = 779,
+
   self_behavior_invalid_usage = 801,
   update_trigger_behavior_no_triggers = 802,
   update_trigger_invalid_usage = 803,
@@ -125,6 +110,9 @@ export const enum ErrorNames {
 
   signal_behavior_invalid_usage = 817,
   signal_behavior_no_signals = 818,
+
+  spreading_bindable_onto_non_component = 819,
+  spreading_invalid_target = 820,
 
   no_spread_scope_context_found = 9999,
   no_spread_template_controller = 9998,
@@ -197,24 +185,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.node_observer_mapping_existed]: `Mapping for property {{0}} of <{{1}} /> already exists`,
   [ErrorNames.select_observer_array_on_non_multi_select]: `Array values can only be bound to a multi-select.`,
 
-  [ErrorNames.compiler_root_is_local]: `Template compilation error in element "{{0:name}}": the root <template> cannot be a local element template.`,
-  [ErrorNames.compiler_invalid_surrogate_attr]: `Template compilation error: attribute "{{0}}" is invalid on element surrogate.`,
-  [ErrorNames.compiler_no_tc_on_surrogate]: `Template compilation error: template controller "{{0}}" is invalid on element surrogate.`,
-  [ErrorNames.compiler_invalid_let_command]: `Template compilation error: Invalid command "{{0:.command}}" for <let>. Only to-view/bind supported.`,
-  [ErrorNames.compiler_au_slot_on_non_element]: `Template compilation error: detected projection with [au-slot="{{0}}"] attempted on a non custom element {{1}}.`,
-  [ErrorNames.compiler_binding_to_non_bindable]: `Template compilation error: creating binding to non-bindable property {{0}} on {{1}}.`,
-  [ErrorNames.compiler_template_only_local_template]: `Template compilation error: the custom element "{{0}}" does not have any content other than local template(s).`,
-  [ErrorNames.compiler_local_el_not_under_root]: `Template compilation error: local element template needs to be defined directly under root of element "{{0}}".`,
-  [ErrorNames.compiler_local_el_bindable_not_under_root]: `Template compilation error: bindable properties of local element "{{0}}" template needs to be defined directly under <template>.`,
-  [ErrorNames.compiler_local_el_bindable_name_missing]: `Template compilation error: the attribute 'property' is missing in {{0:outerHTML}} in local element "{{1}}"`,
-  [ErrorNames.compiler_local_el_bindable_duplicate]: `Template compilation error: Bindable property and attribute needs to be unique; found property: {{0}}, attribute: {{1}}`,
-  [ErrorNames.compiler_unknown_binding_command]: `Template compilation error: unknown binding command: "{{0}}".{{0:bindingCommandHelp}}`,
   [ErrorNames.compiler_primary_already_existed]: `Template compilation error: primary already exists on element/attribute "{{0}}"`,
-  [ErrorNames.compiler_local_name_empty]: `Template compilation error: the value of "as-custom-element" attribute cannot be empty for local element in element "{{0}}"`,
-  [ErrorNames.compiler_duplicate_local_name]: `Template compilation error: duplicate definition of the local template named "{{0}} in element {{1}}"`,
-  [ErrorNames.compiler_slot_without_shadowdom]: `Template compilation error: detected a usage of "<slot>" element without specifying shadow DOM options in element: {{0}}`,
   [ErrorNames.compiler_attr_mapper_duplicate_mapping]: `Attribute {{0}} has been already registered for {{1:element}}`,
-  [ErrorNames.compiler_no_spread_tc]: `Spreading template controller "{{0}}" is not supported.`,
 
   [ErrorNames.root_not_found]: `Aurelia.root was accessed without a valid root.`,
   [ErrorNames.aurelia_instance_existed_in_container]: `An instance of Aurelia is already registered with the container or an ancestor of it.`,
@@ -242,6 +214,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.repeat_non_countable]: `Unsupported: [repeat] cannot count {{0:toString}}`,
   [ErrorNames.repeat_mismatch_length]: `[repeat] encountered an error: number of views != number of items {{0:join(!=)}}`,
 
+  [ErrorNames.portal_invalid_insert_position]: 'Invalid portal insertion position: {{0}}',
+
   [ErrorNames.self_behavior_invalid_usage]: `"& self" binding behavior only supports listener binding via trigger/capture command.`,
   [ErrorNames.update_trigger_behavior_no_triggers]: `"& updateTrigger" invalid usage. This binding behavior requires at least one event name argument: eg <input value.bind="firstName & updateTrigger:'blur'">`,
   [ErrorNames.update_trigger_invalid_usage]: `"& updateTrigger" invalid usage. This binding behavior can only be applied to two-way/ from-view bindings.`,
@@ -258,6 +232,9 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.switch_no_multiple_default]: `Invalid [default-case] usage. Multiple 'default-case's are not allowed.`,
   [ErrorNames.signal_behavior_invalid_usage]: `"& signal" binding behavior can only be used with bindings that have a "handleChange" method`,
   [ErrorNames.signal_behavior_no_signals]: `"& signal" invalid usage. At least one signal name must be passed to the signal behavior, e.g. "expr & signal:'my-signal'"`,
+
+  [ErrorNames.spreading_bindable_onto_non_component]: 'Spreading to bindables onto non custom element',
+  [ErrorNames.spreading_invalid_target]: `Invalid spread target {{0}}`,
 
   [ErrorNames.no_spread_scope_context_found]: 'No scope context for spread binding.',
   [ErrorNames.no_spread_template_controller]: 'Spread binding does not support spreading custom attributes/template controllers. Did you build the spread instruction manually?',

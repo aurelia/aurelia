@@ -766,7 +766,7 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        throw new Error(`Spreading syntax "...xxx" is reserved. Encountered "...${realAttrTarget}"`);
+        throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
       }
 
       // reaching here means:
@@ -849,7 +849,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       if (realAttrTarget === '$bindables') {
-        throw new Error(`Usage of $bindables is only allowed on custom element. Encountered: <${el.nodeName} ${realAttrTarget}="${realAttrValue}">`);
+        throw createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
       }
 
       // reaching here means:
@@ -1745,7 +1745,7 @@ class CompilationContext {
     this._attrMapper = hasParent ? parent._attrMapper : container.get(IAttrMapper);
     this._logger = hasParent ? parent._logger : container.get(ILogger);
     if (typeof (this.p = hasParent ? parent.p : container.get(IPlatform) as unknown as IDomPlatform).document?.nodeType !== 'number') {
-      throw new Error('Invalid platform');
+      throw createMappedError(ErrorNames.compiler_no_dom_api);
     }
     this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];

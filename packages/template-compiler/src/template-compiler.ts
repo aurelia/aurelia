@@ -23,7 +23,7 @@ import {
   SpreadElementPropBindingInstruction,
   propertyBinding,
   IInstruction,
-  SpreadBindingInstruction,
+  SpreadTransferedBindingInstruction,
   SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
@@ -142,7 +142,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrValue = attrSyntax.rawValue;
 
       if (attrTarget === '...$attrs') {
-        instructions.push(new SpreadBindingInstruction());
+        instructions.push(new SpreadTransferedBindingInstruction());
         continue;
       }
 
@@ -162,6 +162,36 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         // to next attribute
         continue;
+      }
+
+      if (isCustomElement) {
+        // if the element is a custom element
+        // - prioritize bindables on a custom element before plain attributes
+        bindablesInfo = context._getBindables(elDef);
+        bindable = bindablesInfo.attrs[attrTarget];
+        if (bindable !== void 0) {
+          if (bindingCommand == null) {
+            expr = exprParser.parse(attrValue, etInterpolation);
+            instructions.push(
+              new SpreadElementPropBindingInstruction(
+                expr == null
+                  ? new SetPropertyInstruction(attrValue, bindable.name)
+                  : new InterpolationInstruction(expr, bindable.name)
+              )
+            );
+          } else {
+            commandBuildInfo.node = target;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = bindable;
+            commandBuildInfo.def = elDef;
+            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
+              commandBuildInfo,
+              context._exprParser,
+              context._attrMapper
+            )));
+          }
+          continue;
+        }
       }
 
       attrDef = context._findAttr(attrTarget);
@@ -220,29 +250,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      if (bindingCommand === null) {
+      if (bindingCommand == null) {
         expr = exprParser.parse(attrValue, etInterpolation);
 
         // reaching here means:
-        // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (isCustomElement) {
-          bindablesInfo = context._getBindables(elDef);
-          bindable = bindablesInfo.attrs[attrTarget];
-          if (bindable !== void 0) {
-            expr = exprParser.parse(attrValue, etInterpolation);
-            instructions.push(
-              new SpreadElementPropBindingInstruction(
-                expr == null
-                  ? new SetPropertyInstruction(attrValue, bindable.name)
-                  : new InterpolationInstruction(expr, bindable.name)
-              )
-            );
-
-            continue;
-          }
-        }
 
         if (expr != null) {
           instructions.push(new InterpolationInstruction(
@@ -268,25 +281,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        if (isCustomElement) {
-          // if the element is a custom element
-          // - prioritize bindables on a custom element before plain attributes
-          bindablesInfo = context._getBindables(elDef);
-          bindable = bindablesInfo.attrs[attrTarget];
-          if (bindable !== void 0) {
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
-            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
-              commandBuildInfo,
-              context._exprParser,
-              context._attrMapper
-            )));
-            continue;
-          }
-        }
-
+        // reaching here means:
+        // + a plain attribute with binding command
         commandBuildInfo.node = target;
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
@@ -738,7 +734,7 @@ export class TemplateCompiler implements ITemplateCompiler {
       }
 
       if (realAttrTarget === '...$attrs') {
-        (plainAttrInstructions ??= []).push(new SpreadBindingInstruction());
+        (plainAttrInstructions ??= []).push(new SpreadTransferedBindingInstruction());
         removeAttr();
         continue;
       }
@@ -760,16 +756,8 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      if ((spreadIndex = realAttrTarget.indexOf('...')) > -1) {
-        if ((realAttrTarget = realAttrTarget.slice(3)) === '$element') {
-          throw new Error(`Spreading syntax "...$element" is reserved.`);
-        }
-        // console.log(spreadIndex, realAttrTarget);
-        if (isCustomElement) {
-          // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-          if (realAttrTarget[0] === '$' && realAttrTarget !== '$bindables') {
-            throw new Error(`Spreading syntax "...$xxx" on custom element is reserved. Encountered "...${realAttrTarget}"`);
-          }
+      if (realAttrTarget.indexOf('...') === 0) {
+        if (isCustomElement && (realAttrTarget = realAttrTarget.slice(3)) !== '$element') {
           (elBindableInstructions ??= []).push(new SpreadValueBindingInstruction(
             '$bindables',
             realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
@@ -777,7 +765,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           removeAttr();
           continue;
         }
-        throw new Error(`Spreading syntax "...$bindables" on non custom element is not supported.`);
+
+        throw new Error(`Spreading syntax "...xxx" is reserved. Encountered "...${realAttrTarget}"`);
       }
 
       // reaching here means:

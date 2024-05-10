@@ -100,7 +100,7 @@ export {
   SetClassAttributeInstruction,
   SetPropertyInstruction,
   SetStyleAttributeInstruction,
-  SpreadBindingInstruction,
+  SpreadTransferedBindingInstruction,
   SpreadElementPropBindingInstruction,
   SpreadValueBindingInstruction,
   StylePropertyBindingInstruction,

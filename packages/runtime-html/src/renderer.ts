@@ -38,7 +38,30 @@ import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 import type { IHydratableController } from './templating/controller';
 import { ErrorNames, createMappedError } from './errors';
 import { SpreadBinding, SpreadValueBinding } from './binding/spread-binding';
-import { AttributeBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IInstruction, ITemplateCompiler, InstructionType, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, ListenerBindingInstruction, PropertyBindingInstruction, RefBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, SpreadBindingInstruction, SpreadValueBindingInstruction, StylePropertyBindingInstruction, TextBindingInstruction } from '@aurelia/template-compiler';
+import {
+  AttributeBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateLetElementInstruction,
+  HydrateTemplateController,
+  IInstruction,
+  ITemplateCompiler,
+  InstructionType,
+  InterpolationInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  ListenerBindingInstruction,
+  PropertyBindingInstruction,
+  RefBindingInstruction,
+  SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetPropertyInstruction,
+  SetStyleAttributeInstruction,
+  SpreadTransferedBindingInstruction,
+  SpreadValueBindingInstruction,
+  StylePropertyBindingInstruction,
+  TextBindingInstruction
+} from '@aurelia/template-compiler';
 
 /**
  * An interface describing an instruction renderer
@@ -706,7 +729,7 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    instruction: SpreadBindingInstruction,
+    instruction: SpreadTransferedBindingInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,

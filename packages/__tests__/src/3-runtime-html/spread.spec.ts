@@ -1,4 +1,4 @@
-import { Constructable } from '@aurelia/kernel';
+import { Constructable, resolve } from '@aurelia/kernel';
 import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -273,6 +273,21 @@ describe('3-runtime-html/spread.spec.ts', function () {
           assert.strictEqual(component.prop4, 'prop 5');
         },
       });
+
+      it('spreads custom attribute into custom element bindable', function () {
+        const Child = CustomElement.define({ name: 'child', template: '${id}--${size}', bindables: ['id', 'size'] }, class Child {});
+        const El = CustomElement.define({ name: 'el', template: '<child ...$attrs>', dependencies: [Child], capture: true }, class El {});
+        const Size = CustomAttribute.define('size', class {
+          host = resolve(INode) as HTMLElement;
+          binding() {
+            this.host.setAttribute('size', '1');
+          }
+        });
+
+        const { assertHtml } = createFixture('<el id="1" size="2">', {}, [El, Size]);
+
+        assertHtml('<el><child>1--2</child></el>');
+      });
     });
 
     function runTest<T>(title: string, { template, assertFn, component, registrations }: ISpreadTestCase<T>, only?: boolean) {
@@ -333,6 +348,8 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assert.throws(() => createFixture('<div $element.spread="">'));
       assert.throws(() => createFixture('<div ...$blabla="">'));
       assert.throws(() => createFixture('<div $bindables="">'));
+      assert.throws(() => createFixture('<div ...whatever="">'));
+      assert.throws(() => createFixture('<div ...="">'));
     });
 
     it('spreads with ... syntax', function () {

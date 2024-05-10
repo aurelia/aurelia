@@ -597,8 +597,24 @@ Sometimes when the expression of the spread binding is simple, we can simplify t
 
 {% hint style="warning" %}
 - Remember that HTML is case insensitive, so `...firstName` actually will be seen as `...firstname`, for example
-- If the expression contains space, it will result into multiple attributes and thus won't work as intended with spread syntax `...`
+- If the expression contains space, it will result into multiple attributes and thus won't work as intended with spread syntax `...`.
+For example `...a + b` will be actually turned into 3 attributes: `...a`, `+` and `b`
 {% endhint %}
+
+### Binding orders
+
+The order of the bindings created will be the same with the order declared in the template. For example, for the `NameTag` component above, if we have a usage
+
+```html
+<name-tag id="1" first="John" ...$bindables="{ first: 'Jane' }">
+<name-tag id="2" ...$bindables="{ first: 'Jane' }" first="John">
+```
+Then the value of the `first` property in `NameTag` with `id=1` will be `Jane`, and the value of `first` property in `NameTag` with `id=2` will be `John`.
+
+{% hint style="warning" %}
+- An exception of this order is when bindables spreading is used together with [`...$attrs`](#attributes-transferring), `...$attrs` will always result in bindings after `...$bindables`/`$bindables.spread`/`...expression`.
+{% endhint %}
+
 
 ## Attributes Transferring
 

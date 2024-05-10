@@ -278,7 +278,7 @@ export class AttributeBindingInstruction {
   ) {}
 }
 
-export class SpreadBindingInstruction {
+export class SpreadTransferedBindingInstruction {
   public readonly type = spreadBinding;
 }
 

@@ -574,7 +574,7 @@ The rendered html will be:
 <b>JOHN</b> Doe
 ```
 
-Here we are using `...$bindables` to express we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
+Here we are using `...$bindables` to express that we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
 The `...$bindables="..."` syntax will only connect properties that are matching with bindable properties on `<name-tag>`, so even if an object with hundreds of properties are given to a `...$bindables` binding, it will still resulted in 2 bindings for `first` and `last`.
 
 `...$bindables` also work with any expression, rather than literal object, per the following examples:

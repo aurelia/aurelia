@@ -142,11 +142,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   // @ts-ignore
   const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
-  // const esmDevDist = 'dist/esm/index.dev.mjs';
-  // const cjsDevDist = 'dist/cjs/index.dev.cjs';
-  // const esmDist = 'dist/esm/index.mjs';
-  // const cjsDist = 'dist/cjs/index.cjs';
-  // const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY' || warning.code === 'MIXED_EXPORTS') return;
@@ -162,14 +157,12 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         dir: 'dist',
         entryFileNames: 'esm/index.dev.mjs',
-        // file: esmDevDist,
         format: 'es',
         sourcemap: isDevMode ? 'inline' : true,
       },
       {
         dir: 'dist',
         entryFileNames: 'cjs/index.dev.cjs',
-        // file: cjsDevDist,
         format: 'cjs',
         sourcemap: isDevMode ? 'inline' : true,
         esModule: true,
@@ -207,7 +200,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         dir: 'dist',
         entryFileNames: 'esm/index.mjs',
-        // file: esmDist,
         format: 'es',
         sourcemap: isDevMode ? 'inline' : true,
         plugins: isDevMode
@@ -219,7 +211,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       {
         dir: 'dist',
         entryFileNames: 'cjs/index.cjs',
-        // file: cjsDist,
         format: 'cjs',
         sourcemap: isDevMode ? 'inline' : true,
         externalLiveBindings: false,

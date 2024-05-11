@@ -10,6 +10,7 @@ import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
 import { IBaseHref, normalizePath } from './location-manager';
+import { _disposeCurrentRouteSubscription } from './current-route';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -71,6 +72,7 @@ function configure(container: IContainer, options?: IRouterConfigurationOptions)
     AppTask.hydrated(IContainer, RouteContext.setRoot),
     AppTask.activated(IRouter, router => router.start(true)),
     AppTask.deactivated(IRouter, router => {
+      _disposeCurrentRouteSubscription();
       router.stop();
     }),
     ...DefaultComponents,

@@ -116,3 +116,8 @@ export {
   pathUrlParser,
   fragmentUrlParser,
 } from './url-parser';
+
+export {
+  ICurrentRoute,
+  type ParameterInformation,
+} from './current-route';

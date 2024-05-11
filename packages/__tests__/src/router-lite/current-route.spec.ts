@@ -33,7 +33,7 @@ describe('router-lite/current-route.spec.ts', function () {
     }
   }
 
-  it('single-level routing', async function () {
+  it('single-level', async function () {
     @customElement({ name: 'c-1', template: '' })
     class C1 implements IRouteViewModel { }
 
@@ -113,6 +113,270 @@ describe('router-lite/current-route.spec.ts', function () {
         }
       ]
     }, 'round#4');
+
+    await router.load('c-1/3?foo=bar');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/3',
+      url: 'c-1/3?foo=bar',
+      title: 'C1',
+      query: new URLSearchParams('foo=bar'),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: { id1: '3' },
+          children: [],
+        }
+      ]
+    }, 'round#5');
+
+    await router.load('c-2/4?fizz=bizz');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-2/4',
+      url: 'c-2/4?fizz=bizz',
+      title: 'C2',
+      query: new URLSearchParams('fizz=bizz'),
+      parameterInformation: [
+        {
+          config: { id: 'r2' } as RouteConfig,
+          params: { id2: '4' },
+          children: [],
+        }
+      ]
+    }, 'round#6');
+
+    await au.stop();
+  });
+
+  it('parent/child', async function () {
+    @customElement({ name: 'c-11', template: 'c-11' })
+    class C11 implements IRouteViewModel { }
+    @customElement({ name: 'c-12', template: 'c-12' })
+    class C12 implements IRouteViewModel { }
+    @customElement({ name: 'c-21', template: 'c-21' })
+    class C21 implements IRouteViewModel { }
+    @customElement({ name: 'c-22', template: 'c-22' })
+    class C22 implements IRouteViewModel { }
+
+    @route({
+      routes: [
+        { id: 'r11', path: ['c-11', 'c-11/:id1'], component: C11, title: 'C11' },
+        { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
+      ]
+    })
+    @customElement({ name: 'c-1', template: 'c-1 <au-viewport></au-viewport>' })
+    class C1 implements IRouteViewModel { }
+
+    @route({
+      routes: [
+        { id: 'r21', path: ['c-21', 'c-21/:id1'], component: C21, title: 'C21' },
+        { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
+      ]
+    })
+    @customElement({ name: 'c-2', template: 'c-2 <au-viewport></au-viewport>' })
+    class C2 { }
+
+    @route({
+      routes: [
+        { id: 'r1', path: ['c-1'], component: C1, title: 'C1' },
+        { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
+      ]
+    })
+    @customElement({ name: 'app', template: '<au-viewport></au-viewport>' })
+    class App {
+      public readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
+    }
+
+    const { au, container, rootVm, host } = await start({ appRoot: App, registrations: [C11, C12, C21, C22] });
+    const router = container.get(IRouter);
+
+    await router.load('c-1/c-11');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/c-11',
+      url: 'c-1/c-11',
+      title: 'C11 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r11' } as RouteConfig,
+              params: emptyParams,
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#1');
+
+    await router.load('c-2/c-21');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-2/c-21',
+      url: 'c-2/c-21',
+      title: 'C21 | C2',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r2' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r21' } as RouteConfig,
+              params: emptyParams,
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#2');
+
+    await router.load('c-1/c-12/1');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/c-12/1',
+      url: 'c-1/c-12/1',
+      title: 'C12 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r12' } as RouteConfig,
+              params: { id2: '1' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#3');
+
+    await router.load('c-1/c-12/2');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/c-12/2',
+      url: 'c-1/c-12/2',
+      title: 'C12 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r12' } as RouteConfig,
+              params: { id2: '2' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#4');
+
+    await router.load('c-1/c-11/3');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/c-11/3',
+      url: 'c-1/c-11/3',
+      title: 'C11 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r11' } as RouteConfig,
+              params: { id1: '3' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#5');
+
+    await router.load('c-2/c-21/4');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-2/c-21/4',
+      url: 'c-2/c-21/4',
+      title: 'C21 | C2',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r2' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r21' } as RouteConfig,
+              params: { id1: '4' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#6');
+
+    await router.load('c-2/c-22/5');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-2/c-22/5',
+      url: 'c-2/c-22/5',
+      title: 'C22 | C2',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r2' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r22' } as RouteConfig,
+              params: { id2: '5' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#7');
+
+    await router.load('c-1/c-12/6?foo=bar');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-1/c-12/6',
+      url: 'c-1/c-12/6?foo=bar',
+      title: 'C12 | C1',
+      query: new URLSearchParams('foo=bar'),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r12' } as RouteConfig,
+              params: { id2: '6' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#8');
+
+    await router.load('c-2/c-21/7?fizz=bizz');
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: 'c-2/c-21/7',
+      url: 'c-2/c-21/7?fizz=bizz',
+      title: 'C21 | C2',
+      query: new URLSearchParams('fizz=bizz'),
+      parameterInformation: [
+        {
+          config: { id: 'r2' } as RouteConfig,
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r21' } as RouteConfig,
+              params: { id1: '7' },
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#9');
 
     await au.stop();
   });

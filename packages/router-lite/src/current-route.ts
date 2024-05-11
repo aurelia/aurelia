@@ -1,4 +1,5 @@
 import { DI, IDisposable, Writable, emptyArray, resolve } from '@aurelia/kernel';
+import { RESIDUE } from '@aurelia/route-recognizer';
 import { batch } from '@aurelia/runtime';
 import { IRouter } from './router';
 import { IRouterEvents } from './router-events';
@@ -48,9 +49,14 @@ export class ParameterInformation {
 
   public static create(instruction: ViewportInstruction): ParameterInformation {
     const route = instruction.recognizedRoute?.route;
+
+    const params = Object.create(null);
+    Object.assign(params, route?.params ?? instruction.params);
+    Reflect.deleteProperty(params, RESIDUE);
+
     return new ParameterInformation(
       route?.endpoint.route.handler as RouteConfig ?? null,
-      route?.params ?? instruction.params,
+      params,
       instruction.children.map((ci) => this.create(ci))
     );
   }

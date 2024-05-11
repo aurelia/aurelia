@@ -23,6 +23,8 @@ import {
   SpreadElementPropBindingInstruction,
   propertyBinding,
   IInstruction,
+  SpreadTransferedBindingInstruction,
+  SpreadValueBindingInstruction,
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
@@ -52,7 +54,7 @@ import { ITemplateCompiler } from './interfaces-template-compiler';
 
 const auslotAttr = 'au-slot';
 const defaultSlotName = 'default';
-const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
+export const generateElementName = ((id) => () => `anonymous-${++id}`)(0);
 
 export class TemplateCompiler implements ITemplateCompiler {
   public static register = /*@__PURE__*/ createImplementationRegister(ITemplateCompiler);
@@ -139,6 +141,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrTarget = attrSyntax.target;
       attrValue = attrSyntax.rawValue;
 
+      if (attrTarget === '...$attrs') {
+        instructions.push(new SpreadTransferedBindingInstruction());
+        continue;
+      }
+
       bindingCommand = context._getCommand(attrSyntax);
       if (bindingCommand !== null && bindingCommand.ignoreAttr) {
         // when the binding command overrides everything
@@ -155,6 +162,36 @@ export class TemplateCompiler implements ITemplateCompiler {
 
         // to next attribute
         continue;
+      }
+
+      if (isCustomElement) {
+        // if the element is a custom element
+        // - prioritize bindables on a custom element before plain attributes
+        bindablesInfo = context._getBindables(elDef);
+        bindable = bindablesInfo.attrs[attrTarget];
+        if (bindable !== void 0) {
+          if (bindingCommand == null) {
+            expr = exprParser.parse(attrValue, etInterpolation);
+            instructions.push(
+              new SpreadElementPropBindingInstruction(
+                expr == null
+                  ? new SetPropertyInstruction(attrValue, bindable.name)
+                  : new InterpolationInstruction(expr, bindable.name)
+              )
+            );
+          } else {
+            commandBuildInfo.node = target;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = bindable;
+            commandBuildInfo.def = elDef;
+            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
+              commandBuildInfo,
+              context._exprParser,
+              context._attrMapper
+            )));
+          }
+          continue;
+        }
       }
 
       attrDef = context._findAttr(attrTarget);
@@ -213,29 +250,12 @@ export class TemplateCompiler implements ITemplateCompiler {
         continue;
       }
 
-      if (bindingCommand === null) {
+      if (bindingCommand == null) {
         expr = exprParser.parse(attrValue, etInterpolation);
 
         // reaching here means:
-        // + maybe a bindable attribute with interpolation
         // + maybe a plain attribute with interpolation
         // + maybe a plain attribute
-        if (isCustomElement) {
-          bindablesInfo = context._getBindables(elDef);
-          bindable = bindablesInfo.attrs[attrTarget];
-          if (bindable !== void 0) {
-            expr = exprParser.parse(attrValue, etInterpolation);
-            instructions.push(
-              new SpreadElementPropBindingInstruction(
-                expr == null
-                  ? new SetPropertyInstruction(attrValue, bindable.name)
-                  : new InterpolationInstruction(expr, bindable.name)
-              )
-            );
-
-            continue;
-          }
-        }
 
         if (expr != null) {
           instructions.push(new InterpolationInstruction(
@@ -261,25 +281,8 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
         }
       } else {
-        if (isCustomElement) {
-          // if the element is a custom element
-          // - prioritize bindables on a custom element before plain attributes
-          bindablesInfo = context._getBindables(elDef);
-          bindable = bindablesInfo.attrs[attrTarget];
-          if (bindable !== void 0) {
-            commandBuildInfo.node = target;
-            commandBuildInfo.attr = attrSyntax;
-            commandBuildInfo.bindable = bindable;
-            commandBuildInfo.def = elDef;
-            instructions.push(new SpreadElementPropBindingInstruction(bindingCommand.build(
-              commandBuildInfo,
-              context._exprParser,
-              context._attrMapper
-            )));
-            continue;
-          }
-        }
-
+        // reaching here means:
+        // + a plain attribute with binding command
         commandBuildInfo.node = target;
         commandBuildInfo.attr = attrSyntax;
         commandBuildInfo.bindable = null;
@@ -657,6 +660,7 @@ export class TemplateCompiler implements ITemplateCompiler {
     let canCapture = false;
     let needsMarker = false;
     let elementMetadata: Record<PropertyKey, unknown>;
+    let spreadIndex = 0;
 
     if (elName === 'slot') {
       if (context.root.def.shadowOptions == null) {
@@ -685,12 +689,11 @@ export class TemplateCompiler implements ITemplateCompiler {
       attrName = attr.name;
       attrValue = attr.value;
       switch (attrName) {
+        // ignore these 2 attributes
         case 'as-element':
         case 'containerless':
           removeAttr();
-          if (!hasContainerless) {
-            hasContainerless = attrName === 'containerless';
-          }
+          hasContainerless = hasContainerless || attrName === 'containerless';
           continue;
       }
 
@@ -707,7 +710,14 @@ export class TemplateCompiler implements ITemplateCompiler {
           continue;
         }
 
-        canCapture = realAttrTarget !== auslotAttr && realAttrTarget !== 'slot';
+        canCapture = realAttrTarget !== auslotAttr
+          && realAttrTarget !== 'slot'
+          && ((spreadIndex = realAttrTarget.indexOf('...')) === -1
+            // the following condition will allow syntaxes:
+            // ...$bindables
+            // ...some.expression
+            || (spreadIndex === 0 && (realAttrTarget === '...$attrs' /* || realAttrTarget === '...$element' */))
+          );
         if (canCapture) {
           bindablesInfo = context._getBindables(elDef);
           // if capture is on, capture everything except:
@@ -715,13 +725,18 @@ export class TemplateCompiler implements ITemplateCompiler {
           // - containerless
           // - bindable properties
           // - template controller
-          // - custom attribute
           if (bindablesInfo.attrs[realAttrTarget] == null && !context._findAttr(realAttrTarget)?.isTemplateController) {
             removeAttr();
             captures.push(attrSyntax);
             continue;
           }
         }
+      }
+
+      if (realAttrTarget === '...$attrs') {
+        (plainAttrInstructions ??= []).push(new SpreadTransferedBindingInstruction());
+        removeAttr();
+        continue;
       }
 
       if (bindingCommand?.ignoreAttr) {
@@ -736,10 +751,22 @@ export class TemplateCompiler implements ITemplateCompiler {
         commandBuildInfo.bindable = null;
         commandBuildInfo.def = null;
         (plainAttrInstructions ??= []).push(bindingCommand.build(commandBuildInfo, context._exprParser, context._attrMapper));
-
         removeAttr();
         // to next attribute
         continue;
+      }
+
+      if (realAttrTarget.indexOf('...') === 0) {
+        if (isCustomElement && (realAttrTarget = realAttrTarget.slice(3)) !== '$element') {
+          (elBindableInstructions ??= []).push(new SpreadValueBindingInstruction(
+            '$bindables',
+            realAttrTarget === '$bindables' ? realAttrValue : realAttrTarget
+          ));
+          removeAttr();
+          continue;
+        }
+
+        throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);
       }
 
       // reaching here means:
@@ -783,6 +810,46 @@ export class TemplateCompiler implements ITemplateCompiler {
           }
           continue;
         }
+
+        if (realAttrTarget === '$bindables') {
+          if (bindingCommand != null) {
+            commandBuildInfo.node = el;
+            commandBuildInfo.attr = attrSyntax;
+            commandBuildInfo.bindable = null;
+            commandBuildInfo.def = elDef;
+
+            if (__DEV__) {
+              const instruction = bindingCommand.build(
+                commandBuildInfo,
+                context._exprParser,
+                context._attrMapper
+              );
+              if (!(instruction instanceof SpreadValueBindingInstruction)) {
+                // eslint-disable-next-line no-console
+                console.warn(`[DEV:aurelia] Binding with "$bindables" on custom element "${elDef.name}" with command ${attrSyntax.command} ` +
+                  ` did not result in a spread binding instruction. This likely won't work as expected.`
+                );
+              }
+              (elBindableInstructions ??= []).push(instruction);
+            } else {
+              (elBindableInstructions ??= []).push(bindingCommand.build(
+                commandBuildInfo,
+                context._exprParser,
+                context._attrMapper
+              ));
+            }
+          } else if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] Usage of "$bindables" on custom element "<${elDef.name}>" is ignored.`);
+          }
+
+          removeAttr();
+          continue;
+        }
+      }
+
+      if (realAttrTarget === '$bindables') {
+        throw createMappedError(ErrorNames.compiler_no_reserved_$bindable, el.nodeName, realAttrTarget, realAttrValue);
       }
 
       // reaching here means:
@@ -1678,7 +1745,7 @@ class CompilationContext {
     this._attrMapper = hasParent ? parent._attrMapper : container.get(IAttrMapper);
     this._logger = hasParent ? parent._logger : container.get(ILogger);
     if (typeof (this.p = hasParent ? parent.p : container.get(IPlatform) as unknown as IDomPlatform).document?.nodeType !== 'number') {
-      throw new Error('Invalid platform');
+      throw createMappedError(ErrorNames.compiler_no_dom_api);
     }
     this.localEls = hasParent ? parent.localEls : new Set();
     this.rows = instructions ?? [];

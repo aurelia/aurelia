@@ -37,8 +37,31 @@ import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 
 import type { IHydratableController } from './templating/controller';
 import { ErrorNames, createMappedError } from './errors';
-import { SpreadBinding } from './binding/spread-binding';
-import { AttributeBindingInstruction, HydrateAttributeInstruction, HydrateElementInstruction, HydrateLetElementInstruction, HydrateTemplateController, IInstruction, ITemplateCompiler, InstructionType, InterpolationInstruction, IteratorBindingInstruction, LetBindingInstruction, ListenerBindingInstruction, PropertyBindingInstruction, RefBindingInstruction, SetAttributeInstruction, SetClassAttributeInstruction, SetPropertyInstruction, SetStyleAttributeInstruction, SpreadBindingInstruction, StylePropertyBindingInstruction, TextBindingInstruction } from '@aurelia/template-compiler';
+import { SpreadBinding, SpreadValueBinding } from './binding/spread-binding';
+import {
+  AttributeBindingInstruction,
+  HydrateAttributeInstruction,
+  HydrateElementInstruction,
+  HydrateLetElementInstruction,
+  HydrateTemplateController,
+  IInstruction,
+  ITemplateCompiler,
+  InstructionType,
+  InterpolationInstruction,
+  IteratorBindingInstruction,
+  LetBindingInstruction,
+  ListenerBindingInstruction,
+  PropertyBindingInstruction,
+  RefBindingInstruction,
+  SetAttributeInstruction,
+  SetClassAttributeInstruction,
+  SetPropertyInstruction,
+  SetStyleAttributeInstruction,
+  SpreadTransferedBindingInstruction,
+  SpreadValueBindingInstruction,
+  StylePropertyBindingInstruction,
+  TextBindingInstruction
+} from '@aurelia/template-compiler';
 
 /**
  * An interface describing an instruction renderer
@@ -701,28 +724,58 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
   /** @internal */ public readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.spreadBinding;
+  public readonly target = InstructionType.spreadTransferedBinding;
 
   public render(
     renderingCtrl: IHydratableController,
     target: HTMLElement,
-    _instruction: SpreadBindingInstruction,
+    instruction: SpreadTransferedBindingInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    SpreadBinding
-      .create(
-        renderingCtrl.container.get(IHydrationContext),
-        target,
-        void 0,
-        this._rendering,
-        this._compiler,
-        platform,
-        exprParser,
-        observerLocator
-      )
-      .forEach(b => renderingCtrl.addBinding(b));
+    SpreadBinding.create(
+      renderingCtrl.container.get(IHydrationContext),
+      target,
+      void 0,
+      this._rendering,
+      this._compiler,
+      platform,
+      exprParser,
+      observerLocator
+    )
+    .forEach(b => renderingCtrl.addBinding(b));
+  }
+}, null!);
+
+export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRenderer implements IRenderer {
+  public readonly target = InstructionType.spreadValueBinding;
+  public constructor() {
+    SpreadValueBinding.mix();
+  }
+
+  public render(
+    renderingCtrl: IHydratableController,
+    target: ICustomElementController,
+    instruction: SpreadValueBindingInstruction,
+    platform: IPlatform,
+    exprParser: IExpressionParser,
+    observerLocator: IObserverLocator,
+  ): void {
+    const instructionTarget = instruction.target;
+    if (instructionTarget === '$bindables') {
+      renderingCtrl.addBinding(new SpreadValueBinding(
+        renderingCtrl,
+        target.viewModel,
+        objectKeys(target.definition.bindables),
+        exprParser.parse(instruction.from, etIsProperty),
+        observerLocator,
+        renderingCtrl.container,
+        platform.domWriteQueue
+      ));
+    } else {
+      throw createMappedError(ErrorNames.spreading_invalid_target, instructionTarget);
+    }
   }
 }, null!);
 

@@ -547,6 +547,121 @@ export class MyEl {
 Even though using a `noop` function for `set` function is a straightforward choice, `Object` can also be used for `type` in the bindable definition to disable the auto-coercion for selective `@bindable`s (that is when the automatic type-coercion is enabled).
 {% endhint %}
 
+## Bindables spreading
+
+Spreading syntaxes are supported for simpler binding of multiple bindable properties.
+
+Given the following component:
+```typescript
+export class NameTag {
+  @bindable first
+  @bindable last
+}
+```
+with template:
+
+```html
+<b>${fist.toUpperCase()}</b> ${last}
+```
+and its usage template:
+
+```html
+<name-tag ...$bindables="{ first: 'John', last: 'Doe' }"></name-tag>
+```
+
+The rendered html will be:
+```html
+<b>JOHN</b> Doe
+```
+
+Here we are using `...$bindables` to express that we want to bind all properties in the object `{ first: 'John', last: 'Doe' }` to bindable properties on `<name-tag>` component.
+The `...$bindables="..."` syntax will only connect properties that are matching with bindable properties on `<name-tag>`, so even if an object with hundreds of properties are given to a `...$bindables` binding, it will still resulted in 2 bindings for `first` and `last`.
+
+`...$bindables` also work with any expression, rather than literal object, per the following examples:
+
+```html
+<name-tag $bindables.spread="customer1">
+<name-tag $bindables.spread="customer.details">
+<name-tag $bindables.spread="customer[this_that]">
+<name-tag $bindables="customer1 | mapDetails">
+<name-tag $bindables="customer.details | simplify">
+<name-tag $bindables="customer[this_that] | addDetails">
+```
+
+### Shorthand syntax
+
+Sometimes when the expression of the spread binding is simple, we can simplify the binding even further. Default templating syntax of Aurelia supports a shorter version of the above examples:
+
+```html
+<name-tag ...customer1>
+<name-tag ...customer.details>
+<name-tag ...customer[this_that]>
+
+or if you need space in the expression:
+<name-tag ...$bindables="customer1 | mapDetails">
+<name-tag ...$bindables="customer.details | simplify">
+<name-tag ...$bindables="customer[this_that] | addDetails">
+```
+
+{% hint style="warning" %}
+- Remember that HTML is case insensitive, so `...firstName` actually will be seen as `...firstname`, for example
+- Bindables properties will be tried to matched as is, which means a `firstName` bindable property will match an object `firstName` property, but not `first-name`
+- If the expression contains space, it will result into multiple attributes and thus won't work as intended with spread syntax `...`.
+For example `...a + b` will be actually turned into 3 attributes: `...a`, `+` and `b`
+{% endhint %}
+
+### Binding orders
+
+The order of the bindings created will be the same with the order declared in the template. For example, for the `NameTag` component above, if we have a usage
+
+```html
+<name-tag id="1" first="John" ...$bindables="{ first: 'Jane' }">
+<name-tag id="2" ...$bindables="{ first: 'Jane' }" first="John">
+```
+Then the value of the `first` property in `NameTag` with `id=1` will be `Jane`, and the value of `first` property in `NameTag` with `id=2` will be `John`.
+
+{% hint style="warning" %}
+- An exception of this order is when bindables spreading is used together with [`...$attrs`](#attributes-transferring), `...$attrs` will always result in bindings after `...$bindables`/`$bindables.spread`/`...expression`.
+{% endhint %}
+
+### Observation behavior
+
+Bindings will be created based on the keys available in the object evaluated from the `expression` of a spread binding. The following example illustrate the behavior:
+
+For the `NameTag` component above:
+```html
+<let item.bind="{ first: 'John' }">
+<name-tag ...item></name-tag>
+<button click.trigger="item.last = 'Doe'">Change last name</button>
+```
+
+The rendered HTML of `<name-tag>` will be
+```html
+<b>JOHN</b>
+```
+
+When clicking on the button with text `Change last name`, the rendered html of `<name-tag>` won't be changed,
+as the original object given to `<name-tag>` doesn't contain `last`, hence it wasn't observed, which ignore our new value set from the button click.
+If it's desirable to reset the observation, give a new object to the spread binding, like the following example:
+
+```html
+<let item.bind="{ first: 'John' }">
+<name-tag ...item></name-tag>
+<button click.trigger="item = { first: item.name, last: 'Doe' }">Change last name</button>
+```
+
+{% hint style="success" %}
+- With the above behavior of non-eager binding, applications can have the opportunity to leave some bindable properties untouched,
+while with the opposite behavior of always observing all properties on the given object based on the number of bindable properties,
+missing value (`null`/`undefined`) will start flowing in in an unwanted way.
+{% endhint %}
+
+There are some other behaviors of the spread binding that are worth noting:
+
+- All bindings created with `$bindables.spread` or `...` syntax will have binding mode equivalent to `to-view`, binding behavior cannot alter this.
+Though other binding behavior like `throttle`/`debounce` can still work.
+- If the same object is returned from evaluating the expression, the spread binding won't try to rebind its inner bindings. This means mutating and then reassigning won't result in new binding, instead, give the spread binding a new object.
+
 ## Attributes Transferring
 
 Attribute transferring is a way to relay the binding(s) on a custom element to its child element(s).

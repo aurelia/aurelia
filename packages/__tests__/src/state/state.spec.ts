@@ -25,6 +25,16 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
+  it('understands shorthand syntax', function () {
+    const state = { value: '1' };
+    const { assertValue } = createFixture
+      .html`<input value.state>`
+      .deps(StateDefaultConfiguration.init(state))
+      .build();
+
+    assertValue('input', '1');
+  });
+
   it('works with value converter', async function () {
     const state = { text: 'aaa' };
     const { getBy } = await createFixture

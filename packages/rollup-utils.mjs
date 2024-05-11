@@ -142,11 +142,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   // @ts-ignore
   const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
-  const esmDevDist = 'dist/esm/index.dev.mjs';
-  const cjsDevDist = 'dist/cjs/index.dev.cjs';
-  const esmDist = 'dist/esm/index.mjs';
-  const cjsDist = 'dist/cjs/index.cjs';
-  // const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY' || warning.code === 'MIXED_EXPORTS') return;
@@ -160,12 +155,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     external: Object.keys(pkg.dependencies),
     output: [
       {
-        file: esmDevDist,
+        dir: 'dist',
+        entryFileNames: 'esm/index.dev.mjs',
         format: 'es',
         sourcemap: isDevMode ? 'inline' : true,
       },
       {
-        file: cjsDevDist,
+        dir: 'dist',
+        entryFileNames: 'cjs/index.dev.cjs',
         format: 'cjs',
         sourcemap: isDevMode ? 'inline' : true,
         esModule: true,
@@ -201,7 +198,8 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     external: Object.keys(pkg.dependencies),
     output: [
       {
-        file: esmDist,
+        dir: 'dist',
+        entryFileNames: 'esm/index.mjs',
         format: 'es',
         sourcemap: isDevMode ? 'inline' : true,
         plugins: isDevMode
@@ -211,7 +209,8 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
           ],
       },
       {
-        file: cjsDist,
+        dir: 'dist',
+        entryFileNames: 'cjs/index.cjs',
         format: 'cjs',
         sourcemap: isDevMode ? 'inline' : true,
         externalLiveBindings: false,
@@ -234,14 +233,20 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
             define: { ...envVars, __DEV__: 'false' },
             sourceMap: true,
           }),
+          runPostbuildScript(...postBuildScript)
         ]
         : [
           rollupReplace({ ...envVars, __DEV__: false }),
-          rollupTypeScript({}, isDevMode),
+          rollupTypeScript({
+            compilerOptions: {
+              declaration: true,
+              declarationDir: 'dist/types',
+              declarationMap: true,
+            },
+          }, isDevMode),
           stripInternalConstEnum(),
         ]
       ),
-      runPostbuildScript(...postBuildScript),
       generateNativeModulePlugin(cwd, 'index.mjs', isReleaseBuild),
     ],
     onwarn: onWarn,

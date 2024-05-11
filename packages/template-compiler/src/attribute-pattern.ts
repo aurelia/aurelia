@@ -611,15 +611,6 @@ export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.
   }
 );
 
-export const SpreadAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [{ pattern: '...$attrs', symbols: '' }],
-  class SpreadAttributePattern {
-    public '...$attrs'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, '', '...$attrs');
-    }
-  }
-);
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 /* istanbul ignore next */function testAttributePatternDeco() {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -23,7 +23,7 @@ import {
 } from './util';
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', 'jit-html', 'test', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', 'jit-html', 'test', 'generated', `${suffix}.spec.ts`);
 }
 
 function $hook(name: string, mutation: Statement | Statement[], flush?: boolean, expectedBeforeFlush?: [any, any], expectedAfterFlush?: [any, any]): MethodDeclaration {
@@ -235,7 +235,7 @@ function generateAndEmit(): void {
       $$import('../util', 'TestContext'),
       null,
       $$functionExpr('describe', [
-        $expression(`generated.template-compiler.${suffix}`),
+        $expression(`${suffix}`),
         $functionExpr([
           $$functionDecl(
             'setup',

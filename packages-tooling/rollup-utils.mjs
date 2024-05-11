@@ -94,12 +94,8 @@ export function runPostbuildScript(...scripts) {
 /**
  * @param {PackageJson} pkg
  * @param {ConfigCallback} [configure]
- * @param {(env: NormalizedEnvVars) => import('terser').MinifyOptions} [configureTerser]
- * a callback that takes a record of env variables, and returns overrides for terser plugin config
- * @param {{ name: string; script: string }[]} [postBuildScript]
  */
-// eslint-disable-next-line default-param-last
-export function getRollupConfig(pkg, configure = identity, configureTerser, postBuildScript = [{ name: 'build dts', script: 'postrollup'}]) {
+export function getRollupConfig(pkg, configure = identity) {
   /** @type {NormalizedEnvVars} */
   const envVars = {
     __DEV__: process.env.__DEV__,
@@ -107,11 +103,6 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
   };
   // const isDevMode = /^true$/.test(process.env.DEV_MODE);
   const inputFile = 'src/index.ts';
-  // const esmDevDist = 'dist/esm/index.dev.mjs';
-  // const cjsDevDist = 'dist/cjs/index.dev.cjs';
-  const esmDist = 'dist/esm/index.mjs';
-  const cjsDist = 'dist/cjs/index.cjs';
-  // const typingsDist = 'dist/types/index.d.ts';
   /** @type {import('rollup').WarningHandlerWithDefault} */
   const onWarn = (warning, warn) => {
     if (warning.code === 'CIRCULAR_DEPENDENCY') return;
@@ -127,12 +118,14 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
       .concat('node:module', 'node:path'),
     output: [
       {
-        file: esmDist,
+        dir: 'dist',
+        entryFileNames: 'esm/index.mjs',
         format: 'es',
         sourcemap: true,
       },
       {
-        file: cjsDist,
+        dir: 'dist',
+        entryFileNames: 'cjs/index.cjs',
         format: 'cjs',
         sourcemap: true,
         externalLiveBindings: false,
@@ -141,8 +134,13 @@ export function getRollupConfig(pkg, configure = identity, configureTerser, post
     ],
     plugins: [
       rollupReplace({ ...envVars, __DEV__: false }),
-      rollupTypeScript(),
-      runPostbuildScript(...postBuildScript),
+      rollupTypeScript({
+        compilerOptions: {
+          declaration: true,
+          declarationDir: 'dist/types',
+          declarationMap: true,
+        }
+      }),
     ],
     onwarn: onWarn,
   }, false, envVars);

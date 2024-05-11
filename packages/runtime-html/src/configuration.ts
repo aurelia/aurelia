@@ -3,7 +3,6 @@ import { DirtyChecker, ICoercionConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
   ColonPrefixedBindAttributePattern,
-  SpreadAttributePattern,
   DotSeparatedAttributePattern,
   RefAttributePattern,
   EventAttributePattern,
@@ -20,7 +19,7 @@ import {
   RefBindingCommand,
   StyleBindingCommand,
   TriggerBindingCommand,
-  SpreadBindingCommand,
+  SpreadValueBindingCommand,
 } from '@aurelia/template-compiler';
 import {
   CustomAttributeRenderer,
@@ -40,6 +39,7 @@ import {
   SetClassAttributeRenderer,
   SetStyleAttributeRenderer,
   SpreadRenderer,
+  SpreadValueRenderer,
 } from './renderer';
 import {
   FromViewBindingBehavior,
@@ -98,7 +98,6 @@ export const DefaultComponents = [
 export const DefaultBindingSyntax = [
   RefAttributePattern,
   DotSeparatedAttributePattern,
-  SpreadAttributePattern,
   EventAttributePattern,
   EventModifierRegistration,
 ];
@@ -132,7 +131,7 @@ export const DefaultBindingLanguage = [
   ClassBindingCommand,
   StyleBindingCommand,
   AttrBindingCommand,
-  SpreadBindingCommand,
+  SpreadValueBindingCommand,
 ];
 
 /**
@@ -212,6 +211,7 @@ export const DefaultRenderers = [
   StylePropertyBindingRenderer,
   TextBindingRenderer,
   SpreadRenderer,
+  SpreadValueRenderer,
 ];
 
 export const StandardConfiguration = /*@__PURE__*/createConfiguration(noop);

@@ -13,6 +13,7 @@ const config = {
     tsBuildInfoFile: null,
   },
   include: [
+    'assets-modules.d.ts',
     'src/*.ts',
     ...testPatterns.flatMap(pattern => {
       pattern = pattern.replace(/\.ts$/, '');

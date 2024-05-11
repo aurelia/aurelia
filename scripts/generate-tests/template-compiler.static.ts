@@ -127,7 +127,7 @@ const kebabCase = (function () {
 })();
 
 function outFile(suffix: string): string {
-  return join(`${project.path}`, 'packages', '__tests__', '5-jit-html', 'generated', `template-compiler.${suffix}.spec.ts`);
+  return join(`${project.path}`, 'packages', '__tests__', '5-jit-html', 'generated', `${suffix}.spec.ts`);
 }
 
 interface Identifiable {
@@ -1127,7 +1127,7 @@ function generateAndEmit(): void {
       $$import('@aurelia/testing', 'TestContext', 'writeProfilerReport', 'assert'),
       null,
       $$functionExpr('describe', [
-        $expression(`generated.template-compiler.${suffix}`),
+        $expression(`${suffix}`),
         $functionExpr([
           $$functionExpr('before', [
             $functionExpr([

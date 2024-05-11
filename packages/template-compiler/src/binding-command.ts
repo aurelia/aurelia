@@ -9,7 +9,7 @@ import {
   MultiAttrInstruction,
   PropertyBindingInstruction,
   RefBindingInstruction,
-  SpreadBindingInstruction,
+  SpreadValueBindingInstruction,
 } from './instructions';
 import { aliasRegistration, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
 
@@ -468,14 +468,14 @@ export class RefBindingCommand implements BindingCommandInstance {
   }
 }
 
-export class SpreadBindingCommand implements BindingCommandInstance {
+export class SpreadValueBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
     type: bindingCommandTypeName,
-    name: '...$attrs',
+    name: 'spread',
   };
-  public get ignoreAttr() { return true; }
+  public get ignoreAttr() { return false; }
 
-  public build(_info: ICommandBuildInfo): IInstruction {
-    return new SpreadBindingInstruction();
+  public build(info: ICommandBuildInfo): IInstruction {
+    return new SpreadValueBindingInstruction(info.attr.target as '$bindables' | '$element', info.attr.rawValue);
   }
 }

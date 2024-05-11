@@ -69,7 +69,7 @@ export class SpreadBinding implements IBinding, IHasController {
       let inst: IInstruction;
       for (inst of instructions) {
         switch (inst.type) {
-          case InstructionType.spreadBinding:
+          case InstructionType.spreadTransferedBinding:
             renderSpreadInstruction(ancestor + 1);
             break;
           case InstructionType.spreadElementProp:
@@ -126,11 +126,11 @@ export class SpreadBinding implements IBinding, IHasController {
   public bind(_scope: Scope): void {
     /* istanbul ignore if */
     if (this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
-    /* istanbul ignore if */
     if (innerScope == null) {
       throw createMappedError(ErrorNames.no_spread_scope_context_found);
     }
@@ -231,6 +231,7 @@ export class SpreadValueBinding implements IBinding {
   public handleChange(): void {
       /* istanbul ignore if */
     if (!this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
@@ -239,6 +240,7 @@ export class SpreadValueBinding implements IBinding {
   public handleCollectionChange(): void {
       /* istanbul ignore if */
     if (!this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.updateTarget();
@@ -247,7 +249,9 @@ export class SpreadValueBinding implements IBinding {
   public bind(scope: Scope) {
       /* istanbul ignore if */
     if (this.isBound) {
+      /* istanbul ignore if */
       if (scope === this._scope) {
+      /* istanbul ignore next */
         return;
       }
     }
@@ -264,6 +268,7 @@ export class SpreadValueBinding implements IBinding {
   public unbind(): void {
       /* istanbul ignore if */
     if (!this.isBound) {
+      /* istanbul ignore next */
       return;
     }
     this.isBound = false;

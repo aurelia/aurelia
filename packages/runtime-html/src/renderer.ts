@@ -724,7 +724,7 @@ export const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer implem
   /** @internal */ public readonly _compiler = resolve(ITemplateCompiler);
   /** @internal */ public readonly _rendering = resolve(IRendering);
 
-  public readonly target = InstructionType.spreadBinding;
+  public readonly target = InstructionType.spreadTransferedBinding;
 
   public render(
     renderingCtrl: IHydratableController,

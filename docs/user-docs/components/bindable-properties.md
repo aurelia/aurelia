@@ -654,9 +654,13 @@ If it's desirable to reset the observation, give a new object to the spread bind
 - With the above behavior of non-eager binding, applications can have the opportunity to leave some bindable properties untouched,
 while with the opposite behavior of always observing all properties on the given object based on the number of bindable properties,
 missing value (`null`/`undefined`) will start flowing in in an unwanted way.
+{% endhint %}
+
+There are some other behaviors of the spread binding that are worth noting:
+
 - All bindings created with `$bindables.spread` or `...` syntax will have binding mode equivalent to `to-view`, binding behavior cannot alter this.
 Though other binding behavior like `throttle`/`debounce` can still work.
-{% endhint %}
+- If the same object is returned from evaluating the expression, the spread binding won't try to rebind its inner bindings. This means mutating and then reassigning won't result in new binding, instead, give the spread binding a new object.
 
 ## Attributes Transferring
 

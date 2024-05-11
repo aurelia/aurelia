@@ -26,7 +26,7 @@ import { BindingMode } from './binding-mode';
 /** @internal */ export const setAttribute = 'he';
 /** @internal */ export const setClassAttribute = 'hf';
 /** @internal */ export const setStyleAttribute = 'hg';
-/** @internal */ export const spreadBinding = 'hs';
+/** @internal */ export const spreadTransferedBinding = 'hs';
 /** @internal */ export const spreadElementProp = 'hp';
 /** @internal */ export const spreadValueBinding = 'svb';
 
@@ -49,7 +49,7 @@ export const InstructionType = /*@__PURE__*/ objectFreeze({
   setAttribute,
   setClassAttribute,
   setStyleAttribute,
-  spreadBinding,
+  spreadTransferedBinding,
   spreadElementProp,
   spreadValueBinding,
 });
@@ -279,7 +279,7 @@ export class AttributeBindingInstruction {
 }
 
 export class SpreadTransferedBindingInstruction {
-  public readonly type = spreadBinding;
+  public readonly type = spreadTransferedBinding;
 }
 
 /**

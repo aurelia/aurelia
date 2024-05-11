@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.17"></a>
+# 2.0.0-beta.17 (2024-05-11)
+
+### Refactorings:
+
+* **kernel:** mark side effect free (#1964) ([22c8f71](https://github.com/aurelia/aurelia/commit/22c8f71))
+
 <a name="2.0.0-beta.16"></a>
 # 2.0.0-beta.16 (2024-05-03)
 

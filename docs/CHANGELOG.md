@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.17"></a>
+# 2.0.0-beta.17 (2024-05-11)
+
+### BREAKING CHANGES:
+
+* **template:** auto infer binding expression when empty (#1963) ([3359939](https://github.com/aurelia/aurelia/commit/3359939))
+    
+    Previously only the expression of binding to element bindables get auto inferred, now it's expanded to all bindings
+    with `.bind`/`.to-view`/`.from-view`/`.two-way`/`.one-time`
+    Examples:
+    ```html
+    <div some-prop.bind=""> means <div some-prop.bind="someProp">
+    <div some-prop.bind> means <div some-prop.bind="someProp">
+    <div some-prop.one-time> means <div some-prop.one-time="someProp">
+    ...
+    ```
+* **convention:** rewrite runtime-html decorators (#1960) ([eaf2cd7](https://github.com/aurelia/aurelia/commit/eaf2cd7))
+
+    With tooling in the instable state for the tc39 decorator support, we will generate standard fn call code instead of decorator.
+    This will likely be changed when browsers start officially supporting it, or at least when the tooling (both spec & tooling stability + compat) gets better
+
+
+### Features:
+
+* **template:** support spread syntax with `spread` command and ... (#1965) ([ccae63b](https://github.com/aurelia/aurelia/commit/ccae63b))
+* **repeat:** allow custom repeatable value (#1962) ([c47df91](https://github.com/aurelia/aurelia/commit/c47df91))
+
+
+### Bug Fixes:
+
+* **compiler:** fix order when spreading custom attribute into element bindable ([ccae63b](https://github.com/aurelia/aurelia/commit/ccae63b))
+* **au-slot:** separate parent scope selection from host scope selection (#1961) ([ff605fb](https://github.com/aurelia/aurelia/commit/ff605fb))
+
+
+### Refactorings:
+
+* **kernel:** mark side effect free (#1964) ([22c8f71](https://github.com/aurelia/aurelia/commit/22c8f71))
+
 <a name="2.0.0-beta.16"></a>
 # 2.0.0-beta.16 (2024-05-03)
 

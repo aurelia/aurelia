@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.17"></a>
+# 2.0.0-beta.17 (2024-05-11)
+
+### Features:
+
+* **template:** support spread syntax with spread command and ... (#1965) ([ccae63b](https://github.com/aurelia/aurelia/commit/ccae63b))
+* **repeat:** allow custom repeatable value (#1962) ([c47df91](https://github.com/aurelia/aurelia/commit/c47df91))
+* **convention:** rewrite runtime-html decorators (#1960) ([eaf2cd7](https://github.com/aurelia/aurelia/commit/eaf2cd7))
+
+
+### Bug Fixes:
+
+* **compiler:** fix order when spreading custom attribute into element bindable, improve doc, add tests ([ccae63b](https://github.com/aurelia/aurelia/commit/ccae63b))
+* **(state:** auto infer binding expression when empty ([ccae63b](https://github.com/aurelia/aurelia/commit/ccae63b))
+* **au-slot:** separate parent scope selection from host scope selection (#1961) ([ff605fb](https://github.com/aurelia/aurelia/commit/ff605fb))
+
+
+### Refactorings:
+
+* **kernel:** mark side effect free (#1964) ([22c8f71](https://github.com/aurelia/aurelia/commit/22c8f71))
+
 <a name="2.0.0-beta.16"></a>
 # 2.0.0-beta.16 (2024-05-03)
 

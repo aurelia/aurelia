@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.17"></a>
+# 2.0.0-beta.17 (2024-05-11)
+
+### Features:
+
+* **convention:** rewrite runtime-html decorators (#1960) ([eaf2cd7](https://github.com/aurelia/aurelia/commit/eaf2cd7))
+
 <a name="2.0.0-beta.16"></a>
 # 2.0.0-beta.16 (2024-05-03)
 

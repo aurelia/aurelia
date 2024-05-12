@@ -43,6 +43,7 @@ export class CurrentRoute {
 export class ParameterInformation {
   private constructor(
     public readonly config: RouteConfig | null,
+    public readonly viewport: string | null,
     public readonly params: Readonly<Params> | null,
     public readonly children: ParameterInformation[],
   ) { }
@@ -56,8 +57,9 @@ export class ParameterInformation {
 
     return new ParameterInformation(
       route?.endpoint.route.handler as RouteConfig ?? null,
+      instruction.viewport,
       params,
-      instruction.children.map((ci) => this.create(ci))
+      instruction.children.map((ci) => this.create(ci)),
     );
   }
 }

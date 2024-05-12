@@ -90,3 +90,38 @@ export class MyApp {
 This is shown in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-events?ctl=1&embed=1&file=src/my-app.ts" %}
+
+## Current route
+
+Sometimes, you only need the information about the current route.
+In that case, you can surely subscribe to the `au:router:navigation-end` event and get the current route from the event data.
+For the ease of use, there is a `ICurrentRoute` exposed from router-lite that does exactly the same.
+You can directly inject it to your class to use it and avoid the boilerplate code altogether.
+Below is an example of how you can use it.
+
+```typescript
+import { resolve } from 'aurelia';
+import { ICurrentRoute } from '@aurelia/router-lite';
+
+export class MyApp {
+  private readonly currentRoute: ICurrentRoute = resolve(ICurrentRoute);
+
+  public attached(): void {
+    console.log(`path: ${this.currentRoute.path}`);
+    console.log(`url: ${this.currentRoute.url}`);
+    console.log(`title: ${this.currentRoute.title}`);
+    console.log(`query: ${this.currentRoute.query}`);
+
+    for (const pi of this.currentRoute.parameterInformation) {
+      this.logParameterInstruction(pi);
+    }
+  }
+
+  private logParameterInstruction(pi: IParameterInstruction): void {
+    console.log(`config: ${pi.config.id}`);
+    console.log(`viewport: ${pi.viewport}`);
+    console.log(`params:`, pi.params);
+    pi.children.forEach((c) => this.logParameterInstruction(c));
+  }
+}
+```

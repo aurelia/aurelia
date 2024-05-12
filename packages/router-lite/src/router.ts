@@ -681,6 +681,15 @@ export class Router {
   }
 
   public updateTitle(tr: Transition = this.currentTr): string {
+    const title = this._getTitle(tr);
+    if (title.length > 0) {
+      this._p.document.title = title;
+    }
+    return this._p.document.title;
+  }
+
+  /** @internal */
+  public _getTitle(tr: Transition = this.currentTr) {
     let title: string;
     if (this._hasTitleBuilder) {
       title = this.options.buildTitle!(tr) ?? '';
@@ -697,10 +706,7 @@ export class Router {
           break;
       }
     }
-    if (title.length > 0) {
-      this._p.document.title = title;
-    }
-    return this._p.document.title;
+    return title;
   }
 
   /** @internal */

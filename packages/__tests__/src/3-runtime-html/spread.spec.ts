@@ -76,7 +76,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       },
     });
 
-    $it('does not apture slot', {
+    $it('does not capture slot', {
       template: '<my-input slot="a" value.bind="message">',
       component: { hasInput: false, message: 'Aurelia' },
       assertFn: ({ appHost }) => {

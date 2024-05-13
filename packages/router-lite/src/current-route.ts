@@ -1,4 +1,4 @@
-import { DI, IDisposable, Writable, emptyArray, resolve } from '@aurelia/kernel';
+import { DI, IContainer, Writable, emptyArray, resolve } from '@aurelia/kernel';
 import { RESIDUE } from '@aurelia/route-recognizer';
 import { batch } from '@aurelia/runtime';
 import { IRouter } from './router';
@@ -6,12 +6,7 @@ import { IRouterEvents } from './router-events';
 
 import type { Params, ViewportInstruction } from './instructions';
 import type { RouteConfig } from './route';
-
-let _currentRouteSubscription: IDisposable | null = null;
-/** @internal */
-export function _disposeCurrentRouteSubscription(): void {
-  _currentRouteSubscription?.dispose();
-}
+import { AppTask } from '@aurelia/runtime-html';
 
 export const ICurrentRoute = /*@__PURE__*/ DI.createInterface<ICurrentRoute>('ICurrentRoute', x => x.singleton(CurrentRoute));
 export interface ICurrentRoute extends CurrentRoute { }
@@ -26,7 +21,8 @@ export class CurrentRoute {
   public constructor() {
     const router = resolve(IRouter);
     const options = router.options;
-    _currentRouteSubscription = resolve(IRouterEvents)
+    const container = resolve(IContainer).root;
+    const subscription = resolve(IRouterEvents)
       .subscribe('au:router:navigation-end', (event) => {
         const vit = event.finalInstructions;
         batch(() => {
@@ -37,6 +33,7 @@ export class CurrentRoute {
           (this as Writable<CurrentRoute>).parameterInformation = vit.children.map((instruction) => ParameterInformation.create(instruction));
         });
       });
+    container.register(AppTask.deactivated(() => subscription.dispose()));
   }
 }
 

@@ -716,7 +716,7 @@ export class TemplateCompiler implements ITemplateCompiler {
             // the following condition will allow syntaxes:
             // ...$bindables
             // ...some.expression
-            || (spreadIndex === 0 && (realAttrTarget === '...$attrs' /* || realAttrTarget === '...$element' */))
+            || (spreadIndex === 0 && (realAttrTarget === '...$attrs'))
           );
         if (canCapture) {
           bindablesInfo = context._getBindables(elDef);
@@ -764,6 +764,13 @@ export class TemplateCompiler implements ITemplateCompiler {
           ));
           removeAttr();
           continue;
+        }
+
+        if (__DEV__) {
+          if (realAttrTarget === '$bindable' || realAttrTarget === 'bindables') {
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] Detected usage of ${realAttrTarget} on <${el.nodeName}>, did you mean "$bindables"?`);
+          }
         }
 
         throw createMappedError(ErrorNames.compiler_no_reserved_spread_syntax, realAttrTarget);

@@ -16,5 +16,10 @@ module.exports = {
     'import/no-nodejs-modules': 'off',
     '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': ['error', {
+      ignorePrimitives: {
+        boolean: true,
+      }
+    }]
   }
 };

@@ -40,7 +40,7 @@ export interface IAttributeComponentDefinition<TBindables extends string = strin
   isTemplateController?: boolean;
   aliases?: readonly string[];
   defaultBindingMode?: StringBindingMode | number;
-  bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true> | null;
+  bindables?: (TBindables | IComponentBindablePropDefinition)[] | Record<TBindables, Omit<IComponentBindablePropDefinition, 'name'> | true>;
 }
 
 export interface IComponentBindablePropDefinition {

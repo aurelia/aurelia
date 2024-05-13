@@ -37,7 +37,7 @@ module.exports = function (env, { mode }) {
           {
             loader: 'ts-loader',
             options: {
-              transpileOnly: true
+              transpileOnly: false
             }
           },
           '@aurelia/webpack-loader'

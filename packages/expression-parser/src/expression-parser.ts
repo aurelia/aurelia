@@ -1663,11 +1663,6 @@ const missingExpectedToken = (token: Token) =>
     ? createMappedError(ErrorNames.parse_missing_expected_token, TokenValues[token & Token.Type], $input)
     : createMappedError(ErrorNames.parse_missing_expected_token, $input);
 
-const unexpectedCharacter: CharScanner = () => {
-  throw createMappedError(ErrorNames.parse_unexpected_character, $input);
-};
-unexpectedCharacter.notMapped = true;
-
 const unexpectedTokenInDestructuring = () =>
   __DEV__
     ? createMappedError(ErrorNames.parse_unexpected_token_destructuring, $tokenRaw(), $index, $input)
@@ -1730,67 +1725,75 @@ const KeywordLookup: Record<string, Token> = /*@__PURE__*/ Object.assign(createL
   of: Token.OfKeyword,
 });
 
-/**
- * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)
- * Single values are denoted by the second value being a 0
- *
- * Copied from output generated with "node build/generate-unicode.js"
- *
- * See also: https://en.wikibooks.org/wiki/Unicode/Character_reference/0000-0FFF
- */
-const codes = {
-  /* [$0-9A-Za_a-z] */
-  AsciiIdPart: [0x24, 0, 0x30, 0x3A, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B],
-  IdStart: /* IdentifierStart */[0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
-  Digit: /* DecimalNumber */[0x30, 0x3A],
-  Skip: /* Skippable */[0, 0x21, 0x7F, 0xA1]
-};
+// Character scanning function lookup
+const {
+  CharScanners,
+  IdParts,
+} = /*@__PURE__*/ (() => {
+  type CharScanner = (() => Token | null) & { notMapped?: boolean };
 
-/**
- * Decompress the ranges into an array of numbers so that the char code
- * can be used as an index to the lookup
- */
-const decompress = (lookup: (CharScanner | number)[] | null, $set: Set<number> | null, compressed: number[], value: CharScanner | number | boolean): void => {
-  const rangeCount = compressed.length;
-  for (let i = 0; i < rangeCount; i += 2) {
-    const start = compressed[i];
-    let end = compressed[i + 1];
-    end = end > 0 ? end : start + 1;
-    if (lookup) {
-      lookup.fill(value as CharScanner | number, start, end);
-    }
-    if ($set) {
-      for (let ch = start; ch < end; ch++) {
-        $set.add(ch);
-      }
-    }
-  }
-};
+  const unexpectedCharacter: CharScanner = () => {
+    throw createMappedError(ErrorNames.parse_unexpected_character, $input);
+  };
+  unexpectedCharacter.notMapped = true;
 
-// CharFuncLookup functions
-const returnToken = (token: Token): () => Token =>
-  () => {
-    nextChar();
-    return token;
+  /**
+   * Ranges of code points in pairs of 2 (eg 0x41-0x5B, 0x61-0x7B, ...) where the second value is not inclusive (5-7 means 5 and 6)
+   * Single values are denoted by the second value being a 0
+   *
+   * Copied from output generated with "node build/generate-unicode.js"
+   *
+   * See also: https://en.wikibooks.org/wiki/Unicode/Character_reference/0000-0FFF
+   */
+  const codes = {
+    /* [$0-9A-Za_a-z] */
+    AsciiIdPart: [0x24, 0, 0x30, 0x3A, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B],
+    IdStart: /* IdentifierStart */[0x24, 0, 0x41, 0x5B, 0x5F, 0, 0x61, 0x7B, 0xAA, 0, 0xBA, 0, 0xC0, 0xD7, 0xD8, 0xF7, 0xF8, 0x2B9, 0x2E0, 0x2E5, 0x1D00, 0x1D26, 0x1D2C, 0x1D5D, 0x1D62, 0x1D66, 0x1D6B, 0x1D78, 0x1D79, 0x1DBF, 0x1E00, 0x1F00, 0x2071, 0, 0x207F, 0, 0x2090, 0x209D, 0x212A, 0x212C, 0x2132, 0, 0x214E, 0, 0x2160, 0x2189, 0x2C60, 0x2C80, 0xA722, 0xA788, 0xA78B, 0xA7AF, 0xA7B0, 0xA7B8, 0xA7F7, 0xA800, 0xAB30, 0xAB5B, 0xAB5C, 0xAB65, 0xFB00, 0xFB07, 0xFF21, 0xFF3B, 0xFF41, 0xFF5B],
+    Digit: /* DecimalNumber */[0x30, 0x3A],
+    Skip: /* Skippable */[0, 0x21, 0x7F, 0xA1]
   };
 
-// ASCII IdentifierPart lookup
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const AsciiIdParts = /*@__PURE__*/ ((AsciiIdParts) => {
-  decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
-  return AsciiIdParts;
-})(new Set<number>());
+  /**
+   * Decompress the ranges into an array of numbers so that the char code
+   * can be used as an index to the lookup
+   */
+  const decompress = (lookup: (CharScanner | number)[] | null, $set: Set<number> | null, compressed: number[], value: CharScanner | number | boolean): void => {
+    const rangeCount = compressed.length;
+    for (let i = 0; i < rangeCount; i += 2) {
+      const start = compressed[i];
+      let end = compressed[i + 1];
+      end = end > 0 ? end : start + 1;
+      if (lookup) {
+        lookup.fill(value as CharScanner | number, start, end);
+      }
+      if ($set) {
+        for (let ch = start; ch < end; ch++) {
+          $set.add(ch);
+        }
+      }
+    }
+  };
 
-// IdentifierPart lookup
-const IdParts = /*@__PURE__*/ ((IdParts) => {
-  decompress(IdParts as any, null, codes.IdStart, 1);
-  decompress(IdParts as any, null, codes.Digit, 1);
-  return IdParts;
-})(new Uint8Array(0xFFFF));
-type CharScanner = (() => Token | null) & { notMapped?: boolean };
+  // // ASCII IdentifierPart lookup
+  // const AsciiIdParts = /*@__PURE__*/ ((AsciiIdParts) => {
+  //   decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
+  //   return AsciiIdParts;
+  // })(new Set<number>());
 
-// Character scanning function lookup
-const CharScanners = /*@__PURE__*/ (() => {
+  // IdentifierPart lookup
+  const IdParts = /*@__PURE__*/ ((IdParts) => {
+    decompress(IdParts as any, null, codes.IdStart, 1);
+    decompress(IdParts as any, null, codes.Digit, 1);
+    return IdParts;
+  })(new Uint8Array(0xFFFF));
+
+  // CharFuncLookup functions
+  const returnToken = (token: Token): () => Token =>
+    () => {
+      nextChar();
+      return token;
+    };
+
   const CharScanners = new Array<CharScanner>(0xFFFF);
   CharScanners.fill(unexpectedCharacter, 0, 0xFFFF);
 
@@ -1920,5 +1923,5 @@ const CharScanners = /*@__PURE__*/ (() => {
   CharScanners[Char.OpenBrace]    = returnToken(Token.OpenBrace);
   CharScanners[Char.CloseBrace]   = returnToken(Token.CloseBrace);
 
-  return CharScanners;
+  return { CharScanners, IdParts };
 })();

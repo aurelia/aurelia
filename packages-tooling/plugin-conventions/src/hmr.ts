@@ -5,7 +5,8 @@
  * @param moduleText -  Usually module but Vite uses import instead
  * @returns Generated HMR code
  */
-export const getHmrCode = (className: string, moduleText: string = 'module', moduleNames?: string[]): string => {
+export const getHmrCode = (className: string, moduleText?: string, moduleNames?: string[]): string => {
+  moduleText ??= 'module';
 
   const code = `
     import { Metadata as $$M } from '@aurelia/metadata';

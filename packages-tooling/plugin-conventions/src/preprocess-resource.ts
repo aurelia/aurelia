@@ -16,6 +16,7 @@ import { resourceName } from './resource-name';
 
 import pkg from 'typescript';
 import { modifyCode } from './modify-code';
+import { createTypeCheckedTemplate } from './template-typechecking';
 const {
   ModifierFlags,
   ScriptTarget,
@@ -243,6 +244,18 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   if (implicitElement && unit.filePair) {
     const viewDef = '__au2ViewDef';
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
+    const htmlContent = unit.getFilePairContents?.();
+    if (htmlContent) {
+      const typecheckedTemplate = createTypeCheckedTemplate(htmlContent, exportedClassName!);
+      console.log(typecheckedTemplate);
+      m.prepend(
+`function __typecheck_template_${exportedClassName}__() {
+  const access = <T extends object>(typecheck: (o: any) => any, expr: string) => expr;
+  // ${typecheckedTemplate.split('\n').join('\n// ')}
+
+  return \`${typecheckedTemplate}\`;
+}\n\n`);
+    }
 
     if (defineElementInformation) {
       m.replace(defineElementInformation.position.pos, defineElementInformation.position.end, defineElementInformation.modifiedContent);

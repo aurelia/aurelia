@@ -3,12 +3,14 @@ import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';
-import { fileExists } from './file-exists';
+import { fileExists, readFile } from './file-exists';
 
 export function preprocess(
   unit: IFileUnit,
   options: IOptionalPreprocessOptions,
-  _fileExists = fileExists
+  // for testing
+  _fileExists = fileExists,
+  _readFile = readFile,
 ): ModifyCodeResult | undefined {
   const ext = path.extname(unit.path);
   const basename = path.basename(unit.path, ext);
@@ -44,6 +46,7 @@ export function preprocess(
       } else {
         unit.filePair = filePair;
       }
+      unit.getFilePairContents = () => readFile(unit, `./${filePair}`);
     } else {
       // Try foo.js and foo-view.html convention.
       // This convention is handled by @view(), not @customElement().

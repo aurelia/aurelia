@@ -362,8 +362,7 @@ function captureImport(s: Statement, lib: string, code: string): ICapturedImport
   if (isImportDeclaration(s) &&
     isStringLiteral(s.moduleSpecifier) &&
     s.moduleSpecifier.text === lib &&
-    s.importClause &&
-    s.importClause.namedBindings &&
+    s.importClause?.namedBindings &&
     isNamedImports(s.importClause.namedBindings)) {
     return {
       names: s.importClause.namedBindings.elements.map(e => e.name.text),

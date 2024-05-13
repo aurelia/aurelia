@@ -557,7 +557,7 @@ export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>
     // patterns.set(Type, patternDefs);
     return Registrable.define(Type, (container: IContainer) => {
       container.get(IAttributeParser).registerPattern(patternDefs, Type);
-      // singletonRegistration(IAttributePattern, Type).register(container);
+      singletonRegistration(IAttributePattern, Type).register(container);
     });
   },
   // getPatternDefinitions: getAllPatternDefinitions,

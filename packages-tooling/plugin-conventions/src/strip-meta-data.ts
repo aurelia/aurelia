@@ -1,5 +1,5 @@
 import { kebabCase } from '@aurelia/kernel';
-import { type PartialBindableDefinition } from '@aurelia/runtime-html';
+import { BindingMode, type PartialBindableDefinition } from '@aurelia/runtime-html';
 import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
 
 interface IStrippedHtml {
@@ -243,22 +243,12 @@ function stripCapture(node: DefaultTreeElement, cb: (ranges: [number, number][])
   });
 }
 
-function toBindingMode(mode?: string): number | undefined {
+function toBindingMode(mode?: string): BindingMode | undefined {
   if (mode) {
     const normalizedMode = kebabCase(mode);
-    if (normalizedMode === 'one-time') return 1;
-    if (normalizedMode === 'one-way' || normalizedMode === 'to-view') return 2;
-    if (normalizedMode === 'from-view') return 4;
-    if (normalizedMode === 'two-way') return 6;
+    if (normalizedMode === 'one-time') return BindingMode.oneTime;
+    if (normalizedMode === 'one-way' || normalizedMode === 'to-view') return BindingMode.toView;
+    if (normalizedMode === 'from-view') return BindingMode.fromView;
+    if (normalizedMode === 'two-way') return BindingMode.twoWay;
   }
 }
-
-// function toBindingMode(mode?: string): BindingMode | undefined {
-//   if (mode) {
-//     const normalizedMode = kebabCase(mode);
-//     if (normalizedMode === 'one-time') return BindingMode.oneTime;
-//     if (normalizedMode === 'one-way' || normalizedMode === 'to-view') return BindingMode.toView;
-//     if (normalizedMode === 'from-view') return BindingMode.fromView;
-//     if (normalizedMode === 'two-way') return BindingMode.twoWay;
-//   }
-// }

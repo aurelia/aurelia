@@ -96,8 +96,8 @@ export const DefaultComponents = [
  * - `target.command` (dot-separated)
  */
 export const DefaultBindingSyntax = [
-  DotSeparatedAttributePattern,
   RefAttributePattern,
+  DotSeparatedAttributePattern,
   EventAttributePattern,
   EventModifierRegistration,
 ];
@@ -108,8 +108,8 @@ export const DefaultBindingSyntax = [
  * - `:target` (short-hand for `target.bind`)
  */
 export const ShortHandBindingSyntax = [
-  ColonPrefixedBindAttributePattern,
   AtPrefixedTriggerAttributePattern,
+  ColonPrefixedBindAttributePattern,
 ];
 
 /**
@@ -240,11 +240,11 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
        * - `DefaultRenderers`
        */
       return container.register(
-        ...DefaultBindingSyntax,
-        ...DefaultBindingLanguage,
         instanceRegistration(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
         ...DefaultComponents,
         ...DefaultResources,
+        ...DefaultBindingSyntax,
+        ...DefaultBindingLanguage,
         ...DefaultRenderers,
       );
     },

@@ -29,14 +29,17 @@ export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
-export const TranslationParametersAttributePattern = AttributePattern.define(
-  [{ pattern: attribute, symbols: '' }],
-  class TranslationParametersAttributePattern {
-    public [attribute](rawName: string, rawValue: string): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, '', attribute);
-    }
+export class TranslationParametersAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [{ pattern: attribute, symbols: '' }],
+      this
+    );
   }
-);
+  public [attribute](rawName: string, rawValue: string): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, '', attribute);
+  }
+}
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;

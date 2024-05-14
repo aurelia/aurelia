@@ -335,22 +335,28 @@ function getPromiseController(controller: IHydratableController) {
 }
 
 export class PromiseAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
+  }
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
-AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
 
 export class FulfilledAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
+  }
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
-AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
 
 export class RejectedAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);
+  }
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }
 }
-AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);

@@ -1,5 +1,5 @@
-import type { Constructable } from '@aurelia/kernel';
-import { IContainer, Registrable, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
+import type { Constructable, } from '@aurelia/kernel';
+import { IContainer, registrableMetadataKey, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
 import { createInterface, objectFreeze, singletonRegistration } from './utilities';
 
 export interface AttributePatternDefinition<T extends string = string> {
@@ -495,11 +495,11 @@ export class AttributeParser implements IAttributeParser {
     if (this._initialized) throw new Error('Cannot add patterns after initialization');
 
     const $patterns = this._patterns;
-    for (const {pattern} of patterns) {
+    for (const { pattern } of patterns) {
       if ($patterns[pattern] != null) throw new Error(`Pattern ${pattern} is already registered`);
       $patterns[pattern] = { factory: container => container.get(Type) };
     }
-    this._allDefinitions.concat(patterns);
+    this._allDefinitions.push(...patterns);
   }
 
   /** @internal */
@@ -532,7 +532,7 @@ export class AttributeParser implements IAttributeParser {
 
 export interface AttributePatternKind {
   readonly name: string;
-  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): P;
+  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): { register(container: IContainer): void };
   // getPatternDefinitions(Type: Constructable): AttributePatternDefinition[];
   // findAll(container: IContainer): readonly IAttributePattern[];
 }
@@ -540,9 +540,11 @@ export interface AttributePatternKind {
 /**
  * Decorator to be used on attr pattern classes
  */
-export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext) => T {
-  return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
-    return AttributePattern.define(patternDefs, target);
+export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>) => T {
+  return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
+    const registrable = AttributePattern.define(patternDefs, target);
+    context.metadata[registrableMetadataKey] = registrable;
+    return target;
   };
 }
 
@@ -554,97 +556,121 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
 export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
   define(patternDefs, Type) {
+    return {
+      register(container: IContainer) {
+        container.get(IAttributeParser).registerPattern(patternDefs, Type);
+        singletonRegistration(IAttributePattern, Type).register(container);
+      }
+    };
     // patterns.set(Type, patternDefs);
-    return Registrable.define(Type, (container: IContainer) => {
-      container.get(IAttributeParser).registerPattern(patternDefs, Type);
-      singletonRegistration(IAttributePattern, Type).register(container);
-    });
+    // return Registrable.define(Type, (container: IContainer) => {
+    //   container.get(IAttributeParser).registerPattern(patternDefs, Type);
+    //   singletonRegistration(IAttributePattern, Type).register(container);
+    // });
   },
   // getPatternDefinitions: getAllPatternDefinitions,
   // findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
-export const DotSeparatedAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: 'PART.PART', symbols: '.' },
-    { pattern: 'PART.PART.PART', symbols: '.' }
-  ],
-  class DotSeparatedAttributePattern {
-    public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-    }
-
-    public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
-    }
+export class DotSeparatedAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: 'PART.PART.PART', symbols: '.' }
+      ],
+      this
+    );
   }
-);
 
-export const RefAttributePattern = /*@__PURE__*/AttributePattern.define(
-  [
-    { pattern: 'ref', symbols: '' },
-    { pattern: 'PART.ref', symbols: '.' }
-  ],
-  class RefAttributePattern {
-    public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, 'element', 'ref');
-    }
+  public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
+  }
 
-    public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      let target = parts[0];
-      if (target === 'view-model') {
-        target = 'component';
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
-            + ` This is deprecated and component.ref should be used instead`);
-        }
+  public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
+  }
+}
+
+export class RefAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [
+        { pattern: 'ref', symbols: '' },
+        { pattern: 'PART.ref', symbols: '.' }
+      ],
+      this
+    );
+  }
+  public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'element', 'ref');
+  }
+
+  public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    let target = parts[0];
+    if (target === 'view-model') {
+      target = 'component';
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
+          + ` This is deprecated and component.ref should be used instead`);
       }
-      return new AttrSyntax(rawName, rawValue, target, 'ref');
     }
+    return new AttrSyntax(rawName, rawValue, target, 'ref');
   }
-);
+}
 
-export const EventAttributePattern =  /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: 'PART.trigger:PART', symbols: '.:' },
-    { pattern: 'PART.capture:PART', symbols: '.:' },
-  ],
-  class EventAttributePattern {
-    public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
-    }
-    public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
-    }
+export class EventAttributePattern {
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [
+        { pattern: 'PART.trigger:PART', symbols: '.:' },
+        { pattern: 'PART.capture:PART', symbols: '.:' },
+      ],
+      this
+    );
   }
-);
-
-export const ColonPrefixedBindAttributePattern = /*@__PURE__*/AttributePattern.define(
-  [{ pattern: ':PART', symbols: ':' }],
-  class ColonPrefixedBindAttributePattern {
-
-    public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
-    }
+  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
-);
-
-export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: '@PART', symbols: '@' },
-    { pattern: '@PART:PART', symbols: '@:' },
-  ],
-  class AtPrefixedTriggerAttributePattern {
-    public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-    }
-
-    public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
-    }
+  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
   }
-);
+}
+
+export class ColonPrefixedBindAttributePattern {
+
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [{ pattern: ':PART', symbols: ':' }],
+      this
+    );
+  }
+
+  public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
+  }
+}
+
+export class AtPrefixedTriggerAttributePattern {
+
+  public static getRegistrable() {
+    return AttributePattern.define(
+      [
+        { pattern: '@PART', symbols: '@' },
+        { pattern: '@PART:PART', symbols: '@:' },
+      ], this
+    );
+  }
+
+  public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+
+  public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 /* istanbul ignore next */function testAttributePatternDeco() {

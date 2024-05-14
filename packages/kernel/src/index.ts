@@ -31,6 +31,7 @@ export {
   Registrable,
   ContainerConfiguration,
   DefaultResolver,
+  registrableMetadataKey,
 } from './di.container';
 
 export {

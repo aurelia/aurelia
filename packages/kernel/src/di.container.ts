@@ -33,6 +33,7 @@ import { emptyArray } from './platform';
 import { ResourceDefinition, StaticResourceType, resourceBaseName, type ResourceType } from './resource';
 import { getMetadata, isFunction, isString, objectFreeze } from './utilities';
 
+export const registrableMetadataKey = Symbol.for('au:registrable');
 export const Registrable = /*@__PURE__*/(() => {
   const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
   return objectFreeze({
@@ -193,7 +194,14 @@ export class Container implements IContainer {
       } else if ((def = getMetadata(resourceBaseName, current)!) != null) {
         def.register(this);
       } else if (isClass<StaticResourceType>(current)) {
-        if (isString((current).$au?.type)) {
+        if (hasRegistrable(current)) {
+          current.getRegistrable().register(this);
+          continue;
+        }
+        const registrable = current[Symbol.metadata]?.[registrableMetadataKey] as IRegistry;
+        if (registrable != null && isRegistry(registrable)) {
+          registrable.register(this);
+        } else if (isString((current).$au?.type)) {
           const $au = current.$au;
           const aliases = (current.aliases ?? emptyArray).concat($au.aliases ?? emptyArray);
           let key = `${resourceBaseName}:${$au.type}:${$au.name}`;
@@ -770,3 +778,7 @@ const isClass = <T>(obj: unknown): obj is Class<any, T> =>
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;
+
+// Limit this method for now only to classes
+const hasRegistrable = (obj: Class<any, unknown>): obj is Class<any, unknown> & { getRegistrable(): IRegistry } =>
+  isFunction((obj as Class<any, unknown> & { getRegistrable(): IRegistry }).getRegistrable);

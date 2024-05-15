@@ -1,8 +1,24 @@
 import { Platform, TaskQueue } from '@aurelia/platform';
 
-const lookup = new Map<object, BrowserPlatform>();
-
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
+  /** @internal */
+  private static readonly _lookup = new WeakMap<typeof globalThis, BrowserPlatform>();
+
+  public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
+    g: TGlobal,
+    overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {},
+  ): BrowserPlatform<TGlobal> {
+    let platform = BrowserPlatform._lookup.get(g);
+    if (platform === void 0) {
+      BrowserPlatform._lookup.set(g, platform = new BrowserPlatform(g, overrides));
+    }
+    return platform as BrowserPlatform<TGlobal>;
+  }
+
+  public static set(g: typeof globalThis, platform: BrowserPlatform): void {
+    BrowserPlatform._lookup.set(g, platform);
+  }
+
   public readonly Node!: TGlobal['Node'];
   public readonly Element!: TGlobal['Element'];
   public readonly HTMLElement!: TGlobal['HTMLElement'];
@@ -28,6 +44,26 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
   public readonly domQueue: TaskQueue;
 
+  /**
+   * @deprecated Use `platform.domQueue` instead.
+   */
+  public get domWriteQueue() {
+    if (__DEV__) {
+      this.console.log('[DEV:aurelia] platform.domQueue is deprecated, please use platform.domQueue instead.');
+    }
+    return this.domQueue;
+  }
+
+  /**
+   * @deprecated Use `platform.domQueue` instead.
+   */
+  public get domReadQueue() {
+    if (__DEV__) {
+      this.console.log('[DEV:aurelia] platform.domReadQueue has been removed, please use platform.domQueue instead.');
+    }
+    return this.domQueue;
+  }
+
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
 
@@ -37,7 +73,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     };
 
     ('Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver '
-    + 'window document customElements')
+      + 'window document customElements')
       .split(' ')
       // eslint-disable-next-line
       .forEach(prop => (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop]);
@@ -47,61 +83,35 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
       (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
     );
 
-    this.flushDomWrite = this.flushDomWrite.bind(this);
-    this.domQueue = new TaskQueue(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
-  }
+    this.domQueue = (() => {
+      let domRequested: boolean = false;
+      let domHandle: number = -1;
 
-  public get domWriteQueue() {
-    // if (__DEV__) {
-    //   this.console.log('[DEV:aurelia] platform.domQueue is deprecated, please use platform.domQueue instead.');
-    // }
-    return this.domQueue;
-  }
+      const requestDomFlush = (): void => {
+        domRequested = true;
+        if (domHandle === -1) {
+          domHandle = this.requestAnimationFrame(flushDomQueue);
+        }
+      };
 
-  public get domReadQueue() {
-    // if (__DEV__) {
-    //   this.console.log('[DEV:aurelia] platform.domReadQueue has been removed, please use platform.domQueue instead.');
-    // }
-    return this.domQueue;
-  }
+      const cancelDomFlush = (): void => {
+        domRequested = false;
+        if (domHandle > -1) {
+          this.cancelAnimationFrame(domHandle);
+          domHandle = -1;
+        }
+      };
 
-  public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
-    g: TGlobal,
-    overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {},
-  ): BrowserPlatform<TGlobal> {
-    let platform = lookup.get(g);
-    if (platform === void 0) {
-      lookup.set(g, platform = new BrowserPlatform(g, overrides));
-    }
-    return platform as BrowserPlatform<TGlobal>;
-  }
+      const flushDomQueue = (): void => {
+        domHandle = -1;
+        if (domRequested === true) {
+          domRequested = false;
+          domQueue.flush();
+        }
+      };
 
-  public static set(g: typeof globalThis, platform: BrowserPlatform): void {
-    lookup.set(g, platform);
-  }
-
-  /** @internal */ private _domWriteRequested: boolean = false;
-  /** @internal */ private _domWriteHandle: number = -1;
-  protected requestDomWrite(): void {
-    this._domWriteRequested = true;
-    if (this._domWriteHandle === -1) {
-      this._domWriteHandle = this.requestAnimationFrame(this.flushDomWrite);
-    }
-  }
-  protected cancelDomWrite(): void {
-    this._domWriteRequested = false;
-    if (
-      this._domWriteHandle > -1
-    ) {
-      this.cancelAnimationFrame(this._domWriteHandle);
-      this._domWriteHandle = -1;
-    }
-  }
-  protected flushDomWrite(): void {
-    this._domWriteHandle = -1;
-    if (this._domWriteRequested === true) {
-      this._domWriteRequested = false;
-      this.domQueue.flush();
-    }
+      const domQueue = new TaskQueue(this, requestDomFlush, cancelDomFlush);
+      return domQueue;
+    })();
   }
 }

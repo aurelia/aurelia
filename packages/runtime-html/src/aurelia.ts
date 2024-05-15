@@ -86,7 +86,6 @@ export class Aurelia implements IDisposable {
   public async waitForIdle(): Promise<void> {
     const platform = this.root.platform;
     await platform.domWriteQueue.yield();
-    await platform.domReadQueue.yield();
     await platform.taskQueue.yield();
   }
 

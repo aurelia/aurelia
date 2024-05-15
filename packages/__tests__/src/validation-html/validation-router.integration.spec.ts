@@ -147,7 +147,7 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       assert.notEqual(submit, null, 'submit');
       submit.click();
 
-      await platform.domReadQueue.yield();
+      await platform.domWriteQueue.yield();
 
       // step#1: validation error
       assert.html.textContent('#errors', 'Name is required.', 'error', host);
@@ -155,10 +155,10 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       // step#2: valid value and navigate
       input.value = 'foo';
       input.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      await platform.domWriteQueue.yield();
 
       submit.click();
-      await platform.domReadQueue.yield();
+      await platform.domWriteQueue.yield();
       await platform.domWriteQueue.yield();
 
       // step#3: go back
@@ -174,7 +174,7 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       assert.notEqual(submit, null, 'submit');
       submit.click();
 
-      await platform.domReadQueue.yield();
+      await platform.domWriteQueue.yield();
 
       assert.html.textContent('#errors', 'Name is required.', 'error', host);
     });

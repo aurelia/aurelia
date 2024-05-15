@@ -806,7 +806,7 @@ const areTaskQueuesEmpty = (function () {
 
     const domWriteQueue = platform.domWriteQueue;
     const taskQueue = platform.taskQueue;
-    const domReadQueue = platform.domReadQueue;
+    // const domReadQueue = platform.domReadQueue;
 
     let isEmpty = true;
     let message = '';
@@ -816,10 +816,6 @@ const areTaskQueuesEmpty = (function () {
     }
     if (!taskQueue.isEmpty) {
       message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!domReadQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
       isEmpty = false;
     }
 

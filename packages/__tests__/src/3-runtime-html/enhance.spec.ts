@@ -89,7 +89,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       function ({ host, platform }) {
         handled = false;
         host.querySelector('span').click();
-        platform.domReadQueue.flush();
+        platform.domWriteQueue.flush();
         assert.equal(handled, true);
       },
       {
@@ -151,7 +151,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
       host.querySelector('button').click();
       await Promise.resolve();
-      ctx.platform.domReadQueue.flush();
+      ctx.platform.domWriteQueue.flush();
       ctx.platform.domWriteQueue.flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);

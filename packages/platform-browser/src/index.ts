@@ -1,8 +1,24 @@
 import { Platform, TaskQueue } from '@aurelia/platform';
 
-const lookup = new Map<object, BrowserPlatform>();
-
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
+  /** @internal */
+  private static readonly _lookup = new WeakMap<typeof globalThis, BrowserPlatform>();
+
+  public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
+    g: TGlobal,
+    overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {},
+  ): BrowserPlatform<TGlobal> {
+    let platform = BrowserPlatform._lookup.get(g);
+    if (platform === void 0) {
+      BrowserPlatform._lookup.set(g, platform = new BrowserPlatform(g, overrides));
+    }
+    return platform as BrowserPlatform<TGlobal>;
+  }
+
+  public static set(g: typeof globalThis, platform: BrowserPlatform): void {
+    BrowserPlatform._lookup.set(g, platform);
+  }
+
   public readonly Node!: TGlobal['Node'];
   public readonly Element!: TGlobal['Element'];
   public readonly HTMLElement!: TGlobal['HTMLElement'];
@@ -26,14 +42,38 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly clearTimeout!: TGlobal['window']['clearTimeout'];
   public readonly setInterval!: TGlobal['window']['setInterval'];
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
-  public readonly domWriteQueue: TaskQueue;
-  public readonly domReadQueue: TaskQueue;
+  public readonly domQueue: TaskQueue;
+
+  /**
+   * @deprecated Use `platform.domQueue` instead.
+   */
+  public get domWriteQueue() {
+    if (__DEV__) {
+      this.console.log('[DEV:aurelia] platform.domQueue is deprecated, please use platform.domQueue instead.');
+    }
+    return this.domQueue;
+  }
+
+  /**
+   * @deprecated Use `platform.domQueue` instead.
+   */
+  public get domReadQueue() {
+    if (__DEV__) {
+      this.console.log('[DEV:aurelia] platform.domReadQueue has been removed, please use platform.domQueue instead.');
+    }
+    return this.domQueue;
+  }
 
   public constructor(g: TGlobal, overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {}) {
     super(g, overrides);
 
+    const notImplemented = (name: string) => () => {
+      // TODO: link to docs describing how to fix this issue
+      throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`);
+    };
+
     ('Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver '
-    + 'window document customElements')
+      + 'window document customElements')
       .split(' ')
       // eslint-disable-next-line
       .forEach(prop => (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : (g as any)[prop]);
@@ -43,92 +83,35 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
       (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
     );
 
-    this.flushDomRead = this.flushDomRead.bind(this);
-    this.flushDomWrite = this.flushDomWrite.bind(this);
-    this.domReadQueue = new TaskQueue(this, this.requestDomRead.bind(this), this.cancelDomRead.bind(this));
-    this.domWriteQueue = new TaskQueue(this, this.requestDomWrite.bind(this), this.cancelDomWrite.bind(this));
-  }
+    this.domQueue = (() => {
+      let domRequested: boolean = false;
+      let domHandle: number = -1;
 
-  public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
-    g: TGlobal,
-    overrides: Partial<Exclude<BrowserPlatform, 'globalThis'>> = {},
-  ): BrowserPlatform<TGlobal> {
-    let platform = lookup.get(g);
-    if (platform === void 0) {
-      lookup.set(g, platform = new BrowserPlatform(g, overrides));
-    }
-    return platform as BrowserPlatform<TGlobal>;
-  }
+      const requestDomFlush = (): void => {
+        domRequested = true;
+        if (domHandle === -1) {
+          domHandle = this.requestAnimationFrame(flushDomQueue);
+        }
+      };
 
-  public static set(g: typeof globalThis, platform: BrowserPlatform): void {
-    lookup.set(g, platform);
-  }
+      const cancelDomFlush = (): void => {
+        domRequested = false;
+        if (domHandle > -1) {
+          this.cancelAnimationFrame(domHandle);
+          domHandle = -1;
+        }
+      };
 
-  /** @internal */ private _domReadRequested: boolean = false;
-  /** @internal */ private _domReadHandle: number = -1;
-  protected requestDomRead(): void {
-    this._domReadRequested = true;
-    // Yes, this is intentional: the timing of the read can only be "found" by doing a write first.
-    // The flushDomWrite queues the read.
-    // If/when requestPostAnimationFrame is implemented in browsers, we can use that instead.
-    if (this._domWriteHandle === -1) {
-      this._domWriteHandle = this.requestAnimationFrame(this.flushDomWrite);
-    }
-  }
-  protected cancelDomRead(): void {
-    this._domReadRequested = false;
-    if (this._domReadHandle > -1) {
-      this.clearTimeout(this._domReadHandle);
-      this._domReadHandle = -1;
-    }
-    if (this._domWriteRequested === false && this._domWriteHandle > -1) {
-      this.cancelAnimationFrame(this._domWriteHandle);
-      this._domWriteHandle = -1;
-    }
-  }
-  protected flushDomRead(): void {
-    this._domReadHandle = -1;
-    if (this._domReadRequested === true) {
-      this._domReadRequested = false;
-      this.domReadQueue.flush();
-    }
-  }
+      const flushDomQueue = (): void => {
+        domHandle = -1;
+        if (domRequested === true) {
+          domRequested = false;
+          domQueue.flush();
+        }
+      };
 
-  /** @internal */ private _domWriteRequested: boolean = false;
-  /** @internal */ private _domWriteHandle: number = -1;
-  protected requestDomWrite(): void {
-    this._domWriteRequested = true;
-    if (this._domWriteHandle === -1) {
-      this._domWriteHandle = this.requestAnimationFrame(this.flushDomWrite);
-    }
-  }
-  protected cancelDomWrite(): void {
-    this._domWriteRequested = false;
-    if (
-      this._domWriteHandle > -1 &&
-      // if dom read is requested and there is no readHandle yet, we need the rAF to proceed regardless.
-      // The domWriteRequested=false will prevent the read flush from happening.
-      (this._domReadRequested === false || this._domReadHandle > -1)
-    ) {
-      this.cancelAnimationFrame(this._domWriteHandle);
-      this._domWriteHandle = -1;
-    }
-  }
-  protected flushDomWrite(): void {
-    this._domWriteHandle = -1;
-    if (this._domWriteRequested === true) {
-      this._domWriteRequested = false;
-      this.domWriteQueue.flush();
-    }
-    if (this._domReadRequested === true && this._domReadHandle === -1) {
-      this._domReadHandle = this.setTimeout(this.flushDomRead, 0);
-    }
+      const domQueue = new TaskQueue(this, requestDomFlush, cancelDomFlush);
+      return domQueue;
+    })();
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const notImplemented = (name: string): (...args: any[]) => any => {
-  return () => {
-    throw new Error(`The PLATFORM did not receive a valid reference to the global function '${name}'.`); // TODO: link to docs describing how to fix this issue
-  };
-};

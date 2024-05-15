@@ -769,8 +769,7 @@ export class MyComponent {
 // Await all pending tasks, sync or async (useful in unit, integration and e2e tests or generally figuring out when the app is "idle")
 await Promise.all([
   PLATFORM.taskQueue.yield(),
-  PLATFORM.domReadQueue.yield(),
-  PLATFORM.domWriteQueue.yield(),
+  platform.domQueue.yield(),
 ]);
 ```
 

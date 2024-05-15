@@ -276,7 +276,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
         const eventLog = container.get(EventLog);
         const platform = container.get(IPlatform);
-        const queue = platform.domWriteQueue;
+        const queue = platform.domQueue;
         queue.flush();
 
         assert.html.textContent(appHost, '', 'init');
@@ -360,7 +360,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
         const eventLog = container.get(EventLog);
         const platform = container.get(IPlatform);
-        const queue = platform.domWriteQueue;
+        const queue = platform.domQueue;
         queue.flush();
 
         assert.html.textContent(appHost, 'c-2', 'init');

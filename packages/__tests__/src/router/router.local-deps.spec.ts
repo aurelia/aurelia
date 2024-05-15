@@ -256,5 +256,5 @@ describe('router/router.local-deps.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domWriteQueue.flush();
+  platform.domQueue.flush();
 };

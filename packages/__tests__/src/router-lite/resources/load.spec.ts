@@ -37,7 +37,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = host.querySelectorAll('a');
@@ -87,7 +87,7 @@ describe('router-lite/resources/load.spec.ts', function () {
 
     const activeClass = 'au-rl-active';
     const { au, host, container } = await start({ appRoot: Root, registrations: [Foo], activeClass });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = host.querySelectorAll('a');
@@ -151,7 +151,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = host.querySelectorAll('a');
@@ -199,7 +199,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchor = host.querySelector('a');
@@ -223,7 +223,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Foo] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -262,7 +262,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     assert.html.textContent(host, 'products');
@@ -316,7 +316,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     assert.html.textContent(host, 'products');
@@ -378,7 +378,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     assert.html.textContent(host, 'products');
@@ -441,7 +441,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
@@ -489,7 +489,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
@@ -548,7 +548,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21');
 
@@ -625,7 +625,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [L11, L12, L21, L22, L23, L24] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
     assert.html.textContent(host, 'l11 l21', 'init');
 
@@ -683,7 +683,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, useHash: true, registrations: [CeOne, CeTwo] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));
@@ -855,7 +855,7 @@ describe('router-lite/resources/load.spec.ts', function () {
 
       const { au, host, container } = await start({ appRoot: Root });
       const location = container.get<MockBrowserHistoryLocation>(ILocation);
-      const queue = container.get(IPlatform).domWriteQueue;
+      const queue = container.get(IPlatform).domQueue;
       await queue.yield();
 
       let anchors = host.querySelectorAll('a');
@@ -1055,7 +1055,7 @@ describe('router-lite/resources/load.spec.ts', function () {
 
       const { au, host, container } = await start({ appRoot: Root });
       const location = container.get<MockBrowserHistoryLocation>(ILocation);
-      const queue = container.get(IPlatform).domWriteQueue;
+      const queue = container.get(IPlatform).domQueue;
       await queue.yield();
 
       let anchors = host.querySelectorAll('a');
@@ -1119,7 +1119,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, container, host } = await start({ appRoot: Root });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
 
     assert.html.textContent(host, '', 'init');
 
@@ -1165,7 +1165,7 @@ describe('router-lite/resources/load.spec.ts', function () {
     class Root { }
 
     const { au, host, container } = await start({ appRoot: Root, registrations: [Products, Product] });
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     assert.html.textContent(host, 'product init');
@@ -1219,7 +1219,7 @@ describe('router-lite/resources/load.spec.ts', function () {
       }
 
       const { au, host, container } = await start({ appRoot: Root, registrations: [Product] });
-      const queue = container.get(IPlatform).domWriteQueue;
+      const queue = container.get(IPlatform).domQueue;
       await queue.yield();
 
       host.querySelector('a').click();
@@ -1263,7 +1263,7 @@ describe('router-lite/resources/load.spec.ts', function () {
 
     const { au, host, container } = await start({ appRoot: Root });
 
-    const queue = container.get(IPlatform).domWriteQueue;
+    const queue = container.get(IPlatform).domQueue;
     await queue.yield();
 
     const anchors = Array.from(host.querySelectorAll('a'));

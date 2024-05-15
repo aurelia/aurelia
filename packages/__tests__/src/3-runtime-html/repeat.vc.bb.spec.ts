@@ -388,7 +388,7 @@ describe('3-runtime-html/repeat.vc.bb.spec.ts', function () {
       let i = 1;
       for (const [change, expected] of changes) {
         await change(ctx);
-        await ctx.platform.domWriteQueue.yield();
+        await ctx.platform.domQueue.yield();
         assert.html.innerEqual(host, expected, `post-mutation#${i++}`);
       }
     }, { template });

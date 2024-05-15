@@ -258,7 +258,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     @customElement({ name: 'app', template: `<p t.bind="key" id="undefined"></p>` })
     class App { private readonly key: boolean | number = value; }
     $it(`throws error if the key expression is evaluated to ${value}`, function ({ error }: I18nIntegrationTestContext<App>) {
-      assert.match(error?.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+      assert.match(error?.message, /AUR4002/);
     }, { component: App });
   }
 
@@ -278,7 +278,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       try {
         app.changeKey();
       } catch (e) {
-        assert.match(e.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+        assert.match(e.message, /AUR4002/);
       }
     }, { component: App });
   }
@@ -321,7 +321,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span t-params.bind="{context: 'dispatched'}"></span>` })
       class App { }
       $it('throws error if used without `t` attribute', function ({ error }: I18nIntegrationTestContext<App>) {
-        assert.equal(error?.message, 'key expression is missing');
+        assert.includes(error?.message, 'AUR4000');
       }, { component: App });
     }
     {

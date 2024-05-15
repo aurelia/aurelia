@@ -15,6 +15,7 @@ import {
   ValidationDisplayNameAccessor,
 } from './rule-interfaces';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * Retrieves validation messages and property display names.
@@ -83,6 +84,7 @@ export function validationRule(definition: ValidationRuleDefinition) {
 /**
  * Abstract validation rule.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
@@ -91,10 +93,11 @@ export class BaseValidationRule<TValue = any, TObject extends IValidateable = IV
   ) { }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
-    throw new Error('No base implementation of execute. Did you forget to implement the execute method?'); // TODO: reporter
+    throw createMappedError(ErrorNames.method_not_implemented, 'execute');
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public accept(_visitor: IValidationVisitor): any {
-    throw new Error('No base implementation of accept. Did you forget to implement the accept method?'); // TODO: reporter
+    throw createMappedError(ErrorNames.method_not_implemented, 'accept');
   }
 }
 
@@ -236,7 +239,7 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   public execute(value: unknown): boolean | Promise<boolean> {
     return value === null
       || value === undefined
-      || value as any === ''
+      || value === ''
       || value === this.expectedValue;
   }
   public accept(visitor: IValidationVisitor) {

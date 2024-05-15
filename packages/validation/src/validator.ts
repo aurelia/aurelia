@@ -8,12 +8,11 @@ import { IValidateable } from './rule-interfaces';
  */
 export class ValidateInstruction<TObject extends IValidateable = IValidateable> {
   /**
-   * @template TObject
-   * @param {TObject} [object=(void 0)!] - The object to validate.
-   * @param {(keyof TObject | string)} [propertyName=(void 0)!] - The property name to validate.
-   * @param {PropertyRule[]} [rules=(void 0)!] - The rules to validate.
-   * @param {string} [objectTag=(void 0)!] - The tag indicating the ruleset defined for the object.
-   * @param {string} [propertyTag=(void 0)!] - The tag indicating the ruleset for the property.
+   * @param object - The object to validate.
+   * @param propertyName - The property name to validate.
+   * @param rules - The rules to validate.
+   * @param objectTag - The tag indicating the ruleset defined for the object.
+   * @param propertyTag - The tag indicating the ruleset for the property.
    */
   public constructor(
     public object: TObject = (void 0)!,

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import * as AST from '@aurelia/expression-parser';
+import { ErrorNames, createMappedError } from './errors';
 
 const astVisit = AST.astVisit;
 
@@ -170,7 +171,7 @@ export class Deserializer implements IExpressionHydrator {
         } else if (typeof raw !== 'object') {
           return deserializePrimitive(raw);
         }
-        throw new Error(`unable to deserialize the expression: ${raw}`); // TODO use reporter/logger
+        throw createMappedError(ErrorNames.unable_to_deserialize_expression, raw);
     }
   }
   private deserializeExpressions(exprs: unknown[]) {

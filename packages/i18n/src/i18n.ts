@@ -138,7 +138,7 @@ export class I18nService implements I18N {
       if (this.options.skipTranslationOnMissingKey && translation === key) {
         // TODO change this once the logging infra is there.
         // eslint-disable-next-line no-console
-        console.warn(`Couldn't find translation for key: ${key}`);
+        console.warn(`[DEV:aurelia] Couldn't find translation for key: ${key}`);
       } else {
         result.value = translation;
         results.push(result);

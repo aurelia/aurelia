@@ -23,6 +23,7 @@ import {
   RequiredRule,
   SizeRule,
 } from './rules';
+import { ErrorNames, createMappedError } from './errors';
 
 export type Visitable<T extends IValidationRule> = (PropertyRule | RuleProperty | T) & { accept(visitor: ValidationSerializer): string };
 
@@ -63,8 +64,9 @@ export class ValidationSerializer implements IValidationVisitor {
   }
   public visitRuleProperty(property: RuleProperty): string {
     const displayName = property.displayName;
-    if (displayName !== void 0 && typeof displayName !== 'string') {
-      throw new Error('Serializing a non-string displayName for rule property is not supported.'); // TODO: use reporter/logger
+    const type = typeof displayName;
+    if (displayName != null && type !== 'string') {
+      throw createMappedError(ErrorNames.serialization_display_name_not_a_string, type);
     }
     const expression = property.expression;
     return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
@@ -182,7 +184,7 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
 
   public hydrateRuleset(ruleset: any[], validationRules: IValidationRules): PropertyRule[] {
     if (!Array.isArray(ruleset)) {
-      throw new Error("The ruleset has to be an array of serialized property rule objects"); // TODO: use reporter
+      throw createMappedError(ErrorNames.hydrate_rule_not_an_array);
     }
     return ruleset.map(($rule) => this.hydrate($rule, validationRules) as PropertyRule);
   }
@@ -201,7 +203,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
   public readonly parser: IExpressionParser = resolve(IExpressionParser);
 
   public hydrate(_raw: any, _validationRules: IValidationRules) {
-    throw new Error('Method not implemented.');
+    throw createMappedError(ErrorNames.method_not_implemented, 'hydrate');
   }
 
   public hydrateRuleset(ruleset: Record<string, any>, validationRules: IValidationRules): any[] {
@@ -244,7 +246,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
       case 'equals':
         return this.hydrateEqualsRule(ruleConfig);
       default:
-        throw new Error(`Unsupported rule ${ruleName}`);
+        throw createMappedError(ErrorNames.hydrate_rule_unsupported, ruleName);
     }
   }
 
@@ -311,8 +313,9 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
 
   private hydrateRuleProperty(raw: Pick<RuleProperty, 'expression' | 'name' | 'displayName'>) {
     const rawName = raw.name;
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!rawName || typeof rawName !== 'string') {
-      throw new Error('The property name needs to be a non-empty string'); // TODO: use reporter
+      throw createMappedError(ErrorNames.hydrate_rule_invalid_name, typeof rawName);
     }
     const [name, expression] = parsePropertyName(rawName, this.parser);
     return new RuleProperty(expression, name, raw.displayName);

@@ -433,7 +433,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         { template: `<input id="target" type="text" value.two-way="person.age | toNumber & validate:'${trigger}'">` }
       );
 
-      $it(`GH#1470 - multiple round of validations involving multiple fields - **${trigger}** validation trigger`,
+      $it(`GH#1470 - multiple rounds of validations involving multiple fields - **${trigger}** validation trigger`,
         async function ({ app, host, platform, ctx }: TestExecutionContext<App>) {
           const controller = app.controller;
 
@@ -681,16 +681,16 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
     // #region argument parsing
     const negativeTestData = [
-      { args: `'chaos'`, expectedError: 'is not a supported validation trigger' },
-      { args: `controller`, expectedError: 'is not a supported validation trigger' },
-      { args: `ageMinRule`, expectedError: 'is not a supported validation trigger' },
-      { args: `controller:'change'`, expectedError: 'is not a supported validation trigger' },
-      { args: `'change':'foo'`, expectedError: 'foo is not of type ValidationController' },
-      { args: `'change':{}`, expectedError: 'is not of type ValidationController' },
-      { args: `'change':ageMinRule`, expectedError: 'is not of type ValidationController' },
-      { args: `'change':controller:ageMinRule:'foo'`, expectedError: 'Unconsumed argument#4 for validate binding behavior: foo' },
+      { args: `'chaos'`,                              code: 'AUR4202', expectedError: 'is not a supported validation trigger' },
+      { args: `controller`,                           code: 'AUR4202', expectedError: 'is not a supported validation trigger' },
+      { args: `ageMinRule`,                           code: 'AUR4202', expectedError: 'is not a supported validation trigger' },
+      { args: `controller:'change'`,                  code: 'AUR4202', expectedError: 'is not a supported validation trigger' },
+      { args: `'change':'foo'`,                       code: 'AUR4203', expectedError: 'foo is not of type ValidationController' },
+      { args: `'change':{}`,                          code: 'AUR4203', expectedError: 'is not of type ValidationController' },
+      { args: `'change':ageMinRule`,                  code: 'AUR4203', expectedError: 'is not of type ValidationController' },
+      { args: `'change':controller:ageMinRule:'foo'`, code: 'AUR4201', expectedError: 'Unconsumed argument#4 for validate binding behavior: foo' },
     ];
-    for (const { args, expectedError } of negativeTestData) {
+    for (const { args, code } of negativeTestData) {
       it(`throws error if the arguments are not provided in correct order - ${args}`, async function () {
         const ctx = TestContext.create();
         const container = ctx.container;
@@ -710,7 +710,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             })
             .start();
         } catch (e) {
-          assert.equal(e.message.endsWith(expectedError), true);
+          assert.includes(e.message, code);
         }
         await au.stop();
         ctx.doc.body.removeChild(host);
@@ -1373,7 +1373,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             })
             .start();
         } catch (e) {
-          assert.equal(e.message, 'Validate behavior used on non property binding');
+          assert.includes(e.message, 'AUR4200');
         }
         await au.stop();
         ctx.doc.body.removeChild(host);

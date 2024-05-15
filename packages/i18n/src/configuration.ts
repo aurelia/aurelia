@@ -119,4 +119,4 @@ function createI18nConfiguration(optionsProvider: I18NConfigOptionsProvider) {
   };
 }
 
-export const I18nConfiguration = createI18nConfiguration(() => { /* noop */ });
+export const I18nConfiguration = /*@__PURE__*/ createI18nConfiguration(() => { /* noop */ });

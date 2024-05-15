@@ -43,7 +43,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     nestedInputEl.value = 'aa bb';
     nestedInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
 
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
   });
 

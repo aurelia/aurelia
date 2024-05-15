@@ -2601,7 +2601,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
 
-        const queue = platform.domWriteQueue;
+        const queue = platform.domQueue;
         const [anchorA, anchorB, anchorC] = Array.from(host.querySelectorAll('a'));
         assert.html.textContent(host, 'a', 'load');
 
@@ -2731,7 +2731,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
-        const queue = platform.domWriteQueue;
+        const queue = platform.domQueue;
 
         // load p1/gc-11
         let phase = 'round#1';
@@ -3037,7 +3037,7 @@ describe('router-lite/hook-tests.spec.ts', function () {
         class Root extends TestVM { public constructor() { super(resolve(INotifierManager), resolve(IPlatform), hookSpec); } }
 
         const { router, mgr, tearDown, host, platform } = await createFixture(Root, [P1, Gc11]/* , LogLevel.trace */);
-        const queue = platform.domWriteQueue;
+        const queue = platform.domQueue;
 
         // load p1@$1/(gc-11@$1+gc-12@$2)+p2@$2/(gc-21@$1+gc-22@$2)
         let phase = 'round#1';

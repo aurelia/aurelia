@@ -53,7 +53,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
 
   public get domWriteQueue() {
     // if (__DEV__) {
-    //   this.console.log('[DEV:aurelia] platform.domWriteQueue is deprecated, please use platform.domQueue instead.');
+    //   this.console.log('[DEV:aurelia] platform.domQueue is deprecated, please use platform.domQueue instead.');
     // }
     return this.domQueue;
   }
@@ -62,7 +62,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     // if (__DEV__) {
     //   this.console.log('[DEV:aurelia] platform.domReadQueue has been removed, please use platform.domQueue instead.');
     // }
-    return this.domWriteQueue;
+    return this.domQueue;
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -101,7 +101,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
     this._domWriteHandle = -1;
     if (this._domWriteRequested === true) {
       this._domWriteRequested = false;
-      this.domWriteQueue.flush();
+      this.domQueue.flush();
     }
   }
 }

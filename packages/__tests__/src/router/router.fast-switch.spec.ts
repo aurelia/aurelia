@@ -126,12 +126,12 @@ describe('router/router.fast-switch.spec.ts', function () {
 
           // 2) Go to one
           await $load('/route-one', router, platform);
-          await platform.domWriteQueue.yield();
+          await platform.domQueue.yield();
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
           await $load('/route-two', router, platform);
-          await platform.domWriteQueue.yield();
+          await platform.domQueue.yield();
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           // 4) Ok, let's flood
@@ -161,12 +161,12 @@ describe('router/router.fast-switch.spec.ts', function () {
 
           // 2) Go to one
           await $load('/route-one', router, platform);
-          await platform.domWriteQueue.yield();
+          await platform.domQueue.yield();
           assert.strictEqual(host.textContent, '!one!', `2) /route-one`);
 
           // 3) Go to two
           await $load('/route-two', router, platform);
-          await platform.domWriteQueue.yield();
+          await platform.domQueue.yield();
           assert.strictEqual(host.textContent, '!two!', `3) /route-two -`);
 
           for (let i = 0; i < 98; i++) {
@@ -195,21 +195,21 @@ describe('router/router.fast-switch.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domWriteQueue.flush();
+  platform.domQueue.flush();
 };
 
 const $goBack = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.back();
   if (platform) {
-    platform.domWriteQueue.flush();
-    await platform.domWriteQueue.yield();
+    platform.domQueue.flush();
+    await platform.domQueue.yield();
   }
 };
 
 const $goForward = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.forward();
   if (platform) {
-    platform.domWriteQueue.flush();
-    await platform.domWriteQueue.yield();
+    platform.domQueue.flush();
+    await platform.domQueue.yield();
   }
 };

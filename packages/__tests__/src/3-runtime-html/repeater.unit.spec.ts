@@ -585,7 +585,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          PLATFORM.domWriteQueue.flush();
+          PLATFORM.domQueue.flush();
 
           assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
         } else {
@@ -621,7 +621,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
         if (flush) {
-          PLATFORM.domWriteQueue.flush();
+          PLATFORM.domQueue.flush();
 
           assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
         } else {

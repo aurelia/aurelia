@@ -158,12 +158,12 @@ describe('router/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [Nav, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav', router, platform);
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -189,12 +189,12 @@ describe('router/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [NavBind, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav-bind', router, platform);
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -220,12 +220,12 @@ describe('router/router.link-click-navigation.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [NavAttributes, One, Two, OneRoute, TwoRoute], routes);
 
       await $load('/nav-attributes', router, platform);
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, test.result, test.load);
       for (const l of links) {
@@ -239,5 +239,5 @@ describe('router/router.link-click-navigation.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domWriteQueue.flush();
+  platform.domQueue.flush();
 };

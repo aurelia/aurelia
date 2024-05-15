@@ -46,7 +46,7 @@ export class Show implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     if (this._isActive && this._task === null) {
-      this._task = this.p.domWriteQueue.queueTask(this.update);
+      this._task = this.p.domQueue.queueTask(this.update);
     }
   }
 

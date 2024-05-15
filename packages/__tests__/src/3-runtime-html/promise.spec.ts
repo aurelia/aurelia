@@ -493,9 +493,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 resolve(42);
                 const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 // on the next tick wait the queued task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
@@ -515,8 +515,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 reject(new Error('foo-bar'));
                 const p = ctx.platform;
-                await p.domWriteQueue.yield();
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
@@ -537,9 +537,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 resolve(42);
                 const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 // on the next tick wait the queued task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               },
@@ -559,8 +559,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 reject(new Error('foo-bar'));
                 const p = ctx.platform;
-                await p.domWriteQueue.yield();
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
@@ -596,7 +596,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.resolve(24);
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 24', 'f'));
               ctx.assertCallSet([]);
             }
@@ -613,7 +613,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
             }
@@ -641,15 +641,15 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const promise: PromiseWithId = new Promise((r) => resolve = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost, true)]);
               ctx.clear();
 
               resolve(84);
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -669,15 +669,15 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const promise: PromiseWithId = new Promise((_, r) => reject = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -694,7 +694,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('fizz-bazz'));
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with fizz-bazz', 'r'));
               ctx.assertCallSet([]);
             }
@@ -711,7 +711,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.resolve(42);
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(fhost)]);
             }
@@ -731,15 +731,15 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const promise: PromiseWithId = new Promise((r) => resolve = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               resolve(84);
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -759,15 +759,15 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const promise: PromiseWithId = new Promise((_, r) => reject = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -784,7 +784,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Object.assign(new Promise(() => {/* noop */ }), { id: 1 });
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
@@ -802,7 +802,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.resolve(42);
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
@@ -820,7 +820,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -839,14 +839,14 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const p = ctx.platform;
               let resolve: (value: unknown) => void;
               ctx.app.promise = Object.assign(new Promise((r) => resolve = r), { id: 1 });
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
 
               resolve(42);
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -864,14 +864,14 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const p = ctx.platform;
               let reject: (value: unknown) => void;
               ctx.app.promise = Object.assign(new Promise((_, r) => reject = r), { id: 1 });
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
 
               reject(new Error('foo-bar'));
-              await p.domWriteQueue.yield();
-              await p.domWriteQueue.yield();
+              await p.domQueue.yield();
+              await p.domQueue.yield();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -904,7 +904,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -925,7 +925,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -953,7 +953,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -974,7 +974,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -1002,7 +1002,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -1023,7 +1023,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -1050,7 +1050,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -1071,7 +1071,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -1098,7 +1098,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, '');
@@ -1119,7 +1119,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -1147,7 +1147,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -1168,7 +1168,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 await q.yield();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -1222,9 +1222,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 resolve(42);
                 const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 // on the next tick wait the queued task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, '<fulfilled-host1>resolved</fulfilled-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('fulfilled-host1')]);
               }
@@ -1251,9 +1251,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 reject(new Error());
                 const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 // on the next tick wait the queued task
-                await p.domWriteQueue.yield();
+                await p.domQueue.yield();
                 assert.html.innerEqual(ctx.host, '<rejected-host1>rejected</rejected-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('rejected-host1')]);
               }
@@ -1381,7 +1381,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               null,
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
                 const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 try {
@@ -1441,7 +1441,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 try {
                   await tc.value;
@@ -1492,9 +1492,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
                   }
                   const p = ctx.platform;
                   // one tick to call back the fulfill delegate, and queue task
-                  await p.domWriteQueue.yield();
+                  await p.domQueue.yield();
                   // on the next tick wait the queued task
-                  await p.domWriteQueue.yield();
+                  await p.domQueue.yield();
                   assert.html.innerEqual(ctx.host, `${staticPart} ${$resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r')}`);
                   ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
                 }
@@ -1680,7 +1680,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getActivationSequenceFor(`${rhost}-2`),
             getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const $if = controller.children.find((c) => c.viewModel instanceof If).viewModel as If;
@@ -1719,7 +1719,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(phost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -1782,7 +1782,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               await (app.promise = Promise.resolve(42));
               await q.yield();
@@ -1847,7 +1847,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               try {
                 await (app.promise = Promise.reject(new Error('foo-bar')));
@@ -1898,7 +1898,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 const app = ctx.app;
                 const controller = (app as ICustomElementViewModel).$controller;
                 controller.scope.overrideContext.status = 'processing';
@@ -1939,7 +1939,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -2008,7 +2008,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(`${rhost}-1`),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -2115,7 +2115,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
             null,
             getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
 
               await q.yield();
               try {
@@ -2166,7 +2166,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               null,
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
-                const q = ctx.platform.domWriteQueue;
+                const q = ctx.platform.domQueue;
                 await q.yield();
 
                 const app = ctx.app;
@@ -2217,7 +2217,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const app = ctx.app;
               app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2262,7 +2262,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const app = ctx.app;
               app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2321,7 +2321,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject: (value: unknown) => void;
               let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2390,7 +2390,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject: (value: unknown) => void;
               let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2471,7 +2471,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject1: (value: unknown) => void;
               const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2529,7 +2529,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject1: (value: unknown) => void;
               const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domWriteQueue;
+              const q = ctx.platform.domQueue;
               await q.yield();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
@@ -2719,7 +2719,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
         assert.strictEqual(ctx.error, null);
         const expectedContent = data.expectedInnerHtml;
         if (expectedContent !== null) {
-          await ctx.platform.domWriteQueue.yield();
+          await ctx.platform.domQueue.yield();
           assert.html.innerEqual(ctx.host, expectedContent, 'innerHTML');
         }
 

@@ -311,7 +311,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         } else {
           component.value = (component.value as number || 0) + 1;
         }
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange?.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
         await tearDown();
       });
@@ -555,12 +555,12 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     box1.checked = true;
     box1.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: ');
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
     box2.checked = true;
     box2.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.includes(appHost.textContent, 'Selected product IDs: 0,1');
 
     await tearDown();
@@ -618,7 +618,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
 
     divs.forEach((div, idx) => {
       assert.strictEqual(div.textContent, `$${idx + 11}`);
@@ -688,7 +688,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       assert.strictEqual(progress.value, 0);
 
       component.progress = 1;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(progress.value, 1);
 
       await tearDown();
@@ -708,7 +708,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(input.value, '0');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(input.value, '1');
 
       await tearDown();
@@ -728,7 +728,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(textArea.value, '0');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(textArea.value, '1');
 
       await tearDown();
@@ -753,7 +753,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(textArea.getAttribute('href'), '#red');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(textArea.getAttribute('href'), '#blue');
 
       await tearDown();

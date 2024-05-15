@@ -101,7 +101,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
-    this.taskQueue = resolve(IPlatform).domWriteQueue;
+    this.taskQueue = resolve(IPlatform).domQueue;
   }
 
   /**

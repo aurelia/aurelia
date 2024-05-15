@@ -144,7 +144,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(testHost.textContent, 'hello');
 
       await tearDown();
@@ -168,7 +168,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       component.v = 'v';
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, '');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
@@ -205,7 +205,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '', 'err4');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(changeCount, 1, 'err5');
       assert.strictEqual(input.value, '0', 'err6');
 
@@ -214,7 +214,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -224,7 +224,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -233,7 +233,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();
@@ -279,7 +279,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '', 'err4');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(changeCount, 1, 'err5');
       assert.strictEqual(input.value, '0', 'err6');
 
@@ -288,7 +288,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -298,7 +298,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -307,7 +307,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();

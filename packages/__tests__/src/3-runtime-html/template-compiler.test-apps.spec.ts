@@ -68,7 +68,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     });
 
     component.onMouseMove({ clientX: 50, clientY: 50 });
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
 
     gNodes = appHost.querySelectorAll('svg g');
     assert.strictEqual(gNodes.length, expectedNodeCount, 'should have rendered 127 <g/>');

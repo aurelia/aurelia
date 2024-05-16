@@ -543,6 +543,7 @@ export interface AttributePatternKind {
 export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>) => T {
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
     const registrable = AttributePattern.define(patternDefs, target);
+    // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
     context.metadata[registrableMetadataKey] = registrable;
     return target;
   };

@@ -475,19 +475,8 @@ export class AttributeParser implements IAttributeParser {
   private readonly _container: IContainer;
 
   public constructor() {
-    /* const interpreter =  */this._interpreter = resolve(ISyntaxInterpreter);
+    this._interpreter = resolve(ISyntaxInterpreter);
     this._container = resolve(IContainer);
-    // const attrPatterns = AttributePattern.findAll(resolve(IContainer));
-    // const patterns: AttributeParser['_patterns'] = this._patterns = {};
-    // const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
-    //   (allDefs, attrPattern) => {
-    //     const patternDefs = getAllPatternDefinitions(attrPattern.constructor as Constructable);
-    //     patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
-    //     return allDefs.concat(patternDefs);
-    //   },
-    //   emptyArray as AttributePatternDefinition[]
-    // );
-    // interpreter.add(allDefs);
   }
 
   public registerPattern(patterns: AttributePatternDefinition[], Type: Constructable<IAttributePattern>): void {
@@ -533,8 +522,6 @@ export class AttributeParser implements IAttributeParser {
 export interface AttributePatternKind {
   readonly name: string;
   define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): { register(container: IContainer): void };
-  // getPatternDefinitions(Type: Constructable): AttributePatternDefinition[];
-  // findAll(container: IContainer): readonly IAttributePattern[];
 }
 
 /**
@@ -549,11 +536,6 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
   };
 }
 
-// const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePatternDefinition[] =>
-//   patterns.get(Type as Constructable<IAttributePattern>) ?? emptyArray;
-
-// const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
-
 export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
   define(patternDefs, Type) {
@@ -563,14 +545,7 @@ export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>
         singletonRegistration(IAttributePattern, Type).register(container);
       }
     };
-    // patterns.set(Type, patternDefs);
-    // return Registrable.define(Type, (container: IContainer) => {
-    //   container.get(IAttributeParser).registerPattern(patternDefs, Type);
-    //   singletonRegistration(IAttributePattern, Type).register(container);
-    // });
   },
-  // getPatternDefinitions: getAllPatternDefinitions,
-  // findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
 export class DotSeparatedAttributePattern {
@@ -682,6 +657,4 @@ export class AtPrefixedTriggerAttributePattern {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
   AttributePattern.define([{ pattern: 'abc', symbols: '.' }], class Def {});
-
-  // AttributePattern.getPatternDefinitions(DotSeparatedAttributePattern).map(c => c.pattern);
 }

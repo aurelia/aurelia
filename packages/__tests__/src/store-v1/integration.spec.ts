@@ -141,7 +141,7 @@ describe("store-v1/integration.spec.ts", function () {
     const sut = ctx.container.get(App);
     await sut.changeFoo();
 
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
     assert.equal(store['_state'].getValue().foo, "foobar");

@@ -804,22 +804,17 @@ const areTaskQueuesEmpty = (function () {
   return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
     const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
-    const domWriteQueue = platform.domWriteQueue;
+    const domQueue = platform.domQueue;
     const taskQueue = platform.taskQueue;
-    const domReadQueue = platform.domReadQueue;
 
     let isEmpty = true;
     let message = '';
-    if (!domWriteQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domWriteQueue', domWriteQueue)}\n\n`;
+    if (!domQueue.isEmpty) {
+      message += `\n${$reportTaskQueue('domQueue', domQueue)}\n\n`;
       isEmpty = false;
     }
     if (!taskQueue.isEmpty) {
       message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
-      isEmpty = false;
-    }
-    if (!domReadQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domReadQueue', domReadQueue)}\n\n`;
       isEmpty = false;
     }
 

@@ -362,7 +362,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
           const msg = 'foobar';
           sut.addSubscriber(subscriber);
           sut.addError(msg, person1, property);
-          platform.domReadQueue.flush();
+          platform.domQueue.flush();
 
           const result = sut.results.find((r) => r.object === person1 && r.propertyName === property);
           assert.notEqual(result, void 0);
@@ -394,14 +394,14 @@ describe('validation-html/validation-controller.spec.ts', function () {
           const msg = 'foobar';
           sut.addSubscriber(subscriber);
           const result = sut.addError(msg, person1, property);
-          platform.domReadQueue.flush();
+          platform.domQueue.flush();
           assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
           const events = subscriber.notifications;
           events.splice(0);
 
           sut.removeError(result);
-          platform.domReadQueue.flush();
+          platform.domQueue.flush();
 
           assert.equal(events.length, 1);
           assert.equal(events[0].kind, 'reset');
@@ -425,7 +425,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         const msg = 'Name is required.';
         sut.addSubscriber(subscriber);
         await sut.validate();
-        platform.domReadQueue.flush();
+        platform.domQueue.flush();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         const result = sut.results.find((r) => r.object === person1 && r.propertyName === 'name' && !r.valid);
@@ -433,7 +433,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
         events.splice(0);
 
         sut.removeError(result);
-        platform.domReadQueue.flush();
+        platform.domQueue.flush();
 
         assert.equal(events.length, 1);
         assert.equal(events[0].kind, 'reset');
@@ -483,7 +483,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
       async function ({ app: { controller: sut, person1 }, platform, host }) {
         const msg = 'foobar';
         const result = sut.addError(msg, person1);
-        platform.domReadQueue.flush();
+        platform.domQueue.flush();
         assert.html.textContent('span.error', msg, 'incorrect msg', host);
 
         await sut.revalidateErrors();

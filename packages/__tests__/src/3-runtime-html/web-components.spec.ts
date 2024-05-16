@@ -126,7 +126,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.textContent(appHost, 'hello world');
 
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.html.textContent(appHost, 'hello');
 
       await tearDown();
@@ -158,7 +158,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.innerEqual(p, '<div>hello world</div>');
 
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.html.innerEqual(p, '<div>hello</div>');
 
       await tearDown();
@@ -188,7 +188,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       el5.message = 'hello';
 
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.html.innerEqual(el5, '<div>hello</div>');
 
       await tearDown();
@@ -243,7 +243,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       myEl7.message = 'hello world';
       assert.html.textContent(myEl7, '');
-      platform.domWriteQueue.flush();
+      platform.domQueue.flush();
       assert.html.textContent(myEl7, 'hello world');
       await tearDown();
     });

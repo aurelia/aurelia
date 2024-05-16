@@ -20,7 +20,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -52,7 +52,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       assert.doesNotThrow(() => {
         component.file = 'c:/my-file.txt';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
       });
     });
 
@@ -83,7 +83,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -130,7 +130,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -154,7 +154,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.strictEqual(input.value, 'hello world');
   });
 

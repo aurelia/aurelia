@@ -44,37 +44,37 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
     //   component.value = '1';
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #1');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '0', 'target value #1');
 
     //   component.value = '2';
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '0', 'target value #2');
 
     //   await wait(20);
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(20)');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '0', 'target value #2 + wait(20)');
 
     //   await wait(10);
 
     //   assert.strictEqual(receiver.value, '0', 'target value pre #2 + wait(30)');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '2', 'target value #2 + wait(30) + flush()');
 
     //   component.value = '3';
 
     //   assert.strictEqual(receiver.value, '2', 'target value pre #3');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '2', 'target value #3');
 
     //   await wait(50);
 
     //   assert.strictEqual(receiver.value, '3', 'target value pre #4');
-    //   ctx.platform.domWriteQueue.flush();
+    //   ctx.platform.domQueue.flush();
     //   assert.strictEqual(receiver.value, '3', 'target value #4');
 
     //   await au.stop();
@@ -133,13 +133,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = '1';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #1');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.value, '0', 'target value #1');
 
       component.value = '2';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #2');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.value, '0', 'target value #2');
 
       await ctx.platform.taskQueue.yield();
@@ -148,13 +148,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = '3';
 
       assert.strictEqual(receiver.value, '2', 'target value pre #3');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.value, '2', 'target value #3');
 
       await wait(50);
 
       assert.strictEqual(receiver.value, '3', 'target value pre #4');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.value, '3', 'target value #4');
 
       await au.stop();
@@ -182,22 +182,22 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = 1;
 
       assert.strictEqual(receiver.className, '', 'target value pre #1');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, '', 'target value #1');
 
       component.value = false;
 
       assert.strictEqual(receiver.className, '', 'target value pre #2');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, '', 'target value #2');
 
       component.value = true;
 
       assert.strictEqual(receiver.className, '', 'target value pre #3');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, '', 'target value #3');
 
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, '', 'target value #4');
 
       await ctx.platform.taskQueue.yield();
@@ -205,13 +205,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       component.value = false;
       assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, 'selected', 'target value #5');
 
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(receiver.className, 'selected', 'target value #6');
 
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       await ctx.platform.taskQueue.yield();
       assert.strictEqual(receiver.className, '', 'target value #6');
 

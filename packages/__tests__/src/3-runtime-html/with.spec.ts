@@ -58,7 +58,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 
@@ -96,7 +96,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 

@@ -35,6 +35,7 @@ import {
   IValidationRule,
 } from './rule-interfaces';
 import { defineMetadata, deleteMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * Contract to register the custom messages for rules, during plugin registration.
@@ -58,6 +59,7 @@ export class RuleProperty implements IRuleProperty {
     return visitor.visitRuleProperty(this);
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
 
 export const validationRulesRegistrar = Object.freeze({
@@ -80,7 +82,7 @@ export const validationRulesRegistrar = Object.freeze({
   },
   unset(target: IValidateable, tag?: string): void {
     // const keys: string | string[] = Metadata.getOwn(Protocol.annotation.name, target);
-    const keys = getMetadata(this.allRulesAnnotations, target);
+    const keys: string | string[] | undefined = getMetadata(this.allRulesAnnotations, target);
     if (!Array.isArray(keys)) return;
     for (const key of keys.slice(0)) {
       if (key.startsWith(validationRulesRegistrar.name) && (tag === void 0 || key.endsWith(tag))) {
@@ -113,6 +115,7 @@ class ValidationMessageEvaluationContext {
 }
 
 export interface PropertyRule extends IAstEvaluator { }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class PropertyRule<TObject extends IValidateable = IValidateable, TValue = unknown> implements IPropertyRule {
   public static readonly $TYPE: string = 'PropertyRule';
   private latestRule?: IValidationRule;
@@ -238,7 +241,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   /**
    * Specifies a condition that must be met before attempting to validate the rule.
    *
-   * @param {ValidationRuleExecutionPredicate<TObject>} condition - A function that accepts the object as a parameter and returns true or false whether the rule should be evaluated.
+   * @param  condition - A function that accepts the object as a parameter and returns true or false whether the rule should be evaluated.
    */
   public when(this: PropertyRule<TObject>, condition: ValidationRuleExecutionPredicate<TObject>) {
     this.assertLatestRule(this.latestRule);
@@ -258,7 +261,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   private assertLatestRule(latestRule: IValidationRule | undefined): asserts latestRule is IValidationRule {
     if (latestRule === void 0) {
-      throw new Error('No rule has been added'); // TODO: use reporter
+      throw createMappedError(ErrorNames.rule_provider_no_rule_found);
     }
   }
   // #endregion
@@ -285,7 +288,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   /**
    * Applies a custom rule instance.
    *
-   * @param {TRule} validationRule - rule instance.
+   * @param validationRule - rule instance.
    */
   public satisfiesRule<TRule extends IValidationRule>(validationRule: TRule) {
     return this.addRule(validationRule);
@@ -390,7 +393,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   /**
    * Targets a object property for validation
    *
-   * @param {(keyof TObject | string | PropertyAccessor<TObject, TValue>)} property - can be string or a property accessor function.
+   * @param property - can be string or a property accessor function.
    */
   public ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
   public ensure<TValue>(property: PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
@@ -431,6 +434,7 @@ mixinAstEvaluator()(PropertyRule);
 
 export class ModelBasedRule {
   public constructor(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public ruleset: any,
     public tag: string = validationRulesRegistrar.defaultRuleSetName
   ) { }
@@ -441,7 +445,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
   /**
    * Targets a object property for validation
    *
-   * @param {(keyof TObject | string | PropertyAccessor<TObject, TValue>)} property - can be string or a property accessor function.
+   * @param property - can be string or a property accessor function.
    */
   ensure<TProp extends keyof TObject>(property: TProp): PropertyRule<TObject, TObject[TProp]>;
   ensure<TValue>(property: string | PropertyAccessor<TObject, TValue>): PropertyRule<TObject, TValue>;
@@ -479,7 +483,9 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   private readonly messageProvider: IValidationMessageProvider = resolve(IValidationMessageProvider);
   private readonly deserializer: IValidationExpressionHydrator = resolve(IValidationExpressionHydrator);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public ensure<TValue>(property: keyof TObject | string | PropertyAccessor): PropertyRule {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [name, expression] = parsePropertyName(property as any, this.parser);
     // eslint-disable-next-line eqeqeq
     let rule = this.rules.find((r) => r.property.name == name);
@@ -521,8 +527,11 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     const tags: Set<string> = new Set<string>();
     for (const rule of rules) {
       const tag = rule.tag;
-      if (tags.has(tag)) {
-        console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
+      if (__DEV__) {
+        if (tags.has(tag)) {
+          // eslint-disable-next-line no-console
+          console.warn(`A ruleset for tag ${tag} is already defined which will be overwritten`); // TODO: use reporter/logger
+        }
       }
       const ruleset = this.deserializer.hydrateRuleset(rule.ruleset, this);
       validationRulesRegistrar.set(target, ruleset, tag);
@@ -545,13 +554,13 @@ export function parsePropertyName(property: string | PropertyAccessor, parser: I
       const fn = property.toString();
       const match = arrowAccessorPattern.exec(fn) ?? classicAccessorPattern.exec(fn);
       if (match === null) {
-        throw new Error(`Unable to parse accessor function:\n${fn}`); // TODO: use reporter
+        throw createMappedError(ErrorNames.unable_to_parse_accessor_fn, fn);
       }
       property = match[1].substring(1);
       break;
     }
     default:
-      throw new Error(`Unable to parse accessor function:\n${property}`); // TODO: use reporter
+      throw createMappedError(ErrorNames.unable_to_parse_accessor_fn, property);
   }
 
   return [property, parser.parse(`${rootObjectSymbol}.${property}`, 'IsProperty')];
@@ -568,13 +577,13 @@ export class ValidationResult<TRule extends IValidationRule = IValidationRule> {
    */
   public id: number;
   /**
-   * @param {boolean} valid - `true` is the validation was successful, else `false`.
-   * @param {(string | undefined)} message - Evaluated validation message, if the result is not valid, else `undefined`.
-   * @param {(string | number | undefined)} propertyName - Associated property name.
-   * @param {(IValidateable | undefined)} object - Associated target object.
-   * @param {(TRule | undefined)} rule - Associated instance of rule.
-   * @param {(PropertyRule | undefined)} propertyRule - Associated parent property rule.
-   * @param {boolean} [isManual=false] - `true` if the validation result is added manually.
+   * @param valid - `true` is the validation was successful, else `false`.
+   * @param message - Evaluated validation message, if the result is not valid, else `undefined`.
+   * @param propertyName - Associated property name.
+   * @param object - Associated target object.
+   * @param rule - Associated instance of rule.
+   * @param propertyRule - Associated parent property rule.
+   * @param isManual - `true` if the validation result is added manually. Default is `false`.
    */
   public constructor(
     public valid: boolean,

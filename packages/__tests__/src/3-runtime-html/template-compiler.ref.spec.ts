@@ -328,7 +328,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },

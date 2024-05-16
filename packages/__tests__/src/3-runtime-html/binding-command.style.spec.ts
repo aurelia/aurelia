@@ -75,7 +75,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -91,7 +91,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = '';
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -107,7 +107,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -199,7 +199,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          platform.domWriteQueue.flush();
+          platform.domQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -215,7 +215,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = ruleValue;
 
-          platform.domWriteQueue.flush();
+          platform.domQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -235,7 +235,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          platform.domWriteQueue.flush();
+          platform.domQueue.flush();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];

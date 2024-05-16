@@ -44,17 +44,17 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
 
         component['a'] = undefined;
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
 
         component['a'] = 5;
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
 
         component['a'] = null;
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
       },
     },

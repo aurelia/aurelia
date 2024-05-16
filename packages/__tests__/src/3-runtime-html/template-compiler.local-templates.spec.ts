@@ -708,7 +708,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     assert.strictEqual(id, 1);
 
     vm.prop = true;
-    ctx.platform.domWriteQueue.flush();
+    ctx.platform.domQueue.flush();
 
     assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
     assert.strictEqual(id, 2);

@@ -217,10 +217,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       app.changeKey();
       assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
       assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assertTextContent(host, '#undefined', '', 'changeKey() & flush');
       assertTextContent(host, '#null', '', 'changeKey() & flush');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assertTextContent(host, '#undefined', '', 'changeKey() & 2nd flush');
       assertTextContent(host, '#null', '', 'changeKey() & 2nd flush');
     }, { component: App });
@@ -248,7 +248,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       app.changeKey();
       assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
       assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assertTextContent(host, '#undefined', 'foo');
       assertTextContent(host, '#null', 'bar');
     }, { component: App });
@@ -258,7 +258,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     @customElement({ name: 'app', template: `<p t.bind="key" id="undefined"></p>` })
     class App { private readonly key: boolean | number = value; }
     $it(`throws error if the key expression is evaluated to ${value}`, function ({ error }: I18nIntegrationTestContext<App>) {
-      assert.match(error?.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+      assert.match(error?.message, /AUR4002/);
     }, { component: App });
   }
 
@@ -278,7 +278,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       try {
         app.changeKey();
       } catch (e) {
-        assert.match(e.message, new RegExp(`Expected the i18n key to be a string, but got ${value} of type (boolean|number)`));
+        assert.match(e.message, /AUR4002/);
       }
     }, { component: App });
   }
@@ -321,7 +321,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span t-params.bind="{context: 'dispatched'}"></span>` })
       class App { }
       $it('throws error if used without `t` attribute', function ({ error }: I18nIntegrationTestContext<App>) {
-        assert.equal(error?.message, 'key expression is missing');
+        assert.includes(error?.message, 'AUR4000');
       }, { component: App });
     }
     {
@@ -359,7 +359,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', currDate.toString()), 'before change t-params');
         app.tParams = { context: 'dispatched', date: new Date(2020, 2, 10, 5, 15) };
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', currDate.toString()), 'after change t-params, before flush');
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.tParams.date.toString()), 'after change t-params & flush');
       }, { component: App });
 
@@ -379,7 +379,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', currDate.toString()), 'before change');
         app.deliveredOn = new Date(2022, 1, 10, 5, 15);
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', currDate.toString()), 'after change, before flush');
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       }, { component: App });
 
@@ -391,7 +391,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.nameParams = { name: 'Jane' };
         assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', currName));
         assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', currName));
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', 'Jane'));
         assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', 'Jane'));
       }, { component: App });
@@ -658,11 +658,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
 
         app.keyExpr = '[prepend]pre;[append]post';
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
 
         app.keyExpr = '[prepend]preHtml;[append]postHtml';
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -678,7 +678,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
         app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -695,7 +695,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[prepend]preHtml';
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
       }, { component: App });
@@ -711,7 +711,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[append]postHtml';
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -728,7 +728,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[html]midHtml';
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
       }, { component: App });
@@ -745,7 +745,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
       $it('when the key expression changed - interpolation', function ({ host, en: translation, app, ctx }: I18nIntegrationTestContext<App>) {
         app.obj.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -762,7 +762,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.obj.base = 'simple';
         app.obj.key = '.attr';
         assertTextContent(host, `span`, currText);
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -775,7 +775,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
       $it('when the key expression changed - access-member', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.obj.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -788,15 +788,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
       $it('when the key expression changed - property', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -815,15 +815,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
       $it('when the key expression changed - property - custom element', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, translation.simple.attr);
       }, { component: App });
     }
@@ -839,15 +839,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.strictEqual(span.dataset.foo, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, translation.simple.attr);
       }, { component: App });
     }
@@ -871,15 +871,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assertTextContent(host, `my-ce`, `${r.text} ${r.attr}`);
 
         app.key1 = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, `${r.attr} ${r.attr}`);
 
         app.key2 = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, `${r.attr} ${r.text}`);
 
         app.key1 = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `my-ce`, `${r.text} ${r.text}`);
       }, { component: App });
     }
@@ -899,17 +899,17 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.strictEqual(span.bar, r.attr);
 
         app.key1 = 'simple.attr';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, r.attr);
         assert.strictEqual(span.bar, r.attr);
 
         app.key2 = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, r.attr);
         assert.strictEqual(span.bar, r.text);
 
         app.key1 = 'simple.text';
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(span.dataset.foo, translation.simple.text);
         assert.strictEqual(span.bar, r.text);
       }, { component: App });
@@ -926,7 +926,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('when the translation parameters changed', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.params = { ...app.params, context: 'dispatched' };
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, `span`, translation.status_dispatched.replace('{{date}}', app.deliveredOn.toString()));
       }, { component: App });
     }
@@ -937,7 +937,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App { }
       $it('when the locale is changed', async function ({ ctx, host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
     }
@@ -968,7 +968,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           '<CustomMessage/> message prop should have been updated immediately'
         );
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -979,7 +979,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App { }
       $it('should support locale changes', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'custom-message div', de.simple.text);
       }, { component: App });
@@ -1009,7 +1009,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           '<camel-ce/> message prop should have been updated immediately'
         );
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
-        ctx.platform.domWriteQueue.flush();
+        ctx.platform.domQueue.flush();
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1020,7 +1020,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App { }
       $it('should support locale changes with camelCased bindable', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'camel-ce div', de.simple.text);
       }, { component: App });
@@ -1069,7 +1069,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
     }
@@ -1117,7 +1117,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
@@ -1163,13 +1163,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
 
       $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -1214,7 +1214,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
     }
@@ -1224,7 +1224,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -1257,14 +1257,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
 
       $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1343,7 +1343,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
     }
@@ -1353,7 +1353,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of source value', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1429,7 +1429,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1447,7 +1447,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1466,7 +1466,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         async function ({ platform, host, container }) {
           await platform.taskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            platform.domWriteQueue.flush();
+            platform.domQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
@@ -1543,7 +1543,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1561,7 +1561,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        platform.domWriteQueue.flush();
+        platform.domQueue.flush();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1580,7 +1580,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
           await platform.taskQueue.queueTask(delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            platform.domWriteQueue.flush();
+            platform.domQueue.flush();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },

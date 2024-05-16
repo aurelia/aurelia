@@ -49,7 +49,7 @@ describe('register', function () {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const p = (document.querySelector('app-root') as INode).$au!['au:resource:custom-element']!.container.get(IPlatform);
       await p.taskQueue.yield();
-      await p.domWriteQueue.yield();
+      await p.domQueue.yield();
     });
   }
 

@@ -28,6 +28,7 @@ import {
   type IValidationRule,
   type IValidateable,
 } from '@aurelia/validation';
+import { ErrorNames, createMappedError } from './errors';
 
 export type BindingWithBehavior = PropertyBinding & {
   ast: BindingBehaviorExpression;
@@ -146,14 +147,14 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo)
         break;
       }
       default:
-        throw new Error(`Unknown expression of type ${expression.constructor.name}`); // TODO: use reporter/logger
+        throw createMappedError(ErrorNames.validation_controller_unknown_expression, expression.constructor.name);
     }
     const separator = propertyName.startsWith('[') ? '' : '.';
     propertyName = propertyName.length === 0 ? memberName : `${memberName}${separator}${propertyName}`;
     expression = expression.object;
   }
   if (expression === void 0) {
-    throw new Error(`Unable to parse binding expression: ${binding.ast.expression}`); // TODO: use reporter/logger
+    throw createMappedError(ErrorNames.validation_controller_unable_to_parse_expression, binding.ast.expression);
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let object: any;
@@ -390,7 +391,7 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.platform.domReadQueue.queueTask(async () => {
+    const task = this.platform.domQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
           async (x) => this.validator.validate(x)

@@ -428,7 +428,7 @@ describe('router/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).parentElement.click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -476,7 +476,7 @@ describe('router/router.spec.ts', function () {
 
       (host.getElementsByTagName('A')[i] as HTMLElement).click();
 
-      await platform.domWriteQueue.yield();
+      await platform.domQueue.yield();
 
       assert.includes(host.textContent, '|id-name|', `host.textContent`);
       assert.includes(host.textContent, `Parameter id: [${test.result}]`, `host.textContent`);
@@ -759,21 +759,21 @@ describe('router/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.notIncludes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.notIncludes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -796,14 +796,14 @@ describe('router/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
 
     (host as any).getElementsByTagName('INPUT')[1].value = 'asdf';
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     // NOT going to work since it loads non-stateful parent grault
     await $load('grault@left/corge@grault', router, platform);
@@ -835,7 +835,7 @@ describe('router/router.spec.ts', function () {
 
     (host as any).getElementsByTagName('INPUT')[0].click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: grault', `host.textContent`);
     assert.includes(host.textContent, 'garply', `host.textContent`);
@@ -937,7 +937,7 @@ describe('router/router.spec.ts', function () {
 
     (host.getElementsByTagName('SPAN')[0] as HTMLElement).click();
 
-    await platform.domWriteQueue.yield();
+    await platform.domQueue.yield();
 
     assert.includes(host.textContent, 'Viewport: baz', `host.textContent`);
 
@@ -954,7 +954,7 @@ let plughReloadBehavior = 'default';
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domWriteQueue.flush();
+  platform.domQueue.flush();
 };
 
 const wait = async (time = 500) => {

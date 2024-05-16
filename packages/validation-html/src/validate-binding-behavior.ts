@@ -23,6 +23,7 @@ import {
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
 import { BindingBehaviorExpression } from '@aurelia/expression-parser';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * Validation triggers.
@@ -74,7 +75,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
 
   public bind(scope: Scope, binding: IBinding) {
     if (!(binding instanceof PropertyBinding)) {
-      throw new Error('Validate behavior used on non property binding');
+      throw createMappedError(ErrorNames.validate_binding_behavior_on_invalid_binding_type);
     }
     let connector = validationConnectorMap.get(binding);
     if (connector == null) {
@@ -241,7 +242,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
           rules = this._ensureRules(astEvaluate(arg, scope, this, this._rulesMediator));
           break;
         default:
-          throw new Error(`Unconsumed argument#${i + 1} for validate binding behavior: ${astEvaluate(arg, scope, this, null)}`);
+          throw createMappedError(ErrorNames.validate_binding_behavior_extraneous_args, i + 1, astEvaluate(arg, scope, this, null));
       }
     }
 
@@ -255,7 +256,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   private validateBinding() {
     // Queue the new one before canceling the old one, to prevent early yield
     const task = this.task;
-    this.task = this._platform.domReadQueue.queueTask(() =>
+    this.task = this._platform.domQueue.queueTask(() =>
       this.controller.validateBinding(this.propertyBinding)
     );
     if (task !== this.task) {
@@ -301,17 +302,17 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     if (trigger === (void 0) || trigger === null) {
       trigger = this.defaultTrigger;
     } else if (!Object.values(ValidationTrigger).includes(trigger as ValidationTrigger)) {
-      throw new Error(`${trigger} is not a supported validation trigger`); // TODO: use reporter
+      throw createMappedError(ErrorNames.validate_binding_behavior_invalid_trigger_name, trigger);
     }
     return trigger as ValidationTrigger;
   }
 
   /** @internal */
   private _ensureController(controller: unknown): ValidationController {
-    if (controller === (void 0) || controller === null) {
+    if (controller == null) {
       controller = this.scopedController;
     } else if (!(controller instanceof ValidationController)) {
-      throw new Error(`${controller} is not of type ValidationController`); // TODO: use reporter
+      throw createMappedError(ErrorNames.validate_binding_behavior_invalid_controller, controller);
     }
     return controller as ValidationController;
   }
@@ -331,7 +332,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     } else {
       const controller = (target as ICustomElementViewModel)?.$controller;
       if (controller === void 0) {
-        throw new Error('Invalid binding target'); // TODO: use reporter
+        throw createMappedError(ErrorNames.validate_binding_behavior_invalid_binding_target);
       }
       return controller.host;
     }

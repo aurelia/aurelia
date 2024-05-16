@@ -109,7 +109,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
       handleValidationEventSpy.calls.splice(0);
       controllerValidateSpy.calls.splice(0);
       target.dispatchEvent(new ctx.Event(event));
-      await platform.domReadQueue.yield();
+      await platform.domQueue.yield();
       assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
       assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
     }
@@ -139,7 +139,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
         target2.value = 'foo';
         target2.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target2, platform, controllerValidateSpy, spy2, ctx);
 
         // assert that errors are rendered in the respective containers
@@ -164,12 +164,12 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         // assert that errors are removed
         target1.value = 'foo';
         target1.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
 
         target2.value = '15';
         target2.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target2, platform, controllerValidateSpy, spy2, ctx);
 
         errors1 = ca1.errors;
@@ -211,7 +211,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         await assertEventHandler(target1, platform, controllerValidateSpy, spy, ctx);
         target2.value = 'foo';
         target2.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target2, platform, controllerValidateSpy, spy, ctx);
 
         const errors1 = ca.errors;
@@ -259,7 +259,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
         target2.value = 'foo';
         target2.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target2, platform, controller2ValidateSpy, spy2, ctx);
 
         // assert that errors are rendered in the respective containers
@@ -284,12 +284,12 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
         // assert that errors are removed
         target1.value = 'foo';
         target1.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
 
         target2.value = '15';
         target2.dispatchEvent(new ctx.Event('change'));
-        await platform.domReadQueue.yield();
+        await platform.domQueue.yield();
         await assertEventHandler(target2, platform, controller2ValidateSpy, spy2, ctx);
 
         errors1 = ca1.errors;
@@ -407,7 +407,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
       const target1 = div1.querySelector('#target1') as HTMLInputElement;
 
       await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
-      await platform.domReadQueue.yield();
+      await platform.domQueue.yield();
 
       // assert that errors are rendered in the respective containers
       let errors1 = ca1.errors;
@@ -420,7 +420,7 @@ describe('validation-html/subscribers/validation-errors-custom-attribute.spec.ts
       // assert that errors are removed
       target1.value = 'foo';
       target1.dispatchEvent(new ctx.Event('change'));
-      await platform.domReadQueue.yield();
+      await platform.domQueue.yield();
       await assertEventHandler(target1, platform, controllerValidateSpy, spy1, ctx);
 
       errors1 = ca1.errors;

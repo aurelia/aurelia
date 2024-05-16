@@ -95,7 +95,7 @@ export class TaskQueue<T> {
   public start(options: ITaskQueueOptions): void {
     this.platform = options.platform;
     this.allowedExecutionCostWithinTick = options.allowedExecutionCostWithinTick;
-    this.task = this.platform.domWriteQueue.queueTask(this.dequeue, { persistent: true });
+    this.task = this.platform.domQueue.queueTask(this.dequeue, { persistent: true });
   }
   public stop(): void {
     this.task!.cancel();

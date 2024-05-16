@@ -56,5 +56,5 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
   };
 }
 
-export const ValidationHtmlConfiguration = createConfiguration(noop);
+export const ValidationHtmlConfiguration = /*@__PURE__*/ createConfiguration(noop);
 

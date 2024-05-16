@@ -32,6 +32,7 @@ import type {
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 import { etInterpolation, etIsProperty, stateActivating } from '../utils';
+import { ErrorNames, createMappedError } from '../errors';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -155,7 +156,7 @@ export class TranslationBinding implements IBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.domWriteQueue;
+    this._taskQueue = platform.domQueue;
   }
 
   public bind(_scope: Scope): void {
@@ -163,7 +164,7 @@ export class TranslationBinding implements IBinding {
       return;
     }
     const ast = this.ast;
-    if (ast == null) { throw new Error('key expression is missing'); }
+    if (ast == null) throw createMappedError(ErrorNames.i18n_translation_key_not_found);
     this._scope = _scope;
     this.i18n.subscribeLocaleChange(this);
 
@@ -211,7 +212,7 @@ export class TranslationBinding implements IBinding {
 
   public useParameter(expr: IsExpression) {
     if (this.parameter != null) {
-      throw new Error('This translation parameter has already been specified.');
+      throw createMappedError(ErrorNames.i18n_translation_parameter_existed);
     }
     this.parameter = new ParameterBinding(this, expr, () => this.updateTranslations());
   }
@@ -350,7 +351,7 @@ export class TranslationBinding implements IBinding {
     const expr = this._keyExpression ??= '';
     const exprType = typeof expr;
     if (exprType !== 'string') {
-      throw new Error(`Expected the i18n key to be a string, but got ${expr} of type ${exprType}`); // TODO use reporter/logger
+      throw createMappedError(ErrorNames.i18n_translation_key_invalid, expr, exprType);
     }
   }
 }

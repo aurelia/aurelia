@@ -271,7 +271,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          ctx.platform.domWriteQueue.flush();
+          ctx.platform.domQueue.flush();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }

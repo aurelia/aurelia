@@ -79,7 +79,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
       }
       return;
     }
-    const q = this._platform.domWriteQueue;
+    const q = this._platform.domQueue;
     const fulfilled = this.fulfilled;
     const rejected = this.rejected;
     const pending = this.pending;

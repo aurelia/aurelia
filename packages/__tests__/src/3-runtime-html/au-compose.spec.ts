@@ -46,7 +46,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, 'hello');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -69,7 +69,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, 'hello world');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -93,12 +93,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, '');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, '');
 
       component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -126,12 +126,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, '');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, '');
 
       component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -304,7 +304,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       models1.push(model);
       component.model = model;
 
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.strictEqual(constructorCallCount, 1);
       assert.strictEqual(models2.length, 2);
       assert.deepStrictEqual(models1, models2);
@@ -469,7 +469,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(child.node, childElHost);
 
       component.El = Parent;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
       const parentElHost = appHost.querySelector('parent');
@@ -664,7 +664,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.html.innerEqual(appHost, '<child><div>Hello world from Child</div></child>');
 
       component.El = Parent;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
 
@@ -699,17 +699,17 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.html.innerEqual(appHost, '<div>Hello world from POJO</div>');
 
       component.El = Parent;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
 
       component.El = { message: 'POJO2' };
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello world from POJO2');
       assert.html.innerEqual(appHost, '<div>Hello world from POJO2</div>');
 
       component.El = Child;
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello world from Child');
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><child><div>Hello world from Child</div></child><!--au-end-->');
 
@@ -730,7 +730,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       component.El = { text: 'Hello 22' };
       component.El = { text: 'Hello 33' };
-      ctx.platform.domWriteQueue.flush();
+      ctx.platform.domQueue.flush();
       assert.visibleTextEqual(appHost, 'Hello 33');
       assert.html.innerEqual(appHost, '<div>Hello 33</div>');
     });

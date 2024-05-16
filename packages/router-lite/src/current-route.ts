@@ -1,4 +1,4 @@
-import { DI, IContainer, Writable, emptyArray, resolve } from '@aurelia/kernel';
+import { DI, Writable, emptyArray, resolve } from '@aurelia/kernel';
 import { RESIDUE } from '@aurelia/route-recognizer';
 import { batch } from '@aurelia/runtime';
 import { IRouter } from './router';
@@ -6,7 +6,6 @@ import { IRouterEvents } from './router-events';
 
 import type { Params, ViewportInstruction } from './instructions';
 import type { RouteConfig } from './route';
-import { AppTask } from '@aurelia/runtime-html';
 
 export const ICurrentRoute = /*@__PURE__*/ DI.createInterface<ICurrentRoute>('ICurrentRoute', x => x.singleton(CurrentRoute));
 export interface ICurrentRoute extends CurrentRoute { }
@@ -21,8 +20,11 @@ export class CurrentRoute {
   public constructor() {
     const router = resolve(IRouter);
     const options = router.options;
-    const container = resolve(IContainer).root;
-    const subscription = resolve(IRouterEvents)
+    // In a realistic app, the lifetime of the CurrentRoute instance is the same as the app itself.
+    // Therefor the disposal of the subscription is avoided here.
+    // An alternative would be to introduce a new configuration option such that the router initializes this class in its constructor and also registers the class to container.
+    // Then the app task hooks of the router can be used directly to start/dispose the subscription.
+    resolve(IRouterEvents)
       .subscribe('au:router:navigation-end', (event) => {
         const vit = event.finalInstructions;
         batch(() => {
@@ -33,7 +35,6 @@ export class CurrentRoute {
           (this as Writable<CurrentRoute>).parameterInformation = vit.children.map((instruction) => ParameterInformation.create(instruction));
         });
       });
-    container.register(AppTask.deactivated(() => subscription.dispose()));
   }
 }
 

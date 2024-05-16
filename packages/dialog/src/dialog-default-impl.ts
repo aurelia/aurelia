@@ -6,7 +6,7 @@ import {
 } from './dialog-interfaces';
 
 import { IContainer, resolve } from '@aurelia/kernel';
-import { singletonRegistration } from '../../utilities-di';
+import { singletonRegistration } from './utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 

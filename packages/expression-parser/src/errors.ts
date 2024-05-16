@@ -110,15 +110,8 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
       let value = details[i] as any;
       if (value != null) {
         switch (method) {
-          case 'nodeName': value = (value as Node).nodeName.toLowerCase(); break;
-          case 'name': value = (value as { name: string }).name; break;
-          case 'typeof': value = typeof value; break;
-          case 'ctor': value = (value as object).constructor.name; break;
-          case 'controller': value = value.controller.name; break;
-          case 'target@property': value = `${value.target}@${value.targetProperty}`; break;
           case 'toString': value = Object.prototype.toString.call(value); break;
           case 'join(!=)': value = (value as unknown[]).join('!='); break;
-          case 'bindingCommandHelp': value = getBindingCommandHelp(value); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
           default: {
             // property access
@@ -144,20 +137,4 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
   return `\nThis is likely an issue with Aurelia.\n Please help create an issue by clicking the following link\n`
     + `https://github.com/aurelia/aurelia/issues/new?title=${encodeURIComponent(title)}`
     + (body != null ? `&body=${encodeURIComponent(body)}` : '&template=bug_report.md');
-}
-
-function getBindingCommandHelp(name: string) {
-  switch (name) {
-    case 'delegate':
-      return `\nThe ".delegate" binding command has been removed in v2.`
-      + ` Binding command ".trigger" should be used instead.`
-      + ` If you are migrating v1 application, install compat package`
-      + ` to add back the ".delegate" binding command for ease of migration.`;
-    case 'call':
-      return `\nThe ".call" binding command has been removed in v2.`
-      + ` If you want to pass a callback that preserves the context of the function call,`
-      + ` you can use lambda instead. Refer to lambda expression doc for more details.`;
-    default:
-      return '';
-  }
 }

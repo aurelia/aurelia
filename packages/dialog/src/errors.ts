@@ -11,28 +11,28 @@ _START_CONST_ENUM();
 export const enum ErrorNames {
   method_not_implemented = 99,
 
-  validate_binding_behavior_on_invalid_binding_type = 4200,
-  validate_binding_behavior_extraneous_args = 4201,
-  validate_binding_behavior_invalid_trigger_name = 4202,
-  validate_binding_behavior_invalid_controller = 4203,
-  validate_binding_behavior_invalid_binding_target = 4204,
-
-  validation_controller_unknown_expression = 4205,
-  validation_controller_unable_to_parse_expression = 4206,
+  dialog_not_all_dialogs_closed = 901,
+  dialog_settings_invalid = 903,
+  dialog_no_empty_default_configuration = 904,
+  dialog_activation_rejected = 905,
+  dialog_cancellation_rejected = 906,
+  dialog_cancelled_with_cancel_on_rejection_setting = 907,
+  dialog_custom_error = 908,
 }
 _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
-  [ErrorNames.validate_binding_behavior_on_invalid_binding_type]: 'Validate behavior used on non property binding',
-  [ErrorNames.validate_binding_behavior_extraneous_args]: `Unconsumed argument#{{0}} for validate binding behavior: {{1}}`,
-  [ErrorNames.validate_binding_behavior_invalid_trigger_name]: `{{0}} is not a supported validation trigger`,
-  [ErrorNames.validate_binding_behavior_invalid_controller]: `{{0}} is not of type ValidationController`,
-  [ErrorNames.validate_binding_behavior_invalid_binding_target]: 'Invalid binding target',
-
-  [ErrorNames.validation_controller_unknown_expression]: `Unknown expression of type {{0}}`,
-  [ErrorNames.validation_controller_unable_to_parse_expression]: `Unable to parse binding expression: {{0}}`,
+  [ErrorNames.dialog_not_all_dialogs_closed]: `Failured to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
+  [ErrorNames.dialog_settings_invalid]: `Invalid Dialog Settings. You must provide either "component" or "template" or both.`,
+  [ErrorNames.dialog_no_empty_default_configuration]: `Invalid dialog configuration. ` +
+    'Specify the implementations for <IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
+    'or use the DialogDefaultConfiguration export.',
+  [ErrorNames.dialog_activation_rejected]: 'Dialog activation rejected',
+  [ErrorNames.dialog_cancellation_rejected]:  'Dialog cancellation rejected',
+  [ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting]: 'Dialog cancelled with a rejection on cancel',
+  [ErrorNames.dialog_custom_error]: 'Dialog custom error',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -46,6 +46,7 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
       let value = details[i] as any;
       if (value != null) {
         switch (method) {
+          case 'join(!=)': value = (value as unknown[]).join('!='); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
           default: {
             // property access

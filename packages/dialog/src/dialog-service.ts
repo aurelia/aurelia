@@ -11,13 +11,14 @@ import {
   IDialogLoadedSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
-import { createError, isFunction, isPromise } from '../../utilities';
-import { instanceRegistration, singletonRegistration } from '../../utilities-di';
+import { isFunction, isPromise } from './utilities';
+import { instanceRegistration, singletonRegistration } from './utilities-di';
 
 import type {
   DialogOpenPromise,
   IDialogSettings,
 } from './dialog-interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * A default implementation for the dialog service allowing for the creation of dialogs.
@@ -29,13 +30,10 @@ export class DialogService implements IDialogService {
       Registration.aliasTo(this, IDialogService),
       AppTask.deactivating(IDialogService, dialogService => onResolve(
         dialogService.closeAll(),
-        (openDialogController) => {
-          if (openDialogController.length > 0) {
+        (openDialogControllers) => {
+          if (openDialogControllers.length > 0) {
             // todo: what to do?
-            if (__DEV__)
-              throw createError(`AUR0901: There are still ${openDialogController.length} open dialog(s).`);
-            else
-              throw createError(`AUR0901:${openDialogController.length}`);
+            throw createMappedError(ErrorNames.dialog_not_all_dialogs_closed, openDialogControllers.length);
           }
         }
       ))
@@ -198,10 +196,7 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
   /** @internal */
   private _validate(): this {
     if (this.component == null && this.template == null) {
-      if (__DEV__)
-        throw createError(`AUR0903: Invalid Dialog Settings. You must provide "component", "template" or both.`);
-      else
-        throw createError(`AUR0903`);
+      throw createMappedError(ErrorNames.dialog_settings_invalid);
     }
     return this;
   }

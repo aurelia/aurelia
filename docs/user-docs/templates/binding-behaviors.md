@@ -143,7 +143,7 @@ import { ISignaler, resolve} from 'aurelia';
 
 export class MyApp {
   constructor(readonly signaler: ISignaler = resolve(ISignaler)) {
-    setInterval(() => signaler.signal('my-signal'), 5000);
+    setInterval(() => signaler.dispatchSignal('my-signal'), 5000);
   }
 }
 ```

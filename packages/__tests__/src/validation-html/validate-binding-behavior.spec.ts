@@ -2,8 +2,9 @@ import { callSyntax, delegateSyntax } from '@aurelia/compat-v1';
 import { DI, IServiceLocator, newInstanceForScope, newInstanceOf, Registration, resolve } from '@aurelia/kernel';
 import { Unparser } from '@aurelia/expression-parser';
 import {
-  ArrayObserver,
+  type ArrayObserver,
   IObserverLocator,
+  getCollectionObserver,
 } from '@aurelia/runtime';
 import {
   Scope,
@@ -106,7 +107,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
         if (observeCollection) {
           this.employeesMediator = new BindingMediator('handleEmployeesChange', this, observerLocator, serviceLocator);
-          this.employeeObserver = new ArrayObserver(this.org.employees);
+          this.employeeObserver = getCollectionObserver(this.org.employees);
           this.employeeObserver.getLengthObserver().subscribe(this.employeesMediator);
         }
 

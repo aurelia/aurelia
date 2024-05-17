@@ -8,11 +8,12 @@ import {
   type IObserverLocator,
 } from '@aurelia/runtime';
 import { getCollectionObserver, INodeObserver, INodeObserverConfigBase } from './observer-locator';
-import { atLayout, atNode, atObserver, hasOwnProperty, isArray } from '../utilities';
+import { atLayout, atNode, atObserver, hasOwnProperty } from '../utilities';
 
 import type { INode } from '../dom';
 import type { ValueAttributeObserver } from './value-attribute-observer';
 import { mixinNodeObserverUseConfig } from './observation-utils';
+import { isArray } from '@aurelia/kernel';
 
 export interface IInputElement extends HTMLInputElement {
   model?: unknown;

@@ -1,4 +1,5 @@
-import { atLayout, atNode, createLookup } from '../utilities';
+import { createLookup } from '@aurelia/kernel';
+import { atLayout, atNode } from '../utilities';
 
 import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';

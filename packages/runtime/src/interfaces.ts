@@ -1,7 +1,7 @@
-import { DI, IIndexable } from '@aurelia/kernel';
-import { isArray, objectFreeze } from './utilities';
+import { DI, IIndexable, isArray } from '@aurelia/kernel';
+import { rtObjectFreeze } from './utilities';
 
-import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './collection-length-observer';
 
 export const ICoercionConfiguration = /*@__PURE__*/DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
 export interface ICoercionConfiguration {
@@ -114,7 +114,7 @@ export type ObservedCollectionKindToType<T> =
 /** @internal */ export const atObserver = 0b0_000_001;
 /** @internal */ export const atNode     = 0b0_000_010;
 /** @internal */ export const atLayout   = 0b0_000_100;
-export const AccessorType = /*@__PURE__*/objectFreeze({
+export const AccessorType = /*@__PURE__*/rtObjectFreeze({
   None      : atNone,
   Observer  : atObserver,
   Node      : atNode,

@@ -1,9 +1,9 @@
-import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { INode, getEffectiveParentNode, getRef } from '../dom';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
-import { isFunction, isString, objectFreeze } from '../utilities';
+import { objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { defaultMode, toView, BindingMode } from '../binding/interfaces-bindings';
 

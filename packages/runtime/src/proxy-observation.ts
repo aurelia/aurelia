@@ -1,6 +1,6 @@
-import { IIndexable } from '@aurelia/kernel';
-import { Collection, IConnectable } from '../observation';
-import { isArray, isMap, isSet, objectFreeze, safeString } from '../utilities';
+import { IIndexable, isArray, isMap, isSet } from '@aurelia/kernel';
+import { Collection, IConnectable } from './interfaces';
+import { rtObjectFreeze, rtSafeString } from './utilities';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;
@@ -59,7 +59,7 @@ function doNotCollect(object: object, key: PropertyKey): boolean {
     // limit to string first
     // symbol can be added later
     // looking up from the constructor means inheritance is supported
-    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${safeString(key)}__`] === true;
+    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${rtSafeString(key)}__`] === true;
 }
 
 function createProxy<T extends object>(obj: T): T {
@@ -470,7 +470,7 @@ function wrappedEntries(this: $MapOrSet | unknown[]): IterableIterator<unknown> 
 }
 
 const observeCollection = (connectable: IConnectable | null, collection: Collection) => connectable?.observeCollection(collection);
-export const ProxyObservable = /*@__PURE__*/ objectFreeze({
+export const ProxyObservable = /*@__PURE__*/ rtObjectFreeze({
   getProxy,
   getRaw,
   wrap,

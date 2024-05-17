@@ -1,5 +1,5 @@
-import { emptyArray } from '@aurelia/kernel';
-import { atLayout, atNode, isArray, isString } from '../utilities';
+import { emptyArray, isArray, isString } from '@aurelia/kernel';
+import { atLayout, atNode } from '../utilities';
 
 import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';

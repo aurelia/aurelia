@@ -1,10 +1,10 @@
 import { IObserverLocatorBasedConnectable, connectable, type IObserverRecord } from './connectable';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { IObserverLocator } from './observer-locator';
-import { createInterface } from '../utilities';
+import { rtCreateInterface } from './utilities';
 
-import type { ICollectionSubscriber, IConnectable, ISubscriber } from '../observation';
-import { ErrorNames, createMappedError } from '../errors';
+import type { ICollectionSubscriber, IConnectable, ISubscriber } from './interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IObservation {
   /**
@@ -23,7 +23,7 @@ export interface IObservation {
     options?: IWatchOptions,
   ): IEffect;
 }
-export const IObservation = /*@__PURE__*/createInterface<IObservation>('IObservation', x => x.singleton(Observation));
+export const IObservation = /*@__PURE__*/rtCreateInterface<IObservation>('IObservation', x => x.singleton(Observation));
 
 export interface IWatchOptions {
   /**

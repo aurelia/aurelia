@@ -1,10 +1,9 @@
-import { kebabCase, getPrototypeChain, noop, Class } from '@aurelia/kernel';
+import { kebabCase, getPrototypeChain, noop, type Class, createLookup, isString, type Constructable } from '@aurelia/kernel';
 import { ICoercionConfiguration } from '@aurelia/runtime';
 import { defaultMode, toView, twoWay } from './binding/interfaces-bindings';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
-import { createLookup, isString, objectFreeze, objectKeys } from './utilities';
+import { objectFreeze, objectKeys } from './utilities';
 
-import type { Constructable } from '@aurelia/kernel';
 import type { InterceptorFunc } from '@aurelia/runtime';
 import { ErrorNames, createMappedError } from './errors';
 import { BindingMode, IComponentBindablePropDefinition } from '@aurelia/template-compiler';

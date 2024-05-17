@@ -1,10 +1,5 @@
-import { BindableDefinition } from '../bindable';
-import { defaultMode } from '../binding/interfaces-bindings';
-import { CustomAttribute } from '../resources/custom-attribute';
-import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
-import { createLookup } from '../utilities';
-
 import {
+  createLookup,
   createImplementationRegister,
   type IContainer,
   type IRegistry
@@ -15,6 +10,11 @@ import {
   IResourceResolver,
   TemplateCompiler,
 } from '@aurelia/template-compiler';
+import { BindableDefinition } from '../bindable';
+import { defaultMode } from '../binding/interfaces-bindings';
+import { CustomAttribute } from '../resources/custom-attribute';
+import { CustomElement, CustomElementDefinition } from '../resources/custom-element';
+
 import { ErrorNames, createMappedError } from '../errors';
 import type { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { AttrMapper } from './attribute-mapper';

@@ -1,12 +1,11 @@
 import {
   ArrayObserver,
   copyIndexMap,
-  disableArrayObservation,
-  enableArrayObservation,
   ICollectionSubscriber,
   IndexMap,
   batch,
   Collection,
+  getCollectionObserver,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -148,16 +147,11 @@ public constructor(
 describe(`2-runtime/array-observer.spec.ts`, function () {
   let sut: ArrayObserver;
 
-  before(function () {
-    disableArrayObservation();
-    enableArrayObservation();
-  });
-
   describe('should allow subscribing for batched notification', function () {
     const observerMap = new WeakMap<unknown[], ArrayObserver>();
     function verifyChanges(arr: number[], fn: (arr: number[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: number[]) {
       const s = new SpySubscriber();
-      const sut = observerMap.get(arr) ?? (observerMap.set(arr, new ArrayObserver(arr)).get(arr));
+      const sut = observerMap.get(arr) ?? (observerMap.set(arr, getCollectionObserver(arr)).get(arr));
       sut.subscribe(s);
 
       try {
@@ -180,7 +174,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
 
     function verifyNoChanges(arr: number[], fn: (arr: number[]) => void) {
       const s = new SpySubscriber();
-      const sut = new ArrayObserver(arr);
+      const sut = getCollectionObserver(arr);
       sut.subscribe(s);
 
       batch(() => {
@@ -490,7 +484,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
 
     it('works with double nested batch', function () {
       const arr = [1, 2, 3];
-      const o = new ArrayObserver(arr);
+      const o = getCollectionObserver(arr);
       let map: IndexMap;
       let callCount = 0;
       o.subscribe({
@@ -524,7 +518,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(arr);
+      sut = getCollectionObserver(arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
       batch(() => {
@@ -538,7 +532,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(arr);
+      sut = getCollectionObserver(arr);
       batch(() => { /* do nothing */ });
       assert.strictEqual(s.collectionChanges.length, 0);
     });
@@ -548,7 +542,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     function verifyChanges(arr: symbol[], fn: (arr: symbol[]) => void) {
       const copy = arr.slice();
       const s = new SynchronizingCollectionSubscriber(copy, arr);
-      const sut = new ArrayObserver(arr);
+      const sut = getCollectionObserver(arr);
       sut.subscribe(s);
 
       batch(() => {
@@ -1410,7 +1404,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(arr);
+      sut = getCollectionObserver(arr);
       sut.subscribe(s);
       arr.push(1);
       assert.deepStrictEqual(
@@ -1422,7 +1416,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     it('push 2', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(arr);
+      sut = getCollectionObserver(arr);
       sut.subscribe(s);
       arr.push(1, 2);
       assert.deepStrictEqual(
@@ -1436,7 +1430,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
     it('push', function () {
       const s = new SpySubscriber();
       const arr = [];
-      sut = new ArrayObserver(arr);
+      sut = getCollectionObserver(arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
       arr.push(1);
@@ -1448,7 +1442,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
   //   it('push', function () {
   //     const s = new SpySubscriber();
   //     const arr = [];
-  //     sut = new ArrayObserver(arr);
+  //     sut = getCollectionObserver(arr);
   //     sut.subscribe(s);
   //     batch(
   //       function () {
@@ -1464,7 +1458,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
   //   it('push 2', function () {
   //     const s = new SpySubscriber();
   //     const arr = [];
-  //     sut = new ArrayObserver(arr);
+  //     sut = getCollectionObserver(arr);
   //     sut.subscribe(s);
   //     batch(
   //       function () {
@@ -1494,7 +1488,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1517,7 +1511,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const copy = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
 
           let i = 0;
@@ -1552,7 +1546,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1575,7 +1569,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const copy = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -1606,7 +1600,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1622,7 +1616,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -1648,7 +1642,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1664,7 +1658,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -1697,7 +1691,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1730,7 +1724,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           const arr = init.slice();
           const copy = init.slice();
           const newItems = items?.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -1765,7 +1759,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - behaves as native`, function () {
           const arr = init.slice();
           const expectedArr = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           let expectedResult;
           let actualResult;
           let i = 0;
@@ -1781,7 +1775,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         it(`size=${padRight(init.length, 2)} repeat=${repeat} - tracks changes`, function () {
           const arr = init.slice();
           const copy = init.slice();
-          sut = new ArrayObserver(arr);
+          sut = getCollectionObserver(arr);
           sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
           let i = 0;
           while (i < repeat) {
@@ -1824,7 +1818,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - behaves as native`, function () {
               const arr = init.slice();
               const expectedArr = init.slice();
-              sut = new ArrayObserver(arr);
+              sut = getCollectionObserver(arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
               assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
@@ -1853,7 +1847,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
             it(`size=${padRight(init.length, 4)} type=${padRight(type, 9)} reverse=${padRight(reverse, 5)} sortFunc=${compareFn} - tracks changes`, function () {
               const arr = init.slice();
               const copy = init.slice();
-              sut = new ArrayObserver(arr);
+              sut = getCollectionObserver(arr);
               sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
               arr.sort(compareFn);
               assert.deepStrictEqual(copy, arr);

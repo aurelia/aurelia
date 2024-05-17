@@ -1,4 +1,18 @@
-import { type IDisposable, onResolve, IIndexable, resolve, all, emptyArray, IContainer } from '@aurelia/kernel';
+import {
+  areEqual,
+  isArray,
+  isPromise,
+  isMap,
+  isSet,
+  isNumber,
+  type IDisposable,
+  onResolve,
+  type IIndexable,
+  resolve,
+  all,
+  emptyArray,
+  IContainer,
+} from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
   DestructuringAssignmentExpression,
@@ -27,7 +41,7 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import { IController } from '../../templating/controller';
-import { areEqual, isArray, isPromise, isMap, isSet, isNumber, rethrow, etIsProperty } from '../../utilities';
+import { rethrow, etIsProperty } from '../../utilities';
 import { HydrateTemplateController, IInstruction, IteratorBindingInstruction } from '@aurelia/template-compiler';
 
 import type { PropertyBinding } from '../../binding/property-binding';

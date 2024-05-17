@@ -1,15 +1,16 @@
 import { IContainer, IPlatform, Registration, resolve } from '@aurelia/kernel';
-import { type AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber, atNone } from '../observation';
+import { type AccessorType, type IObserver, type ISubscriberCollection, type IObservable, type ISubscriber, atNone } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
-import { createError, createInterface, safeString } from '../utilities';
+import { rtCreateInterface } from './utilities';
 
 import type { ITask } from '@aurelia/platform';
 import type { IIndexable } from '@aurelia/kernel';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IDirtyChecker extends DirtyChecker {}
-export const IDirtyChecker = /*@__PURE__*/ createInterface<IDirtyChecker>('IDirtyChecker', __DEV__
+export const IDirtyChecker = /*@__PURE__*/ rtCreateInterface<IDirtyChecker>('IDirtyChecker', __DEV__
   ? x => x.callback(() => {
-    throw createError('AURxxxx: There is no registration for IDirtyChecker interface. If you want to use your own dirty checker, make sure you register it.');
+    throw createMappedError(ErrorNames.dirty_check_no_handler);
   })
   : void 0
 );
@@ -69,10 +70,7 @@ export class DirtyChecker {
 
   public createProperty(obj: object, key: PropertyKey): DirtyCheckProperty {
     if (DirtyCheckSettings.throw) {
-      if (__DEV__)
-        throw createError(`AUR0222: Property '${safeString(key)}' is being dirty-checked.`);
-      else
-        throw createError(`AUR0222:${safeString(key)}`);
+      throw createMappedError(ErrorNames.dirty_check_not_allowed, key);
     }
     return new DirtyCheckProperty(this, obj as IIndexable, key as string);
   }
@@ -139,7 +137,7 @@ export class DirtyCheckProperty implements DirtyCheckProperty {
   public setValue(_v: unknown) {
     // todo: this should be allowed, probably
     // but the construction of dirty checker should throw instead
-    throw createError(`Trying to set value for property ${safeString(this.key)} in dirty checker`);
+    throw createMappedError(ErrorNames.dirty_check_setter_not_allowed, this.key);
   }
 
   public isDirty(): boolean {

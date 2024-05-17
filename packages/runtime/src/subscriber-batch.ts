@@ -3,7 +3,7 @@ import {
   type ICollectionSubscriber,
   type IndexMap,
   type Collection,
-} from '../observation';
+} from './interfaces';
 import type { IAnySubscriber } from './subscriber-collection';
 
 type ValueBatchRecord = [

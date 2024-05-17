@@ -1,13 +1,13 @@
-import { Primitive, isArrayIndex, ILogger, resolve } from '@aurelia/kernel';
-import { getArrayObserver } from './array-observer';
+import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, createLookup } from '@aurelia/kernel';
+import { ArrayObserver, getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { getMapObserver } from './map-observer';
+import { MapObserver, getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
-import { getSetObserver } from './set-observer';
+import { SetObserver, getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { createLookup, def, hasOwnProp, isArray, createInterface, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities';
+import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign } from './utilities';
 
 import type {
   Collection,
@@ -17,8 +17,8 @@ import type {
   IObserver,
   AccessorOrObserver,
   CollectionObserver,
-} from '../observation';
-import { ErrorNames, createMappedError } from '../errors';
+} from './interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 export const propertyAccessor = new PropertyAccessor();
 
@@ -27,14 +27,14 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = /*@__PURE__*/createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
+export const IObserverLocator = /*@__PURE__*/rtCreateInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
-export const INodeObserverLocator = /*@__PURE__*/createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
+export const INodeObserverLocator = /*@__PURE__*/rtCreateInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
   if (__DEV__) {
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
@@ -58,15 +58,15 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
 export interface IComputedObserverLocator {
   getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver;
 }
-export const IComputedObserverLocator = /*@__PURE__*/createInterface<IComputedObserverLocator>(
+export const IComputedObserverLocator = /*@__PURE__*/rtCreateInterface<IComputedObserverLocator>(
   'IComputedObserverLocator',
   x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
     public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
       const observer = new ComputedObserver(obj, pd.get!, pd.set, requestor, true);
-      def(obj, key, {
+      rtDef(obj, key, {
         enumerable: pd.enumerable,
         configurable: true,
-        get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
         set: (/* Computed Observer */v) => {
           observer.setValue(v);
         },
@@ -231,8 +231,20 @@ export class ObserverLocator {
 }
 
 export type RepeatableCollection = Collection | null | undefined | number;
-
-export const getCollectionObserver = (collection: RepeatableCollection): CollectionObserver | undefined => {
+// T extends unknown[]
+//   ? ArrayObserver
+//   : T extends Map<unknown, unknown>
+//     ? MapObserver
+//     : T extends Set<unknown>
+//       ? SetObserver
+//       :
+export const getCollectionObserver: {
+  (array: unknown[]): ArrayObserver;
+  (map: Map<unknown, unknown>): MapObserver;
+  (set: Set<unknown>): SetObserver;
+  (collection: RepeatableCollection): CollectionObserver | undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+} = (collection: RepeatableCollection): any => {
   let obs: CollectionObserver | undefined;
   if (isArray(collection)) {
     obs = getArrayObserver(collection);
@@ -250,7 +262,7 @@ const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
   let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
   if (lookup === void 0) {
-    def(instance, '$observers', {
+    rtDef(instance, '$observers', {
       enumerable: false,
       value: lookup = createLookup(),
     });

@@ -1,13 +1,13 @@
-import { ICoercionConfiguration, IObserver, InterceptorFunc, atObserver } from '../observation';
+import { ICoercionConfiguration, IObserver, InterceptorFunc, atObserver } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
-import { areEqual, def, objectAssign } from '../utilities';
+import { rtDef, rtObjectAssign } from './utilities';
 
-import type { IIndexable } from '@aurelia/kernel';
+import { areEqual, type IIndexable } from '@aurelia/kernel';
 import type {
   AccessorType,
   ISubscriber,
   ISubscriberCollection,
-} from '../observation';
+} from './interfaces';
 
 export interface SetterObserver extends ISubscriberCollection {}
 
@@ -99,13 +99,13 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
     if (this._observing === false) {
       this._observing = true;
       this._value = this._obj[this._key];
-      def(
+      rtDef(
         this._obj,
         this._key,
         {
           enumerable: true,
           configurable: true,
-          get: objectAssign((/* Setter Observer */) => this.getValue(), { getObserver: () => this }),
+          get: rtObjectAssign((/* Setter Observer */) => this.getValue(), { getObserver: () => this }),
           set: (/* Setter Observer */value) => {
             this.setValue(value);
           },
@@ -117,7 +117,7 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
 
   public stop(): this {
     if (this._observing) {
-      def(this._obj, this._key, {
+      rtDef(this._obj, this._key, {
         enumerable: true,
         configurable: true,
         writable: true,

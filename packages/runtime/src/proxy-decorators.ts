@@ -1,5 +1,5 @@
 import { Class, Constructable } from '@aurelia/kernel';
-import { defineHiddenProp, safeString } from '../utilities';
+import { rtDefineHiddenProp, rtSafeString } from './utilities';
 import { nowrapClassKey, nowrapPropKey } from './proxy-observation';
 
 export function nowrap(): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext) => void;
@@ -33,14 +33,14 @@ export function nowrap<
   ): void {
     switch (context.kind) {
       case 'class':
-        defineHiddenProp(target as Class<TThis>, nowrapClassKey, true);
+        rtDefineHiddenProp(target as Class<TThis>, nowrapClassKey, true);
         break;
       case 'field':
         context.addInitializer(function (this: object) {
           const target = this.constructor;
-          const property = `${nowrapPropKey}_${safeString(context.name)}__`;
+          const property = `${nowrapPropKey}_${rtSafeString(context.name)}__`;
           if (property in target) return;
-          defineHiddenProp(target, property, true);
+          rtDefineHiddenProp(target, property, true);
         });
         break;
     }

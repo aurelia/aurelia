@@ -3,12 +3,12 @@ import {
   IObserver,
   InterceptorFunc,
   atObserver,
-} from '../observation';
+} from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from './connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, isFunction } from '../utilities';
+import { areEqual, isFunction } from '@aurelia/kernel';
 
 import type {
   AccessorType,
@@ -16,10 +16,10 @@ import type {
   ICollectionSubscriber,
   ISubscriberCollection,
   IConnectable,
-} from '../observation';
+} from './interfaces';
 import type { IObserverLocatorBasedConnectable } from './connectable';
 import type { IObserverLocator } from './observer-locator';
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from './errors';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;

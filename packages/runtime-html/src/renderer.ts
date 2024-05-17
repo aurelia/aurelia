@@ -6,6 +6,7 @@ import {
   type IResolver,
   resolve,
   Registrable,
+  isString,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -31,7 +32,7 @@ import { Controller, ICustomElementController, ICustomElementViewModel, IControl
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
 import { IRendering } from './templating/rendering';
-import { objectKeys, isString, etIsProperty, etInterpolation, etIsIterator, etIsFunction } from './utilities';
+import { objectKeys, etIsProperty, etInterpolation, etIsIterator, etIsFunction } from './utilities';
 import { createInterface, registerResolver, singletonRegistration } from './utilities-di';
 import { IAuSlotsInfo, AuSlotsInfo } from './templating/controller.projection';
 

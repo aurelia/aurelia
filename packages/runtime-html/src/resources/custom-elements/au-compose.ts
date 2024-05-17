@@ -1,11 +1,10 @@
-import { Constructable, IContainer, InstanceProvider, MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
 import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView, vmkCe } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';
-import { isFunction, isPromise } from '../../utilities';
 import { registerResolver } from '../../utilities-di';
 import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { ErrorNames, createMappedError } from '../../errors';

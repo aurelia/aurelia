@@ -1,5 +1,5 @@
+import { createLookup } from '@aurelia/kernel';
 import type { ISubscriber } from '@aurelia/runtime';
-import { createLookup } from './utilities';
 import { createInterface } from './utilities-di';
 
 export interface ISignaler extends Signaler {}

@@ -24,6 +24,10 @@ const config = {
         `src/**/${pattern}/**/*.tsx`,
       ]
     })
+  ],
+  exclude: [
+    ...baseConfig.exclude,
+    'src/3-runtime/generated',
   ]
 };
 

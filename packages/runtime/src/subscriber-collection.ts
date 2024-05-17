@@ -1,4 +1,4 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities';
+import { rtDef, rtDefineHiddenProp, ensureProto } from './utilities';
 
 import type {
   Collection,
@@ -7,7 +7,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ISubscriberRecord,
-} from '../observation';
+} from './interfaces';
 import { addValueBatch, batching } from './subscriber-batch';
 import { Class, Constructable } from '@aurelia/kernel';
 
@@ -22,7 +22,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
   }
 
   function getSubscriberRecord(this: ISubscriberCollection) {
-    return defineHiddenProp(this, 'subs', new SubscriberRecord());
+    return rtDefineHiddenProp(this, 'subs', new SubscriberRecord());
   }
 
   function addSubscriber(this: ISubscriberCollection, subscriber: IAnySubscriber): boolean {
@@ -40,7 +40,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
       const proto = target.prototype as ISubscriberCollection;
       // not configurable, as in devtool, the getter could be invoked on the prototype,
       // and become permanently broken
-      def(proto, 'subs', { get: getSubscriberRecord });
+      rtDef(proto, 'subs', { get: getSubscriberRecord });
 
       ensureProto(proto, 'subscribe', addSubscriber);
       ensureProto(proto, 'unsubscribe', removeSubscriber);

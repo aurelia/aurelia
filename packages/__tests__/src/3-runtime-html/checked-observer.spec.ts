@@ -2,7 +2,6 @@ import {
   Constructable
 } from '@aurelia/kernel';
 import {
-  enableArrayObservation,
   IObserver,
 } from '@aurelia/runtime';
 import {
@@ -326,10 +325,6 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
   const eventDefaults = { bubbles: true };
 
   describe('[UNIT]', function () {
-
-    before(function () {
-      enableArrayObservation();
-    });
 
     describe('setValue() - primitive - type="checkbox"', function () {
       function createFixture(hasSubscriber: boolean) {

@@ -147,11 +147,6 @@ public constructor(
 describe(`2-runtime/array-observer.spec.ts`, function () {
   let sut: ArrayObserver;
 
-  // before(function () {
-  //   disableArrayObservation();
-  //   enableArrayObservation();
-  // });
-
   describe('should allow subscribing for batched notification', function () {
     const observerMap = new WeakMap<unknown[], ArrayObserver>();
     function verifyChanges(arr: number[], fn: (arr: number[]) => void, existing: number[], deletedIndices?: number[], deletedItems?: number[]) {

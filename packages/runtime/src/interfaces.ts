@@ -1,7 +1,7 @@
 import { DI, IIndexable } from '@aurelia/kernel';
 import { isArray, objectFreeze } from './utilities';
 
-import type { CollectionLengthObserver, CollectionSizeObserver } from './observation/collection-length-observer';
+import type { CollectionLengthObserver, CollectionSizeObserver } from './collection-length-observer';
 
 export const ICoercionConfiguration = /*@__PURE__*/DI.createInterface<ICoercionConfiguration>('ICoercionConfiguration');
 export interface ICoercionConfiguration {

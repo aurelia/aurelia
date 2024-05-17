@@ -1,6 +1,6 @@
 import { IIndexable } from '@aurelia/kernel';
-import { Collection, IConnectable } from '../observation';
-import { isArray, isMap, isSet, objectFreeze, safeString } from '../utilities';
+import { Collection, IConnectable } from './interfaces';
+import { isArray, isMap, isSet, objectFreeze, safeString } from './utilities';
 import { connecting, currentConnectable, _connectable } from './connectable-switcher';
 
 const R$get = Reflect.get;

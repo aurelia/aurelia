@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { createLookup, def, hasOwnProp, isArray, createInterface, isMap, isSet, isObject, objectAssign, isFunction } from '../utilities';
+import { createLookup, def, hasOwnProp, isArray, createInterface, isMap, isSet, isObject, objectAssign, isFunction } from './utilities';
 
 import type {
   Collection,
@@ -17,8 +17,8 @@ import type {
   IObserver,
   AccessorOrObserver,
   CollectionObserver,
-} from '../observation';
-import { ErrorNames, createMappedError } from '../errors';
+} from './interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 export const propertyAccessor = new PropertyAccessor();
 

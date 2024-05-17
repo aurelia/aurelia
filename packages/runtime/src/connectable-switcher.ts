@@ -1,6 +1,6 @@
-import { ErrorNames, createMappedError } from '../errors';
-import type { IConnectable } from '../observation';
-import { objectFreeze } from '../utilities';
+import { ErrorNames, createMappedError } from './errors';
+import type { IConnectable } from './interfaces';
+import { objectFreeze } from './utilities';
 
 /**
  * Current subscription collector

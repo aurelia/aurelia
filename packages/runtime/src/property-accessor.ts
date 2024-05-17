@@ -1,5 +1,5 @@
-import { atNone } from '../observation';
-import type { AccessorType, IAccessor, IObservable } from '../observation';
+import { atNone } from './interfaces';
+import type { AccessorType, IAccessor, IObservable } from './interfaces';
 
 export class PropertyAccessor implements IAccessor {
   // the only thing can be guaranteed is it's an object

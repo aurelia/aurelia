@@ -1,7 +1,7 @@
-import { createIndexMap, type AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, atObserver } from '../observation';
+import { createIndexMap, type AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, atObserver } from './interfaces';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getMetadata } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getMetadata } from './utilities';
 import { batching, addCollectionBatch } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 

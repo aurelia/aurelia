@@ -1,5 +1,5 @@
 import { type Constructable } from '@aurelia/kernel';
-import { def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from '../utilities';
+import { def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from './utilities';
 import { getArrayObserver } from './array-observer';
 import { getSetObserver } from './set-observer';
 import { getMapObserver } from './map-observer';
@@ -12,9 +12,9 @@ import type {
   CollectionObserver,
   ICollectionSubscriber,
   ICollectionSubscribable,
-} from '../observation';
+} from './interfaces';
 import type { IObserverLocator } from './observer-locator';
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IObserverLocatorBasedConnectable extends IConnectable, ISubscriber, ICollectionSubscriber {
   oL: IObserverLocator;

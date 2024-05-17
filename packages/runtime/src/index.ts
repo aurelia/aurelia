@@ -2,7 +2,7 @@ export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,
-} from './observation/connectable';
+} from './connectable';
 
 export {
   ArrayObserver,
@@ -10,41 +10,41 @@ export {
   enableArrayObservation,
   disableArrayObservation,
   type IArrayIndexObserver,
-} from './observation/array-observer';
+} from './array-observer';
 export {
   MapObserver,
   enableMapObservation,
   disableMapObservation,
-} from './observation/map-observer';
+} from './map-observer';
 export {
   SetObserver,
   enableSetObservation,
   disableSetObservation
-} from './observation/set-observer';
+} from './set-observer';
 export {
   CollectionLengthObserver,
   CollectionSizeObserver,
-} from './observation/collection-length-observer';
+} from './collection-length-observer';
 export {
   ComputedObserver,
   type ComputedGetterFn,
-} from './observation/computed-observer';
+} from './computed-observer';
 export {
   IDirtyChecker,
   DirtyChecker,
   DirtyCheckProperty,
   DirtyCheckSettings,
-} from './observation/dirty-checker';
+} from './dirty-checker';
 export {
   type IEffect,
   IObservation,
   Observation,
   type EffectRunFunc,
-} from './observation/effect-runner';
+} from './effect-runner';
 export {
   type IObservableDefinition,
   observable,
-} from './observation/observable';
+} from './observable';
 export {
   type IObjectObservationAdapter,
   IObserverLocator,
@@ -55,31 +55,31 @@ export {
   getObserverLookup,
   type ObservableGetter,
   // type ObservableSetter,
-} from './observation/observer-locator';
+} from './observer-locator';
 export {
   PrimitiveObserver,
-} from './observation/primitive-observer';
+} from './primitive-observer';
 export {
   PropertyAccessor,
-} from './observation/property-accessor';
+} from './property-accessor';
 export {
   ProxyObservable,
-} from './observation/proxy-observation';
+} from './proxy-observation';
 export {
   nowrap,
-} from './observation/proxy-decorators';
+} from './proxy-decorators';
 export {
   SetterObserver,
-} from './observation/setter-observer';
+} from './setter-observer';
 export {
   subscriberCollection,
-} from './observation/subscriber-collection';
+} from './subscriber-collection';
 export {
   batch,
-} from './observation/subscriber-batch';
+} from './subscriber-batch';
 export {
   ConnectableSwitcher,
-} from './observation/connectable-switcher';
+} from './connectable-switcher';
 
 export {
   type AccessorOrObserver,
@@ -107,4 +107,4 @@ export {
   cloneIndexMap,
   createIndexMap,
   ICoercionConfiguration,
-} from './observation';
+} from './interfaces';

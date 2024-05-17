@@ -1,13 +1,13 @@
-import { ICoercionConfiguration, IObserver, InterceptorFunc, atObserver } from '../observation';
+import { ICoercionConfiguration, IObserver, InterceptorFunc, atObserver } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
-import { areEqual, def, objectAssign } from '../utilities';
+import { areEqual, def, objectAssign } from './utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type {
   AccessorType,
   ISubscriber,
   ISubscriberCollection,
-} from '../observation';
+} from './interfaces';
 
 export interface SetterObserver extends ISubscriberCollection {}
 

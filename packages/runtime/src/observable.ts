@@ -1,13 +1,13 @@
-import { AccessorType, IAccessor, ISubscriberCollection, atObserver } from '../observation';
-import { safeString, def, isFunction, areEqual } from '../utilities';
+import { AccessorType, IAccessor, ISubscriberCollection, atObserver } from './interfaces';
+import { safeString, def, isFunction, areEqual } from './utilities';
 import { currentConnectable } from './connectable-switcher';
 
 import { emptyObject, type Constructable, type IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IObservable } from '../observation';
+import type { InterceptorFunc, IObservable } from './interfaces';
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IObservableDefinition {
   name?: PropertyKey;

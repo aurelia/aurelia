@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createObject, objectAssign } from './utilities';
+import { createRecord, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -60,7 +60,7 @@ const baseCase = /*@__PURE__*/(function () {
   _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = objectAssign(createObject(), {
+  const isDigit = objectAssign(createRecord(), {
     '0': true,
     '1': true,
     '2': true,
@@ -73,7 +73,7 @@ const baseCase = /*@__PURE__*/(function () {
     '9': true,
   } as Record<string, true | undefined>);
 
-  const charToKind = /*@__PURE__*/(char: string): CharKind => {
+  const charToKind = (char: string): CharKind => {
     if (char === '') {
       // We get this if we do charAt() with an index out of range
       return CharKind.none;
@@ -152,7 +152,7 @@ const baseCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const camelCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createRecord<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? char.toUpperCase() : char.toLowerCase();
@@ -178,7 +178,7 @@ export const camelCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const pascalCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createRecord<string | undefined>();
 
   return (input: string): string => {
     let output = cache[input];
@@ -204,7 +204,7 @@ export const pascalCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const kebabCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createRecord<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
@@ -372,7 +372,7 @@ export function toLookup<
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
 /** @internal */
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return objectAssign(createObject(), ...objs);
+  return objectAssign(createRecord(), ...objs);
 }
 
 /**

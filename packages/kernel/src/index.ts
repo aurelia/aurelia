@@ -140,6 +140,16 @@ export {
 } from './functions';
 
 export {
+  isObject,
+  isArray,
+  isMap,
+  isSet,
+  isPromise,
+  isFunction,
+  isNumber,
+  isString,
+  isSymbol,
+  createRecord,
   type AnyFunction,
   type FunctionPropNames,
   type MaybePromise,

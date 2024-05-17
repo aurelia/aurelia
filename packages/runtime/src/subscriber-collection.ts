@@ -1,4 +1,4 @@
-import { def, defineHiddenProp, ensureProto } from '../utilities';
+import { def, defineHiddenProp, ensureProto } from './utilities';
 
 import type {
   Collection,
@@ -7,7 +7,7 @@ import type {
   ISubscriber,
   ISubscriberCollection,
   ISubscriberRecord,
-} from '../observation';
+} from './interfaces';
 import { addValueBatch, batching } from './subscriber-batch';
 import { Class, Constructable } from '@aurelia/kernel';
 

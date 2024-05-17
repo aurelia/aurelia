@@ -8,14 +8,14 @@ import {
   type IndexMap,
   type ISubscriber,
   atObserver,
-} from '../observation';
+} from './interfaces';
 import {
   CollectionLengthObserver,
 } from './collection-length-observer';
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getMetadata, isFunction } from '../utilities';
+import { def, defineHiddenProp, defineMetadata, getMetadata, isFunction } from './utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 

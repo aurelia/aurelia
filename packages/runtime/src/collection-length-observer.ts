@@ -1,6 +1,6 @@
-import { Collection, IObserver, atObserver } from '../observation';
+import { Collection, IObserver, atObserver } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
-import { ensureProto } from '../utilities';
+import { ensureProto } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type {
@@ -11,8 +11,8 @@ import type {
   ISubscriberCollection,
   ICollectionSubscriber,
   CollectionKind,
-} from '../observation';
-import { ErrorNames, createMappedError } from '../errors';
+} from './interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface CollectionLengthObserver extends ISubscriberCollection {}
 

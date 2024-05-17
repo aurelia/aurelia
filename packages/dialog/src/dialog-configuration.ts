@@ -4,8 +4,8 @@ import { AppTask } from '@aurelia/runtime-html';
 import { IDialogGlobalSettings } from './dialog-interfaces';
 import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl';
 import { DialogService } from './dialog-service';
-import { singletonRegistration } from '../../utilities-di';
-import { createError } from '../../utilities';
+import { singletonRegistration } from './utilities-di';
+import { ErrorNames, createMappedError } from './errors';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
@@ -37,14 +37,7 @@ DialogConfiguration.customize(settings => {
 ```
  */
 export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => {
-  if (__DEV__)
-    throw createError(`AUR0904: Invalid dialog configuration. ` +
-      'Specify the implementations for ' +
-      '<IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-      'or use the DialogDefaultConfiguration export.'
-    );
-  else
-    throw createError(`AUR0904`);
+  throw createMappedError(ErrorNames.dialog_no_empty_default_configuration);
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {
     container.register(singletonRegistration(IDialogGlobalSettings, this));

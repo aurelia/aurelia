@@ -73,7 +73,7 @@ const baseCase = /*@__PURE__*/(function () {
     '9': true,
   } as Record<string, true | undefined>);
 
-  const charToKind = (char: string): CharKind => {
+  const charToKind = /*@__PURE__*/(char: string): CharKind => {
     if (char === '') {
       // We get this if we do charAt() with an index out of range
       return CharKind.none;
@@ -237,7 +237,7 @@ export const toArray = <T = unknown>(input: ArrayLike<T>): T[] => {
 };
 
 /**
- * Decorator. (lazily) bind the method to the class instance on first call.
+ * Decorator. Bind the method to the class instance.
  */
 export const bound = <
   TThis extends object,

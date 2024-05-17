@@ -30,23 +30,23 @@ export {
   type IDialogComponentCanActivate,
   type IDialogComponentDeactivate,
   type IDialogComponentCanDeactivate,
-} from './plugins/dialog/dialog-interfaces';
+} from './dialog-interfaces';
 
 // default impl
 export {
   DialogController,
-} from './plugins/dialog/dialog-controller';
+} from './dialog-controller';
 export {
   DialogService,
-} from './plugins/dialog/dialog-service';
+} from './dialog-service';
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
   type DialogConfigurationProvider,
-} from './plugins/dialog/dialog-configuration';
+} from './dialog-configuration';
 
 export {
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
-} from './plugins/dialog/dialog-default-impl';
+} from './dialog-default-impl';

@@ -122,7 +122,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           let error: DialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
-          assert.strictEqual(error.message, 'AUR0903');
+          assert.includes(error.message, 'AUR0903');
           // assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
         }
       },
@@ -300,7 +300,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
           assert.notStrictEqual(error, undefined);
           assert.strictEqual(error.wasCancelled, true);
-          assert.strictEqual(error.message, 'Dialog activation rejected');
+          assert.includes(error.message, 'AUR0905');
           assert.strictEqual(canActivateCallCount, 1);
           assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), null);
         }
@@ -415,7 +415,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             errorCaughtCount++;
             error = err;
           });
-          assert.deepStrictEqual(error, Object.assign(new Error(), {
+          assert.deepStrictEqual(error, Object.assign(new Error('AUR0908:'), {
             wasCancelled: false,
             value: expectedError
           }));

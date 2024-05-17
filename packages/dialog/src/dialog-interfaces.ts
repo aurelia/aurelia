@@ -1,4 +1,4 @@
-import { createInterface } from '../../utilities-di';
+import { createInterface } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { ICustomElementViewModel } from '@aurelia/runtime-html';

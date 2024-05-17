@@ -60,7 +60,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
     it('rejects invalid configs', function () {
       assert.throws(
         () => client.configure(1 as RequestInit),
-        /invalid config/,
+        /AUR5002/,
         `() => client.configure(1 as RequestInit)`
       );
     });
@@ -68,7 +68,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
     it('rejects invalid config returned from "configure" call', function () {
       assert.throws(
         () => client.configure(() => 1 as any),
-        /The config callback did not return a valid HttpClientConfiguration/,
+        /AUR5001/,
         `() => client.configure(1 as RequestInit)`
       );
     });
@@ -90,7 +90,7 @@ describe('fetch-client/fetch-client.spec.ts', function () {
       client.configure(config => config.withInterceptor({
         request: () => ({  } as any)
       }));
-      return assert.rejects(() => client.fetch('/a'), /An invalid result was returned by the interceptor chain/);
+      return assert.rejects(() => client.fetch('/a'), /AUR5006/);
     });
   });
 

@@ -1,6 +1,7 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
 import { HttpClient } from '../http-client';
 import { IFetchInterceptor } from '../interfaces';
+import { ErrorNames, createMappedError } from '../errors';
 
 /**
  * The strategy to use when retrying requests.
@@ -34,7 +35,7 @@ export class RetryInterceptor implements IFetchInterceptor {
 
     if (this.retryConfig.strategy === RetryStrategy.exponential
       && (this.retryConfig.interval as number) <= 1000) {
-      throw new Error('An interval less than or equal to 1 second is not allowed when using the exponential retry strategy');
+      throw createMappedError(ErrorNames.retry_interceptor_invalid_exponential_interval, this.retryConfig.interval);
     }
   }
 
@@ -131,7 +132,7 @@ function calculateDelay(retryConfig: IRetryConfiguration): number {
     case (RetryStrategy.random):
       return retryStrategies[RetryStrategy.random](counter, interval, minRandomInterval, maxRandomInterval);
     default:
-      throw new Error('Unrecognized retry strategy');
+      throw createMappedError(ErrorNames.retry_interceptor_invalid_strategy, strategy);
   }
 }
 

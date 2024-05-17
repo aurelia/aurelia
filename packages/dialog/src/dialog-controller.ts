@@ -9,14 +9,15 @@ import {
   DialogCancelError,
   DialogCloseError,
 } from './dialog-interfaces';
-import { createError, isFunction } from '../../utilities';
-import { instanceRegistration } from '../../utilities-di';
+import { isFunction } from './utilities';
+import { instanceRegistration } from './utilities-di';
 
 import type {
   DialogDeactivationStatuses,
   IDialogComponent,
   IDialogLoadedSettings,
 } from './dialog-interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * A controller object for a Dialog instance.
@@ -108,7 +109,7 @@ export class DialogController implements IDialogController {
         if (canActivate !== true) {
           dom.dispose();
           if (rejectOnCancel) {
-            throw createDialogCancelError(null, 'Dialog activation rejected');
+            throw createDialogCancelError(null, ErrorNames.dialog_activation_rejected);
           }
           return DialogOpenResult.create(true, this);
         }
@@ -155,7 +156,7 @@ export class DialogController implements IDialogController {
             deactivating = false;
             this._closingPromise = void 0;
             if (rejectOnCancel) {
-              throw createDialogCancelError(null, 'Dialog cancellation rejected');
+              throw createDialogCancelError(null, ErrorNames.dialog_cancellation_rejected);
             }
             return DialogCloseResult.create('abort' as T);
           }
@@ -167,7 +168,7 @@ export class DialogController implements IDialogController {
                 if (!rejectOnCancel && status !== 'error') {
                   this._resolve(dialogResult);
                 } else {
-                  this._reject(createDialogCancelError(value, 'Dialog cancelled with a rejection on cancel'));
+                  this._reject(createDialogCancelError(value, ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting));
                 }
                 return dialogResult;
               }
@@ -268,15 +269,15 @@ export class DialogController implements IDialogController {
 
 class EmptyComponent {}
 
-function createDialogCancelError<T>(output: T | undefined, msg: string): DialogCancelError<T> {
-  const error = createError(msg) as DialogCancelError<T>;
+function createDialogCancelError<T>(output: T | undefined, code: ErrorNames/* , msg: string */): DialogCancelError<T> {
+  const error = createMappedError(code) as DialogCancelError<T>;
   error.wasCancelled = true;
   error.value = output;
   return error;
 }
 
 function createDialogCloseError<T = unknown>(output: T): DialogCloseError<T> {
-  const error = createError('') as DialogCloseError<T>;
+  const error = createMappedError(ErrorNames.dialog_custom_error) as DialogCloseError<T>;
   error.wasCancelled = false;
   error.value = output;
   return error;

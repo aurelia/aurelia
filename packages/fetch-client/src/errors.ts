@@ -11,28 +11,34 @@ _START_CONST_ENUM();
 export const enum ErrorNames {
   method_not_implemented = 99,
 
-  validate_binding_behavior_on_invalid_binding_type = 4200,
-  validate_binding_behavior_extraneous_args = 4201,
-  validate_binding_behavior_invalid_trigger_name = 4202,
-  validate_binding_behavior_invalid_controller = 4203,
-  validate_binding_behavior_invalid_binding_target = 4204,
+  http_client_fetch_fn_not_found = 5000,
+  http_client_configure_invalid_return = 5001,
+  http_client_configure_invalid_config = 5002,
+  http_client_configure_invalid_header = 5003,
+  http_client_more_than_one_retry_interceptor = 5004,
+  http_client_retry_interceptor_not_last = 5005,
 
-  validation_controller_unknown_expression = 4205,
-  validation_controller_unable_to_parse_expression = 4206,
+  http_client_invalid_request_from_interceptor = 5006,
+
+  retry_interceptor_invalid_exponential_interval = 5007,
+  retry_interceptor_invalid_strategy = 5008,
 }
 _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
-  [ErrorNames.validate_binding_behavior_on_invalid_binding_type]: 'Validate behavior used on non property binding',
-  [ErrorNames.validate_binding_behavior_extraneous_args]: `Unconsumed argument#{{0}} for validate binding behavior: {{1}}`,
-  [ErrorNames.validate_binding_behavior_invalid_trigger_name]: `{{0}} is not a supported validation trigger`,
-  [ErrorNames.validate_binding_behavior_invalid_controller]: `{{0}} is not of type ValidationController`,
-  [ErrorNames.validate_binding_behavior_invalid_binding_target]: 'Invalid binding target',
+  [ErrorNames.http_client_fetch_fn_not_found]: 'Could not resolve fetch function. Please provide a fetch function implementation or a polyfill for the global fetch function.',
+  [ErrorNames.http_client_configure_invalid_return]: `The config callback did not return a valid HttpClientConfiguration like instance. Received {{0}}`,
+  [ErrorNames.http_client_configure_invalid_config]: `invalid config, expecting a function or an object, received {{0}}`,
+  [ErrorNames.http_client_more_than_one_retry_interceptor]: `Only one RetryInterceptor is allowed.`,
+  [ErrorNames.http_client_retry_interceptor_not_last]: 'The retry interceptor must be the last interceptor defined.',
+  [ErrorNames.http_client_configure_invalid_header]: 'Default headers must be a plain object.',
+  [ErrorNames.http_client_invalid_request_from_interceptor]: `An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [{{{0}}]`,
 
-  [ErrorNames.validation_controller_unknown_expression]: `Unknown expression of type {{0}}`,
-  [ErrorNames.validation_controller_unable_to_parse_expression]: `Unable to parse binding expression: {{0}}`,
+  [ErrorNames.retry_interceptor_invalid_exponential_interval]: 'An interval less than or equal to 1 second is not allowed when using the exponential retry strategy. Received: {{0}}',
+  [ErrorNames.retry_interceptor_invalid_strategy]: 'Invalid retry strategy: {{0}}',
+
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
@@ -46,6 +52,7 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
       let value = details[i] as any;
       if (value != null) {
         switch (method) {
+          case 'join(!=)': value = (value as unknown[]).join('!='); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
           default: {
             // property access

@@ -60,7 +60,6 @@ const errorsMap: Record<ErrorNames, string>  = {
   [ErrorNames.event_aggregator_subscribe_invalid_event_name]: `Invalid channel name or type: {{0}}.`,
   [ErrorNames.first_defined_no_value]: `No defined value found when calling firstDefined()`,
   [ErrorNames.invalid_module_transform_input]: `Invalid module transform input: {{0}}. Expected Promise or Object.`,
-  // [ErrorNames.module_loader_received_null]: `Module loader received null/undefined input. Expected Object.`,
   [ErrorNames.invalid_inject_decorator_usage]: `The @inject decorator on the target ('{{0}}') type '{{1}}' is not supported.`,
   [ErrorNames.resource_key_already_registered]: `Resource key '{{0}}' has already been registered.`,
 };

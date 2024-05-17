@@ -4,9 +4,11 @@ import {
   resourceBaseName,
   getResourceKeyFor,
   resource,
+  isFunction,
+  isString,
 } from '@aurelia/kernel';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
-import { isFunction, isString, objectFreeze } from '../utilities';
+import { objectFreeze } from '../utilities';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 
 import type {

@@ -1,3 +1,4 @@
+import { type IServiceLocator, isString } from '@aurelia/kernel';
 import {
   connectable,
   type IObserverLocator,
@@ -21,10 +22,9 @@ import type {
   QueueTaskOptions,
   TaskQueue
 } from '@aurelia/platform';
-import type { IServiceLocator } from '@aurelia/kernel';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
-import { isString, safeString } from '../utilities';
+import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const taskOptions: QueueTaskOptions = {

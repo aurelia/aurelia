@@ -1,5 +1,5 @@
-import { type Constructable } from '@aurelia/kernel';
-import { def, defineHiddenProp, ensureProto, isArray, isMap, isSet } from './utilities';
+import { isArray, isMap, isSet, type Constructable } from '@aurelia/kernel';
+import { rtDef, rtDefineHiddenProp, ensureProto } from './utilities';
 import { getArrayObserver } from './array-observer';
 import { getSetObserver } from './set-observer';
 import { getMapObserver } from './map-observer';
@@ -88,7 +88,7 @@ const connectableDecorator = /*@__PURE__*/ (() => {
   }
 
   function getObserverRecord(this: IObserverLocatorBasedConnectable): BindingObserverRecord {
-    return defineHiddenProp(this, 'obs', new BindingObserverRecord(this));
+    return rtDefineHiddenProp(this, 'obs', new BindingObserverRecord(this));
   }
   function observe(this: IObserverLocatorBasedConnectable, obj: object, key: PropertyKey): void {
     this.obs.add(this.oL.getObserver(obj, key));
@@ -124,7 +124,7 @@ const connectableDecorator = /*@__PURE__*/ (() => {
     ensureProto(proto, 'observe', observe);
     ensureProto(proto, 'observeCollection', observeCollection);
     ensureProto(proto, 'subscribeTo', subscribeTo);
-    def(proto, 'obs', { get: getObserverRecord });
+    rtDef(proto, 'obs', { get: getObserverRecord });
     // optionally add these two methods to normalize a connectable impl
     // though don't override if it already exists
     ensureProto(proto, 'handleChange', noopHandleChange);

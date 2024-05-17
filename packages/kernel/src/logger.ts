@@ -4,7 +4,7 @@ import { bound, toLookup } from './functions';
 import { Class, Constructable } from './interfaces';
 import { IPlatform } from './platform';
 import { getAnnotationKeyFor } from './resource';
-import { createRecord, defineMetadata, getMetadata, isFunction, objectFreeze } from './utilities';
+import { createLookup, defineMetadata, getMetadata, isFunction, objectFreeze } from './utilities';
 import { resolve } from './di.container';
 import { all, optional } from './di.resolvers';
 
@@ -418,7 +418,7 @@ export class DefaultLogger {
   private readonly _fatalSinks: ISink[];
 
   /** @internal */
-  private readonly _scopedLoggers = createRecord<ILogger | undefined>();
+  private readonly _scopedLoggers = createLookup<ILogger | undefined>();
 
   /** @internal */
   private readonly _factory: ILogEventFactory;

@@ -1,4 +1,4 @@
-import { Primitive, isArrayIndex, ILogger, resolve } from '@aurelia/kernel';
+import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, createLookup } from '@aurelia/kernel';
 import { getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
@@ -7,7 +7,7 @@ import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
 import { getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
-import { createLookup, def, hasOwnProp, isArray, createInterface, isMap, isSet, isObject, objectAssign, isFunction } from './utilities';
+import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign } from './utilities';
 
 import type {
   Collection,
@@ -27,14 +27,14 @@ export interface IObjectObservationAdapter {
 }
 
 export interface IObserverLocator extends ObserverLocator {}
-export const IObserverLocator = /*@__PURE__*/createInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
+export const IObserverLocator = /*@__PURE__*/rtCreateInterface<IObserverLocator>('IObserverLocator', x => x.singleton(ObserverLocator));
 
 export interface INodeObserverLocator {
   handles(obj: unknown, key: PropertyKey, requestor: IObserverLocator): boolean;
   getObserver(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
   getAccessor(obj: object, key: PropertyKey, requestor: IObserverLocator): IAccessor | IObserver;
 }
-export const INodeObserverLocator = /*@__PURE__*/createInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
+export const INodeObserverLocator = /*@__PURE__*/rtCreateInterface<INodeObserverLocator>('INodeObserverLocator', x => x.cachedCallback(handler => {
   if (__DEV__) {
     handler.getAll(ILogger).forEach(logger => {
       logger.error('Using default INodeObserverLocator implementation. Will not be able to observe nodes (HTML etc...).');
@@ -58,15 +58,15 @@ class DefaultNodeObserverLocator implements INodeObserverLocator {
 export interface IComputedObserverLocator {
   getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver;
 }
-export const IComputedObserverLocator = /*@__PURE__*/createInterface<IComputedObserverLocator>(
+export const IComputedObserverLocator = /*@__PURE__*/rtCreateInterface<IComputedObserverLocator>(
   'IComputedObserverLocator',
   x => x.singleton(class DefaultLocator implements IComputedObserverLocator {
     public getObserver(obj: object, key: PropertyKey, pd: ExtendedPropertyDescriptor, requestor: IObserverLocator): IObserver {
       const observer = new ComputedObserver(obj, pd.get!, pd.set, requestor, true);
-      def(obj, key, {
+      rtDef(obj, key, {
         enumerable: pd.enumerable,
         configurable: true,
-        get: objectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
+        get: rtObjectAssign(((/* Computed Observer */) => observer.getValue()) as ObservableGetter, { getObserver: () => observer }),
         set: (/* Computed Observer */v) => {
           observer.setValue(v);
         },
@@ -250,7 +250,7 @@ const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
   let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
   if (lookup === void 0) {
-    def(instance, '$observers', {
+    rtDef(instance, '$observers', {
       enumerable: false,
       value: lookup = createLookup(),
     });

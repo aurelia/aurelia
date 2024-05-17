@@ -1,3 +1,4 @@
+import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
 } from '@aurelia/runtime';
@@ -11,7 +12,6 @@ import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
-import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
@@ -21,7 +21,7 @@ import type {
   ISubscriber,
 } from '@aurelia/runtime';
 import { type Scope } from './scope';
-import { atLayout, isArray } from '../utilities';
+import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 

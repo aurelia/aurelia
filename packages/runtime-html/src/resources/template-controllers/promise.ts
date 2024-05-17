@@ -1,5 +1,5 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
-import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll, resolve, isPromise } from '@aurelia/kernel';
 import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
@@ -16,7 +16,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isPromise, safeString, tsRunning } from '../../utilities';
+import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class PromiseTemplateController implements ICustomAttributeViewModel {

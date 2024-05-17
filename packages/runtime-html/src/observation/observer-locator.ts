@@ -1,4 +1,4 @@
-import { createImplementationRegister, emptyObject, IServiceLocator, resolve } from '@aurelia/kernel';
+import { createImplementationRegister, createLookup, emptyObject, IServiceLocator, isString, resolve } from '@aurelia/kernel';
 import {
   getObserverLookup,
   IDirtyChecker,
@@ -16,7 +16,7 @@ import { SelectValueObserver } from './select-value-observer';
 import { StyleAttributeAccessor } from './style-attribute-accessor';
 import { ISVGAnalyzer } from './svg-analyzer';
 import { ValueAttributeObserver } from './value-attribute-observer';
-import { atLayout, atNode, createLookup, isDataAttribute, isString, objectAssign } from '../utilities';
+import { atLayout, atNode, isDataAttribute, objectAssign } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { AccessorType, IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';

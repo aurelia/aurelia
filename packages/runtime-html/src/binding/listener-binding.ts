@@ -1,9 +1,9 @@
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
-import { isArray, isFunction, isString, objectFreeze } from '../utilities';
+import { isArray, isFunction, isString, resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
+import { objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
-import { resolve, type IServiceLocator, all, IContainer } from '@aurelia/kernel';
 import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, } from '@aurelia/runtime';
 import { type Scope } from './scope';
 import { astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';

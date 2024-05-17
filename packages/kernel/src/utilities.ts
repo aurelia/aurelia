@@ -71,7 +71,13 @@ export const isNumber = (v: unknown): v is number => typeof v === 'number';
  * Create an object with no prototype to be used as a record
  * An utility to be shared among core packages for better size optimization
  */
-export const createRecord = <T>() => Object.create(null) as Record<string, T>;
+export const createLookup = <T>() => Object.create(null) as Record<string, T>;
+
+/**
+ * Compare the 2 values without pitfall of JS ===, including NaN and +0/-0
+ * An utility to be shared among core packages for better size optimization
+ */
+export const areEqual = Object.is;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyFunction = (...args: any) => any;

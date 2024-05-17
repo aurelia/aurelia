@@ -1,8 +1,8 @@
 import { IPlatform } from '../platform';
-import { createLookup, isString, objectAssign } from '../utilities';
+import { objectAssign } from '../utilities';
 import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
 
-import { resolve, type IContainer } from '@aurelia/kernel';
+import { createLookup, isString, resolve, type IContainer } from '@aurelia/kernel';
 import type { INode } from '../dom';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}

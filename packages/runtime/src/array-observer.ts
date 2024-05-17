@@ -15,14 +15,14 @@ import {
 import {
   subscriberCollection,
 } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getMetadata, isFunction } from './utilities';
+import { rtDef, rtDefineHiddenProp, rtDefineMetadata, rtGetMetadata } from './utilities';
 import { addCollectionBatch, batching } from './subscriber-batch';
-import { IIndexable } from '@aurelia/kernel';
+import { type IIndexable, isFunction } from '@aurelia/kernel';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Array object
 const lookupMetadataKey = Symbol.for('__au_arr_obs__');
 const observerLookup = ((Array as IIndexable<typeof Array>)[lookupMetadataKey]
-  ?? defineHiddenProp(Array, lookupMetadataKey, new WeakMap())
+  ?? rtDefineHiddenProp(Array, lookupMetadataKey, new WeakMap())
 ) as WeakMap<unknown[], ArrayObserver>;
 
 // https://tc39.github.io/ecma262/#sec-sortcompare
@@ -354,7 +354,7 @@ function overrideArrayPrototypes() {
   };
 
   for (const method of methods) {
-    def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+    rtDef(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
   }
 }
 
@@ -368,11 +368,11 @@ export function enableArrayObservation(): void {
   }
 
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getMetadata(observationEnabledKey, Array) ?? false)) {
-    defineMetadata(true, Array, observationEnabledKey);
+  if (!(rtGetMetadata(observationEnabledKey, Array) ?? false)) {
+    rtDefineMetadata(true, Array, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
-        defineHiddenProp(proto, method, observe![method]);
+        rtDefineHiddenProp(proto, method, observe![method]);
       }
     }
   }
@@ -381,7 +381,7 @@ export function enableArrayObservation(): void {
 export function disableArrayObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      defineHiddenProp(proto, method, native![method]);
+      rtDefineHiddenProp(proto, method, native![method]);
     }
   }
 }

@@ -1775,7 +1775,7 @@ const {
   };
 
   // // ASCII IdentifierPart lookup
-  // const AsciiIdParts = /*@__PURE__*/ ((AsciiIdParts) => {
+  // const AsciiIdParts = ((AsciiIdParts) => {
   //   decompress(null, AsciiIdParts, codes.AsciiIdPart, true);
   //   return AsciiIdParts;
   // })(new Set<number>());

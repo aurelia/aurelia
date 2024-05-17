@@ -7,12 +7,15 @@ import {
   emptyArray,
   resourceBaseName,
   getResourceKeyFor,
+  isFunction,
+  isString,
+  isSymbol,
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { getEffectiveParentNode, getRef } from '../dom';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
-import { def, isFunction, isString, isSymbol, objectAssign, objectFreeze } from '../utilities';
+import { def, objectAssign, objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 
 import type {

@@ -1,6 +1,5 @@
-import { DI, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { isPromise, DI, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { AppRoot, IAppRoot } from './app-root';
-import { isPromise } from './utilities';
 import { createInterface, registerResolver } from './utilities-di';
 
 import type {

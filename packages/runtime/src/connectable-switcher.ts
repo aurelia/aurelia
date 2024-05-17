@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import type { IConnectable } from './interfaces';
-import { objectFreeze } from './utilities';
+import { rtObjectFreeze } from './utilities';
 
 /**
  * Current subscription collector
@@ -55,7 +55,7 @@ export function exitConnectable(connectable: IConnectable): void {
   connecting = _connectable != null;
 }
 
-export const ConnectableSwitcher = /*@__PURE__*/ objectFreeze({
+export const ConnectableSwitcher = /*@__PURE__*/ rtObjectFreeze({
   get current() {
     return _connectable;
   },

@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createRecord, objectAssign } from './utilities';
+import { createLookup, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -60,7 +60,7 @@ const baseCase = /*@__PURE__*/(function () {
   _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = objectAssign(createRecord(), {
+  const isDigit = objectAssign(createLookup(), {
     '0': true,
     '1': true,
     '2': true,
@@ -152,7 +152,7 @@ const baseCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const camelCase = /*@__PURE__*/(function () {
-  const cache = createRecord<string | undefined>();
+  const cache = createLookup<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? char.toUpperCase() : char.toLowerCase();
@@ -178,7 +178,7 @@ export const camelCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const pascalCase = /*@__PURE__*/(function () {
-  const cache = createRecord<string | undefined>();
+  const cache = createLookup<string | undefined>();
 
   return (input: string): string => {
     let output = cache[input];
@@ -204,7 +204,7 @@ export const pascalCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const kebabCase = /*@__PURE__*/(function () {
-  const cache = createRecord<string | undefined>();
+  const cache = createLookup<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
@@ -372,7 +372,7 @@ export function toLookup<
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
 /** @internal */
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return objectAssign(createRecord(), ...objs);
+  return objectAssign(createLookup(), ...objs);
 }
 
 /**

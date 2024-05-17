@@ -1,8 +1,8 @@
-import { emptyArray, type IContainer, type IServiceLocator, Key , IIndexable } from '@aurelia/kernel';
+import { emptyArray, isString, type IContainer, type IServiceLocator, Key, IIndexable } from '@aurelia/kernel';
 import { subscriberCollection , type ISubscriberCollection } from '@aurelia/runtime';
 import { findElementControllerFor } from '../resources/custom-element';
 import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
-import { def, isString, objectAssign, safeString } from '../utilities';
+import { def, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
 import { createMutationObserver, isElement } from '../utilities-dom';

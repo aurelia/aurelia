@@ -1,14 +1,14 @@
 import { createIndexMap, type AccessorType, type ICollectionSubscriberCollection, type ICollectionObserver, atObserver } from './interfaces';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getMetadata } from './utilities';
+import { rtDef, rtDefineHiddenProp, rtDefineMetadata, rtGetMetadata } from './utilities';
 import { batching, addCollectionBatch } from './subscriber-batch';
 import { IIndexable } from '@aurelia/kernel';
 
 // multiple applications of Aurelia wouldn't have different observers for the same Set object
 const lookupMetadataKey = Symbol.for('__au_set_obs__');
 const observerLookup = ((Set as IIndexable<typeof Set>)[lookupMetadataKey]
-  ?? defineHiddenProp(Set, lookupMetadataKey, new WeakMap())
+  ?? rtDefineHiddenProp(Set, lookupMetadataKey, new WeakMap())
 ) as WeakMap<Set<unknown>, SetObserver>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,7 +104,7 @@ const descriptorProps = {
 };
 
 for (const method of methods) {
-  def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  rtDef(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
 let enableSetObservationCalled = false;
@@ -112,11 +112,11 @@ let enableSetObservationCalled = false;
 const observationEnabledKey = '__au_set_on__';
 export function enableSetObservation(): void {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getMetadata(observationEnabledKey, Set) ?? false)) {
-    defineMetadata(true, Set, observationEnabledKey);
+  if (!(rtGetMetadata(observationEnabledKey, Set) ?? false)) {
+    rtDefineMetadata(true, Set, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
-        def(proto, method, { ...descriptorProps, value: observe[method] });
+        rtDef(proto, method, { ...descriptorProps, value: observe[method] });
       }
     }
   }
@@ -125,7 +125,7 @@ export function enableSetObservation(): void {
 export function disableSetObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      def(proto, method, { ...descriptorProps, value: native[method] });
+      rtDef(proto, method, { ...descriptorProps, value: native[method] });
     }
   }
 }

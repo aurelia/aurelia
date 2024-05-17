@@ -1,8 +1,8 @@
-import { createLookup, isDataAttribute } from '../utilities';
+import { isDataAttribute } from '../utilities';
 import { ISVGAnalyzer } from '../observation/svg-analyzer';
-import { createImplementationRegister, resolve } from '@aurelia/kernel';
+import { createLookup, createImplementationRegister, resolve } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from '../errors';
-import { IAttrMapper, IsTwoWayPredicate } from '@aurelia/template-compiler';
+import { IAttrMapper, type IsTwoWayPredicate } from '@aurelia/template-compiler';
 
 export class AttrMapper implements IAttrMapper {
   public static register = /*@__PURE__*/ createImplementationRegister(IAttrMapper);

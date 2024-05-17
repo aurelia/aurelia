@@ -1,5 +1,5 @@
-import { emptyArray, kebabCase } from '@aurelia/kernel';
-import { atLayout, atNode, hasOwnProperty, isFunction, isString } from '../utilities';
+import { emptyArray, kebabCase, isFunction, isString } from '@aurelia/kernel';
+import { atLayout, atNode, hasOwnProperty } from '../utilities';
 import type { AccessorType, IAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 

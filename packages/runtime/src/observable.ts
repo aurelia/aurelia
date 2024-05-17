@@ -1,8 +1,8 @@
 import { AccessorType, IAccessor, ISubscriberCollection, atObserver } from './interfaces';
-import { safeString, def, isFunction, areEqual } from './utilities';
+import { rtSafeString, rtDef } from './utilities';
 import { currentConnectable } from './connectable-switcher';
 
-import { emptyObject, type Constructable, type IIndexable } from '@aurelia/kernel';
+import { areEqual, emptyObject, isFunction, type Constructable, type IIndexable } from '@aurelia/kernel';
 import type { InterceptorFunc, IObservable } from './interfaces';
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
@@ -23,7 +23,7 @@ export const observable = /*@__PURE__*/(() => {
 
   function getObserversLookup(obj: IObservable): IIndexable<{}, SetterObserver | SetterNotifier> {
     if (obj.$observers === void 0) {
-      def(obj, '$observers', { value: {} });
+      rtDef(obj, '$observers', { value: {} });
       // todo: define in a weakmap
     }
     return obj.$observers as IIndexable<{}, SetterObserver | SetterNotifier>;
@@ -109,7 +109,7 @@ export const observable = /*@__PURE__*/(() => {
     }
     function createDescriptor(target: unknown, property: PropertyKey, initialValue: () => unknown, targetIsClass: boolean): void {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing, @typescript-eslint/strict-boolean-expressions
-      const callback = config.callback || `${safeString(property)}Changed`;
+      const callback = config.callback || `${rtSafeString(property)}Changed`;
       const $set = config.set;
       const observableGetter: ObservableGetter = function (this: IObservable) {
         const notifier = getNotifier(this, property, callback, initialValue, $set);
@@ -128,8 +128,8 @@ export const observable = /*@__PURE__*/(() => {
           getNotifier(this, property, callback, initialValue, $set).setValue(newValue);
         }
       };
-      if (targetIsClass) def((target as Constructable).prototype as object, property, descriptor);
-      else def(target as object, property, descriptor);
+      if (targetIsClass) rtDef((target as Constructable).prototype as object, property, descriptor);
+      else rtDef(target as object, property, descriptor);
     }
   }
 

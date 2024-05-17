@@ -1,3 +1,4 @@
+import { areEqual, type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   ConnectableSwitcher,
@@ -9,7 +10,6 @@ import {
 import { mixinAstEvaluator } from '../binding/binding-utils';
 import { type Scope } from '../binding/scope';
 
-import type { IServiceLocator } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IConnectable,
@@ -19,7 +19,6 @@ import type {
   ISubscriber,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
-import { areEqual } from '../utilities';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from '../binding/interfaces-bindings';
 

@@ -8,7 +8,7 @@ import { subscriberCollection } from './subscriber-collection';
 import { enterConnectable, exitConnectable } from './connectable-switcher';
 import { connectable } from './connectable';
 import { wrap, unwrap } from './proxy-observation';
-import { areEqual, isFunction } from './utilities';
+import { areEqual, isFunction } from '@aurelia/kernel';
 
 import type {
   AccessorType,

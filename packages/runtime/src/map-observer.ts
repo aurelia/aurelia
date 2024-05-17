@@ -1,7 +1,7 @@
 import { createIndexMap, atObserver } from './interfaces';
 import { CollectionSizeObserver } from './collection-length-observer';
 import { subscriberCollection } from './subscriber-collection';
-import { def, defineHiddenProp, defineMetadata, getMetadata } from './utilities';
+import { rtDef, rtDefineHiddenProp, rtDefineMetadata, rtGetMetadata } from './utilities';
 
 import type {
   AccessorType,
@@ -14,7 +14,7 @@ import { IIndexable } from '@aurelia/kernel';
 // multiple applications of Aurelia wouldn't have different observers for the same Map object
 const lookupMetadataKey = Symbol.for('__au_map_obs__');
 const observerLookup = ((Map as IIndexable<typeof Map>)[lookupMetadataKey]
-  ?? defineHiddenProp(Map, lookupMetadataKey, new WeakMap())
+  ?? rtDefineHiddenProp(Map, lookupMetadataKey, new WeakMap())
 ) as WeakMap<Map<unknown, unknown>, MapObserver>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,7 +124,7 @@ const descriptorProps = {
 };
 
 for (const method of methods) {
-  def(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+  rtDef(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
 }
 
 let enableMapObservationCalled = false;
@@ -132,11 +132,11 @@ let enableMapObservationCalled = false;
 const observationEnabledKey = '__au_map_on__';
 export function enableMapObservation(): void {
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  if (!(getMetadata(observationEnabledKey, Map) ?? false)) {
-    defineMetadata(true, Map, observationEnabledKey);
+  if (!(rtGetMetadata(observationEnabledKey, Map) ?? false)) {
+    rtDefineMetadata(true, Map, observationEnabledKey);
     for (const method of methods) {
       if (proto[method].observing !== true) {
-        def(proto, method, { ...descriptorProps, value: observe[method] });
+        rtDef(proto, method, { ...descriptorProps, value: observe[method] });
       }
     }
   }
@@ -145,7 +145,7 @@ export function enableMapObservation(): void {
 export function disableMapObservation(): void {
   for (const method of methods) {
     if (proto[method].observing === true) {
-      def(proto, method, { ...descriptorProps, value: native[method] });
+      rtDef(proto, method, { ...descriptorProps, value: native[method] });
     }
   }
 }

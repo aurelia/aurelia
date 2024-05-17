@@ -1,5 +1,5 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { InstanceProvider, onResolve, onResolveAll } from '@aurelia/kernel';
+import { InstanceProvider, onResolve, onResolveAll, isFunction } from '@aurelia/kernel';
 import { IAppTask } from './app-task';
 import { CustomElementDefinition, generateElementName } from './resources/custom-element';
 import { Controller, IControllerElementHydrationInstruction } from './templating/controller';
@@ -10,7 +10,6 @@ import type { TaskSlot } from './app-task';
 import type { ICustomElementViewModel, ICustomElementController } from './templating/controller';
 import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
-import { isFunction } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 
 export interface IAppRootConfig<T extends object = object> {

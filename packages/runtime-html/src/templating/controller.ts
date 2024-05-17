@@ -10,6 +10,9 @@ import {
   onResolveAll,
   optional,
   optionalResource,
+  isFunction,
+  isPromise,
+  isString,
 } from '@aurelia/kernel';
 import { isObject } from '@aurelia/metadata';
 import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
@@ -22,7 +25,7 @@ import { convertToRenderLocation, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
 import { CustomElementDefinition, elementBaseName, findElementControllerFor, getElementDefinition, isElementType } from '../resources/custom-element';
-import { etIsProperty, getOwnPropertyNames, isFunction, isPromise, isString, objectFreeze } from '../utilities';
+import { etIsProperty, getOwnPropertyNames, objectFreeze } from '../utilities';
 import { createInterface, registerResolver } from '../utilities-di';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
 import { IRendering } from './rendering';

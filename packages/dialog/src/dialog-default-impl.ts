@@ -19,8 +19,6 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
   public rejectOnCancel = false;
 }
 
-const baseWrapperCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
-
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly p = resolve(IPlatform);
 
@@ -28,9 +26,9 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
 
-  private readonly wrapperCss: string = `${baseWrapperCss} display:flex;`;
-  private readonly overlayCss: string = baseWrapperCss;
-  private readonly hostCss: string = 'position:relative;margin:auto;';
+  private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
+  private readonly wrapperCss = `${this.overlayCss} display:flex;`;
+  private readonly hostCss = 'position:relative;margin:auto;';
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;

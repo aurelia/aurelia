@@ -1,5 +1,5 @@
-import { IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
-import { AppTask, IPlatform } from '@aurelia/runtime-html';
+import { isFunction, isPromise, IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { AppTask } from '@aurelia/runtime-html';
 
 import {
   DialogActionKey,
@@ -9,9 +9,9 @@ import {
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
+  IDialogKeyboardManager,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
-import { isFunction, isPromise } from './utilities';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
 
 import type {
@@ -56,8 +56,8 @@ export class DialogService implements IDialogService {
   }
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly p = resolve(IPlatform);
   /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
+  /** @internal */ private readonly _defaultKeyboardManager = resolve(IDialogKeyboardManager);
 
   /**
    * Opens a new dialog.
@@ -94,11 +94,13 @@ export class DialogService implements IDialogService {
             dialogController.activate(loadedSettings),
             openResult => {
               if (!openResult.wasCancelled) {
-                if (this.dlgs.push(dialogController) === 1) {
-                  this.p.window.addEventListener('keydown', this);
-                }
+                this.dlgs.push(dialogController);
+                this._defaultKeyboardManager.add(dialogController);
 
-                const $removeController = () => this.remove(dialogController);
+                const $removeController = () => {
+                  this._defaultKeyboardManager.remove(dialogController);
+                  return this.remove(dialogController);
+                };
                 dialogController.closed.then($removeController, $removeController);
               }
               return openResult;
@@ -137,13 +139,9 @@ export class DialogService implements IDialogService {
 
   /** @internal */
   private remove(controller: DialogController): void {
-    const dlgs = this.dlgs;
-    const idx = dlgs.indexOf(controller);
+    const idx = this.dlgs.indexOf(controller);
     if (idx > -1) {
       this.dlgs.splice(idx, 1);
-    }
-    if (dlgs.length === 0) {
-      this.p.window.removeEventListener('keydown', this);
     }
   }
 

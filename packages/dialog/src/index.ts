@@ -50,3 +50,7 @@ export {
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
 } from './dialog-default-impl';
+
+export {
+  DefaultDialogKeyboardManager,
+} from './dialog-keyboard-handler';

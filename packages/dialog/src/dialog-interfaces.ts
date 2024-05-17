@@ -58,7 +58,11 @@ export interface IDialogDom extends IDisposable {
   readonly contentHost: HTMLElement;
 }
 
-// export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;
+export const IDialogKeyboardManager = /*@__PURE__*/createInterface<IDialogKeyboardManager>('IDialogKeyboardService');
+export interface IDialogKeyboardManager {
+  add(controller: IDialogController): void;
+  remove(controllers: IDialogController): void;
+}
 
 /* tslint:disable:max-line-length */
 /**
@@ -82,6 +86,11 @@ export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
 > {
+
+  /**
+   * A custom renderer for the dialog.
+   */
+  renderer?: IDialogDomRenderer;
 
   /**
    * The view model url, constructor or instance for the dialog.
@@ -154,6 +163,7 @@ export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSetti
   component?: Constructable<T> | T;
   template?: string | Element;
   readonly keyboard: DialogActionKey[];
+  renderer?: IDialogDomRenderer;
 };
 
 export type IDialogGlobalSettings = Pick<

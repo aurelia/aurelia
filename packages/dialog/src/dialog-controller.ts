@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   IDialogController,
@@ -9,7 +9,6 @@ import {
   DialogCancelError,
   DialogCloseError,
 } from './dialog-interfaces';
-import { isFunction } from './utilities';
 import { instanceRegistration } from './utilities-di';
 
 import type {
@@ -76,10 +75,14 @@ export class DialogController implements IDialogController {
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
     const container = this.ctn.createChild();
-    const { model, template, rejectOnCancel } = settings;
-    const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
+    const {
+      model,
+      template,
+      rejectOnCancel,
+      renderer = container.get(IDialogDomRenderer),
+    } = settings;
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = hostRenderer.render(dialogTargetHost, settings);
+    const dom = this.dom = renderer.render(dialogTargetHost, settings);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;

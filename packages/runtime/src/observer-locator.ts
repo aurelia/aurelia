@@ -1,11 +1,11 @@
 import { Primitive, isArrayIndex, ILogger, resolve, isFunction, isObject, isSet, isArray, isMap, createLookup } from '@aurelia/kernel';
-import { getArrayObserver } from './array-observer';
+import { ArrayObserver, getArrayObserver } from './array-observer';
 import { ComputedGetterFn, ComputedObserver } from './computed-observer';
 import { IDirtyChecker } from './dirty-checker';
-import { getMapObserver } from './map-observer';
+import { MapObserver, getMapObserver } from './map-observer';
 import { PrimitiveObserver } from './primitive-observer';
 import { PropertyAccessor } from './property-accessor';
-import { getSetObserver } from './set-observer';
+import { SetObserver, getSetObserver } from './set-observer';
 import { SetterObserver } from './setter-observer';
 import { rtDef, hasOwnProp, rtCreateInterface, rtObjectAssign } from './utilities';
 
@@ -231,8 +231,20 @@ export class ObserverLocator {
 }
 
 export type RepeatableCollection = Collection | null | undefined | number;
-
-export const getCollectionObserver = (collection: RepeatableCollection): CollectionObserver | undefined => {
+// T extends unknown[]
+//   ? ArrayObserver
+//   : T extends Map<unknown, unknown>
+//     ? MapObserver
+//     : T extends Set<unknown>
+//       ? SetObserver
+//       :
+export const getCollectionObserver: {
+  (array: unknown[]): ArrayObserver;
+  (map: Map<unknown, unknown>): MapObserver;
+  (set: Set<unknown>): SetObserver;
+  (collection: RepeatableCollection): CollectionObserver | undefined;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+} = (collection: RepeatableCollection): any => {
   let obs: CollectionObserver | undefined;
   if (isArray(collection)) {
     obs = getArrayObserver(collection);

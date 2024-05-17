@@ -5,21 +5,14 @@ export {
 } from './connectable';
 
 export {
-  ArrayObserver,
-  ArrayIndexObserver,
-  enableArrayObservation,
-  disableArrayObservation,
-  type IArrayIndexObserver,
+  type ArrayObserver,
+  type ArrayIndexObserver,
 } from './array-observer';
 export {
-  MapObserver,
-  enableMapObservation,
-  disableMapObservation,
+  type MapObserver,
 } from './map-observer';
 export {
-  SetObserver,
-  enableSetObservation,
-  disableSetObservation
+  type SetObserver,
 } from './set-observer';
 export {
   CollectionLengthObserver,

@@ -228,7 +228,7 @@ container.register(Registration.instance(MyService, new MyService('instance1')))
 container.register(Registration.instance(MyService, new MyService('instance2')));
 container.register(Registration.instance(MyService, new MyService('instance3')));
 
-const myClass = container.get(MyClass);
+const myClass = container.get(last(MyService));
 console.log(myClass.service); // Outputs: instance3
 ```
 
@@ -239,7 +239,7 @@ If no instances are registered under the specified key, the last resolver will r
 ```typescript
 const container = DI.createContainer();
 
-const myClass = container.get(MyClass);
+const myClass = container.get(last(MyClass));
 console.log(myClass.service); // Outputs: undefined
 ```
 

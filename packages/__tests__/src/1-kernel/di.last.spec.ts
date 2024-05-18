@@ -16,12 +16,12 @@ describe('1-kernel/di.last.spec.ts', function () {
     assert.equal(result, 'value3');
   });
 
-  it('should return the last registered instance in a parent container', function () {
-    const parent = container.createChild();
-    parent.register(Registration.instance('key', 'parentValue1'));
-    parent.register(Registration.instance('key', 'parentValue2'));
-    const result = parent.get(last('key'));
-    assert.equal(result, 'parentValue2');
+  it('should return the last registered instance in a child container', function () {
+    const child = container.createChild();
+    child.register(Registration.instance('key', 'childValue1'));
+    child.register(Registration.instance('key', 'childValue2'));
+    const result = child.get(last('key'));
+    assert.equal(result, 'childValue2');
   });
 
   it('should return the last registered instance in both parent and child containers', function () {

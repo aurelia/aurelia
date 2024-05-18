@@ -1,10 +1,9 @@
-import { DI, Constructable } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
   ISyntaxInterpreter,
-  AttributePattern
 } from '@aurelia/template-compiler';
 import { assert } from '@aurelia/testing';
 

@@ -5,7 +5,6 @@ import {
   CustomElement,
   CustomElementDefinition,
   CustomElementType,
-  DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
   HydrateElementInstruction,

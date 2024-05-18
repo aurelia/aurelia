@@ -44,6 +44,6 @@ describe('1-kernel/di.last.spec.ts', function () {
 
   it('should return undefined if the key is not registered', function () {
     const result = container.get(last('key'));
-    assert.equal(result);
+    assert.strictEqual(result, undefined);
   });
 });

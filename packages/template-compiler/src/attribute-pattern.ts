@@ -1,4 +1,4 @@
-import type { Constructable, } from '@aurelia/kernel';
+import type { Constructable, IRegistry, } from '@aurelia/kernel';
 import { IContainer, registrableMetadataKey, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
 import { createInterface, objectFreeze, singletonRegistration } from './utilities';
 
@@ -521,7 +521,7 @@ export class AttributeParser implements IAttributeParser {
 
 export interface AttributePatternKind {
   readonly name: string;
-  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): { register(container: IContainer): void };
+  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): IRegistry;
 }
 
 /**

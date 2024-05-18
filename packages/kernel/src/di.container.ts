@@ -26,35 +26,14 @@ import type {
   IResolvedFactory,
   IResolvedLazy,
 } from './di.resolvers';
-import { ErrorNames, createMappedError, logError, logWarn } from './errors';
+import { ErrorNames, createMappedError, logError } from './errors';
 import { isNativeFunction } from './functions';
 import { type Class, type Constructable } from './interfaces';
 import { emptyArray } from './platform';
 import { ResourceDefinition, StaticResourceType, resourceBaseName, type ResourceType } from './resource';
-import { getMetadata, isFunction, isString, objectFreeze } from './utilities';
+import { getMetadata, isFunction, isString } from './utilities';
 
 export const registrableMetadataKey = Symbol.for('au:registrable');
-export const Registrable = /*@__PURE__*/(() => {
-  const map = new WeakMap<WeakKey, (container: IContainer) => IContainer | void>();
-  return objectFreeze({
-    /**
-     * Associate an object as a registrable, making the container recognize & use
-     * the specific given register function during the registration
-     */
-    define: <T extends WeakKey>(object: T, register: (this: T, container: IContainer) => IContainer | void): T => {
-      if (__DEV__) {
-        if (map.has(object) && map.get(object) !== register) {
-          logWarn(`Overriding registrable found for key:`, object);
-        }
-      }
-      map.set(object, register);
-      return object;
-    },
-    get: <T extends WeakKey>(object: T) => map.get(object),
-    has: <T extends WeakKey>(object: T) => map.has(object),
-  });
-})();
-
 export const DefaultResolver = {
   none(key: Key): IResolver {
     throw createMappedError(ErrorNames.none_resolver_found, key);
@@ -189,8 +168,6 @@ export class Container implements IContainer {
       }
       if (isRegistry(current)) {
         current.register(this);
-      } else if (Registrable.has(current)) {
-        Registrable.get(current)!.call(current, this);
       } else if ((def = getMetadata(resourceBaseName, current)!) != null) {
         def.register(this);
       } else if (isClass<StaticResourceType>(current)) {
@@ -245,8 +222,6 @@ export class Container implements IContainer {
           // - the extra check is just a perf tweak to create fewer unnecessary arrays by the spread operator
           if (isRegistry(value)) {
             value.register(this);
-          } else if (Registrable.has(value)) {
-            Registrable.get(value)!.call(value, this);
           } else {
             this.register(value);
           }

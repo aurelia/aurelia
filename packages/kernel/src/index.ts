@@ -28,7 +28,6 @@ export {
 export {
   resolve,
   type IResolvedInjection,
-  Registrable,
   ContainerConfiguration,
   DefaultResolver,
   registrableMetadataKey,

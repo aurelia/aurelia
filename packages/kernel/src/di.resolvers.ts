@@ -45,6 +45,19 @@ export type IAllResolver<T> = IResolver<readonly Resolved<T>[]> &
   ((decorated: unknown, context: DecoratorContext) => any);
 
 /**
+ * Create a resolver that will resolve the last instance of a key from the resolving container
+ *
+ * - @param key [[`Key`]]
+ */
+export const last = <T extends Key>(key: T): IResolver<T | undefined> => ({
+  $isResolver: true,
+  resolve: handler => {
+    const allInstances = handler.getAll(key);
+    return allInstances.length > 0 ? allInstances[allInstances.length - 1] : undefined;
+  }
+});
+
+/**
  * Lazily inject a dependency depending on whether the [[`Key`]] is present at the time of function call.
  *
  * You need to make your argument a function that returns the type, for example

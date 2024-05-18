@@ -47,6 +47,7 @@ export {
   type IOptionalResolver,
   type IResolvedFactory,
   type INewInstanceResolver,
+  last,
   lazy,
   type ILazyResolver,
   type IResolvedLazy,

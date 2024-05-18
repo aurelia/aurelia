@@ -1,6 +1,7 @@
 import type { Constructable, IRegistry, } from '@aurelia/kernel';
 import { IContainer, registrableMetadataKey, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
 import { createInterface, objectFreeze, singletonRegistration } from './utilities';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface AttributePatternDefinition<T extends string = string> {
   pattern: T;
@@ -480,12 +481,11 @@ export class AttributeParser implements IAttributeParser {
   }
 
   public registerPattern(patterns: AttributePatternDefinition[], Type: Constructable<IAttributePattern>): void {
-    // TODO(Sayan): optimize the errors for production build.
-    if (this._initialized) throw new Error('Cannot add patterns after initialization');
+    if (this._initialized) throw createMappedError(ErrorNames.attribute_pattern_already_initialized);
 
     const $patterns = this._patterns;
     for (const { pattern } of patterns) {
-      if ($patterns[pattern] != null) throw new Error(`Pattern ${pattern} is already registered`);
+      if ($patterns[pattern] != null) throw createMappedError(ErrorNames.attribute_pattern_duplicate, pattern);
       $patterns[pattern] = { factory: container => container.get(Type) };
     }
     this._allDefinitions.push(...patterns);

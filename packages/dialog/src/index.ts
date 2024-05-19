@@ -52,5 +52,5 @@ export {
 } from './dialog-default-impl';
 
 export {
-  DefaultDialogKeyboardManager,
-} from './dialog-keyboard-handler';
+  DefaultDialogEventManager,
+} from './dialog-event-manager';

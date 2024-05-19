@@ -48,11 +48,6 @@ export class DialogService implements IDialogService {
    */
   private readonly dlgs: IDialogController[] = [];
 
-  private get top(): IDialogController | null {
-    const dlgs = this.dlgs;
-    return dlgs.length > 0 ? dlgs[dlgs.length - 1] : null;
-  }
-
   /** @internal */ private readonly _ctn = resolve(IContainer);
   /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
 

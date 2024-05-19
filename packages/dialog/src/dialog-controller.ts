@@ -1,4 +1,4 @@
-import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, IDisposable } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, IDisposable, resolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   IDialogController,
@@ -23,8 +23,8 @@ import { ErrorNames, createMappedError } from './errors';
  * A controller object for a Dialog instance.
  */
 export class DialogController implements IDialogController {
-  private readonly p: IPlatform;
-  private readonly ctn: IContainer;
+  private readonly p = resolve(IPlatform);
+  private readonly ctn = resolve(IContainer);
 
   /** @internal */
   private cmp!: IDialogComponent<object>;
@@ -62,14 +62,7 @@ export class DialogController implements IDialogController {
    */
   private controller!: ICustomElementController;
 
-  protected static get inject() { return [IPlatform, IContainer]; }
-
-  public constructor(
-    p: IPlatform,
-    container: IContainer,
-  ) {
-    this.p = p;
-    this.ctn = container;
+  public constructor() {
     this.closed = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -136,7 +129,6 @@ export class DialogController implements IDialogController {
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
             this._disposeHandler = eventManager.add(this, dom);
-            // dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
             return DialogOpenResult.create(false, this);
           });
         });
@@ -232,16 +224,6 @@ export class DialogController implements IDialogController {
         }
       )
     )));
-  }
-
-  /** @internal */
-  public handleEvent(event: MouseEvent): void {
-    if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
-      && /* did not click inside the host element */!this.dom.contentHost.contains(event.target as Element)
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.cancel();
-    }
   }
 
   private getOrCreateVm(container: IContainer, settings: IDialogLoadedSettings, host: HTMLElement): IDialogComponent<object> {

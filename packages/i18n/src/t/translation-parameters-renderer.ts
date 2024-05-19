@@ -1,4 +1,4 @@
-import { camelCase } from '@aurelia/kernel';
+import { IContainer, camelCase } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
   IObserverLocator,
@@ -30,11 +30,11 @@ export const TranslationParametersInstructionType = 'tpt';
 const attribute = 't-params.bind';
 
 export class TranslationParametersAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static register(container: IContainer): void {
+    container.register(AttributePattern.define(
       [{ pattern: attribute, symbols: '' }],
       this
-    );
+    ));
   }
   public [attribute](rawName: string, rawValue: string): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, '', attribute);

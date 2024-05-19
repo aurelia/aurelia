@@ -171,6 +171,10 @@ export class Container implements IContainer {
       } else if ((def = getMetadata(resourceBaseName, current)!) != null) {
         def.register(this);
       } else if (isClass<StaticResourceType>(current)) {
+        if (hasRegistrable(current)) {
+          current.getRegistrable().register(this);
+          continue;
+        }
         const registrable = current[Symbol.metadata]?.[registrableMetadataKey] as IRegistry;
         if (isRegistry(registrable)) {
           registrable.register(this);
@@ -749,3 +753,7 @@ const isClass = <T>(obj: unknown): obj is Class<any, T> =>
 
 const isResourceKey = (key: Key): key is string =>
   isString(key) && key.indexOf(':') > 0;
+
+// Limit this method for now only to classes
+const hasRegistrable = (obj: Class<any, unknown>): obj is Class<any, unknown> & { getRegistrable(): IRegistry } =>
+  isFunction((obj as Class<any, unknown> & { getRegistrable(): IRegistry }).getRegistrable);

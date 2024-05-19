@@ -65,7 +65,6 @@ import {
   PendingTemplateController,
   FulfilledTemplateController,
   RejectedTemplateController,
-  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
   PromiseAttributePattern,
   FulfilledAttributePattern,
   RejectedAttributePattern,
@@ -162,7 +161,6 @@ export const DefaultResources = [
   PendingTemplateController,
   FulfilledTemplateController,
   RejectedTemplateController,
-  // TODO: activate after the attribute parser and/or interpreter such that for `t`, `then` is not picked up.
   PromiseAttributePattern,
   FulfilledAttributePattern,
   RejectedAttributePattern,

@@ -549,16 +549,15 @@ export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>
 });
 
 export class DotSeparatedAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define(
       [
         { pattern: 'PART.PART', symbols: '.' },
         { pattern: 'PART.PART.PART', symbols: '.' }
       ],
-      this
-    );
-  }
-
+      DotSeparatedAttributePattern
+    )
+  };
   public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
   }
@@ -569,15 +568,15 @@ export class DotSeparatedAttributePattern {
 }
 
 export class RefAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]:  AttributePattern.define(
       [
         { pattern: 'ref', symbols: '' },
         { pattern: 'PART.ref', symbols: '.' }
       ],
-      this
-    );
-  }
+      RefAttributePattern
+    )
+  };
   public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, 'element', 'ref');
   }
@@ -597,15 +596,15 @@ export class RefAttributePattern {
 }
 
 export class EventAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define(
       [
         { pattern: 'PART.trigger:PART', symbols: '.:' },
         { pattern: 'PART.capture:PART', symbols: '.:' },
       ],
-      this
-    );
-  }
+      EventAttributePattern
+    )
+  };
   public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
@@ -616,12 +615,12 @@ export class EventAttributePattern {
 
 export class ColonPrefixedBindAttributePattern {
 
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define(
       [{ pattern: ':PART', symbols: ':' }],
-      this
-    );
-  }
+      ColonPrefixedBindAttributePattern
+    )
+  };
 
   public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
@@ -630,14 +629,14 @@ export class ColonPrefixedBindAttributePattern {
 
 export class AtPrefixedTriggerAttributePattern {
 
-  public static getRegistrable() {
-    return AttributePattern.define(
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]:  AttributePattern.define(
       [
         { pattern: '@PART', symbols: '@' },
         { pattern: '@PART:PART', symbols: '@:' },
-      ], this
-    );
-  }
+      ], AtPrefixedTriggerAttributePattern
+    )
+  };
 
   public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');

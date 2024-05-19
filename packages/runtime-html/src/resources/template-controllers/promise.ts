@@ -1,5 +1,5 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
-import { ILogger, onResolve, onResolveAll, resolve, isPromise } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
@@ -335,27 +335,27 @@ function getPromiseController(controller: IHydratableController) {
 }
 
 export class PromiseAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
-  }
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern)
+  };
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
 
 export class FulfilledAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
-  }
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern)
+  };
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
 
 export class RejectedAttributePattern {
-  public static getRegistrable() {
-    return AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);
-  }
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern)
+  };
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }

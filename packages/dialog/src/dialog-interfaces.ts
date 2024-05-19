@@ -58,7 +58,20 @@ export interface IDialogDom extends IDisposable {
   readonly contentHost: HTMLElement;
 }
 
-// export type IDialogCancellableOpenResult = IDialogOpenResult | IDialogCancelResult;
+export const IDialogEventManager = /*@__PURE__*/createInterface<IDialogEventManager>('IDialogKeyboardService');
+/**
+ * An interface for managing the events of dialogs
+ */
+export interface IDialogEventManager {
+  /**
+   * Manage the events of a dialog controller & its dom
+   *
+   * @param controller - the dialog controller to have its events managed
+   * @param dom - the corresponding dialog dom of the controller
+   * @returns a disposable handle to be call whenever the dialog event manager should stop managing the dialog controller & its dom
+   */
+  add(controller: IDialogController, dom: IDialogDom): IDisposable;
+}
 
 /* tslint:disable:max-line-length */
 /**
@@ -82,6 +95,11 @@ export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
 > {
+
+  /**
+   * A custom renderer for the dialog.
+   */
+  renderer?: IDialogDomRenderer;
 
   /**
    * The view model url, constructor or instance for the dialog.
@@ -154,6 +172,7 @@ export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSetti
   component?: Constructable<T> | T;
   template?: string | Element;
   readonly keyboard: DialogActionKey[];
+  renderer?: IDialogDomRenderer;
 };
 
 export type IDialogGlobalSettings = Pick<

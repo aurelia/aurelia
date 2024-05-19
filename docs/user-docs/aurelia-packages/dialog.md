@@ -24,6 +24,7 @@ There's a set of default implementations for the main interfaces of the Dialog p
 * `IDialogService`
 * `IDialogGlobalSettings`
 * `IDialogDomRenderer`
+* `IDialogEventManager`
 
 These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
 
@@ -60,6 +61,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
   MyDialogService,
   MyDialogRenderer,
   MyDialogGlobalSettings,
+  MyDialogEventManager,
 ]))
 ```
 
@@ -101,9 +103,9 @@ Make all dialogs, by default:
 
     ```typescript
     Aurelia.register(DialogDefaultConfiguration.customize(settings => {
-    settings.lock = true;
-    settings.startingZIndex = 5;
-    settings.keyboard = true;
+      settings.lock = true;
+      settings.startingZIndex = 5;
+      settings.keyboard = true;
     })).app(MyApp).start()
     ```
 
@@ -115,7 +117,7 @@ Displaying an alert dialog, which has `z-index` value as 10 to stay on top of al
 dialogService.open({
   component: () => Alert,
   lock: false,
-  startingZIndex = 10,
+  startingZIndex: 10,
 })
 ```
 
@@ -125,6 +127,7 @@ The settings that are available in the `open` method of the dialog service:
 * `template` can be HTML elements, string or a function that resolves to such, or a promise of such.
 * `model` the data to be passed to the `canActivate` and `activate` methods of the view model if implemented.
 * `host` allows providing the element which will parent the dialog - if not provided the document body will be used.
+* `renderer` allows providing a custom renderer to be used, instead of the pre-registered one. This allows a single dialog service to be able to use multiple renderers for different purposes: default for modals, and a different one for notifications, alert etc...
 * `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
 * `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
 * `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
@@ -433,9 +436,74 @@ export class MyDialog {
 }
 ```
 
-#### BYO Dialog Renderer
+#### Use your own Dialog Renderer
 
-... todo
+There are two ways to use your own dialog renderer: register your own default dialog renderer, or specify the renderer via `renderer` setting of dialog service `.open()`.
+
+1. To register your own default dialog renderer, you can follow the below example:
+
+    ```typescript
+    import { Registration } from 'aurelia';
+    import { IDialogRenderer } from '@aurelia/dialog';
+
+    export class MyDialogRenderer {
+      static register(container) {
+        Registration.singleton(IDialogRenderer, MyDialogRenderer).register(container);
+      }
+
+      render(host, settings) {
+        const overlay = document.createElement('dialog-overlay');
+        const contentHost = document.createElement('dialog-content-host');
+        host.appendChild(overlay);
+        host.appendChild(contentHost);
+        return {
+          overlay,
+          contentHost,
+          dispose() {
+            host.removeChild(overlay);
+            host.removeChild(contentHost);
+          }
+        }
+      }
+    }
+    ```
+    Notice the returned object of the `render()` method, it should satisfy the interface of an `IDialogDom`:
+    ```typescript
+    interface IDialogDom extends IDisposable {
+      readonly overlay: HTMLElement;
+      readonly contentHost: HTMLElement;
+    }
+    ```
+2. To specify the renderer via `renderer` setting in the dialog service open call, you can follow the below example:
+
+    ```typescript
+    ...
+    dialogService.open({
+      template: '<div>hey there</div>',
+      renderer: {
+        render(host, settings) {
+          const overlay = document.createElement('dialog-overlay');
+          const contentHost = document.createElement('dialog-content-host');
+          host.appendChild(overlay);
+          host.appendChild(contentHost);
+          return {
+            overlay,
+            contentHost,
+            dispose() {
+              host.removeChild(overlay);
+              host.removeChild(contentHost);
+            }
+          }
+        }
+      }
+    })
+    ```
+    Notice the object given to the `renderer` property, it should satisfy the interface of an `IDialogDomRenderer`:
+    ```typescript
+    interface IDialogDomRenderer {
+      render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
+    }
+    ```
 
 ### Animation
 
@@ -466,6 +534,49 @@ export class MyDialog {
       { duration: 200 },
     );
     return animation.finished;
+  }
+}
+```
+
+### The Default Dialog Event Manager
+
+Any implemetattion of `IDialogEventManager` should follow the following interface:
+
+```typescript
+interface IDialogEventManager {
+  add(controller: IDialogController, dom: IDialogDom): IDisposable;
+}
+```
+
+The default implementation of `IDialogEventManager` is `DefaultDialogEventManager`. It will listen to the keyboard `keydown` event on the window object, 
+and close off the last open dialog. It's also responsible for adding a click listener to the overlay of a dialog dom to close off the associated dialog.
+
+### Using your own dialog event manager
+
+If you wish to handle dialog events differently, you can register your implementation with the interface key `IDialogEventManager`, like the following examples:
+```typescript
+import { Registration } from 'aurelia';
+import { IDialogEventManager, IDialogController, IDialogDom } from '@aurelia/dialog';
+
+export class MyDialogEventManager {
+  static register(container) {
+    Registration.singleton(IDialogEventManager, this).register(container);
+  }
+
+  add(controller: IDialogController, dom: IDialogDom): void {
+    if (controller.settings.renderer === ...) {
+      // manage this
+    } else {
+      // don't manage this
+    }
+
+    dom.overlay.addEventListener('...', callback);
+
+    return {
+      dispose: () => {
+        dom.overlay.removeEventListener('...', callback);
+      }
+    }
   }
 }
 ```

@@ -50,3 +50,7 @@ export {
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
 } from './dialog-default-impl';
+
+export {
+  DefaultDialogEventManager,
+} from './dialog-event-manager';

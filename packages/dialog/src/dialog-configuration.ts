@@ -6,6 +6,7 @@ import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
+import { DefaultDialogEventManager } from './dialog-event-manager';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 
@@ -48,4 +49,5 @@ export const DialogDefaultConfiguration = /*@__PURE__*/createDialogConfiguration
   DialogService,
   DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,
+  DefaultDialogEventManager,
 ]);

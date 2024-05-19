@@ -8,6 +8,3 @@ export const singletonRegistration = Registration.singleton;
 
 /** @internal */
 export const instanceRegistration = Registration.instance;
-
-/** @internal */
-export const callbackRegistration = Registration.callback;

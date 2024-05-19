@@ -1,4 +1,4 @@
-import { Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, IDisposable, resolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   IDialogController,
@@ -8,8 +8,8 @@ import {
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
+  IDialogEventManager,
 } from './dialog-interfaces';
-import { isFunction } from './utilities';
 import { instanceRegistration } from './utilities-di';
 
 import type {
@@ -23,8 +23,8 @@ import { ErrorNames, createMappedError } from './errors';
  * A controller object for a Dialog instance.
  */
 export class DialogController implements IDialogController {
-  private readonly p: IPlatform;
-  private readonly ctn: IContainer;
+  private readonly p = resolve(IPlatform);
+  private readonly ctn = resolve(IContainer);
 
   /** @internal */
   private cmp!: IDialogComponent<object>;
@@ -34,6 +34,9 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   private _reject!: (reason: unknown) => void;
+
+  /** @internal */
+  private _disposeHandler: IDisposable | undefined = void 0;
 
   /**
    * @internal
@@ -59,14 +62,7 @@ export class DialogController implements IDialogController {
    */
   private controller!: ICustomElementController;
 
-  protected static get inject() { return [IPlatform, IContainer]; }
-
-  public constructor(
-    p: IPlatform,
-    container: IContainer,
-  ) {
-    this.p = p;
-    this.ctn = container;
+  public constructor() {
     this.closed = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -76,14 +72,19 @@ export class DialogController implements IDialogController {
   /** @internal */
   public activate(settings: IDialogLoadedSettings): Promise<DialogOpenResult> {
     const container = this.ctn.createChild();
-    const { model, template, rejectOnCancel } = settings;
-    const hostRenderer: IDialogDomRenderer = container.get(IDialogDomRenderer);
+    const {
+      model,
+      template,
+      rejectOnCancel,
+      renderer = container.get(IDialogDomRenderer),
+    } = settings;
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = hostRenderer.render(dialogTargetHost, settings);
+    const dom = this.dom = renderer.render(dialogTargetHost, settings);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;
     const contentHost = dom.contentHost;
+    const eventManager = container.get(IDialogEventManager);
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host
@@ -127,7 +128,7 @@ export class DialogController implements IDialogController {
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
-            dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
+            this._disposeHandler = eventManager.add(this, dom);
             return DialogOpenResult.create(false, this);
           });
         });
@@ -144,7 +145,7 @@ export class DialogController implements IDialogController {
     }
 
     let deactivating = true;
-    const { controller, dom, cmp, settings: { mouseEvent, rejectOnCancel }} = this;
+    const { controller, dom, cmp, settings: { rejectOnCancel }} = this;
     const dialogResult = DialogCloseResult.create(status, value);
 
     const promise: Promise<DialogCloseResult<T>> = new Promise<DialogCloseResult<T>>(r => {
@@ -164,7 +165,7 @@ export class DialogController implements IDialogController {
             () => onResolve(controller.deactivate(controller, null),
               () => {
                 dom.dispose();
-                dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
+                this._disposeHandler?.dispose();
                 if (!rejectOnCancel && status !== 'error') {
                   this._resolve(dialogResult);
                 } else {
@@ -223,16 +224,6 @@ export class DialogController implements IDialogController {
         }
       )
     )));
-  }
-
-  /** @internal */
-  public handleEvent(event: MouseEvent): void {
-    if (/* user allows dismiss on overlay click */this.settings.overlayDismiss
-      && /* did not click inside the host element */!this.dom.contentHost.contains(event.target as Element)
-    ) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      this.cancel();
-    }
   }
 
   private getOrCreateVm(container: IContainer, settings: IDialogLoadedSettings, host: HTMLElement): IDialogComponent<object> {

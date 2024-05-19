@@ -740,7 +740,7 @@ const containerResolver: IResolver = {
 };
 
 const isRegistry = (obj: IRegistry | Record<string, IRegistry>): obj is IRegistry =>
-  isFunction(obj.register);
+  isFunction(obj?.register);
 
 const isSelfRegistry = <T extends Constructable>(obj: RegisterSelf<T>): obj is RegisterSelf<T> =>
   isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';

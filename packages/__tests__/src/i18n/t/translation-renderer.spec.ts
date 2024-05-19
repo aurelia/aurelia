@@ -1,7 +1,5 @@
 import {
   I18nConfiguration,
-  TranslationAttributePattern,
-  TranslationBindAttributePattern,
   TranslationBindBindingCommand,
   TranslationBindBindingInstruction,
   TranslationBindBindingRenderer,
@@ -27,11 +25,8 @@ import {
   AttrMapper,
 } from '@aurelia/runtime-html';
 import {
-  AttributePattern,
-  AttributePatternDefinition,
   AttrSyntax,
   BindingCommand,
-  IAttributePattern,
   IAttrMapper,
   PropertyBindingInstruction,
   InstructionType,
@@ -41,29 +36,6 @@ import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 const noopLocator = {} as unknown as IObserverLocator;
 
 describe('i18n/t/translation-renderer.spec.ts', function () {
-  describe('TranslationAttributePattern', function () {
-    function createFixture(aliases: string[] = ['t']) {
-      const patterns: AttributePatternDefinition[] = [];
-      for (const pattern of aliases) {
-        patterns.push({ pattern, symbols: '' });
-        TranslationAttributePattern.registerAlias(pattern);
-      }
-      const container = createContainer().register(AttributePattern.define(patterns, TranslationAttributePattern));
-      return container.get(IAttributePattern);
-    }
-
-    it('creates attribute syntax without `to` part when `T="expr"` is used', function () {
-      const sut = createFixture();
-      const pattern = 't';
-      const value = 'simple.key';
-
-      const actual: AttrSyntax = sut[pattern](pattern, value, []);
-      assert.equal(actual.command, pattern);
-      assert.equal(actual.rawName, pattern);
-      assert.equal(actual.rawValue, value);
-      assert.equal(actual.target, '');
-    });
-  });
 
   describe('TranslationBindingCommand', function () {
     function createFixture(aliases?: string[]) {
@@ -159,32 +131,6 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       );
 
       assert.equal(binding.ast, from);
-    });
-  });
-
-  describe('TranslationBindAttributePattern', function () {
-    function createFixture(aliases: string[] = ['t']) {
-      const patterns: AttributePatternDefinition[] = [];
-      for (const pattern of aliases) {
-        patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
-        TranslationBindAttributePattern.registerAlias(pattern);
-      }
-      const container = createContainer().register(
-        AttributePattern.define(patterns, TranslationBindAttributePattern)
-      );
-      return container.get(IAttributePattern);
-    }
-
-    it('creates attribute syntax with `to` part when `T.bind="expr"` is used', function () {
-      const sut = createFixture();
-      const pattern = 't.bind';
-      const value = 'simple.key';
-
-      const actual: AttrSyntax = sut[pattern](pattern, value, ['t', 'bind']);
-      assert.equal(actual.command, pattern);
-      assert.equal(actual.rawName, pattern);
-      assert.equal(actual.rawValue, value);
-      assert.equal(actual.target, 'bind');
     });
   });
 

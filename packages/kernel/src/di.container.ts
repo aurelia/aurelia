@@ -176,7 +176,7 @@ export class Container implements IContainer {
           continue;
         }
         const registrable = current[Symbol.metadata]?.[registrableMetadataKey] as IRegistry;
-        if (registrable != null && isRegistry(registrable)) {
+        if (isRegistry(registrable)) {
           registrable.register(this);
         } else if (isString((current).$au?.type)) {
           const $au = current.$au;

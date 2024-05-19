@@ -186,6 +186,63 @@ export class MyClass {
 }
 ```
 
+### `last` Resolver
+
+The last resolver is used to inject the last instance registered under a particular key. This can be useful when you need the most recently registered instance among multiple registrations of the same key.
+
+#### Using `@inject` Decorator
+
+```typescript
+import { last, inject } from 'aurelia';
+
+@inject(last(MyService))
+export class MyClass {
+  constructor(private service: MyService) {
+    // service is the last registered instance of MyService
+  }
+}
+```
+
+#### Using Static `inject` Property
+
+```typescript
+import { last } from 'aurelia';
+
+export class MyClass {
+  static inject = [last(MyService)];
+  constructor(private service: MyService) {
+    // service is the last registered instance of MyService
+  }
+}
+```
+
+#### Example
+
+If you have multiple instances of a service registered under the same key, last will ensure that you get the most recently registered instance:
+
+```typescript
+import { DI, IContainer, last, Registration } from 'aurelia';
+
+const container = DI.createContainer();
+container.register(Registration.instance(MyService, new MyService('instance1')));
+container.register(Registration.instance(MyService, new MyService('instance2')));
+container.register(Registration.instance(MyService, new MyService('instance3')));
+
+const myClass = container.get(last(MyService));
+console.log(myClass.service); // Outputs: instance3
+```
+
+In this example, `myClass.service` will be the instance of MyService registered last (i.e., `instance3`).
+
+If no instances are registered under the specified key, the last resolver will return undefined:
+
+```typescript
+const container = DI.createContainer();
+
+const myClass = container.get(last(MyClass));
+console.log(myClass.service); // Outputs: undefined
+```
+
 ## Custom Resolvers
 
 You can create custom resolvers by implementing the `IResolver` interface. Custom resolvers give you the flexibility to implement complex resolution logic that may not be covered by the built-in resolvers.

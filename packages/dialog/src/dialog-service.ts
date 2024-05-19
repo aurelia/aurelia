@@ -2,14 +2,12 @@ import { isFunction, isPromise, IContainer, Registration, onResolve, onResolveAl
 import { AppTask } from '@aurelia/runtime-html';
 
 import {
-  DialogActionKey,
   DialogCloseResult,
   DialogOpenResult,
   IDialogService,
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
-  IDialogKeyboardManager,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
@@ -57,7 +55,6 @@ export class DialogService implements IDialogService {
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
   /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
-  /** @internal */ private readonly _defaultKeyboardManager = resolve(IDialogKeyboardManager);
 
   /**
    * Opens a new dialog.
@@ -95,13 +92,9 @@ export class DialogService implements IDialogService {
             openResult => {
               if (!openResult.wasCancelled) {
                 this.dlgs.push(dialogController);
-                this._defaultKeyboardManager.add(dialogController);
 
-                const $removeController = () => {
-                  this._defaultKeyboardManager.remove(dialogController);
-                  return this.remove(dialogController);
-                };
-                dialogController.closed.then($removeController, $removeController);
+                const $removeController = () => this.remove(dialogController);
+                void dialogController.closed.finally($removeController);
               }
               return openResult;
             }
@@ -142,25 +135,6 @@ export class DialogService implements IDialogService {
     const idx = this.dlgs.indexOf(controller);
     if (idx > -1) {
       this.dlgs.splice(idx, 1);
-    }
-  }
-
-  /** @internal */
-  public handleEvent(e: Event): void {
-    const keyEvent = e as KeyboardEvent;
-    const key = getActionKey(keyEvent);
-    if (key == null) {
-      return;
-    }
-    const top = this.top;
-    if (top === null || top.settings.keyboard.length === 0) {
-      return;
-    }
-    const keyboard = top.settings.keyboard;
-    if (key === 'Escape' && keyboard.includes(key)) {
-      void top.cancel();
-    } else if (key === 'Enter' && keyboard.includes(key)) {
-      void top.ok();
     }
   }
 }
@@ -222,14 +196,4 @@ function whenClosed<TResult1 = unknown, TResult2 = unknown>(
 function asDialogOpenPromise(promise: Promise<unknown>): DialogOpenPromise {
   (promise as DialogOpenPromise).whenClosed = whenClosed;
   return promise as DialogOpenPromise;
-}
-
-function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
-  if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
-    return 'Escape';
-  }
-  if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
-    return 'Enter';
-  }
-  return undefined;
 }

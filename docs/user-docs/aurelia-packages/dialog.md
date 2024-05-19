@@ -24,7 +24,7 @@ There's a set of default implementations for the main interfaces of the Dialog p
 * `IDialogService`
 * `IDialogGlobalSettings`
 * `IDialogDomRenderer`
-* `IDialogKeyboardManager`
+* `IDialogEventManager`
 
 These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
 
@@ -61,7 +61,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
   MyDialogService,
   MyDialogRenderer,
   MyDialogGlobalSettings,
-  MyDialogKeyboardManager,
+  MyDialogEventManager,
 ]))
 ```
 
@@ -538,42 +538,45 @@ export class MyDialog {
 }
 ```
 
-### The Default Dialog Keyboard Manager
+### The Default Dialog Event Manager
 
-Any implemetattion of `IDialogKeyboardManager` should follow the following interface:
+Any implemetattion of `IDialogEventManager` should follow the following interface:
 
 ```typescript
-interface IDialogKeyboardManager {
-  add(controller: IDialogController): void;
-  remove(controllers: IDialogController): void;
+interface IDialogEventManager {
+  add(controller: IDialogController, dom: IDialogDom): IDisposable;
 }
 ```
 
-The default implementation of `IDialogKeyboardManager` is `DefaultDialogKeyboardManager`. It will listen to the keyboard `keydown` event on the window object, 
-and close off the last open dialog.
+The default implementation of `IDialogEventManager` is `DefaultDialogEventManager`. It will listen to the keyboard `keydown` event on the window object, 
+and close off the last open dialog. It's also responsible for adding a click listener to the overlay of a dialog dom to close off the associated dialog.
 
-### Using your own dialog keyboard manager
+### Using your own dialog event manager
 
-If you wish to handle keyboard manager differently, you can register your implementation with the interface key `IDialogKeyboardManager`, like the following examples:
+If you wish to handle dialog events differently, you can register your implementation with the interface key `IDialogEventManager`, like the following examples:
 ```typescript
 import { Registration } from 'aurelia';
-import { IDialogKeyboardManager, IDialogController } from '@aurelia/dialog';
+import { IDialogEventManager, IDialogController, IDialogDom } from '@aurelia/dialog';
 
-export class MyDialogKeyboardManager {
+export class MyDialogEventManager {
   static register(container) {
-    Registration.singleton(IDialogKeyboardManager, this).register(container);
+    Registration.singleton(IDialogEventManager, this).register(container);
   }
 
-  add(controller: IDialogController): void {
+  add(controller: IDialogController, dom: IDialogDom): void {
     if (controller.settings.renderer === ...) {
       // manage this
     } else {
       // don't manage this
     }
-  }
 
-  remove(controller: IDialogController): void {
-    // ...
+    dom.overlay.addEventListener('...', callback);
+
+    return {
+      dispose: () => {
+        dom.overlay.removeEventListener('...', callback);
+      }
+    }
   }
 }
 ```

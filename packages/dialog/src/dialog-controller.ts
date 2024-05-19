@@ -1,4 +1,4 @@
-import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, IDisposable } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
 import {
   IDialogController,
@@ -8,6 +8,7 @@ import {
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
+  IDialogEventManager,
 } from './dialog-interfaces';
 import { instanceRegistration } from './utilities-di';
 
@@ -33,6 +34,9 @@ export class DialogController implements IDialogController {
 
   /** @internal */
   private _reject!: (reason: unknown) => void;
+
+  /** @internal */
+  private _disposeHandler: IDisposable | undefined = void 0;
 
   /**
    * @internal
@@ -87,6 +91,7 @@ export class DialogController implements IDialogController {
       ? container.get(IEventTarget) as Element
       : null;
     const contentHost = dom.contentHost;
+    const eventManager = container.get(IDialogEventManager);
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host
@@ -130,7 +135,8 @@ export class DialogController implements IDialogController {
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
-            dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
+            this._disposeHandler = eventManager.add(this, dom);
+            // dom.overlay.addEventListener(settings.mouseEvent ?? 'click', this);
             return DialogOpenResult.create(false, this);
           });
         });
@@ -147,7 +153,7 @@ export class DialogController implements IDialogController {
     }
 
     let deactivating = true;
-    const { controller, dom, cmp, settings: { mouseEvent, rejectOnCancel }} = this;
+    const { controller, dom, cmp, settings: { rejectOnCancel }} = this;
     const dialogResult = DialogCloseResult.create(status, value);
 
     const promise: Promise<DialogCloseResult<T>> = new Promise<DialogCloseResult<T>>(r => {
@@ -167,7 +173,7 @@ export class DialogController implements IDialogController {
             () => onResolve(controller.deactivate(controller, null),
               () => {
                 dom.dispose();
-                dom.overlay.removeEventListener(mouseEvent ?? 'click', this);
+                this._disposeHandler?.dispose();
                 if (!rejectOnCancel && status !== 'error') {
                   this._resolve(dialogResult);
                 } else {

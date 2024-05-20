@@ -6,6 +6,7 @@ import { Runner, Step } from './utilities/runner';
 import { arrayUnique } from './utilities/utils';
 import { Viewport } from './endpoints/viewport';
 import { OpenPromise } from './utilities/open-promise';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * The navigator is responsible for managing (queueing) navigations and
@@ -147,7 +148,7 @@ export class Navigator {
 
   public start(options?: INavigatorOptions): void {
     if (this.isActive) {
-      throw new Error('Navigator has already been started');
+      throw createMappedError(ErrorNames.navigator_already_started);
     }
 
     this.isActive = true;
@@ -156,7 +157,7 @@ export class Navigator {
 
   public stop(): void {
     if (!this.isActive) {
-      throw new Error('Navigator has not been started');
+      throw createMappedError(ErrorNames.navigator_not_started);
     }
     this.isActive = false;
   }

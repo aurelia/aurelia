@@ -2,6 +2,7 @@ import { Metadata } from '@aurelia/metadata';
 import { Constructable, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 import { CustomElement } from '@aurelia/runtime-html';
 import { LoadInstruction, ComponentAppellation, ViewportHandle, ComponentParameters, RouteableComponentType, type ReloadBehavior } from './interfaces';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IRoute extends Writable<Partial<Route>> {
   /**
@@ -165,8 +166,7 @@ export class Route {
    */
   private static transferTypeToComponent(configOrType: IRoute | RouteableComponentType | undefined, Type: RouteableComponentType): IRoute {
     if (CustomElement.isType(configOrType)) {
-      throw new Error(`Invalid route configuration: A component ` +
-        `can't be specified in a component route configuration.`);
+      throw createMappedError(ErrorNames.route_no_component_as_config);
     }
 
     // Clone it so that original route isn't affected
@@ -174,8 +174,7 @@ export class Route {
     const config: IRoute = { ...configOrType };
 
     if ('component' in config || 'instructions' in config) {
-      throw new Error(`Invalid route configuration: The 'component' and 'instructions' properties ` +
-        `can't be specified in a component route configuration.`);
+      throw createMappedError(ErrorNames.route_no_both_component_and_instructions);
     }
     if (!('redirectTo' in config)) {
       config.component = Type;
@@ -194,18 +193,17 @@ export class Route {
    * is used.
    */
   private static transferIndividualIntoInstructions(config: IRoute): IRoute {
-    if (config === null || config === void 0) {
-      throw new Error(`Invalid route configuration: expected an object.`);
+    if (config == null) {
+      throw createMappedError(ErrorNames.route_nullish_config);
     }
 
-    if ((config.component ?? null) !== null
-      || (config.viewport ?? null) !== null
-      || (config.parameters ?? null) !== null
-      || (config.children ?? null) !== null
+    if (config.component != null
+      || config.viewport != null
+      || config.parameters != null
+      || config.children != null
     ) {
       if (config.instructions != null) {
-        throw new Error(`Invalid route configuration: The 'instructions' property can't be used together with ` +
-          `the 'component', 'viewport', 'parameters' or 'children' properties.`);
+        throw createMappedError(ErrorNames.route_instructions_existed);
       }
       config.instructions = [{
         component: config.component,
@@ -223,8 +221,7 @@ export class Route {
    */
   private static validateRouteConfiguration(config: Partial<Route>): void {
     if (config.redirectTo === null && config.instructions === null) {
-      throw new Error(`Invalid route configuration: either 'redirectTo' or 'instructions' ` +
-        `need to be specified.`);
+      throw createMappedError(ErrorNames.route_invalid_config);
     }
 
     // TODO: Add validations for remaining properties and each index of 'instructions'

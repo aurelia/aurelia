@@ -336,7 +336,7 @@ function getPromiseController(controller: IHydratableController) {
 
 export class PromiseAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern)
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern)
   };
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
@@ -345,7 +345,7 @@ export class PromiseAttributePattern {
 
 export class FulfilledAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern)
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern)
   };
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
@@ -354,7 +354,7 @@ export class FulfilledAttributePattern {
 
 export class RejectedAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern)
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern)
   };
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');

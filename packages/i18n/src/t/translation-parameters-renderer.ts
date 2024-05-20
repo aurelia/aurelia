@@ -31,7 +31,7 @@ const attribute = 't-params.bind';
 
 export class TranslationParametersAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define(
+    [registrableMetadataKey]: AttributePattern.create(
       [{ pattern: attribute, symbols: '' }],
       TranslationParametersAttributePattern
     )

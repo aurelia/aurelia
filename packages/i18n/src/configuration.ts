@@ -64,10 +64,10 @@ function coreComponents(options: I18nConfigurationOptions) {
     }
   }
   const renderers = [
-    AttributePattern.define(patterns, TranslationAttributePattern),
+    AttributePattern.create(patterns, TranslationAttributePattern),
     BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
     TranslationBindingRenderer,
-    AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
+    AttributePattern.create(bindPatterns, TranslationBindAttributePattern),
     BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
     TranslationBindBindingRenderer,
     TranslationParametersAttributePattern,

@@ -464,7 +464,7 @@ export class AttributeParser implements IAttributeParser {
    *
    * @internal
    */
-  private readonly _patterns: Record<string, { factory(container: IContainer): IAttributePattern; pattern?: IAttributePattern }> = {};
+  private readonly _patterns: Record<string, { patternType: Constructable<IAttributePattern>; pattern?: IAttributePattern }> = {};
 
   /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
@@ -486,7 +486,7 @@ export class AttributeParser implements IAttributeParser {
     const $patterns = this._patterns;
     for (const { pattern } of patterns) {
       if ($patterns[pattern] != null) throw createMappedError(ErrorNames.attribute_pattern_duplicate, pattern);
-      $patterns[pattern] = { factory: container => container.get(Type) };
+      $patterns[pattern] = { patternType: Type };
     }
     this._allDefinitions.push(...patterns);
   }
@@ -496,7 +496,7 @@ export class AttributeParser implements IAttributeParser {
     this._interpreter.add(this._allDefinitions);
     const _container = this._container;
     for (const [, value] of Object.entries(this._patterns)) {
-      value.pattern = value.factory(_container);
+      value.pattern = _container.get(value.patternType);
     }
   }
 
@@ -521,7 +521,7 @@ export class AttributeParser implements IAttributeParser {
 
 export interface AttributePatternKind {
   readonly name: string;
-  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): IRegistry;
+  create<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): IRegistry;
 }
 
 /**
@@ -529,7 +529,7 @@ export interface AttributePatternKind {
  */
 export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>) => T {
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
-    const registrable = AttributePattern.define(patternDefs, target);
+    const registrable = AttributePattern.create(patternDefs, target);
     // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
     context.metadata[registrableMetadataKey] = registrable;
     return target;
@@ -538,7 +538,7 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
 
 export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
-  define(patternDefs, Type) {
+  create(patternDefs, Type) {
     return {
       register(container: IContainer) {
         container.get(IAttributeParser).registerPattern(patternDefs, Type);
@@ -550,7 +550,7 @@ export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>
 
 export class DotSeparatedAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define(
+    [registrableMetadataKey]: AttributePattern.create(
       [
         { pattern: 'PART.PART', symbols: '.' },
         { pattern: 'PART.PART.PART', symbols: '.' }
@@ -569,7 +569,7 @@ export class DotSeparatedAttributePattern {
 
 export class RefAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]:  AttributePattern.define(
+    [registrableMetadataKey]:  AttributePattern.create(
       [
         { pattern: 'ref', symbols: '' },
         { pattern: 'PART.ref', symbols: '.' }
@@ -597,7 +597,7 @@ export class RefAttributePattern {
 
 export class EventAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define(
+    [registrableMetadataKey]: AttributePattern.create(
       [
         { pattern: 'PART.trigger:PART', symbols: '.:' },
         { pattern: 'PART.capture:PART', symbols: '.:' },
@@ -616,7 +616,7 @@ export class EventAttributePattern {
 export class ColonPrefixedBindAttributePattern {
 
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.define(
+    [registrableMetadataKey]: AttributePattern.create(
       [{ pattern: ':PART', symbols: ':' }],
       ColonPrefixedBindAttributePattern
     )
@@ -630,7 +630,7 @@ export class ColonPrefixedBindAttributePattern {
 export class AtPrefixedTriggerAttributePattern {
 
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]:  AttributePattern.define(
+    [registrableMetadataKey]:  AttributePattern.create(
       [
         { pattern: '@PART', symbols: '@' },
         { pattern: '@PART:PART', symbols: '@:' },
@@ -655,5 +655,5 @@ export class AtPrefixedTriggerAttributePattern {
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
-  AttributePattern.define([{ pattern: 'abc', symbols: '.' }], class Def {});
+  AttributePattern.create([{ pattern: 'abc', symbols: '.' }], class Def {});
 }

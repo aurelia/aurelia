@@ -21,7 +21,6 @@ import {
   PartialCustomElementDefinition,
   CustomElementDefinition,
   CustomAttributeDefinition,
-  DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
   TemplateCompilerHooks,
@@ -331,7 +330,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         it('enables binding commands to override custom attribute', function () {
           const { template, instructions } = compileWith(
             `<el foo.trigger="1">`,
-            [DefaultBindingSyntax, CustomAttribute.define('foo', class {})]
+            [CustomAttribute.define('foo', class {})]
           );
 
           assertTemplateHtml(template, '<!--au*--><el></el>');

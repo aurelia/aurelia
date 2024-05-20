@@ -5,7 +5,6 @@ import {
   CustomElement,
   CustomElementDefinition,
   CustomElementType,
-  DefaultBindingSyntax,
 } from '@aurelia/runtime-html';
 import {
   HydrateElementInstruction,
@@ -367,7 +366,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
 
   function compileTemplate(template: string, ...registrations: unknown[]) {
     const { container, sut } = createFixture();
-    container.register(DefaultBindingSyntax, ...registrations);
+    container.register(...registrations);
 
     const templateDefinition = CustomElementDefinition.create({
       name: 'ano',

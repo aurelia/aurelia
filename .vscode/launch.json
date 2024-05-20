@@ -299,6 +299,32 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch mocha i18n tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
+      },
+      "args": [
+       "--ui",
+       "bdd",
+       "--reporter",
+       "min",
+       "--colors",
+       "--recursive",
+       "--timeout",
+       "0",
+       "--watch-extensions",
+       "js",
+       "--bail",
+       "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
+       "${workspaceRoot}/packages/__tests__/dist/i18n/**/*.spec.js",
+      ],
+      "cwd": "${workspaceRoot}",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Launch mocha state tests",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "env": {

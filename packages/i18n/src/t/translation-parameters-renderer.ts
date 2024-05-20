@@ -1,4 +1,4 @@
-import { camelCase } from '@aurelia/kernel';
+import { camelCase, registrableMetadataKey } from '@aurelia/kernel';
 import { TranslationBinding } from './translation-binding';
 import {
   IObserverLocator,
@@ -29,14 +29,17 @@ export const TranslationParametersInstructionType = 'tpt';
 // `.bind` part is needed here only for vCurrent compliance
 const attribute = 't-params.bind';
 
-export const TranslationParametersAttributePattern = AttributePattern.define(
-  [{ pattern: attribute, symbols: '' }],
-  class TranslationParametersAttributePattern {
-    public [attribute](rawName: string, rawValue: string): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, '', attribute);
-    }
+export class TranslationParametersAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create(
+      [{ pattern: attribute, symbols: '' }],
+      TranslationParametersAttributePattern
+    )
+  };
+  public [attribute](rawName: string, rawValue: string): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, '', attribute);
   }
-);
+}
 
 export class TranslationParametersBindingInstruction {
   public readonly type: string = TranslationParametersInstructionType;

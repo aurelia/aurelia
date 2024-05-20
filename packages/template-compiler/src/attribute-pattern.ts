@@ -1,6 +1,7 @@
-import type { Constructable } from '@aurelia/kernel';
-import { IContainer, Registrable, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
+import type { Constructable, IRegistry, } from '@aurelia/kernel';
+import { IContainer, registrableMetadataKey, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
 import { createInterface, objectFreeze, singletonRegistration } from './utilities';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface AttributePatternDefinition<T extends string = string> {
   pattern: T;
@@ -446,6 +447,7 @@ export type IAttributePattern<T extends string = string> = Record<T, (rawName: s
 export const IAttributePattern = /*@__PURE__*/createInterface<IAttributePattern>('IAttributePattern');
 
 export interface IAttributeParser {
+  registerPattern(patterns: AttributePatternDefinition[], Type: Constructable<IAttributePattern>): void;
   parse(name: string, value: string): AttrSyntax;
 }
 export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
@@ -462,27 +464,48 @@ export class AttributeParser implements IAttributeParser {
    *
    * @internal
    */
-  private readonly _patterns: Record<string, IAttributePattern>;
+  private readonly _patterns: Record<string, { patternType: Constructable<IAttributePattern>; pattern?: IAttributePattern }> = {};
 
   /** @internal */
   private readonly _interpreter: ISyntaxInterpreter;
+  /** @internal */
+  private _initialized: boolean = false;
+  /** @internal */
+  private readonly _allDefinitions: AttributePatternDefinition[] = [];
+  /** @internal */
+  private readonly _container: IContainer;
 
   public constructor() {
-    const interpreter = this._interpreter = resolve(ISyntaxInterpreter);
-    const attrPatterns = AttributePattern.findAll(resolve(IContainer));
-    const patterns: AttributeParser['_patterns'] = this._patterns = {};
-    const allDefs = attrPatterns.reduce<AttributePatternDefinition[]>(
-      (allDefs, attrPattern) => {
-        const patternDefs = getAllPatternDefinitions(attrPattern.constructor as Constructable);
-        patternDefs.forEach(def => patterns[def.pattern] = attrPattern);
-        return allDefs.concat(patternDefs);
-      },
-      emptyArray as AttributePatternDefinition[]
-    );
-    interpreter.add(allDefs);
+    this._interpreter = resolve(ISyntaxInterpreter);
+    this._container = resolve(IContainer);
+  }
+
+  public registerPattern(patterns: AttributePatternDefinition[], Type: Constructable<IAttributePattern>): void {
+    if (this._initialized) throw createMappedError(ErrorNames.attribute_pattern_already_initialized);
+
+    const $patterns = this._patterns;
+    for (const { pattern } of patterns) {
+      if ($patterns[pattern] != null) throw createMappedError(ErrorNames.attribute_pattern_duplicate, pattern);
+      $patterns[pattern] = { patternType: Type };
+    }
+    this._allDefinitions.push(...patterns);
+  }
+
+  /** @internal */
+  private _initialize(): void {
+    this._interpreter.add(this._allDefinitions);
+    const _container = this._container;
+    for (const [, value] of Object.entries(this._patterns)) {
+      value.pattern = _container.get(value.patternType);
+    }
   }
 
   public parse(name: string, value: string): AttrSyntax {
+    // Optimization Idea: move the initialization to an AppTask
+    if (!this._initialized) {
+      this._initialize();
+      this._initialized = true;
+    }
     let interpretation = this._cache[name];
     if (interpretation == null) {
       interpretation = this._cache[name] = this._interpreter.interpret(name);
@@ -491,125 +514,138 @@ export class AttributeParser implements IAttributeParser {
     if (pattern == null) {
       return new AttrSyntax(name, value, name, null, null);
     } else {
-      return this._patterns[pattern][pattern](name, value, interpretation.parts as string[]);
+      return this._patterns[pattern].pattern![pattern](name, value, interpretation.parts as string[]);
     }
   }
 }
 
 export interface AttributePatternKind {
   readonly name: string;
-  define<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): P;
-  getPatternDefinitions(Type: Constructable): AttributePatternDefinition[];
-  findAll(container: IContainer): readonly IAttributePattern[];
+  create<const K extends AttributePatternDefinition, P extends Constructable<IAttributePattern<K['pattern']>> = Constructable<IAttributePattern<K['pattern']>>>(patternDefs: K[], Type: P): IRegistry;
 }
 
 /**
  * Decorator to be used on attr pattern classes
  */
-export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext) => T {
-  return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T): T {
-    return AttributePattern.define(patternDefs, target);
+export function attributePattern<const K extends AttributePatternDefinition>(...patternDefs: K[]): <T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>) => T {
+  return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
+    const registrable = AttributePattern.create(patternDefs, target);
+    // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
+    context.metadata[registrableMetadataKey] = registrable;
+    return target;
   };
 }
 
-const getAllPatternDefinitions = <P extends Constructable>(Type: P): AttributePatternDefinition[] =>
-  patterns.get(Type as Constructable<IAttributePattern>) ?? emptyArray;
-
-const patterns = new WeakMap<Constructable<IAttributePattern>, AttributePatternDefinition[]>();
-
 export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
-  define(patternDefs, Type) {
-    patterns.set(Type, patternDefs);
-    return Registrable.define(Type, (container: IContainer) => {
-      singletonRegistration(IAttributePattern, Type).register(container);
-    });
+  create(patternDefs, Type) {
+    return {
+      register(container: IContainer) {
+        container.get(IAttributeParser).registerPattern(patternDefs, Type);
+        singletonRegistration(IAttributePattern, Type).register(container);
+      }
+    };
   },
-  getPatternDefinitions: getAllPatternDefinitions,
-  findAll: (container) => container.root.getAll(IAttributePattern),
 });
 
-export const DotSeparatedAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: 'PART.PART', symbols: '.' },
-    { pattern: 'PART.PART.PART', symbols: '.' }
-  ],
-  class DotSeparatedAttributePattern {
-    public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
-    }
-
-    public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
-    }
+export class DotSeparatedAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create(
+      [
+        { pattern: 'PART.PART', symbols: '.' },
+        { pattern: 'PART.PART.PART', symbols: '.' }
+      ],
+      DotSeparatedAttributePattern
+    )
+  };
+  public 'PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], parts[1]);
   }
-);
 
-export const RefAttributePattern = /*@__PURE__*/AttributePattern.define(
-  [
-    { pattern: 'ref', symbols: '' },
-    { pattern: 'PART.ref', symbols: '.' }
-  ],
-  class RefAttributePattern {
-    public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, 'element', 'ref');
-    }
+  public 'PART.PART.PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, `${parts[0]}.${parts[1]}`, parts[2]);
+  }
+}
 
-    public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      let target = parts[0];
-      if (target === 'view-model') {
-        target = 'component';
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
-            + ` This is deprecated and component.ref should be used instead`);
-        }
+export class RefAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]:  AttributePattern.create(
+      [
+        { pattern: 'ref', symbols: '' },
+        { pattern: 'PART.ref', symbols: '.' }
+      ],
+      RefAttributePattern
+    )
+  };
+  public 'ref'(rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, 'element', 'ref');
+  }
+
+  public 'PART.ref'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    let target = parts[0];
+    if (target === 'view-model') {
+      target = 'component';
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[aurelia] Detected view-model.ref usage: "${rawName}=${rawValue}".`
+          + ` This is deprecated and component.ref should be used instead`);
       }
-      return new AttrSyntax(rawName, rawValue, target, 'ref');
     }
+    return new AttrSyntax(rawName, rawValue, target, 'ref');
   }
-);
+}
 
-export const EventAttributePattern =  /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: 'PART.trigger:PART', symbols: '.:' },
-    { pattern: 'PART.capture:PART', symbols: '.:' },
-  ],
-  class EventAttributePattern {
-    public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
-    }
-    public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
-    }
+export class EventAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create(
+      [
+        { pattern: 'PART.trigger:PART', symbols: '.:' },
+        { pattern: 'PART.capture:PART', symbols: '.:' },
+      ],
+      EventAttributePattern
+    )
+  };
+  public 'PART.trigger:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', parts);
   }
-);
-
-export const ColonPrefixedBindAttributePattern = /*@__PURE__*/AttributePattern.define(
-  [{ pattern: ':PART', symbols: ':' }],
-  class ColonPrefixedBindAttributePattern {
-
-    public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
-    }
+  public 'PART.capture:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'capture', parts);
   }
-);
+}
 
-export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.define(
-  [
-    { pattern: '@PART', symbols: '@' },
-    { pattern: '@PART:PART', symbols: '@:' },
-  ],
-  class AtPrefixedTriggerAttributePattern {
-    public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
-    }
+export class ColonPrefixedBindAttributePattern {
 
-    public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-      return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
-    }
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create(
+      [{ pattern: ':PART', symbols: ':' }],
+      ColonPrefixedBindAttributePattern
+    )
+  };
+
+  public ':PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'bind');
   }
-);
+}
+
+export class AtPrefixedTriggerAttributePattern {
+
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]:  AttributePattern.create(
+      [
+        { pattern: '@PART', symbols: '@' },
+        { pattern: '@PART:PART', symbols: '@:' },
+      ], AtPrefixedTriggerAttributePattern
+    )
+  };
+
+  public '@PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger');
+  }
+
+  public '@PART:PART'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+    return new AttrSyntax(rawName, rawValue, parts[0], 'trigger', [parts[0], 'trigger', ...parts.slice(1)]);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 /* istanbul ignore next */function testAttributePatternDeco() {
@@ -619,7 +655,5 @@ export const AtPrefixedTriggerAttributePattern = /*@__PURE__*/ AttributePattern.
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
-  AttributePattern.define([{ pattern: 'abc', symbols: '.' }], class Def {});
-
-  AttributePattern.getPatternDefinitions(DotSeparatedAttributePattern).map(c => c.pattern);
+  AttributePattern.create([{ pattern: 'abc', symbols: '.' }], class Def {});
 }

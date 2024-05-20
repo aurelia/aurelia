@@ -5,8 +5,8 @@ import {
   type Constructable,
   type IResolver,
   resolve,
-  Registrable,
   isString,
+  registrableMetadataKey,
 } from '@aurelia/kernel';
 import {
   IExpressionParser,
@@ -86,9 +86,13 @@ export interface IRenderer {
 export const IRenderer = /*@__PURE__*/createInterface<IRenderer>('IRenderer');
 
 export function renderer<T extends IRenderer, C extends Constructable<T>>(target: C, context: ClassDecoratorContext): C {
-  return Registrable.define(target, function (this: typeof target, container: IContainer): void {
-    singletonRegistration(IRenderer, this).register(container);
-  });
+  const metadata = context?.metadata ?? (target[Symbol.metadata] ??= Object.create(null));
+  metadata[registrableMetadataKey] = {
+    register(container: IContainer): void {
+      singletonRegistration(IRenderer, target).register(container);
+    }
+  };
+  return target;
 }
 
 function ensureExpression<TFrom>(parser: IExpressionParser, srcOrExpr: TFrom | string, expressionType: ExpressionType): TFrom {

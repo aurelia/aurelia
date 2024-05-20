@@ -15,7 +15,15 @@ import {
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-attributes.spec.ts', function () {
-  // custom elements
+  it('throws when created lifecycle returns a promise', function () {
+    assert.throws(() => createFixture(
+      '<div attr>',
+      {},
+      [CustomAttribute.define('attr', class { created() { return Promise.resolve(); } })]
+    ));
+  });
+
+  // custom attributes
   describe('01. Aliases', function () {
 
     @customAttribute({ name: 'foo5', aliases: ['foo53'] })

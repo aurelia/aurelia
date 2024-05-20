@@ -9,6 +9,12 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.strictEqual(au, au1);
   });
 
+  it('throws when hydrating or hydrated or created lifecycle returns a promise', function () {
+    assert.throws(() => createFixture('', { hydrating() { return Promise.resolve(); } }));
+    assert.throws(() => createFixture('', { hydrated() { return Promise.resolve(); } }));
+    assert.throws(() => createFixture('', { created() { return Promise.resolve(); } }));
+  });
+
   it('works with multiple layers of change propagation & <input/>', function () {
     const { ctx, appHost } = createFixture(
       `<input value.bind="first_name | properCase">

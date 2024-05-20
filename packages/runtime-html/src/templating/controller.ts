@@ -394,13 +394,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   /** @internal */
   public _hydrate(): void {
-    if (this._lifecycleHooks!.hydrating != null) {
-      this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
-    }
+    this._lifecycleHooks!.hydrating?.forEach(callHydratingHook, this);
     if (this._vmHooks._hydrating) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrating() hook`); }
-      this._vm!.hydrating(this as ICustomElementController);
+      if (isPromise(this._vm!.hydrating(this as ICustomElementController))) {
+        throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'hydrating', 'vm');
+      }
     }
 
     const definition = this.definition!;
@@ -438,14 +438,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (this._vm as Writable<C>).$controller = this;
     this.nodes = this._rendering.createNodes(compiledDef);
 
-    if (this._lifecycleHooks!.hydrated !== void 0) {
-      this._lifecycleHooks!.hydrated.forEach(callHydratedHook, this);
-    }
-
+    this._lifecycleHooks!.hydrated?.forEach(callHydratedHook, this);
     if (this._vmHooks._hydrated) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking hydrated() hook`); }
-      this._vm!.hydrated(this as ICustomElementController);
+      if (isPromise(this._vm!.hydrated(this as ICustomElementController))) {
+        throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'hydrated', 'vm');
+      }
     }
   }
 
@@ -458,13 +457,14 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       /* host       */this.host,
     );
 
-    if (this._lifecycleHooks!.created !== void 0) {
-      this._lifecycleHooks!.created.forEach(callCreatedHook, this);
-    }
+    this._lifecycleHooks!.created?.forEach(callCreatedHook, this);
+
     if (this._vmHooks._created) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
-      this._vm!.created(this as ICustomElementController);
+      if (isPromise(this._vm!.created(this as ICustomElementController))) {
+        throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'created', 'vm');
+      }
     }
   }
 
@@ -481,13 +481,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     (instance as Writable<C>).$controller = this;
     this._lifecycleHooks = LifecycleHooks.resolve(this.container);
 
-    if (this._lifecycleHooks!.created !== void 0) {
-      this._lifecycleHooks!.created.forEach(callCreatedHook, this);
-    }
+    this._lifecycleHooks!.created?.forEach(callCreatedHook, this);
     if (this._vmHooks._created) {
       /* istanbul ignore next */
       if (__DEV__ && this.debug) { this.logger!.trace(`invoking created() hook`); }
-      this._vm!.created(this as ICustomAttributeController);
+      if (isPromise(this._vm!.created(this as ICustomAttributeController))) {
+        throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'created', 'vm');
+      }
     }
   }
 
@@ -1857,15 +1857,21 @@ function callDispose(disposable: IDisposable): void {
 }
 
 function callCreatedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'created'>) {
-  l.instance.created(this._vm!, this as IHydratedComponentController);
+  if (isPromise(l.instance.created(this._vm!, this as IHydratedComponentController))) {
+    throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'created', 'hooks');
+  }
 }
 
 function callHydratingHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrating'>) {
-  l.instance.hydrating(this._vm!, this as IContextualCustomElementController<ICompileHooks>);
+  if (isPromise(l.instance.hydrating(this._vm!, this as IContextualCustomElementController<ICompileHooks>))) {
+    throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'hydrating', 'hooks');
+  }
 }
 
 function callHydratedHook(this: Controller, l: LifecycleHooksEntry<ICompileHooks, 'hydrated'>) {
-  l.instance.hydrated(this._vm!, this as ICompiledCustomElementController<ICompileHooks>);
+  if (isPromise(l.instance.hydrated(this._vm!, this as ICompiledCustomElementController<ICompileHooks>))) {
+    throw createMappedError(ErrorNames.controller_no_promise_from_sync_lifecycle, 'hydrated', 'hooks');
+  }
 }
 
 function callBindingHook(this: Controller, l: LifecycleHooksEntry<IActivationHooks<IHydratedController>, 'binding'>) {

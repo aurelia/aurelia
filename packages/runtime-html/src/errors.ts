@@ -49,6 +49,7 @@ export const enum ErrorNames {
   controller_watch_invalid_callback = 506,
   controller_property_not_coercible = 507,
   controller_property_no_change_handler = 508,
+  controller_no_promise_from_sync_lifecycle = 509,
 
   node_observer_strategy_not_found = 652,
   node_observer_mapping_existed = 653,
@@ -167,6 +168,8 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.controller_watch_invalid_callback]: `Invalid callback for @watch decorator: {{0}}`,
   [ErrorNames.controller_property_not_coercible]: `Observer for bindable property {{0}} does not support coercion.`,
   [ErrorNames.controller_property_no_change_handler]: `Observer for property {{0}} does not support change handler.`,
+  [ErrorNames.controller_no_promise_from_sync_lifecycle]: 'A promise is returned in synchronous lifecycle "{{0}}" of {{1}}.' +
+    ' This is not allowed as it will create a breaking change when we turn this "{{0}}" lifecycle into asynchronous.',
 
   [ErrorNames.attribute_def_not_found]: `No attribute definition found for type {{0:name}}`,
   [ErrorNames.element_def_not_found]: `No element definition found for type {{0:name}}`,

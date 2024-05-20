@@ -9,8 +9,7 @@ import { IDomPlatform } from './interfaces-template-compiler';
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
 export interface ITemplateElementFactory {
-  createTemplate(markup: string): HTMLTemplateElement;
-  createTemplate(node: Node): HTMLTemplateElement;
+  createTemplate(input: string | Node): HTMLTemplateElement;
 }
 export const ITemplateElementFactory = /*@__PURE__*/createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
@@ -26,8 +25,6 @@ export class TemplateElementFactory implements ITemplateElementFactory {
     return this.p.document.createElement('template');
   }
 
-  public createTemplate(markup: string): HTMLTemplateElement;
-  public createTemplate(node: Node): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
     if (isString(input)) {
       let result = markupCache[input];

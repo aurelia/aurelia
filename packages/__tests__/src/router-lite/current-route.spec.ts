@@ -43,7 +43,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r1', path: ['c-1', 'c-1/:id1'], component: C1, title: 'C1' },
+        { id: 'r1', path: ['', 'c-1', 'c-1/:id1'], component: C1, title: 'C1' },
         { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
       ]
     })
@@ -54,6 +54,21 @@ describe('router-lite/current-route.spec.ts', function () {
 
     const { au, container, rootVm } = await start({ appRoot: App });
     const router = container.get(IRouter);
+
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: '',
+      url: '',
+      title: 'C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'default',
+          params: emptyParams,
+          children: [],
+        }
+      ]
+    }, 'round#0');
 
     await router.load('c-1');
     assertCurrentRoute(rootVm.currentRoute, {
@@ -166,7 +181,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r11', path: ['c-11', 'c-11/:id1'], component: C11, title: 'C11' },
+        { id: 'r11', path: ['', 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
         { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
       ]
     })
@@ -175,7 +190,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r21', path: ['c-21', 'c-21/:id1'], component: C21, title: 'C21' },
+        { id: 'r21', path: ['', 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
         { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
       ]
     })
@@ -184,7 +199,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r1', path: ['c-1'], component: C1, title: 'C1' },
+        { id: 'r1', path: ['', 'c-1'], component: C1, title: 'C1' },
         { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
       ]
     })
@@ -195,6 +210,28 @@ describe('router-lite/current-route.spec.ts', function () {
 
     const { au, container, rootVm } = await start({ appRoot: App, registrations: [C11, C12, C21, C22] });
     const router = container.get(IRouter);
+
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: '',
+      url: '',
+      title: 'C11 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'default',
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r11' } as RouteConfig,
+          viewport: 'default',
+          params: emptyParams,
+              children: [],
+            }
+          ],
+        }
+      ]
+    }, 'round#0');
 
     await router.load('c-1/c-11');
     assertCurrentRoute(rootVm.currentRoute, {
@@ -415,7 +452,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r1', path: ['c-1', 'c-1/:id1'], component: C1, title: 'C1' },
+        { id: 'r1', path: ['', 'c-1', 'c-1/:id1'], component: C1, title: 'C1' },
         { id: 'r2', path: ['c-2', 'c-2/:id2'], component: C2, title: 'C2' },
       ]
     })
@@ -426,6 +463,27 @@ describe('router-lite/current-route.spec.ts', function () {
 
     const { au, container, rootVm } = await start({ appRoot: App });
     const router = container.get(IRouter);
+
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: '+',
+      url: '',
+      title: 'C1 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'vp1',
+          params: emptyParams,
+          children: [],
+        },
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'vp2',
+          params: emptyParams,
+          children: [],
+        },
+      ]
+    }, 'round#0');
 
     await router.load('c-1+c-2');
     assertCurrentRoute(rootVm.currentRoute, {
@@ -574,7 +632,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r11', path: ['c-11', 'c-11/:id1'], component: C11, title: 'C11' },
+        { id: 'r11', path: ['', 'c-11', 'c-11/:id1'], component: C11, title: 'C11' },
         { id: 'r12', path: ['c-12', 'c-12/:id2'], component: C12, title: 'C12' },
       ]
     })
@@ -583,7 +641,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r21', path: ['c-21', 'c-21/:id1'], component: C21, title: 'C21' },
+        { id: 'r21', path: ['', 'c-21', 'c-21/:id1'], component: C21, title: 'C21' },
         { id: 'r22', path: ['c-22', 'c-22/:id2'], component: C22, title: 'C22' },
       ]
     })
@@ -592,7 +650,7 @@ describe('router-lite/current-route.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'r1', path: ['c-1'], component: C1, title: 'C1' },
+        { id: 'r1', path: ['', 'c-1'], component: C1, title: 'C1' },
         { id: 'r2', path: ['c-2'], component: C2, title: 'C2' },
       ]
     })
@@ -603,6 +661,41 @@ describe('router-lite/current-route.spec.ts', function () {
 
     const { au, container, rootVm } = await start({ appRoot: App });
     const router = container.get(IRouter);
+
+    assertCurrentRoute(rootVm.currentRoute, {
+      path: '+',
+      url: '',
+      title: 'C11 | C1 | C11 | C1',
+      query: new URLSearchParams(),
+      parameterInformation: [
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'vp1',
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r11' } as RouteConfig,
+              viewport: 'default',
+              params: emptyParams,
+              children: [],
+            }
+          ],
+        },
+        {
+          config: { id: 'r1' } as RouteConfig,
+          viewport: 'vp2',
+          params: emptyParams,
+          children: [
+            {
+              config: { id: 'r11' } as RouteConfig,
+              viewport: 'default',
+              params: emptyParams,
+              children: [],
+            }
+          ],
+        },
+      ]
+    }, 'round#0');
 
     await router.load('c-1/c-11+c-2/c-21');
     assertCurrentRoute(rootVm.currentRoute, {

@@ -56,6 +56,7 @@ const binaryRelational: [BinaryOperator, string][] = [
   ['instanceof', ' instanceof '],
 ];
 const binaryEquality: BinaryOperator[] = ['==', '!=', '===', '!=='];
+const binaryAssignment: BinaryOperator[] = ['/=', '*=', '+=', '-='];
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -306,8 +307,12 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
   const SimpleUnaryList: [string, any][] = [
     [`!$1`, new UnaryExpression('!', new AccessScopeExpression('$1'))],
-    [`-$2`, new UnaryExpression('-', new AccessScopeExpression('$2'))],
-    [`+$3`, new UnaryExpression('+', new AccessScopeExpression('$3'))],
+    [`(-$2)`, new UnaryExpression('-', new AccessScopeExpression('$2'))],
+    [`(+$3)`, new UnaryExpression('+', new AccessScopeExpression('$3'))],
+    [`(--$3)`, new UnaryExpression('--', new AccessScopeExpression('$3'))],
+    [`(++$3)`, new UnaryExpression('++', new AccessScopeExpression('$3'))],
+    [`($3--)`, new UnaryExpression('--', new AccessScopeExpression('$3'), 1)],
+    [`($3++)`, new UnaryExpression('++', new AccessScopeExpression('$3'), 1)],
     [`void $4`, new UnaryExpression('void', new AccessScopeExpression('$4'))],
     [`typeof $5`, new UnaryExpression('typeof', new AccessScopeExpression('$5'))]
   ];
@@ -385,11 +390,23 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // This forms the group Precedence.NullishCoalescing
   const SimpleNullishCoalescingList: [string, any][] = [
-    [`$38??$39`, new BinaryExpression('??', new AccessScopeExpression('$38'), new AccessScopeExpression('$39'))]
+    [`$40??$41`, new BinaryExpression('??', new AccessScopeExpression('$40'), new AccessScopeExpression('$41'))]
   ];
   const SimpleIsNullishCoalescingList: [string, any][] = [
     ...SimpleIsLogicalORList,
     ...SimpleNullishCoalescingList
+  ];
+
+  // This forms the group Precedence.IsAssignment
+  const SimpleAssignmentList: [string, any][] = [
+    [`$42/=$43`, new BinaryExpression('/=', new AccessScopeExpression('$42'), new AccessScopeExpression('$43'))],
+    [`$44*=$45`, new BinaryExpression('*=', new AccessScopeExpression('$44'), new AccessScopeExpression('$45'))],
+    [`$46+=$47`, new BinaryExpression('+=', new AccessScopeExpression('$46'), new AccessScopeExpression('$47'))],
+    [`$48-=$49`, new BinaryExpression('-=', new AccessScopeExpression('$48'), new AccessScopeExpression('$49'))]
+  ];
+  const SimpleIsAssignmentList: [string, any][] = [
+    ...SimpleIsNullishCoalescingList,
+    ...SimpleAssignmentList
   ];
 
   // This forms the group Precedence.Conditional
@@ -397,7 +414,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`a?b:c`, new ConditionalExpression($a, $b, new AccessScopeExpression('c'))]
   ];
   const SimpleIsConditionalList: [string, any][] = [
-    ...SimpleIsNullishCoalescingList,
+    ...SimpleIsAssignmentList,
     ...SimpleConditionalList
   ];
 
@@ -1000,6 +1017,10 @@ describe('2-runtime/expression-parser.spec.ts', function () {
       .map(([input, expr]) => [`+${input}`, new UnaryExpression('+', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
       .map(([input, expr]) => [`-${input}`, new UnaryExpression('-', expr)] as [string, any]),
+    ...SimpleIsLeftHandSideList
+      .map(([input, expr]) => [`++${input}`, new UnaryExpression('++', expr)] as [string, any]),
+    ...SimpleIsLeftHandSideList
+      .map(([input, expr]) => [`--${input}`, new UnaryExpression('--', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList
       .map(([input, expr]) => [`void ${input}`, new UnaryExpression('void', expr)] as [string, any]),
     ...SimpleIsLeftHandSideList

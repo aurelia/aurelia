@@ -218,8 +218,12 @@ describe('2-runtime/ast.spec.ts', function () {
       [`!$1`, new UnaryExpression('!', new AccessScopeExpression('$1'))],
       [`-$2`, new UnaryExpression('-', new AccessScopeExpression('$2'))],
       [`+$3`, new UnaryExpression('+', new AccessScopeExpression('$3'))],
-      [`void $4`, new UnaryExpression('void', new AccessScopeExpression('$4'))],
-      [`typeof $5`, new UnaryExpression('typeof', new AccessScopeExpression('$5'))]
+      [`--$4`, new UnaryExpression('--', new AccessScopeExpression('$4'))],
+      [`++$5`, new UnaryExpression('++', new AccessScopeExpression('$5'))],
+      [`$6--`, new UnaryExpression('--', new AccessScopeExpression('$6'), 1)],
+      [`$7++`, new UnaryExpression('++', new AccessScopeExpression('$7'), 1)],
+      [`void $8`, new UnaryExpression('void', new AccessScopeExpression('$8'))],
+      [`typeof $9`, new UnaryExpression('typeof', new AccessScopeExpression('$9'))]
     ];
     // concatenation of UnaryExpression + LeftHandSide
     // This forms the group Precedence.LeftHandSide and includes Precedence.UnaryExpression

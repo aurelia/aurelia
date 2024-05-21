@@ -63,4 +63,36 @@ describe('3-runtime-html/listener.spec.ts', function () {
     trigger.click('button');
     assert.strictEqual(log, 1);
   });
+
+  describe('invoke assignment handler', function () {
+    it('prefix increment', function () {
+      const { trigger, component } = createFixture(
+        '<button click.trigger="() => ++a">',
+        { a: 0 },
+      );
+
+      trigger.click('button');
+      assert.strictEqual(component.a, 1);
+    });
+
+    it('postfix increment', function () {
+      const { trigger, component } = createFixture(
+        '<button click.trigger="() => a++">',
+        { a: 0 },
+      );
+
+      trigger.click('button');
+      assert.strictEqual(component.a, 1);
+    });
+
+    it('assignment increment', function () {
+      const { trigger, component } = createFixture(
+        '<button click.trigger="() => a += 2">',
+        { a: 0 },
+      );
+
+      trigger.click('button');
+      assert.strictEqual(component.a, 2);
+    });
+  });
 });

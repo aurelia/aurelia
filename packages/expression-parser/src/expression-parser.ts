@@ -260,6 +260,7 @@ const enum Precedence {
   Variadic                = 0b0000_111101,
   Assign                  = 0b0000_111110,
   Conditional             = 0b0000_111111,
+  Assignment              = 0b0001_000000,
   NullishCoalescing       = 0b0010_000000,
   LogicalOR               = 0b0011_000000,
   LogicalAND              = 0b0100_000000,
@@ -344,6 +345,12 @@ const enum Token {
   TemplateContinuation    = 0b0100001000001_0000_110001,
   OfKeyword               = 0b1000000001010_0000_110010,
   Arrow                   = 0b0000000000000_0000_110011,
+  PlusEquals              = 0b1100100000000_0001_110100,
+  MinusEquals             = 0b1100100000000_0001_110101,
+  AsteriskEquals          = 0b1100100000000_0001_110110,
+  SlashEquals             = 0b1100100000000_0001_110111,
+  PlusPlus                = 0b0100010000000_0000_111000,
+  MinusMinus              = 0b0100010000000_0000_111001,
 }
 _END_CONST_ENUM();
 
@@ -445,12 +452,14 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
      * 4. + UnaryExpression
      * 5. - UnaryExpression
      * 6. ! UnaryExpression
+     * 7. ++ UnaryExpression
+     * 8. -- UnaryExpression
      *
      * IsValidAssignmentTarget
-     * 2,3,4,5,6 = false
+     * 2,3,4,5,6,7,8 = false
      * 1 = see parseLeftHandSideExpression
      *
-     * Note: technically we should throw on ++ / -- / +++ / ---, but there's nothing to gain from that
+     * Note: technically we should throw on +++ / ---, but there's nothing to gain from that
      */
     const op = TokenValues[$currentToken & Token.Type] as UnaryOperator;
     nextToken();
@@ -613,6 +622,16 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
 
     if (expressionType === etIsIterator) {
       return parseForOfStatement(result as BindingIdentifierOrPattern);
+    }
+    switch ($currentToken as Token) {
+      case Token.PlusPlus:
+        nextToken();
+        result = new UnaryExpression('++', result as IsLeftHandSide, 1);
+        break;
+      case Token.MinusMinus:
+        nextToken();
+        result = new UnaryExpression('--', result as IsLeftHandSide, 1);
+        break;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
       return result as any;
@@ -1707,7 +1726,7 @@ const TokenValues = [
   '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
   '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
   Token.TemplateTail, Token.TemplateContinuation,
-  'of', '=>'
+  'of', '=>', '+=', '-=', '*=', '/=', '++', '--'
 ];
 
 const KeywordLookup: Record<string, Token> = /*@__PURE__*/ Object.assign(createLookup<Token>(), {
@@ -1911,11 +1930,53 @@ const {
   CharScanners[Char.Percent]      = returnToken(Token.Percent);
   CharScanners[Char.OpenParen]    = returnToken(Token.OpenParen);
   CharScanners[Char.CloseParen]   = returnToken(Token.CloseParen);
-  CharScanners[Char.Asterisk]     = returnToken(Token.Asterisk);
-  CharScanners[Char.Plus]         = returnToken(Token.Plus);
+
+  // *, *=
+  CharScanners[Char.Asterisk] =  () => {
+    if (nextChar() !== Char.Equals) {
+      return Token.Asterisk;
+    }
+    nextChar();
+    return Token.AsteriskEquals;
+  };
+
+  // +, +=, ++
+  CharScanners[Char.Plus] =  () => {
+    if (nextChar() === Char.Plus) {
+      nextChar();
+      return Token.PlusPlus;
+    }
+    if ($currentChar !== Char.Equals) {
+      return Token.Plus;
+    }
+    nextChar();
+    return Token.PlusEquals;
+  };
+
   CharScanners[Char.Comma]        = returnToken(Token.Comma);
-  CharScanners[Char.Minus]        = returnToken(Token.Minus);
-  CharScanners[Char.Slash]        = returnToken(Token.Slash);
+
+  // -, -=, --
+  CharScanners[Char.Minus] =  () => {
+    if (nextChar() === Char.Minus) {
+      nextChar();
+      return Token.MinusMinus;
+    }
+    if ($currentChar !== Char.Equals) {
+      return Token.Minus;
+    }
+    nextChar();
+    return Token.MinusEquals;
+  };
+
+  // /, /=
+  CharScanners[Char.Slash] =  () => {
+    if (nextChar() !== Char.Equals) {
+      return Token.Slash;
+    }
+    nextChar();
+    return Token.SlashEquals;
+  };
+
   CharScanners[Char.Colon]        = returnToken(Token.Colon);
   CharScanners[Char.Semicolon]    = returnToken(Token.Semicolon);
   CharScanners[Char.OpenBracket]  = returnToken(Token.OpenBracket);

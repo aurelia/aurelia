@@ -293,7 +293,6 @@ export class Container implements IContainer {
     validateKey(key);
 
     const resolver = this._resolvers.get(key);
-
     if (resolver != null) {
       this._resolvers.delete(key);
 

@@ -1030,7 +1030,7 @@ describe('1-kernel/di.spec.ts', function () {
       it(`unregisters nested containers without affecting root container`, function () {
         const { sut } = createFixture();
         const key = 'key';
-        const instance = {};
+        const instance = {name: 'test'};
         const child = sut.createChild();
 
         sut.register(Registration.instance(key, instance));
@@ -1043,7 +1043,6 @@ describe('1-kernel/di.spec.ts', function () {
         child.unregister(key);
         assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance after child.unregister`);
 
-        // Verify that child no longer has the key after unregistering
         assert.throws(() => child.get(key), /AUR0009/, `() => child.get(key)`);
       });
     });

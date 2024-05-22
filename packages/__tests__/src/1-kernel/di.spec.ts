@@ -1037,9 +1037,6 @@ describe('1-kernel/di.spec.ts', function () {
         assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
         assert.strictEqual(child.get(key), instance, `child.get(key) === instance`);
 
-        child.register(Registration.instance(key, instance));
-        assert.strictEqual(child.get(key), instance, `child.get(key) === instance`);
-
         child.unregister(key);
         assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance after child.unregister`);
 

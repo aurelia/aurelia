@@ -1028,9 +1028,9 @@ describe('1-kernel/di.spec.ts', function () {
       });
 
       it(`unregisters nested containers without affecting root container`, function () {
-        const { sut } = createFixture();
+        const { sut, classInstance } = createFixture();
         const key = 'key';
-        const instance = {name: 'test'};
+        const instance = new classInstance();
         const child = sut.createChild();
 
         sut.register(Registration.instance(key, instance));

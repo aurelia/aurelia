@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { isObject } from "@aurelia/metadata";
+import { isObject } from '@aurelia/metadata';
 import {
   IContainer,
   InterfaceSymbol,
@@ -15,8 +15,9 @@ import {
   type RegisterSelf,
   type Resolved,
   type Transformer,
-} from "./di";
-import { aliasToRegistration, singletonRegistration } from "./di.registration";
+  IDisposableResolver,
+} from './di';
+import { aliasToRegistration, singletonRegistration } from './di.registration';
 import type {
   IAllResolver,
   IFactoryResolver,
@@ -25,20 +26,20 @@ import type {
   IOptionalResolver,
   IResolvedFactory,
   IResolvedLazy,
-} from "./di.resolvers";
-import { ErrorNames, createMappedError, logError } from "./errors";
-import { isNativeFunction } from "./functions";
-import { type Class, type Constructable } from "./interfaces";
-import { emptyArray } from "./platform";
+} from './di.resolvers';
+import { ErrorNames, createMappedError, logError } from './errors';
+import { isNativeFunction } from './functions';
+import { type Class, type Constructable } from './interfaces';
+import { emptyArray } from './platform';
 import {
   ResourceDefinition,
   StaticResourceType,
   resourceBaseName,
   type ResourceType,
-} from "./resource";
-import { getMetadata, isFunction, isString } from "./utilities";
+} from './resource';
+import { getMetadata, isFunction, isString } from './utilities';
 
-export const registrableMetadataKey = Symbol.for("au:registrable");
+export const registrableMetadataKey = Symbol.for('au:registrable');
 export const DefaultResolver = {
   none(key: Key): IResolver {
     throw createMappedError(ErrorNames.none_resolver_found, key);
@@ -78,8 +79,8 @@ export const createContainer = (
 ): IContainer => new Container(null, ContainerConfiguration.from(config));
 
 const InstrinsicTypeNames = new Set<string>(
-  "Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet".split(
-    " "
+  'Array ArrayBuffer Boolean DataView Date Error EvalError Float32Array Float64Array Function Int8Array Int16Array Int32Array Map Number Object Promise RangeError ReferenceError RegExp Set SharedArrayBuffer String SyntaxError TypeError Uint8Array Uint8ClampedArray Uint16Array Uint32Array URIError WeakMap WeakSet'.split(
+    ' '
   )
 );
 // const factoryKey = 'di:factory';
@@ -288,41 +289,24 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  public unregister<K extends Key>(key: K): boolean {
+  public unregister(key: Key): void {
     validateKey(key);
 
     const resolver = this._resolvers.get(key);
 
-    if (resolver == null) {
-      return false;
-    }
+    if (resolver != null) {
+      this._resolvers.delete(key);
 
-    if (
-      resolver instanceof Resolver &&
-      resolver._strategy === ResolverStrategy.array
-    ) {
-      throw createMappedError(
-        ErrorNames.invalid_resolver_strategy,
-        ResolverStrategy.array
-      );
-    }
-
-    if (this._disposableResolvers.has(key)) {
-      const disposable = this._disposableResolvers.get(key);
-      if (disposable?.dispose) {
-        disposable.dispose();
+      if (isResourceKey(key)) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete this.res[key];
       }
-      this._disposableResolvers.delete(key);
+
+      if (this._disposableResolvers.has(key)) {
+        (resolver as IDisposableResolver).dispose();
+        this._disposableResolvers.delete(key);
+      }
     }
-
-    this._resolvers.delete(key);
-
-    if (isResourceKey(key)) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete this.res[key];
-    }
-
-    return true;
   }
 
   // public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
@@ -912,7 +896,7 @@ const isRegistry = (
 const isSelfRegistry = <T extends Constructable>(
   obj: RegisterSelf<T>
 ): obj is RegisterSelf<T> =>
-  isRegistry(obj) && typeof obj.registerInRequestor === "boolean";
+  isRegistry(obj) && typeof obj.registerInRequestor === 'boolean';
 
 const isRegisterInRequester = <T extends Constructable>(
   obj: RegisterSelf<T>
@@ -922,4 +906,4 @@ const isClass = <T>(obj: unknown): obj is Class<any, T> =>
   (obj as { prototype: object }).prototype !== void 0;
 
 const isResourceKey = (key: Key): key is string =>
-  isString(key) && key.indexOf(":") > 0;
+  isString(key) && key.indexOf(':') > 0;

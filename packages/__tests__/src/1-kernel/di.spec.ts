@@ -932,6 +932,114 @@ describe('1-kernel/di.spec.ts', function () {
       });
     });
 
+    describe(`unregister()`, function () {
+      function createFixture() {
+        const sut = DI.createContainer();
+        const register = createSpy();
+        const unregister = createSpy();
+
+        return { sut, register, unregister };
+      }
+
+      it(`unregisters a registered instance by key`, function () {
+        const { sut, register } = createFixture();
+        const key = {};
+        const instance = {};
+
+        sut.register(Registration.instance(key, instance));
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+
+        sut.unregister(key);
+        assert.throws(() => sut.get(key), /AUR0014/, `() => sut.get(key)`);
+      });
+
+      it(`unregisters a registered singleton by key`, function () {
+        const { sut } = createFixture();
+        const key = {};
+        const type = class {};
+
+        sut.register(Registration.singleton(key, type));
+        assert.instanceOf(sut.get(key), type, `sut.get(key) instanceof type`);
+
+        sut.unregister(key);
+        assert.throws(() => sut.get(key), /AUR0014/, `() => sut.get(key)`);
+      });
+
+      it(`unregisters a registered transient by key`, function () {
+        const { sut } = createFixture();
+        const key = {};
+        const type = class {};
+
+        sut.register(Registration.transient(key, type));
+        assert.instanceOf(sut.get(key), type, `sut.get(key) instanceof type`);
+
+        sut.unregister(key);
+        assert.throws(() => sut.get(key), /AUR0014/, `() => sut.get(key)`);
+      });
+
+      it(`unregisters a registered callback by key`, function () {
+        const { sut } = createFixture();
+        const key = {};
+        const callback = () => ({});
+
+        sut.register(Registration.callback(key, callback));
+        assert.strictEqual(sut.get(key), callback(), `sut.get(key) === callback()`);
+
+        sut.unregister(key);
+        assert.throws(() => sut.get(key), /AUR0014/, `() => sut.get(key)`);
+      });
+
+      it(`unregisters a registered alias by key`, function () {
+        const { sut } = createFixture();
+        const key = 'key';
+        const aliasKey = 'aliasKey';
+        const instance = {};
+
+        sut.register(Registration.instance(key, instance));
+        sut.register(Registration.aliasTo(key, aliasKey));
+        assert.strictEqual(sut.get(aliasKey), instance, `sut.get(aliasKey) === instance`);
+
+        sut.unregister(aliasKey);
+        assert.throws(() => sut.get(aliasKey), /AUR0014/, `() => sut.get(aliasKey)`);
+      });
+
+      it(`does not throw when unregistering a non-existent key`, function () {
+        const { sut } = createFixture();
+        const key = {};
+
+        assert.doesNotThrow(() => sut.unregister(key), `() => sut.unregister(key)`);
+      });
+
+      it(`unregisters multiple instances registered with the same key`, function () {
+        const { sut } = createFixture();
+        const key = 'key';
+        const instance1 = {};
+        const instance2 = {};
+
+        sut.register(Registration.instance(key, instance1));
+        sut.register(Registration.instance(key, instance2));
+        assert.strictEqual(sut.get(key), instance1, `sut.get(key) === instance1`);
+
+        sut.unregister(key);
+        assert.throws(() => sut.get(key), /AUR0014/, `() => sut.get(key)`);
+      });
+
+      it(`unregisters nested containers without affecting root container`, function () {
+        const { sut } = createFixture();
+        const key = {};
+        const instance = {};
+        const child = sut.createChild();
+
+        sut.register(Registration.instance(key, instance));
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+        assert.strictEqual(child.get(key), instance, `child.get(key) === instance`);
+
+        child.unregister(key);
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance after child.unregister`);
+        assert.throws(() => child.get(key), /AUR0014/, `() => child.get(key)`);
+      });
+    });
+
     // describe(`registerResolver()`, function () {
     //   for (const key of [null, undefined, Object]) {
     //     it(_`throws on invalid key ${key}`, function () {

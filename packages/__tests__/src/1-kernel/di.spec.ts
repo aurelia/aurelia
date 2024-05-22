@@ -1040,7 +1040,7 @@ describe('1-kernel/di.spec.ts', function () {
         child.unregister(key);
         assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance after child.unregister`);
 
-        assert.throws(() => child.get(key), /AUR0009/, `() => child.get(key)`);
+        assert.strictEqual(child.has(classInstance, true), false, 'child does not have classInstance');
       });
     });
 

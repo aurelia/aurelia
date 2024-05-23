@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Bug Fixes:
+
+* **di:** use official metadata instead of weakmap (#1977) ([9aeeffa](https://github.com/aurelia/aurelia/commit/9aeeffa))
+
+
+### Refactorings:
+
+* ***:** extract error codes and cleanup (#1974) ([63ffdc9](https://github.com/aurelia/aurelia/commit/63ffdc9))
+* **i18n-validation:** replace errors with error codes (#1972) ([f91f31c](https://github.com/aurelia/aurelia/commit/f91f31c))
+* **dom-queue:** merge dom read and write queues (#1970) ([3a63cde](https://github.com/aurelia/aurelia/commit/3a63cde))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

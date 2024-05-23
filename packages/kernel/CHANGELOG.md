@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Features:
+
+* **kernel:** add last resolver (#1976) ([c47817c](https://github.com/aurelia/aurelia/commit/c47817c))
+
+
+### Bug Fixes:
+
+* **di:** use official metadata instead of weakmap (#1977) ([9aeeffa](https://github.com/aurelia/aurelia/commit/9aeeffa))
+* **dev:** turbo package input + ts dev script ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+
+
+### Refactorings:
+
+* **collection:** define map & set overrides on the instance instead of prototype (#1975) ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* **runtime:** reoganise utils import ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* ***:** extract error codes and cleanup (#1974) ([63ffdc9](https://github.com/aurelia/aurelia/commit/63ffdc9))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

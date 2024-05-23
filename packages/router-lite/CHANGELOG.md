@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Features:
+
+* **router-lite:** current route (#1966) ([d966e15](https://github.com/aurelia/aurelia/commit/d966e15))
+
+
+### Bug Fixes:
+
+* **router-lite:** current route subscription disposal (#1969) ([ace4c65](https://github.com/aurelia/aurelia/commit/ace4c65))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

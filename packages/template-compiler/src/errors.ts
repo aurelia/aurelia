@@ -9,6 +9,9 @@ export const createMappedError: CreateError = __DEV__
 _START_CONST_ENUM();
 /** @internal */
 export const enum ErrorNames {
+  attribute_pattern_already_initialized = 88,
+  attribute_pattern_duplicate = 89,
+
   method_not_implemented = 99,
 
   binding_command_existed = 157,
@@ -39,6 +42,9 @@ export const enum ErrorNames {
 _END_CONST_ENUM();
 
 const errorsMap: Record<ErrorNames, string> = {
+  [ErrorNames.attribute_pattern_already_initialized]: 'AttributeParser is already initialized; cannot add patterns after initialization.',
+  [ErrorNames.attribute_pattern_duplicate]: 'Attribute pattern "{{0}}" has already been registered.',
+
   [ErrorNames.method_not_implemented]: 'Method {{0}} not implemented',
 
   [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,

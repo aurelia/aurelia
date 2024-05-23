@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, Registrable, getResourceKeyFor, allResources, IPlatform, pascalCase, createImplementationRegister } from '@aurelia/kernel';
+import { emptyArray, toArray, ILogger, camelCase, noop, getResourceKeyFor, allResources, IPlatform, pascalCase, createImplementationRegister, registrableMetadataKey } from '@aurelia/kernel';
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
@@ -36,6 +36,7 @@ import type {
   Constructable,
   Writable,
   Key,
+  IRegistry,
 } from '@aurelia/kernel';
 import type {
   AnyBindingExpression,
@@ -1964,10 +1965,12 @@ export interface ITemplateCompilerHooks {
 
 export const TemplateCompilerHooks = objectFreeze({
   name: /*@__PURE__*/getResourceKeyFor('compiler-hooks'),
-  define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): T {
-    return Registrable.define(Type, function (container) {
-      singletonRegistration(ITemplateCompilerHooks, this).register(container);
-    });
+  define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): IRegistry {
+    return {
+      register(container) {
+        singletonRegistration(ITemplateCompilerHooks, Type).register(container);
+      }
+    };
   },
   findAll(container: IContainer): readonly ITemplateCompilerHooks[] {
     return container.get(allResources(ITemplateCompilerHooks));
@@ -1982,10 +1985,11 @@ export const TemplateCompilerHooks = objectFreeze({
  */
 /* eslint-disable */
 // deepscan-disable-next-line
-export const templateCompilerHooks = <T extends Constructable>(target?: T, _context?: ClassDecoratorContext) => {
-  return target === void 0 ? decorator : decorator(target);
-  function decorator<T extends Constructable>(t: T): any {
-    return TemplateCompilerHooks.define(t) as unknown as void;
+export const templateCompilerHooks = <T extends Constructable>(target?: T, context?: ClassDecoratorContext) => {
+  return target === void 0 ? decorator : decorator(target, context!);
+  function decorator<T extends Constructable>(t: T, context: ClassDecoratorContext): any {
+    context.metadata[registrableMetadataKey] = TemplateCompilerHooks.define(t);
+    return t;
   };
 }
 /* eslint-enable */

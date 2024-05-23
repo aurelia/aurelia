@@ -1637,4 +1637,102 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     }
 
   });
+
+  // This test doubles down as the containerization of the attribute patterns; that is not global registry of patterns other than the container.
+  it('different aliases can be used for different apps', async function () {
+    @customElement({ name: 'app-one', template: `<span t="\${key11}"></span><span t.bind="key12"></span>` })
+    class AppOne {
+      public key11: string = 'key11';
+      public key12: string = 'key12';
+    }
+
+    @customElement({ name: 'app-two', template: `<span i18n="\${key21}"></span><span i18n.bind="key22"></span>` })
+    class AppTwo {
+      public key21: string = 'key21';
+      public key22: string = 'key22';
+    }
+
+    const translation = {
+      key11: 'a',
+      key12: 'b',
+      key21: 'c',
+      key22: 'd',
+
+      key13: 'e',
+      key14: 'f',
+      key23: 'g',
+      key24: 'h',
+    };
+
+    const i18nInitOptions = {
+      fallbackLng: 'en',
+      fallbackNS: 'translation',
+      resources: { en: { translation } },
+    };
+    let checkPoint1 = false;
+    let checkPoint2 = false;
+    async function createAppOne() {
+      const ctx = TestContext.create();
+      const host = PLATFORM.document.createElement('app-one');
+      const au = new Aurelia(ctx.container);
+      au.register(
+        I18nConfiguration.customize((opt) => {
+          opt.translationAttributeAliases = ['t'];
+          opt.initOptions = i18nInitOptions;
+        })
+      );
+      checkPoint1 = true;
+
+      while (!checkPoint2) {
+        await new Promise((res) => setTimeout(res, 1));
+      }
+
+      au.app({ host, component: AppOne });
+      await au.start();
+
+      return { au, host, vm: au.root.controller.viewModel as AppOne, queue: ctx.platform.domQueue };
+    }
+
+    async function createAppTwo() {
+      while (!checkPoint1) {
+        await new Promise((res) => setTimeout(res, 1));
+      }
+
+      const ctx = TestContext.create();
+      const host = PLATFORM.document.createElement('app-two');
+      const au = new Aurelia(ctx.container);
+      au.register(
+        I18nConfiguration.customize((opt) => {
+          opt.translationAttributeAliases = ['i18n'];
+          opt.initOptions = i18nInitOptions;
+        })
+      );
+      checkPoint2 = true;
+
+      au.app({ host, component: AppTwo });
+      await au.start();
+      return { au, host, vm: au.root.controller.viewModel as AppTwo, queue: ctx.platform.domQueue };
+    }
+
+    const [
+      { au: au1, host: host1, vm: appOne, queue: q1 },
+      { au: au2, host: host2, vm: appTwo, queue: q2 },
+    ] = await Promise.all([createAppOne(), createAppTwo()]);
+
+    assert.html.textContent(host1, 'ab');
+    assert.html.textContent(host2, 'cd');
+
+    appOne.key11 = 'key13';
+    appOne.key12 = 'key14';
+    q1.flush();
+
+    appTwo.key21 = 'key23';
+    appTwo.key22 = 'key24';
+    q2.flush();
+
+    assert.html.textContent(host1, 'ef');
+    assert.html.textContent(host2, 'gh');
+
+    await Promise.all([au1.stop(), au2.stop()]);
+  });
 });

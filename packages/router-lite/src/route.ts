@@ -10,8 +10,12 @@ import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
 import { Events, getMessage } from './events';
+import { RESIDUE } from '@aurelia/route-recognizer';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
+
+function cleanPath(path: string): string { return path.replace(`/*${RESIDUE}`, ''); }
+function hasSamePath(nodeA: RouteNode, nodeB: RouteNode): boolean { return cleanPath(nodeA.finalPath) === cleanPath(nodeB.finalPath); }
 
 // Every kind of route configurations are normalized to this `RouteConfig` class.
 export class RouteConfig implements IRouteConfig, IChildRouteConfig {
@@ -136,8 +140,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _getTransitionPlan(cur: RouteNode, next: RouteNode, overridingTransitionPlan: TransitionPlan | null) {
-    const hasSameParameters = shallowEquals(cur.params, next.params);
-    if (hasSameParameters) return 'none';
+    if (hasSamePath(cur, next) && shallowEquals(cur.params, next.params)) return 'none';
 
     if (overridingTransitionPlan != null) return overridingTransitionPlan;
 

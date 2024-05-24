@@ -5948,6 +5948,51 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.stop(true);
     });
+
+    it('replace - different paths for same component', async function () {
+      @customElement({ name: 'ce-one', template: 'ce1 ${id1} ${id2}' })
+      class CeOne implements IRouteViewModel {
+        private static id1: number = 0;
+        private static id2: number = 0;
+        private readonly id1: number = ++CeOne.id1;
+        private id2: number;
+        public canLoad(): boolean {
+          this.id2 = ++CeOne.id2;
+          return true;
+        }
+      }
+
+      @route({
+        transitionPlan: 'replace',
+        routes: [
+          {
+            id: 'ce1',
+            path: ['ce1', 'ce2'],
+            component: CeOne,
+          },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<a load="ce1"></a><a load="ce2"></a><au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
+      const queue = container.get(IPlatform).domQueue;
+
+      host.querySelector('a').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 1 1', 'round#1');
+
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2', 'round#2');
+
+      // no change
+      host.querySelector<HTMLAnchorElement>('a:nth-of-type(2)').click();
+      await queue.yield();
+      assert.html.textContent(host, 'ce1 2 2', 'round#3');
+
+      await au.stop(true);
+    });
   });
 
   describe('history strategy', function () {

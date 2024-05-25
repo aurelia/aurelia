@@ -8,9 +8,11 @@ import { IValidationMessageProvider } from './rules';
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
 export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IValidateable> = (object?: TObject) => boolean;
 
-export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable> {
+export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> {
   tag?: string;
   messageKey: string;
+  state?: TState;
+  isStateful: boolean;
   canExecute(object?: IValidateable): boolean;
 
   /**

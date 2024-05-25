@@ -23,6 +23,7 @@ import {
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
   BaseValidationRule,
+  StateRule,
 } from './rules';
 import {
   IValidateable,
@@ -273,6 +274,10 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public displayName(name: string | ValidationDisplayNameAccessor) {
     this.property.displayName = name;
     return this;
+  }
+
+  public satisfiesState<TState, TVal>(this: PropertyRule<TObject, TVal>, validState: TState, stateFunction: (value: TVal, object?: TObject) => TState | Promise<TState>, messageMapper: (state: TState) => string) {
+    return this.addRule(new StateRule(validState, stateFunction, messageMapper));
   }
 
   /**

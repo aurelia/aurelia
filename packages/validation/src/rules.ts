@@ -1,6 +1,6 @@
 // import { Metadata } from '@aurelia/metadata';
 // import { Constructable, Protocol, Class, DI, toArray } from '@aurelia/kernel';
-import { Constructable, Class, DI, toArray } from '@aurelia/kernel';
+import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
   IValidateable,
@@ -85,11 +85,13 @@ export function validationRule(definition: ValidationRuleDefinition) {
  * Abstract validation rule.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
+export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> implements IValidationRule<TValue, TObject, TState> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
+  public get isStateful(): boolean { return this.state != null; }
   public constructor(
     public messageKey: string = (void 0)!,
+    public state: TState | undefined = (void 0),
   ) { }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
@@ -244,6 +246,31 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
   public accept(visitor: IValidationVisitor) {
     return visitor.visitEqualsRule(this);
+  }
+}
+
+export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject, TState> {
+  public static readonly $TYPE: string = 'StateRule';
+
+  public constructor(
+    private readonly validState: TState,
+    private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
+    private readonly messageMapper: (state: TState) => string,
+  ) { super(void 0, validState); }
+
+  public execute(value: unknown, object?: TObject): boolean | Promise<boolean> {
+    return onResolve(
+      this.stateFunction(value as TValue, object),
+      state => {
+        this.state = state as TState;
+        this.messageKey = this.messageMapper(state as TState);
+        return state === this.validState;
+      });
+  }
+
+  public accept(visitor: IValidationVisitor) {
+    // TODO: implement
+    // return visitor.visitStateRule(this);
   }
 }
 

@@ -1,5 +1,3 @@
-// import { Metadata } from '@aurelia/metadata';
-// import { Constructable, Protocol, Class, DI, toArray } from '@aurelia/kernel';
 import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
@@ -17,6 +15,7 @@ import {
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { ErrorNames, createMappedError } from './errors';
 
+export const explicitMessageKey: unique symbol = Symbol.for('au:validation:explicit-message-key');
 /**
  * Retrieves validation messages and property display names.
  */
@@ -28,7 +27,7 @@ export interface IValidationMessageProvider {
   /**
    * Gets the parsed message for the `rule`.
    */
-  setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression;
+  setMessage(rule: IValidationRule, message: string, messageKey?: symbol): Interpolation | PrimitiveLiteralExpression;
   /**
    * Core message parsing function.
    */
@@ -88,11 +87,14 @@ export function validationRule(definition: ValidationRuleDefinition) {
 export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> implements IValidationRule<TValue, TObject, TState> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
-  public get isStateful(): boolean { return this.state != null; }
+  /** @internal */
+  public get _isStateful(): boolean { return this._state != null; }
+  /** @internal */
+  public _state: TState | undefined;
   public constructor(
     public messageKey: string = (void 0)!,
-    public state: TState | undefined = (void 0),
-  ) { }
+    state: TState | undefined = (void 0),
+  ) { this._state = state; }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
     throw createMappedError(ErrorNames.method_not_implemented, 'execute');
@@ -262,15 +264,17 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
     return onResolve(
       this.stateFunction(value as TValue, object),
       state => {
-        this.state = state as TState;
+        this._state = state as TState;
         this.messageKey = this.messageMapper(state as TState);
         return state === this.validState;
       });
   }
 
-  public accept(visitor: IValidationVisitor) {
-    // TODO: implement
-    // return visitor.visitStateRule(this);
+  public accept(_visitor: IValidationVisitor) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('Serialization of a StateRule is not supported.');
+    }
   }
 }
 

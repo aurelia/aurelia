@@ -11,8 +11,10 @@ export type ValidationRuleExecutionPredicate<TObject extends IValidateable = IVa
 export interface IValidationRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> {
   tag?: string;
   messageKey: string;
-  state?: TState;
-  isStateful: boolean;
+  /** @internal */
+  _state?: TState;
+  /** @internal */
+  _isStateful: boolean;
   canExecute(object?: IValidateable): boolean;
 
   /**

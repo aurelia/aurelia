@@ -248,8 +248,8 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
 
 const statefulFlag: unique symbol = Symbol.for('au:validation:rule:isStateful');
 export function isStatefulRule(rule: IValidationRule): rule is IValidationRule & { getStateMessage(): string } {
-  return (rule as IValidateable & {[statefulFlag]?: boolean})[statefulFlag] === true  // this for short-circuiting the most common case
-    || 'getStateMessage' in rule;                                                     // this is just for better DX
+  return (rule as IValidateable & {[statefulFlag]?: boolean})[statefulFlag]  // this for short-circuiting the most common case
+    ?? 'getStateMessage' in rule;                                            // this is just for better DX
 }
 export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = 'StateRule';

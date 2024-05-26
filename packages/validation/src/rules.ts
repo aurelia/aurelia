@@ -84,17 +84,12 @@ export function validationRule(definition: ValidationRuleDefinition) {
  * Abstract validation rule.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> implements IValidationRule<TValue, TObject, TState> {
+export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
-  /** @internal */
-  public get _isStateful(): boolean { return this._state != null; }
-  /** @internal */
-  public _state: TState | undefined;
   public constructor(
     public messageKey: string = (void 0)!,
-    state: TState | undefined = (void 0),
-  ) { this._state = state; }
+  ) { }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
     throw createMappedError(ErrorNames.method_not_implemented, 'execute');
@@ -251,14 +246,19 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
 }
 
-export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject, TState> {
+export function isStatefulRule(rule: IValidationRule): rule is IValidationRule & { getStateMessage(): string } { return 'getStateMessage' in rule; }
+export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = 'StateRule';
 
+  public _state: TState;
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
     private readonly messageMapper: (state: TState) => string,
-  ) { super(void 0, validState); }
+  ) {
+    super(void 0);
+    this._state = validState;
+  }
 
   public execute(value: unknown, object?: TObject): boolean | Promise<boolean> {
     return onResolve(
@@ -276,6 +276,8 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
       console.warn('Serialization of a StateRule is not supported.');
     }
   }
+
+  public getStateMessage(): string { return this.messageKey; }
 }
 
 // #region definitions

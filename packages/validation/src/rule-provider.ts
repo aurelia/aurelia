@@ -25,6 +25,7 @@ import {
   BaseValidationRule,
   StateRule,
   explicitMessageKey,
+  isStatefulRule,
 } from './rules';
 import {
   IValidateable,
@@ -237,7 +238,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     const rule = this.latestRule;
     this.assertLatestRule(rule);
     // eslint-disable-next-line no-console
-    if (__DEV__ && rule._isStateful) { console.debug('Setting message to stateful rule will override the message mapper set to the rule.'); }
+    if (__DEV__ && isStatefulRule(rule)) { console.debug('Setting message to stateful rule will override the message mapper set to the rule.'); }
     this.messageProvider.setMessage(rule, message, explicitMessageKey);
     return this;
   }
@@ -643,8 +644,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    // In case of stateful rule, the message key is the message itself.
-    if (rule._isStateful) return this.setMessage(rule, messageKey);
+    if (isStatefulRule(rule)) return this.setMessage(rule, rule.getStateMessage());
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
     let message: string | undefined;

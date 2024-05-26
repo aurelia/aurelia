@@ -1182,15 +1182,15 @@ describe('validation/rule-provider.spec.ts', function () {
     // The state rule is tested here as the individual unit tests are somewhat pointless.
     describe('StateRule', function () {
       it('stateful message - sync state function', async function () {
-        type error = 'none' | 'fooError' | 'barError';
+        type Error = 'none' | 'fooError' | 'barError';
 
         const { validationRules } = setup();
         const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-        let state: error = 'none';
+        let state: Error = 'none';
         const rule = validationRules
           .on(obj)
           .ensure('name')
-          .satisfiesState<error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
           .rules[0];
 
         state = 'fooError';
@@ -1209,15 +1209,15 @@ describe('validation/rule-provider.spec.ts', function () {
       });
 
       it('stateful message - async state function', async function () {
-        type error = 'none' | 'fooError' | 'barError';
+        type Error = 'none' | 'fooError' | 'barError';
 
         const { validationRules } = setup();
         const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-        let state: error = 'none';
+        let state: Error = 'none';
         const rule = validationRules
           .on(obj)
           .ensure('name')
-          .satisfiesState<error, string>('none', (_value, _object) => new Promise((res) => setTimeout(() => res(state), 1)), ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .satisfiesState<Error, string>('none', (_value, _object) => new Promise((res) => setTimeout(() => res(state), 1)), ($state) => $state === 'fooError' ? 'foo' : 'bar')
           .rules[0];
 
         state = 'fooError';
@@ -1236,15 +1236,15 @@ describe('validation/rule-provider.spec.ts', function () {
       });
 
       it('stateful message - interpolated message', async function () {
-        type error = 'none' | 'fooError' | 'barError';
+        type Error = 'none' | 'fooError' | 'barError';
 
         const { validationRules } = setup();
         const obj: Person = new Person('awesome possum', (void 0)!, (void 0)!);
-        let state: error = 'none';
+        let state: Error = 'none';
         const rule = validationRules
           .on(obj)
           .ensure('name')
-          .satisfiesState<error, string>('none', (_value, _object) => state, ($state) => `\${$displayName} is ${$state === 'fooError' ? 'foo' : 'bar'} (value: \${$value}).`)
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => `\${$displayName} is ${$state === 'fooError' ? 'foo' : 'bar'} (value: \${$value}).`)
           .rules[0];
 
         state = 'fooError';
@@ -1263,15 +1263,15 @@ describe('validation/rule-provider.spec.ts', function () {
       });
 
       it('overridden message', async function () {
-        type error = 'none' | 'fooError' | 'barError';
+        type Error = 'none' | 'fooError' | 'barError';
 
         const { validationRules } = setup();
         const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-        let state: error = 'none';
+        let state: Error = 'none';
         const rule = validationRules
           .on(obj)
           .ensure('name')
-          .satisfiesState<error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
           .withMessage('baz')
           .rules[0];
 

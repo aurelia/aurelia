@@ -531,6 +531,7 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
     const registrable = AttributePattern.create(patternDefs, target);
     // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     context.metadata[registrableMetadataKey] = registrable;
     return target;
   };
@@ -550,7 +551,7 @@ export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>
 
 export class DotSeparatedAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.create(
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
       [
         { pattern: 'PART.PART', symbols: '.' },
         { pattern: 'PART.PART.PART', symbols: '.' }
@@ -569,7 +570,7 @@ export class DotSeparatedAttributePattern {
 
 export class RefAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]:  AttributePattern.create(
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
       [
         { pattern: 'ref', symbols: '' },
         { pattern: 'PART.ref', symbols: '.' }
@@ -597,7 +598,7 @@ export class RefAttributePattern {
 
 export class EventAttributePattern {
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.create(
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
       [
         { pattern: 'PART.trigger:PART', symbols: '.:' },
         { pattern: 'PART.capture:PART', symbols: '.:' },
@@ -616,7 +617,7 @@ export class EventAttributePattern {
 export class ColonPrefixedBindAttributePattern {
 
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]: AttributePattern.create(
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
       [{ pattern: ':PART', symbols: ':' }],
       ColonPrefixedBindAttributePattern
     )
@@ -630,7 +631,7 @@ export class ColonPrefixedBindAttributePattern {
 export class AtPrefixedTriggerAttributePattern {
 
   public static [Symbol.metadata] = {
-    [registrableMetadataKey]:  AttributePattern.create(
+    [registrableMetadataKey]: /*@__PURE__*/AttributePattern.create(
       [
         { pattern: '@PART', symbols: '@' },
         { pattern: '@PART:PART', symbols: '@:' },

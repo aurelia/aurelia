@@ -19,12 +19,10 @@ export {
 export { StateBinding, } from './state-binding';
 export { StateDispatchBinding } from './state-dispatch-binding';
 export {
-  StateAttributePattern,
   StateBindingCommand,
   StateBindingInstruction,
   StateBindingInstructionRenderer,
 
-  DispatchAttributePattern,
   DispatchBindingCommand,
   DispatchBindingInstruction,
   DispatchBindingInstructionRenderer,

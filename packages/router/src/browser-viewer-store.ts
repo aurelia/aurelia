@@ -2,6 +2,7 @@ import { EventAggregator, IEventAggregator, resolve } from '@aurelia/kernel';
 import { IWindow, IHistory, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { INavigatorState, INavigatorStore, INavigatorViewer, INavigatorViewerOptions } from './navigator';
 import { QueueTask, TaskQueue } from './utilities/task-queue';
+import { ErrorNames, createMappedError } from './errors';
 
 /**
  * @internal
@@ -67,7 +68,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
 
   public start(options: IBrowserViewerStoreOptions): void {
     if (this.isActive) {
-      throw new Error('Browser navigation has already been started');
+      throw createMappedError(ErrorNames.browser_viewer_store_already_started);
     }
     this.isActive = true;
     if (options.useUrlFragmentHash != void 0) {
@@ -79,7 +80,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
 
   public stop(): void {
     if (!this.isActive) {
-      throw new Error('Browser navigation has not been started');
+      throw createMappedError(ErrorNames.browser_viewer_store_not_started);
     }
     this.window.removeEventListener('popstate', this);
     this.pendingCalls.stop();
@@ -313,7 +314,7 @@ export class BrowserViewerStore implements INavigatorStore, INavigatorViewer, Ev
     try {
       return JSON.parse(JSON.stringify(data));
     } catch (err) {
-      throw new Error(`Failed to ${type} state, probably due to unserializable data and/or parameters: ${err}${originalError}`);
+      throw createMappedError(ErrorNames.browser_viewer_store_state_serialization_failed, type, err, originalError);
     }
   }
 }

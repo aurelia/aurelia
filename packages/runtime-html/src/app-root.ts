@@ -79,7 +79,7 @@ export class AppRoot<
     rootProvider.prepare(this);
 
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
-    registerHostNode(container, this.platform = this._createPlatform(container, host), host);
+    registerHostNode(container, host, this.platform = this._createPlatform(container, host));
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       if (!config.allowActionlessForm !== false) {

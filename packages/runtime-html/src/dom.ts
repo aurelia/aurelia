@@ -504,8 +504,10 @@ export interface IHistory extends History {
   replaceState(state: {} | null, title: string, url?: string | null): void;
 }
 
-/** @internal */
-export const registerHostNode = (container: IContainer, platform: IPlatform, host: INode | null) => {
+/**
+ * An utility to register a host node with the container with all the commonly used keys.
+ */
+export const registerHostNode = (container: IContainer, host: INode | null, platform = container.get(IPlatform)) => {
   registerResolver(
     container,
     platform.HTMLElement,

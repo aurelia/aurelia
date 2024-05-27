@@ -9,6 +9,8 @@ export {
   IDialogController,
   IDialogDomRenderer,
   IDialogDom,
+  IDialogDomAnimator as IDialogAnimator,
+  IDialogEventManager,
 
   // dialog results
   DialogCloseResult,

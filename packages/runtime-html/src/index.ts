@@ -380,6 +380,7 @@ export {
   isRenderLocation,
   getRef,
   setRef,
+  registerHostNode,
 } from './dom';
 export {
   IPlatform,

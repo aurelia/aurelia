@@ -3,9 +3,10 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogGlobalSettings, IDialogLoadedSettings,
+  IDialogDomAnimator,
 } from './dialog-interfaces';
 
-import { IContainer, resolve } from '@aurelia/kernel';
+import { IContainer, optional, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
@@ -20,11 +21,13 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
 }
 
 export class DefaultDialogDomRenderer implements IDialogDomRenderer {
-  private readonly p = resolve(IPlatform);
-
   public static register(container: IContainer) {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
+
+  private readonly p = resolve(IPlatform);
+  /** @internal */
+  private readonly _animator = resolve(optional(IDialogDomAnimator));
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
@@ -42,16 +45,28 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));
-    return new DefaultDialogDom(wrapper, overlay, host);
+    return new DefaultDialogDom(wrapper, overlay, host, this._animator);
   }
 }
 
 export class DefaultDialogDom implements IDialogDom {
+  /** @internal */
+  private readonly _animator?: IDialogDomAnimator;
   public constructor(
     public readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly contentHost: HTMLElement,
+    animator?: IDialogDomAnimator,
   ) {
+    this._animator = animator;
+  }
+
+  public show() {
+    return this._animator?.show(this);
+  }
+
+  public hide(): void | Promise<void> {
+    return this._animator?.hide(this);
   }
 
   public dispose(): void {

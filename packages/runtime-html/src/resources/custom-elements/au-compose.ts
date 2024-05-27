@@ -368,7 +368,7 @@ export class AuCompose {
     }
 
     const p = this._platform;
-    registerHostNode(container, p, host);
+    registerHostNode(container, host, p);
     registerResolver(
       container,
       IRenderLocation,

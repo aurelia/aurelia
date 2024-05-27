@@ -1,5 +1,5 @@
-import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, IDisposable, resolve } from '@aurelia/kernel';
-import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, type IDisposable, resolve } from '@aurelia/kernel';
+import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition, registerHostNode } from '@aurelia/runtime-html';
 import {
   IDialogController,
   IDialogDomRenderer,
@@ -97,10 +97,8 @@ export class DialogController implements IDialogController {
       container.register(instanceRegistration(IEventTarget, dialogTargetHost));
     }
 
-    container.register(
-      instanceRegistration(INode, contentHost),
-      instanceRegistration(IDialogDom, dom),
-    );
+    container.register(instanceRegistration(IDialogDom, dom));
+    registerHostNode(container, contentHost, this.p);
 
     return new Promise(r => {
         const cmp = Object.assign(this.cmp = this.getOrCreateVm(container, settings, contentHost), { $dialog: this });
@@ -129,7 +127,9 @@ export class DialogController implements IDialogController {
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
             this._disposeHandler = eventManager.add(this, dom);
-            return DialogOpenResult.create(false, this);
+            return onResolve(dom.show?.(),
+              () => DialogOpenResult.create(false, this)
+            );
           });
         });
       }, e => {
@@ -162,17 +162,19 @@ export class DialogController implements IDialogController {
             return DialogCloseResult.create('abort' as T);
           }
           return onResolve(cmp.deactivate?.(dialogResult),
-            () => onResolve(controller.deactivate(controller, null),
-              () => {
-                dom.dispose();
-                this._disposeHandler?.dispose();
-                if (!rejectOnCancel && status !== 'error') {
-                  this._resolve(dialogResult);
-                } else {
-                  this._reject(createDialogCancelError(value, ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting));
+            () => onResolve(dom.hide?.(),
+              () => onResolve(controller.deactivate(controller, null),
+                () => {
+                  dom.dispose();
+                  this._disposeHandler?.dispose();
+                  if (!rejectOnCancel && status !== 'error') {
+                    this._resolve(dialogResult);
+                  } else {
+                    this._reject(createDialogCancelError(value, ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting));
+                  }
+                  return dialogResult;
                 }
-                return dialogResult;
-              }
+              )
             )
           );
         }

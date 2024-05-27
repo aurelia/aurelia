@@ -817,7 +817,7 @@ function createElementContainer(
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
 
-  registerHostNode(ctn, p, host);
+  registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null
@@ -877,7 +877,7 @@ function invokeAttribute(
     ? $renderingCtrl
     : ($renderingCtrl as IHasController).$controller;
   const ctn = renderingCtrl.container.createChild();
-  registerHostNode(ctn, p, host);
+  registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null

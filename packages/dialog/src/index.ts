@@ -9,7 +9,7 @@ export {
   IDialogController,
   IDialogDomRenderer,
   IDialogDom,
-  IDialogDomAnimator as IDialogAnimator,
+  IDialogDomAnimator,
   IDialogEventManager,
 
   // dialog results

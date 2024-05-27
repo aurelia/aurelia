@@ -18,7 +18,7 @@ import {
   DialogController,
   DefaultDialogDom,
   DialogService,
-  IDialogAnimator,
+  IDialogDomAnimator,
 } from '@aurelia/dialog';
 import {
   createFixture,
@@ -958,7 +958,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ container }, dialogService) => {
           let i = 0;
 
-          container.register(Registration.instance(IDialogAnimator, {
+          container.register(Registration.instance(IDialogDomAnimator, {
             show(_dom: IDialogDom) { i = 1; },
             hide(_dom: IDialogDom) { i = 2; }
           }));
@@ -977,14 +977,14 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ container }, dialogService) => {
           let i = 0;
 
-          container.register(Registration.instance(IDialogAnimator, {
+          container.register(Registration.instance(IDialogDomAnimator, {
             show(_dom: IDialogDom) { throw new Error('??'); },
             hide(_dom: IDialogDom) { throw new Error('??'); },
           }));
 
           const result = await dialogService.open({
             template: 'Hello world',
-            container: container.createChild().register(Registration.instance(IDialogAnimator, {
+            container: container.createChild().register(Registration.instance(IDialogDomAnimator, {
               show(_dom: IDialogDom) { i = 3; },
               hide(_dom: IDialogDom) { i = 4; }
             }))
@@ -1000,7 +1000,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ container }, dialogService) => {
           const calls: string[] = [];
 
-          container.register(Registration.instance(IDialogAnimator, {
+          container.register(Registration.instance(IDialogDomAnimator, {
             show(_dom: IDialogDom) { },
             hide(_dom: IDialogDom) { calls.push('hide'); },
           }));

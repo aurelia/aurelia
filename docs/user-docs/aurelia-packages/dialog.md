@@ -549,7 +549,10 @@ If you wished to use a different animators for different `dialogService.open()` 
 
 ```typescript
 dialogService.open({
-  container: myContainer.register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
+  container: someContainer.creadChild().register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
+  // or like the following,
+  // but beware that if the same container is used then the resolution will be to the first registration
+  container: someContainer.register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
   ...
 })
 ```

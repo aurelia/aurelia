@@ -166,7 +166,7 @@ export {
 export {
   NodeObserverLocator,
   type INodeObserverConfig,
-  type INodeObserverConstructor as IHtmlObserverConstructor,
+  type INodeObserverConstructor,
 } from './observation/observer-locator';
 export {
   type ISelectElement,

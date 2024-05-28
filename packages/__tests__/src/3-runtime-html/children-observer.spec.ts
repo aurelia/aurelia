@@ -3,6 +3,18 @@ import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
 
 describe('3-runtime-html/children-observer.spec.ts', function () {
+
+  it('throws on invalid query', function () {
+    @customElement({
+      name: 'el',
+      template: '<au-slot>'
+    })
+    class El {
+      @children('div div') divs;
+    }
+    assert.throws(() => createFixture('', El));
+  });
+
   describe('populates', function () {
     it('[without shadow DOM] static plain elements', async function () {
       @customElement({ name: 'my-el', template: '<slot>', shadowOptions: { mode: 'open' } })

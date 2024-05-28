@@ -206,14 +206,18 @@ class ChildrenLifecycleHooks {
 
   public hydrating(vm: IIndexable, controller: ICustomElementController) {
     const $def = this._def;
+    const query = $def.query ?? '*';
     const childrenObserver = new ChildrenBinding(
       controller.host,
       vm,
       vm[$def.callback ?? `${safeString($def.name)}Changed`] as () => void,
-      $def.query ?? '*',
+      query,
       $def.filter as PartialChildrenDefinition<'$all'>['filter'],
       $def.map as PartialChildrenDefinition<'$all'>['map'],
     );
+    if (/[^a-z0-9_-$]/.test(query)) {
+      throw createMappedError(ErrorNames.children_invalid_query, query);
+    }
     def(vm, $def.name, {
       enumerable: true,
       configurable: true,

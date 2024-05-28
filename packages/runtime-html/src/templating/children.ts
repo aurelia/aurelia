@@ -215,7 +215,7 @@ class ChildrenLifecycleHooks {
       $def.filter as PartialChildrenDefinition<'$all'>['filter'],
       $def.map as PartialChildrenDefinition<'$all'>['map'],
     );
-    if (/[^a-z0-9_-$]/.test(query)) {
+    if (/[\s>]/.test(query)) {
       throw createMappedError(ErrorNames.children_invalid_query, query);
     }
     def(vm, $def.name, {

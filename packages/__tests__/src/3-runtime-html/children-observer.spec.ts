@@ -34,7 +34,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
     it('children array with by custom query', async function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
-        query: p => p.host.querySelectorAll('.child-one')
+        query: '.child-one'
       });
 
       await Promise.resolve();
@@ -48,7 +48,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
     it('children array with by custom query, filter, and map', async function () {
       const { au, viewModel, ChildOne } = createAppAndStart({
-        query: p => p.host.querySelectorAll('.child-one'),
+        query: '.child-one',
         filter: (node) => !!node,
         map: (node) => node
       });
@@ -60,6 +60,16 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
       await au.stop();
       au.dispose();
+    });
+
+    it('queries all nodes when using "$all"', async function () {
+      const { component } = createFixture('<e-l component.ref="el">hi<div>hey</div><span></span><p></p><!--hah-->', { el: { children: [] } }, [
+        CustomElement.define({ name: 'e-l', template: '<slot>', shadowOptions: { mode: 'open' } }, class El {
+          @children('$all') public children: any[];
+        })
+      ]);
+
+      assert.strictEqual(component.el.children.length, 5 /* #text + div + span + p + #comment */);
     });
   });
 
@@ -90,7 +100,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
     it('children array with by custom query', async function () {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
-        query: p => p.host.querySelectorAll('.child-two')
+        query: '.child-two'
       });
 
       await Promise.resolve();
@@ -116,7 +126,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
 
     it('children array with by custom query, filter, and map', async function () {
       const { au, viewModel, ChildTwo, hostViewModel } = createAppAndStart({
-        query: p => p.host.querySelectorAll('.child-two'),
+        query: '.child-two',
         filter: (node) => !!node,
         map: (node) => node
       });
@@ -153,7 +163,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       class El {
         @children('div') nodes: any[];
       }
-      const { assertText } = createFixture(
+      const { flush, assertText } = createFixture(
         '<e-l ref=el><div repeat.for="i of items">',
         class App {
           items = 3;
@@ -161,7 +171,8 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
         [El]
       );
 
-      await new Promise(r => setTimeout(r, 50));
+      await Promise.resolve();
+      flush();
 
       assertText('child count: 3');
     });

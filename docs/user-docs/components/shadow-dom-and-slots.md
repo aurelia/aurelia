@@ -106,7 +106,7 @@ export class MyDetails {
 }
 ```
 {% endcode %}
-{% code title="my-app.html" overflow="wrap" lineNumbers="true" }
+{% code title="my-app.html" overflow="wrap" lineNumbers="true" %}
 ```html
 <my-details>
   <div>@children decorator is a good way to listen to node changes without having to deal with boilerplate yourself</div>
@@ -125,11 +125,62 @@ the property being decorated, example: `divs` -> `divsChanged`
 | - | - |
 | `@children() prop` | Use default options, observe mutation, and select all elements |
 | `@children('div') prop` | Observe mutation, and select only `div` elements |
+| `@children({ query: 'my-child' })` | Observe mutation, and select only `my-child` elements, get the component instance if available and fallback to the element itself |
+| `@children({ query: 'my-child', map: (node, viewModel) => viewModel ?? node })` | Observe mutation, and select only `my-child` elements, get the component instance if available and fallback to the element itself |
 
 {% hint style="info" %}
-
 Note: the `@children` decorator wont update if the children of a slotted node change — only if you change (e.g. add or delete) the actual nodes themselves.
 {% endhint %}
+
+### Retrieving component view models
+
+When using `@children` to target projected element components, it's often desirable to get the underlying component instances rather than the host elements of those.
+The `@children` decorator by default automatically retrieves those instances, like the following examples:
+
+{% code title="my-item.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+export class MyItem {
+  ...
+}
+```
+{% endcode %}
+{% code title="my-list.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+import { MyItem } from './my-item';
+
+export class MyList {
+  @children('my-item') items: MyItem[]
+}
+```
+{% endcode %}
+
+{% code title="my-app.html" overflow="wrap" lineNumbers="true" %}
+```html
+<import from="my-list">
+
+<my-list>
+  <my-item repeat.for="option of options" value.bind="option.value"></my-item>
+</my-list>
+```
+{% endcode %}
+
+As `items` property is decorated with `@children('my-item')`, its values is always a list of `MyItem` instances instead of `<my-item>` elements. You can alter this behavior by specifying a map option, like the following example:
+
+{% code title="my-list.ts" overflow="wrap" lineNumbers="true" %}
+```typescript
+import { MyItem } from './my-item';
+
+export class MyList {
+  @children({
+    query: 'my-item',
+    map: (node, component) => node
+  })
+  items: MyItem[]
+}
+```
+{% endcode %}
+
+In the above example, we give `map` option a function to decide that we want to take the host element instead of the component instance.
 
 ## Au-slot
 
@@ -243,7 +294,7 @@ Another important point to note is that the usage of `[au-slot]` attribute is su
 
 **Inject the projected slot information**
 
-It is possible to inject an instance of `IAuSlotsInfo` in a custom element view model. This provides information related to the slots inside a custom element. The information includes only the slot names for which content has been projected. Let's consider the following example.
+It is possible to inject an instance of `IAuSlotsInfo` in a element component view model. This provides information related to the slots inside a custom element. The information includes only the slot names for which content has been projected. Let's consider the following example.
 
 {% tabs %}
 {% tab title="my-element.html" %}
@@ -400,7 +451,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-#### **Fallback uses the inner scope by default**
+#### Fallback uses the inner scope by default
 
 Let's consider the following example with interpolation. This is the same example as before, but this time without projection.
 
@@ -494,7 +545,7 @@ export class FooBar {
 {% endtab %}
 {% endtabs %}
 
-#### **Access the inner scope with `$host`**
+#### Access the inner scope with `$host`
 
 The outer custom element can access the inner custom element's scope using the `$host` keyword, as shown in the following example.
 
@@ -841,8 +892,10 @@ The `@slotted` decorator can be used in multiple forms:
 | `@slotted() prop` | Use default options, observe projection on the `default` slot, and select all elements |
 | `@slotted('div') prop` | Observe projection on the `default` slot, and select only `div` elements |
 | `@slotted('div', 'footer') prop` | Observe projection on the `footer` slot and select only `div` elements |
-| `@slotted('*')` | Observe projection on the `default` slot, and select all nodes, including text |
+| `@slotted('$all')` | Observe projection on the `default` slot, and select all nodes, including text |
+| `@slotted('*')` | Observe projection on the `default` slot, and select all elements |
 | `@slotted('div', '*')` | Observe projection on all slots, and select only `div` elements |
+| `@slotted('*', '*')` | Observe projection on all slots, and select all elements |
 | `@slotted({ query: 'div' })` | Observe projection on the `default` slot, and select only `div` elements |
 | `@slotted({ slotName: 'footer' })` | Observe projection on `footer` slot, and select all elements |
 | `@slotted({ callback: 'nodeChanged' })` | Observe projection on `default` slot, and select all elements, and call `nodeChanged` method on projection change |

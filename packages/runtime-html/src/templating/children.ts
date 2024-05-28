@@ -5,20 +5,21 @@ import { ILifecycleHooks, lifecycleHooks } from './lifecycle-hooks';
 import { def, objectAssign, safeString } from '../utilities';
 import { instanceRegistration } from '../utilities-di';
 import { type ICustomElementViewModel, type ICustomElementController } from './controller';
-import { createMutationObserver, isElement } from '../utilities-dom';
+import { createMutationObserver } from '../utilities-dom';
 
-import type { INode } from '../dom';
 import { ErrorNames, createMappedError } from '../errors';
 import { getAnnotationKeyFor } from '../utilities-metadata';
 import { IBinding } from '../binding/interfaces-bindings';
 
-export type PartialChildrenDefinition = {
+/**
+ * An interface describing options to observe the children elements of a custom element host
+ */
+export type PartialChildrenDefinition<TQuery extends string = string> = {
+  query?: TQuery;
   callback?: PropertyKey;
   name?: PropertyKey;
-  options?: MutationObserverInit;
-  query?: (controller: ICustomElementController) => ArrayLike<Node>;
-  filter?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => boolean;
-  map?: (node: Node, controller?: ICustomElementController | null, viewModel?: ICustomElementViewModel) => unknown;
+  filter?: (node: TQuery extends '$all' ? Node : HTMLElement, viewModel: ICustomElementViewModel | null) => boolean;
+  map?: (node: TQuery extends '$all' ? Node : HTMLElement, viewModel: ICustomElementViewModel | null) => unknown;
 };
 
 /**
@@ -26,23 +27,24 @@ export type PartialChildrenDefinition = {
  *
  * @param config - The overrides
  */
-export function children<TThis,TValue>(config?: PartialChildrenDefinition): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
+export function children<TThis, TValue, TQuery extends string>(config?: PartialChildrenDefinition<TQuery>): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
 /**
  * Decorator: Specifies an array property on a class that synchronizes its items with child content nodes of the element.
  *
- * @param selector - The CSS element selector for filtering children
+ * @param selector - The CSS element selector for filtering children. Use `$all` to select everything including non element nodes.
+ * If nothing is provided, it defaults to `*`, which means all elements
  */
-export function children<TThis,TValue>(selector: string): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
+export function children<TThis, TValue>(selector: string): (target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void;
 /**
  * Decorator: Decorator: Specifies an array property that synchronizes its items with child content nodes of the element.
  *
  * @param target - The class
  * @param prop - The property name
  */
-export function children<TThis,TValue>(target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>): void;
-export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinition | string | undefined, context?: ClassFieldDecoratorContext<TThis,TValue>): void | ((target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void) {
-  if (!mixed) {
-    mixed = true;
+export function children<TThis, TValue>(target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>): void;
+export function children<TThis, TValue, TQuery extends string>(configOrTarget?: PartialChildrenDefinition<TQuery> | string | undefined, context?: ClassFieldDecoratorContext<TThis,TValue>): void | ((target: undefined, context: ClassFieldDecoratorContext<TThis,TValue>) => void) {
+  if (!children.mixed) {
+    children.mixed = true;
     subscriberCollection(ChildrenBinding, null!);
     lifecycleHooks()(ChildrenLifecycleHooks, null!);
   }
@@ -57,7 +59,7 @@ export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinitio
     }
 
     const dependencies = (context.metadata[dependenciesKey] ??= []) as Key[];
-    dependencies.push(new ChildrenLifecycleHooks(config as PartialChildrenDefinition & { name: PropertyKey }));
+    dependencies.push(new ChildrenLifecycleHooks(config as PartialChildrenDefinition & { name: PropertyKey } ?? {}));
   }
 
   if (arguments.length > 1) {
@@ -70,8 +72,9 @@ export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinitio
     // Direct call:
     // - @children('div')(Foo)
     config = {
-      filter: (node: Node) => isElement(node) && node.matches(configOrTarget),
-      map: el => el
+      query: configOrTarget,
+      // filter: (node: Node) => isElement(node) && node.matches(configOrTarget),
+      // map: el => el
     };
     return decorator;
   }
@@ -82,6 +85,7 @@ export function children<TThis,TValue>(configOrTarget?: PartialChildrenDefinitio
   config = configOrTarget === void 0 ? {} : configOrTarget;
   return decorator;
 }
+children.mixed = false;
 
 export interface ChildrenBinding extends ISubscriberCollection { }
 
@@ -98,36 +102,29 @@ export class ChildrenBinding implements IBinding {
   /** @internal */
   private readonly _host: HTMLElement;
   /** @internal */
-  private readonly _controller: ICustomElementController;
+  private readonly _query: string;
   /** @internal */
-  private readonly _query = defaultChildQuery;
+  private readonly _filter?: (node: Node, viewModel: ICustomElementViewModel | null) => boolean;
   /** @internal */
-  private readonly _filter = defaultChildFilter;
-  /** @internal */
-  private readonly _map = defaultChildMap;
-  /** @internal */
-  private readonly _options?: MutationObserverInit;
+  private readonly _map?: (node: Node, viewModel: ICustomElementViewModel | null) => unknown;
 
   public isBound = false;
   public readonly obj: ICustomElementViewModel;
 
   public constructor(
-    controller: ICustomElementController,
+    host: HTMLElement,
     obj: ICustomElementViewModel,
     callback: undefined | (() => void),
-    query = defaultChildQuery,
-    filter = defaultChildFilter,
-    map = defaultChildMap,
-    options = childObserverOptions,
+    query: string,
+    filter?: (node: Node, viewModel: ICustomElementViewModel | null) => boolean,
+    map?: (node: Node, viewModel: ICustomElementViewModel | null) => unknown,
   ) {
-    this._controller = controller;
     this.obj = obj;
     this._callback = callback;
     this._query = query;
     this._filter = filter;
     this._map = map;
-    this._options = options;
-    this._observer = createMutationObserver(this._host = controller.host, () => {
+    this._observer = createMutationObserver(this._host = host, () => {
       this._onChildrenChanged();
     });
   }
@@ -143,7 +140,7 @@ export class ChildrenBinding implements IBinding {
       return;
     }
     this.isBound = true;
-    this._observer.observe(this._host, this._options);
+    this._observer.observe(this._host, { childList: true });
     this._children = this._getNodes();
   }
 
@@ -152,6 +149,8 @@ export class ChildrenBinding implements IBinding {
       return;
     }
     this.isBound = false;
+    // prevent memory leaks
+    this._observer.takeRecords();
     this._observer.disconnect();
     this._children = emptyArray;
   }
@@ -172,51 +171,29 @@ export class ChildrenBinding implements IBinding {
   // freshly retrieve the children everytime
   // in case this observer is not observing
   private _getNodes() {
-    return filterChildren(this._controller, this._query, this._filter, this._map);
+    const query = this._query;
+    const filter = this._filter;
+    const map = this._map;
+    const nodes = query === '$all' ? this._host.childNodes : this._host.querySelectorAll(`:scope > ${query}`);
+    const ii = nodes.length;
+    const results: unknown[] = [];
+    const findControllerOptions = { optional: true };
+    let $controller: ICustomElementController | null;
+    let viewModel: ICustomElementViewModel | null;
+    let i = 0;
+    let node: Node;
+    while (ii > i) {
+      node = nodes[i];
+      $controller = findElementControllerFor(node, findControllerOptions);
+      viewModel = $controller?.viewModel ?? null;
+      if (filter == null ? true : filter(node, viewModel)) {
+        results.push(map == null ? viewModel ?? node : map(node, viewModel));
+      }
+      ++i;
+    }
+    return results;
   }
 }
-
-const childObserverOptions: MutationObserverInit = { childList: true };
-
-const defaultChildQuery = (controller: ICustomElementController): ArrayLike<INode> => controller.host.childNodes;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const defaultChildFilter = (node: INode, controller?: ICustomElementController | null, viewModel?: any): boolean =>
-  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-  !!viewModel;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const defaultChildMap = (node: INode, controller?: ICustomElementController | null, viewModel?: any): any => viewModel;
-
-const forOpts = { optional: true } as const;
-
-const filterChildren = (
-  controller: ICustomElementController,
-  query: typeof defaultChildQuery,
-  filter: typeof defaultChildFilter,
-  map: typeof defaultChildMap
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any[] => {
-  const nodes = query(controller);
-  const ii = nodes.length;
-  const children: unknown[] = [];
-
-  let node: INode;
-  let $controller: ICustomElementController | null;
-  let viewModel: ICustomElementViewModel | null;
-  let i = 0;
-  for (; i < ii; ++i) {
-    node = nodes[i];
-    $controller = findElementControllerFor(node, forOpts);
-    viewModel = $controller?.viewModel ?? null;
-
-    if (filter(node, $controller, viewModel)) {
-      children.push(map(node, $controller, viewModel));
-    }
-  }
-
-  return children;
-};
 
 class ChildrenLifecycleHooks {
   public constructor(
@@ -229,15 +206,18 @@ class ChildrenLifecycleHooks {
 
   public hydrating(vm: IIndexable, controller: ICustomElementController) {
     const $def = this._def;
+    const query = $def.query ?? '*';
     const childrenObserver = new ChildrenBinding(
-      controller,
+      controller.host,
       vm,
       vm[$def.callback ?? `${safeString($def.name)}Changed`] as () => void,
-      $def.query ?? defaultChildQuery,
-      $def.filter ?? defaultChildFilter,
-      $def.map ?? defaultChildMap,
-      $def.options ?? childObserverOptions,
+      query,
+      $def.filter as PartialChildrenDefinition<'$all'>['filter'],
+      $def.map as PartialChildrenDefinition<'$all'>['map'],
     );
+    if (/[\s>]/.test(query)) {
+      throw createMappedError(ErrorNames.children_invalid_query, query);
+    }
     def(vm, $def.name, {
       enumerable: true,
       configurable: true,
@@ -253,4 +233,21 @@ class ChildrenLifecycleHooks {
   }
 }
 
-let mixed = false;
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment */
+function testChildrenDecorator() {
+  class MyEl {
+    @children({
+      filter: (element) => element.getAttribute('hey') == null,
+      map: el => el.style
+    })
+    @children({
+      map: node => node.style
+    })
+    @children({
+      query: '$all',
+      // @ts-expect-error
+      map: node => node.style
+    })
+    public nodes: unknown[] = [];
+  }
+}

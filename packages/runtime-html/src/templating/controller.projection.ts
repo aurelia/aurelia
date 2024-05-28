@@ -141,11 +141,12 @@ class AuSlotWatcherBinding implements IAuSlotWatcher, IAuSlotSubscriber, ISubscr
     }
     const oldNodes = this._nodes;
     const $nodes: Node[] = [];
+    const query = this._query;
     let $slot: IAuSlot;
     let node: Node;
     for ($slot of this._slots) {
       for (node of $slot === slot ? nodes : $slot.nodes) {
-        if (this._query === '*' || (isElement(node) && node.matches(this._query))) {
+        if (query === '$all' || (isElement(node) && (query === '*' || node.matches(query)))) {
           $nodes[$nodes.length] = node;
         }
       }

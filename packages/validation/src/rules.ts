@@ -1,4 +1,4 @@
-import { Constructable, Class, DI, toArray, onResolve, isFunction } from '@aurelia/kernel';
+import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
   IValidateable,

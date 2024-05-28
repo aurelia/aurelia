@@ -25,7 +25,6 @@ import {
   BaseValidationRule,
   StateRule,
   explicitMessageKey,
-  providesMessage,
 } from './rules';
 import {
   IValidateable,

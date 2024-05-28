@@ -764,9 +764,106 @@ export function register(container) {
 }
 `;
     const result = preprocessHtmlTemplate(
-      { path: path.join('lo', 'FooBar.html'), contents: html },
+      { path: path.join('lo', 'FooBar.html'), filePair: 'foo-bar.scss', contents: html },
       preprocessOptions({
         useCSSModule: true,
+        hmr: false,
+        stringModuleWrap: (id: string) => `text!${id}`
+      }),
+      false,
+      () => false
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with implicit css dependencies in cssModule mode', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import { cssModules } from '@aurelia/runtime-html';
+import d0 from "./foo-bar.module.scss";
+import * as d1 from "./hello-world.html";
+import * as d2 from "foo";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d1, d2, cssModules(d0) ];
+export const bindables = [];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), filePair: 'foo-bar.module.scss', contents: html },
+      preprocessOptions({
+        useCSSModule: true,
+        hmr: false,
+        stringModuleWrap: (id: string) => `text!${id}`
+      }),
+      false,
+      () => false
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with css dependencies with module.css convention', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.module.scss"></require></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import { cssModules } from '@aurelia/runtime-html';
+import * as d0 from "./hello-world.html";
+import * as d1 from "foo";
+import d2 from "./foo-bar.module.scss";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d0, d1, cssModules(d2) ];
+export const bindables = [];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), filePair: 'foo-bar.module.scss', contents: html },
+      preprocessOptions({
+        hmr: false,
+        stringModuleWrap: (id: string) => `text!${id}`
+      }),
+      false,
+      () => false
+    );
+    assert.equal(result.code, expected);
+  });
+
+  it('processes template with implicit css dependencies with module.css convention', function () {
+    const html = '<import from="./hello-world.html" /><template><import from="foo"></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import { cssModules } from '@aurelia/runtime-html';
+import d0 from "./foo-bar.module.scss";
+import * as d1 from "./hello-world.html";
+import * as d2 from "foo";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ d1, d2, cssModules(d0) ];
+export const bindables = [];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocessHtmlTemplate(
+      { path: path.join('lo', 'FooBar.html'), filePair: 'foo-bar.module.scss', contents: html },
+      preprocessOptions({
         hmr: false,
         stringModuleWrap: (id: string) => `text!${id}`
       }),

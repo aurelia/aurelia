@@ -22,7 +22,7 @@ export interface IValidationRule<TValue = any, TObject extends IValidateable = I
    */
   execute(value: TValue, object?: TObject): boolean | Promise<boolean>;
   accept(visitor: IValidationVisitor): any;
-  getStateMessage?(): string;
+  getMessage?(): string;
 }
 
 export interface IRequiredRule extends IValidationRule { }

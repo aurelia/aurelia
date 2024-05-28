@@ -1,4 +1,4 @@
-import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
+import { Constructable, Class, DI, toArray, onResolve, isFunction } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
   IValidateable,
@@ -246,16 +246,10 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
 }
 
-const statefulFlag: unique symbol = Symbol.for('au:validation:rule:isStateful');
-export function isStatefulRule(rule: IValidationRule): rule is IValidationRule & { getStateMessage(): string } {
-  return (rule as IValidateable & {[statefulFlag]?: boolean})[statefulFlag]  // this for short-circuiting the most common case
-    ?? 'getStateMessage' in rule;                                            // this is just for better DX
-}
 export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = 'StateRule';
 
-  private readonly [statefulFlag]: boolean = true;
-  public _state: TState;
+  private _state: TState;
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
@@ -268,11 +262,8 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
   public execute(value: unknown, object?: TObject): boolean | Promise<boolean> {
     return onResolve(
       this.stateFunction(value as TValue, object),
-      state => {
-        this._state = state as TState;
-        this.messageKey = this.messageMapper(state as TState);
-        return state === this.validState;
-      });
+      state => (this._state = state as TState) === this.validState
+    );
   }
 
   public accept(_visitor: IValidationVisitor) {
@@ -282,7 +273,7 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
     }
   }
 
-  public getStateMessage(): string { return this.messageKey; }
+  public getMessage(): string { return this.messageMapper(this._state); }
 }
 
 // #region definitions

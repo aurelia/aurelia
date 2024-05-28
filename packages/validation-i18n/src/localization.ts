@@ -1,5 +1,5 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, resolve } from '@aurelia/kernel';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, isFunction, resolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, ValidationMessageProvider } from '@aurelia/validation';
@@ -63,14 +63,14 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
   }
 
   public getMessage(rule: IValidationRule): PrimitiveLiteralExpression | Interpolation {
-    const messageKey = rule.messageKey;
+    const messageKey = isFunction(rule.getMessage) ? rule.getMessage() : rule.messageKey;
     const lookup = this.registeredMessages.get(rule);
     if (lookup != null) {
       const parsedMessage = lookup.get(explicitMessageKey) ?? lookup.get(messageKey);
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    return this.setMessage(rule, this.i18n.tr(this.getKey(messageKey)));
+    return this.setMessage(rule, this.i18n.tr(this.getKey(rule.getMessage?.() ?? messageKey)));
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {

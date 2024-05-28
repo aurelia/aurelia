@@ -1,4 +1,4 @@
-import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
+import { Class, DI, ILogger, IServiceLocator, isFunction, resolve } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
@@ -25,7 +25,7 @@ import {
   BaseValidationRule,
   StateRule,
   explicitMessageKey,
-  isStatefulRule,
+  providesMessage,
 } from './rules';
 import {
   IValidateable,
@@ -237,8 +237,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public withMessage(message: string) {
     const rule = this.latestRule;
     this.assertLatestRule(rule);
-    // eslint-disable-next-line no-console
-    if (__DEV__ && isStatefulRule(rule)) { console.debug('Setting message to stateful rule will override the message mapper set to the rule.'); }
     this.messageProvider.setMessage(rule, message, explicitMessageKey);
     return this;
   }
@@ -637,14 +635,15 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
-    const messageKey = rule.messageKey;
+    const $providesMessage = isFunction(rule.getMessage);
+    const messageKey = $providesMessage ? rule.getMessage!() : rule.messageKey;
     const lookup = this.registeredMessages.get(rule);
     if (lookup != null) {
       const parsedMessage = lookup.get(explicitMessageKey) ?? lookup.get(messageKey);
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    if (isStatefulRule(rule)) return this.setMessage(rule, rule.getStateMessage());
+    if ($providesMessage) return this.setMessage(rule, rule.getMessage!());
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
     let message: string | undefined;

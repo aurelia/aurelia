@@ -642,7 +642,7 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    if ($providesMessage) return this.setMessage(rule, rule.getMessage!());
+    if ($providesMessage) return this.setMessage(rule, messageKey);
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
     let message: string | undefined;

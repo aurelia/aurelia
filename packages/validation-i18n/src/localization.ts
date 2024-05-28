@@ -70,7 +70,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    return this.setMessage(rule, this.i18n.tr(this.getKey(rule.getMessage?.() ?? messageKey)));
+    return this.setMessage(rule, this.i18n.tr(this.getKey(messageKey)));
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {

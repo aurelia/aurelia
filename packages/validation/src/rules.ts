@@ -273,7 +273,7 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
     }
   }
 
-  public getMessage(): string { return this.messageMapper(this._state); }
+  public getMessage(): string { return this.messageKey = this.messageMapper(this._state); }
 }
 
 // #region definitions

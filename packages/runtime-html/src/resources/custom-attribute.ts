@@ -1,4 +1,4 @@
-import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString } from '@aurelia/kernel';
+import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString, ILogger } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
 import { INode, getEffectiveParentNode, getRef } from '../dom';
@@ -116,6 +116,7 @@ export function templateController(nameOrDef: string | Omit<PartialCustomAttribu
 }
 
 export class CustomAttributeDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ICustomAttributeViewModel, PartialCustomAttributeDefinition> {
+  public static warnDuplicate = true;
   // a simple marker to distinguish between Custom Element definition & Custom attribute definition
   public get type(): 'custom-attribute' { return dtAttribute; }
 
@@ -175,9 +176,15 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
         aliasRegistration($Type, key),
         ...aliases.map(alias => aliasRegistration($Type, getAttributeKeyFrom(alias)))
       );
-    } /* istanbul ignore next */ else if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, this.name)}`);
+    } /* istanbul ignore next */ else {
+      if (CustomAttributeDefinition.warnDuplicate) {
+        container.get(ILogger).warn(createMappedError(ErrorNames.attribute_existed, this.name));
+      }
+      /* istanbul ignore if */
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] ${createMappedError(ErrorNames.attribute_existed, this.name)}`);
+      }
     }
   }
 

@@ -11,10 +11,10 @@ import { objectAssign } from '../utilities';
 /**
  * There are 2 implementations of CSS registry: css module registry and shadow dom registry.
  *
- * CSS registry alters the way class attribute works instead.
+ * - CSS registry alters the way class bindings work via altering templates and register interfaces that will alter bindings to class attribute.
  *
- * Shadow dom registry regisiters some interfaces with the custom element container to handle shadow dom styles.
- * abtraction summary:
+ * - Shadow dom registry regisiters some interfaces with the custom element container to handle shadow dom styles.
+ * Shadow DOM abtraction summary:
  * CSS registry ---(register)---> IShadowDOMStyleFactory ---(createStyles)---> IShadowDOMStyles ---(applyTo)---> ShadowRoot
  */
 

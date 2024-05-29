@@ -1,6 +1,4 @@
-// import { Metadata } from '@aurelia/metadata';
-// import { Constructable, Protocol, Class, DI, toArray } from '@aurelia/kernel';
-import { Constructable, Class, DI, toArray } from '@aurelia/kernel';
+import { Constructable, Class, DI, toArray, onResolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import {
   IValidateable,
@@ -17,6 +15,7 @@ import {
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { ErrorNames, createMappedError } from './errors';
 
+export const explicitMessageKey: unique symbol = Symbol.for('au:validation:explicit-message-key');
 /**
  * Retrieves validation messages and property display names.
  */
@@ -28,7 +27,7 @@ export interface IValidationMessageProvider {
   /**
    * Gets the parsed message for the `rule`.
    */
-  setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression;
+  setMessage(rule: IValidationRule, message: string, messageKey?: symbol): Interpolation | PrimitiveLiteralExpression;
   /**
    * Core message parsing function.
    */
@@ -245,6 +244,36 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   public accept(visitor: IValidationVisitor) {
     return visitor.visitEqualsRule(this);
   }
+}
+
+export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject> {
+  public static readonly $TYPE: string = 'StateRule';
+
+  private _state: TState;
+  public constructor(
+    private readonly validState: TState,
+    private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
+    private readonly messageMapper: (state: TState) => string,
+  ) {
+    super(void 0);
+    this._state = validState;
+  }
+
+  public execute(value: unknown, object?: TObject): boolean | Promise<boolean> {
+    return onResolve(
+      this.stateFunction(value as TValue, object),
+      state => (this._state = state as TState) === this.validState
+    );
+  }
+
+  public accept(_visitor: IValidationVisitor) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('Serialization of a StateRule is not supported.');
+    }
+  }
+
+  public getMessage(): string { return this.messageKey = this.messageMapper(this._state); }
 }
 
 // #region definitions

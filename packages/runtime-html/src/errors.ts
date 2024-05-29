@@ -146,8 +146,8 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
-  [ErrorNames.element_existed]: `Element {{0}} has already been registered.`,
-  [ErrorNames.attribute_existed]: `Attribute {{0}} has already been registered.`,
+  [ErrorNames.element_existed]: `Element "{{0}}" has already been registered.`,
+  [ErrorNames.attribute_existed]: `Attribute "{{0}}" has already been registered.`,
   [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
   [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
   [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,

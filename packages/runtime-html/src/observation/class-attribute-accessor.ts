@@ -1,9 +1,10 @@
 import { emptyArray, isArray, isString } from '@aurelia/kernel';
 import { atLayout, atNode } from '../utilities';
 
-import type { AccessorType, IAccessor } from '@aurelia/runtime';
+import type { AccessorType, IAccessor, IObserver } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 
+export interface ClassAttributeAccessor extends IObserver {}
 export class ClassAttributeAccessor implements IAccessor {
   static {
     mixinNoopSubscribable(ClassAttributeAccessor);
@@ -22,6 +23,7 @@ export class ClassAttributeAccessor implements IAccessor {
 
   public constructor(
     public readonly obj: HTMLElement,
+    public readonly mapping: Record<string, string> = {}
   ) {
   }
 
@@ -50,6 +52,8 @@ export class ClassAttributeAccessor implements IAccessor {
     if (ii > 0) {
       for (; i < ii; i++) {
         name = classesToAdd[i];
+        name = this.mapping[name] || name;
+
         if (name.length === 0) {
           continue;
         }
@@ -64,6 +68,7 @@ export class ClassAttributeAccessor implements IAccessor {
     }
 
     for (name in nameIndex) {
+      name = this.mapping[name] || name;
       if (nameIndex[name] === version) {
         continue;
       }

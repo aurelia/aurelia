@@ -34,6 +34,9 @@ export {
   inspect,
 } from './inspect';
 export {
+  createSink,
+} from './logger-sinks';
+export {
   MockBinding,
   MockBindingBehavior,
   MockBrowserHistoryLocation,

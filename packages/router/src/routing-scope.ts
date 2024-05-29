@@ -555,7 +555,6 @@ export class RoutingScope {
     const options = this.router.configuration.options;
     const route = RoutingInstruction.stringify(this.router, instructions);
     // TODO: Add missing/unknown route handling
-    //       shouldn't this check all routes, instead of only the first one?
     if (instructions[0].route != null) {
       if (!options.useConfiguredRoutes) {
         return new Error("Can not match '" + route + "' since the router is configured to not use configured routes.");

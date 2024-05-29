@@ -276,8 +276,9 @@ export class ViewportContent extends EndpointContent {
 
     const hooks = this._getLifecycleHooks(instance, 'canLoad')
       .map(hook => ((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
-          return false;
+        if (innerStep?.previousValue != null && innerStep.previousValue !== true) {
+          innerStep.exit(); // To prevent more calls down the pipeline
+          return innerStep.previousValue ?? false;
         }
         // TODO: If requested, pass previous value into hook
         return hook(instance, merged, this.instruction, this.navigation);
@@ -347,7 +348,16 @@ export class ViewportContent extends EndpointContent {
         }
         // TODO: If requested, pass previous value into hook
         const result = instance.canUnload?.(this.instruction, navigation);
-        return result instanceof Promise ? result.then(Boolean) : Boolean(result);
+        if (result instanceof Promise) {
+          void result.then(canUnload => {
+            if (typeof canUnload !== 'boolean') {
+              throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
+            }
+          });
+        } else if (typeof result !== 'boolean') {
+          throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
+        }
+        return result;
       });
     }
 
@@ -400,7 +410,7 @@ export class ViewportContent extends EndpointContent {
 
         if (hooks.length !== 0) {
           // Add hook in component
-          if (typeof instance.loading  === 'function') {
+          if (typeof instance.loading === 'function') {
             hooks.push(() => instance.loading!(merged, this.instruction, this.navigation));
           }
           if (hasVmHook(instance, 'load')) {
@@ -551,7 +561,7 @@ export class ViewportContent extends EndpointContent {
    * @param connectedCE - The viewport's connectd custom element
    * @param stateful - Whether the content's component is stateful and shouldn't be disposed
    */
-  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null,  connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
+  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
     if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
       return;
     }

@@ -81,7 +81,16 @@ export const Metadata = {
     return type[Symbol.metadata]?.[key];
   },
   define(value: any, type: any,...keys: string[]): void {
-    const metadata = type[Symbol.metadata] ??= Object.create(null);
+    // let metadata: Record<string, unknown>;
+    // if (useOwn) {
+      // detect if the metadata is already defined directly on the type
+      let metadata = Object.getOwnPropertyDescriptor(type, Symbol.metadata)?.value;
+      if (metadata == null) {
+        Object.defineProperty(type, Symbol.metadata, { value: metadata = Object.create(null), enumerable: true, configurable: true, writable: true });
+      }
+    // } else {
+    //   metadata = type[Symbol.metadata] ??= Object.create(null);
+    // }
     const length = keys.length;
     switch (length) {
       case 0: throw new Error('At least one key must be provided');

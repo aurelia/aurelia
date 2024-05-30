@@ -239,7 +239,26 @@ export class Switch implements ICustomAttributeViewModel {
 }
 
 let caseId = 0;
+const bindables: (string | PartialBindableDefinition & { name: string })[] = [
+  'value',
+  {
+    name: 'fallThrough',
+    mode: oneTime,
+    set(v: unknown): boolean {
+      switch (v) {
+        case 'true': return true;
+        case 'false': return false;
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        default: return !!v;
+      }
+    }
+  }
+];
+
 export class Case implements ICustomAttributeViewModel {
+  static {
+    defineAttribute({ name: 'case', bindables, isTemplateController: true }, Case);
+  }
   /** @internal */ public readonly id: number = ++caseId;
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
 
@@ -343,31 +362,7 @@ export class Case implements ICustomAttributeViewModel {
 
 export class DefaultCase extends Case {
   static {
-
-    // Notes:
-    // - The usage of $au is intentionally avoided here.
-    //   Once the 'case' TC is defined, the TC definition is put to the Class[Symbol.metadata], that is implicitly inherited by the 'default-case' TC.
-    //   Thus, when resolving the definition, the definition from the 'case' TC is found and used, rendering the $au property not-useful.
-    // - The order of the 'case' and 'default-case' TC definitions is important also because of above said reason.
-    //   We want to deliberately define the 'case' TC second, so that the 'default-case' cannot inherit the metadata.
-    const bindables: (string | PartialBindableDefinition & { name: string })[] = [
-      'value',
-      {
-        name: 'fallThrough',
-        mode: oneTime,
-        set(v: unknown): boolean {
-          switch (v) {
-            case 'true': return true;
-            case 'false': return false;
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            default: return !!v;
-          }
-        }
-      }
-    ];
-
     defineAttribute({ name: 'default-case', bindables, isTemplateController: true }, DefaultCase);
-    defineAttribute({ name: 'case', bindables, isTemplateController: true }, Case);
   }
 
   protected linkToSwitch($switch: Switch): void {

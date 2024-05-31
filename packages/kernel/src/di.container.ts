@@ -289,7 +289,7 @@ export class Container implements IContainer {
     return resolver;
   }
 
-  public unregister(key: Key): void {
+  public deregister(key: Key): void {
     validateKey(key);
 
     const resolver = this._resolvers.get(key);

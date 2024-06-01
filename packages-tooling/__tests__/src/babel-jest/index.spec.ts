@@ -40,7 +40,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -64,7 +64,7 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ shadowCSS(d0) ];
 export const shadowOptions = { mode: 'open' };
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -91,7 +91,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [ cssModules(d0) ];
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -114,7 +114,9 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
+let supFooBarDefn = {};
+try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
+CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
 `;
     const t = _createTransformer(

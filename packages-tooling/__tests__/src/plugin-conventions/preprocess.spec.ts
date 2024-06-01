@@ -10,7 +10,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -32,7 +32,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [  ];
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -66,7 +66,7 @@ export const name = "foo-bar";
 export const template = "<template></template>";
 export default template;
 export const dependencies = [ cssModules(d0) ];
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -103,7 +103,7 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -138,7 +138,7 @@ export const template = "<template></template>";
 export default template;
 export const dependencies = [ d0, d1, shadowCSS(d2) ];
 export const shadowOptions = { mode: 'open' };
-export const bindables = [];
+export const bindables = {};
 let _e;
 export function register(container) {
   if (!_e) {
@@ -188,7 +188,9 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
+let supFooBarDefn = {};
+try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
+CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
 `;
     const result = preprocess(
@@ -209,7 +211,9 @@ CustomElement.define(__au2ViewDef, FooBar);
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
+let supFooBarDefn = {};
+try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
+CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
 `;
     const result = preprocess(
@@ -300,7 +304,9 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
+let supFooBarDefn = {};
+try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
     const result = preprocess(
       {
@@ -389,7 +395,9 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
+let supFooBarDefn = {};
+try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
     const result = preprocess(
       {

@@ -248,6 +248,8 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
       m.replace(defineElementInformation.position.pos, defineElementInformation.position.end, defineElementInformation.modifiedContent);
     } else {
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
+      const superDefnIdentifier = `sup${exportedClassName}Defn`;
+      const superDefnStatement = `\nlet ${superDefnIdentifier} = {};\ntry { ${superDefnIdentifier} = CustomElement.getDefinition(${exportedClassName}.prototype.constructor); } catch { /*ignore*/ }\n`;
       if (elementStatement.includes('$au')) {
         const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest);
         const result = transform(sf, [createAuResourceTransformer()]);
@@ -261,7 +263,7 @@ Either move the dependencies to another source file, or consider using @bindable
         // eslint-disable-next-line prefer-const
         let { statement: decoratorStatements, effectivePos: pos } = processDecorators(ceDecorators, implicitElement.pos, m);
         let bindableStatements = '';
-        ({ statement: bindableStatements, effectivePos: pos } = processBindables(ceBindables, pos, m, viewDef));
+        ({ statement: bindableStatements, effectivePos: pos } = processBindables(ceBindables, pos, m, viewDef, superDefnIdentifier));
 
         // When in-file deps are used, move the body of custom element to end of the file,
         // in order to avoid TS2449: Class '...' used before its declaration.
@@ -270,22 +272,22 @@ Either move the dependencies to another source file, or consider using @bindable
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}${superDefnStatement}CustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(pos, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
+          m.append(`\n${elementStatement}${superDefnStatement}CustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ]${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         }
       } else {
         const pos = implicitElement.pos;
         const { statement: decoratorStatements } = processDecorators(ceDecorators, pos, m);
-        const { statement: bindableStatements } = processBindables(ceBindables, pos, m, viewDef);
+        const { statement: bindableStatements } = processBindables(ceBindables, pos, m, viewDef, superDefnIdentifier);
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name}${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `${superDefnStatement}CustomElement.define({ ...${viewDef}, name: ${name}${decoratorStatements}${bindableStatements} }, ${exportedClassName});\n`);
         } else {
           // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
           let sb = viewDef;
@@ -298,7 +300,7 @@ Either move the dependencies to another source file, or consider using @bindable
           if (sb.startsWith('...')) {
             sb = `{ ${sb} }`;
           }
-          m.insert(implicitElement.end, `\nCustomElement.define(${sb}, ${exportedClassName});\n`);
+          m.insert(implicitElement.end, `${superDefnStatement}CustomElement.define(${sb}, ${exportedClassName});\n`);
         }
       }
     }
@@ -342,9 +344,9 @@ function processDecorators(decorators: ReplaceableDecorator[] | undefined, class
   return { statement, effectivePos: classPos };
 }
 
-function processBindables(bindables: BindableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>, viewDef: string): { statement: string; effectivePos: number } {
-  let statement = '';
-  if (!bindables) return { statement, effectivePos: classPos };
+function processBindables(bindables: BindableDecorator[] | undefined, classPos: number, m: ReturnType<typeof modifyCode>, viewDef: string, superDefinitionIdentifier: string): { statement: string; effectivePos: number } {
+  let statement = `, bindables: { ...(${superDefinitionIdentifier}.bindables ?? {}), ...${viewDef}.bindables`;
+  if (!bindables) return { statement: `${statement} }`, effectivePos: classPos };
   const statements: string[] = [];
   for (const ceb of bindables) {
     const end = ceb.position.end;
@@ -353,7 +355,7 @@ function processBindables(bindables: BindableDecorator[] | undefined, classPos: 
     classPos = Math.max(classPos, end);
   }
   if (statements.length > 0) {
-    statement = `, bindables: [ ...${viewDef}.bindables, ${statements.join(', ')} ]`;
+    statement = `${statement}, ${statements.join(', ')} }`;
   }
   return { statement, effectivePos: classPos };
 }
@@ -612,7 +614,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
 
   function createDefinitionStatement(type: 'ca' | 'tc'): string {
     const bindableStatements = bindables.map(x => x.modifiedContent).join(', ');
-    const bindableOption = bindableStatements ? `, bindables: [ ${bindableStatements} ]` : '';
+    const bindableOption = bindableStatements ? `, bindables: { ${bindableStatements} }` : '';
     switch (type) {
       case 'ca': return `\nCustomAttribute.define(${(bindableOption ? `{ name: '${name}'${bindableOption} }` : `'${name}'`)}, ${className});\n`;
       case 'tc': return `\nCustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
@@ -751,7 +753,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
         isDefinitionPart: true,
         isClassDecorator: true,
         position: getPosition(decorator, code),
-        modifiedContent: getText(args[0], code)
+        modifiedContent: `${getText(args[0], code).replaceAll(/['"`]/g, '')}: {}`
       });
     }
   }
@@ -772,7 +774,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
           isDefinitionPart: true,
           isClassDecorator: false,
           position: getPosition(decorator, code),
-          modifiedContent: `'${getText(member.name, code)}'`
+          modifiedContent: `${getText(member.name, code)}: {}`
         });
       } else if (isCallExpression(de)) {
         const decoratorName = getText(de.expression, code);
@@ -785,7 +787,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
             isDefinitionPart: true,
             isClassDecorator: false,
             position: getPosition(decorator, code),
-            modifiedContent: `'${getText(member.name, code)}'`
+            modifiedContent: `${getText(member.name, code)}: {}`
           });
         } else if (args.length === 1) {
           // case 3: @bindable({...}) x
@@ -795,7 +797,7 @@ function collectBindables(node: ClassDeclaration, code: string): BindableDecorat
             isDefinitionPart: true,
             isClassDecorator: false,
             position: getPosition(decorator, code),
-            modifiedContent: `{ name: '${name}', ...${definition} }`
+            modifiedContent: `${name}: { name: '${name}', ...${definition} }`
           });
         } else throw new Error(`Invalid @bindable field-level decorator found at position ${decorator.pos}. Expected 0 or 1 argument, got ${args.length} instead.`);
       }

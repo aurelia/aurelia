@@ -104,6 +104,24 @@ container.register(
 
 The `register` method allows you to associate a key with a value, which can be a singleton, transient, instance, callback, or alias.
 
+### Deregister Services
+
+In Aurelia, services can be deregistered from the container using the `deregister` API:
+
+```typescript
+import { DI, Registration } from 'aurelia';
+
+const container = DI.createContainer();
+container.register(
+  Registration.singleton(ProfileService, ProfileService),
+  Registration.instance(fetch, fakeFetch)
+);
+
+container.deregister(fetch);
+```
+
+The `deregister` method allows you to remove a service from the container.
+
 ### Resolving Services
 
 Services are usually resolved automatically via constructor injection. However, you can also resolve them manually:

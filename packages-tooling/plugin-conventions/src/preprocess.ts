@@ -15,14 +15,17 @@ export function preprocess(
   const allOptions = preprocessOptions(options);
 
   if (allOptions.enableConventions && allOptions.templateExtensions.includes(ext)) {
-    const possibleFilePair = allOptions.cssExtensions.map(e =>
-      `${basename}${e}`
-    );
+    const possibleFilePair: string[] = [];
+    allOptions.cssExtensions.forEach(e => {
+      // foo.css or foo.module.css
+      possibleFilePair.push(`${basename}.module${e}`, `${basename}${e}`);
+    });
 
     const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
     if (filePair) {
       if (allOptions.useProcessedFilePairFilename) {
-        unit.filePair = `${basename}.css`;
+        // Replace foo.scss with transpiled file name foo.css
+        unit.filePair = `${path.basename(filePair, path.extname(filePair))}.css`;
       } else {
         unit.filePair = filePair;
       }

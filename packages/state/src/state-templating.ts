@@ -10,7 +10,6 @@ import {
   type IRenderer,
 } from '@aurelia/runtime-html';
 import {
-  AttrSyntax,
   IAttrMapper,
   type BindingCommandInstance,
   type ICommandBuildInfo,
@@ -20,18 +19,6 @@ import {
 import { IStore } from './interfaces';
 import { StateBinding } from './state-binding';
 import { StateDispatchBinding } from './state-dispatch-binding';
-
-export class StateAttributePattern {
-  public 'PART.state'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'state');
-  }
-}
-
-export class DispatchAttributePattern {
-  public 'PART.dispatch'(rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[0], 'dispatch');
-  }
-}
 
 export class StateBindingCommand implements BindingCommandInstance {
   public static readonly $au: BindingCommandStaticAuDefinition = {
@@ -100,12 +87,16 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
+    const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
+    // todo: insert `$state` access scope into the expression when it does not start with `$this`/`$parent`/`$state`/`$host`
+    //    example: <input value.state="value"> means <input value.bind="$state.value">
+
     renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,
       renderingCtrl.container,
       observerLocator,
       platform.domQueue,
-      ensureExpression(exprParser, instruction.from, 'IsFunction'),
+      ast,
       target,
       instruction.to,
       this._stateContainer,

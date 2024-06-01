@@ -36,7 +36,7 @@ const args = yargs
   })
   .parseSync();
 
-const envVars = { DEV_MODE: false };
+const envVars = { DEV_MODE: true };
 const testPatterns = (args.t ?? []).join(' ');
 const hasValidTestPatterns = testPatterns !== '';
 

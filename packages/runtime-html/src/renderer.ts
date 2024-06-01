@@ -27,7 +27,7 @@ import { RefBinding } from './binding/ref-binding';
 import { IEventModifier, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
-import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssModulesMapping, registerHostNode } from './dom';
+import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssClassMapping, registerHostNode } from './dom';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
@@ -63,6 +63,8 @@ import {
   StylePropertyBindingInstruction,
   TextBindingInstruction
 } from '@aurelia/template-compiler';
+import { ClassAttributeAccessor } from './observation/class-attribute-accessor';
+import { fromHydrationContext } from './resources/resolvers';
 
 /**
  * An interface describing an instruction renderer
@@ -441,22 +443,28 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
   }
   public render(
     renderingCtrl: IHydratableController,
-    target: IController,
+    target: IController | HTMLElement,
     instruction: InterpolationInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    renderingCtrl.addBinding(new InterpolationBinding(
+    const container = renderingCtrl.container;
+    const binding = new InterpolationBinding(
       renderingCtrl,
-      renderingCtrl.container,
+      container,
       observerLocator,
       platform.domQueue,
       ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
-      toView,
-    ));
+      toView
+    );
+    if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
+      const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
+      binding.useAccessor(new ClassAttributeAccessor(binding.target as HTMLElement, cssMapping));
+    }
+    renderingCtrl.addBinding(binding);
   }
 }, null!);
 
@@ -473,16 +481,22 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
     exprParser: IExpressionParser,
     observerLocator: IObserverLocator,
   ): void {
-    renderingCtrl.addBinding(new PropertyBinding(
+    const container = renderingCtrl.container;
+    const binding = new PropertyBinding(
       renderingCtrl,
-      renderingCtrl.container,
+      container,
       observerLocator,
       platform.domQueue,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
-      instruction.mode,
-    ));
+      instruction.mode
+    );
+    if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
+      const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
+      binding.useTargetObserver(new ClassAttributeAccessor(binding.target as HTMLElement, cssMapping));
+    }
+    renderingCtrl.addBinding(binding);
   }
 }, null!);
 
@@ -706,8 +720,8 @@ export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBi
   ): void {
     const container = renderingCtrl.container;
     const classMapping =
-      container.has(ICssModulesMapping, false)
-        ? container.get(ICssModulesMapping)
+      container.has(ICssClassMapping, false)
+        ? container.get(ICssClassMapping)
         : null;
     renderingCtrl.addBinding(new AttributeBinding(
       renderingCtrl,
@@ -817,7 +831,7 @@ function createElementContainer(
 ): IContainer {
   const ctn = renderingCtrl.container.createChild();
 
-  registerHostNode(ctn, p, host);
+  registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null
@@ -877,7 +891,7 @@ function invokeAttribute(
     ? $renderingCtrl
     : ($renderingCtrl as IHasController).$controller;
   const ctn = renderingCtrl.container.createChild();
-  registerHostNode(ctn, p, host);
+  registerHostNode(ctn, host, p);
   registerResolver(ctn, IController, new InstanceProvider(controllerProviderName, renderingCtrl));
   registerResolver(ctn, IInstruction, new InstanceProvider<IInstruction>(instructionProviderName, instruction));
   registerResolver(ctn, IRenderLocation, location == null

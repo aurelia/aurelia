@@ -213,7 +213,7 @@ export class ViewportContent extends EndpointContent {
         if (__DEV__) {
           const componentName = this.instruction.component.name as string;
           // eslint-disable-next-line no-console
-          console.warn(createMappedError(ErrorNames.instantiation_error, componentName, e));
+          console.warn(createMappedError(ErrorNames.endpoint_instantiation_error, componentName, e));
         }
 
         // If there's a fallback component...
@@ -238,12 +238,12 @@ export class ViewportContent extends EndpointContent {
               throw ee;
             }
             const componentName = this.instruction.component.name as string;
-            throw createMappedError(ErrorNames.instantiation_error, componentName, ee);
+            throw createMappedError(ErrorNames.endpoint_instantiation_error, componentName, ee);
             // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
           }
         } else {
           const componentName = this.instruction.component.name as string;
-          throw createMappedError(ErrorNames.instantiation_error, componentName);
+          throw createMappedError(ErrorNames.endpoint_instantiation_error, componentName);
           // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
         }
       }

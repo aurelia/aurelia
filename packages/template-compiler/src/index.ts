@@ -49,7 +49,7 @@ export {
   type IPlainAttrCommandInfo,
   BindingCommand,
   AttrBindingCommand,
-  BindingCommandType,
+  type BindingCommandType,
   CaptureBindingCommand,
   ClassBindingCommand,
   DefaultBindingCommand,

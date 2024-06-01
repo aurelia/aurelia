@@ -25,6 +25,7 @@ There's a set of default implementations for the main interfaces of the Dialog p
 * `IDialogGlobalSettings`
 * `IDialogDomRenderer`
 * `IDialogEventManager`
+* `IDialogAnimator` (only used by the default `DialogDomRenderer`)
 
 These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
 
@@ -62,6 +63,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
   MyDialogRenderer,
   MyDialogGlobalSettings,
   MyDialogEventManager,
+  MyDialogAnimator,
 ]))
 ```
 
@@ -472,6 +474,8 @@ There are two ways to use your own dialog renderer: register your own default di
     interface IDialogDom extends IDisposable {
       readonly overlay: HTMLElement;
       readonly contentHost: HTMLElement;
+      show?(): void | Promise<void>;
+      hide?(): void | Promise<void>;
     }
     ```
 2. To specify the renderer via `renderer` setting in the dialog service open call, you can follow the below example:
@@ -506,6 +510,54 @@ There are two ways to use your own dialog renderer: register your own default di
     ```
 
 ### Animation
+
+#### Using the `IDialogDomAnimator`
+
+If you use the default implementation of the interface `IDialogRenderer`, then the interface `IDialogDomAnimator` can be used to register an animator responsible for animating the default dialog dom.
+
+An `IDialogDomAnimator` implementation should satisfy the following interface:
+```typescript
+interface IDialogDomAnimator {
+  show(dom: IDialogDom): void | Promise<void>;
+  hide(dom: IDialogDom): void | Promise<void>;
+}
+```
+
+An example implementation would look like the following:
+```typescript
+class MyDialogDomAnimator implements IDialogDomAnimator {
+  show(dom) {
+    return dom.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+  }
+  hide(dom) {
+    return dom.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 });
+  }
+}
+
+// ...
+// usage:
+import { Registration } from 'aurelia';
+import { IDialogDomAnimator } from '@aurelia/dialog';
+
+Aurelia
+  .register(Registration.singleton(IDialogDomAnimator, MyDialogDomAnimator))
+  .app(...)
+  .start();
+```
+
+If you wished to use a different animators for different `dialogService.open()` calls (modal vs notification etc...), you can do so via the container option in the `dialogService.open()` call, per the following example:
+
+```typescript
+dialogService.open({
+  container: someContainer.creadChild().register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
+  // or like the following,
+  // but beware that if the same container is used then the resolution will be to the first registration
+  container: someContainer.register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
+  ...
+})
+```
+
+#### Using component lifecycles
 
 The lifecycles `attaching` and `detaching` can be used to animate a dialog, as in those lifecycles, if a promise is returned, it will be awaited during the activation/deactivation phases.
 

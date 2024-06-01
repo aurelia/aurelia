@@ -4,10 +4,8 @@ import { ActionHandler } from './action-handler';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
 import {
-  DispatchAttributePattern,
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
-  StateAttributePattern,
   StateBindingCommand,
   StateBindingInstructionRenderer,
 } from './state-templating';
@@ -15,11 +13,9 @@ import { IDevToolsExtension, IDevToolsOptions } from './interfaces-devtools';
 import { AppTask } from '@aurelia/runtime-html';
 
 const standardRegistrations = [
-  StateAttributePattern,
   StateBindingCommand,
   StateBindingInstructionRenderer,
 
-  DispatchAttributePattern,
   DispatchBindingCommand,
   DispatchBindingInstructionRenderer,
 

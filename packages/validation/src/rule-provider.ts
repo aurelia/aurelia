@@ -1,4 +1,4 @@
-import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
+import { Class, DI, ILogger, IServiceLocator, isFunction, resolve } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
@@ -23,6 +23,8 @@ import {
   IValidationMessageProvider,
   ValidationRuleAliasMessage,
   BaseValidationRule,
+  StateRule,
+  explicitMessageKey,
 } from './rules';
 import {
   IValidateable,
@@ -234,7 +236,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public withMessage(message: string) {
     const rule = this.latestRule;
     this.assertLatestRule(rule);
-    this.messageProvider.setMessage(rule, message);
+    this.messageProvider.setMessage(rule, message, explicitMessageKey);
     return this;
   }
 
@@ -273,6 +275,10 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   public displayName(name: string | ValidationDisplayNameAccessor) {
     this.property.displayName = name;
     return this;
+  }
+
+  public satisfiesState<TState, TVal>(this: PropertyRule<TObject, TVal>, validState: TState, stateFunction: (value: TVal, object?: TObject) => TState | Promise<TState>, messageMapper: (state: TState) => string) {
+    return this.addRule(new StateRule(validState, stateFunction, messageMapper));
   }
 
   /**
@@ -614,7 +620,7 @@ const contextualProperties: Readonly<Set<string>> = new Set([
 export class ValidationMessageProvider implements IValidationMessageProvider {
 
   private readonly logger: ILogger;
-  protected registeredMessages: WeakMap<IValidationRule, Interpolation | PrimitiveLiteralExpression> = new WeakMap();
+  protected registeredMessages: WeakMap<IValidationRule, Map<string|symbol, Interpolation | PrimitiveLiteralExpression>> = new WeakMap();
 
   public parser: IExpressionParser = resolve(IExpressionParser);
   public constructor(
@@ -628,11 +634,17 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
-    const parsedMessage = this.registeredMessages.get(rule);
-    if (parsedMessage !== void 0) { return parsedMessage; }
+    const $providesMessage = isFunction(rule.getMessage);
+    const messageKey = $providesMessage ? rule.getMessage!() : rule.messageKey;
+    const lookup = this.registeredMessages.get(rule);
+    if (lookup != null) {
+      const parsedMessage = lookup.get(explicitMessageKey) ?? lookup.get(messageKey);
+      if (parsedMessage !== void 0) { return parsedMessage; }
+    }
+
+    if ($providesMessage) return this.setMessage(rule, messageKey);
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
-    const messageKey = rule.messageKey;
     let message: string | undefined;
     const messageCount = validationMessages.length;
     if (messageCount === 1 && messageKey === void 0) {
@@ -646,9 +658,14 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     return this.setMessage(rule, message);
   }
 
-  public setMessage(rule: IValidationRule, message: string): Interpolation | PrimitiveLiteralExpression {
+  public setMessage(rule: IValidationRule, message: string, messageKey?: symbol): Interpolation | PrimitiveLiteralExpression {
     const parsedMessage = this.parseMessage(message);
-    this.registeredMessages.set(rule, parsedMessage);
+    const rm = this.registeredMessages;
+    let messageLookup = rm.get(rule);
+    if (messageLookup === void 0) {
+      rm.set(rule, messageLookup = new Map());
+    }
+    messageLookup.set(messageKey ?? rule.messageKey, parsedMessage);
     return parsedMessage;
   }
 

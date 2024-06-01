@@ -10,6 +10,7 @@ export {
   type IRegistration,
   type IRegistry,
   type IResolver,
+  type IDisposableResolver,
   IServiceLocator,
   type Key,
   type RegisterSelf,

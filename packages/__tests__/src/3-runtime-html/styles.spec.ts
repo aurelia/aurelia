@@ -1,20 +1,15 @@
-import { DI, Registration } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import {
-  CustomAttribute,
-  CustomElement,
-  INode,
-  CustomAttributeType,
-  Controller,
-  Aurelia,
   AdoptedStyleSheetsStyles,
-  CSSModulesProcessorRegistry,
-  StyleConfiguration,
-  StyleElementStyles,
-  cssModules,
+  Aurelia,
+  Controller,
+  CustomElement,
   IShadowDOMGlobalStyles,
   IShadowDOMStyles,
+  StyleConfiguration,
+  StyleElementStyles
 } from '@aurelia/runtime-html';
-import { assert, PLATFORM, TestContext } from '@aurelia/testing';
+import { PLATFORM, TestContext, assert } from '@aurelia/testing';
 
 describe('3-runtime-html/styles.spec.ts', function () {
   async function startApp(configure: (au: Aurelia) => void) {
@@ -30,76 +25,6 @@ describe('3-runtime-html/styles.spec.ts', function () {
   }
 
   describe('CSS Modules Processor', function () {
-    it('registry overrides class attribute', function () {
-      const element = { className: '' };
-      const container = DI.createContainer();
-      container.register(Registration.instance(INode, element));
-      const cssModulesLookup = {};
-      const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
-
-      registry.register(container);
-
-      const attr = container.get<CustomAttributeType>(
-        CustomAttribute.keyFrom('class')
-      );
-
-      assert.equal(CustomAttribute.isType(attr.constructor), true);
-    });
-
-    it('class attribute maps class names', function () {
-      const element = PLATFORM.document.createElement('div');
-      const container = DI.createContainer();
-      container.register(Registration.instance(INode, element));
-      const cssModulesLookup = {
-        'foo': 'bar',
-        'baz': 'qux'
-      };
-
-      const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
-      registry.register(container);
-
-      const attr = container.get(CustomAttribute.keyFrom('class')) as any;
-      attr.value = 'foo baz';
-      attr.valueChanged();
-
-      assert.equal(element.className, 'bar qux');
-    });
-
-    it('style function uses correct registry', function () {
-      const element = PLATFORM.document.createElement('div');
-      const container = DI.createContainer();
-      const childContainer = container.createChild();
-      const cssModulesLookup = {
-        'foo': 'bar',
-        'baz': 'qux'
-      };
-
-      childContainer.register(Registration.instance(INode, element));
-      cssModules(cssModulesLookup).register(childContainer);
-
-      const attr = childContainer.get(CustomAttribute.keyFrom('class')) as any;
-      attr.value = 'foo baz';
-      attr.valueChanged();
-
-      assert.equal(element.className, 'bar qux');
-    });
-
-    // TODO(fkleuver): Reactivate this test
-    // it('components do not inherit parent component styles', function () {
-    //   const rootContainer = DI.createContainer();
-    //   const parentContainer = rootContainer.createChild();
-    //   const cssModulesLookup = {};
-    //   const registry = new CSSModulesProcessorRegistry([cssModulesLookup]);
-    //   registry.register(parentContainer);
-
-    //   const childContainer = parentContainer.createChild();
-
-    //   const fromParent = parentContainer.findResource(CustomAttribute, 'class');
-    //   const fromChild = childContainer.findResource(CustomAttribute, 'class');
-
-    //   assert.equal(fromParent.name, 'class');
-    //   assert.equal(fromChild, null);
-    // });
   });
 
   describe('Shadow DOM', function () {

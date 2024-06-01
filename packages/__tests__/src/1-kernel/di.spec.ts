@@ -1027,6 +1027,36 @@ describe('1-kernel/di.spec.ts', function () {
         assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
       });
 
+      it('deregisters a callback by key', function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const callback = () => new classInstance();
+
+        sut.register(Registration.callback(key, callback));
+        assert.strictEqual(sut.get(key).constructor, classInstance, `sut.get(key).constructor === classInstance`);
+
+        sut.deregister(key);
+
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it('deregisters an alias by key and retains the original key', function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const aliasKey = 'aliasKey';
+        const instance = new classInstance();
+
+        sut.register(Registration.instance(key, instance));
+        sut.register(Registration.aliasTo(key, aliasKey));
+
+        assert.strictEqual(sut.get(aliasKey), instance, `sut.get(aliasKey) === instance`);
+
+        sut.deregister(aliasKey);
+
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+        assert.throws(() => sut.get(aliasKey), /AUR0009/, `() => sut.get(aliasKey)`);
+      });
+
       it(`deregisters nested containers without affecting root container`, function () {
         const { sut, classInstance } = createFixture();
         const key = 'key';
@@ -1034,6 +1064,7 @@ describe('1-kernel/di.spec.ts', function () {
         const child = sut.createChild();
 
         sut.register(Registration.instance(key, instance));
+        child.register(Registration.instance(key, instance));
         assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
         assert.strictEqual(child.get(key), instance, `child.get(key) === instance`);
 

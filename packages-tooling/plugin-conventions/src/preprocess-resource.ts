@@ -592,7 +592,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         break;
     }
     const remove = bindables.map(b => b.position);
-    const { content: additionalContent, remove: $remove  } = rewriteNonDefinitionDecorators();
+    const { content: additionalContent, remove: $remove } = rewriteNonDefinitionDecorators();
     remove.push(...$remove);
 
     const insertContent = `${resourceDefinitionStatement}${additionalContent}`;
@@ -613,11 +613,13 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
   }
 
   function createDefinitionStatement(type: 'ca' | 'tc'): string {
+    const superDefnIdentifier = `sup${className}Defn`;
+    const superDefnStatement = `\nlet ${superDefnIdentifier} = { bindables: {} };\ntry { ${superDefnIdentifier} = CustomAttribute.getDefinition(${className}.prototype.constructor); } catch { /*ignore*/ }\n`;
     const bindableStatements = bindables.map(x => x.modifiedContent).join(', ');
-    const bindableOption = bindableStatements ? `, bindables: { ${bindableStatements} }` : '';
+    const bindableOption = `, bindables: { ...${superDefnIdentifier}.bindables${bindableStatements ? `, ${bindableStatements}` : ''} }`;
     switch (type) {
-      case 'ca': return `\nCustomAttribute.define(${(bindableOption ? `{ name: '${name}'${bindableOption} }` : `'${name}'`)}, ${className});\n`;
-      case 'tc': return `\nCustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
+      case 'ca': return `${superDefnStatement}CustomAttribute.define({ name: '${name}'${bindableOption} }, ${className});\n`;
+      case 'tc': return `${superDefnStatement}CustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
     }
   }
   function rewriteNonDefinitionDecorators() {

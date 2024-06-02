@@ -201,7 +201,9 @@ export class FooBar {}
     const code = `export class FooBarCustomAttribute {}\n`;
     const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
 export class FooBarCustomAttribute {}
-CustomAttribute.define('foo-bar', FooBarCustomAttribute);
+let supFooBarCustomAttributeDefn = { bindables: {} };
+try { supFooBarCustomAttributeDefn = CustomAttribute.getDefinition(FooBarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttributeDefn.bindables } }, FooBarCustomAttribute);
 
 `;
     const result = preprocessResource(
@@ -218,7 +220,9 @@ CustomAttribute.define('foo-bar', FooBarCustomAttribute);
     const code = `export class FooBarCustomAttribute {}\n`;
     const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
 export class FooBarCustomAttribute {}
-CustomAttribute.define('foo-bar', FooBarCustomAttribute);
+let supFooBarCustomAttributeDefn = { bindables: {} };
+try { supFooBarCustomAttributeDefn = CustomAttribute.getDefinition(FooBarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttributeDefn.bindables } }, FooBarCustomAttribute);
 
 `;
     const result = preprocessResource(
@@ -256,7 +260,9 @@ export class FooBar {}
     const code = `export class FooBarTemplateController {}\n`;
     const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
 export class FooBarTemplateController {}
-CustomAttribute.define({ name: 'foo-bar', isTemplateController: true }, FooBarTemplateController);
+let supFooBarTemplateControllerDefn = { bindables: {} };
+try { supFooBarTemplateControllerDefn = CustomAttribute.getDefinition(FooBarTemplateController.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { ...supFooBarTemplateControllerDefn.bindables } }, FooBarTemplateController);
 
 `;
     const result = preprocessResource(
@@ -273,7 +279,9 @@ CustomAttribute.define({ name: 'foo-bar', isTemplateController: true }, FooBarTe
     const code = `export class FooBarTemplateController {}\n`;
     const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
 export class FooBarTemplateController {}
-CustomAttribute.define({ name: 'foo-bar', isTemplateController: true }, FooBarTemplateController);
+let supFooBarTemplateControllerDefn = { bindables: {} };
+try { supFooBarTemplateControllerDefn = CustomAttribute.getDefinition(FooBarTemplateController.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { ...supFooBarTemplateControllerDefn.bindables } }, FooBarTemplateController);
 
 `;
     const result = preprocessResource(
@@ -589,7 +597,9 @@ import { containerless, CustomElement, CustomAttribute } from '@aurelia/runtime-
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -622,7 +632,9 @@ import { containerless, customElement, CustomElement, CustomAttribute } from '@a
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -712,7 +724,9 @@ import { useShadowDOM, CustomElement, CustomAttribute } from '@aurelia/runtime-h
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -745,7 +759,9 @@ import { useShadowDOM, customElement, CustomElement, CustomAttribute } from '@au
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -833,7 +849,9 @@ import { useShadowDOM, CustomElement, CustomAttribute } from '@aurelia/runtime-h
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -866,7 +884,9 @@ import { useShadowDOM, customElement, CustomElement, CustomAttribute } from '@au
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -955,7 +975,9 @@ import { capture, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -988,7 +1010,9 @@ import { capture, customElement, CustomElement, CustomAttribute } from '@aurelia
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -1084,7 +1108,9 @@ import { alias, CustomElement, CustomAttribute } from '@aurelia/runtime-html';
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -1117,7 +1143,9 @@ import { alias, customElement, CustomElement, CustomAttribute } from '@aurelia/r
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -1269,7 +1297,9 @@ import { bindable, CustomElement, CustomAttribute } from '@aurelia/runtime-html'
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -1304,7 +1334,9 @@ import { bindable, CustomElement, CustomAttribute } from '@aurelia/runtime-html'
 
 
 export class BarCustomAttribute {}
-CustomAttribute.define('bar', BarCustomAttribute);
+let supBarCustomAttributeDefn = { bindables: {} };
+try { supBarCustomAttributeDefn = CustomAttribute.getDefinition(BarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'bar', bindables: { ...supBarCustomAttributeDefn.bindables } }, BarCustomAttribute);
 
 
 
@@ -1364,7 +1396,9 @@ export class FooBarCustomAttribute {
    z;
    a;
 }
-CustomAttribute.define({ name: 'foo-bar', bindables: { b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBarCustomAttribute);
+let supFooBarCustomAttributeDefn = { bindables: {} };
+try { supFooBarCustomAttributeDefn = CustomAttribute.getDefinition(FooBarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttributeDefn.bindables, b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBarCustomAttribute);
 
 `;
     const result = preprocessResource(
@@ -1398,7 +1432,9 @@ export class FooBarTemplateController {
    z;
    a;
 }
-CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBarTemplateController);
+let supFooBarTemplateControllerDefn = { bindables: {} };
+try { supFooBarTemplateControllerDefn = CustomAttribute.getDefinition(FooBarTemplateController.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { ...supFooBarTemplateControllerDefn.bindables, b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBarTemplateController);
 
 `;
     const result = preprocessResource(
@@ -1449,7 +1485,9 @@ export class FooCustomAttribute {}
 import { inject } from '@aurelia/kernel';
 
 export class FooCustomAttribute {}
-CustomAttribute.define('foo', FooCustomAttribute);
+let supFooCustomAttributeDefn = { bindables: {} };
+try { supFooCustomAttributeDefn = CustomAttribute.getDefinition(FooCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo', bindables: { ...supFooCustomAttributeDefn.bindables } }, FooCustomAttribute);
 
 Reflect.defineProperty(FooCustomAttribute, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
 `;
@@ -1473,7 +1511,9 @@ export class FooTemplateController {}
 import { inject } from '@aurelia/kernel';
 
 export class FooTemplateController {}
-CustomAttribute.define({ name: 'foo', isTemplateController: true }, FooTemplateController);
+let supFooTemplateControllerDefn = { bindables: {} };
+try { supFooTemplateControllerDefn = CustomAttribute.getDefinition(FooTemplateController.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'foo', isTemplateController: true, bindables: { ...supFooTemplateControllerDefn.bindables } }, FooTemplateController);
 
 Reflect.defineProperty(FooTemplateController, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
 `;
@@ -1628,7 +1668,9 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-CustomAttribute.define('lorem', LoremCustomAttribute);
+let supLoremCustomAttributeDefn = { bindables: {} };
+try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
 
 
 @valueConverter('one')
@@ -1710,7 +1752,9 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-CustomAttribute.define('lorem', LoremCustomAttribute);
+let supLoremCustomAttributeDefn = { bindables: {} };
+try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
 
 
 @templateController('one')
@@ -1796,7 +1840,9 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-CustomAttribute.define('lorem', LoremCustomAttribute);
+let supLoremCustomAttributeDefn = { bindables: {} };
+try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
 
 
 @templateController('one')

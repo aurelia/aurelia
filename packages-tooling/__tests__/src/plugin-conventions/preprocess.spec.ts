@@ -273,7 +273,9 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-CustomAttribute.define('lorem', LoremCustomAttribute);
+let supLoremCustomAttributeDefn = { bindables: {} };
+try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
 
 
 @valueConverter('one')
@@ -364,7 +366,9 @@ export class LeaveMeAlone {}
 export class LoremCustomAttribute {
 
 }
-CustomAttribute.define('lorem', LoremCustomAttribute);
+let supLoremCustomAttributeDefn = { bindables: {} };
+try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
+CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
 
 
 @valueConverter('one')

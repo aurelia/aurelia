@@ -249,7 +249,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     } else {
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       const superDefnIdentifier = `sup${exportedClassName}Defn`;
-      const superDefnStatement = `\nlet ${superDefnIdentifier} = {};\ntry { ${superDefnIdentifier} = CustomElement.getDefinition(${exportedClassName}.prototype.constructor); } catch { /*ignore*/ }\n`;
+      const superDefnStatement = `\nlet ${superDefnIdentifier} = { bindables: {} };\ntry { ${superDefnIdentifier} = CustomElement.getDefinition(${exportedClassName}.prototype.constructor); } catch { /*ignore*/ }\n`;
       if (elementStatement.includes('$au')) {
         const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest);
         const result = transform(sf, [createAuResourceTransformer()]);

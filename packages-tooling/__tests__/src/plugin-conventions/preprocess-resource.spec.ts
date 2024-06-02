@@ -34,7 +34,7 @@ describe('preprocessResource', function () {
 import * as __au2ViewDef from './foo-bar.html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -55,7 +55,7 @@ CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './ua-foo-bar.html';
 export class UAFooBarCustomElement {}
-let supUAFooBarCustomElementDefn = {};
+let supUAFooBarCustomElementDefn = { bindables: {} };
 try { supUAFooBarCustomElementDefn = CustomElement.getDefinition(UAFooBarCustomElement.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supUAFooBarCustomElementDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, UAFooBarCustomElement);
 
@@ -76,7 +76,7 @@ CustomElement.define({ ...__au2ViewDef, bindables: { ...(supUAFooBarCustomElemen
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './FooBar.html';
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -107,7 +107,7 @@ import { containerless, CustomElement } from '@aurelia/runtime-html';
 const A = 0;
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, containerless: true, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -160,7 +160,7 @@ import { customElement, CustomElement } from '@aurelia/runtime-html';
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'lorem', bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -534,7 +534,7 @@ export class FooBar {}
 import { containerless, CustomElement } from '@aurelia/runtime-html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, containerless: true, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -561,7 +561,7 @@ import { containerless, customElement, CustomElement } from '@aurelia/runtime-ht
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', containerless: true, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -594,7 +594,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], containerless: true, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -627,7 +627,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], containerless: true, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -657,7 +657,7 @@ export class FooBar {}
 import { useShadowDOM, CustomElement } from '@aurelia/runtime-html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, shadowOptions: { mode: 'open' }, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -684,7 +684,7 @@ import { useShadowDOM, customElement, CustomElement } from '@aurelia/runtime-htm
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', shadowOptions: { mode: 'open' }, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -717,7 +717,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], shadowOptions: { mode: 'open' }, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -750,7 +750,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], shadowOptions: { mode: 'open' }, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -778,7 +778,7 @@ export class FooBar {}
 import { useShadowDOM, CustomElement } from '@aurelia/runtime-html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, shadowOptions: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -805,7 +805,7 @@ import { useShadowDOM, customElement, CustomElement } from '@aurelia/runtime-htm
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', shadowOptions: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -838,7 +838,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], shadowOptions: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -871,7 +871,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], shadowOptions: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -900,7 +900,7 @@ export class FooBar {}
 import { capture, CustomElement } from '@aurelia/runtime-html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, capture: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -927,7 +927,7 @@ import { capture, customElement, CustomElement } from '@aurelia/runtime-html';
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', capture: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -960,7 +960,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], capture: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -993,7 +993,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], capture: ${options}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1029,7 +1029,7 @@ export class FooBar {}
 import { alias, CustomElement } from '@aurelia/runtime-html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, aliases: ${definitionOptions}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -1056,7 +1056,7 @@ import { alias, customElement, CustomElement } from '@aurelia/runtime-html';
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', aliases: ${definitionOptions}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -1089,7 +1089,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], aliases: ${definitionOptions}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1122,7 +1122,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], aliases: ${definitionOptions}, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1162,7 +1162,7 @@ export class FooBar {
    z;
    a;
 }
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables, b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBar);
 
@@ -1201,7 +1201,7 @@ export class FooBar {
    z;
    a;
 }
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables, b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBar);
 
@@ -1239,7 +1239,7 @@ export class FooBar {
    z;
    a;
 }
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables, b: {}, c: {}, x: {}, y: {}, z: { name: 'z', ...{ attribute: 'z-z', mode: 'fromView', primary: true, set(v) { return Boolean(v); } } }, a: { name: 'a', ...opts } } }, FooBar);
 
@@ -1274,7 +1274,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables, b: {}, c: {} } }, FooBar);
 `;
@@ -1309,7 +1309,7 @@ CustomAttribute.define('bar', BarCustomAttribute);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'foo-bar', dependencies: [ ...__au2ViewDef.dependencies, BarCustomAttribute ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables, b: {}, c: {} } }, FooBar);
 `;
@@ -1424,7 +1424,7 @@ import * as __au2ViewDef from './foo-bar.html';
 import { inject } from '@aurelia/kernel';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 Reflect.defineProperty(FooBar, 'inject', { value: [A, B], writable: true, configurable: true, enumerable: true });
@@ -1738,7 +1738,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1825,7 +1825,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, name: 'lorem', dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1862,7 +1862,7 @@ ValueConverter.define('some', SomeValueConverter);
 
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1904,7 +1904,7 @@ ValueConverter.define('some', SomeValueConverter);
 
 @something
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 `;
@@ -1925,7 +1925,7 @@ CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependen
 import * as __au2ViewDef from './index.html';
 
 export class FooBar {}
-let supFooBarDefn = {};
+let supFooBarDefn = { bindables: {} };
 try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
 
@@ -1946,7 +1946,7 @@ CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
 export class UAFooBarCustomElement {}
-let supUAFooBarCustomElementDefn = {};
+let supUAFooBarCustomElementDefn = { bindables: {} };
 try { supUAFooBarCustomElementDefn = CustomElement.getDefinition(UAFooBarCustomElement.prototype.constructor); } catch { /*ignore*/ }
 CustomElement.define({ ...__au2ViewDef, bindables: { ...(supUAFooBarCustomElementDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, UAFooBarCustomElement);
 

@@ -87,6 +87,7 @@ export interface IContainer extends IServiceLocator, IDisposable {
   getFactory<T extends Constructable>(key: T): IFactory<T>;
   createChild(config?: IContainerConfiguration): IContainer;
   disposeResolvers(): void;
+  deregister(key: Key): void;
   /**
    * Register resources from another container, an API for manually registering resources
    *

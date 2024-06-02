@@ -932,6 +932,149 @@ describe('1-kernel/di.spec.ts', function () {
       });
     });
 
+    describe(`deregister()`, function () {
+      function createFixture() {
+        const sut = DI.createContainer();
+        const classInstance = class {};
+
+        return { sut, classInstance };
+      }
+
+      it(`deregisters a registered instance by key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const instance = new classInstance();
+
+        sut.register(Registration.instance(key, instance));
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+
+        sut.deregister(key);
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it(`deregisters a registered singleton by key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const type = classInstance;
+
+        sut.register(Registration.singleton(key, type));
+        assert.instanceOf(sut.get(key), type, `sut.get(key) instanceof type`);
+
+        sut.deregister(key);
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it(`deregisters a registered transient by key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const type = classInstance;
+
+        sut.register(Registration.transient(key, type));
+        assert.instanceOf(sut.get(key), type, `sut.get(key) instanceof type`);
+
+        sut.deregister(key);
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it(`deregisters a registered callback by key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const callback = () => new classInstance();
+
+        sut.register(Registration.callback(key, callback));
+        assert.strictEqual(sut.get(key).constructor, classInstance, `sut.get(key).constructor === classInstance`);
+
+        sut.deregister(key);
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it(`deregisters a registered alias by key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const aliasKey = 'aliasKey';
+        const instance = new classInstance();
+
+        sut.register(Registration.instance(key, instance));
+        sut.register(Registration.aliasTo(key, aliasKey));
+        assert.strictEqual(sut.get(aliasKey), instance, `sut.get(aliasKey) === instance`);
+
+        sut.deregister(aliasKey);
+        assert.throws(() => sut.get(aliasKey), /AUR0009/, `() => sut.get(aliasKey)`);
+      });
+
+      it(`does not throw when deregistering a non-existent key`, function () {
+        const { sut } = createFixture();
+        const key = 'key';
+
+        assert.doesNotThrow(() => sut.deregister(key), `() => sut.deregister(key)`);
+      });
+
+      it(`deregisters multiple instances registered with the same key`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const instance1 = new classInstance();
+        const instance2 = new classInstance();
+
+        sut.register(Registration.instance(key, instance1));
+        sut.register(Registration.instance(key, instance2));
+
+        const instances = sut.getAll(key);
+        assert.equal(instances.length, 2, 'sut.getAll(key) should return 2 instances');
+        assert.includes(instances, instance1, 'sut.getAll(key) should include instance1');
+        assert.includes(instances, instance2, 'sut.getAll(key) should include instance2');
+
+        sut.deregister(key);
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it('deregisters a callback by key', function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const callback = () => new classInstance();
+
+        sut.register(Registration.callback(key, callback));
+        assert.strictEqual(sut.get(key).constructor, classInstance, `sut.get(key).constructor === classInstance`);
+
+        sut.deregister(key);
+
+        assert.throws(() => sut.get(key), /AUR0009/, `() => sut.get(key)`);
+      });
+
+      it('deregisters an alias by key and retains the original key', function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const aliasKey = 'aliasKey';
+        const instance = new classInstance();
+
+        sut.register(Registration.instance(key, instance));
+        sut.register(Registration.aliasTo(key, aliasKey));
+
+        assert.strictEqual(sut.get(aliasKey), instance, `sut.get(aliasKey) === instance`);
+
+        sut.deregister(aliasKey);
+
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+        assert.throws(() => sut.get(aliasKey), /AUR0009/, `() => sut.get(aliasKey)`);
+      });
+
+      it(`deregisters nested containers without affecting root container`, function () {
+        const { sut, classInstance } = createFixture();
+        const key = 'key';
+        const instance = new classInstance();
+        const child = sut.createChild();
+
+        sut.register(Registration.instance(key, instance));
+        child.register(Registration.instance(key, instance));
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance`);
+        assert.strictEqual(child.get(key), instance, `child.get(key) === instance`);
+
+        child.deregister(key);
+        assert.strictEqual(sut.get(key), instance, `sut.get(key) === instance after child.deregister`);
+
+        assert.strictEqual(child.has(classInstance, true), false, 'child does not have classInstance');
+      });
+    });
+
     // describe(`registerResolver()`, function () {
     //   for (const key of [null, undefined, Object]) {
     //     it(_`throws on invalid key ${key}`, function () {

@@ -827,6 +827,12 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_vite_wo_convention
+          path: "packages/__e2e__/9-vite-wo-convention"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_hmr_webpack
           path: "packages/__e2e__/3-hmr-webpack"
           requires:
@@ -999,6 +1005,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_hmr_vite
           path: "packages/__e2e__/2-hmr-vite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_vite_wo_convention
+          path: "packages/__e2e__/9-vite-wo-convention"
           requires:
             - build_release
       - e2e_test:

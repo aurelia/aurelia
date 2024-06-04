@@ -2,7 +2,7 @@ import { Metadata } from '@aurelia/metadata';
 import { assert } from '@aurelia/testing';
 
 describe('1-kernel/metadata.spec.ts', function () {
-  it('metadata is defined for every type - static block - explicit class name', function () {
+  it('defines metadata for every type - static block - explicit class name', function () {
     class Parent {
       static {
         Metadata.define('parent', Parent, 'foo');
@@ -18,7 +18,7 @@ describe('1-kernel/metadata.spec.ts', function () {
     assert.strictEqual(Metadata.get('foo', Child), 'child', 'child');
   });
 
-  it('metadata is defined for every type - static block - this', function () {
+  it('defines metadata for every type - static block - this', function () {
     class Parent {
       static {
         Metadata.define('parent', this, 'foo');
@@ -34,7 +34,7 @@ describe('1-kernel/metadata.spec.ts', function () {
     assert.strictEqual(Metadata.get('foo', Child), 'child', 'child');
   });
 
-  it('metadata is defined for every type - without static block - parent then child', function () {
+  it('defines metadata for every type - without static block - parent then child', function () {
     class Parent { }
     class Child extends Parent { }
     Metadata.define('parent', Parent, 'foo');
@@ -44,7 +44,7 @@ describe('1-kernel/metadata.spec.ts', function () {
     assert.strictEqual(Metadata.get('foo', Child), 'child', 'child');
   });
 
-  it('metadata is defined for every type - without static block - child then parent', function () {
+  it('defines metadata for every type - without static block - child then parent', function () {
     class Parent { }
     class Child extends Parent { }
     Metadata.define('parent', Parent, 'foo');

@@ -7,12 +7,12 @@ export default defineConfig({
   },
   build: {
     minify: false,
-    target: "es2020",
+    target: "es2022",
   },
   plugins: [
     aurelia({ enableConventions: false, hmr: true })
   ],
   esbuild: {
-    target: "es2020"
+    target: "es2022"
   },
 });

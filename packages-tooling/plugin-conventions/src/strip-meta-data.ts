@@ -1,6 +1,10 @@
 import { kebabCase } from '@aurelia/kernel';
 import { BindingMode, type PartialBindableDefinition } from '@aurelia/runtime-html';
-import { DefaultTreeElement, ElementLocation, parseFragment } from 'parse5';
+import { parseFragment } from 'parse5';
+import type { DefaultTreeAdapterMap, Token } from 'parse5';
+
+type DefaultTreeElement = DefaultTreeAdapterMap['element'];
+type ElementLocation = Token.ElementLocation;
 
 interface IStrippedHtml {
   html: string;
@@ -89,19 +93,17 @@ export function stripMetaData(rawHtml: string): IStrippedHtml {
   return { html, deps, depsAliases, shadowMode, containerless, hasSlot, bindables, aliases, capture };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function traverse(tree: any, cb: (node: DefaultTreeElement) => void) {
-  // eslint-disable-next-line
-  tree.childNodes.forEach((n: any) => {
+function traverse(tree: DefaultTreeAdapterMap['documentFragment'] | DefaultTreeElement, cb: (node: DefaultTreeElement) => void) {
+  tree.childNodes.forEach((n: DefaultTreeAdapterMap['childNode']) => {
     const ne = n as DefaultTreeElement;
     // skip <template as-custom-element="..">
     if (ne.tagName === 'template' && ne.attrs.some(attr => attr.name === 'as-custom-element')) {
       return;
     }
     cb(ne);
-    if (n.childNodes) traverse(n, cb);
+    if (ne.childNodes) traverse(ne, cb);
     // For <template> tag
-    if (n.content?.childNodes) traverse(n.content, cb);
+    if ((n as DefaultTreeAdapterMap['template']).content?.childNodes) traverse((n as DefaultTreeAdapterMap['template']).content, cb);
   });
 }
 
@@ -115,7 +117,7 @@ function stripTag(node: DefaultTreeElement, tagNames: string[] | string, cb: (at
     if (loc.endTag) {
       toRemove.push([loc.endTag.startOffset, loc.endTag.endOffset]);
     }
-    toRemove.push([loc.startTag.startOffset, loc.startTag.endOffset]);
+    toRemove.push([loc.startTag!.startOffset, loc.startTag!.endOffset]);
     cb(attrs, toRemove);
     return true;
   }
@@ -128,7 +130,7 @@ function stripAttribute(node: DefaultTreeElement, tagName: string, attributeName
     if (attr) {
       const loc = node.sourceCodeLocation as ElementLocation;
 
-      cb(attr.value, [[loc.attrs[attributeName].startOffset, loc.attrs[attributeName].endOffset]]);
+      cb(attr.value, [[loc.attrs![attributeName].startOffset, loc.attrs![attributeName].endOffset]]);
       return true;
     }
   }

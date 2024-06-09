@@ -188,9 +188,7 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 export class FooBar {}
-let supFooBarDefn = { bindables: {} };
-try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
-CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
+CustomElement.define(__au2ViewDef, FooBar);
 
 `;
     const result = preprocess(
@@ -211,9 +209,7 @@ CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
 export class FooBar {}
-let supFooBarDefn = { bindables: {} };
-try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
-CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
+CustomElement.define(__au2ViewDef, FooBar);
 
 `;
     const result = preprocess(
@@ -306,9 +302,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-let supFooBarDefn = { bindables: {} };
-try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
 `;
     const result = preprocess(
       {
@@ -399,9 +393,7 @@ BindingCommand.define('abc', AbcBindingCommand);
 
 
 export class FooBar {}
-let supFooBarDefn = { bindables: {} };
-try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ], bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
+CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
 `;
     const result = preprocess(
       {

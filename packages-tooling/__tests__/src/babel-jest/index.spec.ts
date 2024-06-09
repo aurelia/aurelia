@@ -114,9 +114,7 @@ export function register(container) {
     const expected = `import { CustomElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 export class FooBar {}
-let supFooBarDefn = { bindables: {} };
-try { supFooBarDefn = CustomElement.getDefinition(FooBar.prototype.constructor); } catch { /*ignore*/ }
-CustomElement.define({ ...__au2ViewDef, bindables: { ...(supFooBarDefn.bindables ?? {}), ...__au2ViewDef.bindables } }, FooBar);
+CustomElement.define(__au2ViewDef, FooBar);
 
 `;
     const t = _createTransformer(

@@ -388,6 +388,25 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(stopped, true);
     });
 
+    it('allows prevent modifier on events that are not mouse or key', function () {
+      let prevented = false;
+      let stopped = false;
+      const { trigger } = createFixture(
+        '<form submit.capture="modifyEvent($event)" submit.trigger:prevent+stop="">',
+        {
+          modifyEvent: (e: SubmitEvent) => {
+            Object.defineProperty(e, 'preventDefault', { value: () => prevented = true });
+            Object.defineProperty(e, 'stopPropagation', { value: () => stopped = true });
+          }
+        },
+        [AppTask.creating(IAppRoot, root => root.config.allowActionlessForm = true)]
+      );
+
+      trigger('form', 'submit');
+      assert.strictEqual(prevented, true);
+      assert.strictEqual(stopped, true);
+    });
+
     it('does not alter dispatchEvent working', function () {
       const { ctx, getBy } = createFixture(
         '<div some-event.trigger="handleEvent($event)"><center>',

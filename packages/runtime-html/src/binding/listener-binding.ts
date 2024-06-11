@@ -258,6 +258,42 @@ class ModifiedKeyboardEventHandler implements IModifiedEventHandlerCreator {
   }
 }
 
+/**
+ * A generic event handler that can be used for any event type
+ */
+class ModifiedEventHandler implements IModifiedEventHandlerCreator {
+  public static register(c: IContainer) {
+    c.register(singletonRegistration(IModifiedEventHandlerCreator, ModifiedEventHandler));
+  }
+
+  public readonly type = ['$ALL'];
+  public getHandler(modifier: string): IModifiedEventHandler {
+    const modifiers = modifier.split(/[:+.]/);
+    return ((event: Event) => {
+      let prevent = false;
+      let stop = false;
+      let mod: string;
+
+      for (mod of modifiers) {
+        switch (mod) {
+          case 'prevent': prevent = true; continue;
+          case 'stop': stop = true; continue;
+        }
+
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(`Modifier '${mod}' is not supported for event "${event.type}".`);
+        }
+      }
+
+      if (prevent) event.preventDefault();
+      if (stop) event.stopPropagation();
+
+      return true;
+    }) as IModifiedEventHandler;
+  }
+}
+
 export interface IEventModifier {
   getHandler(type: string, modifier: string | null): IModifiedEventHandler | null;
 }
@@ -285,7 +321,7 @@ export class EventModifier implements IEventModifier {
     }, {});
 
   public getHandler(type: string, modifier: string | null): IModifiedEventHandler | null {
-    return isString(modifier) ? this._reg[type]?.getHandler(modifier) ?? null : null;
+    return isString(modifier) ? (this._reg[type] ?? this._reg.$ALL)?.getHandler(modifier) ?? null : null;
   }
 }
 
@@ -295,6 +331,7 @@ export const EventModifierRegistration = {
       EventModifier,
       ModifiedMouseEventHandler,
       ModifiedKeyboardEventHandler,
+      ModifiedEventHandler,
     );
   }
 };

@@ -680,4 +680,59 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       ]);
     });
   });
+  describe('bindable inheritance', function () {
+    it('works for array', async function () {
+      @customElement({
+        name: 'c-1',
+        template: '${p1} ${p21} ${p22}',
+        bindables: ['p21', { name: 'p22'} ]
+      })
+      class CeOne {
+        @bindable p1: string;
+      }
+
+      @customElement({
+        name: 'c-2',
+        template: '${p3} ${p1} ${p21} ${p22}',
+      })
+      class CeTwo extends CeOne {
+        @bindable p3: string;
+      }
+
+      const { appHost } = createFixture(
+        '<c-1 p1="c1-p1" p21="c1-p21" p22="c1-p22"></c-1> <c-2 p1="c2-p1" p21="c2-p21" p22="c2-p22" p3="c2-p3"></c-2>',
+        { },
+        [CeOne, CeTwo]
+      );
+
+      assert.html.textContent(appHost, 'c1-p1 c1-p21 c1-p22 c2-p3 c2-p1 c2-p21 c2-p22');
+    });
+
+    it('works for object', async function () {
+      @customElement({
+        name: 'c-1',
+        template: '${p1} ${p2}',
+        bindables: { p2: {} }
+      })
+      class CeOne {
+        @bindable p1: string;
+      }
+
+      @customElement({
+        name: 'c-2',
+        template: '${p3} ${p1} ${p2}',
+      })
+      class CeTwo extends CeOne {
+        @bindable p3: string;
+      }
+
+      const { appHost } = createFixture(
+        '<c-1 p1="c1-p1" p2="c1-p2"></c-1> <c-2 p1="c2-p1" p2="c2-p2" p3="c2-p3"></c-2>',
+        { },
+        [CeOne, CeTwo]
+      );
+
+      assert.html.textContent(appHost, 'c1-p1 c1-p2 c2-p3 c2-p1 c2-p2');
+    });
+  });
 });

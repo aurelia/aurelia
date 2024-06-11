@@ -240,26 +240,26 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);// ${decoratorStatements}${bindableStatements}
+          m.append(`\n@customElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);// ${decoratorStatements}${bindableStatements}
         } else {
           // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(pos, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
-          m.append(`\n${elementStatement}\nCustomElement.define({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] }, ${exportedClassName});\n`);// ${decoratorStatements}${bindableStatements}
+          m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);// ${decoratorStatements}${bindableStatements}
         }
       } else {
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.end, `\nCustomElement.define({ ...${viewDef}, name: ${name} }, ${exportedClassName});\n`); // ${decoratorStatements}${bindableStatements}
+          m.insert(implicitElement.pos, `@customElement({ ...${viewDef}, name: ${name} })\n`); // ${decoratorStatements}${bindableStatements}
         } else {
           // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
           let sb = viewDef;
           if (sb.startsWith('...')) {
             sb = `{ ${sb} }`;
           }
-          m.insert(implicitElement.end, `\nCustomElement.define(${sb}, ${exportedClassName});\n`);
+          m.insert(implicitElement.pos, `@customElement(${sb})\n`);
         }
       }
     }
@@ -327,48 +327,6 @@ function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
 }
 
-function createDefineElementTransformer(): TransformerFactory<SourceFile> {
-  return function factory(context) {
-    function visit(node: Node): Node {
-      if (isExpressionStatement(node)) return visitExpression(node);
-      return visitEachChild(node, visit, context);
-    }
-    return (node => visitNode(node, visit));
-  } as TransformerFactory<SourceFile>;
-
-  function visitExpression(node: ExpressionStatement): Node {
-    const callExpression = node.expression;
-    if (!isCallExpression(callExpression)) return node;
-
-    const propertyAccessExpression = callExpression.expression;
-    if (
-      !isPropertyAccessExpression(propertyAccessExpression)
-      || !(isIdentifier(propertyAccessExpression.expression) && propertyAccessExpression.expression.escapedText === 'CustomElement')
-      || !(isIdentifier(propertyAccessExpression.name) && propertyAccessExpression.name.escapedText === 'define')
-    ) return node;
-
-    const $arguments = callExpression.arguments;
-    if ($arguments.length !== 2) return node;
-
-    const [definitionExpression, className] = $arguments;
-    if (!isIdentifier(className)) return node;
-    if (!isStringLiteral(definitionExpression) && !isObjectLiteralExpression(definitionExpression)) return node;
-
-    const spreadAssignment = createSpreadAssignment(createIdentifier('__au2ViewDef'));
-    const newDefinition = isStringLiteral(definitionExpression)
-      ? createObjectLiteralExpression([
-        spreadAssignment,
-        createPropertyAssignment('name', definitionExpression),
-      ])
-      : createObjectLiteralExpression([
-        spreadAssignment,
-        ...definitionExpression.properties,
-      ]);
-    const newCallExpression = updateCallExpression(callExpression, propertyAccessExpression, undefined, [newDefinition, className]);
-    return updateExpressionStatement(node, newCallExpression);
-  }
-}
-
 function createAuResourceTransformer(): TransformerFactory<SourceFile> {
   return function factory(context) {
     function visit(node: Node): Node {
@@ -406,20 +364,6 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
 }
 
 function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
-  // CustomElement.define
-  if (isExpressionStatement(node)) {
-    const statement = getText(node, code);
-    if (!statement.startsWith('CustomElement.define')) return;
-    const sf = createSourceFile('temp.ts', statement, ScriptTarget.Latest);
-    const result = transform(sf, [createDefineElementTransformer()]);
-    const modifiedContent = createPrinter().printFile(result.transformed[0]);
-    return {
-      defineElementInformation: {
-        position: getPosition(node, code),
-        modifiedContent
-      }
-    };
-  }
 
   if (!isClassDeclaration(node) || !node.name || !isExported(node)) return;
   const pos = ensureTokenStart(node.pos, code);
@@ -458,7 +402,7 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
           position: getPosition(decorator, code),
           namePosition: getPosition(customName, code)
         },
-        runtimeImportName: filePair ? 'CustomElement' : undefined,
+        runtimeImportName: filePair ? type : undefined,
       };
     }
   } else {
@@ -468,42 +412,31 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       case 'customElement': {
         if (!isImplicitResource || !filePair) return;
         return {
-          type: 'customElement',
+          type,
           className,
           implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: 'CustomElement',
+          runtimeImportName: type,
         };
       }
-      case 'customAttribute':
-        resourceDefinitionStatement = createDefinitionStatement('ca');
-        runtimeImportName = 'CustomAttribute';
-        break;
 
       case 'templateController':
-        resourceDefinitionStatement = createDefinitionStatement('tc');
-        runtimeImportName = 'CustomAttribute';
+        resourceDefinitionStatement = `@${type}({ name: '${name}', isTemplateController: true })\n`;
+        runtimeImportName = type;
         break;
 
+      case 'customAttribute':
       case 'valueConverter':
-        resourceDefinitionStatement = `\nValueConverter.define('${name}', ${className});\n`;
-        runtimeImportName = 'ValueConverter';
-        break;
-
       case 'bindingBehavior':
-        resourceDefinitionStatement = `\nBindingBehavior.define('${name}', ${className});\n`;
-        runtimeImportName = 'BindingBehavior';
-        break;
-
       case 'bindingCommand':
-        resourceDefinitionStatement = `\nBindingCommand.define('${name}', ${className});\n`;
-        runtimeImportName = 'BindingCommand';
+        resourceDefinitionStatement = `@${type}('${name}')\n`;
+        runtimeImportName = type;
         break;
     }
 
     const result: IFoundResource = {
       type,
       modification: {
-        insert: resourceDefinitionStatement ? [[node.end, resourceDefinitionStatement]] : void 0
+        insert: resourceDefinitionStatement ? [[getPosition(node, code).pos, resourceDefinitionStatement]] : void 0
       },
       localDep: className,
     };
@@ -513,16 +446,6 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     }
 
     return result;
-  }
-
-  function createDefinitionStatement(type: 'ca' | 'tc'): string {
-    const superDefnIdentifier = `sup${className}Defn`;
-    const superDefnStatement = `\nlet ${superDefnIdentifier} = { bindables: {} };\ntry { ${superDefnIdentifier} = CustomAttribute.getDefinition(${className}.prototype.constructor); } catch { /*ignore*/ }\n`;
-    const bindableOption = `, bindables: { ...${superDefnIdentifier}.bindables }`;
-    switch (type) {
-      case 'ca': return `${superDefnStatement}CustomAttribute.define({ name: '${name}'${bindableOption} }, ${className});\n`;
-      case 'tc': return `${superDefnStatement}CustomAttribute.define({ name: '${name}', isTemplateController: true${bindableOption} }, ${className});\n`;
-    }
   }
 }
 
@@ -559,10 +482,6 @@ function collectClassDecorators(node: ClassDeclaration): IResourceDecorator | un
   }
 
   return resourceType;
-}
-
-function getText(node: Node, code: string, offset = 0) {
-  return code.slice(ensureTokenStart(node.pos + offset, code), node.end);
 }
 
 function getPosition(node: Node, code: string): IPos {

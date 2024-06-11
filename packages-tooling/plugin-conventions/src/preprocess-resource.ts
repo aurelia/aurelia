@@ -4,7 +4,6 @@ import {
   type Node,
   type SourceFile,
   type TransformerFactory,
-  type ExpressionStatement,
   type ClassDeclaration,
   type Identifier,
 } from 'typescript';
@@ -28,11 +27,9 @@ const {
   getModifiers,
   isCallExpression,
   isClassDeclaration,
-  isExpressionStatement,
   isIdentifier,
   isImportDeclaration,
   isObjectLiteralExpression,
-  isPropertyAccessExpression,
   isPropertyDeclaration,
   isNamedImports,
   isStringLiteral,
@@ -42,11 +39,8 @@ const {
   factory: {
     createIdentifier,
     createObjectLiteralExpression,
-    createPropertyAssignment,
     createSpreadAssignment,
-    updateCallExpression,
     updateClassDeclaration,
-    updateExpressionStatement,
     updatePropertyDeclaration,
   }
 } = pkg;

@@ -98,7 +98,6 @@ interface IResourceDecorator {
 }
 
 interface IModifyResourceOptions {
-  exportedClassName?: string;
   implicitElement?: IPos;
   localDeps: string[];
   modifications: Modification[];
@@ -182,7 +181,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
 
   if (options.enableConventions) {
     m = modifyResource(unit, m, {
-      exportedClassName,
       implicitElement,
       localDeps,
       modifications,
@@ -208,7 +206,6 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     modifications,
     customElementDecorator,
     transformHtmlImportSpecifier = s => s,
-    exportedClassName,
     defineElementInformation,
   } = options;
 

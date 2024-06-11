@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { Registration, noop } from '@aurelia/kernel';
+import { Registration, noop, resolve } from '@aurelia/kernel';
 import {
   INode,
   customElement,
@@ -1017,6 +1017,28 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.deepEqual(calls, ['deactivate', 'hide']);
         }
       },
+      {
+        title: 'calls prevent default on form submit event',
+        async afterStarted(appCreationResult, dialogService) {
+          let submit: () => void;
+          let e: SubmitEvent;
+          await dialogService.open({
+            template: '<form submit.trigger="onSubmit($event)"><button>Submit</button></form>',
+            component: () => class {
+              dom = resolve(IDialogDom);
+              activate() {
+                submit = () => this.dom.contentHost.querySelector('button').click();
+              }
+              onSubmit(event: Event) {
+                e = event as SubmitEvent;
+              }
+            }
+          });
+
+          submit();
+          assert.strictEqual(e?.defaultPrevented, true);
+        },
+      }
     ];
 
     // #region test run

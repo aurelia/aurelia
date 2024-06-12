@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **event:** support common event modifier on all events (#1994) ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **dialog:** ability to animate using animator instead of lifecycles (#1986) ([a2477e5](https://github.com/aurelia/aurelia/commit/a2477e5))
+
+
+### Bug Fixes:
+
+* **dialog:** prevent default actionless form submit ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **css-modules:** alter bindings instead of class registration (#1989) ([85917a9](https://github.com/aurelia/aurelia/commit/85917a9))
+
+
+### Refactorings:
+
+* **projection:** use $all instead of * to include all node types (#1987) ([337cb34](https://github.com/aurelia/aurelia/commit/337cb34))
+
 <a name="2.0.0-beta.18"></a>
 # 2.0.0-beta.18 (2024-05-23)
 

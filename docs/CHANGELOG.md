@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **event:** support common event modifier on all events (#1994) ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **di:** ability to deregister key (#1981) ([8eb5c36](https://github.com/aurelia/aurelia/commit/8eb5c36))
+* **validation:** state rule (#1985) ([8f2df94](https://github.com/aurelia/aurelia/commit/8f2df94))
+* **plugin-conventions:** support foo.module.css CSS module convention (#1988) ([d8791ae](https://github.com/aurelia/aurelia/commit/d8791ae))
+* **dialog:** ability to animate using animator instead of lifecycles (#1986) ([a2477e5](https://github.com/aurelia/aurelia/commit/a2477e5))
+
+
+### Bug Fixes:
+
+* **dialog:** prevent default actionless form submit ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **plugin-conventions:** relax typescript dependency version ([02921ca](https://github.com/aurelia/aurelia/commit/02921ca))
+* **router-lite:** replace transition plan for same component with different paths (#1982) ([5d54b7f](https://github.com/aurelia/aurelia/commit/5d54b7f))
+
+
+### Refactorings:
+
+* **css-modules:** alter bindings instead of class registration (#1989) ([85917a9](https://github.com/aurelia/aurelia/commit/85917a9))
+* **projection:** use $all instead of * to include all node types (#1987) ([337cb34](https://github.com/aurelia/aurelia/commit/337cb34))
+
 <a name="2.0.0-beta.18"></a>
 # 2.0.0-beta.18 (2024-05-23)
 

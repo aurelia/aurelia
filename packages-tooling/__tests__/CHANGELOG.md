@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **plugin-conventions:** support foo.module.css CSS module convention (#1988) ([d8791ae](https://github.com/aurelia/aurelia/commit/d8791ae))
+
 <a name="2.0.0-beta.18"></a>
 # 2.0.0-beta.18 (2024-05-23)
 

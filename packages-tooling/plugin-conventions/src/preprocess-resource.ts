@@ -61,16 +61,6 @@ interface CustomElementDecorator {
   namePosition: IPos;
 }
 
-type ReplaceableDecorator = {
-  isDefinitionPart: boolean;
-  position: IPos;
-  modifiedContent: string;
-};
-
-type BindableDecorator = ReplaceableDecorator & {
-  isClassDecorator: boolean;
-};
-
 interface DefineElementInformation {
   position: IPos;
   modifiedContent: string;
@@ -231,19 +221,19 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
           const elementStatement = unit.contents.slice(customElementDecorator.position.end, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
-          m.append(`\n@customElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);// ${decoratorStatements}${bindableStatements}
+          m.append(`\n@customElement({ ...${viewDef}, name: ${name}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })${elementStatement}`);
         } else {
           // CLASS -> CLASS CustomElement.define({ ...viewDef, dependencies: [ ...viewDef.dependencies, ...localDeps ] }, exportedClassName);
           const elementStatement = unit.contents.slice(pos, implicitElement.end);
           m.replace(pos, implicitElement.end, '');
-          m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);// ${decoratorStatements}${bindableStatements}
+          m.append(`\n@customElement({ ...${viewDef}, dependencies: [ ...${viewDef}.dependencies, ${localDeps.join(', ')} ] })\n${elementStatement}`);
         }
       } else {
         if (customElementDecorator) {
           // @customElement('custom-name') CLASS -> CLASS CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
           const name = unit.contents.slice(customElementDecorator.namePosition.pos, customElementDecorator.namePosition.end);
           m.replace(customElementDecorator.position.pos - 1, customElementDecorator.position.end, '');
-          m.insert(implicitElement.pos, `@customElement({ ...${viewDef}, name: ${name} })\n`); // ${decoratorStatements}${bindableStatements}
+          m.insert(implicitElement.pos, `@customElement({ ...${viewDef}, name: ${name} })`);
         } else {
           // CLASS -> CLASS CustomElement.define(viewDef, exportedClassName);
           let sb = viewDef;
@@ -399,29 +389,17 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
   } else {
     let resourceDefinitionStatement: string | undefined = '';
     let runtimeImportName: string | undefined;
-    switch (type) {
-      case 'customElement': {
-        if (!isImplicitResource || !filePair) return;
-        return {
-          type,
-          className,
-          implicitStatement: { pos: pos, end: node.end },
-          runtimeImportName: type,
-        };
-      }
-
-      case 'templateController':
-        resourceDefinitionStatement = `@${type}({ name: '${name}', isTemplateController: true })\n`;
-        runtimeImportName = type;
-        break;
-
-      case 'customAttribute':
-      case 'valueConverter':
-      case 'bindingBehavior':
-      case 'bindingCommand':
-        resourceDefinitionStatement = `@${type}('${name}')\n`;
-        runtimeImportName = type;
-        break;
+    if (type === 'customElement') {
+      if (!isImplicitResource || !filePair) return;
+      return {
+        type,
+        className,
+        implicitStatement: { pos: pos, end: node.end },
+        runtimeImportName: type,
+      };
+    } else {
+      resourceDefinitionStatement = `@${type}('${name}')\n`;
+      runtimeImportName = type;
     }
 
     const result: IFoundResource = {

@@ -30,12 +30,11 @@ describe('preprocessResource', function () {
 
   it('injects custom element definition', function () {
     const code = `\nexport class FooBar {}\n`;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 
+@customElement(__au2ViewDef)
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
-
 `;
     const result = preprocessResource(
       {
@@ -50,11 +49,10 @@ CustomElement.define(__au2ViewDef, FooBar);
 
   it('injects custom element definition for loosely equal class name', function () {
     const code = `export class UAFooBarCustomElement {}\n`;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './ua-foo-bar.html';
+@customElement(__au2ViewDef)
 export class UAFooBarCustomElement {}
-CustomElement.define(__au2ViewDef, UAFooBarCustomElement);
-
 `;
     const result = preprocessResource(
       {
@@ -69,11 +67,10 @@ CustomElement.define(__au2ViewDef, UAFooBarCustomElement);
 
   it('injects custom element definition for non-kebab case file name', function () {
     const code = `export class FooBar {}\n`;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './FooBar.html';
+@customElement(__au2ViewDef)
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
-
 `;
     const result = preprocessResource(
       {
@@ -96,13 +93,12 @@ export class FooBar {}
 function b() {}
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { containerless, CustomElement } from '@aurelia/runtime-html';
+import { containerless, customElement } from '@aurelia/runtime-html';
 
 const A = 0;
+@customElement(__au2ViewDef)
 @containerless()
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
-
 
 function b() {}
 `;
@@ -148,12 +144,10 @@ export class FooBar {}
 export class FooBar {}
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { customElement, CustomElement } from '@aurelia/runtime-html';
+import { customElement } from '@aurelia/runtime-html';
 
-
+@customElement({ ...__au2ViewDef, name: 'lorem' })
 export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, name: 'lorem' }, FooBar);
-
 `;
     const result = preprocessResource(
       {
@@ -189,12 +183,9 @@ export class FooBar {}
 
   it('injects custom attribute definition', function () {
     const code = `export class FooBarCustomAttribute {}\n`;
-    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+    const expected = `import { customAttribute } from '@aurelia/runtime-html';
+@customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
-let supFooBarCustomAttributeDefn = { bindables: {} };
-try { supFooBarCustomAttributeDefn = CustomAttribute.getDefinition(FooBarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttributeDefn.bindables } }, FooBarCustomAttribute);
-
 `;
     const result = preprocessResource(
       {
@@ -208,12 +199,9 @@ CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttribu
 
   it('injects custom attribute definition for non-kebab case file name', function () {
     const code = `export class FooBarCustomAttribute {}\n`;
-    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+    const expected = `import { customAttribute } from '@aurelia/runtime-html';
+@customAttribute('foo-bar')
 export class FooBarCustomAttribute {}
-let supFooBarCustomAttributeDefn = { bindables: {} };
-try { supFooBarCustomAttributeDefn = CustomAttribute.getDefinition(FooBarCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'foo-bar', bindables: { ...supFooBarCustomAttributeDefn.bindables } }, FooBarCustomAttribute);
-
 `;
     const result = preprocessResource(
       {
@@ -248,12 +236,9 @@ export class FooBar {}
 
   it('injects template controller definition', function () {
     const code = `export class FooBarTemplateController {}\n`;
-    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+    const expected = `import { templateController } from '@aurelia/runtime-html';
+@templateController('foo-bar')
 export class FooBarTemplateController {}
-let supFooBarTemplateControllerDefn = { bindables: {} };
-try { supFooBarTemplateControllerDefn = CustomAttribute.getDefinition(FooBarTemplateController.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { ...supFooBarTemplateControllerDefn.bindables } }, FooBarTemplateController);
-
 `;
     const result = preprocessResource(
       {
@@ -267,12 +252,9 @@ CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables:
 
   it('injects template controller definition for non-kebab case file name', function () {
     const code = `export class FooBarTemplateController {}\n`;
-    const expected = `import { CustomAttribute } from '@aurelia/runtime-html';
+    const expected = `import { templateController } from '@aurelia/runtime-html';
+@templateController('foo-bar')
 export class FooBarTemplateController {}
-let supFooBarTemplateControllerDefn = { bindables: {} };
-try { supFooBarTemplateControllerDefn = CustomAttribute.getDefinition(FooBarTemplateController.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'foo-bar', isTemplateController: true, bindables: { ...supFooBarTemplateControllerDefn.bindables } }, FooBarTemplateController);
-
 `;
     const result = preprocessResource(
       {
@@ -307,10 +289,9 @@ export class FooBarCustomAttribute {}
 
   it('injects value converter definition', function () {
     const code = `export class FooBarValueConverter {}\n`;
-    const expected = `import { ValueConverter } from '@aurelia/runtime-html';
+    const expected = `import { valueConverter } from '@aurelia/runtime-html';
+@valueConverter('fooBar')
 export class FooBarValueConverter {}
-ValueConverter.define('fooBar', FooBarValueConverter);
-
 `;
     const result = preprocessResource(
       {
@@ -324,10 +305,9 @@ ValueConverter.define('fooBar', FooBarValueConverter);
 
   it('injects value converter definition for non-kebab case file name', function () {
     const code = `export class FooBarValueConverter {}\n`;
-    const expected = `import { ValueConverter } from '@aurelia/runtime-html';
+    const expected = `import { valueConverter } from '@aurelia/runtime-html';
+@valueConverter('fooBar')
 export class FooBarValueConverter {}
-ValueConverter.define('fooBar', FooBarValueConverter);
-
 `;
     const result = preprocessResource(
       {
@@ -362,10 +342,9 @@ export class FooBar {}
 
   it('injects binding behavior definition', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
-    const expected = `import { BindingBehavior } from '@aurelia/runtime-html';
+    const expected = `import { bindingBehavior } from '@aurelia/runtime-html';
+@bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
-BindingBehavior.define('fooBar', FooBarBindingBehavior);
-
 `;
     const result = preprocessResource(
       {
@@ -379,10 +358,9 @@ BindingBehavior.define('fooBar', FooBarBindingBehavior);
 
   it('injects binding behavior definition for non-kebab case file name', function () {
     const code = `export class FooBarBindingBehavior {}\n`;
-    const expected = `import { BindingBehavior } from '@aurelia/runtime-html';
+    const expected = `import { bindingBehavior } from '@aurelia/runtime-html';
+@bindingBehavior('fooBar')
 export class FooBarBindingBehavior {}
-BindingBehavior.define('fooBar', FooBarBindingBehavior);
-
 `;
     const result = preprocessResource(
       {
@@ -417,10 +395,9 @@ export class FooBar {}
 
   it('injects binding command definition', function () {
     const code = `export class FooBarBindingCommand {}\n`;
-    const expected = `import { BindingCommand } from '@aurelia/runtime-html';
+    const expected = `import { bindingCommand } from '@aurelia/runtime-html';
+@bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
-BindingCommand.define('foo-bar', FooBarBindingCommand);
-
 `;
     const result = preprocessResource(
       {
@@ -434,10 +411,9 @@ BindingCommand.define('foo-bar', FooBarBindingCommand);
 
   it('injects binding command definition for non-kebab case file name', function () {
     const code = `export class FooBarBindingCommand {}\n`;
-    const expected = `import { BindingCommand } from '@aurelia/runtime-html';
+    const expected = `import { bindingCommand } from '@aurelia/runtime-html';
+@bindingCommand('foo-bar')
 export class FooBarBindingCommand {}
-BindingCommand.define('foo-bar', FooBarBindingCommand);
-
 `;
     const result = preprocessResource(
       {
@@ -470,28 +446,6 @@ export class FooBarBindingCommand {}
     assert.equal(result.code, expected);
   });
 
-  it('merges CustomElement.define', function () {
-    const code = `import { CustomElement } from '@aurelia/runtime-html'
-export class FooBar {}
-CustomElement.define({ name: 'lorem', bindables: ['value'] }, FooBar);
-`;
-    const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { CustomElement } from '@aurelia/runtime-html';
-export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, name: "lorem", bindables: ["value"] }, FooBar);
-
-`;
-    const result = preprocessResource(
-      {
-        path: path.join('bar', 'foo-bar.js'),
-        contents: code,
-        filePair: 'foo-bar.html'
-      },
-      preprocessOptions({ hmr: false })
-    );
-    assert.equal(result.code, expected);
-  });
-
   it('merges $au - custom element', function () {
     const code = `
 export class FooBar {
@@ -499,7 +453,7 @@ export class FooBar {
   x: string;
 }
 `;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 
 export class FooBar {
@@ -554,19 +508,16 @@ export class AbcBindingCommand {
 
 }
 `;
-    const expected = `import { CustomAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
+    const expected = `import { customAttribute, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 import {Foo} from './foo.js';
 import Aurelia, { valueConverter } from 'aurelia';
 
 export class LeaveMeAlone {}
 
+@customAttribute('lorem')
 export class LoremCustomAttribute {
 
 }
-let supLoremCustomAttributeDefn = { bindables: {} };
-try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
-
 
 @valueConverter('one')
 export class ForOne {
@@ -575,25 +526,22 @@ export class ForOne {
   }
 }
 
+@valueConverter('theSecond')
 export class TheSecondValueConverter {
   toView(value) {
     return value;
   }
 }
-ValueConverter.define('theSecond', TheSecondValueConverter);
 
-
+@bindingBehavior('some')
 export class SomeBindingBehavior {
 
 }
-BindingBehavior.define('some', SomeBindingBehavior);
 
-
+@bindingCommand('abc')
 export class AbcBindingCommand {
 
 }
-BindingCommand.define('abc', AbcBindingCommand);
-
 `;
     const result = preprocessResource(
       {
@@ -638,47 +586,40 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo.js';
-import { templateController, other, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
+import { templateController, other, customElement, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
 
 
+@customAttribute('lorem')
 export class LoremCustomAttribute {
 
 }
-let supLoremCustomAttributeDefn = { bindables: {} };
-try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
-
 
 @templateController('one')
 export class ForOne {
 }
 
+@valueConverter('theSecond')
 export class TheSecondValueConverter {
   toView(value: string): string {
     return value;
   }
 }
-ValueConverter.define('theSecond', TheSecondValueConverter);
 
-
+@bindingBehavior('some')
 export class SomeBindingBehavior {
 
 }
-BindingBehavior.define('some', SomeBindingBehavior);
 
-
+@bindingCommand('abc')
 export class AbcBindingCommand {
 
 }
-BindingCommand.define('abc', AbcBindingCommand);
 
-
-export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
-`;
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+export class FooBar {}`;
     const result = preprocessResource(
       {
         path: path.join('bar', 'foo-bar.ts'),
@@ -724,48 +665,40 @@ export class AbcBindingCommand {
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
 import {Foo} from './foo.js';
-import { templateController, customElement, other, CustomElement, CustomAttribute, ValueConverter, BindingBehavior, BindingCommand } from '@aurelia/runtime-html';
+import { templateController, customElement, other, customAttribute, valueConverter, bindingBehavior, bindingCommand } from '@aurelia/runtime-html';
 
 export class LeaveMeAlone {}
 
 
 
+@customAttribute('lorem')
 export class LoremCustomAttribute {
 
 }
-let supLoremCustomAttributeDefn = { bindables: {} };
-try { supLoremCustomAttributeDefn = CustomAttribute.getDefinition(LoremCustomAttribute.prototype.constructor); } catch { /*ignore*/ }
-CustomAttribute.define({ name: 'lorem', bindables: { ...supLoremCustomAttributeDefn.bindables } }, LoremCustomAttribute);
-
 
 @templateController('one')
 export class ForOne {
 }
 
+@valueConverter('theSecond')
 export class TheSecondValueConverter {
   toView(value: string): string {
     return value;
   }
 }
-ValueConverter.define('theSecond', TheSecondValueConverter);
 
-
+@bindingBehavior('some')
 export class SomeBindingBehavior {
 
 }
-BindingBehavior.define('some', SomeBindingBehavior);
 
-
+@bindingCommand('abc')
 export class AbcBindingCommand {
 
 }
-BindingCommand.define('abc', AbcBindingCommand);
 
-
-
-export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, name: 'lorem', dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] }, FooBar);
-`;
+@customElement({ ...__au2ViewDef, name: 'lorem', dependencies: [ ...__au2ViewDef.dependencies, LoremCustomAttribute, ForOne, TheSecondValueConverter, SomeBindingBehavior, AbcBindingCommand ] })
+export class FooBar {}`;
     const result = preprocessResource(
       {
         path: path.join('bar', 'foo-bar.ts'),
@@ -786,21 +719,19 @@ export class SomeValueConverter {
   }
 }
 `;
-    const expected = `import { CustomElement, ValueConverter } from '@aurelia/runtime-html';
+    const expected = `import { customElement, valueConverter } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './foo-bar.html';
 
 
+@valueConverter('some')
 export class SomeValueConverter {
   toView(value: string): string {
     return value;
   }
 }
-ValueConverter.define('some', SomeValueConverter);
 
-
-export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] }, FooBar);
-`;
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
+export class FooBar {}`;
     const result = preprocessResource(
       {
         path: path.join('bar', 'foo-bar.ts'),
@@ -825,22 +756,20 @@ export class SomeValueConverter {
 }
 `;
     const expected = `import * as __au2ViewDef from './foo-bar.html';
-import { something, CustomElement, ValueConverter } from '@aurelia/runtime-html';
+import { something, customElement, valueConverter } from '@aurelia/runtime-html';
 
 
+@valueConverter('some')
 @something()
 export class SomeValueConverter {
   toView(value: string): string {
     return value;
   }
 }
-ValueConverter.define('some', SomeValueConverter);
 
-
+@customElement({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] })
 @something
-export class FooBar {}
-CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependencies, SomeValueConverter ] }, FooBar);
-`;
+export class FooBar {}`;
     const result = preprocessResource(
       {
         path: path.join('bar', 'foo-bar.ts'),
@@ -854,12 +783,11 @@ CustomElement.define({ ...__au2ViewDef, dependencies: [ ...__au2ViewDef.dependen
 
   it('injects custom element definition with index file', function () {
     const code = `\nexport class FooBar {}\n`;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
 
+@customElement(__au2ViewDef)
 export class FooBar {}
-CustomElement.define(__au2ViewDef, FooBar);
-
 `;
     const result = preprocessResource(
       {
@@ -874,11 +802,10 @@ CustomElement.define(__au2ViewDef, FooBar);
 
   it('injects custom element definition for loosely equal class name with index file', function () {
     const code = `export class UAFooBarCustomElement {}\n`;
-    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+    const expected = `import { customElement } from '@aurelia/runtime-html';
 import * as __au2ViewDef from './index.html';
+@customElement(__au2ViewDef)
 export class UAFooBarCustomElement {}
-CustomElement.define(__au2ViewDef, UAFooBarCustomElement);
-
 `;
     const result = preprocessResource(
       {

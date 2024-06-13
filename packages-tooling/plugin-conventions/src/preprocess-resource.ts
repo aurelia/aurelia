@@ -387,8 +387,6 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
       };
     }
   } else {
-    let resourceDefinitionStatement: string | undefined = '';
-    let runtimeImportName: string | undefined;
     if (type === 'customElement') {
       if (!isImplicitResource || !filePair) return;
       return {
@@ -397,24 +395,15 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
         implicitStatement: { pos: pos, end: node.end },
         runtimeImportName: type,
       };
-    } else {
-      resourceDefinitionStatement = `@${type}('${name}')\n`;
-      runtimeImportName = type;
     }
-
-    const result: IFoundResource = {
+    return {
       type,
       modification: {
-        insert: resourceDefinitionStatement ? [[getPosition(node, code).pos, resourceDefinitionStatement]] : void 0
+        insert: [[getPosition(node, code).pos, `@${type}('${name}')\n`]]
       },
       localDep: className,
+      runtimeImportName: type,
     };
-
-    if (runtimeImportName) {
-      result.runtimeImportName = runtimeImportName;
-    }
-
-    return result;
   }
 }
 

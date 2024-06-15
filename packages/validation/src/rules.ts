@@ -41,7 +41,7 @@ export interface IValidationMessageProvider {
 export const IValidationMessageProvider = /*@__PURE__*/DI.createInterface<IValidationMessageProvider>('IValidationMessageProvider');
 
 export interface ValidationRuleAlias {
-  name: string;
+  name: PropertyKey;
   defaultMessage?: string;
 }
 export interface ValidationRuleDefinition {
@@ -87,9 +87,16 @@ export function validationRule(definition: ValidationRuleDefinition) {
 export class BaseValidationRule<TValue = any, TObject extends IValidateable = IValidateable> implements IValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = '';
   public tag?: string = (void 0)!;
+
+  protected _messageKey: string;
+  public get messageKey(): string { return this._messageKey; }
+  public set messageKey(value: string) { this._messageKey = value; }
+
   public constructor(
-    public messageKey: string = (void 0)!,
-  ) { }
+    messageKey: string = (void 0)!,
+  ) {
+    this._messageKey = messageKey;
+  }
   public canExecute(_object?: IValidateable): boolean { return true; }
   public execute(_value: TValue, _object?: TObject): boolean | Promise<boolean> {
     throw createMappedError(ErrorNames.method_not_implemented, 'execute');
@@ -246,23 +253,37 @@ export class EqualsRule extends BaseValidationRule implements IEqualsRule {
   }
 }
 
-export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState = unknown> extends BaseValidationRule<TValue, TObject> {
+export class StateRule<TValue = any, TObject extends IValidateable = IValidateable, TState extends PropertyKey = PropertyKey> extends BaseValidationRule<TValue, TObject> {
   public static readonly $TYPE: string = 'StateRule';
+
+  private _explicitMessageKey: string | null = null;
+
+  protected _messageKey!: string;
+  public get messageKey(): string { return this._explicitMessageKey ?? this._messageKey ?? (void 0)!; }
+  public set messageKey(value: string) { this._explicitMessageKey = value; }
 
   private _state: TState;
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
-    private readonly messageMapper: (state: TState) => string,
+    private readonly messages: Partial<Record<TState, string>>,
   ) {
     super(void 0);
     this._state = validState;
+    const aliases: ValidationRuleAlias[] = [];
+    for (const [name, defaultMessage] of Object.entries<string>(messages as Record<TState, string>)) {
+      aliases.push({ name, defaultMessage });
+    }
+    ValidationRuleAliasMessage.setDefaultMessage(this, { aliases }, false);
   }
 
   public execute(value: unknown, object?: TObject): boolean | Promise<boolean> {
     return onResolve(
       this.stateFunction(value as TValue, object),
-      state => (this._state = state as TState) === this.validState
+      state => {
+        this._messageKey = (this._state = state as TState) as string;
+        return state === this.validState;
+      }
     );
   }
 
@@ -272,8 +293,6 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
       console.warn('Serialization of a StateRule is not supported.');
     }
   }
-
-  public getMessage(): string { return this.messageKey = this.messageMapper(this._state); }
 }
 
 // #region definitions

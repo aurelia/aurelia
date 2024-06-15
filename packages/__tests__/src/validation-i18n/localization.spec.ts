@@ -73,7 +73,7 @@ describe('validation-i18n/localization.spec.ts', function () {
         validationRules
           .on(this.person3)
           .ensure('name')
-          .satisfiesState<StateError, string>('none', (_v, _o) => this.stateError, (state) => `stateError.${state}`);
+          .satisfiesState<StateError, string>('none', (_v, _o) => this.stateError, { foo: 'stateError.foo', bar: 'stateError.bar' });
       }
 
       public unbinding() {

@@ -64,10 +64,14 @@ export const ValidationRuleAliasMessage = Object.freeze({
       };
       aliases = toArray(Object.entries(allMessages)).map(([name, defaultMessage]) => ({ name, defaultMessage }));
     }
-    defineMetadata(aliases, rule instanceof Function ? rule : rule.constructor, this.aliasKey);
+    defineMetadata(aliases, rule, this.aliasKey);
   },
   getDefaultMessages<TRule extends IValidationRule>(rule: Constructable<TRule> | TRule): ValidationRuleAlias[] {
-    return getMetadata(this.aliasKey, rule instanceof Function ? rule : rule.constructor)!;
+    const messages = getMetadata<ValidationRuleAlias[]>(this.aliasKey, rule)!;
+
+    if (messages != null || rule instanceof Function) return messages;
+
+    return getMetadata<ValidationRuleAlias[]>(this.aliasKey, rule.constructor)!;
   }
 });
 

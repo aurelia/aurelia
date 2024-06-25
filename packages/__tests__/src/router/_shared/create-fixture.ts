@@ -137,6 +137,8 @@ export async function createFixture<T extends Constructable>(
       RouterConfiguration.customize();
 
       await au.stop(true);
+
+      au.dispose();
     },
     logTicks(callback: (tick: number) => void): () => void {
       return startTickLogging(window, callback);

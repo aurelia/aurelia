@@ -231,9 +231,11 @@ export class InstructionComponent {
       ? this.type!
       : container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.name!))!.getFactory!(container)!.Type;
     const instance = container.invoke(Type);
+    // TODO: Investigate this!
     // const instance: IRouteableComponent = this.isType()
     //   ? container.invoke(this.type!)
     //   : container.get(routerComponentResolver(this.name!));
+
     // TODO: Implement non-traversing lookup (below) based on router configuration
     // let instance;
     // if (this.isType()) {
@@ -275,6 +277,7 @@ export class InstructionComponent {
   }
 }
 
+// TODO: Investigate this (should possibly be added back)
 // function routerComponentResolver(name: string): IResolver<IRouteableComponent> {
 //   const key = CustomElement.keyFrom(name);
 //   return {

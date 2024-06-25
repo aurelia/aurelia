@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, LoadInstruction } from '../interfaces';
-import { IRouter } from '../router';
+import { IRouter, Router } from '../router';
 import { arrayRemove } from '../utilities/utils';
 import { ViewportContent } from './viewport-content';
 import { RoutingInstruction } from '../instructions/routing-instruction';
@@ -480,6 +480,7 @@ export class Viewport extends Endpoint {
             if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
               const routerOptions = this.router.configuration.options;
               this.getNavigationContent(coordinator)!.createComponent(
+                coordinator,
                 this.connectedCE!,
                 this.options.fallback || routerOptions.fallback,
                 this.options.fallbackAction || routerOptions.fallbackAction);
@@ -504,11 +505,15 @@ export class Viewport extends Endpoint {
             if (!canLoadResult) {
               step.cancel();
               coordinator.cancel();
-              this.getNavigationContent(coordinator)!.instruction.nextScopeInstructions = null;
+              const instruction = this.getNavigationContent(coordinator)!.instruction;
+              coordinator.removeInstructions(instruction.dynasty);
+              instruction.nextScopeInstructions = null;
               return;
             }
           } else { // Denied and (probably) redirected
-            this.getNavigationContent(coordinator)!.instruction.nextScopeInstructions = null;
+            const instruction = this.getNavigationContent(coordinator)!.instruction;
+            coordinator.removeInstructions(instruction.dynasty);
+            instruction.nextScopeInstructions = null;
             if (typeof canLoadResult === 'string') {
               const scope = this.scope;
               const options = this.router.configuration.options;
@@ -526,7 +531,7 @@ export class Viewport extends Endpoint {
             return Runner.run(step,
               (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
               (innerStep: Step<void>) => {
-                void this.router.load(canLoadResult, { append: true });
+                void this.router.load(canLoadResult, { append: coordinator });
                 return innerStep.exit();
               },
             );
@@ -656,6 +661,7 @@ export class Viewport extends Endpoint {
         const routerOptions = this.router.configuration.options;
         const navigationContent = this.getNavigationContent(coordinator)!;
         navigationContent.createComponent(
+          coordinator,
           this.connectedCE!,
           this.options.fallback || routerOptions.fallback,
           this.options.fallbackAction || routerOptions.fallbackAction);

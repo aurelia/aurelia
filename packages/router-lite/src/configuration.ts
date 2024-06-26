@@ -10,6 +10,7 @@ import { ViewportCustomElement } from './resources/viewport';
 import { LoadCustomAttribute } from './resources/load';
 import { HrefCustomAttribute } from './resources/href';
 import { IBaseHref, normalizePath } from './location-manager';
+import { RouteCallback } from './route-callback';
 
 export const RouterRegistration = IRouter as unknown as IRegistry;
 
@@ -65,6 +66,7 @@ function configure(container: IContainer, options?: IRouterConfigurationOptions)
       url.pathname = normalizePath(basePath ?? url.pathname);
       return url;
     }),
+    RouteCallback,
     Registration.instance(IRouterOptions, routerOptions),
     Registration.instance(RouterOptions, routerOptions),
     AppTask.creating(IRouter, _ => { /* ensure a router instance before the app root is instantiated and there by ensuring all the necessary aliases. */ }),

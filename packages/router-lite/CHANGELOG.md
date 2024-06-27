@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Bug Fixes:
+
+* **router-lite:** replace transition plan for same component with different paths (#1982) ([5d54b7f](https://github.com/aurelia/aurelia/commit/5d54b7f))
+
 <a name="2.0.0-beta.18"></a>
 # 2.0.0-beta.18 (2024-05-23)
 

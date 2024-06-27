@@ -78,6 +78,7 @@
     * [Transition plan](router-lite/transition-plans.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)
+* [Understanding synchronous binding](getting-to-know-aurelia/synchronous-binding-system.md)
 * [Dynamic composition](getting-to-know-aurelia/dynamic-composition.md)
 * [Portalling elements](getting-to-know-aurelia/portalling-elements.md)
 * [Observation](getting-to-know-aurelia/observation/README.md)

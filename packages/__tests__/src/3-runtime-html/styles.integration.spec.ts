@@ -1,5 +1,5 @@
-import { CustomElement, Aurelia, cssModules } from '@aurelia/runtime-html';
-import { assert, createFixture, TestContext } from '@aurelia/testing';
+import { CustomElement, Aurelia, cssModules, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { assert, createFixture, createSink, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/styles.integration.spec.ts', function () {
 
@@ -107,6 +107,67 @@ I am green if I am selected and red if I am not
       );
 
       assertClass('p:nth-child(1)', 'a_', 'strike');
+    });
+
+    it('works with class on surrogate elements', function () {
+      @customElement({
+        name: 'el',
+        template: '<template class="b">Hey',
+        dependencies: [cssModules({ 'a': 'a_' }), cssModules({ 'b': 'b_' })]
+      })
+      class El {}
+
+      let i = 0;
+
+      const { assertClass } = createFixture(
+        '<el class="a" component.ref="el">',
+        class { el: ICustomElementViewModel & El; },
+        [El, createSink.warn(() => i = 1)]);
+
+      assert.strictEqual(i, 0);
+      assertClass('el', 'b_', 'a');
+    });
+
+    it('works with class with interpolation', function () {
+      const { assertClass } = createFixture('<my-el>', undefined, [
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div class="some ${myClass}">',
+          dependencies: [cssModules({ 'hey': 'abc' })]
+        }, class MyEl {
+          myClass = "hey";
+        })
+      ]);
+
+      assertClass('div', 'abc', 'some');
+    });
+
+    it('works with bind command and an expression returning string value', function () {
+      const { assertClass } = createFixture('<my-el>', undefined, [
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div class.bind="myClass">',
+          dependencies: [cssModules({ 'hey': 'abc' })]
+        }, class MyEl {
+          myClass = "hey";
+        })
+      ]);
+
+      assertClass('div', 'abc');
+    });
+
+    it('works with bind command and an expression returning an object', function () {
+      const { assertClass } = createFixture('<my-el>', undefined, [
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div class.bind="myClass">',
+          dependencies: [cssModules({ 'hey': 'abc' })]
+        }, class MyEl {
+          myClass = { "hey": true };
+        })
+      ]);
+
+      assertClass('div', 'abc');
     });
   });
 });

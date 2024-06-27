@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **di:** ability to deregister key (#1981) ([8eb5c36](https://github.com/aurelia/aurelia/commit/8eb5c36))
+* **dialog:** ability to animate using animator instead of lifecycles (#1986) ([a2477e5](https://github.com/aurelia/aurelia/commit/a2477e5))
+
+
+### Refactorings:
+
+* **projection:** use $all instead of * to include all node types (#1987) ([337cb34](https://github.com/aurelia/aurelia/commit/337cb34))
+
 <a name="2.0.0-beta.18"></a>
 # 2.0.0-beta.18 (2024-05-23)
 

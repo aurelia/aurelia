@@ -33,13 +33,16 @@ describe('validation-i18n/localization.spec.ts', function () {
       public constructor(public name: string, public age: number) { }
     }
 
+    type StateError = 'none' | 'foo' | 'bar';
     class App {
       public person1: Person = new Person((void 0)!, (void 0)!);
       public person2: Person = new Person((void 0)!, (void 0)!);
+      public person3: Person = new Person((void 0)!, (void 0)!);
       public factory: LocalizedValidationControllerFactory;
       public controller: IValidationController;
       public controllerSpy: Spy;
       public readonly validationRules: IValidationRules;
+      public stateError: StateError = 'none';
 
       public constructor(container: IContainer) {
         const factory = this.factory = new LocalizedValidationControllerFactory();
@@ -66,6 +69,11 @@ describe('validation-i18n/localization.spec.ts', function () {
           .ensure('name')
           .required()
           .withMessageKey('errorMessages:required');
+
+        validationRules
+          .on(this.person3)
+          .ensure('name')
+          .satisfiesState<StateError, string>('none', (_v, _o) => this.stateError, (state) => `stateError.${state}`);
       }
 
       public unbinding() {
@@ -107,6 +115,10 @@ describe('validation-i18n/localization.spec.ts', function () {
                   nameRequired: 'Name is mandatory',
                   errorMessages: {
                     required: 'The value is required'
+                  },
+                  stateError: {
+                    foo: 'Foo Error',
+                    bar: 'Bar Error'
                   }
                 },
                 errorMessages: {
@@ -127,6 +139,10 @@ describe('validation-i18n/localization.spec.ts', function () {
                   nameRequired: 'Name ist notwendig',
                   errorMessages: {
                     required: 'Der Wert ist notwendig'
+                  },
+                  stateError: {
+                    foo: 'Foo Fehler',
+                    bar: 'Bar Fehler'
                   }
                 },
                 errorMessages: {
@@ -193,9 +209,9 @@ describe('validation-i18n/localization.spec.ts', function () {
       controllerSpy.methodCalledTimes('validate', callCount);
     }
 
-    async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy) {
+    async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy, locale: string = 'de') {
       const i18n = container.get(I18N);
-      await i18n.setLocale('de');
+      await i18n.setLocale(locale);
       await platform.domQueue.yield();
       controllerSpy.methodCalledTimes('validate', 1);
     }
@@ -394,6 +410,54 @@ describe('validation-i18n/localization.spec.ts', function () {
         template: `<input type="text" value.two-way="person1.age & validate">`,
         defaultNS: 'foo',
         defaultKeyPrefix: 'errorMessages'
+      }
+    );
+
+    $it('supports translating state rule',
+      async function ({ app, container, host, platform, ctx }) {
+        const controller = app.controller;
+        const controllerSpy = app.controllerSpy;
+
+        const target = host.querySelector('input');
+        assertControllerBinding(controller as ValidationController, 'person3.name', target, controllerSpy);
+
+        app.stateError = 'foo';
+        await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['Foo Error']
+        );
+
+        await changeLocale(container, platform, controllerSpy);
+
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['Foo Fehler']
+        );
+
+        app.stateError = 'bar';
+        await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['Bar Fehler']
+        );
+
+        await changeLocale(container, platform, controllerSpy, 'en');
+
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['Bar Error']
+        );
+
+        app.stateError = 'none';
+        await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid),
+          []
+        );
+      },
+      {
+        template: `<input type="text" value.two-way="person3.name & validate">`
       }
     );
   });

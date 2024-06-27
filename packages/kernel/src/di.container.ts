@@ -15,6 +15,7 @@ import {
   type RegisterSelf,
   type Resolved,
   type Transformer,
+  IDisposableResolver,
 } from './di';
 import { aliasToRegistration, singletonRegistration } from './di.registration';
 import type {
@@ -47,8 +48,11 @@ export class ContainerConfiguration implements IContainerConfiguration {
 
   private constructor(
     public readonly inheritParentResources: boolean,
-    public readonly defaultResolver: (key: Key, handler: IContainer) => IResolver,
-  ) { }
+    public readonly defaultResolver: (
+      key: Key,
+      handler: IContainer
+    ) => IResolver
+  ) {}
 
   public static from(config?: IContainerConfiguration): ContainerConfiguration {
     if (
@@ -129,7 +133,6 @@ export class Container implements IContainer {
     if (parent === null) {
       this.root = this;
       this._factories = new Map<Constructable, Factory>();
-
     } else {
       this.root = parent.root;
       this._factories = parent._factories;
@@ -255,6 +258,25 @@ export class Container implements IContainer {
     return resolver;
   }
 
+  public deregister(key: Key): void {
+    validateKey(key);
+
+    const resolver = this._resolvers.get(key);
+    if (resolver != null) {
+      this._resolvers.delete(key);
+
+      if (isResourceKey(key)) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete this.res[key];
+      }
+
+      if (this._disposableResolvers.has(key)) {
+        (resolver as IDisposableResolver).dispose();
+        this._disposableResolvers.delete(key);
+      }
+    }
+  }
+
   // public deregisterResolverFor<K extends Key>(key: K, searchAncestors: boolean): void {
   //   validateKey(key);
   //   // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -299,7 +321,9 @@ export class Container implements IContainer {
       // Problem is that that interface's type arg can be of type Key, but the getFactory method only works on
       // type Constructable. So the return type of that optional method has this additional constraint, which
       // seems to confuse the type checker.
-      factory.registerTransformer(transformer as unknown as Transformer<Constructable>);
+      factory.registerTransformer(
+        transformer as unknown as Transformer<Constructable>
+      );
       return true;
     }
 

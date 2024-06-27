@@ -1,21 +1,20 @@
-import { IContainer, noop, resolve } from '@aurelia/kernel';
+import { IContainer, createLookup, noop, own, resolve, toArray } from '@aurelia/kernel';
 import { AppTask } from '../app-task';
-import { ICssModulesMapping, INode } from '../dom';
-import { ClassAttributeAccessor } from '../observation/class-attribute-accessor';
+import { ICssClassMapping } from '../dom';
 import { IPlatform } from '../platform';
-import { defineAttribute } from '../resources/custom-attribute';
 import { createInterface, instanceRegistration } from '../utilities-di';
 
 import type { IRegistry } from '@aurelia/kernel';
+import { ITemplateCompilerHooks, TemplateCompilerHooks } from '@aurelia/template-compiler';
 import { objectAssign } from '../utilities';
 
 /**
  * There are 2 implementations of CSS registry: css module registry and shadow dom registry.
  *
- * CSS registry alters the way class attribute works instead.
+ * - CSS registry alters the way class bindings work via altering templates and register interfaces that will alter bindings to class attribute.
  *
- * Shadow dom registry regisiters some interfaces with the custom element container to handle shadow dom styles.
- * abtraction summary:
+ * - Shadow dom registry regisiters some interfaces with the custom element container to handle shadow dom styles.
+ * Shadow DOM abtraction summary:
  * CSS registry ---(register)---> IShadowDOMStyleFactory ---(createStyles)---> IShadowDOMStyles ---(applyTo)---> ShadowRoot
  */
 
@@ -33,35 +32,47 @@ export class CSSModulesProcessorRegistry implements IRegistry {
   ) {}
 
   public register(container: IContainer): void {
-    // it'd be nice to be able to register a template compiler hook instead
-    // so that it's lighter weight on the creation of a custom element with css module
-    // also it'll be more consitent in terms as CSS class output
-    // if custom attribute is used, the class controlled by custom attribute may come after
-    // other bindings, regardless what their declaration order is in the template
-    const classLookup = objectAssign({}, ...this.modules) as Record<string, string>;
-    const ClassCustomAttribute = defineAttribute({
-      name: 'class',
-      bindables: ['value'],
-      noMultiBindings: true,
-    }, class CustomAttributeClass {
-      /** @internal */
-      private readonly _accessor = new ClassAttributeAccessor(resolve(INode) as HTMLElement);
-
-      public value: string = '';
-
-      public binding() {
-        this.valueChanged();
+    let existingMapping = container.get(own(ICssClassMapping));
+    if (existingMapping == null) {
+      container.register(
+        instanceRegistration(ICssClassMapping, existingMapping = createLookup()),
+      );
+    }
+    /* istanbul ignore if */
+    if (__DEV__) {
+      for (const mapping of this.modules) {
+        for (const originalClass in mapping) {
+          if (originalClass in existingMapping) {
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] CSS class mapping for class "${originalClass}": "${mapping[originalClass]}" is overridden by "${existingMapping[originalClass]}"`);
+          }
+          existingMapping[originalClass] = mapping[originalClass];
+        }
       }
+    } else {
+      objectAssign(existingMapping, ...this.modules);
+    }
 
-      public valueChanged() {
-        this._accessor.setValue(this.value?.split(/\s+/g).map(x => classLookup[x] || x) ?? '');
+    class CompilingHook implements ITemplateCompilerHooks {
+      public compiling(template: HTMLElement): void {
+        const isTemplate = template.tagName === 'TEMPLATE';
+        const container = isTemplate
+          ? (template as HTMLTemplateElement).content
+          : template;
+        const plainClasses = [template, ...toArray(container.querySelectorAll('[class]'))];
+        for (const element of plainClasses) {
+          const classes = element.getAttributeNode('class')!;
+          // we always include container, so there's a case where classes is null
+          if (classes == null) {
+            continue;
+          }
+          const newClasses = classes.value.split(/\s+/g).map(x => existingMapping![x] || x).join(' ');
+          classes.value = newClasses;
+        }
       }
-    });
+    }
 
-    container.register(
-      ClassCustomAttribute,
-      instanceRegistration(ICssModulesMapping, classLookup),
-    );
+    container.register(TemplateCompilerHooks.define(CompilingHook));
   }
 }
 

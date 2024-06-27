@@ -238,8 +238,7 @@ export class RoutingInstruction {
    * @param context - The context (used for syntax) within to stringify the instructions
    * @param instructions - The instructions to stringify
    * @param options - The options for stringifying the instructions
-   * @param endpointContext - Whether to include endpoint context in the string
-   *                          @deprecated Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
+   * @param endpointContext - Whether to include endpoint context in the string. [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
    */
   public static stringify(context: IRouterConfiguration | IRouter | IContainer, instructions: RoutingInstruction[] | string, options: IRoutingInstructionStringifyOptions | boolean = {}, endpointContext: boolean = false): string {
     if (typeof options === 'boolean') {
@@ -495,8 +494,8 @@ export class RoutingInstruction {
    *
    * @param context - The context (used for syntax) within to stringify the instructions
    * @param options - The options for stringifying the instructions
-   * @param endpointContext - Whether to include endpoint context in the string
-   *                          @deprecated Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
+   * @param endpointContext - Whether to include endpoint context in the string.
+   * [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
    * @param shallow - Whether to stringify next scope instructions
    */
   public stringify(context: IRouterConfiguration | IRouter | IContainer, options: IRoutingInstructionStringifyOptions | boolean = {}, endpointContextOrShallow: boolean = false, shallow = false): string {

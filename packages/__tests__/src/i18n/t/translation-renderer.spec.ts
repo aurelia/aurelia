@@ -1,7 +1,5 @@
 import {
   I18nConfiguration,
-  TranslationAttributePattern,
-  TranslationBindAttributePattern,
   TranslationBindBindingCommand,
   TranslationBindBindingInstruction,
   TranslationBindBindingRenderer,
@@ -12,7 +10,7 @@ import {
   TranslationBindInstructionType,
   TranslationInstructionType,
 } from '@aurelia/i18n';
-import { Constructable, Registration } from '@aurelia/kernel';
+import { Registration } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
@@ -27,11 +25,8 @@ import {
   AttrMapper,
 } from '@aurelia/runtime-html';
 import {
-  AttributePattern,
-  AttributePatternDefinition,
   AttrSyntax,
   BindingCommand,
-  IAttributePattern,
   IAttrMapper,
   PropertyBindingInstruction,
   InstructionType,
@@ -41,44 +36,6 @@ import { assert, PLATFORM, createContainer } from '@aurelia/testing';
 const noopLocator = {} as unknown as IObserverLocator;
 
 describe('i18n/t/translation-renderer.spec.ts', function () {
-  describe('TranslationAttributePattern', function () {
-    function createFixture(aliases: string[] = ['t']) {
-      const patterns: AttributePatternDefinition[] = [];
-      for (const pattern of aliases) {
-        patterns.push({ pattern, symbols: '' });
-        TranslationAttributePattern.registerAlias(pattern);
-      }
-      const container = createContainer().register(AttributePattern.define(patterns, TranslationAttributePattern));
-      return container.get(IAttributePattern);
-    }
-
-    it('registers alias attribute patterns when provided', function () {
-      const aliases = ['t', 'i18n'];
-      const sut = createFixture(aliases);
-
-      assert.instanceOf(sut, TranslationAttributePattern);
-
-      const patternDefs = [];
-      for (const alias of aliases) {
-        assert.typeOf(sut[alias], 'function');
-        patternDefs.push({ pattern: alias, symbols: '' });
-      }
-
-      assert.deepEqual(AttributePattern.getPatternDefinitions(sut.constructor as Constructable), patternDefs);
-    });
-
-    it('creates attribute syntax without `to` part when `T="expr"` is used', function () {
-      const sut = createFixture();
-      const pattern = 't';
-      const value = 'simple.key';
-
-      const actual: AttrSyntax = sut[pattern](pattern, value, []);
-      assert.equal(actual.command, pattern);
-      assert.equal(actual.rawName, pattern);
-      assert.equal(actual.rawValue, value);
-      assert.equal(actual.target, '');
-    });
-  });
 
   describe('TranslationBindingCommand', function () {
     function createFixture(aliases?: string[]) {
@@ -174,51 +131,6 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       );
 
       assert.equal(binding.ast, from);
-    });
-  });
-
-  describe('TranslationBindAttributePattern', function () {
-    function createFixture(aliases: string[] = ['t']) {
-      const patterns: AttributePatternDefinition[] = [];
-      for (const pattern of aliases) {
-        patterns.push({ pattern: `${pattern}.bind`, symbols: '.' });
-        TranslationBindAttributePattern.registerAlias(pattern);
-      }
-      const container = createContainer().register(
-        AttributePattern.define(patterns, TranslationBindAttributePattern)
-      );
-      return container.get(IAttributePattern);
-    }
-
-    it('registers alias attribute patterns when provided', function () {
-      const aliases = ['t', 'i18n'];
-      const sut = createFixture(aliases);
-
-      assert.instanceOf(sut, TranslationBindAttributePattern);
-      assert.deepEqual(
-        AttributePattern.getPatternDefinitions(sut.constructor as Constructable),
-        aliases.reduce(
-          (acc, alias) => {
-            acc.push({ pattern: `${alias}.bind`, symbols: '.' });
-            return acc;
-          },
-          []));
-
-      aliases.forEach((alias) => {
-        assert.typeOf(sut[`${alias}.bind`], 'function', `${alias}.bind`);
-      });
-    });
-
-    it('creates attribute syntax with `to` part when `T.bind="expr"` is used', function () {
-      const sut = createFixture();
-      const pattern = 't.bind';
-      const value = 'simple.key';
-
-      const actual: AttrSyntax = sut[pattern](pattern, value, ['t', 'bind']);
-      assert.equal(actual.command, pattern);
-      assert.equal(actual.rawName, pattern);
-      assert.equal(actual.rawValue, value);
-      assert.equal(actual.target, 'bind');
     });
   });
 

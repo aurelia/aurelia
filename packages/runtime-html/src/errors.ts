@@ -125,6 +125,7 @@ export const enum ErrorNames {
 
   children_decorator_invalid_usage = 9991,
   slotted_decorator_invalid_usage = 9990,
+  children_invalid_query = 9989,
 }
 _END_CONST_ENUM();
 
@@ -145,8 +146,8 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,
-  [ErrorNames.element_existed]: `Element {{0}} has already been registered.`,
-  [ErrorNames.attribute_existed]: `Attribute {{0}} has already been registered.`,
+  [ErrorNames.element_existed]: `Element "{{0}}" has already been registered.`,
+  [ErrorNames.attribute_existed]: `Attribute "{{0}}" has already been registered.`,
   [ErrorNames.value_converter_existed]: `Value converter {{0}} has already been registered.`,
   [ErrorNames.binding_behavior_existed]: `Binding behavior {{0}} has already been registered.`,
   [ErrorNames.binding_command_existed]: `Binding command {{0}} has already been registered.`,
@@ -248,6 +249,7 @@ const errorsMap: Record<ErrorNames, string> = {
 
   [ErrorNames.children_decorator_invalid_usage]: `Invalid @children usage. @children decorator can only be used on a field`,
   [ErrorNames.slotted_decorator_invalid_usage]: `Invalid @slotted usage. @slotted decorator can only be used on a field`,
+  [ErrorNames.children_invalid_query]: `Invalid query selector. Only selectors with alpha-numeric characters, or $all are allowed. Got {{0}} instead.`
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

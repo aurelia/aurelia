@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createObject, objectAssign } from './utilities';
+import { createLookup, isPromise, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -34,7 +34,7 @@ export const isArrayIndex = (() => {
         ch = 0;
         i = 0;
         for (; i < length; ++i) {
-          ch = charCodeAt(value, i);
+          ch = value.charCodeAt(i);
           if (i === 0 && ch === 0x30 && length > 1 /* must not start with 0 */ || ch < 0x30 /* 0 */ || ch > 0x39/* 9 */) {
             return isNumericLookup[value] = false;
           }
@@ -60,7 +60,7 @@ const baseCase = /*@__PURE__*/(function () {
   _END_CONST_ENUM();
 
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  const isDigit = objectAssign(createObject(), {
+  const isDigit = objectAssign(createLookup(), {
     '0': true,
     '1': true,
     '2': true,
@@ -152,7 +152,7 @@ const baseCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const camelCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createLookup<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? char.toUpperCase() : char.toLowerCase();
@@ -178,7 +178,7 @@ export const camelCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const pascalCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createLookup<string | undefined>();
 
   return (input: string): string => {
     let output = cache[input];
@@ -204,7 +204,7 @@ export const pascalCase = /*@__PURE__*/(function () {
  * Results are cached.
  */
 export const kebabCase = /*@__PURE__*/(function () {
-  const cache: Record<string, string | undefined> = createObject();
+  const cache = createLookup<string | undefined>();
 
   const callback = (char: string, sep: boolean): string => {
     return sep ? `-${char.toLowerCase()}` : char.toLowerCase();
@@ -237,7 +237,7 @@ export const toArray = <T = unknown>(input: ArrayLike<T>): T[] => {
 };
 
 /**
- * Decorator. (lazily) bind the method to the class instance on first call.
+ * Decorator. Bind the method to the class instance.
  */
 export const bound = <
   TThis extends object,
@@ -372,7 +372,7 @@ export function toLookup<
 ): Readonly<T1 & T2 & T3 & T4 & T5>;
 /** @internal */
 export function toLookup(...objs: {}[]): Readonly<{}> {
-  return objectAssign(createObject(), ...objs);
+  return objectAssign(createLookup(), ...objs);
 }
 
 /**
@@ -381,7 +381,7 @@ export function toLookup(...objs: {}[]): Readonly<{}> {
  * @param fn - The function to check.
  * @returns `true` is the function is a native function, otherwise `false`
  */
-export const isNativeFunction = /*@__PURE__*/(function () {
+export const isNativeFunction = /*@__PURE__*/(() => {
   // eslint-disable-next-line @typescript-eslint/ban-types
   const lookup: WeakMap<Function, boolean> = new WeakMap();
   let isNative = false as boolean | undefined;
@@ -391,34 +391,9 @@ export const isNativeFunction = /*@__PURE__*/(function () {
   // eslint-disable-next-line @typescript-eslint/ban-types
   return (fn: Function) => {
     isNative = lookup.get(fn);
-    if (isNative === void 0) {
-      sourceText = fn.toString();
-      i = sourceText.length;
-
-      // http://www.ecma-international.org/ecma-262/#prod-NativeFunction
-      isNative = (
-        // 29 is the length of 'function () { [native code] }' which is the smallest length of a native function string
-        i >= 29 &&
-        // 100 seems to be a safe upper bound of the max length of a native function. In Chrome and FF it's 56, in Edge it's 61.
-        i <= 100 &&
-        // This whole heuristic *could* be tricked by a comment. Do we need to care about that?
-        charCodeAt(sourceText, i -  1) === 0x7D && // }
-        // TODO: the spec is a little vague about the precise constraints, so we do need to test this across various browsers to make sure just one whitespace is a safe assumption.
-        charCodeAt(sourceText, i -  2)  <= 0x20 && // whitespace
-        charCodeAt(sourceText, i -  3) === 0x5D && // ]
-        charCodeAt(sourceText, i -  4) === 0x65 && // e
-        charCodeAt(sourceText, i -  5) === 0x64 && // d
-        charCodeAt(sourceText, i -  6) === 0x6F && // o
-        charCodeAt(sourceText, i -  7) === 0x63 && // c
-        charCodeAt(sourceText, i -  8) === 0x20 && //
-        charCodeAt(sourceText, i -  9) === 0x65 && // e
-        charCodeAt(sourceText, i - 10) === 0x76 && // v
-        charCodeAt(sourceText, i - 11) === 0x69 && // i
-        charCodeAt(sourceText, i - 12) === 0x74 && // t
-        charCodeAt(sourceText, i - 13) === 0x61 && // a
-        charCodeAt(sourceText, i - 14) === 0x6E && // n
-        charCodeAt(sourceText, i - 15) === 0x5B    // [
-      );
+    if (isNative == null) {
+      i = (sourceText = fn.toString()).length;
+      isNative = i > 28 && sourceText.indexOf('[native code] }') === i - 15;
       lookup.set(fn, isNative);
     }
     return isNative;
@@ -452,18 +427,16 @@ export const onResolve = <TValue, TRet>(
  *
  * If none of the values is a promise, nothing is returned, to indicate that things can stay synchronous.
  */
-export const onResolveAll = (
-  ...maybePromises: (void | Promise<void>)[]
-): void | Promise<void> => {
-  let maybePromise: Promise<void> | void = void 0;
-  let firstPromise: Promise<void> | void = void 0;
-  let promises: Promise<void>[] | undefined = void 0;
+export const onResolveAll = (...maybePromises: unknown[]): void | Promise<void> => {
+  let maybePromise: unknown = void 0;
+  let firstPromise: unknown = void 0;
+  let promises: unknown[] | undefined = void 0;
   let i = 0;
   // eslint-disable-next-line
   let ii = maybePromises.length;
   for (; i < ii; ++i) {
     maybePromise = maybePromises[i];
-    if ((maybePromise = maybePromises[i]) instanceof Promise) {
+    if (isPromise(maybePromise = maybePromises[i])) {
       if (firstPromise === void 0) {
         firstPromise = maybePromise;
       } else if (promises === void 0) {
@@ -475,9 +448,7 @@ export const onResolveAll = (
   }
 
   if (promises === void 0) {
-    return firstPromise;
+    return firstPromise as void | Promise<void>;
   }
   return Promise.all(promises) as unknown as Promise<void>;
 };
-
-const charCodeAt = (str: string, index: number) => str.charCodeAt(index);

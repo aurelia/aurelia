@@ -176,6 +176,15 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
     // C(synthetic)#2 is what will provide the content for C(au-slot)#1
     // but C(au-slot)#1 is what will provide the $host value for the content of C(au-slot)#2
     //
+    // example:
+    // <template as-custom-element="parent">
+    //   <child>
+    //    <au-slot> #2
+    //   </child>
+    // ...
+    // <template as-custom-element="child">
+    //  <au-slot> #1
+    //
     // because of this structure, walk 2 level of controller at once to find the right parent scope for $host value
     while (parent.vmKind === 'synthetic' && parent.parent?.viewModel instanceof AuSlot) {
       parent = parent.parent.parent as IHydratedParentController;

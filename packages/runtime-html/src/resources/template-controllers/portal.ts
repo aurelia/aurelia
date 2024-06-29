@@ -1,9 +1,9 @@
-import { onResolve, resolve } from '@aurelia/kernel';
+import { onResolve, resolve, isPromise, isString } from '@aurelia/kernel';
 import { IRenderLocation, setEffectiveParentNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isPromise, isString, rethrow } from '../../utilities';
+import { rethrow } from '../../utilities';
 import { createLocation, insertManyBefore } from '../../utilities-dom';
 import type { ControllerVisitor, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, ISyntheticView } from '../../templating/controller';
 import { ErrorNames, createMappedError } from '../../errors';

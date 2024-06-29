@@ -109,6 +109,42 @@ Apply the attribute binding behavior with `.bind` and `& attr` to specify the bi
 <input pattern.bind="patternProp & attr">
 ```
 
+## Note on the syntaxes
+
+1. Expression syntax
+
+    One way to understand the varieties of the binding syntaxes, or why we have both binding command and interpolation, is to look at the JS counter part, via the following example:
+    ```ts
+    const firstName = 'John';
+    const lastName = 'Doe';
+
+    const fullName1 = `${firstName} ${lastName}`;
+    const fullname2 = firstName + ' ' + lastName;
+    const fullName3 = firstName.concat(' ', lastName);
+    ```
+
+    All the above examples of building `fullName` from `firstName` and `lastName` arrive at the same result, but there are at least three ways!
+    This is to illustrate that sometimes, depending on the preference, one can choose one over another, and the framework should have the flexibility to reflect JavaScript the language.
+
+2. Attribute targeting syntax
+    
+    Another confusion point is the availability of both `.bind` and `.attr` syntaxes. One may ask why we need both.
+
+    Consider the following example of setting the `id` attribute on an `<input>` element:
+    ```ts
+    const input = document.createElement('input');
+    input.id = 'first-name';
+    input.setAttribute('id', 'first-name');
+    ```
+    
+    Either setting the id via `id` property, or calling `setAttribute('id', ...)`  on the `<input>` gives the same outcome, but we have two ways!
+    This is partly because of preference one may have, and the fact that Aurelia works with properties, and not all properties reflect to their attribute counterparts. For example, when doing:
+    ```html
+    <input my-custom-attr.bind='someValue'>
+    ```
+    the `my-custom-attr.bind="someValue"` will be translated into a binding that update the property `myCustomAttr` on the `<input>`, based on the value of `someValue`. But the html doesn't reflect this `myCustomAttr` property whenever it changes. If we want to have the `<input>` html to reflect that, we need to call the `input.setAttribute('my-custom-attr')`. Consider `.attr` is a simpler way of doing this.
+
+
 {% hint style="info" %}
 Remember, interpolation and keyword binding achieve similar results, and there should be no noticeable difference in performance or features. Choose the syntax based on your preference and the specific requirements of your project.
 {% endhint %}

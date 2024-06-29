@@ -9,7 +9,7 @@ import {
 } from '../ast.eval';
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
-import type { IServiceLocator } from '@aurelia/kernel';
+import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   ICollectionSubscriber,
@@ -19,7 +19,7 @@ import type {
 } from '@aurelia/runtime';
 import { type Scope } from './scope';
 import type { IPlatform } from '../platform';
-import { isArray, safeString } from '../utilities';
+import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';

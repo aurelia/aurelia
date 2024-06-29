@@ -7,10 +7,12 @@ import {
 } from '@aurelia/runtime';
 
 import type { INode } from '../dom';
-import { atLayout, atNode, atObserver, createError, hasOwnProperty, isArray } from '../utilities';
+import { atLayout, atNode, atObserver, hasOwnProperty } from '../utilities';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';
 import { createMutationObserver } from '../utilities-dom';
+import { ErrorNames, createMappedError } from '../errors';
+import { isArray } from '@aurelia/kernel';
 
 export interface ISelectElement extends HTMLSelectElement {
   options: HTMLCollectionOf<IOptionElement> & Pick<HTMLOptionsCollection, 'length' | 'selectedIndex' | 'add' | 'remove'>;
@@ -285,10 +287,7 @@ export class SelectValueObserver implements INodeObserver {
     this._arrayObserver = void 0;
     if (array != null) {
       if (!this._el.multiple) {
-        if (__DEV__)
-          throw createError(`AUR0654: array values can only be bound to a multi-select.`);
-        else
-          throw createError(`AUR0654`);
+        throw createMappedError(ErrorNames.select_observer_array_on_non_multi_select);
       }
       (this._arrayObserver = this._observerLocator.getArrayObserver(array)).subscribe(this);
     }

@@ -8,12 +8,14 @@ import { IDomPlatform } from './interfaces-template-compiler';
  * It is idempotent in the sense that passing in an existing template element will simply return that template element,
  * so it is always safe to pass in a node without causing unnecessary DOM parsing or template creation.
  */
-export interface ITemplateElementFactory extends TemplateElementFactory {}
+export interface ITemplateElementFactory {
+  createTemplate(input: string | Node): HTMLTemplateElement;
+}
 export const ITemplateElementFactory = /*@__PURE__*/createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 
-export class TemplateElementFactory {
+export class TemplateElementFactory implements ITemplateElementFactory {
   /** @internal */
   private readonly p = resolve(IPlatform) as IDomPlatform;
   /** @internal */
@@ -23,9 +25,6 @@ export class TemplateElementFactory {
     return this.p.document.createElement('template');
   }
 
-  public createTemplate(markup: string): HTMLTemplateElement;
-  public createTemplate(node: Node): HTMLTemplateElement;
-  public createTemplate(input: string | Node): HTMLTemplateElement;
   public createTemplate(input: string | Node): HTMLTemplateElement {
     if (isString(input)) {
       let result = markupCache[input];

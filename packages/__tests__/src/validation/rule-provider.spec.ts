@@ -1178,5 +1178,117 @@ describe('validation/rule-provider.spec.ts', function () {
 
       validationRules.off();
     });
+
+    // The state rule is tested here as the individual unit tests are somewhat pointless.
+    describe('StateRule', function () {
+      it('stateful message - sync state function', async function () {
+        type Error = 'none' | 'fooError' | 'barError';
+
+        const { validationRules } = setup();
+        const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+        let state: Error = 'none';
+        const rule = validationRules
+          .on(obj)
+          .ensure('name')
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .rules[0];
+
+        state = 'fooError';
+        let result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'foo');
+
+        state = 'barError';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'bar');
+
+        state = 'none';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, true);
+      });
+
+      it('stateful message - async state function', async function () {
+        type Error = 'none' | 'fooError' | 'barError';
+
+        const { validationRules } = setup();
+        const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+        let state: Error = 'none';
+        const rule = validationRules
+          .on(obj)
+          .ensure('name')
+          .satisfiesState<Error, string>('none', (_value, _object) => new Promise((res) => setTimeout(() => res(state), 1)), ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .rules[0];
+
+        state = 'fooError';
+        let result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'foo');
+
+        state = 'barError';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'bar');
+
+        state = 'none';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, true);
+      });
+
+      it('stateful message - interpolated message', async function () {
+        type Error = 'none' | 'fooError' | 'barError';
+
+        const { validationRules } = setup();
+        const obj: Person = new Person('awesome possum', (void 0)!, (void 0)!);
+        let state: Error = 'none';
+        const rule = validationRules
+          .on(obj)
+          .ensure('name')
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => `\${$displayName} is ${$state === 'fooError' ? 'foo' : 'bar'} (value: \${$value}).`)
+          .rules[0];
+
+        state = 'fooError';
+        let result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'Name is foo (value: awesome possum).');
+
+        state = 'barError';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'Name is bar (value: awesome possum).');
+
+        state = 'none';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, true);
+      });
+
+      it('overridden message', async function () {
+        type Error = 'none' | 'fooError' | 'barError';
+
+        const { validationRules } = setup();
+        const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+        let state: Error = 'none';
+        const rule = validationRules
+          .on(obj)
+          .ensure('name')
+          .satisfiesState<Error, string>('none', (_value, _object) => state, ($state) => $state === 'fooError' ? 'foo' : 'bar')
+          .withMessage('baz')
+          .rules[0];
+
+        state = 'fooError';
+        let result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'baz');
+
+        state = 'barError';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, false);
+        assert.equal(result[0].message, 'baz');
+
+        state = 'none';
+        result = await rule.validate(obj);
+        assert.equal(result[0].valid, true);
+      });
+    });
   });
 });

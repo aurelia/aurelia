@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **di:** ability to deregister key (#1981) ([8eb5c36](https://github.com/aurelia/aurelia/commit/8eb5c36))
+* **dialog:** ability to animate using animator instead of lifecycles (#1986) ([a2477e5](https://github.com/aurelia/aurelia/commit/a2477e5))
+
+
+### Refactorings:
+
+* **projection:** use $all instead of * to include all node types (#1987) ([337cb34](https://github.com/aurelia/aurelia/commit/337cb34))
+
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Features:
+
+* **kernel:** add last resolver (#1976) ([c47817c](https://github.com/aurelia/aurelia/commit/c47817c))
+
+
+### Bug Fixes:
+
+* **di:** use official metadata instead of weakmap (#1977) ([9aeeffa](https://github.com/aurelia/aurelia/commit/9aeeffa))
+* **dev:** turbo package input + ts dev script ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+
+
+### Refactorings:
+
+* **collection:** define map & set overrides on the instance instead of prototype (#1975) ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* **runtime:** reoganise utils import ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* ***:** extract error codes and cleanup (#1974) ([63ffdc9](https://github.com/aurelia/aurelia/commit/63ffdc9))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

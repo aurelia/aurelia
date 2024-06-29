@@ -41,6 +41,7 @@ export function preprocessHtmlTemplate(
 
   const viewDeps: string[] = [];
   const cssDeps: string[] = [];
+  const cssModuleDeps: string[] = [];
   const statements: string[] = [];
   let registrationImported = false;
   let aliasedModule = 0;
@@ -105,9 +106,9 @@ export function preprocessHtmlTemplate(
         const stringModuleId = options.stringModuleWrap ? options.stringModuleWrap(d) : d;
         statements.push(`import d${i} from ${s(stringModuleId)};\n`);
         cssDeps.push(`d${i}`);
-      } else if (useCSSModule) {
+      } else if (useCSSModule || path.basename(d, ext).endsWith('.module')) {
         statements.push(`import d${i} from ${s(d)};\n`);
-        cssDeps.push(`d${i}`);
+        cssModuleDeps.push(`d${i}`);
       } else {
         // Rely on bundler to inject CSS.
         statements.push(`import ${s(d)};\n`);
@@ -127,14 +128,13 @@ export function preprocessHtmlTemplate(
   const m = modifyCode('', unit.path);
   const hmrEnabled = !hasViewModel && options.hmr && process.env.NODE_ENV !== 'production';
   m.append(`import { CustomElement } from '@aurelia/runtime-html';\n`);
-  if (cssDeps.length > 0) {
-    if (shadowMode !== null) {
-      m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);
-      viewDeps.push(`shadowCSS(${cssDeps.join(', ')})`);
-    } else if (useCSSModule) {
-      m.append(`import { cssModules } from '@aurelia/runtime-html';\n`);
-      viewDeps.push(`cssModules(${cssDeps.join(', ')})`);
-    }
+  if (cssDeps.length > 0 && shadowMode !== null) {
+    m.append(`import { shadowCSS } from '@aurelia/runtime-html';\n`);
+    viewDeps.push(`shadowCSS(${cssDeps.join(', ')})`);
+  }
+  if (cssModuleDeps.length > 0) {
+    m.append(`import { cssModules } from '@aurelia/runtime-html';\n`);
+    viewDeps.push(`cssModules(${cssModuleDeps.join(', ')})`);
   }
   statements.forEach(st => m.append(st));
   m.append(`export const name = ${s(name)};

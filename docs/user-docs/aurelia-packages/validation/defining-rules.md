@@ -362,6 +362,44 @@ Let us look at one last example before moving to next section. The following exa
 
 > In the light of using rule _instance_, note that the the lambda in `satisfies` is actually wrapped in an instance of anonymous subclass of `BaseValidationRule`.
 
+**State rule using `satisfiesState`**
+
+Typically a validation rule has two states, valid and invalid.
+Although it is generally true that a rule has a single valid state, it is possible for a rule to have multiple invalid states.
+Consider a certificate validation rule.
+In that case, it is possible to have [multiple invalid states](https://x509errors.org/), such as "expired", "revoked", "not yet valid", etc.
+Naturally, we would like to provide a custom message for each invalid state.
+
+This can be done using the `.satisfiesState` method.
+An example will look like as follows.
+
+```typescript
+type certificateErrors = 'ok' | 'expired' | 'revoked' | 'not-yet-valid';
+function validateCertificate(x509Certificate): certificateErrors {
+  // some logic to determine the state of the certificate
+}
+
+validationRules
+  .on(this)
+  .ensure('certificate')
+    .satisfiesState(
+      /* valid state                 */'ok',
+      /* state (validation) function */ (value) => validateCertificate(value),
+      /* state to message mapper     */ (state) => {
+        switch (state) {
+          case 'expired': return 'The certificate was expired.';
+          case 'revoked': return 'The certificate was revoked.';
+          case 'not-yet-valid': return 'The certificate is not yet valid.';
+          // no message for 'ok' state, as it is the valid state
+        }
+      }
+    );
+```
+
+{% hint style="info" %}
+When using `@aurelia/validation-i18n` to localize the messages, the message mapper function can return the key of the localized message instead of the message itself.
+{% endhint %}
+
 **Defining rules for multiple objects**
 
 Rules on multiple objects can be defined by simply using the API in sequence for multiple objects. An example is shown below.

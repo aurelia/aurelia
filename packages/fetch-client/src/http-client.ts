@@ -2,6 +2,7 @@ import { DI, IIndexable, factory, resolve } from '@aurelia/kernel';
 import { HttpClientConfiguration } from './http-client-configuration';
 import { IFetchInterceptor } from './interfaces';
 import { RetryInterceptor } from './interceptors';
+import { ErrorNames, createMappedError } from './errors';
 
 const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
 
@@ -11,7 +12,7 @@ const absoluteUrlRegexp = /^([a-z][a-z0-9+\-.]*:)?\/\//i;
  */
 export const IFetchFn = /*@__PURE__*/DI.createInterface<typeof fetch>('fetch', x => {
   if (typeof fetch !== 'function') {
-    throw new Error('Could not resolve fetch function. Please provide a fetch function implementation or a polyfill for the global fetch function.');
+    throw createMappedError(ErrorNames.http_client_fetch_fn_not_found);
   }
   return x.instance(fetch);
 });
@@ -95,11 +96,11 @@ export class HttpClient {
         if (typeof c === 'object') {
           normalizedConfig = c;
         } else {
-          throw new Error(`The config callback did not return a valid HttpClientConfiguration like instance. Received ${typeof c}`);
+          throw createMappedError(ErrorNames.http_client_configure_invalid_return, typeof c);
         }
       }
     } else {
-      throw new Error(`invalid config, expecting a function or an object, received ${typeof config}`);
+      throw createMappedError(ErrorNames.http_client_configure_invalid_config, typeof config);
     }
 
     const defaults = normalizedConfig.defaults;
@@ -107,20 +108,20 @@ export class HttpClient {
       // Headers instances are not iterable in all browsers. Require a plain
       // object here to allow default headers to be merged into request headers.
       // extract throwing error into an utility function
-      throw new Error('Default headers must be a plain object.');
+      throw createMappedError(ErrorNames.http_client_configure_invalid_header);
     }
 
     const interceptors = normalizedConfig.interceptors;
     if (interceptors?.length > 0) {
       // find if there is a RetryInterceptor
       if (interceptors.filter(x => x instanceof RetryInterceptor).length > 1) {
-        throw new Error('Only one RetryInterceptor is allowed.');
+        throw createMappedError(ErrorNames.http_client_more_than_one_retry_interceptor);
       }
 
       const retryInterceptorIndex = interceptors.findIndex(x => x instanceof RetryInterceptor);
 
       if (retryInterceptorIndex >= 0 && retryInterceptorIndex !== interceptors.length - 1) {
-        throw new Error('The retry interceptor must be the last interceptor defined.');
+        throw createMappedError(ErrorNames.http_client_retry_interceptor_not_last);
       }
 
       // const cacheInterceptorIndex = interceptors.findIndex(x => x instanceof CacheInterceptor);
@@ -176,7 +177,7 @@ export class HttpClient {
           // which will throw illegal invokcation
           response = this._fetchFn.call(void 0, request);
         } else {
-          throw new Error(`An invalid result was returned by the interceptor chain. Expected a Request or Response instance, but got [${result}]`);
+          throw createMappedError(ErrorNames.http_client_invalid_request_from_interceptor, result);
         }
 
         return this.processResponse(response, this._interceptors, request);

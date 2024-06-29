@@ -138,6 +138,11 @@ composition, so `component.ref` (`view-model.ref` in v1) no longer means getting
 
 Read more about dynamic composition in v2 in this [dynamic composition doc](../../getting-to-know-aurelia/dynamic-composition.md) and [dynamic ui composition doc](../../app-basics/dynamic-ui-composition.md).
 
+## Replaceable & replaceable part
+
+If you are using `replaceable`/`part`/`repaceable-part` combo in your v1 applications, you'll need to replace them with `<au-slot>` elements and `au-slot` attributes.
+Refer to the [au slot doc](../../components/shadow-dom-and-slots.md#au-slot) for more information.
+
 ## General changes
 
 * Custom attributes are no longer considered to have a binding to the primary bindable when their template usage is with an empty string, like the following examples:
@@ -158,6 +163,7 @@ Read more about dynamic composition in v2 in this [dynamic composition doc](../.
     ```html
     <input value.bind="value">
     ```
+    This is automatically applied to `.bind`/`.one-time`/`.to-view`/`.from-view`/`.two-way`/`.attr` binding commands.
 
 ## Plugins:
 

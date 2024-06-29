@@ -1,4 +1,4 @@
-import { IContainer, InstanceProvider, type Writable } from '@aurelia/kernel';
+import { IContainer, IResolver, InstanceProvider, emptyArray, type Writable } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
@@ -31,15 +31,33 @@ export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTa
   return handler.get(IPlatform).document;
 }));
 
+/**
+ * An interface describing a marker.
+ * Components can use this to anchor where their content should be rendered in place of a host element.
+ */
 export const IRenderLocation = /*@__PURE__*/createInterface<IRenderLocation>('IRenderLocation');
 export type IRenderLocation<T extends ChildNode = ChildNode> = T & {
   $start?: IRenderLocation<T>;
 };
 
-export const ICssModulesMapping = /*@__PURE__*/createInterface<Record<string, string>>('CssModules');
+/** @internal */
+export const ICssClassMapping = /*@__PURE__*/createInterface<Record<string, string>>('ICssClassMapping');
+/** @internal */
+export const cssMappings: IResolver<Record<string, string>[]> = {
+  $isResolver: true,
+  resolve(_, requestor) {
+    if (requestor.has(ICssClassMapping, false)) {
+      return requestor.getAll(ICssClassMapping);
+    }
+    return emptyArray;
+  }
+};
 
 /**
- * Represents a DocumentFragment
+ * Represents a DocumentFragment with a memory of what it has.
+ * This is known as many names, a live fragment for example.
+ *
+ * Relevant discussion at https://github.com/whatwg/dom/issues/736
  */
 export interface INodeSequence<T extends INode = INode> {
   readonly platform: IPlatform;
@@ -504,8 +522,10 @@ export interface IHistory extends History {
   replaceState(state: {} | null, title: string, url?: string | null): void;
 }
 
-/** @internal */
-export const registerHostNode = (container: IContainer, platform: IPlatform, host: INode | null) => {
+/**
+ * An utility to register a host node with the container with all the commonly used keys.
+ */
+export const registerHostNode = (container: IContainer, host: INode | null, platform = container.get(IPlatform)) => {
   registerResolver(
     container,
     platform.HTMLElement,

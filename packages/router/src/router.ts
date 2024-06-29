@@ -525,7 +525,7 @@ export class Router implements IRouter {
    * Public API (not yet implemented)
    */
   public addEndpoint(_type: EndpointTypeName, ..._args: unknown[]): unknown {
-    throw new Error('Not implemented');
+    throw createMappedError(ErrorNames.method_not_implemented, 'addEndPoint');
   }
 
   /**
@@ -945,8 +945,7 @@ interface UnresolvedInstructionsError extends Error {
 
 function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruction[], logger: ILogger): UnresolvedInstructionsError {
   // TODO: Improve error message, including suggesting solutions
-  const error: Partial<UnresolvedInstructionsError> =
-    new Error(`${remainingInstructions.length} remaining instructions after 100 iterations; there is likely an infinite loop.`);
+  const error = createMappedError(ErrorNames.router_infinite_instruction, remainingInstructions.length) as Partial<UnresolvedInstructionsError>;
   error.remainingInstructions = remainingInstructions;
   logger.warn(error, error.remainingInstructions);
   if (__DEV__) {

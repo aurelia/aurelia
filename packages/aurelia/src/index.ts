@@ -211,7 +211,6 @@ export {
   // connectable,
 
   // ArrayObserver,
-  // enableArrayObservation,
   // disableArrayObservation,
 
   // MapObserver,

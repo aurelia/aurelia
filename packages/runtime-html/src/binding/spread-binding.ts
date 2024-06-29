@@ -1,5 +1,5 @@
-import { AccessScopeExpression, IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
-import { IServiceLocator, Key, emptyArray } from '@aurelia/kernel';
+import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
+import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
 import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
@@ -14,7 +14,6 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
 import { Scope } from './scope';
-import { isObject } from '../utilities';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,

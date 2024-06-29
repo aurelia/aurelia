@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
 
-import { safeString } from './utilities';
+import { rtSafeString } from './utilities';
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
-  : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${safeString(code).padStart(4, '0')}:${details.map(safeString)}`);
+  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+  : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}:${details.map(rtSafeString)}`);
 
 _START_CONST_ENUM();
 /** @internal */
@@ -32,6 +32,9 @@ export const enum ErrorNames {
   switch_off_null_connectable = 208,
   switch_off_inactive_connectable = 209,
   non_recognisable_collection_type = 210,
+  dirty_check_no_handler = 217,
+  dirty_check_not_allowed = 218,
+  dirty_check_setter_not_allowed = 219,
   assign_readonly_size = 220,
   assign_readonly_readonly_property_from_computed = 221,
   invalid_observable_decorator_usage = 224,
@@ -121,6 +124,11 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.switch_off_null_connectable]: `Trying to pop a null/undefined connectable`,
   [ErrorNames.switch_off_inactive_connectable]: `Trying to exit an inactive connectable`,
   [ErrorNames.non_recognisable_collection_type]: `Unrecognised collection type {{0:toString}}.`,
+
+  [ErrorNames.dirty_check_no_handler]: 'There is no registration for IDirtyChecker interface. If you want to use your own dirty checker, make sure you register it.',
+  [ErrorNames.dirty_check_not_allowed]: `Dirty checked is not permitted in this application. Property key {{0}} is being dirty checked.`,
+  [ErrorNames.dirty_check_setter_not_allowed]: `Trying to set value for property {{0}} in dirty checker`,
+
   [ErrorNames.assign_readonly_size]: `Map/Set "size" is a readonly property`,
   [ErrorNames.assign_readonly_readonly_property_from_computed]: `Trying to assign value to readonly property "{{0}}" through computed observer.`,
   [ErrorNames.invalid_observable_decorator_usage]: `Invalid @observable decorator usage, cannot determine property name`,
@@ -139,22 +147,16 @@ const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {
       let value = details[i] as any;
       if (value != null) {
         switch (method) {
-          case 'nodeName': value = (value as Node).nodeName.toLowerCase(); break;
-          case 'name': value = (value as { name: string }).name; break;
           case 'typeof': value = typeof value; break;
-          case 'ctor': value = (value as object).constructor.name; break;
-          case 'controller': value = value.controller.name; break;
-          case 'target@property': value = `${value.target}@${value.targetProperty}`; break;
           case 'toString': value = Object.prototype.toString.call(value); break;
           case 'join(!=)': value = (value as unknown[]).join('!='); break;
-          case 'bindingCommandHelp': value = getBindingCommandHelp(value); break;
           case 'element': value = value === '*' ? 'all elements' : `<${value} />`; break;
           default: {
             // property access
             if (method?.startsWith('.')) {
-              value = safeString(value[method.slice(1)]);
+              value = rtSafeString(value[method.slice(1)]);
             } else {
-              value = safeString(value);
+              value = rtSafeString(value);
             }
           }
         }
@@ -173,20 +175,4 @@ function pleaseHelpCreateAnIssue(title: string, body?: string) {
   return `\nThis is likely an issue with Aurelia.\n Please help create an issue by clicking the following link\n`
     + `https://github.com/aurelia/aurelia/issues/new?title=${encodeURIComponent(title)}`
     + (body != null ? `&body=${encodeURIComponent(body)}` : '&template=bug_report.md');
-}
-
-function getBindingCommandHelp(name: string) {
-  switch (name) {
-    case 'delegate':
-      return `\nThe ".delegate" binding command has been removed in v2.`
-      + ` Binding command ".trigger" should be used instead.`
-      + ` If you are migrating v1 application, install compat package`
-      + ` to add back the ".delegate" binding command for ease of migration.`;
-    case 'call':
-      return `\nThe ".call" binding command has been removed in v2.`
-      + ` If you want to pass a callback that preserves the context of the function call,`
-      + ` you can use lambda instead. Refer to lambda expression doc for more details.`;
-    default:
-      return '';
-  }
 }

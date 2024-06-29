@@ -57,6 +57,40 @@ export function register(container) {
     assert.equal(result.map.version, 3);
   });
 
+  it('transforms html file with paired css module file', function () {
+    const html = '<template></template>';
+    const expected = `import { CustomElement } from '@aurelia/runtime-html';
+import { cssModules } from '@aurelia/runtime-html';
+import d0 from "./foo-bar.module.css";
+export const name = "foo-bar";
+export const template = "<template></template>";
+export default template;
+export const dependencies = [ cssModules(d0) ];
+export const bindables = [];
+let _e;
+export function register(container) {
+  if (!_e) {
+    _e = CustomElement.define({ name, template, dependencies, bindables });
+  }
+  container.register(_e);
+}
+`;
+    const result = preprocess(
+      {
+        path: path.join('src', 'foo-bar.html'),
+        contents: html
+      },
+      {
+        useProcessedFilePairFilename: true,
+        hmr: false,
+        enableConventions: true
+      },
+      (unit: IFileUnit, filePath: string) => filePath === './foo-bar.module.less'
+    )!;
+    assert.equal(result.code, expected);
+    assert.equal(result.map.version, 3);
+  });
+
   it('transforms html file with shadowOptions', function () {
     const html = '<import from="./hello-world.html" /><template><import from="foo"><require from="./foo-bar.scss"></require></template>';
     const expected = `import { CustomElement } from '@aurelia/runtime-html';

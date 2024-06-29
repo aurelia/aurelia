@@ -1,3 +1,4 @@
+import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
 } from '@aurelia/runtime';
@@ -11,17 +12,17 @@ import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
-import type { IServiceLocator } from '@aurelia/kernel';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
+  IAccessor,
   ICollectionSubscriber,
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
 } from '@aurelia/runtime';
 import { type Scope } from './scope';
-import { atLayout, isArray } from '../utilities';
+import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 
@@ -34,8 +35,8 @@ const queueTaskOptions: QueueTaskOptions = {
 // ========
 // Note: the child expressions of an Interpolation expression are full Aurelia expressions, meaning they may include
 // value converters and binding behaviors.
-// Each expression represents one ${interpolation}, and for each we create a child TextBinding unless there is only one,
-// in which case the renderer will create the TextBinding directly
+// Each expression represents one ${interpolation}, and for each we create a child InterpolationPartBinding
+
 export interface InterpolationBinding extends IObserverLocatorBasedConnectable, IAstEvaluator, IServiceLocator {}
 export class InterpolationBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public isBound: boolean = false;
@@ -46,7 +47,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public partBindings: InterpolationPartBinding[];
 
   /** @internal */
-  private readonly _targetObserver: AccessorOrObserver;
+  private _targetObserver: AccessorOrObserver;
 
   /** @internal */
   private _task: ITask | null = null;
@@ -165,6 +166,13 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     }
     this._task?.cancel();
     this._task = null;
+  }
+
+  /**
+   * Start using a given observer to update the target
+   */
+  public useAccessor(accessor: IAccessor): void {
+    this._targetObserver = accessor;
   }
 }
 

@@ -129,7 +129,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
       }
     }
 
-    return Runner.run<void>(null,
+    Runner.run<void>(null,
       // The first viewport(s) might be hydrated before the router is started
       () => waitForRouterStart(this.router, this.ea),
       () => {

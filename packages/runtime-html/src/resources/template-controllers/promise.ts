@@ -1,5 +1,5 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
-import { ILogger, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { Scope } from '../../binding/scope';
 import { INode, IRenderLocation } from '../../dom';
 import { IPlatform } from '../../platform';
@@ -16,7 +16,7 @@ import {
 import { IViewFactory } from '../../templating/view';
 import { IInstruction, AttrSyntax, AttributePattern } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
-import { isPromise, safeString, tsRunning } from '../../utilities';
+import { safeString, tsRunning } from '../../utilities';
 import { ErrorNames, createMappedError } from '../../errors';
 
 export class PromiseTemplateController implements ICustomAttributeViewModel {
@@ -335,22 +335,28 @@ function getPromiseController(controller: IHydratableController) {
 }
 
 export class PromiseAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern)
+  };
   public 'promise.resolve'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'promise', 'bind');
   }
 }
-AttributePattern.define([{ pattern: 'promise.resolve', symbols: '' }], PromiseAttributePattern);
 
 export class FulfilledAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern)
+  };
   public 'then'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'then', 'from-view');
   }
 }
-AttributePattern.define([{ pattern: 'then', symbols: '' }], FulfilledAttributePattern);
 
 export class RejectedAttributePattern {
+  public static [Symbol.metadata] = {
+    [registrableMetadataKey]: AttributePattern.create([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern)
+  };
   public 'catch'(name: string, value: string): AttrSyntax {
     return new AttrSyntax(name, value, 'catch', 'from-view');
   }
 }
-AttributePattern.define([{ pattern: 'catch', symbols: '' }], RejectedAttributePattern);

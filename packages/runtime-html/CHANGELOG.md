@@ -3,6 +3,41 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **event:** support common event modifier on all events (#1994) ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **dialog:** ability to animate using animator instead of lifecycles (#1986) ([a2477e5](https://github.com/aurelia/aurelia/commit/a2477e5))
+
+
+### Bug Fixes:
+
+* **dialog:** prevent default actionless form submit ([631d1e8](https://github.com/aurelia/aurelia/commit/631d1e8))
+* **css-modules:** alter bindings instead of class registration (#1989) ([85917a9](https://github.com/aurelia/aurelia/commit/85917a9))
+
+
+### Refactorings:
+
+* **projection:** use $all instead of * to include all node types (#1987) ([337cb34](https://github.com/aurelia/aurelia/commit/337cb34))
+
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Bug Fixes:
+
+* **di:** use official metadata instead of weakmap (#1977) ([9aeeffa](https://github.com/aurelia/aurelia/commit/9aeeffa))
+* **dev:** turbo package input + ts dev script ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+
+
+### Refactorings:
+
+* **collection:** define map & set overrides on the instance instead of prototype (#1975) ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* **runtime:** reoganise utils import ([253e92a](https://github.com/aurelia/aurelia/commit/253e92a))
+* **dom-queue:** merge dom read and write queues (#1970) ([3a63cde](https://github.com/aurelia/aurelia/commit/3a63cde))
+* ***:** resolve previous PR comments (#1968) ([f8ed38d](https://github.com/aurelia/aurelia/commit/f8ed38d))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

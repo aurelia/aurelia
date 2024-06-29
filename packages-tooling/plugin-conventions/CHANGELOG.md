@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.19"></a>
+# 2.0.0-beta.19 (2024-06-12)
+
+### Features:
+
+* **plugin-conventions:** support foo.module.css CSS module convention (#1988) ([d8791ae](https://github.com/aurelia/aurelia/commit/d8791ae))
+
+
+### Bug Fixes:
+
+* **plugin-conventions:** relax typescript dependency version ([02921ca](https://github.com/aurelia/aurelia/commit/02921ca))
+
+<a name="2.0.0-beta.18"></a>
+# 2.0.0-beta.18 (2024-05-23)
+
+### Bug Fixes:
+
+* **convention:** use array for bindables isntead of object (#1967) ([f1a73d6](https://github.com/aurelia/aurelia/commit/f1a73d6))
+
 <a name="2.0.0-beta.17"></a>
 # 2.0.0-beta.17 (2024-05-11)
 

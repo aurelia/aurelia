@@ -1,7 +1,7 @@
-import { emptyArray } from '@aurelia/kernel';
+import { emptyArray, isFunction } from '@aurelia/kernel';
 import { getAttributeDefinition, isAttributeType } from './resources/custom-attribute';
 import { getElementDefinition, isElementType } from './resources/custom-element';
-import { isFunction, objectFreeze, safeString } from './utilities';
+import { objectFreeze, safeString } from './utilities';
 
 import type { Constructable } from '@aurelia/kernel';
 import type { IConnectable } from '@aurelia/runtime';

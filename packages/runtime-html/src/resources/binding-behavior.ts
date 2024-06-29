@@ -1,6 +1,6 @@
-import { firstDefined, getResourceKeyFor, mergeArrays, resource, resourceBaseName, ResourceType } from '@aurelia/kernel';
+import { firstDefined, getResourceKeyFor, mergeArrays, resource, resourceBaseName, ResourceType, isFunction, isString } from '@aurelia/kernel';
 import { type Scope } from '../binding/scope';
-import { isFunction, isString, objectFreeze } from '../utilities';
+import { objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 

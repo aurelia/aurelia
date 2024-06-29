@@ -7,11 +7,11 @@ import {
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { AnyFunction, IIndexable, isArrayIndex } from '@aurelia/kernel';
+import { AnyFunction, IIndexable, isArrayIndex, isArray, isFunction, isObject } from '@aurelia/kernel';
 import { IConnectable, IObservable, ISubscriber } from '@aurelia/runtime';
 import { Scope, type IBindingContext, IOverrideContext } from './binding/scope';
 import { ErrorNames, createMappedError } from './errors';
-import { isArray, isFunction, isObject, safeString } from './utilities';
+import { safeString } from './utilities';
 import { ISignaler } from './signaler';
 import { BindingBehaviorInstance } from './resources/binding-behavior';
 import { ValueConverterInstance } from './resources/value-converter';

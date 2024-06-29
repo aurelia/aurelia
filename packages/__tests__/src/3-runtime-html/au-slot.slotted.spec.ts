@@ -240,7 +240,26 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 3 6');
     });
 
-    it('assigns all node with *', function () {
+    it('assigns all nodes with $all', function () {
+      @customElement({
+        name: 'el',
+        template: 'Count: ${nodes.length} <au-slot>'
+      })
+      class El {
+        @slotted('$all') nodes;
+      }
+
+      const { assertText } = createFixture(
+        '<el>text<div></div><p></p><!--ha-->',
+        class App { },
+        [El,]
+      );
+
+      // comments are filtered out by projection slot change notifier
+      assertText('Count: 3 text');
+    });
+
+    it('assigns all elements with *', function () {
       @customElement({
         name: 'el',
         template: 'Count: ${nodes.length} <au-slot>'
@@ -255,7 +274,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
-      assertText('Count: 3 text');
+      assertText('Count: 2 text');
     });
 
     it('works with slots when there are elements in between', async function () {

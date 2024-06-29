@@ -1,6 +1,6 @@
 import { IContainer, Registration } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
-import { AttributePatternDefinition, BindingCommand, AttributePattern } from '@aurelia/template-compiler';
+import { AttributePatternDefinition, BindingCommand, AttributePattern, AttrSyntax } from '@aurelia/template-compiler';
 import { DateFormatBindingBehavior } from './df/date-format-binding-behavior';
 import { DateFormatValueConverter } from './df/date-format-value-converter';
 import { I18N, I18nService } from './i18n';
@@ -17,8 +17,6 @@ import {
   TranslationParametersBindingRenderer
 } from './t/translation-parameters-renderer';
 import {
-  TranslationAttributePattern,
-  TranslationBindAttributePattern,
   TranslationBindBindingCommand,
   TranslationBindBindingRenderer,
   TranslationBindingCommand,
@@ -41,14 +39,24 @@ function coreComponents(options: I18nConfigurationOptions) {
   const bindPatterns: AttributePatternDefinition[] = [];
   const commandAliases: string[] = [];
   const bindCommandAliases: string[] = [];
+  class TranslationAttributePattern {
+    [key: string]: ((rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax);
+  }
+  class TranslationBindAttributePattern {
+    [key: string]: ((rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax);
+  }
   for (const alias of aliases) {
-    const bindAlias = `${alias}.bind`;
 
     patterns.push({ pattern: alias, symbols: '' });
-    TranslationAttributePattern.registerAlias(alias);
+    TranslationAttributePattern.prototype[alias] = function (rawName: string, rawValue: string, _parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, '', alias);
+    };
 
+    const bindAlias = `${alias}.bind`;
     bindPatterns.push({ pattern: bindAlias, symbols: '.' });
-    TranslationBindAttributePattern.registerAlias(alias);
+    TranslationBindAttributePattern.prototype[bindAlias] = function (rawName: string, rawValue: string, parts: readonly string[]): AttrSyntax {
+      return new AttrSyntax(rawName, rawValue, parts[1], bindAlias);
+    };
 
     if (alias !== 't') {
       commandAliases.push(alias);
@@ -56,10 +64,10 @@ function coreComponents(options: I18nConfigurationOptions) {
     }
   }
   const renderers = [
-    AttributePattern.define(patterns, TranslationAttributePattern),
+    AttributePattern.create(patterns, TranslationAttributePattern),
     BindingCommand.define({name:'t', aliases: commandAliases}, TranslationBindingCommand),
     TranslationBindingRenderer,
-    AttributePattern.define(bindPatterns, TranslationBindAttributePattern),
+    AttributePattern.create(bindPatterns, TranslationBindAttributePattern),
     BindingCommand.define({name:'t.bind', aliases: bindCommandAliases}, TranslationBindBindingCommand),
     TranslationBindBindingRenderer,
     TranslationParametersAttributePattern,

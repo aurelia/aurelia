@@ -5,10 +5,10 @@ import {
   type Key,
   type Constructable,
   type IContainer,
+  type IDisposableResolver,
 } from '@aurelia/kernel';
 import { defineMetadata, getAnnotationKeyFor, getMetadata } from './utilities-metadata';
 import { IResourceKind } from './resources/resources-shared';
-import { IDisposableResolver } from '@aurelia/kernel/dist/types/di';
 
 /** @internal */
 export const createInterface = DI.createInterface;

@@ -10,6 +10,7 @@ export {
   type IRegistration,
   type IRegistry,
   type IResolver,
+  type IDisposableResolver,
   IServiceLocator,
   type Key,
   type RegisterSelf,
@@ -28,9 +29,9 @@ export {
 export {
   resolve,
   type IResolvedInjection,
-  Registrable,
   ContainerConfiguration,
   DefaultResolver,
+  registrableMetadataKey,
 } from './di.container';
 
 export {
@@ -47,6 +48,7 @@ export {
   type IOptionalResolver,
   type IResolvedFactory,
   type INewInstanceResolver,
+  last,
   lazy,
   type ILazyResolver,
   type IResolvedLazy,
@@ -140,6 +142,17 @@ export {
 } from './functions';
 
 export {
+  isObject,
+  isArray,
+  isMap,
+  isSet,
+  isPromise,
+  isFunction,
+  isNumber,
+  isString,
+  isSymbol,
+  areEqual,
+  createLookup,
   type AnyFunction,
   type FunctionPropNames,
   type MaybePromise,

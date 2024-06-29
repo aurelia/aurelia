@@ -1,6 +1,6 @@
-import { isFunction, objectFreeze } from './utilities';
+import {  objectFreeze } from './utilities';
 import { createInterface, instanceRegistration } from './utilities-di';
-import type { IContainer, IRegistry, Key, Resolved } from '@aurelia/kernel';
+import { isFunction, type IContainer, type IRegistry, type Key, type Resolved } from '@aurelia/kernel';
 
 export type TaskSlot =
   | 'creating'

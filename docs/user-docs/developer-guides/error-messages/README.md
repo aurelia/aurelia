@@ -1,6 +1,6 @@
 # Errors
 
-## Error messages
+## Error message format
 
 Encountered an error and looking for answers? You've come to the right place.
 
@@ -14,6 +14,51 @@ Coded error in Aurelia comes with format: `AURxxxx:yyyy` where:
 * `xxxx` is the code
 * `:` is the delimiter between the prefix, code and the dynamic information associated with the error
 * `yyyy` is the extra information, or parameters related to the error
+
+### Enabling development debug information enhancement
+
+When using the production build of the core Aurelia packages, you'll get some error message that looks like this `AUR0015:abcxyz`, which may not help much during development.
+If you wish to have better information with regards to an issue you are facing, you can use the development build. To configure your bundler/dev server to pick development build:
+
+#### Vite
+
+Our `@aurelia/vite-plugin` will automatically pick the development build when `process.env.NODE_ENV` is not `production`. It can also be overriden using `useDev` property option, like the following example:
+```ts
+import { defineConfig } from 'vite';
+import aurelia from '@aurelia/plugin-vite';
+
+export default defineConfig({
+    ...,
+    plugins: [
+        aurelia({ useDev: true })
+    ]
+})
+```
+
+#### Webpack
+
+Add alias to the `resolve.alias` in your webpack config in `webpack.config.js`, like the scaffolding template at https://github.com/aurelia/new/blob/06f06862bab5f7b13107237a69cf59de1385d126/webpack/webpack.config.js#L117-L123
+
+
+#### Others bundlers/dev server
+
+The dist folder of an Aurelia core package looks like this:
+```
+dist
+  |
+  + -> cjs
+  |     |
+  |     + -> index.cjs
+  |     + -> index.dev.cjs
+  |
+  + -> esm
+        |
+        + -> index.mjs
+        + -> index.dev.mjs
+```
+Whenever there's a request to retrieve `dist/esm/index.mjs`, you can redirect it to `dist/esm/index.dev.mjs`.
+
+## Error list
 
 The section below will list errors by their prefix, and code and give a corresponding explanation, and a way to fix them.
 

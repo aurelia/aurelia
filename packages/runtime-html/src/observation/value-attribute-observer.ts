@@ -1,8 +1,8 @@
+import { type IIndexable, areEqual } from '@aurelia/kernel';
 import { subscriberCollection } from '@aurelia/runtime';
 import { mixinNodeObserverUseConfig } from './observation-utils';
-import { areEqual, atLayout, atNode, atObserver } from '../utilities';
+import { atLayout, atNode, atObserver } from '../utilities';
 
-import type { IIndexable } from '@aurelia/kernel';
 import type { AccessorType, ISubscriberCollection } from '@aurelia/runtime';
 import type { INode } from '../dom';
 import type { INodeObserver, INodeObserverConfigBase } from './observer-locator';

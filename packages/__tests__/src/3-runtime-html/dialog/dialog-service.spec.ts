@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { noop } from '@aurelia/kernel';
+import { Registration, noop, resolve } from '@aurelia/kernel';
 import {
   INode,
   customElement,
@@ -18,6 +18,7 @@ import {
   DialogController,
   DefaultDialogDom,
   DialogService,
+  IDialogDomAnimator,
 } from '@aurelia/dialog';
 import {
   createFixture,
@@ -122,7 +123,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async (_, dialogService) => {
           let error: DialogCancelError<unknown>;
           await dialogService.open({}).catch(err => error = err);
-          assert.strictEqual(error.message, 'AUR0903');
+          assert.includes(error.message, 'AUR0903');
           // assert.strictEqual(error.message, 'Invalid Dialog Settings. You must provide "component", "template" or both.');
         }
       },
@@ -300,7 +301,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
           assert.notStrictEqual(error, undefined);
           assert.strictEqual(error.wasCancelled, true);
-          assert.strictEqual(error.message, 'Dialog activation rejected');
+          assert.includes(error.message, 'AUR0905');
           assert.strictEqual(canActivateCallCount, 1);
           assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), null);
         }
@@ -415,7 +416,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             errorCaughtCount++;
             error = err;
           });
-          assert.deepStrictEqual(error, Object.assign(new Error(), {
+          assert.deepStrictEqual(error, Object.assign(new Error('AUR0908:'), {
             wasCancelled: false,
             value: expectedError
           }));
@@ -892,9 +893,155 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           });
           await dialog.ok();
         }
+      },
+      {
+        title: 'uses custom renderer in open call settings',
+        afterStarted: async ({ platform }, dialogService) => {
+          const overlay = platform.document.createElement('haha');
+          const contentHost = platform.document.createElement('hahaha');
+          let disposed = 0;
+          const host = platform.document.createElement('host-here');
+          const { dialog } = await dialogService.open({
+            template: 'Hello world',
+            renderer: {
+              render(host, _settings) {
+                host.append(overlay, contentHost);
+                return {
+                  overlay,
+                  contentHost,
+                  dispose() {
+                    disposed = 1;
+                  }
+                };
+              }
+            },
+            host
+          });
+          assert.strictEqual(disposed, 0);
+          assert.contains(host, overlay);
+          assert.contains(host, contentHost);
+          await dialog.ok();
+          assert.strictEqual(disposed, 1);
+        },
+      },
+      {
+        title: 'calls show/hide on custom dialog dom',
+        afterStarted: async ({ platform }, dialogService) => {
+          const overlay = platform.document.createElement('div');
+          const contentHost = platform.document.createElement('div');
+          const host = platform.document.createElement('host-here');
+          let i = 0;
+          const { dialog } = await dialogService.open({
+            template: 'Hello world',
+            renderer: {
+              render(_host, _settings) {
+                return {
+                  overlay,
+                  contentHost,
+                  show() { i = 1; },
+                  hide() { i = 2; },
+                  dispose() {/*  */}
+                };
+              }
+            },
+            host
+          });
+          assert.strictEqual(i, 1);
+          await dialog.ok();
+          assert.strictEqual(i, 2);
+        },
+      },
+
+      // #region animator
+      {
+        title: 'allows custom animator',
+        afterStarted: async ({ container }, dialogService) => {
+          let i = 0;
+
+          container.register(Registration.instance(IDialogDomAnimator, {
+            show(_dom: IDialogDom) { i = 1; },
+            hide(_dom: IDialogDom) { i = 2; }
+          }));
+
+          const result = await dialogService.open({
+            template: 'Hello world',
+          });
+          assert.strictEqual(i, 1);
+
+          await result.dialog.ok();
+          assert.strictEqual(i, 2);
+        }
+      },
+      {
+        title: 'uses animator from provided animator instead of the global one',
+        afterStarted: async ({ container }, dialogService) => {
+          let i = 0;
+
+          container.register(Registration.instance(IDialogDomAnimator, {
+            show(_dom: IDialogDom) { throw new Error('??'); },
+            hide(_dom: IDialogDom) { throw new Error('??'); },
+          }));
+
+          const result = await dialogService.open({
+            template: 'Hello world',
+            container: container.createChild().register(Registration.instance(IDialogDomAnimator, {
+              show(_dom: IDialogDom) { i = 3; },
+              hide(_dom: IDialogDom) { i = 4; }
+            }))
+          });
+          assert.strictEqual(i, 3);
+
+          await result.dialog.ok();
+          assert.strictEqual(i, 4);
+        }
+      },
+      {
+        title: 'calls deactivate before animator.hide',
+        afterStarted: async ({ container }, dialogService) => {
+          const calls: string[] = [];
+
+          container.register(Registration.instance(IDialogDomAnimator, {
+            show(_dom: IDialogDom) { },
+            hide(_dom: IDialogDom) { calls.push('hide'); },
+          }));
+
+          const result = await dialogService.open({
+            template: 'Hello world',
+            component: () => ({
+              deactivate() { calls.push('deactivate'); }
+            })
+          });
+          assert.deepEqual(calls, []);
+
+          await result.dialog.ok();
+          assert.deepEqual(calls, ['deactivate', 'hide']);
+        }
+      },
+      {
+        title: 'calls prevent default on form submit event',
+        async afterStarted(appCreationResult, dialogService) {
+          let submit: () => void;
+          let e: SubmitEvent;
+          await dialogService.open({
+            template: '<form submit.trigger="onSubmit($event)"><button>Submit</button></form>',
+            component: () => class {
+              dom = resolve(IDialogDom);
+              activate() {
+                submit = () => this.dom.contentHost.querySelector('button').click();
+              }
+              onSubmit(event: Event) {
+                e = event as SubmitEvent;
+              }
+            }
+          });
+
+          submit();
+          assert.strictEqual(e?.defaultPrevented, true);
+        },
       }
     ];
 
+    // #region test run
     for (const { title, only, afterStarted, afterTornDown, browserOnly } of testCases) {
       if (browserOnly && isNode()) continue;
       const $it = only ? it.only : it;

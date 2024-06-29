@@ -1,10 +1,9 @@
-import { DI, Constructable } from '@aurelia/kernel';
+import { DI } from '@aurelia/kernel';
 import {
   attributePattern,
   AttributePatternDefinition,
   IAttributePattern,
   ISyntaxInterpreter,
-  AttributePattern
 } from '@aurelia/template-compiler';
 import { assert } from '@aurelia/testing';
 
@@ -251,14 +250,13 @@ describe('3-runtime-html/attribute-pattern.spec.ts', function () {
           container.register(ThePattern as any);
           const interpreter = container.get(ISyntaxInterpreter);
           const attrPattern = container.get(IAttributePattern);
-          const patternDefs = AttributePattern.getPatternDefinitions(attrPattern.constructor as Constructable);
-          interpreter.add(patternDefs);
+          interpreter.add(defs);
 
           const result = interpreter.interpret(value);
           if (match != null) {
             assert.strictEqual(result.pattern, match);
             assert.strictEqual(
-              patternDefs.map(d => d.pattern).includes(result.pattern),
+              defs.map(d => d.pattern).includes(result.pattern),
               true,
               `patternDefs.map(d => d.pattern).indexOf(result.pattern) >= 0\n  result: ${result.pattern}`
             );
@@ -268,7 +266,7 @@ describe('3-runtime-html/attribute-pattern.spec.ts', function () {
             assert.deepStrictEqual(receivedParts, result.parts, `receivedParts`);
           } else {
             assert.strictEqual(
-              !patternDefs.map(d => d.pattern).includes(result.pattern),
+              !defs.map(d => d.pattern).includes(result.pattern),
               true,
               `patternDefs.map(d => d.pattern).indexOf(result.pattern) === -1`
             );

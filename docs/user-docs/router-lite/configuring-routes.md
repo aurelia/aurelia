@@ -275,6 +275,47 @@ public canLoad(params: Params): boolean {
 }
 ```
 
+### Constrained parameters
+
+Any required and optional parameters can be constrained by using a regular expression.
+
+The following example shows how to use a wildcard parameter in the `path`.
+
+```typescript
+import { route } from '@aurelia/router-lite';
+import { Product } from './product';
+
+@route({
+  routes: [
+    {
+      id: 'foo',
+      path: ['product/:id{{^\\d+$}}'],
+      component: Product,
+    },
+  ],
+})
+export class MyApp {}
+```
+
+Note that the syntax to define a parameter constraint is as follows.
+
+```
+:PARAM_NAME{{REGEX_CONSTRAINT}}
+```
+
+The example above shows that the `Product` component is loaded when the router-lite sees paths like `/product/123`, but not `/product/abc`.
+
+You can see the live example below.
+
+{% embed url="https://stackblitz.com/edit/router-lite-constrained-param?ctl=1&embed=1&file=src%2Fproducts.html" %}
+
+{% hint style="info" %}
+Note that `^` and `$` implies that the value of complete path segment must match the regular expression.
+You are however free to choose any regular expression that fits your needs.
+For example, `'product/:id{{^\\d+}}'` is also a valid constraint and will match paths like `/product/123`, `/product/123abc` etc.
+{% endhint %}
+
+
 ## Setting the title
 
 You can configure the title for the routes while you are configuring the routes.

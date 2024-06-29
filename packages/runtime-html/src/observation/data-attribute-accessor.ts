@@ -1,7 +1,5 @@
-import { IObserver } from '@aurelia/runtime';
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { AccessorType, IAccessor, PropertyAccessor } from '@aurelia/runtime';
+import { IObserver, type AccessorType, type IAccessor, type PropertyAccessor } from '@aurelia/runtime';
 import { mixinNoopSubscribable } from './observation-utils';
 import { atLayout, atNode } from '../utilities';
 

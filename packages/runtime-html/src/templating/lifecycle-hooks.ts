@@ -1,7 +1,7 @@
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { getOwnPropertyNames, objectFreeze, baseObjectPrototype } from '../utilities';
 
-import { type Constructable, type IContainer, type AnyFunction, type FunctionPropNames, Registrable } from '@aurelia/kernel';
+import { type Constructable, type IContainer, type AnyFunction, type FunctionPropNames, IRegistry, registrableMetadataKey } from '@aurelia/kernel';
 
 export type LifecycleHook<TViewModel, TKey extends keyof TViewModel> =
   TViewModel[TKey] extends (AnyFunction | undefined)
@@ -63,15 +63,17 @@ export const LifecycleHooks = /*@__PURE__*/(() => {
     /**
      * @param def - Placeholder for future extensions. Currently always an empty object.
      */
-    define<T extends Constructable>(def: {}, Type: T): T {
+    define<T extends Constructable>(def: {}, Type: T): IRegistry {
       const definition = LifecycleHooksDefinition.create(def, Type);
       const $Type = definition.Type;
 
       definitionMap.set($Type, definition);
 
-      return Registrable.define($Type, container => {
-        singletonRegistration(ILifecycleHooks, $Type).register(container);
-      });
+      return {
+        register(container: IContainer): void {
+          singletonRegistration(ILifecycleHooks, $Type).register(container);
+        }
+      };
     },
     /**
      * @param ctx - The container where the resolution starts
@@ -123,7 +125,9 @@ export function lifecycleHooks(): <T extends Constructable>(target: T, context: 
 export function lifecycleHooks<T extends Constructable>(target: T, context: ClassDecoratorContext): T;
 export function lifecycleHooks<T extends Constructable>(target?: T, context?: ClassDecoratorContext<T>): T | (<T extends Constructable>(target: T, context: ClassDecoratorContext) => T) {
   function decorator<T extends Constructable>(target: T, context: ClassDecoratorContext): T {
-    return LifecycleHooks.define({}, target);
+    const metadata = context?.metadata ?? (target[Symbol.metadata] ??= Object.create(null));
+    metadata[registrableMetadataKey] = LifecycleHooks.define({}, target);
+    return target;
   }
   return target == null ? decorator : decorator(target, context!);
 }

@@ -5,8 +5,9 @@ import { createFixture } from './_shared/create-fixture.js';
 import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 
 describe('router-lite/external.spec.ts', function () {
+  for (const useUrlFragmentHash of [true, false])
   for (const attr of ['external', 'data-external']) {
-    it(`recognizes "${attr}" attribute`, async function () {
+    it(`recognizes "${attr}" attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {
       @customElement({ name: 'a11', template: `a11${vp(1)}` })
       class A11 {}
       @customElement({ name: 'a12', template: `a12${vp(1)}` })
@@ -32,7 +33,7 @@ describe('router-lite/external.spec.ts', function () {
         public compLink = 'a11';
       }
 
-      const { router, host, tearDown } = await createFixture(Root1, [A11, A12], getDefaultHIAConfig, () => ({}));
+      const { router, host, tearDown } = await createFixture(Root1, [A11, A12], getDefaultHIAConfig, () => ({ useUrlFragmentHash }));
 
       const anchors = Array.from(host.querySelectorAll('a'));
 
@@ -43,6 +44,13 @@ describe('router-lite/external.spec.ts', function () {
       })(router.load);
 
       const [internalLink, externalLink] = anchors;
+      if (useUrlFragmentHash) {
+        assert.match(internalLink.href, /#/);
+      } else {
+        assert.notMatch(internalLink.href, /#/);
+      }
+      assert.notMatch(externalLink.href, /#/);
+
       const spanWithHref = host.querySelector('span');
 
       let externalLinkClick = 0;

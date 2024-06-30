@@ -266,14 +266,12 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
   public get messageKey(): string { return this._explicitMessageKey ?? this._messageKey ?? (void 0)!; }
   public set messageKey(value: string) { this._explicitMessageKey = value; }
 
-  private _state: TState;
   public constructor(
     private readonly validState: TState,
     private readonly stateFunction: (value: TValue, object?: TObject) => TState | Promise<TState>,
     private readonly messages: Partial<Record<TState, string>>,
   ) {
     super(void 0);
-    this._state = validState;
     const aliases: ValidationRuleAlias[] = [];
     for (const [name, defaultMessage] of Object.entries<string>(messages as Record<TState, string>)) {
       aliases.push({ name, defaultMessage });
@@ -285,7 +283,7 @@ export class StateRule<TValue = any, TObject extends IValidateable = IValidateab
     return onResolve(
       this.stateFunction(value as TValue, object),
       state => {
-        this._messageKey = (this._state = state as TState) as string;
+        this._messageKey = state as string;
         return state === this.validState;
       }
     );

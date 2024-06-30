@@ -1115,5 +1115,112 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       assert.html.textContent(appHost, 'c1-p1 c1-p2 c2-p3 c2-p1 c2-p2');
     });
+
+    it('works for primary bindable on parent', async function () {
+      @customAttribute({
+        name: 'c-1',
+        bindables: { p2: { primary: true } }
+      })
+      class CeOne implements ICustomAttributeViewModel {
+        @bindable p1: string = 'dp1';
+        p2: string;
+        protected readonly el = resolve(INode) as HTMLElement;
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p1} ${this.p2}`;
+        }
+      }
+
+      @customAttribute({
+        name: 'c-2',
+      })
+      class CeTwo extends CeOne {
+        @bindable p3: string = 'dp3';
+
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p3} ${this.p1} ${this.p2}`;
+        }
+      }
+
+      const { appHost } = createFixture(
+        `<span c-1="c1-p2"></span> <span c-2="c2-p2"></span>`,
+        { },
+        [CeOne, CeTwo]
+      );
+
+      assert.html.textContent(appHost, 'dp1 c1-p2 dp3 dp1 c2-p2');
+    });
+
+    it('works for primary bindable on child', async function () {
+      @customAttribute({
+        name: 'c-1',
+        bindables: { p2: {} }
+      })
+      class CeOne implements ICustomAttributeViewModel {
+        @bindable p1: string = 'dp1';
+        p2: string;
+        protected readonly el = resolve(INode) as HTMLElement;
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p1} ${this.p2}`;
+        }
+      }
+
+      @customAttribute({
+        name: 'c-2',
+        bindables: { p2: { primary: true } }
+      })
+      class CeTwo extends CeOne {
+        @bindable p3: string = 'dp3';
+
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p3} ${this.p1} ${this.p2}`;
+        }
+      }
+
+      const { appHost } = createFixture(
+        `<span c-1="p1:c1-p1; p2:c1-p2"></span> <span c-2="c2-p2"></span>`,
+        { },
+        [CeOne, CeTwo]
+      );
+
+      assert.html.textContent(appHost, 'c1-p1 c1-p2 dp3 dp1 c2-p2');
+    });
+
+    it('does not work for if child defines a second primary bindable', async function () {
+      @customAttribute({
+        name: 'c-1',
+        bindables: { p2: { primary: true } }
+      })
+      class CeOne implements ICustomAttributeViewModel {
+        @bindable p1: string = 'dp1';
+        p2: string;
+        protected readonly el = resolve(INode) as HTMLElement;
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p1} ${this.p2}`;
+        }
+      }
+
+      @customAttribute({
+        name: 'c-2',
+        bindables: { p3: { primary: true } }
+      })
+      class CeTwo extends CeOne {
+        p3: string;
+
+        public attached(_initiator: IHydratedController): void | Promise<void> {
+          this.el.textContent = `${this.p3} ${this.p1} ${this.p2}`;
+        }
+      }
+
+      try {
+        createFixture(
+          `<span c-1="c1-p2"></span> <span c-2="c2-p3"></span>`,
+          { },
+          [CeOne, CeTwo]
+        );
+        assert.fail('Should have thrown due to conflicting primary bindables.');
+      } catch (e) {
+        assert.match(e.message, /714/, 'incorrect error code');
+      }
+    });
   });
 });

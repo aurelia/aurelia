@@ -262,7 +262,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       }
 
       for(const bindable of Object.values(Bindable.from(def.bindables))) {
-        Bindable._addToMetadata(bindable, Type);
+        Bindable._add(bindable, Type);
       }
       return new CustomElementDefinition(
         Type,
@@ -324,7 +324,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
 
     for(const bindable of Object.values(Bindable.from(nameOrDef.bindables))) {
-      Bindable._addToMetadata(bindable, Type);
+      Bindable._add(bindable, Type);
     }
     return new CustomElementDefinition(
       Type,

@@ -171,7 +171,7 @@ export const Bindable = objectFreeze({
     return defs;
   },
   /** @internal */
-  _addToMetadata(bindable: BindableDefinition, Type: Constructable) {
+  _add(bindable: BindableDefinition, Type: Constructable) {
     let bindables = getMetadata<Record<string, BindableDefinition>>(baseName, Type);
     if (bindables == null) {
       defineMetadata(bindables = createLookup(), Type, baseName);

@@ -151,7 +151,7 @@ export class CustomAttributeDefinition<T extends Constructable = Constructable> 
     const mode = firstDefined(getAttributeAnnotation(Type, 'defaultBindingMode'), def.defaultBindingMode, Type.defaultBindingMode, toView) as string | BindingMode;
 
     for(const bindable of Object.values(Bindable.from(def.bindables))) {
-      Bindable._addToMetadata(bindable, Type);
+      Bindable._add(bindable, Type);
     }
     return new CustomAttributeDefinition(
       Type,

@@ -60,7 +60,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   //   : 'integrated';
   // console.log('SyncStates', syncStates.toString());
   return {
-    additiveInstructionDefault: false,
+    completeStateNavigations: true,
     swapOrder: swap,
     navigationSyncStates: syncStates,
     // routingHookIntegration: integration,

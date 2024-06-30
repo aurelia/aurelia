@@ -22,7 +22,6 @@ import { NavigationCoordinator } from './navigation-coordinator';
 import { Runner, Step } from './utilities/runner';
 import { Title } from './title';
 import { RoutingHook } from './routing-hook';
-import { FoundRoute } from './found-route';
 import { IRouterConfiguration } from './index';
 import { ErrorNames, createMappedError } from './errors';
 import { Separators } from './router-options';
@@ -454,11 +453,11 @@ export class Router implements IRouter {
     }
 
     if (typeof transformedInstruction === 'string') {
-      if (transformedInstruction === '') { // || transformedInstruction === '-'
+      if (transformedInstruction === '') {
         transformedInstruction = [new RoutingInstruction('')]; // Make sure empty route is also processed
         transformedInstruction[0].default = true;
-      } else if (transformedInstruction === '-') { // || transformedInstruction === '-'
-        transformedInstruction = [new RoutingInstruction('-'), new RoutingInstruction('')]; // Make sure empty route is also processed
+      } else if (transformedInstruction === '-') {
+        transformedInstruction = [new RoutingInstruction('-'), new RoutingInstruction('')]; // Make sure clean all plus empty route is also processed
         transformedInstruction[1].default = true;
       } else {
         transformedInstruction = RoutingInstruction.parse(this, transformedInstruction);
@@ -472,11 +471,14 @@ export class Router implements IRouter {
 
     coordinator.appendInstructions(transformedInstruction);
 
-    // If router options defaults to navigations being full state navigation (containing the
+    // If router options defaults to navigations being complete state navigation (containing the
     // complete set of routing instructions rather than just the ones that change), ensure
     // that there's an instruction to clear all non-specified viewports in all the scopes of
-    // the top instructions
-    if (!options.additiveInstructionDefault) {
+    // the top instructions. With viewports left and right containing components Alpha and Beta
+    // respectively, doing 'gamma@left' as a complete state navigation would load Gamma in left and
+    // unload Beta in right. In a partial navigation, Gamme would still be loaded but right would
+    // be left as is.
+    if (options.completeStateNavigations) {
       arrayUnique(transformedInstruction, false)
         .map(instr => instr.scope!)
         .forEach(scope => coordinator.ensureClearStateInstruction(scope));

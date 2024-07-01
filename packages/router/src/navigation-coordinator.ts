@@ -320,7 +320,7 @@ export class NavigationCoordinator {
     do {
       // Match the instructions to available endpoints within, and with the help of, their scope
       // TODO(return): This needs to be updated
-      let { remainingInstructions } = this.matchEndpoints(scope);
+      this.matchEndpoints(scope);
 
       if (!guard--) { // Guard against endless loop
         router.unresolvedInstructionsError(this.navigation, this.instructions);
@@ -344,8 +344,6 @@ export class NavigationCoordinator {
       } else if (hooked !== true && hooked !== this.matchedInstructions) {
         // TODO(return): Do a full findInstructions again with a new FoundRoute so that this
         // hook can return other values as well
-        const skipped = RoutingInstruction.flat(this.matchedInstructions);
-        remainingInstructions = remainingInstructions.filter(instr => !skipped.includes(instr));
         this.matchedInstructions = hooked;
       }
 
@@ -397,7 +395,7 @@ export class NavigationCoordinator {
           } else {
             // If there are no next scope instructions the endpoint's scope (its children)
             // needs to be cleared
-            clearEndpoints.push(...matchedInstruction.endpoint.instance?.scope.children.map(s => s.endpoint) as IEndpoint[]);
+            clearEndpoints.push(...(matchedInstruction.endpoint.instance as Endpoint).scope.children.map(s => s.endpoint));
           }
         }
       }
@@ -509,7 +507,7 @@ export class NavigationCoordinator {
    * @param alreadyFound - The already found matches
    * @param disregardViewports - Whether viewports should be ignored when matching
    */
-  public matchEndpoints(scope: RoutingScope, disregardViewports: boolean = false): { matchedInstructions: RoutingInstruction[]; remainingInstructions: RoutingInstruction[] } {
+  public matchEndpoints(scope: RoutingScope, disregardViewports: boolean = false): void {
     const scopeInstructions = this.getInstructionsForScope(scope);
 
     const matchedInstructions = EndpointMatcher.matchEndpoints(
@@ -521,10 +519,6 @@ export class NavigationCoordinator {
 
     this.matchedInstructions.push(...matchedInstructions);
     this.instructions = this.instructions.filter(instr => !matchedInstructions.includes(instr));
-
-    const remainingInstructions: RoutingInstruction[] = [];
-
-    return { matchedInstructions, remainingInstructions };
   }
 
   /**

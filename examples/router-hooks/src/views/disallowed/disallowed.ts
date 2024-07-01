@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
 import template from './disallowed.html';
-import { IRoute, IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router';
 
 @customElement({
   name: 'disallowed',

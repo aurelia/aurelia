@@ -1,7 +1,7 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, LoadInstruction } from '../interfaces';
-import { IRouter, Router } from '../router';
+import { IRouter } from '../router';
 import { arrayRemove } from '../utilities/utils';
 import { ViewportContent } from './viewport-content';
 import { RoutingInstruction } from '../instructions/routing-instruction';

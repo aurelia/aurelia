@@ -26,7 +26,11 @@ export function arrayAddUnique<T>(arr: T[], values: T | T[]): T[] {
   if (!Array.isArray(values)) {
     values = [values];
   }
-  arr.push(...values.filter(v => !arr.includes(v)));
+  for (const value of values) {
+    if (!arr.includes(value)) {
+      arr.push(value);
+    }
+  }
   return arr;
 }
 

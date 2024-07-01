@@ -1,8 +1,8 @@
 import { I18N, Signals } from '@aurelia/i18n';
-import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, isFunction, resolve } from '@aurelia/kernel';
+import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, resolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
 import { IPlatform } from '@aurelia/runtime-html';
-import { IValidationRule, ValidationMessageProvider } from '@aurelia/validation';
+import { IValidationRule, ValidationMessageProvider, ValidationRuleAliasMessage } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
@@ -63,14 +63,26 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
   }
 
   public getMessage(rule: IValidationRule): PrimitiveLiteralExpression | Interpolation {
-    const messageKey = isFunction(rule.getMessage) ? rule.getMessage() : rule.messageKey;
+    const messageKey = rule.messageKey;
     const lookup = this.registeredMessages.get(rule);
     if (lookup != null) {
       const parsedMessage = lookup.get(explicitMessageKey) ?? lookup.get(messageKey);
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
 
-    return this.setMessage(rule, this.i18n.tr(this.getKey(messageKey)));
+    let key: string | undefined = messageKey;
+    if (!this.i18n.i18next.exists(key)) {
+      const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
+      const messageCount = validationMessages.length;
+      if (messageCount === 1 && messageKey === void 0) {
+        key = validationMessages[0].defaultMessage;
+      } else {
+        key = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
+      }
+      key ??= messageKey;
+    }
+
+    return this.setMessage(rule, this.i18n.tr(this.getKey(key)));
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {

@@ -1,4 +1,4 @@
-import { Class, DI, ILogger, IServiceLocator, isFunction, resolve } from '@aurelia/kernel';
+import { Class, DI, ILogger, IServiceLocator, resolve } from '@aurelia/kernel';
 import {
   IExpressionParser,
   Interpolation,
@@ -277,8 +277,8 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     return this;
   }
 
-  public satisfiesState<TState, TVal>(this: PropertyRule<TObject, TVal>, validState: TState, stateFunction: (value: TVal, object?: TObject) => TState | Promise<TState>, messageMapper: (state: TState) => string) {
-    return this.addRule(new StateRule(validState, stateFunction, messageMapper));
+  public satisfiesState<TState extends PropertyKey, TVal>(this: PropertyRule<TObject, TVal>, validState: TState, stateFunction: (value: TVal, object?: TObject) => TState | Promise<TState>, messages: Partial<Record<TState, string>>) {
+    return this.addRule(new StateRule(validState, stateFunction, messages));
   }
 
   /**
@@ -634,15 +634,12 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
   }
 
   public getMessage(rule: IValidationRule): Interpolation | PrimitiveLiteralExpression {
-    const $providesMessage = isFunction(rule.getMessage);
-    const messageKey = $providesMessage ? rule.getMessage!() : rule.messageKey;
+    const messageKey = rule.messageKey;
     const lookup = this.registeredMessages.get(rule);
     if (lookup != null) {
       const parsedMessage = lookup.get(explicitMessageKey) ?? lookup.get(messageKey);
       if (parsedMessage !== void 0) { return parsedMessage; }
     }
-
-    if ($providesMessage) return this.setMessage(rule, messageKey);
 
     const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
     let message: string | undefined;

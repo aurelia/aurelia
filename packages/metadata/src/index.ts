@@ -81,7 +81,13 @@ export const Metadata = {
     return type[Symbol.metadata]?.[key];
   },
   define(value: any, type: any,...keys: string[]): void {
-    const metadata = type[Symbol.metadata] ??= Object.create(null);
+    // Define metadata on the type, when absent.
+    // Note that TS also does exactly that when decorators are used.
+    // This avoids the problem of children inheriting and overwriting metadata from their parents.
+    let metadata = Object.getOwnPropertyDescriptor(type, Symbol.metadata)?.value;
+    if (metadata == null) {
+      Object.defineProperty(type, Symbol.metadata, { value: metadata = Object.create(null), enumerable: true, configurable: true, writable: true });
+    }
     const length = keys.length;
     switch (length) {
       case 0: throw new Error('At least one key must be provided');

@@ -261,6 +261,9 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         Type = generateElementType(pascalCase(name));
       }
 
+      for(const bindable of Object.values(Bindable.from(def.bindables))) {
+        Bindable._add(bindable, Type);
+      }
       return new CustomElementDefinition(
         Type,
         name,
@@ -319,6 +322,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     // if this turns out to be too opinionated.
 
     const name = fromDefinitionOrDefault('name', nameOrDef, generateElementName);
+
+    for(const bindable of Object.values(Bindable.from(nameOrDef.bindables))) {
+      Bindable._add(bindable, Type);
+    }
     return new CustomElementDefinition(
       Type,
       name,

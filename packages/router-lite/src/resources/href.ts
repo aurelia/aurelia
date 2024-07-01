@@ -97,6 +97,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
       if (this._router.options.useUrlFragmentHash
         && this._ctx.isRoot
         && !/^[.#]/.test(newValue as string)
+        && !this._isExternal
       ) {
         newValue = `#${newValue}`;
       }

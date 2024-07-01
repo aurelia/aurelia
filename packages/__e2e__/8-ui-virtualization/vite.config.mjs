@@ -6,9 +6,13 @@ export default defineConfig({
     port: process.env.APP_PORT ?? 5173,
   },
   build: {
-    minify: false
+    minify: false,
+    target: "es2022",
   },
   plugins: [
     aurelia()
-  ]
+  ],
+  esbuild: {
+    target: "es2022"
+  },
 });

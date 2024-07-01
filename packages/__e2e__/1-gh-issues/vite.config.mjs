@@ -6,6 +6,10 @@ export default defineConfig({
   server: {
     port: process.env.APP_PORT ?? 5173,
   },
+  build: {
+    minify: false,
+    target: "es2022",
+  },
   resolve: {
     alias: {
       ...[
@@ -26,5 +30,8 @@ export default defineConfig({
   },
   plugins: [
     au({ useDev: true })
-  ]
+  ],
+  esbuild: {
+    target: "es2022"
+  },
 });

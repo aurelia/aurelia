@@ -57,6 +57,7 @@
     "examples/realworld",
     "examples/realworld-advanced",
     "examples/router-animation",
+    "examples/router-hooks",
     "examples/state-plugin",
     "examples/sierpinski-triangle"
   ],

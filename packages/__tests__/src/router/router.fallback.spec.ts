@@ -131,7 +131,7 @@ describe('router/router.fallback.spec.ts', function () {
         ];
 
       for (const test of tests) {
-        it(`to load route with fallback action "${fallbackAction}" ${test.path} => ${test.url}`, async function () {
+        it(`to load route with fallback action "${fallbackAction} (${config.fallbackAction})" ${test.path} => ${test.url}`, async function () {
           let locationPath: string;
           const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
@@ -142,7 +142,7 @@ describe('router/router.fallback.spec.ts', function () {
           await $teardown();
         });
       }
-      it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
+      it(`to load above routes in sequence with fallback action "${fallbackAction} (${config.fallbackAction})"`, async function () {
         let locationPath: string;
         const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
           locationPath = path;
@@ -159,7 +159,7 @@ describe('router/router.fallback.spec.ts', function () {
         const path = test.path.replace(/@\w+/g, '');
         const result = test.result.replace(/@\w+/g, '');
         const url = test.url.replace(/@\w+/g, '');
-        it(`to load route with fallback action "${fallbackAction}" ${path} => ${url}`, async function () {
+        it(`to load route with fallback action "${fallbackAction} (${config.fallbackAction})" ${path} => ${url}`, async function () {
           let locationPath: string;
           const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
             locationPath = path;
@@ -171,7 +171,7 @@ describe('router/router.fallback.spec.ts', function () {
         });
       }
 
-      it(`to load above routes in sequence with fallback action "${fallbackAction}"`, async function () {
+      it(`to load above routes in sequence with fallback action "${fallbackAction} (${config.fallbackAction})"`, async function () {
         let locationPath: string;
         const { platform, host, router, $teardown } = await $setup(App, config, (type, data, title, path) => {
           locationPath = path;

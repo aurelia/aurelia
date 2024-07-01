@@ -22,9 +22,9 @@ import { NavigationCoordinator } from './navigation-coordinator';
 import { Runner, Step } from './utilities/runner';
 import { Title } from './title';
 import { RoutingHook } from './routing-hook';
-import { FoundRoute } from './found-route';
 import { IRouterConfiguration } from './index';
 import { ErrorNames, createMappedError } from './errors';
+import { Separators } from './router-options';
 
 /**
  * The router is the "main entry point" into routing. Its primary responsibilities are
@@ -96,11 +96,12 @@ export interface ILoadOptions {
   replace?: boolean;
 
   /**
-   * Whether the instructions should be appended to a current navigation
-   * in progress (if any). If no current navigation is in progress, the
-   * instructions will be treated as a new navigation. Default: false
+   * Whether the instructions should be appended to a navigation coordinator,
+   * the coordinator of the current navigation in progress (if any). If no
+   * current navigation is in progress, the instructions will be treated as
+   * a new navigation. Default: false
    */
-  append?: boolean;
+  append?: boolean | NavigationCoordinator;
 
   /**
    * The origin of the navigation. Will also be used as context if no
@@ -236,6 +237,14 @@ export class Router implements IRouter {
   }
 
   /**
+   * Whether the router has a navigation that's open for more
+   * instructions to be appended.
+   */
+  public get hasOpenNavigation(): boolean {
+    return this.coordinators.filter(coordinator => !coordinator.closed).length > 0;
+  }
+
+  /**
    * Whether navigations are restricted/synchronized beyond the minimum.
    */
   public get isRestrictedNavigation(): boolean {
@@ -340,6 +349,7 @@ export class Router implements IRouter {
 
   /** @internal */
   private async _doHandleNavigatorNavigateEvent(event: NavigatorNavigateEvent): Promise<void> {
+    // TODO: Fix the fast-switch multiple navigations issue without this throttle
     if (this._isProcessingNav) {
       // We prevent multiple navigation at the same time, but we store the last navigation requested.
       if (this._pendingNavigation) {
@@ -420,7 +430,7 @@ export class Router implements IRouter {
     // If there are instructions appended between/before any navigation,
     // append them to this navigation. (This happens with viewport defaults
     // during startup.)
-    coordinator.appendedInstructions.push(...this.appendedInstructions.splice(0));
+    coordinator.appendInstructions(this.appendedInstructions.splice(0));
 
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
@@ -443,28 +453,43 @@ export class Router implements IRouter {
     }
 
     if (typeof transformedInstruction === 'string') {
-      transformedInstruction = transformedInstruction === '' // || transformedInstruction === '-'
-        ? [new RoutingInstruction('')] // Make sure empty route is also processed
-        : RoutingInstruction.parse(this, transformedInstruction);
+      if (transformedInstruction === '') {
+        transformedInstruction = [new RoutingInstruction('')]; // Make sure empty route is also processed
+        transformedInstruction[0].default = true;
+      } else if (transformedInstruction === '-') {
+        transformedInstruction = [new RoutingInstruction('-'), new RoutingInstruction('')]; // Make sure clean all plus empty route is also processed
+        transformedInstruction[1].default = true;
+      } else {
+        transformedInstruction = RoutingInstruction.parse(this, transformedInstruction);
+      }
     }
 
     // The instruction should have a scope so use rootScope if it doesn't
     navigation.scope ??= this.rootScope!.scope;
 
     // TODO(return): Only use navigation.scope for string and instructions without their own scope
-    const allChangedEndpoints = await navigation.scope.processInstructions(transformedInstruction, [], navigation, coordinator);
 
-    // Mark all as top instructions ("children"/next scope instructions are in a property on
-    // routing instruction) that will get assured parallel lifecycle swaps
-    // TODO(alpha): Look into refactoring so this isn't used
-    // TODO(return): Needs to be moved outside of scope!
-    // for (const instr of instructions) {
-    //   instr.topInstruction = true;
-    // }
+    coordinator.appendInstructions(transformedInstruction);
+
+    // If router options defaults to navigations being complete state navigation (containing the
+    // complete set of routing instructions rather than just the ones that change), ensure
+    // that there's an instruction to clear all non-specified viewports in all the scopes of
+    // the top instructions. With viewports left and right containing components Alpha and Beta
+    // respectively, doing 'gamma@left' as a complete state navigation would load Gamma in left and
+    // unload Beta in right. In a partial navigation, Gamme would still be loaded but right would
+    // be left as is.
+    if (options.completeStateNavigations) {
+      arrayUnique(transformedInstruction, false)
+        .map(instr => instr.scope!)
+        .forEach(scope => coordinator.ensureClearStateInstruction(scope));
+    }
+
+    await coordinator.processInstructions();
 
     // TODO: Look into adding everything above as well
     return Runner.run(null,
       () => {
+        coordinator.closed = true;
         coordinator.finalEndpoint();
         return coordinator.waitForSyncState('completed');
       },
@@ -474,7 +499,7 @@ export class Router implements IRouter {
       },
       () => {
         // Remove history entry if no history endpoint updated
-        if (navigation.navigation.new && !navigation.navigation.first && !navigation.repeating && allChangedEndpoints.every(endpoint => endpoint.options.noHistory)) {
+        if (navigation.navigation.new && !navigation.navigation.first && !navigation.repeating && coordinator.changedEndpoints.every(endpoint => endpoint.options.noHistory)) {
           navigation.untracked = true;
         }
         // TODO: Review this when adding noHistory back
@@ -582,11 +607,23 @@ export class Router implements IRouter {
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
 
-    if ((options.append ?? false) && (!this.loadedFirst || this.isNavigating)) {
-      instructions = RoutingInstruction.from(this, instructions);
-      this.appendInstructions(instructions as RoutingInstruction[], scope);
-      // Can't return current navigation promise since it can lead to deadlock in load
-      return Promise.resolve();
+    const append = options.append ?? false;
+    if (append !== false) {
+      if (append instanceof NavigationCoordinator) {
+        if (!append.closed) {
+          instructions = RoutingInstruction.from(this, instructions);
+          this.appendInstructions(instructions as RoutingInstruction[], scope, append);
+          // Can't return current navigation promise since it can lead to deadlock in load
+          return Promise.resolve();
+        }
+      } else {
+        if (!this.loadedFirst || this.hasOpenNavigation) {
+          instructions = RoutingInstruction.from(this, instructions);
+          this.appendInstructions(instructions as RoutingInstruction[], scope);
+          // Can't return current navigation promise since it can lead to deadlock in load
+          return Promise.resolve();
+        }
+      }
     }
 
     const entry = Navigation.create({
@@ -599,7 +636,7 @@ export class Router implements IRouter {
       fragment: options.fragment,
       parameters: options.parameters as Record<string, unknown>,
       replacing: (options.replacing ?? false) || options.replace,
-      repeating: options.append,
+      repeating: (options.append ?? false) !== false,
       fromBrowser: options.fromBrowser ?? false,
       origin: options.origin,
       completed: false,
@@ -747,7 +784,7 @@ export class Router implements IRouter {
    * @param instructions - The instructions to append
    * @param scope - The scope of the instructions
    */
-  public appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null): void {
+  public appendInstructions(instructions: RoutingInstruction[], scope: RoutingScope | null = null, coordinator: NavigationCoordinator | null = null): void {
     if (scope === null) {
       scope = this.rootScope!.scope;
     }
@@ -756,11 +793,12 @@ export class Router implements IRouter {
         instruction.scope = scope;
       }
     }
-    let coordinator: NavigationCoordinator | null = null;
-    for (let i = this.coordinators.length - 1; i >= 0; i--) {
-      if (!this.coordinators[i].completed) {
-        coordinator = this.coordinators[i];
-        break;
+    if (coordinator === null) {
+      for (let i = this.coordinators.length - 1; i >= 0; i--) {
+        if (!this.coordinators[i].closed) {
+          coordinator = this.coordinators[i];
+          break;
+        }
       }
     }
     if (coordinator === null) {
@@ -773,7 +811,7 @@ export class Router implements IRouter {
         throw createMappedError(ErrorNames.router_failed_appending_routing_instructions);
       }
     }
-    coordinator?.enqueueAppendedInstructions(instructions);
+    coordinator?.appendInstructions(instructions);
   }
 
   /**
@@ -807,14 +845,23 @@ export class Router implements IRouter {
     if (navigation.timestamp >= (this.activeNavigation?.timestamp ?? 0)) {
       this.activeNavigation = navigation;
       this.activeComponents = instructions;
-      // this.activeRoute = navigation.route;
     }
+
+    // const fullViewportStates: RoutingInstruction[] = [];
+    // // Handle default / root page, because "-" + "" = "-" (so just a "clear")
+    // const targetRoute = instructions.length === 1 ? instructions[0].route : null;
+    // if (!(targetRoute != null && ((typeof targetRoute === 'string' && targetRoute === '') || ((targetRoute as FoundRoute).matching === '')))) {
+    //   fullViewportStates.push(RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction);
+    // }
+
+    // fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
+    // navigation.fullStateInstruction = fullViewportStates;
 
     // First invoke with viewport instructions (should it perhaps get full state?)
     let state = await RoutingHook.invokeTransformToUrl(instructions, navigation);
     if (typeof state !== 'string') {
       // Convert to string if necessary
-      state = RoutingInstruction.stringify(this, state, false, true);
+      state = RoutingInstruction.stringify(this, state, { endpointContext: true });
     }
     // Invoke again with string
     state = await RoutingHook.invokeTransformToUrl(state, navigation);
@@ -841,26 +888,13 @@ export class Router implements IRouter {
       this.configuration.options.useUrlFragmentHash) {
       basePath = '';
     }
-    // if (basePath === null || (state !== '' && state[0] === '/') /* ||
-    //   this.configuration.options.useUrlFragmentHash */) {
-    //   basePath = '';
-    // }
 
     const query = ((navigation.query?.length ?? 0) > 0 ? "?" + (navigation.query as string) : '');
     const fragment = ((navigation.fragment?.length ?? 0) > 0 ? "#" + (navigation.fragment as string) : '');
-    // if (instruction.path === void 0 || instruction.path.length === 0 || instruction.path === '/') {
     navigation.path = basePath + (state as string) + query + fragment;
-    // }
 
-    const fullViewportStates: RoutingInstruction[] = [];
-    // Handle default / root page, because "-" + "" = "-" (so just a "clear")
-    const targetRoute = instructions.length === 1 ? instructions[0].route : null;
-    if (!(targetRoute != null && ((typeof targetRoute === 'string' && targetRoute === '') || ((targetRoute as FoundRoute).matching === '')))) {
-      fullViewportStates.push(RoutingInstruction.create(RoutingInstruction.clear(this)) as RoutingInstruction);
-    }
-
-    fullViewportStates.push(...RoutingInstruction.clone(instructions, this.statefulHistory));
-    navigation.fullStateInstruction = fullViewportStates;
+    const path = navigation.path.slice(basePath.length);
+    navigation.fullStateInstruction = RoutingInstruction.clear(this) + (path.length > 0 ? Separators.for(this).sibling : '') + path;
 
     if ((navigation.title ?? null) === null) {
       const title = await Title.getTitle(instructions, navigation, this.configuration.options.title);

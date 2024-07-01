@@ -22,6 +22,21 @@ export function arrayRemove<T>(arr: T[], func: (value: T, index?: number, obj?: 
 /**
  * @internal
  */
+export function arrayAddUnique<T>(arr: T[], values: T | T[]): T[] {
+  if (!Array.isArray(values)) {
+    values = [values];
+  }
+  for (const value of values) {
+    if (!arr.includes(value)) {
+      arr.push(value);
+    }
+  }
+  return arr;
+}
+
+/**
+ * @internal
+ */
 export function arrayUnique<T>(arr: T[], includeNullish = false): T[] {
   return arr.filter((item, i, arrAgain) => (includeNullish || item != null) && arrAgain.indexOf(item) === i);
 }

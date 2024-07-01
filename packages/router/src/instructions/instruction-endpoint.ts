@@ -84,8 +84,8 @@ export class InstructionEndpoint {
     if (this.instance !== null && other.instance !== null) {
       return this.instance === other.instance;
     }
-    return (this.endpointType === null ||
-      other.endpointType === null ||
+    return (this.endpointType !== null &&
+      other.endpointType !== null &&
       this.endpointType === other.endpointType
     ) &&
       (!compareScope || this.scope === other.scope) &&

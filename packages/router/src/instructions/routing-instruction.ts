@@ -13,6 +13,18 @@ import { EndpointHandle, InstructionEndpoint } from './instruction-endpoint';
 import { Separators } from '../router-options';
 import { IContainer } from '@aurelia/kernel';
 
+export interface IRoutingInstructionStringifyOptions {
+  excludeEndpoint?: boolean;
+  endpointContext?: boolean;
+  fullState?: boolean;
+}
+
+const RoutingInstructionStringifyOptionsDefaults: IRoutingInstructionStringifyOptions = {
+  excludeEndpoint: false,
+  endpointContext: false,
+  fullState: false,
+};
+
 /**
  * The routing instructions are the core of the router's navigations. All
  * navigation instructions to the router are translated to a set of
@@ -132,7 +144,10 @@ export class RoutingInstruction {
    * @param endpoint - The endpoint to create the clear instruction for
    */
   public static createClear(context: IRouterConfiguration | IRouter, endpoint: EndpointType | Endpoint): RoutingInstruction {
-    return RoutingInstruction.create(RoutingInstruction.clear(context), endpoint) as RoutingInstruction;
+    const instruction = RoutingInstruction.create(RoutingInstruction.clear(context), endpoint) as RoutingInstruction;
+    // Clear instructions should have the scope of the endpoint
+    instruction.scope = endpoint.scope;
+    return instruction;
   }
 
   /**
@@ -222,14 +237,21 @@ export class RoutingInstruction {
    *
    * @param context - The context (used for syntax) within to stringify the instructions
    * @param instructions - The instructions to stringify
-   * @param excludeEndpoint - Whether to exclude endpoint names in the string
-   * @param endpointContext - Whether to include endpoint context in the string
+   * @param options - The options for stringifying the instructions
+   * @param endpointContext - Whether to include endpoint context in the string. [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
    */
-  public static stringify(context: IRouterConfiguration | IRouter | IContainer, instructions: RoutingInstruction[] | string, excludeEndpoint: boolean = false, endpointContext: boolean = false): string {
+  public static stringify(context: IRouterConfiguration | IRouter | IContainer, instructions: RoutingInstruction[] | string, options: IRoutingInstructionStringifyOptions | boolean = {}, endpointContext: boolean = false): string {
+    if (typeof options === 'boolean') {
+      // eslint-disable-next-line no-console
+      console.warn(`[Deprecated] Boolean passed to RoutingInstruction.stringify. Please use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }`);
+      options = { excludeEndpoint: options, endpointContext };
+    }
+    options = { ...RoutingInstructionStringifyOptionsDefaults, ...options };
+
     return typeof (instructions) === 'string'
       ? instructions
       : instructions
-        .map(instruction => instruction.stringify(context, excludeEndpoint, endpointContext))
+        .map(instruction => instruction.stringify(context, options))
         .filter(instruction => instruction.length > 0)
         .join(Separators.for(context).sibling);
   }
@@ -373,6 +395,18 @@ export class RoutingInstruction {
   }
 
   /**
+   * Get the dynasty of the routing instruction. The dynasty is the instruction
+   * itself and all its descendants (next scope instructions iteratively).
+   */
+  public get dynasty(): RoutingInstruction[] {
+    const dynasty: RoutingInstruction[] = [this];
+    if (this.hasNextScopeInstructions) {
+      dynasty.push(...this.nextScopeInstructions!.map(instruction => instruction.dynasty).flat());
+    }
+    return dynasty;
+  }
+
+  /**
    * Whether the routing instruction is unresolved.
    */
   public get isUnresolved(): boolean {
@@ -459,17 +493,27 @@ export class RoutingInstruction {
    * Stringify the routing instruction, recursively down next scope/child instructions.
    *
    * @param context - The context (used for syntax) within to stringify the instructions
-   * @param excludeEndpoint - Whether to exclude endpoint names in the string
-   * @param endpointContext - Whether to include endpoint context in the string
+   * @param options - The options for stringifying the instructions
+   * @param endpointContext - Whether to include endpoint context in the string.
+   * [Deprecated] Use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }
    * @param shallow - Whether to stringify next scope instructions
    */
-  public stringify(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, endpointContext: boolean = false, shallow = false): string {
+  public stringify(context: IRouterConfiguration | IRouter | IContainer, options: IRoutingInstructionStringifyOptions | boolean = {}, endpointContextOrShallow: boolean = false, shallow = false): string {
+    if (typeof options === 'boolean') {
+      // eslint-disable-next-line no-console
+      console.warn(`[Deprecated] Boolean passed to RoutingInstruction.stringify. Please use the new interface instead: { excludeEndpoint: boolean; endpointContext: boolean; }`);
+      options = { excludeEndpoint: options, endpointContext: endpointContextOrShallow };
+    } else {
+      shallow = endpointContextOrShallow;
+    }
+    options = { ...RoutingInstructionStringifyOptionsDefaults, ...options };
+
     const seps = Separators.for(context);
-    let excludeCurrentEndpoint = excludeEndpoint;
+    let excludeCurrentEndpoint = options.excludeEndpoint;
     let excludeCurrentComponent = false;
 
     // If viewport context is specified...
-    if (endpointContext) {
+    if (options.endpointContext) {
       const viewport = this.viewport?.instance as Viewport ?? null;
       // (...it's still skipped if no link option is set on viewport)
       if (viewport?.options.noLink ?? false) {
@@ -499,16 +543,16 @@ export class RoutingInstruction {
     // It's a configured route that's already added as part of a configuration, so skip to next scope!
     if (this.route instanceof FoundRoute && !this.routeStart) {
       return !shallow && Array.isArray(nextInstructions)
-        ? RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext)
+        ? RoutingInstruction.stringify(context, nextInstructions, options)
         : '';
     }
-    const path = this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent);
+    const path = this.stringifyShallow(context, excludeCurrentEndpoint, excludeCurrentComponent, options.fullState);
     stringified += path.endsWith(seps.scope) ? path.slice(0, -seps.scope.length) : path;
 
     // If any next scope/child instructions...
     if (!shallow && Array.isArray(nextInstructions) && nextInstructions.length > 0) {
       // ...get them as string...
-      const nextStringified = RoutingInstruction.stringify(context, nextInstructions, excludeEndpoint, endpointContext);
+      const nextStringified = RoutingInstruction.stringify(context, nextInstructions, options);
       if (nextStringified.length > 0) {
         // ...and add with scope separator and...
         stringified += seps.scope;
@@ -664,8 +708,8 @@ export class RoutingInstruction {
    * @param excludeEndpoint - Whether to exclude endpoint names in the string
    * @param excludeComponent - Whether to exclude component names in the string
    */
-  private stringifyShallow(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, excludeComponent: boolean = false): string {
-    if (this.route != null) {
+  private stringifyShallow(context: IRouterConfiguration | IRouter | IContainer, excludeEndpoint: boolean = false, excludeComponent: boolean = false, fullState = false): string {
+    if (!fullState && this.route != null) {
       const path = this.route instanceof FoundRoute ? this.route.matching : this.route;
       return path
         .split('/')
@@ -677,7 +721,7 @@ export class RoutingInstruction {
 
     const seps = Separators.for(context);
     // Start with component (unless excluded)
-    let instructionString = !excludeComponent ? this.component.name ?? '' : '';
+    let instructionString = !excludeComponent || fullState ? this.component.name ?? '' : '';
 
     // Get parameters specification (names, sort order) from component type
     // TODO(alpha): Use Metadata!
@@ -686,12 +730,12 @@ export class RoutingInstruction {
     const parameters = InstructionParameters.stringify(context, this.parameters.toSortedParameters(context, specification));
     if (parameters.length > 0) {
       // Add to component or use standalone
-      instructionString += !excludeComponent
+      instructionString += !excludeComponent || fullState
         ? `${seps.parameters}${parameters}${seps.parametersEnd}`
         : parameters;
     }
     // Add endpoint name (unless excluded)
-    if (this.endpoint.name != null && !excludeEndpoint) {
+    if (this.endpoint.name != null && (!excludeEndpoint || fullState)) {
       instructionString += `${seps.viewport}${this.endpoint.name}`;
     }
     // And add no (owned) scope indicator

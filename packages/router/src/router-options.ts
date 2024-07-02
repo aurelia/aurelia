@@ -353,7 +353,7 @@ export class RouterOptions implements INavigatorOptions {
      * synced,`guardedLoad`, `unload` and `load` should be added to default.
      * Default: `guardedUnload`, `swapped`, `completed`
      */
-    public navigationSyncStates: NavigationState[] = ['guardedUnload', 'swapped', 'completed'],
+    public navigationSyncStates: NavigationState[] = ['guardedUnload', 'guardedLoad', 'swapped', 'completed'],
 
     /**
      * How contents are swapped in a viewport when transitioning. Default: `attach-next-detach-current`
@@ -364,15 +364,15 @@ export class RouterOptions implements INavigatorOptions {
      * The component to be loaded if a specified can't be loaded.
      * The unloadable component is passed as a parameter to the fallback.
      */
-     public fallback: ComponentAppellation = '',
+    public fallback: ComponentAppellation = '',
 
-     /**
-      * Whether the fallback action is to load the fallback component in
-      * place of the unloadable component and continue with any child
-      * instructions or if the fallback is to be called and the processing
-      * of the children to be aborted.
-      */
-     public fallbackAction: FallbackAction = 'abort',
+    /**
+     * Whether the fallback action is to load the fallback component in
+     * place of the unloadable component and continue with any child
+     * instructions or if the fallback is to be called and the processing
+     * of the children to be aborted.
+     */
+    public fallbackAction: FallbackAction = 'abort',
   ) { }
 
   public static create(input: IRouterOptions = {}): RouterOptions {

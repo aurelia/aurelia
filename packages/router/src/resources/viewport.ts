@@ -119,6 +119,8 @@ export class ViewportCustomElement implements ICustomElementViewModel {
 
   public hydrated(controller: ICompiledCustomElementController): void | Promise<void> {
     this.controller = controller as ICustomElementController;
+    // TODO: Below was here for a reason, investigate if no longer necessary
+    // this.container = controller.container;
 
     // eslint-disable-next-line
     const hasDefault = this.instruction.props.filter((instr: any) => instr.to === 'default').length > 0;

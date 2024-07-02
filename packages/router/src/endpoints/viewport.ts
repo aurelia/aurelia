@@ -526,7 +526,7 @@ export class Viewport extends Endpoint {
             return Runner.run(step,
               (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
               (innerStep: Step<void>) => {
-                void this.router.load(canLoadResult, { append: true });
+                void this.router.load(canLoadResult); //, { append: true }); // TODO: Add the append back with iteration
                 return innerStep.exit();
               },
             );

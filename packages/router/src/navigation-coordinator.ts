@@ -223,12 +223,26 @@ export class NavigationCoordinator {
    * @param endpoint - The endpoint to remove
    */
   public removeEndpoint(endpoint: IEndpoint): void {
-    // Find the entity...
-    const entity = this.entities.find(e => e.endpoint === endpoint);
-    if (entity !== void 0) {
-      // ...and remove it.
-      arrayRemove(this.entities, ent => ent === entity);
+    const endpoints = this.entities.map(e => e.endpoint) as (IEndpoint & { parentViewport?: IEndpoint | null })[];
+    const removes = [endpoint];
+    let children = [endpoint];
+    // Recursively find all children of the endpoint
+    while (children.length > 0) {
+      children = endpoints.filter(e => e?.parentViewport != null && children.includes(e.parentViewport));
+      removes.push(...children);
     }
+
+    // Remove the entities for the endpoint and all its children
+    for (const remove of removes) {
+      // Find the entity...
+      const entity = this.entities.find(e => e.endpoint === remove);
+      if (entity !== void 0) {
+        // ...and remove it.
+        arrayRemove(this.entities, ent => ent === entity);
+      }
+    }
+    // Removing an entity might take us further along the overall process, so check ALL states
+    this.checkSyncState();
   }
 
   /**
@@ -489,7 +503,12 @@ export class NavigationCoordinator {
    *
    * @param state - The state to check
    */
-  private checkSyncState(state: NavigationState): void {
+  private checkSyncState(state?: NavigationState): void {
+    if (state === void 0) {
+      // Check all synchronized states to see which has been reached
+      this.syncStates.forEach((_promise: OpenPromise, state: NavigationState) => this.checkSyncState(state));
+      return;
+    }
     // Get the promise, if any, indicating that we're synchronizing this state...
     const openPromise = this.syncStates.get(state);
     if (openPromise === void 0) {

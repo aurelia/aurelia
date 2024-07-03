@@ -145,6 +145,7 @@ const apps = (args.a ?? []) as string[];
 const validApps = [
   'ui-virtualization',
   'router-animation',
+  'router-hooks',
 ];
 const toolings = args.l;
 

@@ -96,7 +96,7 @@ describe('router/router.redirect.spec.ts', function () {
 
   const tests = [
     { load: '/', result: '!root!', path: '/', },
-    { load: '/home', result: '!root!', path: '/home', },
+    { load: '/home', result: '!root!', path: '/', },
     { load: '/route-two', result: '!zero!', path: '/route-zero', },
     { load: '/route-one/route-two', result: '!one!!zero!', path: '/route-one/route-zero', },
     { load: '/route-one/route-one/route-two', result: '!one!!one!!zero!', path: '/route-one/route-one/route-zero', },
@@ -182,7 +182,7 @@ describe('router/router.redirect.spec.ts', function () {
           // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
           await $load('-', router, platform);
           // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, '', `1) ${test.load} -`);
+          assert.strictEqual(host.textContent, '!root!', `1) ${test.load} -`); // Clearing the content now triggers the defaults
           assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
 
           // 2) Load the wanted page
@@ -194,7 +194,7 @@ describe('router/router.redirect.spec.ts', function () {
           // 3) Unload
           await $load('-', router, platform);
           // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, '', `3) ${test.load} -`);
+          assert.strictEqual(host.textContent, '!root!', `3) ${test.load} -`); // Clearing the content now triggers the defaults
           assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
 
           // 4) reload
@@ -205,7 +205,7 @@ describe('router/router.redirect.spec.ts', function () {
 
           // 5. back to (3) empty
           await $goBack(router, platform);
-          assert.strictEqual(host.textContent, '', `5) back to empty content (-)`);
+          assert.strictEqual(host.textContent, '!root!', `5) back to empty content (-)`); // Clearing the content now triggers the defaults
           assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
           // 6. back to (2) the page
           await $goBack(router, platform);
@@ -213,7 +213,7 @@ describe('router/router.redirect.spec.ts', function () {
           assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
           // 7. back to (1) empty
           await $goBack(router, platform);
-          assert.strictEqual(host.textContent, '', `7) back to empty content (-)`);
+          assert.strictEqual(host.textContent, '!root!', `7) back to empty content (-)`); // Clearing the content now triggers the defaults
           assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
           // 8. back to the root page (0)
           await $goBack(router, platform);

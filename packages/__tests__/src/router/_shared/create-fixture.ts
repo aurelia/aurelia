@@ -60,7 +60,7 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
   //   : 'integrated';
   // console.log('SyncStates', syncStates.toString());
   return {
-    additiveInstructionDefault: false,
+    completeStateNavigations: true,
     swapOrder: swap,
     navigationSyncStates: syncStates,
     // routingHookIntegration: integration,
@@ -137,6 +137,8 @@ export async function createFixture<T extends Constructable>(
       RouterConfiguration.customize();
 
       await au.stop(true);
+
+      au.dispose();
     },
     logTicks(callback: (tick: number) => void): () => void {
       return startTickLogging(window, callback);

@@ -473,13 +473,14 @@ export class Viewport extends Endpoint {
 
       (step: Step<boolean>) => {
         if (this.isActiveNavigation(coordinator)) {
-          if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
+          if ((step.previousValue ?? true) === false) { // canUnloadResult: boolean
             // step.cancel();
             coordinator.cancel();
           } else {
             if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
               const routerOptions = this.router.configuration.options;
               this.getNavigationContent(coordinator)!.createComponent(
+                coordinator,
                 this.connectedCE!,
                 this.options.fallback || routerOptions.fallback,
                 this.options.fallbackAction || routerOptions.fallbackAction);
@@ -493,22 +494,26 @@ export class Viewport extends Endpoint {
 
       (step: Step<boolean>) => {
         if (this.isActiveNavigation(coordinator)) {
-          return this.canLoad(coordinator, step) as boolean | LoadInstruction | LoadInstruction[];
+          return this.canLoad(coordinator, step);
         }
       },
 
       (step: Step) => {
         if (this.isActiveNavigation(coordinator)) {
-          let canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
+          let canLoadResult = (step.previousValue ?? true) as boolean | LoadInstruction | LoadInstruction[];
           if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
             if (!canLoadResult) {
               step.cancel();
               coordinator.cancel();
-              this.getNavigationContent(coordinator)!.instruction.nextScopeInstructions = null;
+              const instruction = this.getNavigationContent(coordinator)!.instruction;
+              coordinator.removeInstructions(instruction.dynasty);
+              instruction.nextScopeInstructions = null;
               return;
             }
           } else { // Denied and (probably) redirected
-            this.getNavigationContent(coordinator)!.instruction.nextScopeInstructions = null;
+            const instruction = this.getNavigationContent(coordinator)!.instruction;
+            coordinator.removeInstructions(instruction.dynasty);
+            instruction.nextScopeInstructions = null;
             if (typeof canLoadResult === 'string') {
               const scope = this.scope;
               const options = this.router.configuration.options;
@@ -526,7 +531,7 @@ export class Viewport extends Endpoint {
             return Runner.run(step,
               (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
               (innerStep: Step<void>) => {
-                void this.router.load(canLoadResult, { append: true });
+                void this.router.load(canLoadResult, { append: coordinator });
                 return innerStep.exit();
               },
             );
@@ -632,7 +637,7 @@ export class Viewport extends Endpoint {
         return this.getContent().connectedScope.canUnload(coordinator, innerStep);
       },
       (innerStep: Step<boolean>) => {
-        if (!(innerStep.previousValue as boolean)) { // canUnloadChildren
+        if ((innerStep.previousValue ?? true) === false) { // canUnloadChildren
           return false;
         }
         return this.getContent().canUnload(coordinator.navigation);
@@ -656,6 +661,7 @@ export class Viewport extends Endpoint {
         const routerOptions = this.router.configuration.options;
         const navigationContent = this.getNavigationContent(coordinator)!;
         navigationContent.createComponent(
+          coordinator,
           this.connectedCE!,
           this.options.fallback || routerOptions.fallback,
           this.options.fallbackAction || routerOptions.fallbackAction);

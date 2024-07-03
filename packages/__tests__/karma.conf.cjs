@@ -102,7 +102,7 @@ module.exports =
       { type: 'module', watched: false,         included: false, nocache: !process.env.CI && !isFirefox,   pattern: `packages/${name}/dist/esm/index.mjs.map` }, // 3.2
       { type: 'module', watched: false,         included: false, nocache: true,   pattern: `packages/${name}/src/**/*.ts` }, // 3.3
     ]),
-    // for i18n tests 
+    // for i18n tests
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/esm/helpers/**/*.js` }, // 3.1
@@ -272,7 +272,7 @@ module.exports =
                   return;
                 }
               }
-    
+
               if (process.env.CI || isFirefox) {
                 next();
                 return;
@@ -290,7 +290,7 @@ module.exports =
                 response.end(jsCode);
                 return;
               }
-    
+
               next();
             }
           }]}

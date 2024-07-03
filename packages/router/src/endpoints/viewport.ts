@@ -473,7 +473,7 @@ export class Viewport extends Endpoint {
 
       (step: Step<boolean>) => {
         if (this.isActiveNavigation(coordinator)) {
-          if (!(step.previousValue as boolean)) { // canUnloadResult: boolean
+          if ((step.previousValue ?? true) === false) { // canUnloadResult: boolean
             // step.cancel();
             coordinator.cancel();
           } else {
@@ -494,13 +494,13 @@ export class Viewport extends Endpoint {
 
       (step: Step<boolean>) => {
         if (this.isActiveNavigation(coordinator)) {
-          return this.canLoad(coordinator, step) as boolean | LoadInstruction | LoadInstruction[];
+          return this.canLoad(coordinator, step);
         }
       },
 
       (step: Step) => {
         if (this.isActiveNavigation(coordinator)) {
-          let canLoadResult = step.previousValue as boolean | LoadInstruction | LoadInstruction[];
+          let canLoadResult = (step.previousValue ?? true) as boolean | LoadInstruction | LoadInstruction[];
           if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
             if (!canLoadResult) {
               step.cancel();
@@ -637,7 +637,7 @@ export class Viewport extends Endpoint {
         return this.getContent().connectedScope.canUnload(coordinator, innerStep);
       },
       (innerStep: Step<boolean>) => {
-        if (!(innerStep.previousValue as boolean)) { // canUnloadChildren
+        if ((innerStep.previousValue ?? true) === false) { // canUnloadChildren
           return false;
         }
         return this.getContent().canUnload(coordinator.navigation);

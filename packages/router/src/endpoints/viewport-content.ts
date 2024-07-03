@@ -291,7 +291,7 @@ export class ViewportContent extends EndpointContent {
 
     if (instance.canLoad != null) {
       hooks.push((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
+        if ((innerStep?.previousValue ?? true) === false) {
           return false;
         }
         // TODO: If requested, pass previous value into hook
@@ -340,7 +340,7 @@ export class ViewportContent extends EndpointContent {
     }
 
     const hooks = this._getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
-      if (innerStep?.previousValue === false) {
+      if ((innerStep?.previousValue ?? true) === false) {
         return false;
       }
       return hook(instance, this.instruction, navigation);
@@ -348,21 +348,11 @@ export class ViewportContent extends EndpointContent {
 
     if (instance.canUnload != null) {
       hooks.push((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
+        if ((innerStep?.previousValue ?? true) === false) {
           return false;
         }
         // TODO: If requested, pass previous value into hook
-        const result = instance.canUnload?.(this.instruction, navigation);
-        if (result instanceof Promise) {
-          void result.then(canUnload => {
-            if (typeof canUnload !== 'boolean') {
-              throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
-            }
-          });
-        } else if (typeof result !== 'boolean') {
-          throw new Error(`Method 'canUnload' in component "${this.instruction.component.name}" needs to return true or false or a Promise resolving to true or false.`);
-        }
-        return result;
+        return instance.canUnload?.(this.instruction, navigation) as boolean | Promise<boolean>;
       });
     }
 

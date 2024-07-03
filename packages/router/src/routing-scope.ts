@@ -473,7 +473,7 @@ export class RoutingScope {
             : (childStep: Step<boolean>) => child.canUnload(coordinator, childStep)
           ));
       },
-      (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result)) as boolean | Promise<boolean>;
+      (step: Step<boolean>) => (step.previousValue as boolean[]).every(result => result ?? true)) as boolean | Promise<boolean>;
   }
 
   public unload(coordinator: NavigationCoordinator, step: Step<void> | null): Step<void> {

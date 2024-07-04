@@ -4819,4 +4819,111 @@ describe('router-lite/hook-tests.spec.ts', function () {
       });
     });
   });
+
+  it('canUnload returns null/undefined -> unloading works', async function () {
+
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A implements IRouteViewModel {
+      public canUnload(_next: RN, _current: RN): boolean | Promise<boolean> { return null!; }
+    }
+    @customElement({ name: 'ce-b', template: 'b' })
+    class B implements IRouteViewModel {
+      public canUnload(_next: RN, _current: RN): boolean | Promise<boolean> { return undefined!; }
+    }
+
+    @route({
+      routes: [
+        { path: ['', 'a'], component: A, title: 'A' },
+        { path: 'b', component: B, title: 'B' },
+      ]
+    })
+    @customElement({
+      name: 'my-app',
+      template: `<au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { router, tearDown, host } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
+
+    assert.html.textContent(host, 'a', 'round#0');
+
+    await router.load('b');
+    assert.html.textContent(host, 'b', 'round#1');
+
+    await router.load('a');
+    assert.html.textContent(host, 'a', 'round#2');
+
+    await tearDown();
+  });
+
+  it('canLoad returns null/undefined -> loading works', async function () {
+
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A implements IRouteViewModel {
+      public canLoad(_params: P, _next: RN, _current: RN): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return null!; }
+    }
+    @customElement({ name: 'ce-b', template: 'b' })
+    class B implements IRouteViewModel {
+      public canLoad(_params: P, _next: RN, _current: RN): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return undefined!; }
+    }
+
+    @route({
+      routes: [
+        { path: ['', 'a'], component: A, title: 'A' },
+        { path: 'b', component: B, title: 'B' },
+      ]
+    })
+    @customElement({
+      name: 'my-app',
+      template: `<au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { router, tearDown, host } = await createFixture(Root, [A, B]/* , LogLevel.trace */);
+
+    assert.html.textContent(host, 'a', 'round#0');
+
+    await router.load('b');
+    assert.html.textContent(host, 'b', 'round#1');
+
+    await router.load('a');
+    assert.html.textContent(host, 'a', 'round#2');
+
+    await tearDown();
+  });
+
+  it('canLoad returns routing instruction -> redirects', async function () {
+
+    @customElement({ name: 'ce-a', template: 'a' })
+    class A implements IRouteViewModel { }
+    @customElement({ name: 'ce-b', template: 'b' })
+    class B { }
+
+    @customElement({ name: 'ce-c', template: 'c' })
+    class C implements IRouteViewModel {
+      public canLoad(_params: P, _next: RN, _current: RN): boolean | NI | NI[] | Promise<boolean | NI | NI[]> { return 'b'; }
+    }
+
+    @route({
+      routes: [
+        { path: ['', 'a'], component: A, title: 'A' },
+        { path: 'b', component: B, title: 'B' },
+        { path: 'c', component: C, title: 'C' },
+      ]
+    })
+    @customElement({
+      name: 'my-app',
+      template: `<au-viewport></au-viewport>`
+    })
+    class Root { }
+
+    const { router, tearDown, host } = await createFixture(Root, [A, B, C]/* , LogLevel.trace */);
+
+    assert.html.textContent(host, 'a', 'round#0');
+
+    await router.load('c');
+    assert.html.textContent(host, 'b', 'round#1');
+
+    await tearDown();
+  });
 });

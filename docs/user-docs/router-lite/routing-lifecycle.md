@@ -53,14 +53,9 @@ The `canLoad` method is called upon attempting to load the component.
 It allows you to determine if the component should be loaded or not.
 If your component relies on some precondition being fulfilled before being allowed to render, this is the method you would use.
 
-The component would be loaded if `true` (it has to be `boolean` `true` ) is returned from this method.
-To disallow loading the component you can return `false`.
+To disallow loading the component you can return a `boolean` `false`.
 You can also return a navigation instruction to navigate the user to a different view.
 These are discussed in the following sections.
-
-{% hint style="warning" %}
-Returning any value other than `boolean true`, from within the `canLoad` function will [cancel](./router-events.md#emitted-events) the router navigation.
-{% endhint %}
 
 ### Allow or disallowed loading components
 
@@ -259,12 +254,7 @@ The `canUnload` method is called when a user attempts to leave a routed view.
 The first argument (`next`) of this hook is a `RouteNode` which provides information about the next route.
 
 This hook is like the `canLoad` method but inverse.
-You can return a `boolean true` from this method, allowing the router-lite to navigate away from the current component.
-Returning any other value from this method will disallow the router-lite to unload this component.
-
-{% hint style="warning" %}
-Returning any value other than `boolean true`, from within the `canUnload` function will [cancel](./router-events.md#emitted-events) the router navigation.
-{% endhint %}
+You can return a `boolean false` from this method, to disallow the router-lite to navigate away from the current component.
 
 The following example shows that before navigating away, the user is shown a confirmation prompt.
 If the user agrees to navigate way, then the navigation is performed.

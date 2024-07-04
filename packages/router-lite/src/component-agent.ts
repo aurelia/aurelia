@@ -109,7 +109,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         tr._run(() => {
           return hook.canUnload(this._instance, next, this._routeNode);
         }, ret => {
-          if (tr.guardsResult === true && ret !== true) {
+          if (tr.guardsResult === true && ret === false) {
             tr.guardsResult = false;
           }
           b._pop();
@@ -128,7 +128,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         tr._run(() => {
           return this._instance.canUnload!(next, this._routeNode);
         }, ret => {
-          if (tr.guardsResult === true && ret !== true) {
+          if (tr.guardsResult === true && ret === false) {
             tr.guardsResult = false;
           }
           b._pop();
@@ -155,7 +155,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         tr._run(() => {
           return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
-          if (tr.guardsResult === true && ret !== true) {
+          if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
           b._pop();
@@ -174,7 +174,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         tr._run(() => {
           return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
-          if (tr.guardsResult === true && ret !== true) {
+          if (tr.guardsResult === true && ret != null && ret !== true) {
             tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
           }
           b._pop();

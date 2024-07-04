@@ -245,10 +245,9 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       public canLoad(_vm: IRouteViewModel, _params: Params, next: RouteNode, _current: RouteNode): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
         this.logger.trace(`canLoad ${(next.instruction as IViewportInstruction).component}`);
         const claim = (next.data as { claim: { type: string; value: string } }).claim ?? null;
-        if (claim === null) return true;
-        return this.authService.hasClaim(claim.type, claim.value)
-          ? true
-          : 'forbidden';
+        if (claim === null) return;
+        if (this.authService.hasClaim(claim.type, claim.value)) return;
+        return 'forbidden';
       }
     }
 

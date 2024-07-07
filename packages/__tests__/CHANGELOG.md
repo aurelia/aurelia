@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.20"></a>
+# 2.0.0-beta.20 (2024-07-07)
+
+### Bug Fixes:
+
+* **router-lite:** external attribute for href (#2000) ([f062ba0](https://github.com/aurelia/aurelia/commit/f062ba0))
+* **metadata:** own metadata (#1992) ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+
+
+### Refactorings:
+
+* **router-lite:** can* hook semantics (#2002) ([ac5359f](https://github.com/aurelia/aurelia/commit/ac5359f))
+* **router:** navigation coordinator refactor (#1997) ([1b97340](https://github.com/aurelia/aurelia/commit/1b97340))
+* **validation:** state rule ([9df93e0](https://github.com/aurelia/aurelia/commit/9df93e0))
+* **tooling:** bindable inheritance ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+
 <a name="2.0.0-beta.19"></a>
 # 2.0.0-beta.19 (2024-06-12)
 

@@ -51,6 +51,7 @@ import {
   ekBindingIdentifier,
   ekObjectDestructuring,
   AccessBoundaryExpression,
+  AssignmentOperator,
 } from './ast';
 import { createLookup } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
@@ -345,10 +346,10 @@ const enum Token {
   TemplateContinuation    = 0b0100001000001_0000_110001,
   OfKeyword               = 0b1000000001010_0000_110010,
   Arrow                   = 0b0000000000000_0000_110011,
-  PlusEquals              = 0b1100100000000_0001_110100,
-  MinusEquals             = 0b1100100000000_0001_110101,
-  AsteriskEquals          = 0b1100100000000_0001_110110,
-  SlashEquals             = 0b1100100000000_0001_110111,
+  PlusEquals              = 0b1000000000000_0000_110100,
+  MinusEquals             = 0b1000000000000_0000_110101,
+  AsteriskEquals          = 0b1000000000000_0000_110110,
+  SlashEquals             = 0b1000000000000_0000_110111,
   PlusPlus                = 0b0100010000000_0000_111000,
   MinusMinus              = 0b0100010000000_0000_111001,
 }
@@ -625,12 +626,10 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
     }
     switch ($currentToken as Token) {
       case Token.PlusPlus:
-        nextToken();
-        result = new UnaryExpression('++', result as IsLeftHandSide, 1);
-        break;
       case Token.MinusMinus:
+        result = new UnaryExpression(TokenValues[$currentToken & Token.Type] as UnaryOperator, result as IsLeftHandSide, 1);
         nextToken();
-        result = new UnaryExpression('--', result as IsLeftHandSide, 1);
+        $assignable = false;
         break;
     }
     if (Precedence.LeftHandSide < minPrecedence) {
@@ -852,15 +851,26 @@ export function parse(minPrecedence: Precedence, expressionType: ExpressionType)
    * AssignmentExpression :
    * 1. ConditionalExpression
    * 2. LeftHandSideExpression = AssignmentExpression
+   * 3. LeftHandSideExpression AssignmentOperator AssignmentExpression
    *
    * IsValidAssignmentTarget
    * 1,2 = false
    */
-  if (consumeOpt(Token.Equals)) {
-    if (!$assignable) {
-      throw lhsNotAssignable();
+
+  switch ($currentToken as Token) {
+    case Token.Equals:
+    case Token.PlusEquals:
+    case Token.MinusEquals:
+    case Token.AsteriskEquals:
+    case Token.SlashEquals: {
+      if (!$assignable) {
+        throw lhsNotAssignable();
+      }
+      const op = TokenValues[$currentToken & Token.Type] as AssignmentOperator;
+      nextToken();
+      result = new AssignExpression(result as IsAssignable, parse(Precedence.Assign, expressionType) as IsAssign, op);
+      break;
     }
-    result = new AssignExpression(result as IsAssignable, parse(Precedence.Assign, expressionType) as IsAssign);
   }
   if (Precedence.Variadic < minPrecedence) {
     return result as any;
@@ -1091,7 +1101,6 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   const currentTokenSave = $currentToken;
   const currentCharSave = $currentChar;
   const tokenValueSave = $tokenValue;
-  const assignableSave = $assignable;
   const optionalSave = $optional;
 
   const arrowParams: BindingIdentifier[] = [];
@@ -1240,7 +1249,6 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType: 
   $currentToken = currentTokenSave;
   $currentChar = currentCharSave;
   $tokenValue = tokenValueSave;
-  $assignable = assignableSave;
   $optional = optionalSave;
 
   const _optional = $optional;

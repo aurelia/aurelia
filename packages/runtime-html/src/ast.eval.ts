@@ -166,6 +166,10 @@ export const {
             return -(astEvaluate(ast.expression, s, e, c) as number);
           case '+':
             return +(astEvaluate(ast.expression, s, e, c) as number);
+          case '--':
+            return astAssign(ast.expression, s, e, (astEvaluate(ast.expression, s, e, c) as number) - 1);
+          case '++':
+            return astAssign(ast.expression, s, e, (astEvaluate(ast.expression, s, e, c) as number) + 1);
           default:
             throw createMappedError(ErrorNames.ast_unknown_unary_operator, ast.operation);
         }
@@ -356,8 +360,24 @@ export const {
       case ekConditional:
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return astEvaluate(ast.condition, s, e, c) ? astEvaluate(ast.yes, s, e, c) : astEvaluate(ast.no, s, e, c);
-      case ekAssign:
-        return astAssign(ast.target, s, e, astEvaluate(ast.value, s, e, c));
+      case ekAssign: {
+        const target = ast.target;
+        const value = ast.value;
+        switch (ast.op) {
+          case '=':
+            return astAssign(ast.target, s, e, astEvaluate(ast.value, s, e, c));
+          case '/=':
+            return astAssign(target, s, e, (astEvaluate(target, s, e, c) as number) / (astEvaluate(value, s, e, c) as number));
+          case '*=':
+            return astAssign(target, s, e, (astEvaluate(target, s, e, c) as number) * (astEvaluate(value, s, e, c) as number));
+          case '+=':
+            return astAssign(target, s, e, (astEvaluate(target, s, e, c) as number) + (astEvaluate(value, s, e, c) as number));
+          case '-=':
+            return astAssign(target, s, e, (astEvaluate(target, s, e, c) as number) - (astEvaluate(value, s, e, c) as number));
+          default:
+            throw createMappedError(ErrorNames.ast_unknown_binary_operator, ast.op);
+      }
+        }
       case ekValueConverter: {
         const vc = e?.getConverter?.(ast.name);
         if (vc == null) {

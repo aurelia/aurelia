@@ -332,11 +332,11 @@ export class RouterOptions implements INavigatorOptions {
     public useConfiguredRoutes: boolean = true,
 
     /**
-     * Whether a load instruction by default is additive, that is specifying
-     * the change of the state of viewports rather than the complete state
-     * of viewports. Default: true
+     * Whether a load instruction by default is a complete state navigation,
+     * for all viewports, or a partial state navigation that is only specifying
+     * the change of the new state of specified viewports. Default: false
      */
-    public additiveInstructionDefault: boolean = true,
+    public completeStateNavigations: boolean = false,
 
     /**
      * The router's title configuration
@@ -364,15 +364,15 @@ export class RouterOptions implements INavigatorOptions {
      * The component to be loaded if a specified can't be loaded.
      * The unloadable component is passed as a parameter to the fallback.
      */
-     public fallback: ComponentAppellation = '',
+    public fallback: ComponentAppellation = '',
 
-     /**
-      * Whether the fallback action is to load the fallback component in
-      * place of the unloadable component and continue with any child
-      * instructions or if the fallback is to be called and the processing
-      * of the children to be aborted.
-      */
-     public fallbackAction: FallbackAction = 'abort',
+    /**
+     * Whether the fallback action is to load the fallback component in
+     * place of the unloadable component and continue with any child
+     * instructions or if the fallback is to be called and the processing
+     * of the children to be aborted.
+     */
+    public fallbackAction: FallbackAction = 'abort',
   ) { }
 
   public static create(input: IRouterOptions = {}): RouterOptions {
@@ -385,7 +385,7 @@ export class RouterOptions implements INavigatorOptions {
       input.statefulHistoryLength,
       input.useDirectRouting,
       input.useConfiguredRoutes,
-      input.additiveInstructionDefault,
+      input.completeStateNavigations,
       TitleOptions.create(input.title),
       input.navigationSyncStates,
       input.swapOrder,
@@ -421,7 +421,7 @@ export class RouterOptions implements INavigatorOptions {
     this.statefulHistoryLength = options.statefulHistoryLength ?? this.statefulHistoryLength;
     this.useDirectRouting = options.useDirectRouting ?? this.useDirectRouting;
     this.useConfiguredRoutes = options.useConfiguredRoutes ?? this.useConfiguredRoutes;
-    this.additiveInstructionDefault = options.additiveInstructionDefault ?? this.additiveInstructionDefault;
+    this.completeStateNavigations = options.completeStateNavigations ?? this.completeStateNavigations;
     this.title.apply(options.title);
     this.navigationSyncStates = options.navigationSyncStates ?? this.navigationSyncStates;
     this.swapOrder = options.swapOrder ?? this.swapOrder;

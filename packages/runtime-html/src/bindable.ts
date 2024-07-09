@@ -170,6 +170,14 @@ export const Bindable = objectFreeze({
     }
     return defs;
   },
+  /** @internal */
+  _add(bindable: BindableDefinition, Type: Constructable) {
+    let bindables = getMetadata<Record<string, BindableDefinition>>(baseName, Type);
+    if (bindables == null) {
+      defineMetadata(bindables = createLookup(), Type, baseName);
+    }
+    bindables[bindable.name] = bindable;
+  }
 });
 
 export class BindableDefinition {

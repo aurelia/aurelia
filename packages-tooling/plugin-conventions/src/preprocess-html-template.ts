@@ -156,8 +156,8 @@ export const dependencies = [ ${viewDeps.join(', ')} ];
   }
 
   m.append(`export const bindables = ${(Object.keys(bindables).length > 0
-    ? JSON.stringify(Object.keys(bindables).map(b => ({ name: b, ...bindables[b] })))
-    : '[]')};\n`);
+    ? JSON.stringify(Object.keys(bindables).reduce((acc, b) => {acc[b]={ name: b, ...bindables[b] }; return acc; }, Object.create(null)))
+    : '{}')};\n`);
 
   if (aliases.length > 0) {
     m.append(`export const aliases = ${JSON.stringify(aliases)};\n`);

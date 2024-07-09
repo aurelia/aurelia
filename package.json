@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.19",
+  "version": "2.0.0-beta.20",
   "packageManager": "npm@8.19.2",
   "workspaces": [
     "packages/kernel",
@@ -57,6 +57,7 @@
     "examples/realworld",
     "examples/realworld-advanced",
     "examples/router-animation",
+    "examples/router-hooks",
     "examples/state-plugin",
     "examples/sierpinski-triangle"
   ],

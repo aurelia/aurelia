@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.20"></a>
+# 2.0.0-beta.20 (2024-07-07)
+
+### Bug Fixes:
+
+* **metadata:** own metadata (#1992) ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+
+
+### Refactorings:
+
+* **tooling:** bindable inheritance ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+
 <a name="2.0.0-beta.19"></a>
 # 2.0.0-beta.19 (2024-06-12)
 

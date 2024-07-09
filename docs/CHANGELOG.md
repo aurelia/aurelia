@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.20"></a>
+# 2.0.0-beta.20 (2024-07-07)
+
+### BREAKING CHANGES:
+
+* **router-lite:** can* hook semantics (#2002) ([ac5359f](https://github.com/aurelia/aurelia/commit/ac5359f))
+    `canLoad`/`canUnload` hooks now only treat `false` as `false`.
+    Previously `canLoad` and `canUnload` only consider `true` as can do, means if a routing component has either the hook `canLoad`/`canUnload`,
+    those hooks must return `true` to `load`/`unload`. This is not consistent with the rest of the frameowrk, and generally will be easier to miss during refactoring.
+* **router:** navigation coordinator refactor (#1997) ([1b97340](https://github.com/aurelia/aurelia/commit/1b97340))
+    `canLoad`/`canUnload` hooks now only treat `false` as `false`.
+    Moves responsibilities and recursive code from routing scope to iterative code in navigation coordinator.
+    Refresh and browser back and forward now behave the same way deep links does; if a viewport with a default component/route has been emptied/cleared the mentioned browser actions will now load the default (instead of keeping the viewport empty).
+* **tooling:** bindable inheritance ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+    When generating types for `.html` file with convention, `bindables` export will be a record, instead of array now.
+    Applications migrating from `beta.15`-`beta.19` will need to change the types for `.html` modules in `resource.d.ts` like the following example:
+    ```ts
+    ...
+    export const bindables: Record<string, Partial<BindableDefinition>>
+    ...
+    ```
+    or if it doesn't matter to your applications, simple having
+    ```ts
+    ...
+    export const bindables: Record<string, any>
+    ...
+    ```
+    will also work.
+* **metadata:** metadata is defined on the immediate target class, instead of first available metadata source (i.e inherited from parent) (#1992) ([bb1fe26](https://github.com/aurelia/aurelia/commit/bb1fe26))
+
+### Bug Fixes:
+
+* **router-lite:** external attribute for href (#2000) ([f062ba0](https://github.com/aurelia/aurelia/commit/f062ba0))
+
+### Refactorings:
+
+* **validation:** state rule using record to declare messages ([9df93e0](https://github.com/aurelia/aurelia/commit/9df93e0))
+
 <a name="2.0.0-beta.19"></a>
 # 2.0.0-beta.19 (2024-06-12)
 

@@ -246,7 +246,7 @@
         "--colors",
         "--recursive",
         "--timeout",
-        "50000",
+        "0",
         "--watch-extensions",
         "js",
         "--bail",

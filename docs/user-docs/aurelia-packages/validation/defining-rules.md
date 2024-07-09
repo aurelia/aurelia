@@ -385,19 +385,17 @@ validationRules
     .satisfiesState(
       /* valid state                 */'ok',
       /* state (validation) function */ (value) => validateCertificate(value),
-      /* state to message mapper     */ (state) => {
-        switch (state) {
-          case 'expired': return 'The certificate was expired.';
-          case 'revoked': return 'The certificate was revoked.';
-          case 'not-yet-valid': return 'The certificate is not yet valid.';
-          // no message for 'ok' state, as it is the valid state
-        }
+      /* state to message lookup     */ {
+        expired: 'The certificate was expired.',
+        revoked: 'The certificate was revoked.',
+        not-yet-valid: 'The certificate is not yet valid.',
+        // no message for 'ok' state, as it is the valid state
       }
     );
 ```
 
 {% hint style="info" %}
-When using `@aurelia/validation-i18n` to localize the messages, the message mapper function can return the key of the localized message instead of the message itself.
+When using `@aurelia/validation-i18n` to localize the messages, the message lookup can have the key of the localized message instead of the message itself.
 {% endhint %}
 
 **Defining rules for multiple objects**

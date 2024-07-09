@@ -7,6 +7,10 @@ export default defineConfig({
   server: {
     port: process.env.APP_PORT ?? 5173,
   },
+  build: {
+    minify: false,
+    target: "es2022",
+  },
   resolve: {
     alias: {
       ...[
@@ -28,7 +32,10 @@ export default defineConfig({
   plugins: [
     au2({ include: 'src/**/*.ts', pre: true }),
     au2({ include: 'src/**/*.html' }),
-  ]
+  ],
+  esbuild: {
+    target: "es2022"
+  },
 });
 
 function au2(options = {}) {

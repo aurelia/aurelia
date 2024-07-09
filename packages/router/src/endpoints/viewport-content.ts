@@ -7,7 +7,7 @@ import { Navigation } from '../navigation';
 import { IConnectedCustomElement } from './endpoint';
 import { Runner, Step } from '../utilities/runner';
 import { AwaitableMap } from '../utilities/awaitable-map';
-import { EndpointContent, Parameters, RoutingScope } from '../index';
+import { EndpointContent, NavigationCoordinator, Parameters, RoutingScope } from '../index';
 import { IRouter } from '../router';
 import { FoundRoute } from '../found-route';
 import { FallbackAction } from '../router-options';
@@ -195,7 +195,7 @@ export class ViewportContent extends EndpointContent {
    * will be processed under the fallback component or if the child
    * instructions will be aborted.
    */
-  public createComponent(connectedCE: IConnectedCustomElement, fallback?: ComponentAppellation, fallbackAction?: FallbackAction): void {
+  public createComponent(coordinator: NavigationCoordinator, connectedCE: IConnectedCustomElement, fallback?: ComponentAppellation, fallbackAction?: FallbackAction): void {
     // Can be called at multiple times, only process the first
     if (this.contentStates.has('created')) {
       return;
@@ -224,8 +224,13 @@ export class ViewportContent extends EndpointContent {
           } else { // 'abort'
             // ...set the unparsed string of the failed component as the first parameter (0)...
             this.instruction.parameters.set([this.instruction.unparsed ?? this.instruction.component.name]);
-            // ...prevent processing of child instructions...
-            this.instruction.nextScopeInstructions = null;
+            // ...if the instruction has children...
+            if (this.instruction.hasNextScopeInstructions) {
+              // ...remove the children from the coordinator
+              coordinator.removeInstructions(this.instruction.nextScopeInstructions!);
+              // ...and prevent processing of the child instructions.
+              this.instruction.nextScopeInstructions = null;
+            }
           }
           // ...fallback is the new component...
           this.instruction.component.set(fallback);
@@ -276,8 +281,9 @@ export class ViewportContent extends EndpointContent {
 
     const hooks = this._getLifecycleHooks(instance, 'canLoad')
       .map(hook => ((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
-          return false;
+        if (innerStep?.previousValue != null && innerStep.previousValue !== true) {
+          innerStep.exit(); // To prevent more calls down the pipeline
+          return innerStep.previousValue ?? false;
         }
         // TODO: If requested, pass previous value into hook
         return hook(instance, merged, this.instruction, this.navigation);
@@ -285,7 +291,7 @@ export class ViewportContent extends EndpointContent {
 
     if (instance.canLoad != null) {
       hooks.push((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
+        if ((innerStep?.previousValue ?? true) === false) {
           return false;
         }
         // TODO: If requested, pass previous value into hook
@@ -334,7 +340,7 @@ export class ViewportContent extends EndpointContent {
     }
 
     const hooks = this._getLifecycleHooks(instance, 'canUnload').map(hook => ((innerStep: Step | null) => {
-      if (innerStep?.previousValue === false) {
+      if ((innerStep?.previousValue ?? true) === false) {
         return false;
       }
       return hook(instance, this.instruction, navigation);
@@ -342,12 +348,11 @@ export class ViewportContent extends EndpointContent {
 
     if (instance.canUnload != null) {
       hooks.push((innerStep: Step | null) => {
-        if (innerStep?.previousValue === false) {
+        if ((innerStep?.previousValue ?? true) === false) {
           return false;
         }
         // TODO: If requested, pass previous value into hook
-        const result = instance.canUnload?.(this.instruction, navigation);
-        return result instanceof Promise ? result.then(Boolean) : Boolean(result);
+        return instance.canUnload?.(this.instruction, navigation) as boolean | Promise<boolean>;
       });
     }
 
@@ -400,7 +405,7 @@ export class ViewportContent extends EndpointContent {
 
         if (hooks.length !== 0) {
           // Add hook in component
-          if (typeof instance.loading  === 'function') {
+          if (typeof instance.loading === 'function') {
             hooks.push(() => instance.loading!(merged, this.instruction, this.navigation));
           }
           if (hasVmHook(instance, 'load')) {
@@ -551,7 +556,7 @@ export class ViewportContent extends EndpointContent {
    * @param connectedCE - The viewport's connectd custom element
    * @param stateful - Whether the content's component is stateful and shouldn't be disposed
    */
-  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null,  connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
+  public deactivateComponent(step: Step<void> | null, initiator: IHydratedController | null, parent: ICustomElementController | null, connectedCE: IConnectedCustomElement, stateful: boolean = false): void | Promise<void> | Step<void> {
     if (!this.contentStates.has('activated') && !this.contentStates.has('activating')) {
       return;
     }

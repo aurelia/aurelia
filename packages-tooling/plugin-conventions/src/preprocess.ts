@@ -3,67 +3,59 @@ import { ModifyCodeResult } from 'modify-code';
 import { IFileUnit, IOptionalPreprocessOptions, preprocessOptions } from './options';
 import { preprocessHtmlTemplate } from './preprocess-html-template';
 import { preprocessResource } from './preprocess-resource';
-import { fileExists } from './file-exists';
+import { fileExists, readFile } from './file-exists';
 
 export function preprocess(
   unit: IFileUnit,
   options: IOptionalPreprocessOptions,
-  _fileExists = fileExists
+  // for testing
+  _fileExists = fileExists,
+  _readFile = readFile,
 ): ModifyCodeResult | undefined {
   const ext = path.extname(unit.path);
   const basename = path.basename(unit.path, ext);
   const allOptions = preprocessOptions(options);
+  const templateExtensions = allOptions.templateExtensions;
+  const useProcessedFilePairFilename = allOptions.useProcessedFilePairFilename;
+  unit.readFile = (path) => _readFile(unit, path);
 
-  if (allOptions.enableConventions && allOptions.templateExtensions.includes(ext)) {
-    const possibleFilePair: string[] = [];
-    allOptions.cssExtensions.forEach(e => {
-      // foo.css or foo.module.css
-      possibleFilePair.push(`${basename}.module${e}`, `${basename}${e}`);
-    });
-
-    const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
-    if (filePair) {
-      if (allOptions.useProcessedFilePairFilename) {
-        // Replace foo.scss with transpiled file name foo.css
-        unit.filePair = `${path.basename(filePair, path.extname(filePair))}.css`;
-      } else {
-        unit.filePair = filePair;
+  if (allOptions.enableConventions && templateExtensions.includes(ext)) {
+    for (const ce of allOptions.cssExtensions) {
+      let filePair: string | null = `${basename}.module${ce}`;
+      if (!_fileExists(unit, `./${filePair}`)) {
+        filePair = `${basename}${ce}`;
+        if (!_fileExists(unit, `./${filePair}`)) continue;
       }
+
+      // Replace foo.scss with transpiled file name foo.css
+      unit.filePair = useProcessedFilePairFilename ? `${path.basename(filePair, path.extname(filePair))}.css` : filePair;
+      break;
     }
 
-    const hasViewModel = Boolean(allOptions.jsExtensions.map(e =>
-      `${basename}${e}`
-    ).find(p => _fileExists(unit, `./${p}`)));
-
-    return preprocessHtmlTemplate(unit, allOptions, hasViewModel, _fileExists);
-  } else if (allOptions.jsExtensions.includes(ext)) {
-    const possibleFilePair = allOptions.templateExtensions.map(e =>
-      `${basename}${e}`
+    return preprocessHtmlTemplate(
+      unit,
+      allOptions,
+      allOptions.jsExtensions.some(e => _fileExists(unit, `./${basename}${e}`)),
+      _fileExists
     );
-    const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
-    if (filePair) {
-      if (allOptions.useProcessedFilePairFilename) {
-        unit.filePair = `${basename}.html`;
-      } else {
-        unit.filePair = filePair;
-      }
-    } else {
+  }
+  if (allOptions.jsExtensions.includes(ext)) {
+    for (const te of templateExtensions) {
+      const filePair = `${basename}${te}`;
+      if (!_fileExists(unit, `./${filePair}`)) continue;
+      unit.filePair = useProcessedFilePairFilename ? `${basename}.html` : filePair;
+
       // Try foo.js and foo-view.html convention.
       // This convention is handled by @view(), not @customElement().
-      const possibleViewPair = allOptions.templateExtensions.map(e =>
-        `${basename}-view${e}`
-      );
-      const viewPair = possibleViewPair.find(p => _fileExists(unit, `./${p}`));
-      if (viewPair) {
-        unit.isViewPair = true;
-        if (allOptions.useProcessedFilePairFilename) {
-          unit.filePair = `${basename}-view.html`;
-        } else {
-          unit.filePair = viewPair;
-        }
+      for (const te of templateExtensions) {
+        // Note that this is technically not a nested for-loop, as it is bound to run only once when the file pair is found. Complexity: m+n instead of m*n.
+        const viewPair = `${basename}-view${te}`;
+        if (!_fileExists(unit, `./${viewPair}`)) continue;
+        unit.filePair = useProcessedFilePairFilename ? `${basename}-view.html` : viewPair;
+        break;
       }
+      break;
     }
     return preprocessResource(unit, allOptions);
   }
 }
-

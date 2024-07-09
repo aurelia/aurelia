@@ -15,9 +15,7 @@ export interface IFileUnit {
   // For foo.js or foo.ts, this is foo.html or foo.md or foo.haml or foo.pug
   // For foo.html (or other templates), this is foo.css or foo.scss or foo.sass or foo.less or foo.styl
   filePair?: string;
-  // When filePair is foo-bar.html for foo-bar.js, it's not a view pair. Uses @customElement decorator.
-  // When filePair is foo-bar-view.html for foo-bar.js, it's a view pair. Uses @view decorator.
-  isViewPair?: boolean;
+  readFile?(path: string): string;
 }
 
 export interface IOptionalPreprocessOptions {
@@ -57,6 +55,7 @@ export interface IOptionalPreprocessOptions {
    * @param moduleName - the name of the module that triggers the hot reload
    */
   getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
+  typeCheckTemplate?: boolean;
 }
 
 export interface IPreprocessOptions {
@@ -89,6 +88,7 @@ export interface IPreprocessOptions {
    * @param moduleName - the name of the module that triggers the hot reload
    */
   getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
+  typeCheckTemplate: boolean;
 }
 
 export const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
@@ -104,6 +104,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     hmr = true,
     enableConventions = true,
     hmrModule = 'module',
+    typeCheckTemplate = false,
     ...others
   } = options;
 
@@ -115,6 +116,7 @@ export function preprocessOptions(options: IOptionalPreprocessOptions = {}): IPr
     hmr,
     hmrModule,
     enableConventions,
+    typeCheckTemplate,
     ...others
   };
 }

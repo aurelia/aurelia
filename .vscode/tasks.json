@@ -19,6 +19,15 @@
             "group": "build",
             "problemMatcher": [],
             "label": "npm: build all"
+        },
+        {
+          "type": "npm",
+          "script": "build",
+          "path": "packages-tooling/__tests__",
+          "group": "build",
+          "problemMatcher": [],
+          "label": "npm: build - packages-tooling/__tests__",
+          "detail": "tsc --build"
         }
     ]
 }

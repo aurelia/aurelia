@@ -12,6 +12,7 @@ describe('preprocessOptions', function () {
         useCSSModule: false,
         hmr: true,
         enableConventions: true,
+        typeCheckTemplate: false,
         hmrModule: 'module'
       }
     );
@@ -31,6 +32,7 @@ describe('preprocessOptions', function () {
         useCSSModule: false,
         hmr: true,
         enableConventions: true,
+        typeCheckTemplate: false,
         hmrModule: 'module'
       }
     );
@@ -57,6 +59,7 @@ describe('preprocessOptions', function () {
         useCSSModule: false,
         hmr: true,
         enableConventions: true,
+        typeCheckTemplate: false,
         hmrModule: 'module'
       }
     );
@@ -83,6 +86,7 @@ describe('preprocessOptions', function () {
         useProcessedFilePairFilename: true,
         hmr: true,
         enableConventions: true,
+        typeCheckTemplate: false,
         hmrModule: 'module'
       }
     );

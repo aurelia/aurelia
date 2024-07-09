@@ -1,19 +1,22 @@
-import {
-  type CallExpression,
-  type Statement,
-  type Node,
-  type SourceFile,
-  type TransformerFactory,
-  type ClassDeclaration,
-  type Identifier,
-} from 'typescript';
 import { type ModifyCodeResult } from 'modify-code';
+import type {
+  CallExpression,
+  ClassDeclaration,
+  ClassElement,
+  Expression,
+  Node,
+  PropertyDeclaration,
+  SourceFile,
+  Statement,
+  TransformerFactory,
+} from 'typescript';
+import pkg from 'typescript';
+import { modifyCode } from './modify-code';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
+import { createTypeCheckedTemplate, prependUtilityTypes } from './template-typechecking';
 
-import pkg from 'typescript';
-import { modifyCode } from './modify-code';
 const {
   ModifierFlags,
   ScriptTarget,
@@ -27,10 +30,12 @@ const {
   getModifiers,
   isCallExpression,
   isClassDeclaration,
+  isExpressionStatement,
   isIdentifier,
   isImportDeclaration,
   isObjectLiteralExpression,
   isPropertyDeclaration,
+  isPropertyAccessExpression,
   isNamedImports,
   isStringLiteral,
   transform,
@@ -49,6 +54,23 @@ interface ICapturedImport {
   names: string[];
   start: number;
   end: number;
+}
+
+export interface ClassMetadata {
+  name: string;
+  members: string[]; // keeping it simple for now; we can probably do more with this
+}
+
+interface ITemplateMetadata {
+  /** Identifier for the HTML import. */
+  name?: string;
+  /** Path to the module. */
+  modulePath?: string;
+  inlineTemplate?: string;
+  classes: ClassMetadata[];
+  // TODO(Sayan): we probably don't need the following; remove.
+  start?: number;
+  end?: number;
 }
 
 interface IPos {
@@ -73,7 +95,7 @@ type Modification = {
 
 interface IFoundResource {
   type?: ResourceType;
-  className?: string;
+  classMetadata?: ClassMetadata;
   localDep?: string;
   modification?: Modification;
   implicitStatement?: IPos;
@@ -94,18 +116,23 @@ interface IModifyResourceOptions {
   customElementDecorator?: CustomElementDecorator;
   transformHtmlImportSpecifier?: (path: string) => string;
   defineElementInformation?: DefineElementInformation;
+  exportedClassMetadata?: ClassMetadata;
+  experimentalTemplateTypeCheck: boolean;
+  useConventions: boolean;
+  templateMetadata: ITemplateMetadata[];
 }
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
-  let exportedClassName: string | undefined;
+  let exportedClassMetadata: ClassMetadata | undefined;
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
   let implicitElement: IPos | undefined;
   let customElementDecorator: CustomElementDecorator | undefined; // for @customName('custom-name')
   let defineElementInformation: DefineElementInformation | undefined;
+  const templateMetadata: ITemplateMetadata[] = [];
 
   // When there are multiple exported classes (e.g. local value converters),
   // they might be deps for composing the main implicit custom element.
@@ -129,14 +156,21 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       return;
     }
 
+    const templateImport = captureTemplateImport(s, unit.contents);
+    if (templateImport) {
+      templateMetadata.push(templateImport);
+      return;
+    }
+    if (tryCaptureCustomElementDefine(s, sf, templateMetadata)) return;
+
     // Only care about export class Foo {...}.
     // Note this convention simply doesn't work for
     //   class Foo {}
     //   export {Foo};
-    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
+    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata);
     if (!resource) return;
     const {
-      className,
+      classMetadata,
       localDep,
       modification,
       implicitStatement,
@@ -151,15 +185,15 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (className) {
-      exportedClassName = className;
+    if (classMetadata) {
+      exportedClassMetadata = classMetadata;
     }
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
   });
 
   let m = modifyCode(unit.contents, unit.path);
-  const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
+  const hmrEnabled = options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production';
 
   if (options.enableConventions || hmrEnabled) {
     if (runtimeImport.names.length) {
@@ -169,26 +203,29 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     }
   }
 
-  if (options.enableConventions) {
-    m = modifyResource(unit, m, {
-      implicitElement,
-      localDeps,
-      modifications,
-      customElementDecorator,
-      transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
-      defineElementInformation,
-    });
-  }
+  m = modifyResource(unit, m, {
+    implicitElement,
+    localDeps,
+    modifications,
+    customElementDecorator,
+    transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
+    defineElementInformation,
+    exportedClassMetadata,
+    experimentalTemplateTypeCheck: options.experimentalTemplateTypeCheck,
+    useConventions: options.enableConventions ?? false,
+    templateMetadata: templateMetadata
+  });
 
-  if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
+  if (options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production') {
     if (options.getHmrCode) {
-      m.append(options.getHmrCode(exportedClassName, unit.path));
+      m.append(options.getHmrCode(exportedClassMetadata.name, unit.path));
     }
   }
 
   return m.transform();
 }
 
+const jsFilePattern = /\.[m]?js$/;
 function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, options: IModifyResourceOptions) {
   const {
     implicitElement,
@@ -197,10 +234,33 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     customElementDecorator,
     transformHtmlImportSpecifier = s => s,
     defineElementInformation,
+    exportedClassMetadata,
+    useConventions,
+    templateMetadata,
   } = options;
 
-  if (implicitElement && unit.filePair) {
+  // TODO(typechecking/phaseN): support other languages
+  const isJs = jsFilePattern.test(unit.path);
+  if (!useConventions) {
+    if (options.experimentalTemplateTypeCheck) {
+      prependUtilityTypes(m, isJs);
+      for (const templateImport of templateMetadata) {
+        const classNames = templateImport.classes;
+        if (classNames.length === 0) continue;
+        emitTypeCheckedTemplate(
+          () => templateImport.inlineTemplate ?? unit.readFile?.(templateImport.modulePath!),
+          templateImport.classes,
+          isJs
+        );
+      }
+    }
+  } else if (implicitElement && unit.filePair) {
     const viewDef = '__au2ViewDef';
+
+    if (options.experimentalTemplateTypeCheck) {
+      prependUtilityTypes(m, isJs);
+      emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [exportedClassMetadata!], isJs);
+    }
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
 
     if (defineElementInformation) {
@@ -262,6 +322,14 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   }
 
   return m;
+
+  function emitTypeCheckedTemplate(contentFactory: () => string | undefined, classes: ClassMetadata[], isJs: boolean): void {
+    const htmlContent = contentFactory();
+    if (!htmlContent) return;
+    const typeCheckedTemplate = createTypeCheckedTemplate(htmlContent, classes, isJs);
+    // console.log(typeCheckedTemplate);
+    m.prepend(typeCheckedTemplate);
+  }
 }
 
 function captureImport(s: Statement, lib: string, code: string): ICapturedImport | void {
@@ -276,6 +344,54 @@ function captureImport(s: Statement, lib: string, code: string): ICapturedImport
       end: s.end
     };
   }
+}
+
+function captureTemplateImport(s: Statement, code: string): ITemplateMetadata | void {
+  if (
+    isImportDeclaration(s)
+    && isStringLiteral(s.moduleSpecifier)
+    && s.moduleSpecifier.text.endsWith('.html') // Start small, only support html for now. TODO: Support other template extensions later.
+    && s.importClause?.name != null
+    && isIdentifier(s.importClause.name)
+  ) return {
+    name: s.importClause.name.text,
+    modulePath: s.moduleSpecifier.text,
+    classes: [],
+    start: ensureTokenStart(s.pos, code),
+    end: s.end
+  };
+}
+
+function getClassMembers(node: ClassDeclaration): string[] {
+  return node.members.reduce((acc: string[], m: ClassElement) => {
+    const name = m.name;
+    if (name == null) return acc;
+    if (isIdentifier(name)) acc.push(name.escapedText.toString());
+    return acc;
+  }, []);
+}
+
+function tryCaptureCustomElementDefine(s: Statement, sf: SourceFile, templateMetadata: ITemplateMetadata[]): boolean {
+  if (!isExpressionStatement(s) || !isCallExpression(s.expression)) return false;
+
+  // TODO(typechecking/phase2): support other kind of expressions
+
+  // CustomElement.define({ ...viewDef, name: 'custom-name' }, exportedClassName);
+  const propAccExpr = s.expression.expression;
+  if (
+    !isPropertyAccessExpression(propAccExpr)
+    || !isIdentifier(propAccExpr.expression) || propAccExpr.expression.escapedText !== 'CustomElement'
+    || !isIdentifier(propAccExpr.name) || propAccExpr.name.escapedText !== 'define'
+  ) return false;
+
+  const [defn, className] = s.expression.arguments;
+  if (!isIdentifier(className)) return false;
+
+  const name = className.escapedText.toString();
+  // This is a second pass of the source file; this needs to be optimized. Waiting for feature-completion first.
+  const classDeclaration = sf.statements.find(s => isClassDeclaration(s) && s.name != null && s.name.text === name) as ClassDeclaration;
+  const $class: ClassMetadata = { name, members: getClassMembers(classDeclaration) };
+  return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 
 // This method mutates runtimeExports.
@@ -308,6 +424,78 @@ function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
 }
 
+function isStaticPropertyDeclaration(node: ClassElement, name: string): node is PropertyDeclaration {
+  return isPropertyDeclaration(node)
+    && isIdentifier(node.name)
+    && node.name.escapedText === name
+    && (getCombinedModifierFlags(node) & ModifierFlags.Static) !== 0;
+}
+function is$auProperty(member: ClassElement): member is PropertyDeclaration {
+  return isStaticPropertyDeclaration(member, '$au');
+}
+
+/**
+ * Adds the className to the templateMetadata as per the definition expression.
+ * @returns {boolean} `true` if the templateMetadata is updated; else `false`.
+ */
+function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefined, $class: ClassMetadata, templateMetadata: ITemplateMetadata[]): boolean {
+  // TODO(typechecking/phase2): support non-object literal.
+  if (defnExpr == null || !isObjectLiteralExpression(defnExpr)) return false;
+
+  let templateMetadataUpdated = false;
+  for (const p of defnExpr.properties) {
+    switch (p.kind) {
+      case SyntaxKind.ShorthandPropertyAssignment:
+        if (p.name.text === 'template') {
+          templateMetadataUpdated = templateMetadata.find(ti => ti.name === 'template')?.classes.push($class) != null;
+        }
+        break;
+      case SyntaxKind.PropertyAssignment: {
+        const l = p.name;
+        if (isIdentifier(l) && l.text === 'template') {
+          const value = p.initializer;
+          if (isIdentifier(value)) {
+            templateMetadataUpdated = templateMetadata.find(ti => ti.name === value.text)?.classes.push($class) != null;
+          } else if (isStringLiteral(value)) {
+            templateMetadata.push({
+              inlineTemplate: value.text,
+              classes: [$class],
+            });
+            templateMetadataUpdated = true;
+          }
+        }
+        break;
+      }
+      // TODO(typechecking/phase2): support object literal with spread assignment.
+      default:
+        break;
+    }
+  }
+  return templateMetadataUpdated;
+}
+
+function tryCollectTemplateMetadataFromStaticTemplate(member: ClassElement, $class: ClassMetadata, templateMetadata: ITemplateMetadata[]): boolean {
+  if (!isStaticPropertyDeclaration(member, 'template')) return false;
+  const initializer = member.initializer;
+  if (!initializer) return false;
+  // case 1: static template = '...'
+  if (isStringLiteral(initializer)) {
+    templateMetadata.push({
+      inlineTemplate: initializer.text,
+      classes: [$class],
+    });
+    return true;
+  }
+  // case 2: static template = importedTemplate
+  if (isIdentifier(initializer)) {
+    return templateMetadata.find(ti => ti.name === initializer.text)?.classes.push($class) != null;
+  }
+  return false;
+}
+
+/**
+ * This merges the imports from the conventional template file (__au2ViewDef) with the `$au` object in the class.
+ */
 function createAuResourceTransformer(): TransformerFactory<SourceFile> {
   return function factory(context) {
     function visit(node: Node): Node {
@@ -319,13 +507,7 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
 
   function visitClass(node: ClassDeclaration): Node {
     const newMembers = node.members.map(member => {
-      if (!isPropertyDeclaration(member)) return member;
-
-      const name = (member.name as Identifier).escapedText;
-      if (name !== '$au') return member;
-
-      const modifiers = getCombinedModifierFlags(member);
-      if ((modifiers & ModifierFlags.Static) === 0) return member;
+      if (!is$auProperty(member)) return member;
 
       const initializer = member.initializer;
       if (initializer == null || !isObjectLiteralExpression(initializer)) return member;
@@ -344,18 +526,43 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
   }
 }
 
-function findResource(node: Node, expectedResourceName: string, filePair: string | undefined, code: string): IFoundResource | void {
+function findResource(
+  node: Node,
+  expectedResourceName: string,
+  filePair: string | undefined,
+  code: string,
+  useConvention: boolean | undefined,
+  templateMetadata: ITemplateMetadata[],
+): IFoundResource | void {
 
-  if (!isClassDeclaration(node) || !node.name || !isExported(node)) return;
+  if (
+    !isClassDeclaration(node)           // Only care about class declaration
+    || !node.name                          // Ignore anonymous class.
+    || !isExported(node) && !useConvention // Convention dictates that the class must be exported.
+  ) return;
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
+  const $class = { name: className, members: getClassMembers(node) };
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
   const resourceType = collectClassDecorators(node);
 
   if (resourceType) {
+    const decorator = resourceType.expression;
+    const dArgs = decorator.arguments;
+    const numArguments = dArgs.length;
+
+    // map the classes to the template imports to classes - @customElement decorator
+    if (resourceType.type === 'customElement') {
+      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(dArgs[0], $class, templateMetadata);
+      for (const m of node.members) {
+        // static template property
+        tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
+      }
+    }
+
     // Explicitly decorated resource
     if (
       !isImplicitResource &&
@@ -369,15 +576,14 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     if (
       isImplicitResource &&
       resourceType.type === 'customElement' &&
-      resourceType.expression.arguments.length === 1 &&
-      isStringLiteral(resourceType.expression.arguments[0])
+      numArguments === 1 &&
+      isStringLiteral(dArgs[0])
     ) {
       // @customElement('custom-name')
-      const decorator = resourceType.expression;
-      const customName = decorator.arguments[0];
+      const customName = dArgs[0];
       return {
         type: resourceType.type,
-        className,
+        classMetadata: $class,
         implicitStatement: { pos: pos, end: node.end },
         customElementDecorator: {
           position: getPosition(decorator, code),
@@ -388,10 +594,18 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
     }
   } else {
     if (type === 'customElement') {
+      for (const m of node.members) {
+        // static $au property and/or static template property
+        if (is$auProperty(m)) {
+          tryCollectTemplateMetadataFromDefinition(m.initializer, $class, templateMetadata);
+        }
+        tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
+      }
+
       if (!isImplicitResource || !filePair) return;
       return {
         type,
-        className,
+        classMetadata: $class,
         implicitStatement: { pos: pos, end: node.end },
         runtimeImportName: type,
       };
@@ -409,12 +623,11 @@ function findResource(node: Node, expectedResourceName: string, filePair: string
 
 function collectClassDecorators(node: ClassDeclaration): IResourceDecorator | undefined {
 
-  // gather decorator information
-  let resourceType: IResourceDecorator | undefined;
-  // later these decorators will be replaced with the modified content
+  if (!canHaveDecorators(node)) return;
 
-  if (!canHaveDecorators(node)) return resourceType;
   const decorators = getDecorators(node) ?? [];
+  if (decorators.length === 0) return;
+
   for (const d of decorators) {
     let name: string | undefined;
     let resourceExpression: CallExpression | undefined;
@@ -427,19 +640,17 @@ function collectClassDecorators(node: ClassDeclaration): IResourceDecorator | un
     } else if (isIdentifier(d.expression)) {
       name = d.expression.text;
     }
-    if (name == null) continue;
+    if (
+      name == null
+      || !KNOWN_RESOURCE_DECORATORS.includes(name)
+      || resourceExpression == null
+    ) continue;
 
-    if (KNOWN_RESOURCE_DECORATORS.includes(name)) {
-      if (resourceExpression == null) continue;
-      resourceType = {
-        type: name as ResourceType,
-        expression: resourceExpression
-      };
-      continue;
-    }
+    return {
+      type: name as ResourceType,
+      expression: resourceExpression
+    };
   }
-
-  return resourceType;
 }
 
 function getPosition(node: Node, code: string): IPos {

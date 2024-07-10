@@ -6304,12 +6304,12 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const router = container.get<Router>(IRouter);
 
       assert.html.textContent(vp, 'ce1', 'start - component');
-      assert.html.textContent(historyEl, '#1 - len: 1 - state: {"au-nav-id":1}', 'start - history');
+      assert.html.textContent(historyEl, '#1 - len: 1 - state: {}', 'start - history');
 
       await router.load('ce2');
       await dwQueue.yield();
       assert.html.textContent(vp, 'ce2', 'round#2 - component');
-      assert.html.textContent(historyEl, '#2 - len: 1 - state: {"au-nav-id":1}', 'round#2 - history');
+      assert.html.textContent(historyEl, '#2 - len: 1 - state: {}', 'round#2 - history');
 
       await router.load('ce3', { historyStrategy: 'push' });
       await dwQueue.yield();

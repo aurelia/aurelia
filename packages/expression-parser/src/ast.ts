@@ -270,7 +270,7 @@ export class UnaryExpression {
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
-    public readonly pos: -1 | 1 = -1,
+    public readonly pos: 0 | 1 = 0,
   ) {}
 }
 export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {

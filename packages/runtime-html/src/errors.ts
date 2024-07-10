@@ -24,6 +24,7 @@ export const enum ErrorNames {
   ast_tagged_not_a_function = 110,
   ast_name_is_not_a_function = 111,
   ast_destruct_null = 112,
+  ast_increment_infinite_loop = 113,
 
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
@@ -143,6 +144,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.ast_tagged_not_a_function]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
   [ErrorNames.ast_name_is_not_a_function]: `Ast eval error: expected "{{0}}" to be a function`,
   [ErrorNames.ast_destruct_null]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
+  [ErrorNames.ast_increment_infinite_loop]: `Ast eval error: infinite loop detected. Increment operators should only be used in event handlers.`,
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,

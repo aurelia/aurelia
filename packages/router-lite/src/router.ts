@@ -217,33 +217,40 @@ export class Router {
   public start(performInitialNavigation: boolean): void | Promise<boolean> {
     (this as Writable<Router>)._hasTitleBuilder = typeof this.options.buildTitle === 'function';
 
-    this._locationMgr.startListening();
-    this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
-      // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
-      // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
-      // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
-      // If the throttle limit is hit, then add a throttle config.
-      this._p.taskQueue.queueTask(() => {
-        // Don't try to restore state that might not have anything to do with the Aurelia app
-        const state = isManagedState(e.state) ? e.state : null;
-        const routerOptions = this.options;
-        const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
-        const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
-        // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
-        // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
-        // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
-        // So we do want to solve this at some point.
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._enqueue(instructions, e.trigger, state, null);
+    const useHistory = this.options.historyStrategy !== 'none';
+
+    if (useHistory) {
+      this._locationMgr.startListening();
+      this._locationChangeSubscription = this._events.subscribe('au:router:location-change', e => {
+        // At the time of writing, chromium throttles popstate events at a maximum of ~100 per second.
+        // While macroTasks run up to 250 times per second, it is extremely unlikely that more than ~100 per second of these will run due to the double queueing.
+        // However, this throttle limit could theoretically be hit by e.g. integration tests that don't mock Location/History.
+        // If the throttle limit is hit, then add a throttle config.
+        this._p.taskQueue.queueTask(() => {
+          // Don't try to restore state that might not have anything to do with the Aurelia app
+          const state = isManagedState(e.state) ? e.state : null;
+          if (state === null) return;
+
+          const routerOptions = this.options;
+          const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
+          const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
+          // The promise will be stored in the transition. However, unlike `load()`, `start()` does not return this promise in any way.
+          // The router merely guarantees that it will be awaited (or canceled) before the next transition, so a race condition is impossible either way.
+          // However, it is possible to get floating promises lingering during non-awaited unit tests, which could have unpredictable side-effects.
+          // So we do want to solve this at some point.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          this._enqueue(instructions, e.trigger, state, null);
+        });
       });
-    });
+    }
 
     if (!this._navigated && performInitialNavigation) {
-      return this.load(this._locationMgr.getPath(), { historyStrategy: 'replace' });
+      return this.load(this._locationMgr.getPath(), { historyStrategy: useHistory ? 'replace' : 'none' });
     }
   }
 
   public stop(): void {
+    if (this.options.historyStrategy === 'none') return;
     this._locationMgr.stopListening();
     this._locationChangeSubscription?.dispose();
   }

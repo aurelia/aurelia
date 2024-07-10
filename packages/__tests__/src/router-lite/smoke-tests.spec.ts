@@ -6017,10 +6017,10 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         '#4 - len: 1 - state: {"au-nav-id":4}',
       ]);
       yield new TestData('none', [
-        '#1 - len: 1 - state: {"au-nav-id":1}', // initial state replace
-        '#2 - len: 1 - state: {"au-nav-id":1}',
-        '#3 - len: 1 - state: {"au-nav-id":1}',
-        '#4 - len: 1 - state: {"au-nav-id":1}',
+        '#1 - len: 1 - state: {}',
+        '#2 - len: 1 - state: {}',
+        '#3 - len: 1 - state: {}',
+        '#4 - len: 1 - state: {}',
       ]);
     }
 

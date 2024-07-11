@@ -94,6 +94,17 @@ export default function au(options: {
       if (!isVirtualTsFileFromHtml(id)) {
         return null;
       }
+
+      // Vite id is in POSIX format, either relative like ./foo.ts or absolute like /src/foo.ts
+      // When absolute is in use:
+      // 1. on POSIX system, resolve('/some/dir', '/src/foo.ts') => '/src/foo.ts'
+      // 2. on win32 system, resolve('C:\\some\\dir', '/src/foo.ts') => 'C:\\src\\foo.ts' that's
+      // not what vite want.
+      //
+      // For absolute path like /src/foo.ts, retain it on win32, and let vitest.config's test.root
+      // to resolve it.
+      if (id.startsWith('/')) return id;
+
       id = resolve(dirname(importer ?? ''), this.meta.watchMode ? id.replace(/^\//, './') : id);
       return id;
     },

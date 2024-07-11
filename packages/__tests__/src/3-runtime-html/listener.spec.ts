@@ -170,6 +170,36 @@ describe('3-runtime-html/listener.spec.ts', function () {
         assert.strictEqual(component.a, 2);
         assert.strictEqual(component.b, 2);
       });
+
+      it('assignment division', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a /= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('assignment multiplication', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a *= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 4);
+      });
+
+      it('assignment decrement', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a -= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+      });
     });
 
     describe('without arrow fn', function () {

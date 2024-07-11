@@ -226,6 +226,7 @@ export class Router {
       this._p.taskQueue.queueTask(() => {
         // Don't try to restore state that might not have anything to do with the Aurelia app
         const state = isManagedState(e.state) ? e.state : null;
+
         const routerOptions = this.options;
         const options = NavigationOptions.create(routerOptions, { historyStrategy: 'replace' });
         const instructions = ViewportInstructionTree.create(e.url, routerOptions, options, this._ctx);
@@ -239,7 +240,7 @@ export class Router {
     });
 
     if (!this._navigated && performInitialNavigation) {
-      return this.load(this._locationMgr.getPath(), { historyStrategy: 'replace' });
+      return this.load(this._locationMgr.getPath(), { historyStrategy: this.options.historyStrategy !== 'none' ? 'replace' : 'none' });
     }
   }
 

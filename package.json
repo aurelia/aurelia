@@ -48,6 +48,7 @@
     "packages/__e2e__/7-select-safari16",
     "packages/__e2e__/8-ui-virtualization",
     "packages/__e2e__/9-vite-wo-convention",
+    "packages/__e2e__/10-router-lite-none-history-with-hash",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",

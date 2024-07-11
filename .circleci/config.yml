@@ -845,6 +845,12 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_router_lite_none_history_with_hash
+          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_router
           path: "packages/__e2e__/5-router"
           requires:
@@ -1023,6 +1029,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite
           path: "packages/__e2e__/6-router-lite"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_lite_none_history_with_hash
+          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
           requires:
             - build_release
       - e2e_test:

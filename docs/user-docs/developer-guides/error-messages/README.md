@@ -187,6 +187,7 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 | AUR0110    | This happens when a tagged template (function call) is but the function specified isn't a function                      |
 | AUR0111    | This happens when a function call AST is evaluated but no function is found                                             |
 | AUR0112    | This happens when a non-object or non-array value is assigned for destructured declaration for a `repeat.for` statement |
+| AUR0113    | This happens when an increment operator is used outside of an event handler                                             |
 
 ### Parser errors (from 151-200)
 

@@ -63,4 +63,175 @@ describe('3-runtime-html/listener.spec.ts', function () {
     trigger.click('button');
     assert.strictEqual(log, 1);
   });
+
+  describe('invoke assignment handler', function () {
+    describe('with arrow fn', function () {
+      it('prefix increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => ++a">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('prefix increment assign', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => b = ++a">',
+          { a: 0, b: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+        assert.strictEqual(component.b, 1);
+      });
+
+      it('postfix increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a++">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('postfix increment assign', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => b = a++">',
+          { a: 0, b: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+        assert.strictEqual(component.b, 0);
+      });
+
+      it('prefix decrement', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => --a">',
+          { a: 1 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+      });
+
+      it('prefix decrement assign', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => b = --a">',
+          { a: 1, b: 1 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+        assert.strictEqual(component.b, 0);
+      });
+
+      it('postfix decrement', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a--">',
+          { a: 1 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+      });
+
+      it('postfix decrement assign', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => b = a--">',
+          { a: 1, b: 1 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+        assert.strictEqual(component.b, 1);
+      });
+
+      it('assignment increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a += 2">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 2);
+      });
+
+      it('assignment increment assign', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => b = a += 2">',
+          { a: 0, b: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 2);
+        assert.strictEqual(component.b, 2);
+      });
+
+      it('assignment division', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a /= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('assignment multiplication', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a *= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 4);
+      });
+
+      it('assignment decrement', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="() => a -= 2">',
+          { a: 2 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 0);
+      });
+    });
+
+    describe('without arrow fn', function () {
+      it('prefix increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="++a">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('postfix increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="a++">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 1);
+      });
+
+      it('assignment increment', function () {
+        const { trigger, component } = createFixture(
+          '<button click.trigger="a += 2">',
+          { a: 0 },
+        );
+
+        trigger.click('button');
+        assert.strictEqual(component.a, 2);
+      });
+    });
+  });
 });

@@ -154,21 +154,29 @@ export const {
         }
         return result;
       }
-      case ekUnary:
+      case ekUnary: {
+        const value = astEvaluate(ast.expression, s, e, c) ;
         switch (ast.operation as string) {
           case 'void':
-            return void astEvaluate(ast.expression, s, e, c);
+            return void value;
           case 'typeof':
-            return typeof astEvaluate(ast.expression, s, e, c);
+            return typeof value;
           case '!':
-            return !(astEvaluate(ast.expression, s, e, c) as boolean);
+            return !(value as boolean);
           case '-':
-            return -(astEvaluate(ast.expression, s, e, c) as number);
+            return -(value as number);
           case '+':
-            return +(astEvaluate(ast.expression, s, e, c) as number);
+            return +(value as number);
+          case '--':
+            if (c != null) throw createMappedError(ErrorNames.ast_increment_infinite_loop);
+            return (astAssign(ast.expression, s, e, (value as number) - 1) as number) + ast.pos;
+          case '++':
+            if (c != null) throw createMappedError(ErrorNames.ast_increment_infinite_loop);
+            return (astAssign(ast.expression, s, e, (value as number) + 1) as number) - ast.pos;
           default:
             throw createMappedError(ErrorNames.ast_unknown_unary_operator, ast.operation);
         }
+      }
       case ekCallScope: {
         const args = ast.args.map(a => astEvaluate(a, s, e, c));
         const context = getContext(s, ast.name, ast.ancestor)!;
@@ -356,8 +364,32 @@ export const {
       case ekConditional:
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         return astEvaluate(ast.condition, s, e, c) ? astEvaluate(ast.yes, s, e, c) : astEvaluate(ast.no, s, e, c);
-      case ekAssign:
-        return astAssign(ast.target, s, e, astEvaluate(ast.value, s, e, c));
+      case ekAssign: {
+        let value = astEvaluate(ast.value, s, e, c) as number;
+        if (ast.op !== '=') {
+          if (c != null) {
+            throw createMappedError(ErrorNames.ast_increment_infinite_loop);
+          }
+          const target = (astEvaluate(ast.target, s, e, c) as number);
+          switch (ast.op) {
+            case '/=':
+              value = target / value;
+              break;
+            case '*=':
+              value = target * value;
+              break;
+            case '+=':
+              value = target + value;
+              break;
+            case '-=':
+              value = target - value;
+              break;
+            default:
+              throw createMappedError(ErrorNames.ast_unknown_binary_operator, ast.op);
+          }
+        }
+        return astAssign(ast.target, s, e, value);
+      }
       case ekValueConverter: {
         const vc = e?.getConverter?.(ast.name);
         if (vc == null) {

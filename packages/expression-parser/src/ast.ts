@@ -67,10 +67,10 @@ export type ExpressionKind =
   | 'DestructuringAssignmentLeaf'
   | 'Custom';
 
-export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+';
+export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+' | '++' | '--';
 
 export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
-
+export type AssignmentOperator = '=' | '/=' | '*=' | '+=' | '-=';
 export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
@@ -145,6 +145,7 @@ export class AssignExpression {
   public constructor(
     public readonly target: IsAssignable,
     public readonly value: IsAssign,
+    public readonly op: AssignmentOperator = '=',
   ) {}
 }
 
@@ -269,6 +270,7 @@ export class UnaryExpression {
   public constructor(
     public readonly operation: UnaryOperator,
     public readonly expression: IsLeftHandSide,
+    public readonly pos: 0 | 1 = 0,
   ) {}
 }
 export class PrimitiveLiteralExpression<TValue extends null | undefined | number | boolean | string = null | undefined | number | boolean | string> {

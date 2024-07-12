@@ -48,6 +48,7 @@ export {
   type IsExpression,
   type IsExpressionOrStatement,
   type BinaryOperator,
+  type AssignmentOperator,
   type BindingIdentifierOrPattern,
   type UnaryOperator,
 } from './ast';
@@ -61,6 +62,6 @@ export {
 export {
   IExpressionParser,
   ExpressionParser,
-  ExpressionType,
+  type ExpressionType,
   parseExpression,
 } from './expression-parser';

@@ -1526,7 +1526,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
     });
   });
 
-  it('multiple persistent delayed tasks with different delays retain correct timing', async function () {
+  it('2 persistent delayed tasks with different delays retain correct timing', async function () {
     let counter10 = 0;
     let counter20 = 0;
 
@@ -1561,11 +1561,68 @@ describe('2-runtime/scheduler.spec.ts', function () {
     await task.result;
 
     if (Math.abs(counter10  - counter20 * 2) > 2) {
-      assert.fail('too far apart')
+      assert.fail('too far apart');
     }
 
     task10.cancel();
     task20.cancel();
+    task.cancel();
+
+    assert.areTaskQueuesEmpty();
+  });
+
+  it('3 persistent delayed tasks with different delays retain correct timing', async function () {
+    let counter10 = 0;
+    let counter20 = 0;
+    let counter40 = 0;
+
+    const task10 = platform.taskQueue.queueTask(
+      function () {
+        ++counter10;
+      },
+      {
+        persistent: true,
+        delay: 10,
+      }
+    );
+
+    const task20 = platform.taskQueue.queueTask(
+      function () {
+        ++counter20;
+      },
+      {
+        persistent: true,
+        delay: 20,
+      }
+    );
+
+    const task40 =platform.taskQueue.queueTask(
+      function () {
+        ++counter40;
+      },
+      {
+        persistent: true,
+        delay: 40,
+      }
+    );
+
+    const task = platform.taskQueue.queueTask(
+      noop,
+      {
+        persistent: true,
+        delay: 200,
+      }
+    );
+
+    await task.result;
+
+    if (Math.abs(counter10  - counter20 * 2) > 2 || Math.abs(counter20  - counter40 * 2) > 2) {
+      assert.fail('too far apart');
+    }
+
+    task10.cancel();
+    task20.cancel();
+    task40.cancel();
     task.cancel();
 
     assert.areTaskQueuesEmpty();

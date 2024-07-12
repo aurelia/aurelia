@@ -1,5 +1,6 @@
 import { TestContext, assert } from '@aurelia/testing';
 import { QueueTaskOptions, ITask, TaskQueue } from '@aurelia/platform';
+import { noop } from '@aurelia/kernel';
 
 function createExposedPromise() {
   let resolve: () => void;
@@ -1523,5 +1524,55 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
       assert.areTaskQueuesEmpty();
     });
+  });
+
+  it('multiple persistent delayed tasks with different delays retain correct timing', async function () {
+    let counter10 = 0;
+    let counter20 = 0;
+
+    platform.taskQueue.queueTask(
+      function () {
+        ++counter10;
+      },
+      {
+        persistent: true,
+        delay: 10,
+      }
+    );
+
+    platform.taskQueue.queueTask(
+      function () {
+        ++counter20;
+      },
+      {
+        persistent: true,
+        delay: 20,
+      }
+    );
+
+    const task = platform.taskQueue.queueTask(
+      noop,
+      {
+        persistent: true,
+        delay: 100,
+      }
+    );
+
+    await task.result;
+
+    if (counter10 === counter20 * 2) {
+      assert.ok(true, `exact match`);
+    } else if (counter10 - 1 === counter20 * 2) {
+      // a little bit of drift can happen at these low delays
+      assert.ok(true, `counter10 - 1`);
+    } else if (counter10 - 2 === counter20 * 2) {
+      // this might happen rarely, we don't want to fail the whole test suite for this
+      assert.ok(true, `counter10 - 2`);
+    } else if (counter10 + 1 === counter20 * 2) {
+      // a little bit of drift the other direction can also happen
+      assert.ok(true, `counter10 + 1`);
+    } else {
+      assert.fail(`counter10: ${counter10}, counter20: ${counter20}`);
+    }
   });
 });

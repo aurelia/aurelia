@@ -211,6 +211,5 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 let task: ITask | null = null;
 
 const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };

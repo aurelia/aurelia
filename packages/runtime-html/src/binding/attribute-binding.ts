@@ -28,7 +28,6 @@ import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const taskOptions: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };
 

@@ -59,7 +59,6 @@ export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBased
 
 const forOpts = { optional: true } as const;
 const taskQueueOpts: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };
 

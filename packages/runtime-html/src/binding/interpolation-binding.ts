@@ -27,7 +27,6 @@ import type { IBinding, BindingMode, IBindingController } from './interfaces-bin
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };
 

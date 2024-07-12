@@ -126,12 +126,6 @@ export class TaskQueue {
   private _yieldPromise: ExposedPromise | undefined = void 0;
 
   /** @internal */
-  private readonly _taskPool: Task[] = [];
-
-  /** @internal */
-  private _taskPoolSize: number = 0;
-
-  /** @internal */
   private _lastRequest: number = 0;
 
   /** @internal */
@@ -300,7 +294,7 @@ export class TaskQueue {
   public queueTask<T = any>(callback: TaskCallback<T>, opts?: QueueTaskOptions): Task<T> {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'queueTask'); }
 
-    const { delay, preempt, persistent, reusable, suspend } = { ...defaultQueueTaskOptions, ...opts };
+    const { delay, preempt, persistent, suspend } = { ...defaultQueueTaskOptions, ...opts };
 
     if (preempt) {
       if (delay > 0) {
@@ -317,22 +311,7 @@ export class TaskQueue {
 
     const time = this._now();
 
-    let task: Task<T>;
-    if (reusable) {
-      const taskPool = this._taskPool;
-      const index = this._taskPoolSize - 1;
-      if (index >= 0) {
-        task = taskPool[index] as Task<T>;
-        taskPool[index] = (void 0)!;
-        this._taskPoolSize = index;
-
-        task.reuse(time, delay, preempt, persistent, suspend, callback);
-      } else {
-        task = new Task(this._tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
-      }
-    } else {
-      task = new Task(this._tracer, this, time, time + delay, preempt, persistent, suspend, reusable, callback);
-    }
+    const task = new Task(this._tracer, this, time, time + delay, preempt, persistent, suspend, callback);
 
     if (preempt) {
       this._processing[this._processing.length] = task;
@@ -375,18 +354,6 @@ export class TaskQueue {
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'remove error'); }
 
     throw createError(`Task #${task.id} could not be found`);
-  }
-
-  /**
-   * Return a reusable task to the shared task pool.
-   * The next queued callback will reuse this task object instead of creating a new one, to save overhead of creating additional objects.
-   *
-   * @internal
-   */
-  public _returnToPool(task: Task): void {
-    if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'returnToPool'); }
-
-    this._taskPool[this._taskPoolSize++] = task;
   }
 
   /**
@@ -522,7 +489,6 @@ export class Task<T = any> implements ITask {
     public preempt: boolean,
     public persistent: boolean,
     public suspend: boolean,
-    public readonly reusable: boolean,
     public callback: TaskCallback<T>,
   ) {
     this._tracer = tracer;
@@ -542,7 +508,6 @@ export class Task<T = any> implements ITask {
     // so we can set the correct cancelation state.
     const {
       persistent,
-      reusable,
       taskQueue,
       callback,
       _resolve: resolve,
@@ -576,10 +541,6 @@ export class Task<T = any> implements ITask {
 
           if (resolve !== void 0) {
             resolve($ret as UnwrapPromise<T>);
-          }
-
-          if (!this.persistent && reusable) {
-            taskQueue._returnToPool(this);
           }
         })
         .catch((err: TaskAbortError<T>) => {
@@ -616,10 +577,6 @@ export class Task<T = any> implements ITask {
         if (resolve !== void 0) {
           resolve(ret as UnwrapPromise<T>);
         }
-
-        if (!this.persistent && reusable) {
-          taskQueue._returnToPool(this);
-        }
       }
     } catch (err) {
       if (!this.persistent) {
@@ -641,7 +598,6 @@ export class Task<T = any> implements ITask {
 
     if (this._status === tsPending) {
       const taskQueue = this.taskQueue;
-      const reusable = this.reusable;
       const reject = this._reject;
 
       taskQueue.remove(this);
@@ -653,10 +609,6 @@ export class Task<T = any> implements ITask {
       this._status = tsCanceled;
 
       this.dispose();
-
-      if (reusable) {
-        taskQueue._returnToPool(this);
-      }
 
       if (reject !== void 0) {
         reject(new TaskAbortError(this));
@@ -693,27 +645,6 @@ export class Task<T = any> implements ITask {
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'reset'); }
   }
 
-  public reuse(
-    time: number,
-    delay: number,
-    preempt: boolean,
-    persistent: boolean,
-    suspend: boolean,
-    callback: TaskCallback<T>,
-  ): void {
-    if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'reuse'); }
-
-    this.createdTime = time;
-    this.queueTime = time + delay;
-    this.preempt = preempt;
-    this.persistent = persistent;
-    this.suspend = suspend;
-    this.callback = callback;
-    this._status = tsPending;
-
-    if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'reuse'); }
-  }
-
   public dispose(): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.trace(this, 'dispose'); }
 
@@ -747,12 +678,6 @@ export type QueueTaskOptions = {
    * Defaults to `false`
    */
   persistent?: boolean;
-  /**
-   * If `true`, the task will be kept in-memory after finishing, so that it can be reused for future tasks for efficiency.
-   *
-   * Defaults to `true`
-   */
-  reusable?: boolean;
   /**
    * If `true`, and the task callback returns a promise, that promise will be awaited before consecutive tasks are run.
    *
@@ -791,12 +716,11 @@ class Tracer {
       const created = Math.round(obj['createdTime'] * 10) / 10;
       const queue = Math.round(obj['queueTime'] * 10) / 10;
       const preempt = obj['preempt'];
-      const reusable = obj['reusable'];
       const persistent = obj['persistent'];
       const suspend = obj['suspend'];
       const status = obj['_status'];
 
-      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} reusable=${reusable} status=${status} suspend=${suspend}`;
+      const info = `id=${id} created=${created} queue=${queue} preempt=${preempt} persistent=${persistent} status=${status} suspend=${suspend}`;
       this.console.log(`${prefix}[T.${method}] ${info}`);
     }
   }
@@ -806,7 +730,6 @@ const defaultQueueTaskOptions: Required<QueueTaskOptions> = {
   delay: 0,
   preempt: false,
   persistent: false,
-  reusable: true,
   suspend: false,
 };
 

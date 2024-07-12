@@ -178,22 +178,27 @@ export class TaskQueue {
     this._tracer = new Tracer(platform.console);
   }
 
-  public flush(time: number = this._now()): void {
+  public flush(now: number = this._now()): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'flush'); }
 
     this._flushRequested = false;
-    this._lastFlush = time;
+    this._lastFlush = now;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
     if (this._suspenderTask === void 0) {
+      let curr: Task;
       if (this._pending.length > 0) {
         this._processing.push(...this._pending);
         this._pending.length = 0;
       }
       if (this._delayed.length > 0) {
-        let i = -1;
-        while (++i < this._delayed.length && this._delayed[i].queueTime <= time) { /* do nothing */ }
-        this._processing.push(...this._delayed.splice(0, i));
+        for (let i = 0; i < this._delayed.length; ++i) {
+          curr = this._delayed[i];
+          if (curr.queueTime <= now) {
+            this._processing.push(curr);
+            this._delayed.splice(i--, 1);
+          }
+        }
       }
 
       let cur: Task;
@@ -219,9 +224,13 @@ export class TaskQueue {
         this._pending.length = 0;
       }
       if (this._delayed.length > 0) {
-        let i = -1;
-        while (++i < this._delayed.length && this._delayed[i].queueTime <= time) { /* do nothing */ }
-        this._processing.push(...this._delayed.splice(0, i));
+        for (let i = 0; i < this._delayed.length; ++i) {
+          curr = this._delayed[i];
+          if (curr.queueTime <= now) {
+            this._processing.push(curr);
+            this._delayed.splice(i--, 1);
+          }
+        }
       }
 
       if (this._processing.length > 0 || this._delayed.length > 0 || this._pendingAsyncCount > 0) {

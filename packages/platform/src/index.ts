@@ -178,11 +178,11 @@ export class TaskQueue {
     this._tracer = new Tracer(platform.console);
   }
 
-  public flush(time: number = this._now()): void {
+  public flush(now: number = this._now()): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'flush'); }
 
     this._flushRequested = false;
-    this._lastFlush = time;
+    this._lastFlush = now;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
     if (this._suspenderTask === void 0) {
@@ -194,7 +194,7 @@ export class TaskQueue {
       if (this._delayed.length > 0) {
         for (let i = 0; i < this._delayed.length; ++i) {
           curr = this._delayed[i];
-          if (curr.queueTime <= time) {
+          if (curr.queueTime <= now) {
             this._processing.push(curr);
             this._delayed.splice(i--, 1);
           }
@@ -226,7 +226,7 @@ export class TaskQueue {
       if (this._delayed.length > 0) {
         for (let i = 0; i < this._delayed.length; ++i) {
           curr = this._delayed[i];
-          if (curr.queueTime <= time) {
+          if (curr.queueTime <= now) {
             this._processing.push(curr);
             this._delayed.splice(i--, 1);
           }

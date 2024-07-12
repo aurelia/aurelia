@@ -1530,7 +1530,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
     let counter10 = 0;
     let counter20 = 0;
 
-    platform.taskQueue.queueTask(
+    const task10 = platform.taskQueue.queueTask(
       function () {
         ++counter10;
       },
@@ -1540,7 +1540,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
       }
     );
 
-    platform.taskQueue.queueTask(
+    const task20 =platform.taskQueue.queueTask(
       function () {
         ++counter20;
       },
@@ -1574,5 +1574,11 @@ describe('2-runtime/scheduler.spec.ts', function () {
     } else {
       assert.fail(`counter10: ${counter10}, counter20: ${counter20}`);
     }
+
+    task10.cancel();
+    task20.cancel();
+    task.cancel();
+
+    assert.areTaskQueuesEmpty();
   });
 });

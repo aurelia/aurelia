@@ -182,7 +182,7 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
       latestValue = v;
       if (binding.isBound) {
         task = limiterTask;
-        limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay, reusable: false });
+        limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay });
         task?.cancel();
       } else {
         callOriginalCallback();
@@ -231,7 +231,7 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
           limiterTask = taskQueue.queueTask(() => {
             last = now();
             callOriginalCallback();
-          }, { delay: opts.delay - elapsed, reusable: false });
+          }, { delay: opts.delay - elapsed });
         }
         task?.cancel();
       } else {

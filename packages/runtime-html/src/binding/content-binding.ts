@@ -25,7 +25,6 @@ import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototype
 import { IsExpression } from '@aurelia/expression-parser';
 
 const queueTaskOptions: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };
 

@@ -86,7 +86,6 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
     const s = this.viewScope;
 
     let preSettlePromise: Promise<void>;
-    const defaultQueuingOptions = { reusable: false };
     const $swap = () => {
       // Note that the whole thing is not wrapped in a q.queueTask intentionally.
       // Because that would block the app till the actual promise is resolved, which is not the goal anyway.
@@ -99,7 +98,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             rejected?.deactivate(initiator),
             pending?.activate(initiator, s)
           );
-        }, defaultQueuingOptions)).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
+        })).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
         value
           .then(
             (data) => {
@@ -112,7 +111,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   pending?.deactivate(initiator),
                   rejected?.deactivate(initiator),
                   fulfilled?.activate(initiator, s, data),
-                ), defaultQueuingOptions)).result;
+                ))).result;
               };
               if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(fulfill);
@@ -131,7 +130,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
                   pending?.deactivate(initiator),
                   fulfilled?.deactivate(initiator),
                   rejected?.activate(initiator, s, err),
-                ), defaultQueuingOptions)).result;
+                ))).result;
               };
               if (this.preSettledTask!.status === tsRunning) {
                 void preSettlePromise.then(reject);

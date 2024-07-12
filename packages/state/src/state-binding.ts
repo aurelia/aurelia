@@ -233,7 +233,6 @@ type Unsubscribable = {
 };
 
 const updateTaskOpts: QueueTaskOptions = {
-  reusable: false,
   preempt: true,
 };
 

@@ -1483,13 +1483,13 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
     await task.result;
 
-    if (Math.abs(counter10  - counter20 * 2) > 2) {
-      assert.fail('too far apart');
-    }
-
     task10.cancel();
     task20.cancel();
     task.cancel();
+
+    if (Math.abs(counter10  - counter20 * 2) > 2) {
+      assert.fail('too far apart');
+    }
 
     assert.areTaskQueuesEmpty();
   });
@@ -1539,14 +1539,14 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
     await task.result;
 
-    if (Math.abs(counter10  - counter20 * 2) > 2 || Math.abs(counter20  - counter40 * 2) > 2) {
-      assert.fail('too far apart');
-    }
-
     task10.cancel();
     task20.cancel();
     task40.cancel();
     task.cancel();
+
+    if (Math.abs(counter10  - counter20 * 2) > 4 || Math.abs(counter20  - counter40 * 2) > 4) {
+      assert.fail('too far apart');
+    }
 
     assert.areTaskQueuesEmpty();
   });

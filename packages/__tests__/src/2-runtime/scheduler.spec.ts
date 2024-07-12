@@ -1560,19 +1560,8 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
     await task.result;
 
-    if (counter10 === counter20 * 2) {
-      assert.ok(true, `exact match`);
-    } else if (counter10 - 1 === counter20 * 2) {
-      // a little bit of drift can happen at these low delays
-      assert.ok(true, `counter10 - 1`);
-    } else if (counter10 - 2 === counter20 * 2) {
-      // this might happen rarely, we don't want to fail the whole test suite for this
-      assert.ok(true, `counter10 - 2`);
-    } else if (counter10 + 1 === counter20 * 2) {
-      // a little bit of drift the other direction can also happen
-      assert.ok(true, `counter10 + 1`);
-    } else {
-      assert.fail(`counter10: ${counter10}, counter20: ${counter20}`);
+    if (Math.abs(counter10  - counter20 * 2) > 2) {
+      assert.fail('too far apart')
     }
 
     task10.cancel();

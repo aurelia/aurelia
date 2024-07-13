@@ -27,19 +27,6 @@ export type PartialBindableDefinition = Omit<IComponentBindablePropDefinition, '
   nullable?: boolean;
 };
 
-/**
- * Decorator: Specifies custom behavior for a bindable property.
- * This can be either be a property decorator or a class decorator.
- *
- * @param config - The overrides
- */
-export function bindable(config?: Omit<PartialBindableDefinition, 'name'>): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext) => void;
-/**
- * Decorator: Specifies a bindable property on a class.
- *
- * @param prop - The property name
- */
-export function bindable(prop: string): (target: Constructable, context: ClassDecoratorContext) => void;
 // Note: there is a invisible separator character the precedes the `@` in the jsdoc example. Otherwise the eslint rule will complain.
 // Refer:
 // - https://stackoverflow.com/a/55214510/2270340
@@ -57,6 +44,19 @@ export function bindable(prop: string): (target: Constructable, context: ClassDe
 export function bindable(_: undefined, context: ClassFieldDecoratorContext): void;
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function bindable(_: Function, context: ClassGetterDecoratorContext): void;
+/**
+ * Decorator: Specifies custom behavior for a bindable property.
+ * This can be either be a property decorator or a class decorator.
+ *
+ * @param config - The overrides
+ */
+export function bindable(config?: Omit<PartialBindableDefinition, 'name'>): (target: unknown, context: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext) => void;
+/**
+ * Decorator: Specifies a bindable property on a class.
+ *
+ * @param prop - The property name
+ */
+export function bindable(prop: string): (target: Constructable, context: ClassDecoratorContext) => void;
 export function bindable(
   configOrPropOrTarget: PartialBindableDefinition | string | Constructable | undefined,
   context?: ClassDecoratorContext | ClassFieldDecoratorContext | ClassGetterDecoratorContext

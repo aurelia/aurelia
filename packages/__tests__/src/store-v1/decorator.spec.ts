@@ -72,7 +72,7 @@ describe("store-v1/decorator.spec.ts", function () {
   });
 
   it("should be possible to provide a state selector", function () {
-    @connectTo<DemoState>((store) => store.state.pipe(pluck<DemoState, 'bar'>("bar")))
+    @connectTo<DemoState>((store) => store.state.pipe<string>(pluck("bar")))
     class DemoStoreConsumer {
       public state: DemoState;
     }
@@ -87,7 +87,7 @@ describe("store-v1/decorator.spec.ts", function () {
   describe("with a complex settings object", function () {
     it("should be possible to provide a selector", function () {
       @connectTo<DemoState>({
-        selector: (store) => store.state.pipe(pluck<DemoState, 'bar'>("bar"))
+        selector: (store) => store.state.pipe<string>(pluck("bar"))
       })
       class DemoStoreConsumer {
         public state: DemoState;

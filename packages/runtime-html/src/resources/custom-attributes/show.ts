@@ -7,6 +7,7 @@ import type { ITask } from '@aurelia/platform';
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import { IInstruction, HydrateAttributeInstruction } from '@aurelia/template-compiler';
 import { resolve } from '@aurelia/kernel';
+import { DOMTask } from '@aurelia/platform-browser';
 
 export class Show implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -22,7 +23,7 @@ export class Show implements ICustomAttributeViewModel {
   private readonly p = resolve(IPlatform);
 
   /** @internal */ private _isActive: boolean = false;
-  /** @internal */ private _task: ITask | null = null;
+  /** @internal */ private _task: DOMTask | null = null;
 
   /** @internal */ private _isToggled: boolean;
   /** @internal */ private readonly _base: boolean;
@@ -46,7 +47,7 @@ export class Show implements ICustomAttributeViewModel {
 
   public valueChanged(): void {
     if (this._isActive && this._task === null) {
-      this._task = this.p.domQueue.queueTask(this.update);
+      this._task = this.p.domQueue.queueWrite(this.update);
     }
   }
 

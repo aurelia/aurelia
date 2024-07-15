@@ -1,4 +1,4 @@
-import { Platform, TaskQueue } from '@aurelia/platform';
+import { Platform } from '@aurelia/platform';
 
 export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalThis> extends Platform<TGlobal> {
   /** @internal */
@@ -42,7 +42,7 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
   public readonly clearTimeout!: TGlobal['window']['clearTimeout'];
   public readonly setInterval!: TGlobal['window']['setInterval'];
   public readonly setTimeout!: TGlobal['window']['setTimeout'];
-  public readonly domQueue: TaskQueue;
+  public readonly domQueue: DOMQueue;
 
   /**
    * @deprecated Use `platform.domQueue` instead.
@@ -83,35 +83,66 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
       (this as any)[prop] = prop in overrides ? (overrides as any)[prop] : ((g as any)[prop]?.bind(g) ?? notImplemented(prop))
     );
 
-    this.domQueue = (() => {
-      let domRequested: boolean = false;
-      let domHandle: number = -1;
+    this.domQueue = new DOMQueue(this);
+  }
+}
 
-      const requestDomFlush = (): void => {
-        domRequested = true;
-        if (domHandle === -1) {
-          domHandle = this.requestAnimationFrame(flushDomQueue);
-        }
-      };
+export class DOMQueue {
+  /** @internal */
+  private readonly _readQueue: DOMTask[] = [];
 
-      const cancelDomFlush = (): void => {
-        domRequested = false;
-        if (domHandle > -1) {
-          this.cancelAnimationFrame(domHandle);
-          domHandle = -1;
-        }
-      };
+  /** @internal */
+  private readonly _writeQueue: DOMTask[] = [];
 
-      const flushDomQueue = (): void => {
-        domHandle = -1;
-        if (domRequested === true) {
-          domRequested = false;
-          domQueue.flush();
-        }
-      };
+  /** @internal */
+  private readonly _now: () => number;
 
-      const domQueue = new TaskQueue(this, requestDomFlush, cancelDomFlush);
-      return domQueue;
-    })();
+  public constructor(
+    public readonly platform: Platform,
+  ) {
+    this._now = platform.performanceNow;
+  }
+
+  public queueRead(callback: FrameRequestCallback) {
+    const task = new DOMTask(callback);
+    this._readQueue.push(task);
+    return task;
+  }
+
+  public queueWrite(callback: FrameRequestCallback) {
+    const task = new DOMTask(callback);
+    this._writeQueue.push(task);
+    return task;
+  }
+
+  public flush(time: number = this._now()) {
+    const readQueue = this._readQueue.splice(0);
+    const writeQueue = this._writeQueue.splice(0);
+
+    for (const task of readQueue) {
+      task.run(time);
+    }
+    for (const task of writeQueue) {
+      task.run(time);
+    }
+  }
+}
+
+export class DOMTask {
+  private _cancelled: boolean = false;
+
+  public constructor(
+    public callback: FrameRequestCallback,
+  ) {}
+
+  public run(time: number) {
+    if (this._cancelled) return;
+
+    const callback = this.callback;
+    callback(time);
+  }
+
+  public cancel() {
+    this._cancelled = true;
   }
 }

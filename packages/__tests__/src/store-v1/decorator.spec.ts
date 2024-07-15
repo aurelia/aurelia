@@ -1,6 +1,6 @@
 import { Subscription } from 'rxjs';
 
-import { pluck, distinctUntilChanged } from "rxjs/operators";
+import { map, distinctUntilChanged } from "rxjs/operators";
 
 import { customElement, IWindow } from '@aurelia/runtime-html';
 import { assert } from "@aurelia/testing";
@@ -72,7 +72,7 @@ describe("store-v1/decorator.spec.ts", function () {
   });
 
   it("should be possible to provide a state selector", function () {
-    @connectTo<DemoState>((store) => store.state.pipe(pluck("bar")))
+    @connectTo<DemoState>((store) => store.state.pipe<string>(map(x => x.bar)))
     class DemoStoreConsumer {
       public state: DemoState;
     }
@@ -87,7 +87,7 @@ describe("store-v1/decorator.spec.ts", function () {
   describe("with a complex settings object", function () {
     it("should be possible to provide a selector", function () {
       @connectTo<DemoState>({
-        selector: (store) => store.state.pipe(pluck("bar"))
+        selector: (store) => store.state.pipe<string>(map(x => x.bar))
       })
       class DemoStoreConsumer {
         public state: DemoState;
@@ -118,8 +118,8 @@ describe("store-v1/decorator.spec.ts", function () {
     it("should be possible to provide an object with multiple selectors", function () {
       @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
-          fooTarget: (store) => store.state.pipe(pluck("foo"))
+          barTarget: (store) => store.state.pipe(map(x => x.bar)),
+          fooTarget: (store) => store.state.pipe(map(x => x.foo))
         }
       })
       class DemoStoreConsumer {
@@ -152,7 +152,7 @@ describe("store-v1/decorator.spec.ts", function () {
 
     it("should be possible to override the target property", function () {
       @connectTo<DemoState>({
-        selector: (store) => store.state.pipe(pluck("bar")),
+        selector: (store) => store.state.pipe(map(x => x.bar)),
         target: "foo"
       })
       class DemoStoreConsumer {
@@ -170,8 +170,8 @@ describe("store-v1/decorator.spec.ts", function () {
     it("should be possible to use the target as the parent object for the multiple selector targets", function () {
       @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
-          fooTarget: (store) => store.state.pipe(pluck("foo"))
+          barTarget: (store) => store.state.pipe(map(x => x.bar)),
+          fooTarget: (store) => store.state.pipe(map(x => x.foo))
         },
         target: "foo"
       })
@@ -257,9 +257,9 @@ describe("store-v1/decorator.spec.ts", function () {
     });
 
     it("should automatically unsubscribe from all sources when unbinding is called", function () {
-      @connectTo({
+      @connectTo<DemoState>({
         selector: {
-          barTarget: (store) => store.state.pipe(pluck("bar")),
+          barTarget: (store) => store.state.pipe(map(x => x.bar)),
           stateTarget: () => "foo" as any
         }
       })
@@ -592,8 +592,8 @@ describe("store-v1/decorator.spec.ts", function () {
 
         @connectTo<DemoState>({
           selector: {
-            foo: (pStore) => pStore.state.pipe(pluck("foo"), distinctUntilChanged()),
-            bar: (pStore) => pStore.state.pipe(pluck("bar"), distinctUntilChanged())
+            foo: (pStore) => pStore.state.pipe(map(x => x.foo), distinctUntilChanged()),
+            bar: (pStore) => pStore.state.pipe(map(x => x.bar), distinctUntilChanged())
           }
         })
         class DemoStoreConsumer {

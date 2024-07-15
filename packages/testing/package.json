@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@types/mocha": "10.0.6",
-    "jsdom": "24.0.0",
+    "jsdom": "24.1.0",
     "mocha": "10.3.0",
     "typescript": "5.4.2"
   },

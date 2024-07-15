@@ -165,6 +165,7 @@ describe('validation-i18n/localization.spec.ts', function () {
                 }
               }
             };
+            options.initOptions.fallbackLng = false;
           }),
           toCustomize
             ? ValidationI18nConfiguration

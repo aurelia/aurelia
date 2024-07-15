@@ -106,9 +106,9 @@ module.exports =
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/i18next/dist/esm/i18next.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/runtime/helpers/**/*.js` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/@babel/esm/helpers/**/*.js` }, // 3.1
-    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js` }, // 3.1
-    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.js.map` }, // 3.1
-    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/_esm5/**/*.d.ts` }, // 3.1
+    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/dist/esm/**/*.js` }, // 3.1
+    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/dist/esm/**/*.js.map` }, // 3.1
+    { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/rxjs/dist/esm/**/*.d.ts` }, // 3.1
     { type: 'module', watched: false,           included: false, nocache: false,  pattern: `node_modules/tslib/tslib.es6.js` }, // 3.1
   ].filter(Boolean);
 
@@ -364,34 +364,34 @@ function prepareIndexMap() {
       return map;
     }, {}),
 
-    ...fs.readdirSync(path.resolve('../../node_modules/rxjs/_esm5/internal/')).reduce((map, file) => {
+    ...fs.readdirSync(path.resolve('../../node_modules/rxjs/dist/esm/internal/')).reduce((map, file) => {
       if (!file.endsWith('.js')) {
         return map;
       }
       const name = file.replace(/\.js$/, '');
-      map[`rxjs/_esm5/internal/${name}`]
+      map[`rxjs/dist/esm/internal/${name}`]
         // sometimes, there's relative import from within the others modules
         // that will end up requesting the path that looks like this
-        = map[`/base/node_modules/rxjs/_esm5/internal/${name}`]
-        = `/base/node_modules/rxjs/_esm5/internal/${file}`;
+        = map[`/base/node_modules/rxjs/dist/esm/internal/${name}`]
+        = `/base/node_modules/rxjs/dist/esm/internal/${file}`;
       return map;
     }, {}),
-    ...['observable', 'operators', 'scheduled', 'scheduler', 'symbol', 'testing', 'util'].reduce((map, name) => {
-      const modules = fs.readdirSync(path.resolve(`../../node_modules/rxjs/_esm5/internal/${name}/`));
+    ...['observable', 'observable/dom', 'operators', 'scheduled', 'scheduler', 'symbol', 'testing', 'util'].reduce((map, name) => {
+      const modules = fs.readdirSync(path.resolve(`../../node_modules/rxjs/dist/esm/internal/${name}/`));
       modules.forEach(moduleName => {
         if (!moduleName.endsWith('.js')) return;
         const basename = moduleName.replace(/\.js$/, '');
 
-        map[`rxjs/_esm5/internal/${name}/${basename}`]
+        map[`rxjs/dist/esm/internal/${name}/${basename}`]
           // sometimes, there's relative import from within the others modules
           // that will end up requesting the path that looks like this
-          = map[`/base/node_modules/rxjs/_esm5/internal/${name}/${basename}`]
-          = `/base/node_modules/rxjs/_esm5/internal/${name}/${moduleName}`;
+          = map[`/base/node_modules/rxjs/dist/esm/internal/${name}/${basename}`]
+          = `/base/node_modules/rxjs/dist/esm/internal/${name}/${moduleName}`;
       });
       return map;
     }, {
-      'rxjs': '/base/node_modules/rxjs/_esm5/index.js',
-      'rxjs/operators': '/base/node_modules/rxjs/_esm5/operators/index.js',
+      'rxjs': '/base/node_modules/rxjs/dist/esm/index.js',
+      'rxjs/operators': '/base/node_modules/rxjs/dist/esm/operators/index.js',
     }),
   };
 }

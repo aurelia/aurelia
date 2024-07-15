@@ -33,7 +33,7 @@
     "webpack": "^5.90.3",
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.3"
+    "webpack-dev-server": "^5.0.4"
   },
   "scripts": {
     "lint:js": "eslint src test --ext .js,.ts",

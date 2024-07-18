@@ -7150,4 +7150,59 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  interface IRouteViewModelWithEl extends IRouteViewModel {
+    el: HTMLElement | Element | INode;
+  }
+
+  it('element injection works as expected - flat', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class CeOne implements IRouteViewModelWithEl {
+      public el: HTMLElement = resolve(HTMLElement);
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class CeTwo implements IRouteViewModelWithEl {
+      public el: Element = resolve(Element);
+    }
+
+    @customElement({ name: 'c-3', template: 'c3' })
+    class CeThree implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', component: CeOne },
+        { id: 'c2', component: CeTwo },
+        { id: 'c3', component: CeThree },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await router.load('c1');
+    const c1El = host.querySelector('c-1');
+    const c1Vm = CustomElement.for<CeOne>(c1El).viewModel;
+    assert.strictEqual(c1Vm.el.tagName, 'C-1');
+    assert.html.innerEqual(c1El, 'c1');
+
+    await router.load('c2');
+    const c2El = host.querySelector('c-2');
+    const c2Vm = CustomElement.for<CeTwo>(c2El).viewModel;
+    assert.strictEqual(c2Vm.el.tagName, 'C-2');
+    assert.html.innerEqual(c2El, 'c2');
+
+    await router.load('c3');
+    const c3El = host.querySelector('c-3');
+    const c3Vm = CustomElement.for<CeThree>(c3El).viewModel;
+    assert.strictEqual((c3Vm.el as Element).tagName, 'C-3');
+    assert.html.innerEqual(c3El, 'c3');
+
+    await au.stop(true);
+    assert.html.innerEqual(host, '');
+  });
 });

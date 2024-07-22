@@ -23,6 +23,7 @@ import {
   isCustomElementController,
   isCustomElementViewModel,
   PartialCustomElementDefinition,
+  registerHostNode,
 } from '@aurelia/runtime-html';
 
 import { ComponentAgent, IRouteViewModel } from './component-agent';
@@ -151,6 +152,9 @@ export class RouteContext {
   }
   public readonly container: IContainer;
 
+  /** @internal */
+  private readonly _platform: IPlatform;
+
   /** @internal */ private readonly _moduleLoader: IModuleLoader;
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
@@ -186,6 +190,7 @@ export class RouteContext {
     this._moduleLoader = parentContainer.get(IModuleLoader);
 
     const container = this.container = parentContainer.createChild();
+    this._platform = container.get(IPlatform);
 
     container.registerResolver(
       IController,
@@ -388,7 +393,12 @@ export class RouteContext {
 
     this._hostControllerProvider.prepare(hostController);
     const container = this.container.createChild({ inheritParentResources: true });
-    const componentInstance = container.invoke<IRouteViewModel>(routeNode.component.Type);
+
+    const platform = this._platform;
+    const elDefn = routeNode.component;
+    const host = platform.document.createElement(elDefn.name);
+    registerHostNode(container, host, platform);
+    const componentInstance = container.invoke<IRouteViewModel>(elDefn.Type);
     // this is the point where we can load the delayed (non-static) child route configuration by calling the getRouteConfig
     const task: Promise<void> | void = this._childRoutesConfigured
       ? void 0
@@ -397,7 +407,7 @@ export class RouteContext {
         config => this._processConfig(config)
       );
     return onResolve(task, () => {
-      const controller = Controller.$el(container, componentInstance, hostController.host, null);
+      const controller = Controller.$el(container, componentInstance, hostController.host, null, elDefn);
       const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
       this._hostControllerProvider.dispose();

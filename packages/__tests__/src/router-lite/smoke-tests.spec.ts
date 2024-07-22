@@ -210,7 +210,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       public readonly router2: IRouter = resolve(IRouter);
     }
 
-    const  { component, tearDown } = await createFixture(App, []);
+    const { component, tearDown } = await createFixture(App, []);
 
     assert.strictEqual(component.router1, component.router2, 'router mismatch');
 
@@ -7149,5 +7149,296 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.html.textContent(host, 'nf', 'round#4');
 
     await au.stop(true);
+  });
+
+  interface IRouteViewModelWithEl extends IRouteViewModel {
+    el: HTMLElement | Element | INode;
+  }
+
+  it('injects element correctly - flat', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class CeOne implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class CeTwo implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @customElement({ name: 'c-3', template: 'c3' })
+    class CeThree implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', component: CeOne },
+        { id: 'c2', component: CeTwo },
+        { id: 'c3', component: CeThree },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await assertElement('c1', 'c-1', 'C-1', 'c1');
+    await assertElement('c2', 'c-2', 'C-2', 'c2');
+    await assertElement('c3', 'c-3', 'C-3', 'c3');
+
+    await au.stop(true);
+    assert.html.innerEqual(host, '');
+
+    async function assertElement(route: string, query: string, tagName: string, content: string): Promise<void> {
+      await router.load(route);
+      const vmEl = host.querySelector(query);
+      const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
+      assert.strictEqual((vm.el as Element).tagName, tagName);
+      assert.html.innerEqual(vmEl, content);
+    }
+  });
+
+  it('injects element correctly - sibling', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class CeOne implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class CeTwo implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @customElement({ name: 'c-3', template: 'c3' })
+    class CeThree implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', component: CeOne },
+        { id: 'c2', component: CeTwo },
+        { id: 'c3', component: CeThree },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await assertElement('c1+c2', [['c-1', 'C-1', 'c1'], ['c-2', 'C-2', 'c2']]);
+    await assertElement('c2+c3', [['c-2', 'C-2', 'c2'], ['c-3', 'C-3', 'c3']]);
+    await assertElement('c3+c1', [['c-3', 'C-3', 'c3'], ['c-1', 'C-1', 'c1']]);
+
+    await au.stop(true);
+    assert.html.innerEqual(host, '');
+
+    async function assertElement(route: string, expectations: [query: string, tagName: string, content: string][]): Promise<void> {
+      await router.load(route);
+      for (const [query, tagName, content] of expectations) {
+        const vmEl = host.querySelector(query);
+        const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
+        assert.strictEqual((vm.el as Element).tagName, tagName);
+        assert.html.innerEqual(vmEl, content);
+      }
+    }
+  });
+
+  it('injects element correctly - parent/child', async function () {
+    @customElement({ name: 'c-11', template: 'c11' })
+    class C11 implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @customElement({ name: 'c-12', template: 'c12' })
+    class C12 implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @customElement({ name: 'c-21', template: 'c21' })
+    class C21 implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @customElement({ name: 'c-22', template: 'c22' })
+    class C22 implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @route({ routes: [C11, C12] })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
+    class P1 implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @route({ routes: [C21, C22] })
+    @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
+    class P2 implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @route({ routes: [P1, P2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+    class Expectation {
+      public constructor(
+        public query: string,
+        public tagName: string,
+        public content: string,
+        public child?: Expectation,
+      ) { }
+    }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await assertElement('p-1/c-11', new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-11>c11</c-11></au-viewport>', new Expectation('c-11', 'C-11', 'c11')));
+    await assertElement('p-2/c-21', new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-21>c21</c-21></au-viewport>', new Expectation('c-21', 'C-21', 'c21')));
+    await assertElement('p-1/c-12', new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-12>c12</c-12></au-viewport>', new Expectation('c-12', 'C-12', 'c12')));
+    await assertElement('p-2/c-22', new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-22>c22</c-22></au-viewport>', new Expectation('c-22', 'C-22', 'c22')));
+
+    await au.stop(true);
+    assert.html.innerEqual(host, '');
+
+    async function assertElement(route: string, expectation: Expectation): Promise<void> {
+      await router.load(route);
+
+      const { query, tagName, content, child } = expectation;
+      assertCore(query, tagName, content);
+
+      if (child == null) return;
+      assertCore(`${query} ${child.query}`, child.tagName, child.content);
+
+      function assertCore(query: string, tagName: string, content: string): void {
+        const vmEl = host.querySelector(query);
+        const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
+        assert.strictEqual((vm.el as Element).tagName, tagName);
+        assert.html.innerEqual(vmEl, content);
+      }
+    }
+
+  });
+
+  it('injects element correctly - sibling parent/sibling children', async function () {
+    @customElement({ name: 'c-11', template: 'c11' })
+    class C11 implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @customElement({ name: 'c-12', template: 'c12' })
+    class C12 implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @customElement({ name: 'c-21', template: 'c21' })
+    class C21 implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @customElement({ name: 'c-22', template: 'c22' })
+    class C22 implements IRouteViewModelWithEl {
+      public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
+    }
+
+    @route({ routes: [C11, C12] })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport><au-viewport></au-viewport>' })
+    class P1 implements IRouteViewModelWithEl {
+      public el: Element = isNode() ? resolve(resolve(IPlatform).Element) : resolve(Element);
+    }
+
+    @route({ routes: [C21, C22] })
+    @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport><au-viewport></au-viewport>' })
+    class P2 implements IRouteViewModelWithEl {
+      public el: INode = resolve(INode);
+    }
+
+    @route({ routes: [P1, P2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport><au-viewport></au-viewport>' })
+    class Root { }
+    class Expectation {
+      public constructor(
+        public query: string,
+        public tagName: string,
+        public content: string,
+        public children?: Expectation[],
+      ) { }
+    }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    await assertElement(
+      'p-1/(c-11+c-12)+p-2/(c-21+c-22)',
+      [
+        new Expectation(
+          'p-1',
+          'P-1',
+          'p1 <au-viewport><c-11>c11</c-11></au-viewport><au-viewport><c-12>c12</c-12></au-viewport>',
+          [
+            new Expectation('c-11', 'C-11', 'c11'),
+            new Expectation('c-12', 'C-12', 'c12'),
+          ]
+        ),
+        new Expectation(
+          'p-2',
+          'P-2',
+          'p2 <au-viewport><c-21>c21</c-21></au-viewport><au-viewport><c-22>c22</c-22></au-viewport>',
+          [
+            new Expectation('c-21', 'C-21', 'c21'),
+            new Expectation('c-22', 'C-22', 'c22'),
+          ]
+        ),
+      ]
+    );
+    await assertElement(
+      'p-2/(c-22+c-21)+p-1/(c-12+c-11)',
+      [
+        new Expectation(
+          'p-2',
+          'P-2',
+          'p2 <au-viewport><c-22>c22</c-22></au-viewport><au-viewport><c-21>c21</c-21></au-viewport>',
+          [
+            new Expectation('c-21', 'C-21', 'c21'),
+            new Expectation('c-22', 'C-22', 'c22'),
+          ]
+        ),
+        new Expectation(
+          'p-1',
+          'P-1',
+          'p1 <au-viewport><c-12>c12</c-12></au-viewport><au-viewport><c-11>c11</c-11></au-viewport>',
+          [
+            new Expectation('c-11', 'C-11', 'c11'),
+            new Expectation('c-12', 'C-12', 'c12'),
+          ]
+        ),
+      ]
+    );
+
+    await au.stop(true);
+    assert.html.innerEqual(host, '');
+
+    async function assertElement(route: string, expectations: Expectation[]): Promise<void> {
+      await router.load(route);
+
+      for (const expectation of expectations) {
+        const { query, tagName, content, children } = expectation;
+        assertCore(query, tagName, content);
+        if (children == null) continue;
+        for (const child of children) {
+          assertCore(`${query} ${child.query}`, child.tagName, child.content);
+        }
+      }
+
+      function assertCore(query: string, tagName: string, content: string): void {
+        const vmEl = host.querySelector(query);
+        const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
+        assert.strictEqual((vm.el as Element).tagName, tagName);
+        assert.html.innerEqual(vmEl, content);
+      }
+    }
+
   });
 });

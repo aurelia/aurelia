@@ -118,11 +118,15 @@ describe('router/router.link-click-defaults.spec.ts', function () {
     ];
   });
 
+  const tests = [
+    { load: '/parent/child', result: '!parent!!child!!grandchild!', },
+  ];
+
   const Nav = CustomElement.define({
     name: 'nav', template: `
     <style>.active { background-color: gold; }</style>
 
-    <a load="/parent/child">/parent/child</a>
+    ${tests.map(test => `<a load="${test.load}">${test.load}).</a>`).join('\n')}
 
     <au-viewport name="nav-vp"></au-viewport>
   `,
@@ -135,13 +139,9 @@ describe('router/router.link-click-defaults.spec.ts', function () {
     ];
   });
 
-  const tests = [
-    { load: '/parent/child', result: '!parent!!child!!grandchild!', },
-  ];
-
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
-    it(`for "${test.load}"`, async function () {
+    it(`can load all components, including defaults, for link "${test.load}"`, async function () {
       const { platform, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
 
       await $load('/nav', router, platform);

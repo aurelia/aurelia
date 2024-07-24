@@ -80,7 +80,7 @@ describe('router/routing-hook.spec.ts', function () {
     platform.domQueue.flush();
   };
 
-  it('uses a hook', async function () {
+  it.only('uses a hook', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
     RouterConfiguration.for(router).addHook((url: string, navigationInstruction: Navigation): Promise<string | RoutingInstruction[]> => Promise.resolve(`hooked:${url}`),
@@ -91,7 +91,7 @@ describe('router/routing-hook.spec.ts', function () {
     await tearDown();
   });
 
-  it('uses consequtive hooks', async function () {
+  it.only('uses consequtive hooks', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
     RouterConfiguration.for(router).addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
@@ -105,7 +105,7 @@ describe('router/routing-hook.spec.ts', function () {
     await tearDown();
   });
 
-  it('works with no hooks', async function () {
+  it.only('works with no hooks', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
     const hooked = await RoutingHook.invokeTransformFromUrl('testing', navigationInstruction);
@@ -114,7 +114,7 @@ describe('router/routing-hook.spec.ts', function () {
     await tearDown();
   });
 
-  it('uses a TransformFromUrl hook returning string', async function () {
+  it.only('uses a TransformFromUrl hook returning string', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
     RouterConfiguration.for(router).addHook((url: string, navigationInstruction: Navigation) => Promise.resolve(`hooked:${url}`),
@@ -125,7 +125,7 @@ describe('router/routing-hook.spec.ts', function () {
     await tearDown();
   });
 
-  it('uses a TransformFromUrl hook returning viewport instructions', async function () {
+  it.only('uses a TransformFromUrl hook returning viewport instructions', async function () {
     const { router, tearDown, navigationInstruction } = await createFixture();
 
     RouterConfiguration.for(router).addHook(

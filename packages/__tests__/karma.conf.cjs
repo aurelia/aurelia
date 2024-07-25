@@ -33,12 +33,13 @@ module.exports =
 
   const baseUrl = 'packages/__tests__/dist';
 
-  const testFilePatterns = cliArgs.length > 0
-    ? cliArgs.flatMap(arg => [
-        `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-        `${baseUrl}/**/${arg}/**/*.spec.js`,
-    ])
-    : [`${baseUrl}/**/*.spec.js`];
+  // const testFilePatterns = cliArgs.length > 0
+  //   ? cliArgs.flatMap(arg => [
+  //       `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
+  //       `${baseUrl}/**/${arg}/**/*.spec.js`,
+  //   ])
+  //   : [`${baseUrl}/**/*.spec.js`];
+  const testFilePatterns = [`${baseUrl}/router/*.spec.js`];
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')
     ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
     : null;

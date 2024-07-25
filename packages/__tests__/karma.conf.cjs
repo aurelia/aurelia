@@ -33,17 +33,17 @@ module.exports =
 
   const baseUrl = 'packages/__tests__/dist';
 
-  // const testFilePatterns = cliArgs.length > 0
-  //   ? cliArgs.flatMap(arg => [
-  //       `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
-  //       `${baseUrl}/**/${arg}/**/*.spec.js`,
-  //   ])
-  //   : [`${baseUrl}/**/*.spec.js`];
-  const testFilePatterns = [`${baseUrl}/router/*.spec.js`];
+  const testFilePatterns = cliArgs.length > 0
+    ? cliArgs.flatMap(arg => [
+        `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
+        `${baseUrl}/**/${arg}/**/*.spec.js`,
+    ])
+    : [`${baseUrl}/**/*.spec.js`];
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')
     ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
     : null;
-  const circleCiFiles = circleCiParallelismGlob?.split(' ') ?? [];
+  // const circleCiFiles = circleCiParallelismGlob?.split(' ') ?? [];
+  const circleCiFiles = [`${baseUrl}/router/**/*.spec.js`];
   console.log(`parallelism blob (${circleCiFiles.length}):\n\t`, circleCiFiles.join('\n\t'));
   console.log('test patterns:', testFilePatterns);
 

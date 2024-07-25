@@ -44,6 +44,8 @@ module.exports =
     : null;
   // const circleCiFiles = circleCiParallelismGlob?.split(' ') ?? [];
   const circleCiFiles = [
+    `${baseUrl}/**/store-v1/**/*.spec.js`,
+    `${baseUrl}/**/compat-v1/**/*.spec.js`,
     `${baseUrl}/**/validation/**/*.spec.js`,
     `${baseUrl}/**/*validation*.spec.js`,
     `${baseUrl}/**/i18n/**/*.spec.js`,

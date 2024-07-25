@@ -38,7 +38,7 @@ module.exports =
         `${baseUrl}/**/*${arg.replace(/(?:\.spec)?(?:\.[tj]s)?$/, '*.spec.js')}`,
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
-    : [`${baseUrl}/router/*.spec.js`];
+    : [`${baseUrl}/**/*.spec.js`];
   const circleCiParallelismGlob = fs.existsSync('./tests.txt')
     ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
     : null;

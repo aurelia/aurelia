@@ -21,7 +21,7 @@
     "test-node:store-v1": "npm run ::mocha -- dist/store-v1/**/*.spec.js",
     "test-node:state": "npm run ::mocha -- dist/state/**/*.spec.js",
     "test-node:validation": "npm run ::mocha -- dist/validation*/**/*.spec.js",
-    "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --no-auto-watch",
+    "test-chrome": "karma start karma.conf.cjs --browsers=ChromeHeadlessOpt --single-run --coverage --no-auto-watch router/",
     "test-firefox": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --no-auto-watch",
     "test-firefox:verbose": "karma start karma.conf.cjs --browsers=FirefoxHeadless --single-run --coverage --reporter=mocha",
     "test-firefox:debugger": "karma start karma.conf.cjs --browsers=Firefox --watch-extensions js,html",

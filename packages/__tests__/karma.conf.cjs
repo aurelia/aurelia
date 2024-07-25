@@ -43,7 +43,14 @@ module.exports =
     ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
     : null;
   // const circleCiFiles = circleCiParallelismGlob?.split(' ') ?? [];
-  const circleCiFiles = [`${baseUrl}/router/**/*.spec.js`, `${baseUrl}/router-lite/**/*.spec.js`];
+  const circleCiFiles = [
+    `${baseUrl}/**/validation/**/*.spec.js`,
+    `${baseUrl}/**/*validation*.spec.js`,
+    `${baseUrl}/**/i18n/**/*.spec.js`,
+    `${baseUrl}/**/*i18n*.spec.js`,
+    `${baseUrl}/router/**/*.spec.js`,
+    `${baseUrl}/router-lite/**/*.spec.js`,
+  ];
   console.log(`parallelism blob (${circleCiFiles.length}):\n\t`, circleCiFiles.join('\n\t'));
   console.log('test patterns:', testFilePatterns);
 

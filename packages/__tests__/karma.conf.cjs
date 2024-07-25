@@ -39,10 +39,11 @@ module.exports =
         `${baseUrl}/**/${arg}/**/*.spec.js`,
     ])
     : [`${baseUrl}/**/*.spec.js`];
-  const circleCiParallelismGlob = fs.existsSync('./tests.txt')
-    ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
-    : null;
+  // const circleCiParallelismGlob = fs.existsSync('./tests.txt')
+  //   ? fs.readFileSync('./tests.txt', { encoding: 'utf-8' })
+  //   : null;
   // const circleCiFiles = circleCiParallelismGlob?.split(' ') ?? [];
+  const circleCiParallelismGlob = '1234';
   const circleCiFiles = [
     'packages/__tests__/dist/1-kernel/di.get.spec.js',
     'packages/__tests__/dist/1-kernel/di.invoke.spec.js',
@@ -81,6 +82,24 @@ module.exports =
     'packages/__tests__/dist/3-runtime-html/template-compiler.test-apps.spec.js',
     'packages/__tests__/dist/3-runtime-html/view.spec.js',
     'packages/__tests__/dist/compat-v1/binding-engine.spec.js',
+    'packages/__tests__/dist/fetch-client/fetch-client.cache-interceptor.spec.js',
+    'packages/__tests__/dist/i18n/df/date-format-value-converter.spec.js',
+    'packages/__tests__/dist/i18n/t/translation-integration.spec.js',
+    'packages/__tests__/dist/router-lite/ast.spec.js',
+    'packages/__tests__/dist/router-lite/external.spec.js',
+    'packages/__tests__/dist/router-lite/resources/href.spec.js',
+    'packages/__tests__/dist/router-lite/router-containerless.spec.js',
+    'packages/__tests__/dist/router/history-navigations.spec.js',
+    'packages/__tests__/dist/router/route-recognizer.spec.js',
+    'packages/__tests__/dist/router/router.link-click-defaults.spec.js',
+    'packages/__tests__/dist/router/router.spec.js',
+    'packages/__tests__/dist/router/routing-hook.spec.js',
+    'packages/__tests__/dist/router/viewport-content.spec.js',
+    'packages/__tests__/dist/store-v1/dispatchify.spec.js',
+    'packages/__tests__/dist/store-v1/store.spec.js',
+    'packages/__tests__/dist/validation-html/subscribers/validation-container-custom-element.spec.js',
+    'packages/__tests__/dist/validation-html/validation-controller.spec.js',
+    'packages/__tests__/dist/validation/rule-provider.spec.js',
   ];
   console.log(`parallelism blob (${circleCiFiles.length}):\n\t`, circleCiFiles.join('\n\t'));
   console.log('test patterns:', testFilePatterns);

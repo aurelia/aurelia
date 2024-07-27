@@ -43,6 +43,13 @@ describe('router/history-navigations.spec.ts', function () {
       router,
       eventAggregator,
       async tearDown() {
+        const { href } = platform.window.location;
+        const index = href.indexOf('#');
+        if (index >= 0) {
+          platform.window.history.replaceState({}, '', href.slice(0, index));
+        }
+
+        RouterConfiguration.customize();
         await au.stop(true);
         doc.body.removeChild(host);
         au.dispose();

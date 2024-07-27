@@ -81,7 +81,7 @@ describe('validation-i18n/localization.spec.ts', function () {
           .ensure('name')
           .satisfiesState<StateError, string>('none', (_v, _o) => this.stateError, { foo: 'stateError.foo', bar: 'stateError.bar' })
           .withMessageKey('customStateError');
-        }
+      }
 
       public unbinding() {
         this.validationRules.off();

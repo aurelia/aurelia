@@ -8,6 +8,13 @@ import { IRoute, IRouteableComponent } from '@aurelia/router';
 })
 export class FirstSection implements IRouteableComponent {
     static routes: IRoute[] = [
+        // {
+        //   id: 'first-section-first-child',
+        //   path: '',
+        //   component: () => import('../first-section-first-child/first-section-first-child'),
+        //   title: 'First Section First Child',
+        //   viewport: 'first-section'
+        // } as IRoute,
         {
             path: '',
             redirectTo: 'first-section-first-child'

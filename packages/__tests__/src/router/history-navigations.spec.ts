@@ -53,7 +53,6 @@ describe('router/history-navigations.spec.ts', function () {
         await au.stop(true);
         doc.body.removeChild(host);
         au.dispose();
-        console.log('teardown');
       },
     };
   }

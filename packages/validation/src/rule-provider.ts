@@ -123,6 +123,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   private latestRule?: IValidationRule;
   /** @internal */
   public readonly l: IServiceLocator;
+  public linkedProperties: PropertyKey[] = [];
 
   public constructor(
     locator: IServiceLocator,
@@ -265,6 +266,15 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (latestRule === void 0) {
       throw createMappedError(ErrorNames.rule_provider_no_rule_found);
     }
+  }
+
+  /**
+   * Links the PropertyRule to other key values.
+   * @param properties - Array of property keys to link.
+   */
+  public linkProperties(properties: PropertyKey[]) {
+    this.linkedProperties.push(...properties);
+    return this;
   }
   // #endregion
 

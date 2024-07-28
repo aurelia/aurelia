@@ -235,6 +235,37 @@ describe('validation/validator.spec.ts', function () {
 
           validationRules.off();
         });
+
+        it('if given, validates linked properties', async function () {
+          const { sut, validationRules } = setup();
+          const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+          const linkedProperties = ['age', 'address.line1'];
+
+          const rules = validationRules
+            .on(defineRuleOnClass ? Person : obj)
+
+            .ensure(getProperty1() as any)
+            .required()
+            .linkProperties(linkedProperties)
+
+            .ensure(getProperty2() as any)
+            .required()
+
+            .ensure(getProperty3() as any)
+            .required()
+            .withMessage('Address is required.')
+
+            .rules;
+
+          const result = await sut.validate(new ValidateInstruction(obj, 'name'));
+          assert.equal(result.length, 3);
+
+          assertValidationResult(result[0], false, 'name', obj, RequiredRule, 'Name is required.');
+          assertValidationResult(result[1], false, 'age', obj, RequiredRule, 'Age is required.');
+          assertValidationResult(result[2], false, 'address.line1', obj, RequiredRule, 'Address is required.');
+
+          validationRules.off();
+        });
       }
 
       const properties3 = [

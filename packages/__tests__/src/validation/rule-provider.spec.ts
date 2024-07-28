@@ -1179,6 +1179,27 @@ describe('validation/rule-provider.spec.ts', function () {
       validationRules.off();
     });
 
+    it('can be linked to other properties', async function () {
+      const { validationRules } = setup();
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const properties: PropertyKey[] = ['age', 'address'];
+      const rule = validationRules
+        .on(obj)
+        .ensure('name')
+        .required()
+        .satisfies((value) => value === 'foobar')
+        .linkProperties(properties)
+        .ensure('age').min(18)
+        .ensure('address').required()
+        .rules[0];
+
+      assert.equal(rule.linkedProperties.length, 2);
+      assert.deepEqual(rule.linkedProperties[0], 'age');
+      assert.deepEqual(rule.linkedProperties[1], 'address');
+
+      validationRules.off();
+    });
+
     // The state rule is tested here as the individual unit tests are somewhat pointless.
     describe('StateRule', function () {
       it('stateful message - sync state function', async function () {

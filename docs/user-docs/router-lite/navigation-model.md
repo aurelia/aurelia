@@ -69,6 +69,10 @@ Note that in the example above we aren't dealing with async routing.
 Therefore, *for that example* waiting the `INavigationModel#resolve()` can be avoided.
 {% endhint %}
 
+{% hint style="info" %}
+In case you want to inject the `IRouteContext` in the app-root, you need to use a lazy injection, for example: `routeContext = resolve(lazy(IRouteContext))`. An eager injection does not work for app-root due to the timing of app root and the root route-context creation.
+{% endhint %}
+
 ## Using the `isActive` property
 
 The `isActive` property is `true` when this route is currently active (loaded), and otherwise it is `false`.

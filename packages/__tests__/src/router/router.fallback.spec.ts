@@ -199,5 +199,5 @@ const $load = async (path: string, router: IRouter, platform: IPlatform) => {
       }, 1000);
     })
   ]);
-  platform.domQueue.flush();
+  platform.taskQueue.flush();
 };

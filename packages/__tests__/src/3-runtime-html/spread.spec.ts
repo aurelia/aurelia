@@ -29,7 +29,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         ctx.type(appHost, 'input', 'hello');
         assert.strictEqual(component.message, 'hello');
         component.message = 'Aurelia';
-        ctx.platform.domQueue.flush();
+        ctx.platform.taskQueue.flush();
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
       },
     });
@@ -63,7 +63,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertFn: ({ platform, component, appHost }) => {
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
         component.message = 'hello';
-        platform.domQueue.flush();
+        platform.taskQueue.flush();
         assert.strictEqual(appHost.querySelector('input').value, 'hello');
       },
     });

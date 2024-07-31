@@ -59,7 +59,7 @@ describe('state/state.spec.ts', function () {
 
   //   // assert that it's not observed
   //   state.text = 'abc';
-  //   ctx.platform.domQueue.flush();
+  //   ctx.platform.taskQueue.flush();
   //   assert.strictEqual(getBy('input').value, '123');
   // });
 

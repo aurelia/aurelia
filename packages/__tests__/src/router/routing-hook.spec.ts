@@ -77,7 +77,7 @@ describe('router/routing-hook.spec.ts', function () {
   }
   const $load = async (path: string, router: IRouter, platform: IPlatform) => {
     await router.load(path);
-    platform.domQueue.flush();
+    platform.taskQueue.flush();
   };
 
   it('uses a hook', async function () {

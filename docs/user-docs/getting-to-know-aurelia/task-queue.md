@@ -89,24 +89,8 @@ For tasks that need to synchronize with the browser's repaint, `domWriteQueue` i
 ```typescript
 import { PLATFORM } from 'aurelia';
 
-platform.domQueue.queueTask(() => {
+platform.domQueue.queueWrite(() => {
   // Update styles or DOM
   applyStyles();
 });
-```
-
-### Animation Loop with requestAnimationFrame
-
-For continuous animations, the TaskQueue can be used to create a loop, similar to `requestAnimationFrame`.
-
-```typescript
-import { PLATFORM } from 'aurelia';
-
-const task = platform.domQueue.queueTask(() => {
-  // Update animation properties in each frame
-  updateAnimationProps();
-}, { persistent: true });
-
-// Stop the animation
-task.cancel();
 ```

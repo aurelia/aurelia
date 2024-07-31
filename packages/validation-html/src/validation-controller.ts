@@ -391,7 +391,7 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.platform.domQueue.queueTask(async () => {
+    const task = this.platform.taskQueue.queueTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
           async (x) => this.validator.validate(x)

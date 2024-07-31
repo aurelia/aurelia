@@ -803,15 +803,10 @@ const areTaskQueuesEmpty = (function () {
   return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
     const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
-    const domQueue = platform.domQueue;
     const taskQueue = platform.taskQueue;
 
     let isEmpty = true;
     let message = '';
-    if (!domQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domQueue', domQueue)}\n\n`;
-      isEmpty = false;
-    }
     if (!taskQueue.isEmpty) {
       message += `\n${$reportTaskQueue('taskQueue', taskQueue)}\n\n`;
       isEmpty = false;

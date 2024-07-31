@@ -155,7 +155,7 @@ export class TranslationBinding implements IBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.domQueue;
+    this._taskQueue = platform.taskQueue;
   }
 
   public bind(_scope: Scope): void {

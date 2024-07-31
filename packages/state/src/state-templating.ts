@@ -95,7 +95,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
       renderingCtrl,
       renderingCtrl.container,
       observerLocator,
-      platform.domQueue,
+      platform.taskQueue,
       ast,
       target,
       instruction.to,

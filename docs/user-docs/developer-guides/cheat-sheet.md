@@ -767,7 +767,10 @@ export class MyComponent {
 
 ```typescript
 // Await all pending tasks, sync or async (useful in unit, integration and e2e tests or generally figuring out when the app is "idle")
-await PLATFORM.taskQueue.yield();
+await Promise.all([
+  PLATFORM.taskQueue.yield(),
+  platform.domQueue.yield(),
+]);
 ```
 
 In the future, time-slicing will be enabled via these TaskQueue APIs as well, which will allow you to easily chunk work that's been dispatched via the task queues.

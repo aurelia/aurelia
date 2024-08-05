@@ -108,7 +108,7 @@ export class TaskQueue {
   private _lastFlush: number = 0;
 
   /** @internal */
-  private _handle: number = 0;
+  private _handle: number = -1;
 
   /** @internal */
   private readonly _now: () => number;
@@ -178,7 +178,7 @@ export class TaskQueue {
         if (cur.status === tsRunning) {
           if (cur.suspend === true) {
             this._suspenderTask = cur;
-            this._requestFlush(true);
+            this._requestFlush();
 
             if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'flush early async'); }
 
@@ -204,7 +204,7 @@ export class TaskQueue {
       }
 
       if (this._processing.length > 0 || this._delayed.length > 0 || this._pendingAsyncCount > 0) {
-        this._requestFlush(true);
+        this._requestFlush();
       }
 
       if (
@@ -219,7 +219,7 @@ export class TaskQueue {
       // If we are still waiting for an async task to finish, just schedule the next flush and do nothing else.
       // Should the task finish before the next flush is invoked,
       // the callback to `completeAsyncTask` will have reset `this.suspenderTask` back to undefined so processing can return back to normal next flush.
-      this._requestFlush(true);
+      this._requestFlush();
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'flush full'); }
@@ -285,7 +285,7 @@ export class TaskQueue {
     }
 
     if (this._processing.length === 0) {
-      this._requestFlush(false);
+      this._requestFlush();
     }
 
     const time = this._now();
@@ -391,24 +391,15 @@ export class TaskQueue {
   }
 
   /** @internal */
-  private readonly _requestFlush: (internal: boolean) => void = (internal: boolean) => {
+  private readonly _requestFlush: () => void = () => {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'requestFlush'); }
 
     if (!this._flushRequested) {
       this._flushRequested = true;
       this._lastRequest = this._now();
-      if (internal) {
-        if (this._handle === -1) {
-          this._handle = this.platform.setTimeout(() => {
-            this._handle = -1;
-            if (this._flushRequested) {
-              this._flushRequested = false;
-              this.flush();
-            }
-          });
-        }
-      } else {
-        this.platform.queueMicrotask(() => {
+      if (this._handle === -1) {
+        this._handle = this.platform.setTimeout(() => {
+          this._handle = -1;
           if (this._flushRequested) {
             this._flushRequested = false;
             this.flush();

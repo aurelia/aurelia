@@ -95,7 +95,26 @@ export class DOMQueue {
   private readonly _writeQueue: DOMTask[] = [];
 
   /** @internal */
+  public _flushRequested: boolean = false;
+
+  /** @internal */
+  private _yieldPromise: Promise<void> | undefined = void 0;
+
+  /** @internal */
+  private _resolve: (() => void) | undefined = void 0;
+
+  /** @internal */
+  private _handle: number = -1;
+
+  /** @internal */
   private readonly _now: () => number;
+
+  public get isEmpty(): boolean {
+    return (
+      this._readQueue.length === 0 &&
+      this._writeQueue.length === 0
+    );
+  }
 
   public constructor(
     public readonly platform: Platform,
@@ -103,46 +122,118 @@ export class DOMQueue {
     this._now = platform.performanceNow;
   }
 
-  public queueRead(callback: FrameRequestCallback) {
-    const task = new DOMTask(callback);
-    this._readQueue.push(task);
-    return task;
-  }
-
-  public queueWrite(callback: FrameRequestCallback) {
-    const task = new DOMTask(callback);
-    this._writeQueue.push(task);
-    return task;
-  }
-
-  public flush(time: number = this._now()) {
+  public flush(delta: number = this._now()): void {
     const readQueue = this._readQueue.splice(0);
     const writeQueue = this._writeQueue.splice(0);
 
     for (const task of readQueue) {
-      task.run(time);
+      task.run(delta);
     }
     for (const task of writeQueue) {
-      task.run(time);
+      task.run(delta);
+    }
+
+    if (this._readQueue.length > 0 || this._writeQueue.length > 0) {
+      this._requestFlush();
+    }
+
+    if (this._resolve !== void 0) {
+      this._resolve();
+      this._resolve = void 0;
+      this._yieldPromise = void 0;
     }
   }
+
+  public cancel(): void {
+    if (this._flushRequested) {
+      if (this._handle > -1) {
+        this.platform.globalThis.cancelAnimationFrame(this._handle);
+        this._handle = -1;
+      }
+      this._flushRequested = false;
+    }
+  }
+
+  public async yield(): Promise<void> {
+    if (!this.isEmpty) {
+      if (this._yieldPromise === void 0) {
+        this._yieldPromise = new Promise(resolve => this._resolve = resolve);
+      }
+
+      await this._yieldPromise;
+    }
+  }
+
+  public queueRead(callback: FrameRequestCallback) {
+    const task = new DOMTask(this, callback);
+    this._readQueue.push(task);
+    this._requestFlush();
+    return task;
+  }
+
+  public queueWrite(callback: FrameRequestCallback) {
+    const task = new DOMTask(this, callback);
+    this._writeQueue.push(task);
+    this._requestFlush();
+    return task;
+  }
+
+  public remove(task: DOMTask): void {
+    let idx = this._readQueue.indexOf(task);
+    if (idx > -1) {
+      this._readQueue.splice(idx, 1);
+      return;
+    }
+    idx = this._writeQueue.indexOf(task);
+    if (idx > -1) {
+      this._writeQueue.splice(idx, 1);
+      return;
+    }
+  }
+
+  /** @internal */
+  private readonly _requestFlush: () => void = () => {
+    if (!this._flushRequested) {
+      this._flushRequested = true;
+      if (this._handle === -1) {
+        this._handle = this.platform.globalThis.requestAnimationFrame(delta => {
+          this._handle = -1;
+          if (this._flushRequested) {
+            this._flushRequested = false;
+            this.flush(delta);
+          }
+        });
+      }
+    }
+  };
 }
 
 export class DOMTask {
-  private _cancelled: boolean = false;
-
   public constructor(
+    /* @internal */
+    private _domQueue: DOMQueue,
     public callback: FrameRequestCallback,
   ) {}
 
   public run(time: number) {
-    if (this._cancelled) return;
-
-    const callback = this.callback;
-    callback(time);
+    this.callback(time);
+    this._dispose();
   }
 
   public cancel() {
-    this._cancelled = true;
+    const domQueue = this._domQueue;
+    domQueue.remove(this);
+
+    if (domQueue.isEmpty) {
+      domQueue.cancel();
+    }
+
+    this._dispose();
+  }
+
+  /* @internal */
+  private _dispose() {
+    this._domQueue = (void 0)!;
+    this.callback = (void 0)!;
   }
 }

@@ -201,6 +201,7 @@ export const observable = /*@__PURE__*/(() => {
         // we only want to notify subscribers with the latest values
         value = this._oldValue;
         this._oldValue = this._value;
+        this.subs.notifyDirty();
         this.subs.notify(this._value, value);
       }
     }

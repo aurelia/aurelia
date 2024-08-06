@@ -151,6 +151,7 @@ export const getMapObserver = /*@__PURE__*/ (() => {
       const size = map.size;
 
       this.indexMap = createIndexMap(size);
+      subs.notifyDirty();
       subs.notifyCollection(map, indexMap);
     }
 

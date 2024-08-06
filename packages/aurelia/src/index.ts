@@ -670,4 +670,7 @@ export {
 
   Scope,
   ISignaler,
+
+  IWindow,
+  IHistory,
 } from '@aurelia/runtime-html';

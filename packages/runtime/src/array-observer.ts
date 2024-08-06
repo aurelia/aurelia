@@ -436,6 +436,7 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       const length = arr.length;
 
       this.indexMap = createIndexMap(length);
+      this.subs.notifyDirty();
       this.subs.notifyCollection(arr, indexMap);
     }
 

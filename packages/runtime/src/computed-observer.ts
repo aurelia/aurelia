@@ -140,6 +140,13 @@ export class ComputedObserver<T extends object> implements
     return true;
   }
 
+  public handleDirty(): void {
+    if (!this._isDirty) {
+      this._isDirty = true;
+      this.subs.notifyDirty();
+    }
+  }
+
   public handleChange(): void {
     this._isDirty = true;
     if (this.subs.count > 0) {

@@ -23,7 +23,12 @@ export interface IConnectable {
  * Interface of a subscriber or property change handler
  */
 export interface ISubscriber<TValue = unknown> {
+  handleDirty?(): void;
   handleChange(newValue: TValue, previousValue: TValue): void;
+}
+
+export interface IDirtySubscriber {
+  handleDirty(): void;
 }
 
 /**
@@ -53,6 +58,7 @@ export interface ISubscriberRecord<T extends ISubscriber | ICollectionSubscriber
   remove(subscriber: T): boolean;
   notify(value: unknown, oldValue: unknown): void;
   notifyCollection(collection: Collection, indexMap: IndexMap): void;
+  notifyDirty(): void;
 }
 
 /**

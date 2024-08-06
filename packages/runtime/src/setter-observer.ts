@@ -61,6 +61,7 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
       oV = this._value;
       this._value = newValue;
       this._callback?.(newValue, oV);
+      this.subs.notifyDirty();
       this.subs.notify(newValue, oV);
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,

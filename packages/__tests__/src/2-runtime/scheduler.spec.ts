@@ -211,7 +211,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
     for (const delay of [1, 5]) {
       for (const expected of [2, 4]) {
-        it(`${name} x${expected} sequential, {delay: ${delay}}`, function (done) {
+        it(`queueTask x${expected} sequential, {delay: ${delay}}`, function (done) {
           let actual = 0;
           function increment() {
             if (++actual === expected) {
@@ -230,7 +230,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
           );
         });
 
-        it(`${name} x${expected} recursive, {delay: ${delay}}`, function (done) {
+        it(`queueTask x${expected} recursive, {delay: ${delay}}`, function (done) {
           let actual = 0;
           function increment() {
             if (++actual === expected) {
@@ -802,7 +802,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
 
       for (const delay of [1, 5]) {
         for (const expected of [2, 4]) {
-          it(`${name} x${expected} sequential, {delay: ${delay}}`, async function () {
+          it(`queueTask x${expected} sequential, {delay: ${delay}}`, async function () {
             const { promise, resolve } = createExposedPromise();
 
             let actual = 0;
@@ -826,7 +826,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
             await promise;
           });
 
-          it(`${name} x${expected} recursive, {delay: ${delay}}`, async function () {
+          it(`queueTask x${expected} recursive, {delay: ${delay}}`, async function () {
             const { promise, resolve } = createExposedPromise();
 
             let actual = 0;

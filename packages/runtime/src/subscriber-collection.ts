@@ -85,13 +85,10 @@ export const subscriberCollection = /*@__PURE__*/(() => {
        * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
        * however this is accounted for via $isBound and similar flags on the subscriber objects)
        */
-      const _subs = this._subs.slice(0) as ISubscriber[];
-      const len = _subs.length;
-      let i = 0;
-      for (; i < len; ++i) {
-        _subs[i].handleChange(val, oldVal);
+      let sub: ISubscriber;
+      for (sub of this._subs.slice(0) as ISubscriber[]) {
+        sub.handleChange(val, oldVal);
       }
-      return;
     }
 
     public notifyCollection(collection: Collection, indexMap: IndexMap): void {

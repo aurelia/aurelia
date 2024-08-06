@@ -283,7 +283,7 @@ export function createFixture<T extends object>(
   };
 
   const flush = (time?: number) => {
-    ctx.platform.domQueue.flush(time);
+    ctx.platform.taskQueue.flush(time);
   };
 
   const stop = (dispose: boolean = false): void | Promise<void> => {

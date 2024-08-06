@@ -75,7 +75,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private readonly _obsMediator: CollectionObservationMediator;
 
   /** @internal */ private readonly views: ISyntheticView[] = [];
-  /** @internal */ private readonly domQueue: IPlatform['domQueue'];
+  /** @internal */ private readonly taskQueue: IPlatform['taskQueue'];
   /** @internal */ private task: DOMTask | null = null;
   /** @internal */ private _currScrollerInfo: IScrollerInfo = noScrollInfo;
 
@@ -101,7 +101,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
-    this.domQueue = resolve(IPlatform).domQueue;
+    this.taskQueue = resolve(IPlatform).taskQueue;
   }
 
   /**
@@ -340,7 +340,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
   public handleScrollerChange(scrollerInfo: IScrollerInfo): void {
     const task = this.task;
-    this.task = this.domQueue.queueTask(() => {
+    this.task = this.taskQueue.queueTask(() => {
       this.task = null;
       if (this.views.length > 0 && this.itemHeight > 0) {
         this._initCalculation();
@@ -482,7 +482,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */
   private _queueHandleItemsChanged() {
     const task = this.task;
-    this.task = this.domQueue.queueTask(() => {
+    this.task = this.taskQueue.queueTask(() => {
       this.task = null;
       this._handleItemsChanged(this.items, this.collectionStrategy!);
     });

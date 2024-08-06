@@ -1,5 +1,5 @@
 import { TestContext, assert } from '@aurelia/testing';
-import { QueueTaskOptions, ITask, TaskQueue } from '@aurelia/platform';
+import { QueueTaskOptions, Task, TaskQueue } from '@aurelia/platform';
 import { noop } from '@aurelia/kernel';
 
 function createExposedPromise() {
@@ -486,7 +486,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
             },
           );
 
-          let nextTask: ITask;
+          let nextTask: Task;
           function createNextTask() {
             return sut.queueTask(
               function () {
@@ -1139,7 +1139,7 @@ describe('2-runtime/scheduler.spec.ts', function () {
               },
             );
 
-            let nextTask: ITask;
+            let nextTask: Task;
             function createNextTask() {
               return sut.queueTask(
                 async function () {

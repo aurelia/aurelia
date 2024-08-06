@@ -1,5 +1,5 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
-import { ITask } from '@aurelia/platform';
+import { Task } from '@aurelia/platform';
 import { type ISubscriber } from '@aurelia/runtime';
 import { astEvaluate } from '../ast.eval';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
@@ -172,8 +172,8 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
    * A helper for creating rated limited functions for binding. For internal use only
    */
   const debounced = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-    let limiterTask: ITask | undefined;
-    let task: ITask | undefined;
+    let limiterTask: Task | undefined;
+    let task: Task | undefined;
     let latestValue: unknown;
     let isPending = false;
     const taskQueue = opts.queue;
@@ -209,8 +209,8 @@ export const mixingBindingLimited = /*@__PURE__*/ (() => {
    * A helper for creating rated limited functions for binding. For internal use only
    */
   const throttled = <T extends (v?: unknown) => unknown>(opts: IRateLimitOptions, callOriginal: T, binding: IBinding): LimiterHandle => {
-    let limiterTask: ITask | undefined;
-    let task: ITask | undefined;
+    let limiterTask: Task | undefined;
+    let task: Task | undefined;
     let last: number = 0;
     let elapsed = 0;
     let latestValue: unknown;

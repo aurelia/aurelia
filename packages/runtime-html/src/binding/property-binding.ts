@@ -17,7 +17,7 @@ import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
-import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -39,7 +39,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
-  private _task: DOMTask | null = null;
+  private _task: ITask | null = null;
 
   /** @internal */
   private _targetSubscriber: ISubscriber | null = null;
@@ -58,7 +58,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   // see Listener binding for explanation
   /** @internal */
@@ -68,7 +68,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: DOMQueue,
+    taskQueue: ITaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
@@ -208,4 +208,4 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 }
 
-let task: DOMTask | null = null;
+let task: ITask | null = null;

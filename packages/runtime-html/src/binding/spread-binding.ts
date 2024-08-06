@@ -13,7 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
 import { Scope } from './scope';
-import type { DOMQueue } from '@aurelia/platform-browser';
+import type { ITaskQueue } from '@aurelia/platform';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -183,7 +183,7 @@ export class SpreadValueBinding implements IBinding {
   public l: IServiceLocator;
 
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   // see Listener binding for explanation
   /** @internal */
@@ -206,7 +206,7 @@ export class SpreadValueBinding implements IBinding {
     public ast: IsBindingBehavior,
     ol: IObserverLocator,
     l: IServiceLocator,
-    taskQueue: DOMQueue,
+    taskQueue: ITaskQueue,
   ) {
     this._controller = controller;
     this.oL = ol;

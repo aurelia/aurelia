@@ -32,7 +32,7 @@ import type { TranslationBindBindingInstruction, TranslationBindingInstruction }
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 import { etInterpolation, etIsProperty, stateActivating } from '../utils';
 import { ErrorNames, createMappedError } from '../errors';
-import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -112,7 +112,7 @@ export class TranslationBinding implements IBinding {
   public _scope!: Scope;
 
   /** @internal */
-  private _task: DOMTask | null = null;
+  private _task: ITask | null = null;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -122,7 +122,7 @@ export class TranslationBinding implements IBinding {
   private readonly _platform: IPlatform;
 
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */

@@ -80,8 +80,20 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 }
 
 type TaskCallback<T = any> = (delta: number) => T;
+export interface ITaskQueue {
+  readonly isEmpty: boolean;
+  flush(timestamp?: number): void;
+  cancel(): void;
+  yield(): Promise<void>;
+  queueTask(callback: (timestamp: number) => void): ITask;
+}
 
-export class TaskQueue {
+export interface ITask {
+  run(): void;
+  cancel(): void;
+}
+
+export class TaskQueue implements ITaskQueue {
 
   /** @internal */ public _suspenderTask: Task | undefined = void 0;
   /** @internal */ public _pendingAsyncCount: number = 0;
@@ -421,13 +433,6 @@ export class TaskAbortError<T = any> extends Error {
 let id: number = 0;
 
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-
-export interface ITask<T = any> {
-  readonly result: Promise<UnwrapPromise<T>>;
-  readonly status: TaskStatus;
-  run(): void;
-  cancel(): boolean;
-}
 
 export class Task<T = any> implements ITask {
   public readonly id: number = ++id;

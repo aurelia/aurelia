@@ -22,7 +22,7 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -49,7 +49,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public _scope?: Scope;
 
   /** @internal */
-  public _task: DOMTask | null = null;
+  public _task: ITask | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -58,7 +58,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
    */
   public readonly oL: IObserverLocator;
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -79,7 +79,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: DOMQueue,
+    taskQueue: ITaskQueue,
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,

@@ -24,7 +24,7 @@ import { type Scope } from './scope';
 import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -45,7 +45,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   private _targetObserver: AccessorOrObserver;
 
   /** @internal */
-  private _task: DOMTask | null = null;
+  private _task: ITask | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -55,7 +55,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   private readonly _controller: IBindingController;
@@ -64,7 +64,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: DOMQueue,
+    taskQueue: ITaskQueue,
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -111,7 +111,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     //  (1). determine whether this should be the behavior
     //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
     const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
-    let task: DOMTask | null;
+    let task: ITask | null;
     if (shouldQueueFlush) {
       // Queue the new one before canceling the old one, to prevent early yield
       task = this._task;
@@ -188,7 +188,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = toView;
   public _scope?: Scope;
-  public task: DOMTask | null = null;
+  public task: ITask | null = null;
   public isBound: boolean = false;
 
   /** @internal */

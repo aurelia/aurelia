@@ -21,7 +21,7 @@ import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -43,7 +43,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public _scope?: Scope = void 0;
 
   /** @internal */
-  private _task: DOMTask | null = null;
+  private _task: ITask | null = null;
 
   public target: HTMLElement;
 
@@ -61,7 +61,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: DOMQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -76,7 +76,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: DOMQueue,
+    taskQueue: ITaskQueue,
     ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -132,7 +132,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       return;
     }
 
-    let task: DOMTask | null;
+    let task: ITask | null;
     this.obs.version++;
     const newValue = astEvaluate(
       this.ast,

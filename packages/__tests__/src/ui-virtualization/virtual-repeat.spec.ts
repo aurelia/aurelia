@@ -95,7 +95,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   });
 
   describe('mutation', function () {
-    it.skip('rerenders when removed at the start', function () {
+    it('rerenders when removed at the start', function () {
       const { component, flush } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
@@ -104,6 +104,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(0, 10);
       flush();
+      flush(); // TODO(fkleuver): why do we need to flush twice?
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
 
       const virtualRepeat = virtualRepeats[0];
@@ -126,7 +127,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       assert.strictEqual(firstView.nodes.firstChild.textContent, `item-0`);
     });
 
-    it.skip('rerenders when removed in the middle', function () {
+    it('rerenders when removed in the middle', function () {
       const { component, flush } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
@@ -135,6 +136,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(10, 10);
       flush();
+      flush(); // TODO(fkleuver): why do we need to flush twice?
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];
       const firstView = virtualRepeat.getViews()[10];

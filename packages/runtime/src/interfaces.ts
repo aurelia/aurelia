@@ -19,16 +19,15 @@ export interface IConnectable {
   subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
+export interface IDirtySubscriber {
+  handleDirty(): void;
+}
+
 /**
  * Interface of a subscriber or property change handler
  */
-export interface ISubscriber<TValue = unknown> {
-  handleDirty?(): void;
+export interface ISubscriber<TValue = unknown> extends Partial<IDirtySubscriber> {
   handleChange(newValue: TValue, previousValue: TValue): void;
-}
-
-export interface IDirtySubscriber {
-  handleDirty(): void;
 }
 
 /**

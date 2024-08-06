@@ -490,6 +490,12 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       arrayObserver.notify();
     }
 
+    public handleDirty() {
+      if (this.value !== this.getValue()) {
+        this.subs.notifyDirty();
+      }
+    }
+
     /**
      * From interface `ICollectionSubscriber`
      */
@@ -501,7 +507,6 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       }
       const prevValue = this.value;
       const currValue = this.value = this.getValue();
-      // hmm
       if (prevValue !== currValue) {
         this.subs.notify(currValue, prevValue);
       }

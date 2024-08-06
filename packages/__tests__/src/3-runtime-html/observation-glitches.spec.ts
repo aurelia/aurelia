@@ -207,6 +207,38 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       assert.deepEqual([i1, i2, i3], [1, 2, 1]);
     });
 
+    it('handles array index related glitches', function () {
+      class NameTag {
+        firstName = '';
+        lastName = '';
+
+        constructor(readonly tags: string[] = []) {
+        }
+
+        get tag() {
+          return this.tags[0] === 'a' ? `[Badge] ${this.tags.join(',')}` : '[a]';
+        }
+      }
+
+      const tags: string[] = [];
+      const changeSnapshots: unknown[][] = [];
+      locator.getArrayObserver(tags).subscribe({
+        handleCollectionChange(collection: []) {
+          changeSnapshots.push([collection.length, obj.tag]);
+        }
+      });
+      const obj = new NameTag(tags);
+      const tagObserver = locator.getObserver(obj, 'tag');
+      tagObserver.subscribe({ handleChange: () => {
+        // only for triggering observation
+      } });
+
+      tags.push('a');
+      assert.deepEqual(changeSnapshots, [
+        [1, '[Badge] a']
+      ]);
+    });
+
     it('handles array length related glitches', function () {
       class NameTag {
         firstName = '';

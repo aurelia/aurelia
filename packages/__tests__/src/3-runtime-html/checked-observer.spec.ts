@@ -43,7 +43,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'After push(10), no checkbox should be checked');
 
         component.selected = Array.from({ length: 10 }, (_, i) => i);
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'after assigning new array, all checkboxes should be checked');
       }
     },
@@ -69,7 +69,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(Array.from({ length: 10 }, (_, i) => i));
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -95,7 +95,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from({ length: 10 }, (_, i) => [i, true]));
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -126,7 +126,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = createItems(10);
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new [], all checked');
       }
     },
@@ -157,7 +157,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(createItems(10));
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set, all checked');
       }
     },
@@ -190,7 +190,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from(createItems(10), item => [item, true]));
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Map, all checked');
       }
     },
@@ -212,19 +212,19 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all radio NOT checked');
 
         component.selected = createItems(1)[0];
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls[0].checked, true);
 
         simulateStateChange(ctx, inputEls[1], true);
         assert.deepEqual(component.selected, createItems(2)[1]);
 
         component.selected = { name: 'item 10', value: 10 };
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
         assert.strictEqual(inputEls.every(el => !el.checked), true);
 
         for (let i = 0; 10 > i; ++i) {
           component.selected = { name: `item ${i}`, value: i };
-          ctx.platform.taskQueue.flush();
+          ctx.platform.domQueue.flush();
           assert.strictEqual(inputEls[i].checked, true);
         }
       }

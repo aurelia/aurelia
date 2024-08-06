@@ -21,7 +21,6 @@ import {
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
 import type {
@@ -33,6 +32,7 @@ import type { TranslationBindBindingInstruction, TranslationBindingInstruction }
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 import { etInterpolation, etIsProperty, stateActivating } from '../utils';
 import { ErrorNames, createMappedError } from '../errors';
+import type { DOMQueue, DOMTask } from '@aurelia/platform-browser';
 
 interface TranslationBindingCreationContext {
   parser: IExpressionParser;
@@ -58,9 +58,6 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 
 const forOpts = { optional: true } as const;
-const taskQueueOpts: QueueTaskOptions = {
-  preempt: true,
-};
 
 export class TranslationBinding implements IBinding {
 
@@ -115,7 +112,7 @@ export class TranslationBinding implements IBinding {
   public _scope!: Scope;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _task: DOMTask | null = null;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -125,7 +122,7 @@ export class TranslationBinding implements IBinding {
   private readonly _platform: IPlatform;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: DOMQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */
@@ -155,7 +152,7 @@ export class TranslationBinding implements IBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.taskQueue;
+    this._taskQueue = platform.domQueue;
   }
 
   public bind(_scope: Scope): void {
@@ -262,7 +259,7 @@ export class TranslationBinding implements IBinding {
         if (shouldQueueContent) {
           this._updateContent(content);
         }
-      }, taskQueueOpts);
+      });
     }
     task?.cancel();
   }

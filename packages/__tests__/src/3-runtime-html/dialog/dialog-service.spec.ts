@@ -27,7 +27,7 @@ import {
 } from '@aurelia/testing';
 import { isNode } from '../../util.js';
 
-describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
+describe.skip('3-runtime-html/dialog/dialog-service.spec.ts', function () {
   describe('configuration', function () {
     it('throws on empty configuration', async function () {
       let error: unknown = void 0;

@@ -89,10 +89,10 @@ export class BrowserPlatform<TGlobal extends typeof globalThis = typeof globalTh
 
 export class DOMQueue {
   /** @internal */
-  private readonly _readQueue: DOMTask[] = [];
+  public _readQueue: DOMTask[] = [];
 
   /** @internal */
-  private readonly _writeQueue: DOMTask[] = [];
+  public _writeQueue: DOMTask[] = [];
 
   /** @internal */
   public _flushRequested: boolean = false;
@@ -124,11 +124,11 @@ export class DOMQueue {
 
   public flush(delta: number = this._now()): void {
     const readQueue = this._readQueue.splice(0);
-    const writeQueue = this._writeQueue.splice(0);
-
     for (const task of readQueue) {
       task.run(delta);
     }
+
+    const writeQueue = this._writeQueue.splice(0);
     for (const task of writeQueue) {
       task.run(delta);
     }
@@ -176,6 +176,10 @@ export class DOMQueue {
     this._writeQueue.push(task);
     this._requestFlush();
     return task;
+  }
+
+  public queueTask(callback: FrameRequestCallback) {
+    return this.queueWrite(callback);
   }
 
   public remove(task: DOMTask): void {
@@ -237,3 +241,17 @@ export class DOMTask {
     this.callback = (void 0)!;
   }
 }
+
+export const reportDOMQueue = (domQueue: DOMQueue) => {
+  const readQueue = domQueue._readQueue;
+  const writeQueue = domQueue._writeQueue;
+  const flushReq = domQueue._flushRequested;
+
+  return { readQueue, writeQueue, flushRequested: flushReq };
+};
+
+export const ensureDOMQueueEmpty = (domQueue: DOMQueue) => {
+  domQueue.flush();
+  domQueue._readQueue.forEach(x => x.cancel());
+  domQueue._writeQueue.forEach(x => x.cancel());
+};

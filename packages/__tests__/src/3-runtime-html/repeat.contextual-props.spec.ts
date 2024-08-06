@@ -398,7 +398,7 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
       try {
         mutate(component.items, component);
-        ctx.platform.taskQueue.flush();
+        ctx.platform.domQueue.flush();
 
         assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 

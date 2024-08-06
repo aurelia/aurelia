@@ -24,7 +24,7 @@ export class LocalizedValidationController extends ValidationController {
     super();
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
-      () => { platform.taskQueue.queueTask(async () => { await this.revalidateErrors(); }); }
+      () => { platform.domQueue.queueTask(async () => { await this.revalidateErrors(); }); }
     );
   }
 }

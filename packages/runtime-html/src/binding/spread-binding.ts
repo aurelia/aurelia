@@ -1,6 +1,5 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
-import { TaskQueue } from '@aurelia/platform';
 import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { IAstEvaluator, astBind, astEvaluate, astUnbind } from '../ast.eval';
@@ -14,6 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
 import { Scope } from './scope';
+import type { DOMQueue } from '@aurelia/platform-browser';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -183,7 +183,7 @@ export class SpreadValueBinding implements IBinding {
   public l: IServiceLocator;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: DOMQueue;
 
   // see Listener binding for explanation
   /** @internal */
@@ -206,7 +206,7 @@ export class SpreadValueBinding implements IBinding {
     public ast: IsBindingBehavior,
     ol: IObserverLocator,
     l: IServiceLocator,
-    taskQueue: TaskQueue,
+    taskQueue: DOMQueue,
   ) {
     this._controller = controller;
     this.oL = ol;

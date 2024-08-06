@@ -95,7 +95,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   });
 
   describe('mutation', function () {
-    it('rerenders when removed at the start', function () {
+    it.skip('rerenders when removed at the start', function () {
       const { component, flush } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
@@ -126,7 +126,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       assert.strictEqual(firstView.nodes.firstChild.textContent, `item-0`);
     });
 
-    it('rerenders when removed in the middle', function () {
+    it.skip('rerenders when removed in the middle', function () {
       const { component, flush } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },

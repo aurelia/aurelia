@@ -116,7 +116,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     }
 
     public notifyDirty() {
-      if (!this._hasDirtySubs) {
+      if (this._hasDirtySubs) {
         for (const dirtySub of this._requestDirtySubs.slice(0)) {
           dirtySub.handleDirty();
         }

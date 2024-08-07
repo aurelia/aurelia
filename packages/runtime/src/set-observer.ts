@@ -101,14 +101,6 @@ export const getSetObserver = /*@__PURE__*/ (() => {
     }
   }
 
-  // function disableSetObservation(): void {
-  //   for (const method of methods) {
-  //     if (proto[method].observing === true) {
-  //       rtDef(proto, method, { ...descriptorProps, value: native[method] });
-  //     }
-  //   }
-  // }
-
   interface SetObserverImpl extends SetObserver {}
   class SetObserverImpl {
     public type: AccessorType = atObserver;
@@ -122,6 +114,8 @@ export const getSetObserver = /*@__PURE__*/ (() => {
 
     public notify(): void {
       const subs = this.subs;
+      subs.notifyDirty();
+
       const indexMap = this.indexMap;
       if (batching) {
         addCollectionBatch(subs, this.collection, indexMap);
@@ -132,7 +126,7 @@ export const getSetObserver = /*@__PURE__*/ (() => {
       const size = set.size;
 
       this.indexMap = createIndexMap(size);
-      this.subs.notifyCollection(set, indexMap);
+      subs.notifyCollection(set, indexMap);
     }
 
     public getLengthObserver(): CollectionSizeObserver {

@@ -57,10 +57,17 @@ export class CollectionLengthObserver implements IObserver, ICollectionSubscribe
     }
   }
 
+  public handleDirty() {
+    if (this._value !== this._obj.length) {
+      this.subs.notifyDirty();
+    }
+  }
+
   public handleCollectionChange(_arr: unknown[], _: IndexMap) {
     const oldValue = this._value;
     const value = this._obj.length;
     if ((this._value = value) !== oldValue) {
+      this.subs.notifyDirty();
       this.subs.notify(this._value, oldValue);
     }
   }
@@ -93,6 +100,12 @@ export class CollectionSizeObserver implements ICollectionSubscriber {
 
   public setValue(): void {
     throw createMappedError(ErrorNames.assign_readonly_size);
+  }
+
+  public handleDirty() {
+    if (this._value !== this._obj.size) {
+      this.subs.notifyDirty();
+    }
   }
 
   public handleCollectionChange(_collection: Collection,  _: IndexMap): void {

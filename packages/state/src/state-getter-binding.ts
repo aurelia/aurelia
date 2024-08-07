@@ -97,7 +97,7 @@ export class StateGetterBinding implements IBinding, IStoreSubscriber<object> {
   public handleStateChange(state: object): void {
     const _scope = this._scope!;
     const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
-    _scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    _scope.bindingContext = overrideContext.bindingContext = state;
     const value = this.$get(this._store.getState());
 
     if (value === this._value) {

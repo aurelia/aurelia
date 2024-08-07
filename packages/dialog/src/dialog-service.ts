@@ -121,7 +121,7 @@ export class DialogService implements IDialogService {
         })
       )
       .then(unclosedControllers =>
-        unclosedControllers.filter(unclosed => !!unclosed) as IDialogController[]
+        unclosedControllers.filter(unclosed => !!unclosed)
       );
   }
 
@@ -182,8 +182,8 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
 function whenClosed<TResult1 = unknown, TResult2 = unknown>(
   this: Promise<DialogOpenResult>,
-  onfulfilled?: (r: DialogCloseResult) => TResult1 | PromiseLike<TResult1>,
-  onrejected?: (err: unknown) => TResult2 | PromiseLike<TResult2>
+  onfulfilled?: (r: DialogCloseResult) => TResult1 | Promise<TResult1>,
+  onrejected?: (err: unknown) => TResult2 | Promise<TResult2>
 ): Promise<TResult1 | TResult2> {
   return this.then(openResult => openResult.dialog.closed.then(onfulfilled, onrejected), onrejected);
 }

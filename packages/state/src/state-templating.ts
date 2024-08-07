@@ -88,8 +88,6 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
     observerLocator: IObserverLocator,
   ): void {
     const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
-    // todo: insert `$state` access scope into the expression when it does not start with `$this`/`$parent`/`$state`/`$host`
-    //    example: <input value.state="value"> means <input value.bind="$state.value">
 
     renderingCtrl.addBinding(new StateBinding(
       renderingCtrl,

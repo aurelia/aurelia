@@ -1,9 +1,9 @@
-import { type MaybePromise, type IRegistry, type IDisposable } from '@aurelia/kernel';
+import { type IRegistry, type IDisposable } from '@aurelia/kernel';
 import { IDevToolsOptions } from './interfaces-devtools';
 import { createInterface } from './state-utilities';
 
 export const IActionHandler = /*@__PURE__*/createInterface<IActionHandler>('IActionHandler');
-export type IActionHandler<T = any> = (state: T, action: unknown) => MaybePromise<T>;
+export type IActionHandler<T = any> = (state: T, action: unknown) => T | Promise<T>;
 
 export const IStore = /*@__PURE__*/createInterface<IStore<object>>('IStore');
 export interface IStore<T extends object, TAction = unknown> {

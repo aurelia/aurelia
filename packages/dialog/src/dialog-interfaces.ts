@@ -100,8 +100,8 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
    * Add a callback that will be invoked when a dialog has been closed
    */
   whenClosed<TResult1, TResult2>(
-    onfulfilled?: (value: DialogCloseResult) => TResult1 | PromiseLike<TResult1>,
-    onrejected?: (reason: unknown) => TResult2 | PromiseLike<TResult2>
+    onfulfilled?: (value: DialogCloseResult) => TResult1 | Promise<TResult1>,
+    onrejected?: (reason: unknown) => TResult2 | Promise<TResult2>
   ): Promise<TResult1 | TResult2>;
 }
 /* tslint:enable:max-line-length */
@@ -281,7 +281,7 @@ export interface IDialogComponentCanActivate<T> {
    * To cancel the opening of the dialog return false or a promise that resolves to false.
    * Any other returned value is coerced to true.
    */
-  canActivate(model?: T): boolean | Promise<boolean> | PromiseLike<boolean>;
+  canActivate(model?: T): boolean | Promise<boolean>;
 }
 
 /**
@@ -291,7 +291,7 @@ export interface IDialogComponentActivate<T> {
   /**
    * Implement this hook if you want to perform custom logic just before the dialog is open.
    */
-  activate(model?: T): void | Promise<void> | PromiseLike<void>;
+  activate(model?: T): void | Promise<void>;
 }
 
 /**
@@ -303,7 +303,7 @@ export interface IDialogComponentCanDeactivate {
    * To cancel the closing of the dialog return false or a promise that resolves to false.
    * Any other returned value is coerced to true.
    */
-  canDeactivate(result: DialogCloseResult): boolean | Promise<boolean> | PromiseLike<boolean>;
+  canDeactivate(result: DialogCloseResult): boolean | Promise<boolean>;
 }
 
 /**
@@ -313,7 +313,7 @@ export interface IDialogComponentDeactivate {
   /**
    * Implement this hook if you want to perform custom logic when the dialog is being closed.
    */
-  deactivate(result: DialogCloseResult): void | Promise<void> | PromiseLike<void>;
+  deactivate(result: DialogCloseResult): void | Promise<void>;
 }
 
 // #endregion

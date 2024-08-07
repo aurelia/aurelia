@@ -56,6 +56,8 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     private readonly _subs: T[] = [];
     /** @internal */
     private readonly _requestDirtySubs: IDirtySubscriber[] = [];
+    /** @internal */
+    private _hasDirtySubs = false;
 
     public add(subscriber: T): boolean {
       if (this._subs.includes(subscriber)) {
@@ -64,6 +66,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
       this._subs[this._subs.length] = subscriber;
       if ('handleDirty' in subscriber) {
         this._requestDirtySubs[this._requestDirtySubs.length] = subscriber as IDirtySubscriber;
+        this._hasDirtySubs = true;
       }
       ++this.count;
       return true;
@@ -76,6 +79,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
         idx = this._requestDirtySubs.indexOf(subscriber as IDirtySubscriber);
         if (idx !== -1) {
           this._requestDirtySubs.splice(idx, 1);
+          this._hasDirtySubs = this._requestDirtySubs.length > 0;
         }
         --this.count;
         return true;
@@ -96,8 +100,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
        * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
        * however this is accounted for via $isBound and similar flags on the subscriber objects)
        */
-      let sub: ISubscriber | IDirtySubscriber;
-      for (sub of this._subs.slice(0) as ISubscriber[]) {
+      for (const sub of this._subs.slice(0) as ISubscriber[]) {
         sub.handleChange(val, oldVal);
       }
     }
@@ -113,9 +116,10 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     }
 
     public notifyDirty() {
-      let sub: IDirtySubscriber;
-      for (sub of this._requestDirtySubs.slice(0)) {
-        sub.handleDirty();
+      if (!this._hasDirtySubs) {
+        for (const dirtySub of this._requestDirtySubs.slice(0)) {
+          dirtySub.handleDirty();
+        }
       }
     }
   }

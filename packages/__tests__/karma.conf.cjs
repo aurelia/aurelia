@@ -208,7 +208,10 @@ module.exports =
                 jsCache = {};
                 htmlCache = {};
                 cssCache = {};
-                console.log("\u001b[2J\u001b[0;0H");
+                setCursor();
+                breakLine();
+                clearScreen();
+                console.clear();
                 console.log(`Watch run: ${runId}. ${new Date().toJSON()}`);
               };
             }]
@@ -468,3 +471,18 @@ const mimetypes = {
   js: "text/javascript",
   css: "text/css"
 };
+
+function clearScreen() {
+  'use strict';
+  try {
+    process.stdout.write('\x1Bc');
+  } catch {}
+}
+
+function breakLine() {
+  console.log('\x1b[2J');
+}
+
+function setCursor() {
+  console.log("\u001b[2J\u001b[0;0H");
+}

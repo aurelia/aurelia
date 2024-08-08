@@ -110,17 +110,6 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
-  it('makes state immutable', async function () {
-    const state = { text: '123' };
-    const { trigger } = await createFixture
-      .html('<input value.state="text" input.trigger="$state.text = `456`">')
-      .deps(StateDefaultConfiguration.init(state))
-      .build().started;
-
-    trigger('input', 'input');
-    assert.strictEqual(state.text, '123');
-  });
-
   it('works with promise', async function () {
     const state = { data: () => resolveAfter(1, 'value-1-2') };
     const { getBy } = await createFixture
@@ -355,6 +344,160 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(actionCallCount, 2);
       flush();
       assert.strictEqual(getBy('input').value, '1111');
+    });
+
+    it('notifies changes only once for single synchronous dispatch', async function () {
+      let started = 0;
+      const logs = [];
+      const state = { text: '1', click: 0 };
+      const { trigger } = await createFixture
+        .html`
+          <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
+          <button click.dispatch="{ type: 'click' }">Change</button>
+        `
+        .deps(StateDefaultConfiguration.init(
+          state,
+          (s, { type, v }: { type: string; v: string }) => {
+            if (type === 'event') {
+              return { ...s, text: s.text + v };
+            }
+            if (type === 'click') {
+              return { ...s, click: s.click + 1 };
+            }
+            return s;
+          }
+        ))
+        .component(class {
+          @fromState<typeof state>(state => {
+            if (started > 0) {
+              logs.push({ ...state });
+            }
+            return state.text;
+          })
+          text: string;
+        })
+        .build().started;
+      started = 1;
+
+      trigger('input', 'input');
+      trigger('button', 'click');
+
+      assert.deepEqual(logs, [
+        { text: '11', click: 0 },
+        { text: '11', click: 1 }
+      ]);
+    });
+
+    it('notifies changes only once for single asynchronous dispatch', async function () {
+      let started = 0;
+      const logs = [];
+      const state = { text: '1', click: 0 };
+      const { trigger, assertValue, flush } = await createFixture
+        .html`
+          <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
+        `
+        .deps(StateDefaultConfiguration.init(
+          state,
+          (s, { type, v }: { type: string; v: string }) => {
+            return Promise.resolve().then(() => {
+              if (type === 'event') {
+                return { ...s, text: s.text + v };
+              }
+              if (type === 'click') {
+                return { ...s, click: s.click + 1 };
+              }
+              return s;
+            });
+          }
+        ))
+        .component(class {
+          @fromState<typeof state>(state => {
+            if (started > 0) {
+              logs.push({ ...state });
+            }
+            return state.text;
+          })
+          text: string;
+        })
+        .build().started;
+      started = 1;
+
+      trigger('input', 'input');
+
+      await resolveAfter(1);
+      assert.deepEqual(logs, [
+        { text: '11', click: 0 },
+      ]);
+
+      assertValue('input', '1');
+      flush();
+      assertValue('input', '11');
+    });
+
+    it('notifies change for every dispatch', async function () {
+      let started = false;
+      const logs = [];
+      const state = { text: '1', click: 0 };
+      const { trigger, assertValue, flush } = await createFixture
+        .html`
+          <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
+          <button click.dispatch="{ type: 'click' }">Change</button>
+        `
+        .deps(StateDefaultConfiguration.init(
+          state,
+          (s, { type, v }: { type: string; v: string }) => {
+            return Promise.resolve().then(() => {
+              if (type === 'event') {
+                return { ...s, text: s.text + v };
+              }
+              if (type === 'click') {
+                return { ...s, click: s.click + 1 };
+              }
+              return s;
+            });
+          }
+        ))
+        .component(class {
+          @fromState<typeof state>(state => {
+            if (started) {
+              logs.push({ ...state });
+            }
+            return state.text;
+          })
+          text: string;
+        })
+        .build().started;
+      started = true;
+
+      trigger('input', 'input');
+      trigger('button', 'click');
+
+      assert.deepEqual(logs, []);
+
+      await resolveAfter(1);
+      assert.deepEqual(logs, [
+        { text: '11', click: 0 },
+        { text: '11', click: 1 }
+      ]);
+
+      await resolveAfter(1);
+      flush();
+      assertValue('input', '11');
+
+      trigger('input', 'input');
+      trigger('button', 'click');
+
+      await resolveAfter(1);
+      assert.deepEqual(logs, [
+        { text: '11', click: 0 },
+        { text: '11', click: 1 },
+        { text: '1111', click: 1 },
+        { text: '1111', click: 2 },
+      ]);
+
+      assertValue('input', '11');
+      flush();
+      assertValue('input', '1111');
     });
   });
 

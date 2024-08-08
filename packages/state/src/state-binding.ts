@@ -181,7 +181,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     const state = this._store.getState();
     const _scope = this._scope!;
     const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
-    _scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    _scope.bindingContext = overrideContext.bindingContext = state;
     const value = astEvaluate(
       this.ast,
       _scope,

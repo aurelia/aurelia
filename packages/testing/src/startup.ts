@@ -1,4 +1,4 @@
-import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig } from '@aurelia/runtime-html';
@@ -287,7 +287,7 @@ export function createFixture<T extends object>(
   };
 
   const stop = (dispose: boolean = false): void | Promise<void> => {
-    let ret: MaybePromise<void> = void 0;
+    let ret: void | Promise<void> = void 0;
     try {
       ret = au.stop(dispose);
     } finally {

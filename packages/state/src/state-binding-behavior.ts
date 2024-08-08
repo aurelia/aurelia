@@ -50,7 +50,7 @@ class StateSubscriber implements IStoreSubscriber<object> {
   public handleStateChange(state: object): void {
     const scope = this._wrappedScope;
     const overrideContext = scope.overrideContext as Writable<IOverrideContext>;
-    scope.bindingContext = overrideContext.bindingContext = overrideContext.$state = state;
+    scope.bindingContext = overrideContext.bindingContext = state;
     (this._binding as unknown as ISubscriber).handleChange?.(undefined, undefined);
   }
 }

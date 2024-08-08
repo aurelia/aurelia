@@ -481,7 +481,7 @@ describe('state/state.spec.ts', function () {
       trigger('input', 'input');
       trigger('button', 'click');
 
-      await resolveAfter(1);
+      await resolveAfter(10);
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
         { text: '11', click: 1 },

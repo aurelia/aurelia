@@ -392,7 +392,7 @@ describe('state/state.spec.ts', function () {
       let started = 0;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger } = await createFixture
+      const { trigger, assertValue, flush } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
         `
@@ -423,18 +423,22 @@ describe('state/state.spec.ts', function () {
       started = 1;
 
       trigger('input', 'input');
-      await resolveAfter(10);
 
+      await resolveAfter(1);
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
       ]);
+
+      assertValue('input', '1');
+      flush();
+      assertValue('input', '11');
     });
 
     it('notifies change for every dispatch', async function () {
-      let started = 0;
+      let started = false;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger } = await createFixture
+      const { trigger, assertValue, flush } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'click' }">Change</button>
@@ -455,7 +459,7 @@ describe('state/state.spec.ts', function () {
         ))
         .component(class {
           @fromState<typeof state>(state => {
-            if (started > 0) {
+            if (started) {
               logs.push({ ...state });
             }
             return state.text;
@@ -463,31 +467,37 @@ describe('state/state.spec.ts', function () {
           text: string;
         })
         .build().started;
-      started = 1;
+      started = true;
 
       trigger('input', 'input');
       trigger('button', 'click');
 
       assert.deepEqual(logs, []);
 
-      await resolveAfter(10);
+      await resolveAfter(1);
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
         { text: '11', click: 1 }
       ]);
 
-      // ensure no stragglers
-      await resolveAfter(10);
+      await resolveAfter(1);
+      flush();
+      assertValue('input', '11');
+
       trigger('input', 'input');
       trigger('button', 'click');
 
-      await resolveAfter(10);
+      await resolveAfter(1);
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
         { text: '11', click: 1 },
-        { text: '111', click: 1 },
-        { text: '111', click: 2 },
+        { text: '1111', click: 1 },
+        { text: '1111', click: 2 },
       ]);
+
+      assertValue('input', '11');
+      flush();
+      assertValue('input', '1111');
     });
   });
 

@@ -60,6 +60,14 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     return this._state;
   }
 
+  /** @internal */
+  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T | Promise<T>, $action: unknown): T | Promise<T> {
+    for (const handler of handlers) {
+      $state = onResolve($state, $state => handler($state, $action));
+    }
+    return onResolve($state, s => s);
+  }
+
   public dispatch(action: TAction): void | Promise<void> {
     if (this._dispatching) {
       this._dispatchQueues.push(action);
@@ -72,7 +80,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return onResolve($state, s => {
         const $$action = this._dispatchQueues.shift()!;
         if ($$action != null) {
-          return onResolve(callStateHandlers<T>(this._handlers, s, $$action), state => {
+          return onResolve(this._handleAction<T>(this._handlers, s, $$action), state => {
             this._setState(state);
             return afterDispatch(state);
           });
@@ -81,7 +89,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         }
       });
     };
-    const newState = callStateHandlers<T>(this._handlers, this._state, action);
+    const newState = this._handleAction<T>(this._handlers, this._state, action);
 
     if (isPromise(newState)) {
       return newState.then($state => {
@@ -158,13 +166,6 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     });
   }
 }
-
-const callStateHandlers = <T>(handlers: readonly IActionHandler<T>[], $state: T | Promise<T>, $action: unknown): T | Promise<T> => {
-  for (const handler of handlers) {
-    $state = onResolve($state, $state => handler($state, $action));
-  }
-  return onResolve($state, s => s);
-};
 
 class State { }
 

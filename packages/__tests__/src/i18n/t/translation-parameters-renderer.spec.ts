@@ -1,6 +1,6 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { DI, Registration } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
 } from '@aurelia/runtime';
@@ -50,6 +50,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
     function createFixture() {
       const container = DI.createContainer();
       container.register(
+        ExpressionParser,
         TranslationParametersBindingCommand,
         Registration.singleton(IAttrMapper, AttrMapper)
       );
@@ -83,7 +84,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
 
     function createFixture() {
       const { container } = TestContext.create();
-      container.register(I18nConfiguration);
+      container.register(ExpressionParser, I18nConfiguration);
       return container;
     }
 

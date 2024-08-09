@@ -12,6 +12,7 @@ import {
   Interpolation,
   PrimitiveLiteralExpression,
   IExpressionParser,
+  ExpressionParser,
 } from '@aurelia/expression-parser';
 import {
   Scope,
@@ -844,7 +845,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
     function setup() {
       const container = TestContext.create().container;
-      container.register(ValidationConfiguration);
+      container.register(ExpressionParser, ValidationConfiguration);
       return {
         parser: container.get(IExpressionParser),
         container,

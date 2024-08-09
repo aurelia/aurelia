@@ -1,4 +1,4 @@
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import {
   BindingMode,
   AuSlot,
@@ -28,7 +28,7 @@ describe('3-runtime-html/template-compiler.au-slot.spec.ts', function () {
   const anything = {} as any;
   function createFixture() {
     const ctx = TestContext.create();
-    const container = ctx.container;
+    const container = ctx.container.register(ExpressionParser);
     const sut = ctx.templateCompiler;
     return { ctx, container, sut };
   }

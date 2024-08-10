@@ -177,7 +177,7 @@ We can use the following `buildTitle` function that will cause the title to be `
 
 ```typescript
 // main.ts
-import { RouterConfiguration, Transition } from '@aurelia/router';
+import { RouterConfiguration, Transition } from '@aurelia/router-lite';
 import { Aurelia } from '@aurelia/runtime-html';
 const au = new Aurelia();
 au.register(
@@ -228,7 +228,7 @@ In the next step we make use of the `buildTitle` customization as well as a `App
 ```typescript
 import { I18N, Signals } from '@aurelia/i18n';
 import { IEventAggregator } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, Transition } from '@aurelia/router';
+import { IRouter, RouterConfiguration, Transition } from '@aurelia/router-lite';
 import { AppTask, Aurelia } from '@aurelia/runtime-html';
 (async function () {
   const host = document.querySelector<HTMLElement>('app');

@@ -380,6 +380,7 @@ export class ValidationController implements IValidationController {
         ...Array.from(this.bindings.entries())
           .reduce(
             (acc: ValidateInstruction[], [binding, info]) => {
+              if (!binding.isBound) return acc;
               const propertyInfo = getPropertyInfo(binding, info);
               if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
                 acc.push(new ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules, objectTag, instruction?.propertyTag));

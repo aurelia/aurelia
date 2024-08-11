@@ -7,6 +7,9 @@ module.exports = function () {
     target: 'web',
     mode: 'production',
     entry: './src/index.ts',
+    devServer: {
+      port: process.env.APP_PORT ?? 8080,
+    },
     optimization: {
       minimize: false,
       concatenateModules: false,

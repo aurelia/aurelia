@@ -1,12 +1,12 @@
+import { IValidationRules } from '@aurelia/validation';
+import { IValidationController } from '@aurelia/validation-html';
 import {
+  ICustomElementViewModel,
   bindable,
+  customElement,
   newInstanceForScope,
   resolve,
-  ICustomElementViewModel,
-  customElement,
 } from 'aurelia';
-import { IValidationController } from '@aurelia/validation-html';
-import { IValidationRules } from '@aurelia/validation';
 
 @customElement({
   name: 'ed-it',
@@ -14,7 +14,7 @@ import { IValidationRules } from '@aurelia/validation';
   template: `
   <form submit.trigger="submit()">
   <validation-container>
-  <input value.bind="model.someProperty & validate:undefined:validationController">
+  <input value.bind="model.someProperty & validate">
   <br>
 </validation-container>
 <br>
@@ -51,8 +51,7 @@ export class Edit implements ICustomElementViewModel {
   }
 
   private async submit() {
-    const result = await this.validationController.validate();
-    console.log(result);
+    await this.validationController.validate();
   }
 }
 

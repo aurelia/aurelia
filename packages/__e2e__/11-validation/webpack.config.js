@@ -21,7 +21,7 @@ module.exports = function () {
       path: resolve(__dirname, 'dist'),
       filename: '[name].js',
     },
-    devtool: false,
+    devtool: 'eval-cheap-module-source-map',
     resolve: {
       extensions: ['.ts', '.js'],
       modules: ['.', 'node_modules'],

@@ -71,7 +71,9 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     }
 
     let key: string | undefined = messageKey;
-    if (!this.i18n.i18next.exists(key)) {
+    const i18nKey = key != null ? this.getKey(key) : [];
+    const hasTranslation = this.i18n.i18next.exists(i18nKey);
+    if (!hasTranslation) {
       const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
       const messageCount = validationMessages.length;
       if (messageCount === 1 && messageKey === void 0) {
@@ -82,7 +84,7 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
       key ??= messageKey;
     }
 
-    return this.setMessage(rule, this.i18n.tr(this.getKey(key)));
+    return this.setMessage(rule, this.i18n.tr(hasTranslation ? i18nKey : this.getKey(key)));
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {

@@ -318,7 +318,7 @@ Note that the last 2 steps may run in parallel, if the hooks are asynchronous.
 
 ## Order of invocations of component lifecycle hooks
 
-Normally, the component [lifecycle hooks](../components/component-lifecycles.md) are invoked bottom-up. As an example, let us assume that we have the following constellation of components.
+The component [lifecycle hooks](../components/component-lifecycles.md) are invoked bottom-up. As an example, let us assume that we have the following constellation of components.
 
 ```html
 <app-root>
@@ -335,7 +335,7 @@ In this case, the component lifecycle hooks are invoked in the following order.
 2. component-one `attached`.
 3. app-root `attached`.
 
-This also stays same for the router-lite, except for the "application root" component. Tweaking the example above slightly, let us assume that we have the following constellation of components.
+This is also the same for the router-lite, except for the "application root" component. Tweaking the example above slightly, let us assume that we have the following constellation of components.
 
 ```html
 <app-root>
@@ -355,4 +355,4 @@ In this case, the component lifecycle hooks are invoked in the following order.
 3. component-one `attached`.
 4. routed-view `attached`.
 
-Note that it happens because the router-lite starts loading the first route after the app-root, and thereby the viewport(s) it is hosting, are fully activated/attached. In order to load a route, the router needs registered viewports, which only happens during the `attaching` phase of a viewport. More details on this topic, can be found in this [GitHub issue](https://github.com/aurelia/aurelia/issues/2019).
+Note that the application root is attached before any other components are attached. This happens because the router-lite starts loading the first route only after the app-root, and thereby the viewport(s) it is hosting, are fully activated/attached. In order to load a route, the router needs registered viewports. The registration process of a viewport only happens during the `attaching` phase of a viewport. More details on this topic, can be found in this [GitHub issue](https://github.com/aurelia/aurelia/issues/2019).

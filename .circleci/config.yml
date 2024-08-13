@@ -864,7 +864,7 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_validation_issue_2025
-          path: "packages/__e2e__/11-validation-issue-2025"
+          path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:
@@ -1058,7 +1058,7 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_validation_issue_2025
-          path: "packages/__e2e__/11-validation-issue-2025"
+          path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:

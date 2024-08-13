@@ -49,7 +49,7 @@
     "packages/__e2e__/8-ui-virtualization",
     "packages/__e2e__/9-vite-wo-convention",
     "packages/__e2e__/10-router-lite-none-history-with-hash",
-    "packages/__e2e__/11-validation-issue-2025",
+    "packages/__e2e__/11-validation",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",

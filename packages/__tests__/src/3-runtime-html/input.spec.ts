@@ -217,4 +217,29 @@ describe('3-runtime-html/input.spec.ts', function () {
     assertAttr('input', 'popovertarget', 'a');
     assertAttr('input', 'popovertargetaction', 'auto');
   });
+
+  describe('gh issues', function () {
+    it('selects radio when radios are rendered inside an [if]', async function () {
+      const { assertChecked, trigger, flush } = createFixture(
+        `
+        <let show.bind="true" option.bind="'s'"></let>
+        <input if.bind="show"  id="blue"  type="radio" name="r1" checked.bind="option" value="s" />
+        <input if.bind="!show" id="green" type="radio" name="r1" checked.bind="option" value="s" />
+        <button click.trigger="show = !show">toggle</button>
+        `
+      );
+
+      trigger('button', 'click');
+      flush();
+      assertChecked('#green', true);
+
+      trigger('button', 'click');
+      flush();
+      assertChecked('#blue', true);
+
+      trigger('button', 'click');
+      flush();
+      assertChecked('#green', true);
+    });
+  });
 });

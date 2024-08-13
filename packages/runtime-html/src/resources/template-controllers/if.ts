@@ -62,6 +62,7 @@ export class If implements ICustomAttributeViewModel {
     if (newValue !== oldValue) return this._swap(newValue);
   }
 
+  /** @internal */
   private _swap(value: unknown): void | Promise<void> {
     const currView = this.view;
     const ctrl = this.$controller;

@@ -1840,7 +1840,7 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
     controller: ICustomElementController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
-  propertiesChanged?(changes: Record<string | symbol, { newValue: unknown; oldValue: unknown }>): void;
+  propertiesChanged?(changes: Record<string, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
@@ -1855,7 +1855,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     controller: ICustomAttributeController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
-  propertiesChanged?(changes: Record<string | symbol, { newValue: unknown; oldValue: unknown }>): void;
+  propertiesChanged?(changes: Record<string, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {

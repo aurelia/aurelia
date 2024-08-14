@@ -99,6 +99,43 @@ export class NameComponent {
 }
 ```
 
+If you have multiple bindable properties like `firstName`/`lastName` in the above example, and want to use a single callback to react to those changes,
+you can use `propertyChanged` callback. `propertyChanged` callback will be called immediately after the targeted change callback.
+The parameters of this callback will be `key`/`newValue`/`oldValue`, similar like the following example:
+
+```ts
+export class NameComponent {
+    @bindable firstName = '';
+    @bindable lastName  = '';
+
+    propertyChanged(key, newVal, oldVal) {
+      if (key === 'firstName') {
+
+      } else if (key === 'lastName') {
+
+      }
+    }
+```
+
+In the above example, even though `propertyChanged` can be used for multiple properties (like `firstName` and `lastName`), it's only called individually for each of those properties.
+If you wish to act on a group of changes, like both `firstName` and `lastName` at once in the above example, `propertiesChanged` callback can used instead, like the following example:
+```ts
+propertiesChanged({ firstName, lastName }) {
+  if (firstName && lastName) {
+    // both firstName and lastName were changed at the same time
+    // apply first update strategy
+    const { newValue: newFirstName, oldValue: oldFirstName } = firstName;
+    const { newValue: newLastName, oldValue: oldLastName } = lastName;
+  } else if (firstName) {
+    // only firstName was changed - apply second update strategy
+    // ...
+  } else {
+    // only lastName was changed - apply third update strategy
+    // ...
+  }
+}
+```
+
 ## Configuring bindable properties
 
 Like almost everything in Aurelia, you can configure how bindable properties work.&#x20;

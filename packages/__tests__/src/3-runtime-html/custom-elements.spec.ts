@@ -777,7 +777,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
     });
 
-    it('does not call aggregated callback again after first call', async function () {
+    it('does not call aggregated callback again after first call if theres no new change', async function () {
       let changes = void 0;
       const { component } = createFixture(``, class App {
         @bindable
@@ -798,6 +798,31 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       changes = void 0;
       await Promise.resolve();
       assert.strictEqual(changes, void 0);
+    });
+
+    it('calls aggregated callback again after first call if there are new changes', async function  () {
+      let changes = void 0;
+      const { component } = createFixture(``, class App {
+        @bindable
+        a = 1;
+
+        propertiesChanged($changes: Record<string, { newValue: unknown; oldValue: unknown }>) {
+          changes = $changes;
+          if (this.a === 2) {
+            this.a = 3;
+          }
+        }
+      });
+
+      assert.strictEqual(changes, void 0);
+      component.a = 2;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+
+      changes = void 0;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
     });
 
     it('does not call aggregated callback after unbind', async function () {
@@ -826,7 +851,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(changes, void 0);
     });
 
-    it('does not call aggregated callback for @observable', function () {
+    it('does not call aggregated callback for @observable', async function () {
       let changes = void 0;
       const { component } = createFixture(``, class App {
         @observable
@@ -840,9 +865,11 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       component.a = 2;
       assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.strictEqual(changes, void 0);
     });
 
-    it('calls both normal callback and aggregated callback', async function () {
+    it('calls both change handler and aggregated callback', async function () {
       let changes = void 0;
       let aChanges = void 0;
       const { component } = createFixture(``, class App {

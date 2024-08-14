@@ -1249,7 +1249,34 @@ function createObservers(
   const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
   const locator = controller.container.get(IObserverLocator);
+  const hasAggregatedCallbacks = 'propertiesChanged' in instance;
+
   if (length > 0) {
+    let changes: Record<string, { newValue: unknown; oldValue: unknown }> = {};
+    let promise: Promise<void> | void = void 0;
+    let changeCount = 0;
+    const queueCallback = (key: string, newValue: unknown, oldValue: unknown) => {
+      changes[key] = { newValue, oldValue };
+      changeCount++;
+      callPropertiesChanged();
+    };
+    const callPropertiesChanged = () => {
+      if (promise == null) {
+        promise = Promise.resolve().then(() => {
+          const $changes = changes;
+          changes = {};
+          changeCount = 0;
+          promise = void 0;
+          if (controller.isBound) {
+            instance.propertiesChanged?.($changes);
+            if (changeCount > 0) {
+              callPropertiesChanged();
+            }
+          }
+        });
+      }
+    };
+
     for (let i = 0; i < length; ++i) {
       const name = observableNames[i];
       const bindable = bindables[name];
@@ -1261,11 +1288,17 @@ function createObservers(
           throw createMappedError(ErrorNames.controller_property_not_coercible, name);
         }
       }
-      if (instance[handler] != null || instance.propertyChanged != null) {
+      if (instance[handler] != null
+        || instance.propertyChanged != null
+        || hasAggregatedCallbacks
+      ) {
         const callback = (newValue: unknown, oldValue: unknown) => {
           if (controller.isBound) {
             (instance[handler] as AnyFunction)?.(newValue, oldValue);
             instance.propertyChanged?.(name, newValue, oldValue);
+            if (hasAggregatedCallbacks) {
+              queueCallback(name, newValue, oldValue);
+            }
           }
         };
         if (obs.useCallback?.(callback) !== true) {
@@ -1807,6 +1840,7 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
     controller: ICustomElementController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+  propertiesChanged?(changes: Record<string | symbol, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
@@ -1821,6 +1855,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     controller: ICustomAttributeController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+  propertiesChanged?(changes: Record<string | symbol, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {

@@ -112,7 +112,7 @@ commands:
         default: true
     steps:
       - checkout
-      - run: curl -fsSL https://bun.sh/install | bash
+      - run: npm i bun@latest -g
       - run: bun --version
       - when:
           condition:

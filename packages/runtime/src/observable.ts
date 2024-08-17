@@ -196,13 +196,13 @@ export const observable = /*@__PURE__*/(() => {
       if (!areEqual(value, this._value)) {
         this._oldValue = this._value;
         this._value = value;
-        this.cb?.call(this._obj, this._value, this._oldValue);
-        // this._value might have been updated during the callback
-        // we only want to notify subscribers with the latest values
-        value = this._oldValue;
-        this._oldValue = this._value;
         this.subs.notifyDirty();
-        this.subs.notify(this._value, value);
+        this.subs.notify(this._value, this._oldValue);
+        // if the value has been changed during the notify, don't call the callback
+        // it's the job of the last .setValue() to call the callback
+        if (areEqual(value, this._value)) {
+          this.cb?.call(this._obj, this._value, this._oldValue);
+        }
       }
     }
   }

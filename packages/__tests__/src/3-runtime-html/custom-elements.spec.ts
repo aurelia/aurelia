@@ -2,7 +2,7 @@ import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, 
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
-import { observable } from '@aurelia/runtime';
+import { IObserverLocator, observable } from '@aurelia/runtime';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('injects right aurelia instance', function () {
@@ -135,6 +135,191 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     );
 
     trigger('button', 'click');
+  });
+
+  it('handles recursive changes with the right order', function () {
+
+    @customElement('')
+    class MyApp {
+      public message = 'Hello Aurelia 2!';
+
+      public logs = [];
+
+      @bindable
+      public count: number = 0;
+
+      public obsLoc = resolve(IObserverLocator);
+
+      public created() {
+        this.obsLoc.getObserver(this, 'count').subscribe({
+          handleChange: (value: number, oldValue: number) => {
+            if (value > 0 && value < 3) {
+              this.log('S.1. handleChange()', value, oldValue);
+              if (value > oldValue) {
+                this.count++;
+              } else {
+                this.count--;
+              }
+            }
+          }
+        });
+      }
+
+      public countChanged(value: number) {
+        this.log('P.1. countChanged()', value);
+      }
+
+      public incr() {
+        if (this.count < 10) {
+          this.count++;
+          this.log('After incr()', this.count);
+          // console.assert(this.count, 9);
+        }
+      }
+
+      public decr() {
+        if (this.count > 0) {
+          this.count--;
+          this.log('After decr()', this.count);
+          // console.assert(this.count, 1);
+        }
+      }
+
+      public log(...msgs: unknown[]) {
+        this.logs.push(msgs);
+      }
+    }
+
+    const { component, getAllBy, stop } = createFixture(`
+      <button click.trigger="incr()">Incr()</button>
+      <button click.trigger="decr()">Decr()</button>
+      <div id="logs"><div repeat.for="log of logs">\${log}</div></div>
+    `, MyApp);
+
+    assert.deepStrictEqual(component.logs, []);
+    const [incrButton, decrButton] = getAllBy('button');
+
+    // when clicking on increment, increase count all the way to 3 by 1 at a time
+    incrButton.click();
+    assert.deepStrictEqual(
+      component.logs,
+      [
+        ['S.1. handleChange()', 1, 0],
+        ['S.1. handleChange()', 2, 1],
+        ['P.1. countChanged()', 3],
+        ['After incr()', 3]
+      ]
+    );
+
+    // when clicking on decrement, decrease count all the way to 0 by 1 at a time
+    decrButton.click();
+    assert.deepStrictEqual(
+      component.logs,
+      [
+        ['S.1. handleChange()', 1, 0],
+        ['S.1. handleChange()', 2, 1],
+        ['P.1. countChanged()', 3],
+        ['After incr()', 3],
+        ['S.1. handleChange()', 2, 3],
+        ['S.1. handleChange()', 1, 2],
+        ['P.1. countChanged()', 0],
+        ['After decr()', 0]
+      ]
+    );
+
+    void stop(true);
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2022
+  it('calls change handler callback after propagating changes with @bindable', function () {
+    const logs = [];
+    @customElement('outer-component')
+    class OuterComponent {
+      static template = '<inner-component prop1.bind="prop1" prop2.bind="prop2"/>';
+
+      @bindable
+      prop1 = 1;
+
+      prop2 = 1;
+
+      attached() {
+        this.prop1 = 2;
+      }
+
+      prop1Changed() {
+        this.prop2 = 2;
+      }
+    }
+
+    @customElement('inner-component')
+    class InnerComponent {
+      @bindable
+      prop1;
+
+      @bindable
+      prop2;
+
+      prop2Changed() {
+        logs.push(`prop1: ${this.prop1}`);
+      }
+    }
+
+    createFixture(
+      '<outer-component>',
+      class {
+        outer: OuterComponent;
+      },
+      [OuterComponent, InnerComponent]
+    );
+
+    assert.deepStrictEqual(logs, ['prop1: 2']);
+  });
+
+  // https://github.com/aurelia/aurelia/issues/2022
+  it('calls [propertyChanged] callback after propagating changes with @bindable', function () {
+    const logs = [];
+    @customElement('outer-component')
+    class OuterComponent {
+      static template = '<inner-component prop1.bind="prop1" prop2.bind="prop2"/>';
+
+      @bindable
+      prop1 = 1;
+
+      prop2 = 1;
+
+      attached() {
+        this.prop1 = 2;
+      }
+
+      prop1Changed() {
+        this.prop2 = 2;
+      }
+    }
+
+    @customElement('inner-component')
+    class InnerComponent {
+      @bindable
+      prop1;
+
+      @bindable
+      prop2;
+
+      propertyChanged(name: string) {
+        if (name === 'prop2') {
+          logs.push(`prop1: ${this.prop1}`);
+        }
+      }
+    }
+
+    createFixture(
+      '<outer-component>',
+      class {
+        outer: OuterComponent;
+      },
+      [OuterComponent, InnerComponent]
+    );
+
+    assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
   describe('event', function () {
@@ -681,6 +866,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       ]);
     });
   });
+
   describe('bindable inheritance', function () {
     it('works for array', async function () {
       @customElement({

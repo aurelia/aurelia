@@ -275,6 +275,53 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
+  // https://github.com/aurelia/aurelia/issues/2022
+  it('calls [propertyChanged] callback after propagating changes with @bindable', function () {
+    const logs = [];
+    @customElement('outer-component')
+    class OuterComponent {
+      static template = '<inner-component prop1.bind="prop1" prop2.bind="prop2"/>';
+
+      @bindable
+      prop1 = 1;
+
+      prop2 = 1;
+
+      attached() {
+        this.prop1 = 2;
+      }
+
+      prop1Changed() {
+        this.prop2 = 2;
+      }
+    }
+
+    @customElement('inner-component')
+    class InnerComponent {
+      @bindable
+      prop1;
+
+      @bindable
+      prop2;
+
+      propertyChanged(name: string) {
+        if (name === 'prop2') {
+          logs.push(`prop1: ${this.prop1}`);
+        }
+      }
+    }
+
+    createFixture(
+      '<outer-component>',
+      class {
+        outer: OuterComponent;
+      },
+      [OuterComponent, InnerComponent]
+    );
+
+    assert.deepStrictEqual(logs, ['prop1: 2']);
+  });
+
   describe('event', function () {
     it('works with multi dot event name for trigger', function () {
       let clicked = 0;

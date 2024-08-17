@@ -825,6 +825,26 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
     });
 
+    it('does not call aggregated callback if component is unbound before next tick', async function () {
+      let changes = void 0;
+      const { component, stop } = createFixture(``, class App {
+        @bindable
+        a = 1;
+
+        propertiesChanged($changes: Record<string, { newValue: unknown; oldValue: unknown }>) {
+          changes = $changes;
+        }
+      });
+
+      assert.strictEqual(changes, void 0);
+      component.a = 2;
+      assert.strictEqual(changes, void 0);
+      void stop(true);
+
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, void 0);
+    });
+
     it('does not call aggregated callback after unbind', async function () {
       let changes = void 0;
       const { component, stop } = createFixture(``, class App {

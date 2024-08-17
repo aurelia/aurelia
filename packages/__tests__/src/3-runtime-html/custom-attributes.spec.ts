@@ -1364,6 +1364,30 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.deepStrictEqual(changes, void 0);
     });
 
+    it('does not call aggregated callback if the component is unbound before next tick', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div if.bind="show" foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+          show = true;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      component.prop = 2;
+      component.show = false;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, void 0);
+    });
+
     it('does not call aggregated callback for @observable', async function () {
       let changes = void 0;
       const { component } = createFixture(

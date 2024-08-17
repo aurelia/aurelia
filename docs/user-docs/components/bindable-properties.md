@@ -136,6 +136,35 @@ propertiesChanged({ firstName, lastName }) {
 }
 ```
 
+For the order of callback when there' multiple callbacks involved, refer the following example:
+If we have a component class that looks like this:
+```ts
+class MyComponent {
+  @bindable prop = 0
+  
+  propChanged() { console.log('prop changed'); }
+
+  propertyChanged(name) { console.log(`property "${name}" changed`) }
+
+  propertiesChanged(changes) {
+    console.log('changes are:', changes)
+  }
+}
+```
+When we do
+```ts
+myComponent.prop = 1;
+console.log('after assign');
+```
+the console logs will look like the following:
+
+```
+propChanged
+property "prop" changed
+after assign
+changes are, { prop: { newValue: 1, oldValue: 0 } }
+```
+
 ## Configuring bindable properties
 
 Like almost everything in Aurelia, you can configure how bindable properties work.&#x20;

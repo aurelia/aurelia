@@ -1,5 +1,8 @@
 import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 import {
+  observable,
+} from '@aurelia/runtime';
+import {
   CustomAttribute,
   IAurelia,
   ICustomAttributeViewModel,
@@ -1221,6 +1224,333 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       } catch (e) {
         assert.match(e.message, /714/, 'incorrect error code');
       }
+    });
+  });
+
+  describe('aggregated callback', function () {
+    it('calls aggregated callback', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+    });
+
+    it('calls aggregated callback only once for 2 changes', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop = 2;
+      component.prop = 3;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
+    });
+
+    it('does not call aggregated callback again after first call if there is no new changes', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+
+      changes = void 0;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, void 0);
+    });
+
+    it('calls aggregated callback again after first call if there are new changes during callback', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+            if (this.prop === 2) {
+              this.prop = 3;
+            }
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+
+      changes = void 0;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
+    });
+
+    it('does not call aggregated callback after unbind', async function () {
+      let changes = void 0;
+      const { component, stop } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      component.prop = 2;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+
+      changes = void 0;
+      await stop(true);
+      component.prop = 3;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, void 0);
+    });
+
+    it('does not call aggregated callback if the component is unbound before next tick', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div if.bind="show" foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+          show = true;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      component.prop = 2;
+      component.show = false;
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, void 0);
+    });
+
+    it('does not call aggregated callback for @observable', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @observable
+          prop = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.strictEqual(changes, void 0);
+    });
+
+    it('calls both change handler and aggregated callback', async function () {
+      let changes = void 0;
+      let propChangedCallCount = 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propChanged() {
+            propChangedCallCount++;
+          }
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      assert.strictEqual(propChangedCallCount, 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      assert.strictEqual(propChangedCallCount, 1);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+    });
+
+    it('calls change handler, propertyChanged and aggregated callback', async function () {
+      let changes = void 0;
+      let propChangedCallCount = 0;
+      let propertyChangedCallCount = 0;
+      const { component } = createFixture(
+        `<div foo.bind="prop"></div>`,
+        class App {
+          prop = 1;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop = 0;
+
+          propChanged() {
+            propChangedCallCount++;
+          }
+
+          propertyChanged() {
+            propertyChangedCallCount++;
+          }
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      assert.strictEqual(propChangedCallCount, 0);
+      assert.strictEqual(propertyChangedCallCount, 0);
+      component.prop = 2;
+      assert.strictEqual(changes, void 0);
+      assert.strictEqual(propChangedCallCount, 1);
+      assert.strictEqual(propertyChangedCallCount, 1);
+      await Promise.resolve();
+      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
+      assert.strictEqual(propChangedCallCount, 1);
+      assert.strictEqual(propertyChangedCallCount, 1);
+    });
+
+    it('aggregates changes for multiple properties', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo="prop1.bind: prop1; prop2.bind: prop2"></div>`,
+        class App {
+          prop1 = 1;
+          prop2 = 2;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop1 = 0;
+
+          @bindable
+          prop2 = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop1 = 2;
+      component.prop2 = 3;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(
+        changes,
+        {
+          prop1: { newValue: 2, oldValue: 1 },
+          prop2: { newValue: 3, oldValue: 2 }
+        }
+      );
+    });
+
+    it('calls aggregated callback for multiple properties with the right key', async function () {
+      let changes = void 0;
+      const { component } = createFixture(
+        `<div foo="prop1.bind: prop1; 5.bind: prop2"></div>`,
+        class App {
+          prop1 = 1;
+          prop2 = 2;
+        },
+        [@customAttribute('foo') class {
+          @bindable
+          prop1 = 0;
+
+          @bindable
+          5 = 0;
+
+          propertiesChanged($changes) {
+            changes = $changes;
+          }
+        }]
+      );
+
+      assert.strictEqual(changes, void 0);
+      component.prop1 = 2;
+      component.prop2 = 3;
+      assert.strictEqual(changes, void 0);
+      await Promise.resolve();
+      assert.deepStrictEqual(
+        changes,
+        {
+          prop1: { newValue: 2, oldValue: 1 },
+          5: { newValue: 3, oldValue: 2 }
+        }
+      );
     });
   });
 });

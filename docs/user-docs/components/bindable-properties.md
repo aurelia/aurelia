@@ -99,6 +99,72 @@ export class NameComponent {
 }
 ```
 
+If you have multiple bindable properties like `firstName`/`lastName` in the above example, and want to use a single callback to react to those changes,
+you can use `propertyChanged` callback. `propertyChanged` callback will be called immediately after the targeted change callback.
+The parameters of this callback will be `key`/`newValue`/`oldValue`, similar like the following example:
+
+```ts
+export class NameComponent {
+    @bindable firstName = '';
+    @bindable lastName  = '';
+
+    propertyChanged(key, newVal, oldVal) {
+      if (key === 'firstName') {
+
+      } else if (key === 'lastName') {
+
+      }
+    }
+```
+
+In the above example, even though `propertyChanged` can be used for multiple properties (like `firstName` and `lastName`), it's only called individually for each of those properties.
+If you wish to act on a group of changes, like both `firstName` and `lastName` at once in the above example, `propertiesChanged` callback can used instead, like the following example:
+```ts
+propertiesChanged({ firstName, lastName }) {
+  if (firstName && lastName) {
+    // both firstName and lastName were changed at the same time
+    // apply first update strategy
+    const { newValue: newFirstName, oldValue: oldFirstName } = firstName;
+    const { newValue: newLastName, oldValue: oldLastName } = lastName;
+  } else if (firstName) {
+    // only firstName was changed - apply second update strategy
+    // ...
+  } else {
+    // only lastName was changed - apply third update strategy
+    // ...
+  }
+}
+```
+
+For the order of callback when there' multiple callbacks involved, refer the following example:
+If we have a component class that looks like this:
+```ts
+class MyComponent {
+  @bindable prop = 0
+  
+  propChanged() { console.log('prop changed'); }
+
+  propertyChanged(name) { console.log(`property "${name}" changed`) }
+
+  propertiesChanged(changes) {
+    console.log('changes are:', changes)
+  }
+}
+```
+When we do
+```ts
+myComponent.prop = 1;
+console.log('after assign');
+```
+the console logs will look like the following:
+
+```
+propChanged
+property "prop" changed
+after assign
+changes are, { prop: { newValue: 1, oldValue: 0 } }
+```
+
 ## Configuring bindable properties
 
 Like almost everything in Aurelia, you can configure how bindable properties work.&#x20;

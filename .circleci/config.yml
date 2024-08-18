@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   common: aurelia/common@volatile
   browser-tools: circleci/browser-tools@1.4.7
+  bun: ksylvest/bun@1.0.1
 
 # # # # # # # # # # # # # # # #
 # - Scalar variables -
@@ -112,14 +113,7 @@ commands:
         default: true
     steps:
       - checkout
-      - run:
-          name: "Install bun"
-          command: |
-            npm i bun@latest -g
-            curl -fsSL https://bun.sh/install | bash
-            echo 'export BUN_INSTALL="$HOME/.bun"' >> "$BASH_ENV"
-            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$BASH_ENV"
-            bun --version
+      - bun/install
       - when:
           condition:
             and:
@@ -467,8 +461,8 @@ jobs:
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
-      - run: npm run lint:ci
-      - run: npm run lint:other:ci
+      - run: bun run lint:ci
+      - run: bun run lint:other:ci
 
   merge_and_dist:
     executor: docker_release

@@ -113,13 +113,13 @@ commands:
     steps:
       - checkout
       - run:
-        name: "Install bun"
-        command: |
-          npm i bun@latest -g
-          curl -fsSL https://bun.sh/install | bash
-          echo 'export BUN_INSTALL="$HOME/.bun"' >> "$BASH_ENV"
-          echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$BASH_ENV"
-          bun --version
+          name: "Install bun"
+          command: |
+            npm i bun@latest -g
+            curl -fsSL https://bun.sh/install | bash
+            echo 'export BUN_INSTALL="$HOME/.bun"' >> "$BASH_ENV"
+            echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$BASH_ENV"
+            bun --version
       - when:
           condition:
             and:

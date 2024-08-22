@@ -7155,7 +7155,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     el: HTMLElement | Element | INode;
   }
 
-  it.only('injects element correctly - flat', async function () {
+  it('injects element correctly - flat', async function () {
     @customElement({ name: 'c-1', template: 'c1' })
     class CeOne implements IRouteViewModelWithEl {
       public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
@@ -7184,18 +7184,26 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     const { au, container, host } = await start({ appRoot: Root });
     const router = container.get(IRouter);
 
-    await assertElement('c1', 'c-1', 'C-1', 'c1');
-    await assertElement('c2', 'c-2', 'C-2', 'c2');
-    await assertElement('c3', 'c-3', 'C-3', 'c3');
+    await assertElement('c1', 'C-1', 'c1');
+    await assertElement('c2', 'C-2', 'c2');
+    await assertElement('c3', 'C-3', 'c3');
 
     await au.stop(true);
     assert.html.innerEqual(host, '');
 
-    async function assertElement(route: string, query: string, tagName: string, content: string): Promise<void> {
+    async function assertElement(route: string, tagName: string, content: string): Promise<void> {
       await router.load(route);
-      const vmEl = host.querySelector(query);
+
+      const vp = host.querySelector('au-viewport');
+      const children = vp.children;
+      // asserts that every other components gets detached correctly, leaving no residue in DOM
+      assert.strictEqual(children.length, 1);
+      const vmEl = children[0];
+      assert.strictEqual(vmEl.tagName, tagName);
+
       const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
       assert.strictEqual((vm.el as Element).tagName, tagName);
+      assert.deepStrictEqual(vm.el, vmEl);
       assert.html.innerEqual(vmEl, content);
       assert.html.innerEqual(vm.el, content);
     }

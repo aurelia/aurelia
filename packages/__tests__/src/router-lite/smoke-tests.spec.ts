@@ -7155,7 +7155,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     el: HTMLElement | Element | INode;
   }
 
-  it('injects element correctly - flat', async function () {
+  it.only('injects element correctly - flat', async function () {
     @customElement({ name: 'c-1', template: 'c1' })
     class CeOne implements IRouteViewModelWithEl {
       public el: HTMLElement = isNode() ? resolve(resolve(IPlatform).HTMLElement) : resolve(HTMLElement);
@@ -7197,6 +7197,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       const vm = CustomElement.for<IRouteViewModelWithEl>(vmEl).viewModel;
       assert.strictEqual((vm.el as Element).tagName, tagName);
       assert.html.innerEqual(vmEl, content);
+      assert.html.innerEqual(vm.el, content);
     }
   });
 

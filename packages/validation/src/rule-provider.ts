@@ -123,7 +123,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   private latestRule?: IValidationRule;
   /** @internal */
   public readonly l: IServiceLocator;
-  public linkedProperties: PropertyKey[] = [];
 
   public constructor(
     locator: IServiceLocator,
@@ -131,6 +130,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
     public $rules: IValidationRule[][] = [[]],
+    public linkedProperties: string[] = [],
   ) {
     this.l = locator;
   }
@@ -270,10 +270,12 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
 
   /**
    * Links the PropertyRule to other key values.
-   * @param properties - Array of property keys to link.
+   * @param properties - Array of properties to link (accepts strings, object keys as well as property accessor functions).
    */
-  public linkProperties(properties: PropertyKey[]) {
-    this.linkedProperties.push(...properties);
+  public dependsOn(properties: string[] | PropertyAccessor[]) {
+    properties.forEach((p) => {
+      this.linkedProperties.push(this.validationRules.convertProperty(p));
+    });
     return this;
   }
   // #endregion
@@ -487,6 +489,13 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
    */
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
   applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void;
+
+  /**
+   * Converts any property accessor into a string
+   *
+   * @param property - property name, object key or accessor function
+   */
+  convertProperty(property: string | PropertyAccessor): string;
 }
 export const IValidationRules = /*@__PURE__*/DI.createInterface<IValidationRules>('IValidationRules');
 
@@ -553,6 +562,10 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       validationRulesRegistrar.set(target, ruleset, tag);
       tags.add(tag);
     }
+  }
+
+  public convertProperty(property: string | PropertyAccessor): string {
+    return parsePropertyName(property, this.parser)[0];
   }
 }
 

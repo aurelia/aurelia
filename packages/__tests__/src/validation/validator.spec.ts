@@ -18,7 +18,7 @@ import {
   IValidationRule,
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
-import { Person, Address, Organization } from './_test-resources.js';
+import { Person, Address, Organization, Flight, Direction } from './_test-resources.js';
 import { ExpressionParser } from '@aurelia/expression-parser';
 
 describe('validation/validator.spec.ts', function () {
@@ -248,7 +248,7 @@ describe('validation/validator.spec.ts', function () {
 
             .ensure(getProperty1() as any)
             .required()
-            .linkProperties(linkedProperties)
+            .dependsOn(linkedProperties)
 
             .ensure(getProperty2() as any)
             .required()
@@ -505,6 +505,56 @@ describe('validation/validator.spec.ts', function () {
         assert.equal(result.length, 1);
 
         assertValidationResult(result[0], true, 'subprop[\'a\']', obj, EqualsRule);
+
+        validationRules.off();
+      });
+    }
+
+    const properties6 = [
+      {
+        title: 'string property',
+        getProperty1: () => 'direction' as const,
+        getProperty2: () => 'departureDate' as const,
+        getProperty3: () => 'returnDate' as const,
+      },
+      {
+        title: 'lambda property',
+        getProperty1: () => ((o) => o.direction) as PropertyAccessor,
+        getProperty2: () => ((o) => o.departureDate) as PropertyAccessor,
+        getProperty3: () => ((o) => o.returnDate) as PropertyAccessor,
+      },
+    ];
+    for (const { title, getProperty1, getProperty2, getProperty3 } of properties6) {
+      it(`can validate linked properties w/ custom logic - ${title}`, async function () {
+        const { sut, validationRules } = setup();
+        const noReturnMsg = 'One way flight has no return', timeTravelMsg = 'No time travel possible', goBackInTimeMsg = "Not possible to go back in time";
+        const flight: Flight = new Flight(Direction.oneWay, new Date(2024, 7, 22).getTime(), new Date(2024, 7, 24).getTime());
+        const properties: PropertyAccessor[] = [(f) => f.departureDate, (f) => f.returnDate];
+
+        validationRules
+        .on(flight)
+        .ensure(getProperty1() as any)
+        .required()
+        .dependsOn(properties)
+        .ensure(getProperty2() as any).satisfies((value, obj) => {  return value < obj.returnDate; }).when((obj) => obj.direction === Direction.return).withMessage(goBackInTimeMsg)
+        .satisfies((value) => value < new Date().getTime()).when((obj) => obj.direction === Direction.oneWay).withMessage(timeTravelMsg)
+        .ensure(getProperty3() as any).satisfies((value, obj) =>  { return value > obj.departureDate; }).when((obj) => obj.direction === Direction.return).withMessage(goBackInTimeMsg)
+        .satisfies((value) => !value).when((obj) => obj.direction === Direction.oneWay).withMessage(noReturnMsg);
+
+        let result = await sut.validate(new ValidateInstruction(flight, 'direction'));
+        assert.equal(result.length, 3);
+
+        assertValidationResult(result[0], true, 'direction', flight, RequiredRule);
+        assert.deepEqual(result[2].toString(), noReturnMsg);
+
+        flight.direction = Direction.return;
+        flight.departureDate = new Date(2024, 7, 26).getTime();
+        result = await sut.validate(new ValidateInstruction(flight, 'direction'));
+        assert.equal(result.length, 3);
+
+        assertValidationResult(result[0], true, 'direction', flight, RequiredRule);
+        assert.deepEqual(result[1].toString(), goBackInTimeMsg);
+        assert.deepEqual(result[2].toString(), goBackInTimeMsg);
 
         validationRules.off();
       });

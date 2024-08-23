@@ -37,8 +37,9 @@ import {
   ValidationRuleAliasMessage,
   validationRulesRegistrar,
   rootObjectSymbol,
+  PropertyAccessor
 } from '@aurelia/validation';
-import { Person } from './_test-resources.js';
+import { Person, Flight, Direction } from './_test-resources.js';
 
 describe('validation/rule-provider.spec.ts', function () {
   describe('ValidationRules', function () {
@@ -1181,15 +1182,15 @@ describe('validation/rule-provider.spec.ts', function () {
     });
 
     it('can be linked to other properties', async function () {
-      const { validationRules } = setup();
+      const { validationRules } = $createFixture();
       const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-      const properties: PropertyKey[] = ['age', 'address'];
+      const properties: string[] = ['age', 'address'];
       const rule = validationRules
         .on(obj)
         .ensure('name')
         .required()
         .satisfies((value) => value === 'foobar')
-        .linkProperties(properties)
+        .dependsOn(properties)
         .ensure('age').min(18)
         .ensure('address').required()
         .rules[0];
@@ -1197,6 +1198,28 @@ describe('validation/rule-provider.spec.ts', function () {
       assert.equal(rule.linkedProperties.length, 2);
       assert.deepEqual(rule.linkedProperties[0], 'age');
       assert.deepEqual(rule.linkedProperties[1], 'address');
+
+      validationRules.off();
+    });
+
+    it('can be linked to other properties by means of PropertyAccessors', async function () {
+      const { validationRules } = $createFixture();
+      const flight: Flight = new Flight(Direction.oneWay, new Date(2024, 7, 23).getTime(), new Date(2024, 7, 24).getTime());
+      const properties: PropertyAccessor[] = [(f) => f.departureDate, (f) => f.returnDate];
+      const rule = validationRules
+        .on(flight)
+        .ensure('direction')
+        .required()
+        .dependsOn(properties)
+        .ensure('departureDate').satisfies((value, obj) => {  return value < obj.returnDate; }).when((obj) => obj.direction === Direction.return)
+        .satisfies((value) => value > Date.now()).when((obj) => obj.direction === Direction.return)
+        .ensure('returnDate').satisfies((value, obj) =>  { return value > obj.departureDate; }).when((obj) => obj.direction === Direction.return)
+        .satisfies((value) => !value).when((obj) => obj.direction === Direction.oneWay)
+        .rules[0];
+
+      assert.equal(rule.linkedProperties.length, 2);
+      assert.deepEqual(rule.linkedProperties[0], 'departureDate');
+      assert.deepEqual(rule.linkedProperties[1], 'returnDate');
 
       validationRules.off();
     });

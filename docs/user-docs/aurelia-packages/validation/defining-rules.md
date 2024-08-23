@@ -94,13 +94,15 @@ With TypeScript support, intellisense is available for both the variants.
 ## Linking a property's validation with others
 
 This functionality can be useful when a change in one property has to trigger additional validations because the values are intrinsically related.
-Linked properties must be provided as an array of object keys.
+Linked properties must be provided as an array of strings or property accessors.
+When the main property changes, the validator will trigger all the additional rules that belong to linked fields.
 
 ```typescript
 validationRules
   .on(person)
   .ensure('name')
-    .linkProperties(['age', 'address']);
+    .dependsOn(['age', 'address']);
+    .dependsOn([(p) => p.age, (p) => p.address]);
 ```
 
 

@@ -72,13 +72,16 @@ export class ValidationSerializer implements IValidationVisitor {
     return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
   }
   public visitPropertyRule(propertyRule: PropertyRule): string {
-    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)}}`;
+    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)},"linkedProperties":${this.serializeLinkedProperties(propertyRule.linkedProperties)}}`;
   }
   private serializeNumber(num: number): string {
     return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null! : num.toString();
   }
   private serializeRules(ruleset: IValidationRule[][]) {
     return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
+  }
+  private serializeLinkedProperties(propertyList: string[]) {
+    return `[${propertyList.map((prop) => serializePrimitive(prop)).join(',')}]`;
   }
 }
 
@@ -170,13 +173,14 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
         return new RuleProperty(expression, name, displayName);
       }
       case PropertyRule.$TYPE: {
-        const $raw: Pick<PropertyRule, 'property' | '$rules'> = raw;
+        const $raw: Pick<PropertyRule, 'property' | '$rules' | 'linkedProperties'> = raw;
         return new PropertyRule(
           this.locator,
           validationRules,
           this.messageProvider,
           this.hydrate($raw.property, validationRules),
-          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules)))
+          $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))),
+          $raw.linkedProperties ?? []
         );
       }
     }

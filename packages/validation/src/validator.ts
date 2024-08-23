@@ -60,9 +60,9 @@ export class StandardValidator implements IValidator {
       const propertyRule: PropertyRule | undefined = rules.find((r) => r.property.name === propertyName);
       if (propertyRule !== void 0 && propertyRule.linkedProperties.length > 0) {
         const additionalRules = propertyRule.linkedProperties.map(lp => rules.find(r => r.property.name === lp)).filter(Boolean) as PropertyRule[];
-        return (await Promise.all([propertyRule?.validate(object, propertyTag, scope), ...additionalRules.map(async (rule) => rule.validate(object, propertyTag, scope))])).flat();
+        return (await Promise.all([propertyRule.validate(object, propertyTag, scope), ...additionalRules.map(async (rule) => rule.validate(object, propertyTag, scope))])).flat();
       }
-      return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, scope)) ?? [];
+      return (await propertyRule?.validate(object, propertyTag, scope)) ?? [];
     }
 
     return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, scope)))).flat();

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.21"></a>
+# 2.0.0-beta.21 (2024-08-08)
+
+### Refactorings:
+
+* **task-queue:** remove 'reusable' param (#2008) ([54f43e8](https://github.com/aurelia/aurelia/commit/54f43e8))
+* **task-queue:** remove 'reusable' param ([54f43e8](https://github.com/aurelia/aurelia/commit/54f43e8))
+
 <a name="2.0.0-beta.20"></a>
 # 2.0.0-beta.20 (2024-07-07)
 

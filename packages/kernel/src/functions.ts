@@ -1,6 +1,6 @@
 import { ErrorNames, createMappedError } from './errors';
 import { Constructable, Overwrite } from './interfaces';
-import { createLookup, isPromise, objectAssign } from './utilities';
+import { createLookup, isPromise, MaybePromise, objectAssign } from './utilities';
 
 /**
  * Efficiently determine whether the provided property key is numeric
@@ -400,23 +400,77 @@ export const isNativeFunction = /*@__PURE__*/(() => {
   };
 })();
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-type MaybePromise<T> = T extends Promise<infer R> ? (T | R) : (T | Promise<T>);
-
 /**
  * Normalize a potential promise via a callback, to ensure things stay synchronous when they can.
  *
  * If the value is a promise, it is `then`ed before the callback is invoked. Otherwise the callback is invoked synchronously.
  */
-export const onResolve = <TValue, TRet>(
-  maybePromise: TValue,
-  resolveCallback: (value: UnwrapPromise<TValue>) => TRet,
-): MaybePromise<TRet> => {
-  if (maybePromise instanceof Promise) {
-    return maybePromise.then(resolveCallback) as MaybePromise<TRet>;
+export const onResolve: {
+  // used for async code paths
+  <TValue, TRet>(
+    maybePromise: Promise<TValue>,
+    resolveCallback: (value: TValue) => MaybePromise<TRet>,
+  ): Promise<TRet>;
+
+  // used for express synchronous only code paths
+  <TValue, TRet>(
+    maybePromise: TValue extends Promise<unknown> ? never : TValue,
+    resolveCallback: (value: TValue) => TRet,
+  ): TRet extends Promise<infer R> ? Promise<R> : TRet;
+
+  // used for mixed code paths
+  <TValue, TRet>(
+    maybePromise: MaybePromise<TValue>,
+    resolveCallback: (value: TValue) => MaybePromise<TRet>,
+  ): MaybePromise<TRet>;
+
+}
+// implementation
+= (maybePromise, resolveCallback) => {
+  if (isPromise(maybePromise)) {
+    return maybePromise.then(resolveCallback);
   }
-  return resolveCallback(maybePromise as UnwrapPromise<TValue>) as MaybePromise<TRet>;
+  return resolveCallback(maybePromise);
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function testOnResolve() {
+  /* eslint-disable @typescript-eslint/no-floating-promises, @typescript-eslint/ban-ts-comment */
+  onResolve(Promise.resolve(1), (value) => value === 1);
+  onResolve(1, value => value === 1);
+
+  // @ts-expect-error
+  onResolve(1, value => value === Promise.resolve(1));
+  // @ts-expect-error
+  onResolve(Promise.resolve(1), value => value === Promise.resolve(1));
+
+  const ret = onResolve(Promise.resolve(1), (value) => value === 1);
+  // @ts-expect-error
+  if (ret === false) {
+    // nothing
+  }
+
+  // @ts-expect-error
+  const ret2 = onResolve(1, value => value === Promise.resolve(1));
+  if (ret2 === false) {
+    // nothing
+  }
+
+  type Component = {
+    canDeactivate?: () => boolean | Promise<boolean>;
+  };
+
+  const cmp: Component = {};
+  onResolve(
+    cmp.canDeactivate?.(),
+    canDeactivate => {
+    if (canDeactivate === false) {
+      // nothing
+    }
+  });
+
+  /* eslint-enable @typescript-eslint/no-floating-promises, @typescript-eslint/ban-ts-comment */
+}
 
 /**
  * Normalize an array of potential promises, to ensure things stay synchronous when they can.

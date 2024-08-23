@@ -1,4 +1,4 @@
-import { all, IContainer, ILogger, lazy, MaybePromise, optional, Registration, resolve } from '@aurelia/kernel';
+import { all, IContainer, ILogger, isPromise, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
@@ -15,7 +15,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _handlers: readonly IActionHandler<T>[];
-  /** @internal */ private _dispatching = 0;
+  /** @internal */ private _dispatching = false;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
   /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
 
@@ -60,49 +60,48 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     return this._state;
   }
 
+  /** @internal */
+  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T | Promise<T>, $action: unknown): T | Promise<T> {
+    for (const handler of handlers) {
+      $state = onResolve($state, $state => handler($state, $action));
+    }
+    return onResolve($state, s => s);
+  }
+
   public dispatch(action: TAction): void | Promise<void> {
-    if (this._dispatching > 0) {
+    if (this._dispatching) {
       this._dispatchQueues.push(action);
       return;
     }
 
-    this._dispatching++;
+    this._dispatching = true;
 
-    let $$action: TAction;
-    const reduce = ($state: T | Promise<T>, $action: unknown) =>
-      this._handlers.reduce(($state, handler) => {
-        if ($state instanceof Promise) {
-          return $state.then($ => handler($, $action));
-        }
-        return handler($state, $action) as T | Promise<T>;
-      }, $state);
-
-    const afterDispatch = ($state: MaybePromise<T>): void | Promise<void> => {
-      if (this._dispatchQueues.length > 0) {
-        $$action = this._dispatchQueues.shift()!;
-        const newState = reduce($state, $$action);
-        if (newState instanceof Promise) {
-          return newState.then($ => afterDispatch($));
+    const afterDispatch = ($state: T | Promise<T>): void | Promise<void> => {
+      return onResolve($state, s => {
+        const $$action = this._dispatchQueues.shift()!;
+        if ($$action != null) {
+          return onResolve(this._handleAction<T>(this._handlers, s, $$action), state => {
+            this._setState(state);
+            return afterDispatch(state);
+          });
         } else {
-          return afterDispatch(newState);
+          this._dispatching = false;
         }
-      }
+      });
     };
-    const newState = reduce(this._state, action);
+    const newState = this._handleAction<T>(this._handlers, this._state, action);
 
-    if (newState instanceof Promise) {
+    if (isPromise(newState)) {
       return newState.then($state => {
         this._setState($state);
-        this._dispatching--;
 
         return afterDispatch(this._state);
       }, ex => {
-        this._dispatching--;
+        this._dispatching = false;
         throw ex;
       });
     } else {
       this._setState(newState);
-      this._dispatching--;
 
       return afterDispatch(this._state);
     }
@@ -167,6 +166,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     });
   }
 }
+
 class State { }
 
 class StateProxyHandler<T extends object> implements ProxyHandler<T> {
@@ -177,7 +177,7 @@ class StateProxyHandler<T extends object> implements ProxyHandler<T> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public set(target: T, prop: string | symbol, value: unknown, receiver: unknown): boolean {
-    this._logger.warn(`Setting State is immutable. Dispatch an action to create a new state`);
+    this._logger.warn(`State is immutable. Dispatch an action to create a new state`);
     return true;
   }
 }

@@ -62,7 +62,7 @@ export enum ValidationTrigger {
 
 export const IDefaultTrigger = /*@__PURE__*/DI.createInterface<ValidationTrigger>('IDefaultTrigger');
 
-const validationConnectorMap = new WeakMap<IBinding, ValidatitionConnector>();
+const validationConnectorMap = new WeakMap<IBinding, ValidationConnector>();
 const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();
 
 export class ValidateBindingBehavior implements BindingBehaviorInstance {
@@ -79,7 +79,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
     }
     let connector = validationConnectorMap.get(binding);
     if (connector == null) {
-      validationConnectorMap.set(binding, connector = new ValidatitionConnector(
+      validationConnectorMap.set(binding, connector = new ValidationConnector(
         this._platform,
         this._observerLocator,
         binding.get(IDefaultTrigger),
@@ -110,11 +110,11 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
 }
 BindingBehavior.define('validate', ValidateBindingBehavior);
 
-interface ValidatitionConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable {}
+interface ValidationConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable {}
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
-class ValidatitionConnector implements ValidationResultsSubscriber {
+class ValidationConnector implements ValidationResultsSubscriber {
   private readonly propertyBinding: BindingWithBehavior;
   private target!: HTMLElement;
   private trigger!: ValidationTrigger;
@@ -189,6 +189,7 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
     if (triggerEventName !== null) {
       this.target?.removeEventListener(triggerEventName, this);
     }
+    this.controller?.resetBinding(this.propertyBinding);
     this.controller?.removeSubscriber(this);
   }
 
@@ -360,12 +361,12 @@ class ValidatitionConnector implements ValidationResultsSubscriber {
   }
 }
 
-connectable(ValidatitionConnector, null!);
-mixinAstEvaluator(true)(ValidatitionConnector);
+connectable(ValidationConnector, null!);
+mixinAstEvaluator(true)(ValidationConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
   public constructor(
-    private readonly _validationSubscriber: ValidatitionConnector,
+    private readonly _validationSubscriber: ValidationConnector,
     binding: BindingWithBehavior,
     flushQueue: IFlushQueue
   ) {

@@ -71,18 +71,20 @@ export class LocalizedValidationMessageProvider extends ValidationMessageProvide
     }
 
     let key: string | undefined = messageKey;
-    if (!this.i18n.i18next.exists(key)) {
-      const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
-      const messageCount = validationMessages.length;
-      if (messageCount === 1 && messageKey === void 0) {
-        key = validationMessages[0].defaultMessage;
-      } else {
-        key = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
-      }
-      key ??= messageKey;
-    }
+    const i18nKey = key != null ? this.getKey(key) : [];
+    const i18n = this.i18n;
+    if (i18n.i18next.exists(i18nKey)) return this.setMessage(rule, i18n.tr(i18nKey));
 
-    return this.setMessage(rule, this.i18n.tr(this.getKey(key)));
+    const validationMessages = ValidationRuleAliasMessage.getDefaultMessages(rule);
+    const messageCount = validationMessages.length;
+    if (messageCount === 1 && messageKey === void 0) {
+      key = validationMessages[0].defaultMessage;
+    } else {
+      key = validationMessages.find(m => m.name === messageKey)?.defaultMessage;
+    }
+    key ??= messageKey;
+
+    return this.setMessage(rule, i18n.tr(this.getKey(key)));
   }
 
   public getDisplayName(propertyName: string | number | undefined, displayName?: string | null | (() => string)): string | undefined {

@@ -141,6 +141,8 @@ export const getMapObserver = /*@__PURE__*/ (() => {
 
     public notify(): void {
       const subs = this.subs;
+      subs.notifyDirty();
+
       const indexMap = this.indexMap;
       if (batching) {
         addCollectionBatch(subs, this.collection, indexMap);

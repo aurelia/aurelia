@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.21"></a>
+# 2.0.0-beta.21 (2024-08-08)
+
+### Bug Fixes:
+
+* **state:** ensure all actions queued are called (#2023) ([062f398](https://github.com/aurelia/aurelia/commit/062f398))
+
 <a name="2.0.0-beta.20"></a>
 # 2.0.0-beta.20 (2024-07-07)
 

@@ -1,4 +1,4 @@
-import { Constructable, EventAggregator, IContainer, ILogger, MaybePromise } from '@aurelia/kernel';
+import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
 import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig } from '@aurelia/runtime-html';
@@ -236,6 +236,13 @@ export function createFixture<T extends object>(
     const el = strictQueryBy(selector, `to compare value against "${value}"`);
     assert.strictEqual((el as any).value, value);
   }
+  function assertChecked(selector: string, value: boolean) {
+    const el = strictQueryBy(selector, `to compare value against "${value}"`);
+    if (!('checked' in el)) {
+      throw new Error('Element does not have a checked property');
+    }
+    assert.strictEqual((el as any).checked, value, `Expected element (${selector}) to  have :checked state as ${value}, but received ${!value}`);
+  }
 
   function trigger(selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
     const el = strictQueryBy(selector, `to fire event "${event}"`);
@@ -287,7 +294,7 @@ export function createFixture<T extends object>(
   };
 
   const stop = (dispose: boolean = false): void | Promise<void> => {
-    let ret: MaybePromise<void> = void 0;
+    let ret: void | Promise<void> = void 0;
     try {
       ret = au.stop(dispose);
     } finally {
@@ -366,6 +373,7 @@ export function createFixture<T extends object>(
     public assertAttrNS = assertAttrNS;
     public assertStyles = assertStyles;
     public assertValue = assertValue;
+    public assertChecked = assertChecked;
     public createEvent = (name: string, init?: CustomEventInit) => new platform.CustomEvent(name, init);
     public trigger = trigger as ITrigger;
     public type = type;
@@ -498,6 +506,13 @@ export interface IFixture<T> {
    * Will throw if there' more than one elements with matching selector
    */
   assertValue(selector: string, value: unknown): void;
+  /**
+   * Assert whether an element matching the given selector has the :checked state.
+   *
+   * Will throw if there's no checked property on the element
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertChecked(selector: string, value: boolean): void;
   /**
    * Create a custom event by the given name and init for the current platform
    */

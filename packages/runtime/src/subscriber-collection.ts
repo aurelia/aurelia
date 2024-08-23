@@ -3,6 +3,7 @@ import { rtDef, rtDefineHiddenProp, ensureProto } from './utilities';
 import type {
   Collection,
   ICollectionSubscriber,
+  IDirtySubscriber,
   IndexMap,
   ISubscriber,
   ISubscriberCollection,
@@ -53,20 +54,33 @@ export const subscriberCollection = /*@__PURE__*/(() => {
     public count: number = 0;
     /** @internal */
     private readonly _subs: T[] = [];
+    /** @internal */
+    private readonly _requestDirtySubs: IDirtySubscriber[] = [];
+    /** @internal */
+    private _hasDirtySubs = false;
 
     public add(subscriber: T): boolean {
       if (this._subs.includes(subscriber)) {
         return false;
       }
       this._subs[this._subs.length] = subscriber;
+      if ('handleDirty' in subscriber) {
+        this._requestDirtySubs[this._requestDirtySubs.length] = subscriber as IDirtySubscriber;
+        this._hasDirtySubs = true;
+      }
       ++this.count;
       return true;
     }
 
     public remove(subscriber: T): boolean {
-      const idx = this._subs.indexOf(subscriber);
+      let idx = this._subs.indexOf(subscriber);
       if (idx !== -1) {
         this._subs.splice(idx, 1);
+        idx = this._requestDirtySubs.indexOf(subscriber as IDirtySubscriber);
+        if (idx !== -1) {
+          this._requestDirtySubs.splice(idx, 1);
+          this._hasDirtySubs = this._requestDirtySubs.length > 0;
+        }
         --this.count;
         return true;
       }
@@ -78,6 +92,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
         addValueBatch(this, val, oldVal);
         return;
       }
+
       /**
        * Note: change handlers may have the side-effect of adding/removing subscribers to this collection during this
        * callSubscribers invocation, so we're caching them all before invoking any.
@@ -85,13 +100,9 @@ export const subscriberCollection = /*@__PURE__*/(() => {
        * Subscribers removed during this invocation will still be invoked (and they also shouldn't be,
        * however this is accounted for via $isBound and similar flags on the subscriber objects)
        */
-      const _subs = this._subs.slice(0) as ISubscriber[];
-      const len = _subs.length;
-      let i = 0;
-      for (; i < len; ++i) {
-        _subs[i].handleChange(val, oldVal);
+      for (const sub of this._subs.slice(0) as ISubscriber[]) {
+        sub.handleChange(val, oldVal);
       }
-      return;
     }
 
     public notifyCollection(collection: Collection, indexMap: IndexMap): void {
@@ -102,6 +113,14 @@ export const subscriberCollection = /*@__PURE__*/(() => {
         _subs[i].handleCollectionChange(collection, indexMap);
       }
       return;
+    }
+
+    public notifyDirty() {
+      if (this._hasDirtySubs) {
+        for (const dirtySub of this._requestDirtySubs.slice(0)) {
+          dirtySub.handleDirty();
+        }
+      }
     }
   }
 

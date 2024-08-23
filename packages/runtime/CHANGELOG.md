@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.21"></a>
+# 2.0.0-beta.21 (2024-08-08)
+
+### Bug Fixes:
+
+* **binding:** handle glitch (#2020) ([0f3dbee](https://github.com/aurelia/aurelia/commit/0f3dbee))
+
 <a name="2.0.0-beta.20"></a>
 # 2.0.0-beta.20 (2024-07-07)
 

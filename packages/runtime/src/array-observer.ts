@@ -426,6 +426,8 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
 
     public notify(): void {
       const subs = this.subs;
+      subs.notifyDirty();
+
       const indexMap = this.indexMap;
       if (batching) {
         addCollectionBatch(subs, this.collection, indexMap);
@@ -436,7 +438,7 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       const length = arr.length;
 
       this.indexMap = createIndexMap(length);
-      this.subs.notifyCollection(arr, indexMap);
+      subs.notifyCollection(arr, indexMap);
     }
 
     public getLengthObserver(): CollectionLengthObserver {
@@ -489,6 +491,12 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       arrayObserver.notify();
     }
 
+    public handleDirty() {
+      if (this.value !== this.getValue()) {
+        this.subs.notifyDirty();
+      }
+    }
+
     /**
      * From interface `ICollectionSubscriber`
      */
@@ -500,7 +508,6 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
       }
       const prevValue = this.value;
       const currValue = this.value = this.getValue();
-      // hmm
       if (prevValue !== currValue) {
         this.subs.notify(currValue, prevValue);
       }

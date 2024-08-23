@@ -1,7 +1,7 @@
 import { observable, SetterObserver, IObservable, IObserverLocator, IObserver } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
-import { noop } from '@aurelia/kernel';
-import { ValueConverter, customElement } from '@aurelia/runtime-html';
+import { noop, resolve } from '@aurelia/kernel';
+import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
   const oldValue = 'old';
@@ -314,7 +314,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     });
   });
 
-  it('handle recursive changes', async function () {
+  it('handle recursive changes', function () {
 
     @customElement('')
     class MyApp {
@@ -326,14 +326,14 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       public count: number = 0;
 
       public countObs: IObserver;
-      public obsLoc: IObserverLocator;
+      public obsLoc = resolve(IObserverLocator);
 
       public created() {
-        this.countObs = this['$controller'].container.get(IObserverLocator).getObserver(this, 'count');
+        this.countObs = this.obsLoc.getObserver(this, 'count');
         this.countObs.subscribe({
           handleChange: (value: number, oldValue: number) => {
-            if (value > 0 && value < 10) {
-              this.log('S.1. handleChange()', value);
+            if (value > 0 && value < 3) {
+              this.log('S.1. handleChange()', value, oldValue);
               if (value > oldValue) {
                 this.count++;
               } else {
@@ -369,63 +369,82 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       }
     }
 
-    const { component, appHost, startPromise, tearDown } = createFixture(`
+    const { component, getAllBy, stop } = createFixture(`
       <button click.trigger="incr()">Incr()</button>
       <button click.trigger="decr()">Decr()</button>
       <div id="logs"><div repeat.for="log of logs">\${log}</div></div>
     `, MyApp);
 
-    await startPromise;
-
     assert.deepStrictEqual(component.logs, []);
-    component.logs.splice(0);
-    const [incrButton, decrButton] = Array.from(appHost.querySelectorAll('button'));
+    const [incrButton, decrButton] = getAllBy('button');
+
+    // when clicking on increment, increase count all the way to 3 by 1 at a time
     incrButton.click();
-
     assert.deepStrictEqual(
       component.logs,
-      (Array
-        .from({ length: 9 })
-        .reduce((acc: unknown[], _: unknown, idx: number) => {
-          acc.push(['P.1. countChanged()', idx + 1], ['S.1. handleChange()', idx + 1]);
-          return acc;
-        }, []) as unknown[])
-        .concat([
-          ['P.1. countChanged()', 10],
-          ['After incr()', 10]
-        ])
+      [
+        ['S.1. handleChange()', 1, 0],
+        ['S.1. handleChange()', 2, 1],
+        ['P.1. countChanged()', 3],
+        ['After incr()', 3]
+      ]
     );
 
+    // when clicking on decrement, decrease count all the way to 0 by 1 at a time
     decrButton.click();
-    const logs = (Array
-      .from({ length: 9 })
-      .reduce((acc: unknown[], _: unknown, idx: number) => {
-        acc.push(['P.1. countChanged()', idx + 1], ['S.1. handleChange()', idx + 1]);
-        return acc;
-      }, []) as unknown[])
-      .concat([
-        ['P.1. countChanged()', 10],
-        ['After incr()', 10]
-      ]);
-
     assert.deepStrictEqual(
       component.logs,
-      logs
-        .concat(
-          Array
-            .from({ length: 9 })
-            .reduce((acc: unknown[], _: unknown, idx: number) => {
-              // start at 10 when click, but the first value log will be after the substraction of 1, which is 10 - 1
-              acc.push(['P.1. countChanged()', 9 - idx], ['S.1. handleChange()', 9 - idx]);
-              return acc;
-            }, []) as unknown[]
-        )
-        .concat([
-          ['P.1. countChanged()', 0],
-          ['After decr()', 0]
-        ])
+      [
+        ['S.1. handleChange()', 1, 0],
+        ['S.1. handleChange()', 2, 1],
+        ['P.1. countChanged()', 3],
+        ['After incr()', 3],
+        ['S.1. handleChange()', 2, 3],
+        ['S.1. handleChange()', 1, 2],
+        ['P.1. countChanged()', 0],
+        ['After decr()', 0]
+      ]
     );
 
-    await tearDown();
+    void stop(true);
   });
+
+  // https://github.com/aurelia/aurelia/issues/2022
+  it('calls change handler callback after propagating changes', function () {
+    const logs = [];
+
+    createFixture(
+      '<outer-component>',
+      class OuterComponent {
+        @observable
+        prop1 = 1;
+
+        @observable
+        prop2 = 1;
+
+        prop3 = 0;
+
+        // trigger point here
+        attached() {
+          this.prop1 = 2;
+        }
+
+        prop1Changed() {
+          this.prop2 = 2;
+        }
+
+        prop2Changed() {
+          logs.push(`prop3: ${this.prop3}`);
+        }
+
+        @watch('prop1')
+        handleProp1Changed() {
+          this.prop3 = 3;
+        }
+      }
+    );
+
+    assert.deepStrictEqual(logs, ['prop3: 3']);
+  });
+
 });

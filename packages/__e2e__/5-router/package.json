@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.20",
+  "version": "2.0.0-beta.21",
   "port": 9005,
   "scripts": {
     "dev": "vite",
@@ -19,14 +19,14 @@
     "test:debugger": "cross-env PWDEBUG=1 npx playwright test"
   },
   "dependencies": {
-    "aurelia": "2.0.0-beta.20",
-    "@aurelia/kernel": "2.0.0-beta.20",
-    "@aurelia/metadata": "2.0.0-beta.20",
-    "@aurelia/platform": "2.0.0-beta.20",
-    "@aurelia/platform-browser": "2.0.0-beta.20",
-    "@aurelia/runtime": "2.0.0-beta.20",
-    "@aurelia/runtime-html": "2.0.0-beta.20",
-    "@aurelia/router": "2.0.0-beta.20"
+    "aurelia": "2.0.0-beta.21",
+    "@aurelia/kernel": "2.0.0-beta.21",
+    "@aurelia/metadata": "2.0.0-beta.21",
+    "@aurelia/platform": "2.0.0-beta.21",
+    "@aurelia/platform-browser": "2.0.0-beta.21",
+    "@aurelia/runtime": "2.0.0-beta.21",
+    "@aurelia/runtime-html": "2.0.0-beta.21",
+    "@aurelia/router": "2.0.0-beta.21"
   },
   "devDependencies": {
     "@playwright/test": "1.39.0",

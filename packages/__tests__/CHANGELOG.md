@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.21"></a>
+# 2.0.0-beta.21 (2024-08-08)
+
+### Features:
+
+* **ast:** Increment/decrement assign (#2004) ([4cfc0a3](https://github.com/aurelia/aurelia/commit/4cfc0a3))
+
+
+### Bug Fixes:
+
+* **state:** ensure all actions queued are called (#2023) ([062f398](https://github.com/aurelia/aurelia/commit/062f398))
+* **binding:** handle glitch (#2020) ([0f3dbee](https://github.com/aurelia/aurelia/commit/0f3dbee))
+* **router:** fix missing filter part for available endpoints (#2013) ([af7c252](https://github.com/aurelia/aurelia/commit/af7c252))
+* **router-lite:** element injection for routed view-model (#2012) ([b1508fb](https://github.com/aurelia/aurelia/commit/b1508fb))
+* **router-lite:** routed view element injection ([b1508fb](https://github.com/aurelia/aurelia/commit/b1508fb))
+* **task-queue:** fix timing issue (#2007) ([6777dba](https://github.com/aurelia/aurelia/commit/6777dba))
+* **router-lite:** location URL with no history and fragment routing (#2005) ([8a84b09](https://github.com/aurelia/aurelia/commit/8a84b09))
+* **router-lite:** location URL with no history and fragment routing ([8a84b09](https://github.com/aurelia/aurelia/commit/8a84b09))
+
+
+### Refactorings:
+
+* **task-queue:** remove 'reusable' param (#2008) ([54f43e8](https://github.com/aurelia/aurelia/commit/54f43e8))
+* **task-queue:** remove 'reusable' param ([54f43e8](https://github.com/aurelia/aurelia/commit/54f43e8))
+
 <a name="2.0.0-beta.20"></a>
 # 2.0.0-beta.20 (2024-07-07)
 

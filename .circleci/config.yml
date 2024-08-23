@@ -863,6 +863,12 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_validation_issue_2025
+          path: "packages/__e2e__/11-validation"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_virtual_repeat
           path: "packages/__e2e__/8-ui-virtualization"
           requires:
@@ -1047,6 +1053,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
           path: "packages/__e2e__/4-i18n"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_validation_issue_2025
+          path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:

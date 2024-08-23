@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.21"></a>
+# 2.0.0-beta.21 (2024-08-08)
+
+### Features:
+
+* **ast:** Increment/decrement assign (#2004) ([4cfc0a3](https://github.com/aurelia/aurelia/commit/4cfc0a3))
+
 <a name="2.0.0-beta.20"></a>
 # 2.0.0-beta.20 (2024-07-07)
 

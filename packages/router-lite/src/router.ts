@@ -1,5 +1,4 @@
-import { isObject } from '@aurelia/metadata';
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
 import { IRouteContext, RouteContext } from './route-context';
@@ -19,7 +18,7 @@ import { Events, debug, error, getMessage, trace } from './events';
 export const emptyQuery = Object.freeze(new URLSearchParams());
 
 export function isManagedState(state: {} | null): state is ManagedState {
-  return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+  return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 export function toManagedState(state: {} | null, navId: number): ManagedState {
   return { ...state, [AuNavId]: navId };

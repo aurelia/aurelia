@@ -252,7 +252,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      controller._hydrateCustomElement(hydrationInst, hydrationContext);
+      controller._hydrateCustomElement(hydrationInst);
     }
 
     return controller as ICustomElementController<C>;
@@ -339,12 +339,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public _hydrateCustomElement(
     hydrationInst: IControllerElementHydrationInstruction | null,
-    /**
-     * The context where this custom element is hydrated.
-     *
-     * This is the context controller creating this this controller
-     */
-    _hydrationContext: IHydrationContext | null,
   ): void {
     if (__DEV__) {
       this.logger = this.container.get(ILogger).root;
@@ -386,13 +380,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate();
+      this._hydrate(hydrationInst?.hostController);
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(): void {
+  public _hydrate(hostController?: Controller | null): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -410,11 +404,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let host = this.host!;
     let location: IRenderLocation | null = this.location;
 
-    if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
+    let createLocation = false;
+    if (hostController != null) {
+      this.hostController = hostController;
+      createLocation = true;
+    } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
       host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-      if (containerless && location == null) {
-        location = this.location = convertToRenderLocation(host);
-      }
+      createLocation = true;
+    }
+
+    if (createLocation && containerless && location == null) {
+      location = this.location = convertToRenderLocation(host);
     }
 
     setRef(host, elementBaseName, this as IHydratedController);
@@ -1888,6 +1888,11 @@ export interface IControllerElementHydrationInstruction {
    * Indicates whether the custom element was used with "containerless" attribute
    */
   readonly containerless?: boolean;
+  /**
+   * When provided, the controller is used while hydrating the custom element.
+   * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
+   */
+  readonly hostController?: Controller | null;
 }
 
 function callDispose(disposable: IDisposable): void {

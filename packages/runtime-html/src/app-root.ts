@@ -117,7 +117,7 @@ export class AppRoot<
         definition
       )) as Controller<K>;
 
-      controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
+      controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
         controller._hydrate();
         return onResolve(this._runAppTasks('hydrated'), () => {

@@ -148,6 +148,7 @@ export {
   isSet,
   isPromise,
   isFunction,
+  isObjectOrFunction,
   isNumber,
   isString,
   isSymbol,

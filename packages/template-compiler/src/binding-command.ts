@@ -1,5 +1,5 @@
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { Protocol, camelCase, emptyArray, firstDefined, getResourceKeyFor, mergeArrays, resolve, resource, resourceBaseName } from '@aurelia/kernel';
+import { Protocol, camelCase, emptyArray, firstDefined, getResourceKeyFor, mergeArrays, resolve, resource, resourceBaseName, isString } from '@aurelia/kernel';
 import { defineMetadata, getMetadata } from './utilities-metadata';
 import { IAttrMapper } from './attribute-mapper';
 import {
@@ -11,7 +11,7 @@ import {
   RefBindingInstruction,
   SpreadValueBindingInstruction,
 } from './instructions';
-import { aliasRegistration, etIsFunction, etIsProperty, isString, objectFreeze, singletonRegistration } from './utilities';
+import { aliasRegistration, etIsFunction, etIsProperty, tcObjectFreeze, singletonRegistration } from './utilities';
 
 import type {
   Constructable,
@@ -165,7 +165,7 @@ export const BindingCommand = /*@__PURE__*/ (() => {
     return def;
   };
 
-  return objectFreeze<BindingCommandKind>({
+  return tcObjectFreeze<BindingCommandKind>({
     name: cmdBaseName,
     keyFrom: getCommandKeyFrom,
     // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {

@@ -1,9 +1,9 @@
-import { isObject } from '@aurelia/metadata';
 import {
   Constructable,
   emptyObject,
   IModule,
   isArrayIndex,
+  isObjectOrFunction,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -440,7 +440,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
 
     if (typeof instruction === 'string') return new TypedNavigationInstruction(NavigationInstructionType.string, instruction);
     // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-    if (!isObject(instruction)) expectType('function/class or object', '', instruction);
+    if (!isObjectOrFunction(instruction)) expectType('function/class or object', '', instruction);
     if (typeof instruction === 'function') {
       if (CustomElement.isType(instruction as Constructable)) {
         // This is the class itself

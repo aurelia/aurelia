@@ -1,9 +1,9 @@
-import { createInterface } from './utilities';
+import { tcCreateInterface } from './utilities';
 
 /**
  * An interface describing the API for mapping attributes to properties
  */
-export const IAttrMapper = /*@__PURE__*/createInterface<IAttrMapper>('IAttrMapper');
+export const IAttrMapper = /*@__PURE__*/tcCreateInterface<IAttrMapper>('IAttrMapper');
 export interface IAttrMapper {
   /**
    * Allow application to teach Aurelia how to define how to map attributes to properties

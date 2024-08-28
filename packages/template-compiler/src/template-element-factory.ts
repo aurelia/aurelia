@@ -1,5 +1,5 @@
-import { IPlatform, resolve } from '@aurelia/kernel';
-import { createInterface, isString } from './utilities';
+import { IPlatform, resolve, isString } from '@aurelia/kernel';
+import { tcCreateInterface } from './utilities';
 import { IDomPlatform } from './interfaces-template-compiler';
 
 /**
@@ -11,7 +11,7 @@ import { IDomPlatform } from './interfaces-template-compiler';
 export interface ITemplateElementFactory {
   createTemplate(input: string | Node): HTMLTemplateElement;
 }
-export const ITemplateElementFactory = /*@__PURE__*/createInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
+export const ITemplateElementFactory = /*@__PURE__*/tcCreateInterface<ITemplateElementFactory>('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 
 const markupCache: Record<string, HTMLTemplateElement | undefined> = {};
 

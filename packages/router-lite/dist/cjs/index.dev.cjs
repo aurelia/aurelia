@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var metadata = require('@aurelia/metadata');
 var kernel = require('@aurelia/kernel');
 var runtimeHtml = require('@aurelia/runtime-html');
 var routeRecognizer = require('@aurelia/route-recognizer');
+var metadata = require('@aurelia/metadata');
 var runtime = require('@aurelia/runtime');
 
 /**
@@ -2846,7 +2846,7 @@ function createFallbackNode(log, rc, node, vi) {
 /** @internal */
 const emptyQuery = Object.freeze(new URLSearchParams());
 function isManagedState(state) {
-    return metadata.isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+    return kernel.isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 function toManagedState(state, navId) {
     return { ...state, [AuNavId]: navId };
@@ -3866,7 +3866,7 @@ class TypedNavigationInstruction {
         if (typeof instruction === 'string')
             return new TypedNavigationInstruction(0 /* NavigationInstructionType.string */, instruction);
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-        if (!metadata.isObject(instruction))
+        if (!kernel.isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
         if (typeof instruction === 'function') {
             if (runtimeHtml.CustomElement.isType(instruction)) {
@@ -5023,7 +5023,7 @@ const DefaultResources = [
 ];
 function configure(container, options) {
     let basePath = null;
-    if (metadata.isObject(options)) {
+    if (kernel.isObjectOrFunction(options)) {
         basePath = options.basePath ?? null;
     }
     else {

@@ -1,7 +1,7 @@
-import { Metadata, isObject } from '@aurelia/metadata';
-import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '@aurelia/kernel';
+import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '@aurelia/kernel';
 import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, Controller, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '@aurelia/runtime-html';
 import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { Metadata } from '@aurelia/metadata';
 import { batch } from '@aurelia/runtime';
 
 /**
@@ -2842,7 +2842,7 @@ function createFallbackNode(log, rc, node, vi) {
 /** @internal */
 const emptyQuery = Object.freeze(new URLSearchParams());
 function isManagedState(state) {
-    return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+    return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 function toManagedState(state, navId) {
     return { ...state, [AuNavId]: navId };
@@ -3862,7 +3862,7 @@ class TypedNavigationInstruction {
         if (typeof instruction === 'string')
             return new TypedNavigationInstruction(0 /* NavigationInstructionType.string */, instruction);
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-        if (!isObject(instruction))
+        if (!isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
         if (typeof instruction === 'function') {
             if (CustomElement.isType(instruction)) {
@@ -5019,7 +5019,7 @@ const DefaultResources = [
 ];
 function configure(container, options) {
     let basePath = null;
-    if (isObject(options)) {
+    if (isObjectOrFunction(options)) {
         basePath = options.basePath ?? null;
     }
     else {

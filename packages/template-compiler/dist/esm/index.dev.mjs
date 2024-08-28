@@ -1,10 +1,9 @@
-import { DI, Registration, getResourceKeyFor, registrableMetadataKey, emptyArray, resolve, IContainer, firstDefined, mergeArrays, Protocol, resourceBaseName, resource, camelCase, IPlatform, createImplementationRegister, noop, toArray, pascalCase, ILogger, allResources } from '@aurelia/kernel';
+import { DI, Registration, getResourceKeyFor, registrableMetadataKey, emptyArray, resolve, IContainer, isString, firstDefined, mergeArrays, Protocol, resourceBaseName, resource, camelCase, IPlatform, createImplementationRegister, noop, toArray, pascalCase, ILogger, allResources } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { PrimitiveLiteralExpression, IExpressionParser } from '@aurelia/expression-parser';
 
-/** @internal */ const isString = (v) => typeof v === 'string';
-/** @internal */ const createInterface = DI.createInterface;
-/** @internal */ const objectFreeze = Object.freeze;
+/** @internal */ const tcCreateInterface = DI.createInterface;
+/** @internal */ const tcObjectFreeze = Object.freeze;
 /** @internal */ const { aliasTo: aliasRegistration, singleton: singletonRegistration } = Registration;
 /** ExpressionType */
 /** @internal */ const etInterpolation = 'Interpolation';
@@ -26,7 +25,7 @@ import { PrimitiveLiteralExpression, IExpressionParser } from '@aurelia/expressi
  * - 6 / two way - bindings should observe both target and source for changes to update the other side
  * - 0 / default - undecided mode, bindings, depends on the circumstance, may decide what to do accordingly
  */
-const BindingMode = /*@__PURE__*/ objectFreeze({
+const BindingMode = /*@__PURE__*/ tcObjectFreeze({
     /**
      * Unspecified mode, bindings may act differently with this mode
      */
@@ -40,12 +39,12 @@ const BindingMode = /*@__PURE__*/ objectFreeze({
 /**
  * An interface describing the template compiler used by Aurelia applicaitons
  */
-const ITemplateCompiler = /*@__PURE__*/ createInterface('ITemplateCompiler');
+const ITemplateCompiler = /*@__PURE__*/ tcCreateInterface('ITemplateCompiler');
 
 /**
  * An interface describing the API for mapping attributes to properties
  */
-const IAttrMapper = /*@__PURE__*/ createInterface('IAttrMapper');
+const IAttrMapper = /*@__PURE__*/ tcCreateInterface('IAttrMapper');
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
@@ -386,7 +385,7 @@ class SegmentTypes {
         this.symbols = 0;
     }
 }
-const ISyntaxInterpreter = /*@__PURE__*/ createInterface('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
+const ISyntaxInterpreter = /*@__PURE__*/ tcCreateInterface('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 /**
  * The default implementation of @see {ISyntaxInterpreter}.
  */
@@ -534,8 +533,8 @@ class AttrSyntax {
         this.parts = parts;
     }
 }
-const IAttributePattern = /*@__PURE__*/ createInterface('IAttributePattern');
-const IAttributeParser = /*@__PURE__*/ createInterface('IAttributeParser', x => x.singleton(AttributeParser));
+const IAttributePattern = /*@__PURE__*/ tcCreateInterface('IAttributePattern');
+const IAttributeParser = /*@__PURE__*/ tcCreateInterface('IAttributeParser', x => x.singleton(AttributeParser));
 /**
  * The default implementation of the @see IAttributeParser interface
  */
@@ -602,12 +601,11 @@ function attributePattern(...patternDefs) {
     return function decorator(target, context) {
         const registrable = AttributePattern.create(patternDefs, target);
         // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         context.metadata[registrableMetadataKey] = registrable;
         return target;
     };
 }
-const AttributePattern = /*@__PURE__*/ objectFreeze({
+const AttributePattern = /*@__PURE__*/ tcObjectFreeze({
     name: getResourceKeyFor('attribute-pattern'),
     create(patternDefs, Type) {
         return {
@@ -722,7 +720,7 @@ AtPrefixedTriggerAttributePattern[_e] = {
 /** @internal */ const spreadTransferedBinding = 'hs';
 /** @internal */ const spreadElementProp = 'hp';
 /** @internal */ const spreadValueBinding = 'svb';
-const InstructionType = /*@__PURE__*/ objectFreeze({
+const InstructionType = /*@__PURE__*/ tcObjectFreeze({
     hydrateElement,
     hydrateAttribute,
     hydrateTemplateController,
@@ -745,7 +743,7 @@ const InstructionType = /*@__PURE__*/ objectFreeze({
     spreadElementProp,
     spreadValueBinding,
 });
-const IInstruction = /*@__PURE__*/ createInterface('Instruction');
+const IInstruction = /*@__PURE__*/ tcCreateInterface('Instruction');
 class InterpolationInstruction {
     constructor(from, to) {
         this.from = from;
@@ -1014,7 +1012,7 @@ const BindingCommand = /*@__PURE__*/ (() => {
         }
         return def;
     };
-    return objectFreeze({
+    return tcObjectFreeze({
         name: cmdBaseName,
         keyFrom: getCommandKeyFrom,
         // isType<T>(value: T): value is (T extends Constructable ? BindingCommandType<T> : never) {
@@ -1314,7 +1312,7 @@ typeof SuppressedError === "function" ? SuppressedError : function (error, suppr
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
 };
 
-const ITemplateElementFactory = /*@__PURE__*/ createInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
+const ITemplateElementFactory = /*@__PURE__*/ tcCreateInterface('ITemplateElementFactory', x => x.singleton(TemplateElementFactory));
 const markupCache = {};
 class TemplateElementFactory {
     constructor() {
@@ -3024,8 +3022,8 @@ const orderSensitiveInputType = {
     radio: 1,
     // todo: range is also sensitive to order, for min/max
 };
-const IResourceResolver = /*@__PURE__*/ createInterface('IResourceResolver');
-const IBindingCommandResolver = /*@__PURE__*/ createInterface('IBindingCommandResolver', x => {
+const IResourceResolver = /*@__PURE__*/ tcCreateInterface('IResourceResolver');
+const IBindingCommandResolver = /*@__PURE__*/ tcCreateInterface('IBindingCommandResolver', x => {
     class DefaultBindingCommandResolver {
         constructor() {
             this._cache = new WeakMap();
@@ -3041,7 +3039,7 @@ const IBindingCommandResolver = /*@__PURE__*/ createInterface('IBindingCommandRe
     return x.singleton(DefaultBindingCommandResolver);
 });
 
-const allowedLocalTemplateBindableAttributes = objectFreeze([
+const allowedLocalTemplateBindableAttributes = tcObjectFreeze([
     "name" /* LocalTemplateBindableAttributes.name */,
     "attribute" /* LocalTemplateBindableAttributes.attribute */,
     "mode" /* LocalTemplateBindableAttributes.mode */
@@ -3066,8 +3064,8 @@ const processTemplateName = (owningElementName, localTemplate, localTemplateName
  *
  * A feature available to the default template compiler.
  */
-const ITemplateCompilerHooks = /*@__PURE__*/ createInterface('ITemplateCompilerHooks');
-const TemplateCompilerHooks = objectFreeze({
+const ITemplateCompilerHooks = /*@__PURE__*/ tcCreateInterface('ITemplateCompilerHooks');
+const TemplateCompilerHooks = tcObjectFreeze({
     name: /*@__PURE__*/ getResourceKeyFor('compiler-hooks'),
     define(Type) {
         return {

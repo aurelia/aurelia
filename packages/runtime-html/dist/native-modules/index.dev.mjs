@@ -3,7 +3,7 @@ import { isString, createLookup, isObject, isFunction, isArray, isArrayIndex, Pr
 import { AccessorType, connectable, subscriberCollection, IObserverLocator, ConnectableSwitcher, ProxyObservable, ICoercionConfiguration, PropertyAccessor, INodeObserverLocator, IDirtyChecker, getObserverLookup, SetterObserver, createIndexMap, getCollectionObserver as getCollectionObserver$1, DirtyChecker } from '../../../runtime/dist/native-modules/index.mjs';
 import { BindingMode, InstructionType, ITemplateCompiler, IInstruction, TemplateCompilerHooks, IAttrMapper, IResourceResolver, TemplateCompiler, AttributePattern, AttrSyntax, RefAttributePattern, DotSeparatedAttributePattern, EventAttributePattern, AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DefaultBindingCommand, OneTimeBindingCommand, FromViewBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, ForBindingCommand, RefBindingCommand, TriggerBindingCommand, CaptureBindingCommand, ClassBindingCommand, StyleBindingCommand, AttrBindingCommand, SpreadValueBindingCommand } from '../../../template-compiler/dist/native-modules/index.mjs';
 export { BindingCommand, BindingMode } from '../../../template-compiler/dist/native-modules/index.mjs';
-import { Metadata, isObject as isObject$1 } from '../../../metadata/dist/native-modules/index.mjs';
+import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 import { BrowserPlatform } from '../../../platform-browser/dist/native-modules/index.mjs';
 import { TaskAbortError } from '../../../platform/dist/native-modules/index.mjs';
 
@@ -4990,7 +4990,7 @@ class Controller {
         registerResolver(ctn, IHydrationContext, new InstanceProvider('IHydrationContext', new HydrationContext(controller, hydrationInst, hydrationContext)));
         controllerLookup.set(viewModel, controller);
         if (hydrationInst == null || hydrationInst.hydrate !== false) {
-            controller._hydrateCustomElement(hydrationInst, hydrationContext);
+            controller._hydrateCustomElement(hydrationInst);
         }
         return controller;
     }
@@ -5054,13 +5054,7 @@ class Controller {
         return controller;
     }
     /** @internal */
-    _hydrateCustomElement(hydrationInst, 
-    /**
-     * The context where this custom element is hydrated.
-     *
-     * This is the context controller creating this this controller
-     */
-    _hydrationContext) {
+    _hydrateCustomElement(hydrationInst) {
         {
             this.logger = this.container.get(ILogger).root;
             this.debug = this.logger.config.level <= LogLevel.debug;
@@ -5091,12 +5085,12 @@ class Controller {
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
         if (hydrationInst == null || hydrationInst.hydrate !== false) {
-            this._hydrate();
+            this._hydrate(hydrationInst?.hostController);
             this._hydrateChildren();
         }
     }
     /** @internal */
-    _hydrate() {
+    _hydrate(hostController) {
         if (this._lifecycleHooks.hydrating != null) {
             this._lifecycleHooks.hydrating.forEach(callHydratingHook, this);
         }
@@ -5114,11 +5108,17 @@ class Controller {
         const containerless = compiledDef.containerless;
         let host = this.host;
         let location = this.location;
-        if ((this.hostController = findElementControllerFor(host, optionalCeFind)) !== null) {
+        let createLocation = false;
+        if (hostController != null) {
+            this.hostController = hostController;
+            createLocation = true;
+        }
+        else if ((this.hostController = findElementControllerFor(host, optionalCeFind)) !== null) {
             host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-            if (containerless && location == null) {
-                location = this.location = convertToRenderLocation(host);
-            }
+            createLocation = true;
+        }
+        if (createLocation && containerless && location == null) {
+            location = this.location = convertToRenderLocation(host);
         }
         setRef(host, elementBaseName, this);
         setRef(host, definition.key, this);
@@ -5960,7 +5960,7 @@ function isCustomElementController(value) {
     return value instanceof Controller && value.vmKind === vmkCe;
 }
 function isCustomElementViewModel(value) {
-    return isObject$1(value) && isElementType(value.constructor);
+    return isElementType(value?.constructor);
 }
 class HooksDefinition {
     constructor(target) {
@@ -6731,7 +6731,7 @@ class AppRoot {
                 // there's proper error messages in case of failure inside the $el() call
                 : void 0;
             const controller = (this._controller = Controller.$el(childCtn, instance, host, hydrationInst, definition));
-            controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */ null);
+            controller._hydrateCustomElement(hydrationInst);
             return onResolve(this._runAppTasks('hydrating'), () => {
                 controller._hydrate();
                 return onResolve(this._runAppTasks('hydrated'), () => {

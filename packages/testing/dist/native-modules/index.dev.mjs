@@ -68,6 +68,7 @@ function isSymbol(arg) {
 function isUndefined(arg) {
     return arg === void 0;
 }
+/** @internal */
 function isObject(arg) {
     return arg !== null && typeof arg === 'object';
 }

@@ -4256,7 +4256,7 @@ class Controller {
         registerResolver(t, Ne, new e.InstanceProvider("IHydrationContext", new HydrationContext(a, n, h)));
         we.set(s, a);
         if (n == null || n.hydrate !== false) {
-            a.hE(n, h);
+            a.hE(n);
         }
         return a;
     }
@@ -4280,63 +4280,68 @@ class Controller {
         s.Pt();
         return s;
     }
-    hE(t, s) {
-        const i = this.container;
-        const n = this.At;
-        const r = this.definition;
-        this.scope = Scope.create(n, null, true);
-        if (r.watches.length > 0) {
-            createWatchers(this, i, r, n);
+    hE(t) {
+        const s = this.container;
+        const i = this.At;
+        const n = this.definition;
+        this.scope = Scope.create(i, null, true);
+        if (n.watches.length > 0) {
+            createWatchers(this, s, n, i);
         }
-        createObservers(this, r, n);
-        this.St = dt.resolve(i);
-        i.register(r.Type);
-        if (r.injectable !== null) {
-            registerResolver(i, r.injectable, new e.InstanceProvider("definition.injectable", n));
+        createObservers(this, n, i);
+        this.St = dt.resolve(s);
+        s.register(n.Type);
+        if (n.injectable !== null) {
+            registerResolver(s, n.injectable, new e.InstanceProvider("definition.injectable", i));
         }
         if (t == null || t.hydrate !== false) {
-            this.hS();
+            this.hS(t?.hostController);
             this.hC();
         }
     }
-    hS() {
+    hS(t) {
         if (this.St.hydrating != null) {
             this.St.hydrating.forEach(callHydratingHook, this);
         }
         if (this.Et.It) {
             this.At.hydrating(this);
         }
-        const t = this.definition;
-        const e = this._t = this.r.compile(t, this.container);
-        const s = e.shadowOptions;
-        const i = e.hasSlots;
-        const n = e.containerless;
-        let r = this.host;
-        let l = this.location;
-        if ((this.hostController = findElementControllerFor(r, Ae)) !== null) {
-            r = this.host = this.container.root.get(lt).document.createElement(t.name);
-            if (n && l == null) {
-                l = this.location = convertToRenderLocation(r);
-            }
+        const e = this.definition;
+        const s = this._t = this.r.compile(e, this.container);
+        const i = s.shadowOptions;
+        const n = s.hasSlots;
+        const r = s.containerless;
+        let l = this.host;
+        let a = this.location;
+        let h = false;
+        if (t != null) {
+            this.hostController = t;
+            h = true;
+        } else if ((this.hostController = findElementControllerFor(l, Ae)) !== null) {
+            l = this.host = this.container.root.get(lt).document.createElement(e.name);
+            h = true;
         }
-        setRef(r, is, this);
-        setRef(r, t.key, this);
-        if (s !== null || i) {
-            if (l != null) {
+        if (h && r && a == null) {
+            a = this.location = convertToRenderLocation(l);
+        }
+        setRef(l, is, this);
+        setRef(l, e.key, this);
+        if (i !== null || n) {
+            if (a != null) {
                 throw createMappedError(501);
             }
-            setRef(this.shadowRoot = r.attachShadow(s ?? Te), is, this);
-            setRef(this.shadowRoot, t.key, this);
+            setRef(this.shadowRoot = l.attachShadow(i ?? Te), is, this);
+            setRef(this.shadowRoot, e.key, this);
             this.mountTarget = Ce;
-        } else if (l != null) {
-            setRef(l, is, this);
-            setRef(l, t.key, this);
+        } else if (a != null) {
+            setRef(a, is, this);
+            setRef(a, e.key, this);
             this.mountTarget = Be;
         } else {
             this.mountTarget = ke;
         }
         this.At.$controller = this;
-        this.nodes = this.r.createNodes(e);
+        this.nodes = this.r.createNodes(s);
         if (this.St.hydrated !== void 0) {
             this.St.hydrated.forEach(callHydratedHook, this);
         }
@@ -5031,7 +5036,7 @@ function isCustomElementController(t) {
 }
 
 function isCustomElementViewModel(t) {
-    return n.isObject(t) && isElementType(t.constructor);
+    return isElementType(t?.constructor);
 }
 
 class HooksDefinition {
@@ -5780,7 +5785,7 @@ class AppRoot {
                 enhance: true
             }) : void 0;
             const u = this.M = Controller.$el(i, a, r, h, c);
-            u.hE(h, null);
+            u.hE(h);
             return e.onResolve(this.de("hydrating"), (() => {
                 u.hS();
                 return e.onResolve(this.de("hydrated"), (() => {

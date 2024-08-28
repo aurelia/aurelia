@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/store-v1",
-  "version": "2.1.0-dev.202408250950",
+  "version": "2.1.0-dev.202408281340",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -53,10 +53,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202408250950",
-    "@aurelia/metadata": "2.1.0-dev.202408250950",
-    "@aurelia/platform": "2.1.0-dev.202408250950",
-    "@aurelia/runtime-html": "2.1.0-dev.202408250950",
+    "@aurelia/kernel": "2.1.0-dev.202408281340",
+    "@aurelia/metadata": "2.1.0-dev.202408281340",
+    "@aurelia/platform": "2.1.0-dev.202408281340",
+    "@aurelia/runtime-html": "2.1.0-dev.202408281340",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {

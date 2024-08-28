@@ -407,8 +407,8 @@ export class RouteContext {
         config => this._processConfig(config)
       );
     return onResolve(task, () => {
-      const controller = Controller.$el(container, componentInstance, host, null, elDefn);
-      const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options, hostController, host);
+      const controller = Controller.$el(container, componentInstance, host, { hostController: hostController as unknown as Controller, projections: null }, elDefn);
+      const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
 
       this._hostControllerProvider.dispose();
 

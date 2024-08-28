@@ -1,4 +1,4 @@
-import { ILogger, onResolve } from '@aurelia/kernel';
+import { ILogger } from '@aurelia/kernel';
 import type { ICustomElementController, ICustomElementViewModel, IHydratedController, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { Events, trace } from './events';
@@ -46,8 +46,6 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     /** @internal */ public readonly _routeNode: RouteNode,
     /** @internal */ private readonly _ctx: IRouteContext,
     /** @internal */ private readonly _routerOptions: RouterOptions,
-    private readonly hostController: ICustomElementController,
-    private readonly host: HTMLElement,
   ) {
     this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
 
@@ -66,43 +64,26 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
-    // TODO:
-    // This is a quick-fix; we should ideally make it a part of the controller so that a hostController and a host can be supplied from outside such that the host is not overwritten.
-    // The host should be detached during deactivation from the hostController.
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caActivateSelf);
-      return onResolve(this._controller.activate(this._controller, parent), () => this._attachHost());
+      return this._controller.activate(this._controller, parent);
     }
 
     if (__DEV__) trace(this._logger, Events.caActivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void onResolve(this._controller.activate(initiator, parent), () => this._attachHost());
+    void this._controller.activate(initiator, parent);
   }
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
-      return onResolve(this._controller.deactivate(this._controller, parent), () => this._removeHost());
+      return this._controller.deactivate(this._controller, parent);
     }
 
     if (__DEV__) trace(this._logger, Events.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void onResolve(this._controller.deactivate(initiator, parent), () => this._removeHost());
-  }
-
-  // Somehow the @bound is not working here; probably because of minification.
-  /** @internal */
-  private _attachHost() {
-    this.hostController.host.appendChild(this.host);
-  }
-
-  /** @internal */
-  private _removeHost() {
-    const parent = this.hostController.host;
-    const child = this.host;
-    if (!parent.contains(child)) return;
-    parent.removeChild(child);
+    void this._controller.deactivate(initiator, parent);
   }
 
   /** @internal */

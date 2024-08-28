@@ -14,7 +14,6 @@ import {
   isPromise,
   isString,
 } from '@aurelia/kernel';
-import { isObject } from '@aurelia/metadata';
 import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
 import {
   ICoercionConfiguration,
@@ -1379,7 +1378,7 @@ export function isCustomElementController<C extends ICustomElementViewModel = IC
 }
 
 export function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel {
-  return isObject(value) && isElementType(value.constructor);
+  return isElementType(value?.constructor);
 }
 
 class HooksDefinition {

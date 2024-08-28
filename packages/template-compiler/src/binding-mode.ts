@@ -1,4 +1,4 @@
-import { objectFreeze } from './utilities';
+import { tcObjectFreeze } from './utilities';
 
 // Note: the oneTime binding now has a non-zero value for 2 reasons:
 //  - plays nicer with bitwise operations (more consistent code, more explicit settings)
@@ -14,7 +14,7 @@ import { objectFreeze } from './utilities';
  * - 6 / two way - bindings should observe both target and source for changes to update the other side
  * - 0 / default - undecided mode, bindings, depends on the circumstance, may decide what to do accordingly
  */
-export const BindingMode = /*@__PURE__*/ objectFreeze({
+export const BindingMode = /*@__PURE__*/ tcObjectFreeze({
   /**
    * Unspecified mode, bindings may act differently with this mode
    */

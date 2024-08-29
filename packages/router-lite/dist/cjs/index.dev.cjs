@@ -4394,7 +4394,7 @@ class RouteContext {
             ? void 0
             : kernel.onResolve(resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null), config => this._processConfig(config));
         return kernel.onResolve(task, () => {
-            const controller = runtimeHtml.Controller.$el(container, componentInstance, hostController.host, null, elDefn);
+            const controller = runtimeHtml.Controller.$el(container, componentInstance, host, { hostController: hostController, projections: null }, elDefn);
             const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
             this._hostControllerProvider.dispose();
             return componentAgent;

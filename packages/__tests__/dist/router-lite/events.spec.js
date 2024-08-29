@@ -469,7 +469,7 @@ describe('router-lite/events.spec.ts', function () {
         const service = container.get(IRouterEventLoggerService);
         const router = container.get(IRouter);
         // init
-        assert.html.textContent(host, 'c1');
+        assert.html.textContent(host, 'c1', 'initial');
         // round#1
         service.clear();
         try {
@@ -479,7 +479,7 @@ describe('router-lite/events.spec.ts', function () {
         catch (e) {
             /* noop */
         }
-        assert.html.textContent(host, 'c1');
+        assert.html.textContent(host, 'c1', 'post-erred navigation');
         assert.deepStrictEqual(service.log, [
             'au:router:navigation-start - 2 - \'c2\'',
             'au:router:navigation-error - 2 - \'c2\' - Error: synthetic test error',

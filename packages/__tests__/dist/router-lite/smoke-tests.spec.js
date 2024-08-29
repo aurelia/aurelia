@@ -11756,17 +11756,22 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         })();
         const { au, container, host } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-        await assertElement('c1', 'c-1', 'C-1', 'c1');
-        await assertElement('c2', 'c-2', 'C-2', 'c2');
-        await assertElement('c3', 'c-3', 'C-3', 'c3');
+        await assertElement('c1', 'C-1', 'c1');
+        await assertElement('c2', 'C-2', 'c2');
+        await assertElement('c3', 'C-3', 'c3');
         await au.stop(true);
         assert.html.innerEqual(host, '');
-        async function assertElement(route, query, tagName, content) {
+        async function assertElement(route, tagName, content) {
             await router.load(route);
-            const vmEl = host.querySelector(query);
+            const vp = host.querySelector('au-viewport');
+            const children = vp.children;
+            // asserts that every other components gets detached correctly, leaving no residue in DOM
+            assert.strictEqual(children.length, 1);
+            const vmEl = children[0];
+            assert.strictEqual(vmEl.tagName, tagName);
             const vm = CustomElement.for(vmEl).viewModel;
-            assert.strictEqual(vm.el.tagName, tagName);
-            assert.html.innerEqual(vmEl, content);
+            assert.deepStrictEqual(vm.el, vmEl);
+            assert.html.innerEqual(vm.el, content);
         }
     });
     it('injects element correctly - sibling', async function () {
@@ -11855,18 +11860,25 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         })();
         const { au, container, host } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-        await assertElement('c1+c2', [['c-1', 'C-1', 'c1'], ['c-2', 'C-2', 'c2']]);
-        await assertElement('c2+c3', [['c-2', 'C-2', 'c2'], ['c-3', 'C-3', 'c3']]);
-        await assertElement('c3+c1', [['c-3', 'C-3', 'c3'], ['c-1', 'C-1', 'c1']]);
+        await assertElement('c1+c2', [['C-1', 'c1'], ['C-2', 'c2']]);
+        await assertElement('c2+c3', [['C-2', 'c2'], ['C-3', 'c3']]);
+        await assertElement('c3+c1', [['C-3', 'c3'], ['C-1', 'c1']]);
         await au.stop(true);
         assert.html.innerEqual(host, '');
         async function assertElement(route, expectations) {
             await router.load(route);
-            for (const [query, tagName, content] of expectations) {
-                const vmEl = host.querySelector(query);
+            const vps = Array.from(host.querySelectorAll('au-viewport'));
+            const children = vps.flatMap(x => Array.from(x.children));
+            const len = expectations.length;
+            // asserts that every other components gets detached correctly, leaving no residue in DOM
+            assert.strictEqual(children.length, len);
+            for (let i = 0; i < len; ++i) {
+                const vmEl = children[i];
+                const [tagName, content] = expectations[i];
+                assert.strictEqual(vmEl.tagName, tagName);
                 const vm = CustomElement.for(vmEl).viewModel;
-                assert.strictEqual(vm.el.tagName, tagName);
-                assert.html.innerEqual(vmEl, content);
+                assert.deepStrictEqual(vm.el, vmEl);
+                assert.html.innerEqual(vm.el, content);
             }
         }
     });
@@ -12009,8 +12021,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
             return Root = _classThis;
         })();
         class Expectation {
-            constructor(query, tagName, content, child) {
-                this.query = query;
+            constructor(tagName, content, child) {
                 this.tagName = tagName;
                 this.content = content;
                 this.child = child;
@@ -12018,24 +12029,31 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         }
         const { au, container, host } = await start({ appRoot: Root });
         const router = container.get(IRouter);
-        await assertElement('p-1/c-11', new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-11>c11</c-11></au-viewport>', new Expectation('c-11', 'C-11', 'c11')));
-        await assertElement('p-2/c-21', new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-21>c21</c-21></au-viewport>', new Expectation('c-21', 'C-21', 'c21')));
-        await assertElement('p-1/c-12', new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-12>c12</c-12></au-viewport>', new Expectation('c-12', 'C-12', 'c12')));
-        await assertElement('p-2/c-22', new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-22>c22</c-22></au-viewport>', new Expectation('c-22', 'C-22', 'c22')));
+        await assertElement('p-1/c-11', new Expectation('P-1', 'p1 <au-viewport><c-11>c11</c-11></au-viewport>', new Expectation('C-11', 'c11')));
+        await assertElement('p-2/c-21', new Expectation('P-2', 'p2 <au-viewport><c-21>c21</c-21></au-viewport>', new Expectation('C-21', 'c21')));
+        await assertElement('p-1/c-12', new Expectation('P-1', 'p1 <au-viewport><c-12>c12</c-12></au-viewport>', new Expectation('C-12', 'c12')));
+        await assertElement('p-2/c-22', new Expectation('P-2', 'p2 <au-viewport><c-22>c22</c-22></au-viewport>', new Expectation('C-22', 'c22')));
         await au.stop(true);
         assert.html.innerEqual(host, '');
         async function assertElement(route, expectation) {
             await router.load(route);
-            const { query, tagName, content, child } = expectation;
-            assertCore(query, tagName, content);
+            const vp = host.querySelector('au-viewport');
+            const children = vp.children;
+            // asserts that every other components gets detached correctly, leaving no residue in DOM
+            assert.strictEqual(children.length, 1);
+            const { tagName, content, child } = expectation;
+            assertCore(children[0], tagName, content);
             if (child == null)
                 return;
-            assertCore(`${query} ${child.query}`, child.tagName, child.content);
-            function assertCore(query, tagName, content) {
-                const vmEl = host.querySelector(query);
+            const childVp = children[0].querySelector('au-viewport');
+            const grandChildren = childVp.children;
+            assert.strictEqual(grandChildren.length, 1);
+            assertCore(grandChildren[0], child.tagName, child.content);
+            function assertCore(vmEl, tagName, content) {
+                assert.strictEqual(vmEl.tagName, tagName);
                 const vm = CustomElement.for(vmEl).viewModel;
-                assert.strictEqual(vm.el.tagName, tagName);
-                assert.html.innerEqual(vmEl, content);
+                assert.deepStrictEqual(vm.el, vmEl);
+                assert.html.innerEqual(vm.el, content);
             }
         }
     });
@@ -12178,8 +12196,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
             return Root = _classThis;
         })();
         class Expectation {
-            constructor(query, tagName, content, children) {
-                this.query = query;
+            constructor(tagName, content, children) {
                 this.tagName = tagName;
                 this.content = content;
                 this.children = children;
@@ -12188,43 +12205,52 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         const { au, container, host } = await start({ appRoot: Root });
         const router = container.get(IRouter);
         await assertElement('p-1/(c-11+c-12)+p-2/(c-21+c-22)', [
-            new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-11>c11</c-11></au-viewport><au-viewport><c-12>c12</c-12></au-viewport>', [
-                new Expectation('c-11', 'C-11', 'c11'),
-                new Expectation('c-12', 'C-12', 'c12'),
+            new Expectation('P-1', 'p1 <au-viewport><c-11>c11</c-11></au-viewport><au-viewport><c-12>c12</c-12></au-viewport>', [
+                new Expectation('C-11', 'c11'),
+                new Expectation('C-12', 'c12'),
             ]),
-            new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-21>c21</c-21></au-viewport><au-viewport><c-22>c22</c-22></au-viewport>', [
-                new Expectation('c-21', 'C-21', 'c21'),
-                new Expectation('c-22', 'C-22', 'c22'),
+            new Expectation('P-2', 'p2 <au-viewport><c-21>c21</c-21></au-viewport><au-viewport><c-22>c22</c-22></au-viewport>', [
+                new Expectation('C-21', 'c21'),
+                new Expectation('C-22', 'c22'),
             ]),
         ]);
         await assertElement('p-2/(c-22+c-21)+p-1/(c-12+c-11)', [
-            new Expectation('p-2', 'P-2', 'p2 <au-viewport><c-22>c22</c-22></au-viewport><au-viewport><c-21>c21</c-21></au-viewport>', [
-                new Expectation('c-21', 'C-21', 'c21'),
-                new Expectation('c-22', 'C-22', 'c22'),
+            new Expectation('P-2', 'p2 <au-viewport><c-22>c22</c-22></au-viewport><au-viewport><c-21>c21</c-21></au-viewport>', [
+                new Expectation('C-22', 'c22'),
+                new Expectation('C-21', 'c21'),
             ]),
-            new Expectation('p-1', 'P-1', 'p1 <au-viewport><c-12>c12</c-12></au-viewport><au-viewport><c-11>c11</c-11></au-viewport>', [
-                new Expectation('c-11', 'C-11', 'c11'),
-                new Expectation('c-12', 'C-12', 'c12'),
+            new Expectation('P-1', 'p1 <au-viewport><c-12>c12</c-12></au-viewport><au-viewport><c-11>c11</c-11></au-viewport>', [
+                new Expectation('C-12', 'c12'),
+                new Expectation('C-11', 'c11'),
             ]),
         ]);
         await au.stop(true);
         assert.html.innerEqual(host, '');
         async function assertElement(route, expectations) {
             await router.load(route);
-            for (const expectation of expectations) {
-                const { query, tagName, content, children } = expectation;
-                assertCore(query, tagName, content);
+            const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
+            const childrenVmEls = vps.flatMap(x => Array.from(x.children));
+            const len = expectations.length;
+            // asserts that every other components gets detached correctly, leaving no residue in DOM
+            assert.strictEqual(childrenVmEls.length, len);
+            for (let i = 0; i < len; ++i) {
+                const { tagName, content, children } = expectations[i];
+                assertCore(childrenVmEls[i], tagName, content);
                 if (children == null)
                     continue;
-                for (const child of children) {
-                    assertCore(`${query} ${child.query}`, child.tagName, child.content);
+                const childVps = Array.from(childrenVmEls[i].querySelectorAll(':scope>au-viewport'));
+                const grandChildrenVmEls = childVps.flatMap(x => Array.from(x.children));
+                const grandChildLen = children.length;
+                assert.strictEqual(grandChildrenVmEls.length, grandChildLen);
+                for (let j = 0; j < grandChildLen; ++j) {
+                    assertCore(grandChildrenVmEls[j], children[j].tagName, children[j].content);
                 }
             }
-            function assertCore(query, tagName, content) {
-                const vmEl = host.querySelector(query);
+            function assertCore(vmEl, tagName, content) {
+                assert.strictEqual(vmEl.tagName, tagName);
                 const vm = CustomElement.for(vmEl).viewModel;
-                assert.strictEqual(vm.el.tagName, tagName);
-                assert.html.innerEqual(vmEl, content);
+                assert.deepStrictEqual(vm.el, vmEl);
+                assert.html.innerEqual(vm.el, content);
             }
         }
     });

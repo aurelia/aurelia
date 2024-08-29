@@ -3509,7 +3509,10 @@ class RouteContext {
         const a = s.invoke(n.Type);
         const c = this.es ? void 0 : r(resolveRouteConfiguration(a, false, this.config, e, null), (t => this.cs(t)));
         return r(c, (() => {
-            const i = b.$el(s, a, t.host, null, n);
+            const i = b.$el(s, a, o, {
+                hostController: t,
+                projections: null
+            }, n);
             const r = new ComponentAgent(a, i, e, this, this.Ze.options);
             this.ns.dispose();
             return r;

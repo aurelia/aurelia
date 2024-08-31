@@ -992,7 +992,7 @@ function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruc
   logger.warn(error, error.remainingInstructions);
   if (__DEV__) {
     // eslint-disable-next-line no-console
-    // console.log(error, error.remainingInstructions);
+    console.log(error, error.remainingInstructions);
   }
   return error as UnresolvedInstructionsError;
 }

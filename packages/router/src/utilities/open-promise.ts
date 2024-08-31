@@ -56,5 +56,3 @@ export class OpenPromise<T = void> {
     OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
   }
 }
-
-(window as any).OpenPromise = OpenPromise;

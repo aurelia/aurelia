@@ -484,11 +484,19 @@ export class Router implements IRouter {
         .forEach(scope => coordinator.ensureClearStateInstruction(scope));
     }
 
-    await coordinator.processInstructions();
+    let guard = 100;
+    do {
+      if (!guard--) { // Guard against endless loop
+        this.unresolvedInstructionsError(navigation, coordinator.instructions);
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await coordinator.processInstructions();
+    } while (coordinator.instructions.length > 0);
 
     // TODO: Look into adding everything above as well
-    return Runner.run(null,
+    return Runner.run('processNavigation',
       () => {
+        // console.log('### processNavigation DONE', coordinator.navigation.instruction, coordinator.navigation, coordinator);
         coordinator.closed = true;
         coordinator.finalEndpoint();
         return coordinator.waitForSyncState('completed');
@@ -984,7 +992,7 @@ function createUnresolvedinstructionsError(remainingInstructions: RoutingInstruc
   logger.warn(error, error.remainingInstructions);
   if (__DEV__) {
     // eslint-disable-next-line no-console
-    console.log(error, error.remainingInstructions);
+    // console.log(error, error.remainingInstructions);
   }
   return error as UnresolvedInstructionsError;
 }

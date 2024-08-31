@@ -29,7 +29,7 @@ export class AwaitableMap<K, V> {
 
   public await(key: K): V | Promise<V> {
     if (!this.map.has(key)) {
-      const openPromise = new OpenPromise<V>();
+      const openPromise = new OpenPromise<V>(`AwaitableMap: ${key}`);
       this.map.set(key, openPromise);
       return openPromise.promise;
     }

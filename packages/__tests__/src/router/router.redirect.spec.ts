@@ -79,20 +79,32 @@ describe('router/router.redirect.spec.ts', function () {
 
   this.timeout(30000);
 
-  const routes = [
-    { path: ['', 'home'], component: 'defaultpage' },
-    { path: 'route-zero', component: 'zero' },
-    { path: 'route-one', component: 'one' },
-    { path: 'route-two', component: 'two' },
-    { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
-  ];
-
   const DefaultPage = CustomElement.define({ name: 'defaultpage', template: '!root!' });
-  const Zero = CustomElement.define({ name: 'zero', template: '!zero!' });
+  const Zero = CustomElement.define({ name: 'zero', template: '!zero!' }, class Zero { });
   const One = CustomElement.define({ name: 'one', template: '!one!<au-viewport name="one-vp"></au-viewport>' });
   const Two = CustomElement.define({ name: 'two', template: '!two!', }, class { public canLoad() { return 'route-zero'; } });
   const Three = CustomElement.define({ name: 'three', template: '!three!', }, class { public canLoad() { return 'zero'; } });
   const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
+  const Five = CustomElement.define({ name: 'five', template: '!five!', }, class { public async canLoad() { return 'route-zero'; } });
+
+  const routeSets = [
+    [
+      { path: ['', 'home'], component: 'defaultpage' },
+      { path: 'route-zero', component: Zero },
+      { path: 'route-one', component: 'one' },
+      { path: 'route-two', component: 'two' },
+      { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
+      { path: 'route-five', component: Promise.resolve(Five) },
+    ],
+    [
+      { path: ['', 'home'], component: 'defaultpage' },
+      { path: 'route-zero', component: Promise.resolve(Zero) },
+      { path: 'route-one', component: 'one' },
+      { path: 'route-two', component: 'two' },
+      { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
+      { path: 'route-five', component: Promise.resolve(Five) },
+    ],
+  ];
 
   const tests = [
     { load: '/', result: '!root!', path: '/', },
@@ -136,6 +148,8 @@ describe('router/router.redirect.spec.ts', function () {
     { load: '/four/one', result: '!zero!', path: '/route-zero-id', },
     { load: '/route-one/four/one', result: '!one!!zero!', path: '/route-one/route-zero-id', },
     { load: '/route-one/one/four/one', result: '!one!!one!!zero!', path: '/route-one/one/route-zero-id', },
+
+    { load: '/route-five', result: '!zero!', path: '/route-zero', },
   ];
 
   const routerConfigs: IRouterOptions[] = [
@@ -171,57 +185,76 @@ describe('router/router.redirect.spec.ts', function () {
         //   locationPath = path;
         // }
       };
-      for (const test of tests) {
-        it(`to route in canLoad (${test.load})`, async function () {
-          const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
+      for (const routes of routeSets) {
+        for (const test of tests) {
+          it(`to route in canLoad (${test.load})`, async function () {
+            const { platform, host, router, $teardown } = await $setup(routerConfig, [DefaultPage, Zero, One, Two, Three, Four], routes, locationCallback);
 
-          // 0) Default root page
-          assert.strictEqual(host.textContent, '!root!', '0) root default page');
-          assert.strictEqual(locationPath, '/', '0) root path');
+            // 0) Default root page
+            assert.strictEqual(host.textContent, '!root!', '0) root default page');
+            assert.strictEqual(locationPath, '/', '0) root path');
 
-          // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
-          await $load('-', router, platform);
-          // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, '!root!', `1) ${test.load} -`); // Clearing the content now triggers the defaults
-          assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
+            // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
+            await $load('-', router, platform);
+            // await platform.domQueue.yield();
+            assert.strictEqual(host.textContent, '!root!', `1) ${test.load} -`); // Clearing the content now triggers the defaults
+            assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
 
-          // 2) Load the wanted page
-          await $load(test.load, router, platform);
-          // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
-          assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
+            // 2) Load the wanted page
+            await $load(test.load, router, platform);
 
-          // 3) Unload
-          await $load('-', router, platform);
-          // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, '!root!', `3) ${test.load} -`); // Clearing the content now triggers the defaults
-          assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
+            // await new Promise((r) => setTimeout(r, 25));
 
-          // 4) reload
-          await $load(test.load, router, platform);
-          // await platform.domQueue.yield();
-          assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
-          assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
+            // await platform.domQueue.yield();
+            assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
+            assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
 
-          // 5. back to (3) empty
-          await $goBack(router, platform);
-          assert.strictEqual(host.textContent, '!root!', `5) back to empty content (-)`); // Clearing the content now triggers the defaults
-          assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
-          // 6. back to (2) the page
-          await $goBack(router, platform);
-          assert.strictEqual(host.textContent, test.result, `6) back to ${test.load} content`);
-          assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
-          // 7. back to (1) empty
-          await $goBack(router, platform);
-          assert.strictEqual(host.textContent, '!root!', `7) back to empty content (-)`); // Clearing the content now triggers the defaults
-          assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
-          // 8. back to the root page (0)
-          await $goBack(router, platform);
-          assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
-          assert.strictEqual(locationPath, '/', '8) back to root default path');
+            // 3) Unload
+            await $load('-', router, platform);
+            // await platform.domQueue.yield();
+            assert.strictEqual(host.textContent, '!root!', `3) ${test.load} -`); // Clearing the content now triggers the defaults
+            assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
 
-          await $teardown();
-        });
+            // 4) reload
+            await $load(test.load, router, platform);
+
+            // await new Promise((r) => setTimeout(r, 25));
+
+            assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
+            assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
+
+            // 5. back to (3) empty
+            await $goBack(router, platform);
+
+            // await new Promise((r) => setTimeout(r, 25));
+
+            assert.strictEqual(host.textContent, '!root!', `5) back to empty content (-)`); // Clearing the content now triggers the defaults
+            assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
+            // 6. back to (2) the page
+            await $goBack(router, platform);
+
+            // await new Promise((r) => setTimeout(r, 25));
+
+            assert.strictEqual(host.textContent, test.result, `6) back to ${test.load} content`);
+            assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
+            // 7. back to (1) empty
+            await $goBack(router, platform);
+
+            // await new Promise((r) => setTimeout(r, 25));
+
+            assert.strictEqual(host.textContent, '!root!', `7) back to empty content (-)`); // Clearing the content now triggers the defaults
+            assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
+            // 8. back to the root page (0)
+            await $goBack(router, platform);
+
+            // await new Promise((r) => setTimeout(r, 25));
+
+            assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
+            assert.strictEqual(locationPath, '/', '8) back to root default path');
+
+            await $teardown();
+          });
+        }
       }
     });
   }

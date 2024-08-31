@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, LoadInstruction } from '../interfaces';
@@ -434,6 +435,7 @@ export class Viewport extends Endpoint {
    * @param coordinator - The coordinator of the navigation
    */
   public async transition(coordinator: NavigationCoordinator): Promise<void> {
+    // console.log('transition', ...this.contents.map(c => c.instruction.component.name ?? c.instruction.component.instance?.constructor.name));
     const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
 
     this.coordinators.push(coordinator);
@@ -476,19 +478,30 @@ export class Viewport extends Endpoint {
           if ((step.previousValue ?? true) === false) { // canUnloadResult: boolean
             // step.cancel();
             coordinator.cancel();
-          } else {
-            if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
-              const routerOptions = this.router.configuration.options;
-              this.getNavigationContent(coordinator)!.createComponent(
-                coordinator,
-                this.connectedCE!,
-                this.options.fallback || routerOptions.fallback,
-                this.options.fallbackAction || routerOptions.fallbackAction);
-            }
           }
         }
-        coordinator.addEndpointState(this, 'guardedUnload');
       },
+
+      (step: Step<boolean>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          return RoutingInstruction.resolve([this.getNavigationContent(coordinator)!.instruction]);
+        }
+      },
+
+      (step: Step<boolean>) => {
+        if (this.isActiveNavigation(coordinator)) {
+          if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
+            const routerOptions = this.router.configuration.options;
+            return this.getNavigationContent(coordinator)!.createComponent(
+              coordinator,
+              this.connectedCE!,
+              this.options.fallback || routerOptions.fallback,
+              this.options.fallbackAction || routerOptions.fallbackAction);
+          }
+        }
+      },
+
+      () => coordinator.addEndpointState(this, 'guardedUnload'),
       () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
       () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
 
@@ -529,9 +542,12 @@ export class Viewport extends Endpoint {
               canLoadResult = instructions;
             }
             return Runner.run(step,
-              (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
-              (innerStep: Step<void>) => {
+              () => {
                 void this.router.load(canLoadResult, { append: coordinator });
+              },
+              (innerStep: Step<void>) => this.cancelContentChange(coordinator, innerStep),
+              () => RoutingInstruction.resolve(canLoadResult as RoutingInstruction[]),
+              (innerStep: Step<void>) => {
                 return innerStep.exit();
               },
             );
@@ -608,7 +624,7 @@ export class Viewport extends Endpoint {
     this.connectedCE?.setActivity?.(coordinator.navigation.navigation, true);
 
     // Run the steps and do the transition
-    const result = Runner.run(null,
+    const result = Runner.run('transition',
       (step: Step<void>) => coordinator.setEndpointStep(this, step.root),
       ...guardSteps,
       ...routingSteps,

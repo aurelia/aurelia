@@ -54,15 +54,15 @@ export class Runner {
    * If first parameter is an existing Step, the additional steps will be added to run after it. In this
    * case, the return value will be the first new step and not the result (since it doesn't exist yet).
    */
-  public static run<T = unknown>(predecessor: Step<T> | null, ...steps: unknown[]): T | Promise<T> | Step<T> {
+  public static run<T = unknown>(predecessor: Step<T> | null | string, ...steps: unknown[]): T | Promise<T> | Step<T> {
     if (steps.length === 0) {
       return void 0 as T;
     }
 
     let newRoot = false;
     // No predecessor, so create a new root and add steps as children to it
-    if (predecessor === null) {
-      predecessor = new Step<T>();
+    if (predecessor === null || typeof predecessor === 'string') {
+      predecessor = new Step<T>(predecessor);
       newRoot = true;
     }
 
@@ -135,6 +135,21 @@ export class Runner {
     }
 
     return newRoot ? (parent.result ?? []) as T[] | Promise<T[]> : parent;
+  }
+
+  /**
+   * Runs a function with a value or, if the value is a promise, the resolved value and
+   * returns the result
+   *
+   * @param valueOrPromise - The value or promise to run the function with
+   * @param func - The function to run
+   * @returns The result of the function or a promise that resolves to the result
+   */
+  public static runWith<T = unknown, R = unknown>(valueOrPromise: T | Promise<T>, func: (value: T) => R | Promise<R>): R | Promise<R> {
+    if (valueOrPromise instanceof Promise) {
+      return valueOrPromise.then(func);
+    }
+    return func(valueOrPromise);
   }
 
   /**
@@ -291,7 +306,7 @@ export class Runner {
 
   private static ensurePromise<T = unknown>(step: Step<T>): boolean {
     if (step.finally === null) {
-      step.finally = new OpenPromise();
+      step.finally = new OpenPromise(`Runner: ${step.name}, ${step.previousValue}, ${step.value}, ${step.root.report}`);
       step.promise = step.finally.promise;
       return true;
     }
@@ -339,6 +354,9 @@ export class Step<T = unknown> {
     public runParallel: boolean = false,
   ) {
     this.id = `${Step.id++}`;
+    if (typeof step === 'string') {
+      this.id += ` ${step}`;
+    }
   }
 
   public get isParallelParent(): boolean {

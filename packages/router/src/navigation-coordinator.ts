@@ -354,11 +354,6 @@ export class NavigationCoordinator {
           // of a configured route.
           // Inform endpoint of new content and retrieve the action it'll take
           const action = endpoint.setNextContent(matchedInstruction, this.navigation);
-          if (action !== 'skip') {
-            // Add endpoint to changed endpoints this iteration and to the coordinator's purview
-            changedEndpoints.push(endpoint);
-            this.addEndpoint(endpoint);
-          }
           // We're doing something, so don't clear this endpoint...
           const dontClear = [endpoint];
           if (action === 'swap') {
@@ -396,6 +391,11 @@ export class NavigationCoordinator {
             // If there are no next scope instructions the endpoint's scope (its children)
             // needs to be cleared
             clearEndpoints.push(...(matchedInstruction.endpoint.instance as Endpoint).scope.children.map(s => s.endpoint));
+          }
+          if (action !== 'skip') {
+            // Add endpoint to changed endpoints this iteration and to the coordinator's purview
+            changedEndpoints.push(endpoint);
+            this.addEndpoint(endpoint);
           }
         }
       }
@@ -542,7 +542,7 @@ export class NavigationCoordinator {
    * @param state - The state to add
    */
   public addSyncState(state: NavigationState): void {
-    const openPromise = new OpenPromise();
+    const openPromise = new OpenPromise(`addSyncState: ${state}`);
     this.syncStates.set(state, openPromise);
   }
 
@@ -671,7 +671,7 @@ export class NavigationCoordinator {
       if (entity?.syncPromise === null && openPromise.isPending) {
         // ...mark the entity as waiting for the state.
         entity.syncingState = state;
-        entity.syncPromise = new OpenPromise();
+        entity.syncPromise = new OpenPromise(`waitForSyncState: ${state}`);
         // Also add the state as checked for the entity...
         entity.checkedStates.push(state);
         // ...and over all.
@@ -716,7 +716,7 @@ export class NavigationCoordinator {
     let openPromise = entity.states.get(state);
     // ...creating a new one if necessary.
     if (openPromise == null) {
-      openPromise = new OpenPromise();
+      openPromise = new OpenPromise(`waitForEndpointState: ${state}`);
       entity.states.set(state, openPromise);
     }
 

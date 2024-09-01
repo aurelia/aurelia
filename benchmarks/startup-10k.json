@@ -12,7 +12,9 @@
       "measurement": [
         { "name": "perf", "mode": "performance", "entryName": "startup-10k" },
         { "name": "memory", "mode": "expression", "expression": "jsHeapSize" },
-        { "name": "perf-ce", "mode": "performance", "entryName": "startup-ce-10k" }
+        { "name": "--mem--", "mode": "expression", "expression": "jsHeapSizeMid" },
+        { "name": "perf-ce", "mode": "performance", "entryName": "startup-ce-10k" },
+        { "name": "memory-ce", "mode": "expression", "expression": "jsHeapSizeCe" }
       ],
       "expand": [
         {

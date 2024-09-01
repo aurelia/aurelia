@@ -674,8 +674,10 @@ jobs:
           key: cache-{{ .Revision }}-benchmark-app
           paths:
             - benchmarks/latest/dist/app.latest.js
+            - benchmarks/latest/dist/app-repeat-ce.latest.js
             - benchmarks/latest/dist/app-big-template.latest.js
             - benchmarks/local/dist/app.local.js
+            - benchmarks/local/dist/app-repeat-ce.local.js
             - benchmarks/local/dist/app-big-template.local.js
 
   tacho_benchmark:

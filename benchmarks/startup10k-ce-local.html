@@ -3,7 +3,7 @@ import { start } from './local/dist/app-repeat-ce.local.js';
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('10k-start');
-start(host, 10000);
+const au = start(host, 10000);
 performance.mark('10k-end');
 performance.measure('startup-10k', '10k-start', '10k-end');
 

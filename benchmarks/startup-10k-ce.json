@@ -16,11 +16,11 @@
       "expand": [
         {
           "name": "startup 10k CE latest",
-          "url": "startup-10k-ce-latest.html"
+          "url": "startup10k-ce-latest.html"
         },
         {
           "name": "startup 10k CE local",
-          "url": "startup-10k-ce-local.html"
+          "url": "startup10k-ce-local.html"
         }
       ]
     }

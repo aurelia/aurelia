@@ -138,21 +138,6 @@ export class Runner {
   }
 
   /**
-   * Runs a function with a value or, if the value is a promise, the resolved value and
-   * returns the result
-   *
-   * @param valueOrPromise - The value or promise to run the function with
-   * @param func - The function to run
-   * @returns The result of the function or a promise that resolves to the result
-   */
-  public static runWith<T = unknown, R = unknown>(valueOrPromise: T | Promise<T>, func: (value: T) => R | Promise<R>): R | Promise<R> {
-    if (valueOrPromise instanceof Promise) {
-      return valueOrPromise.then(func);
-    }
-    return func(valueOrPromise);
-  }
-
-  /**
    * Gets the starting step for a promise returned by Runner.run
    *
    * The step can be used to check status and outcome of

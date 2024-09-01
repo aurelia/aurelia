@@ -1,8 +1,7 @@
-import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, onResolve, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
-import { Runner } from '../utilities/runner';
 
 export interface IInstructionComponent extends InstructionComponent { }
 
@@ -216,8 +215,8 @@ export class InstructionComponent {
    *
    * Throws instantiation error if there was an error during instantiation.
    */
-  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null | Promise<IRouteableComponent> {
-    return Runner.runWith(this.resolve(instruction) as IRouteableComponent, (_notUsed) => {
+  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null | Promise<IRouteableComponent | null> {
+    return onResolve(this.resolve(instruction) as IRouteableComponent, (_notUsed) => {
       if (this.instance !== null) {
         return this.instance;
       }

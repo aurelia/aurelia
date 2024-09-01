@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { IContainer, onResolve } from '@aurelia/kernel';
+import { IContainer } from '@aurelia/kernel';
 import { CustomElement, IHydratedController, IHydratedParentController, ICustomElementController } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, LoadInstruction } from '../interfaces';
 import { IRouter } from '../router';
@@ -676,16 +676,13 @@ export class Viewport extends Endpoint {
       () => {
         const routerOptions = this.router.configuration.options;
         const navigationContent = this.getNavigationContent(coordinator)!;
-        return onResolve(
-          navigationContent.createComponent(
-            coordinator,
-            this.connectedCE!,
-            this.options.fallback || routerOptions.fallback,
-            this.options.fallbackAction || routerOptions.fallbackAction
-          ),
-          () => navigationContent.canLoad()
-        );
+        return navigationContent.createComponent(
+          coordinator,
+          this.connectedCE!,
+          this.options.fallback || routerOptions.fallback,
+          this.options.fallbackAction || routerOptions.fallbackAction);
       },
+      () => this.getNavigationContent(coordinator)!.canLoad(),
     ) as boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]>;
   }
 

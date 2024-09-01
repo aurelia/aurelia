@@ -85,7 +85,7 @@ describe('router/router.redirect.spec.ts', function () {
   const Two = CustomElement.define({ name: 'two', template: '!two!', }, class { public canLoad() { return 'route-zero'; } });
   const Three = CustomElement.define({ name: 'three', template: '!three!', }, class { public canLoad() { return 'zero'; } });
   const Four = CustomElement.define({ name: 'four', template: '!four!', }, class { public canLoad() { return 'zero-id'; } });
-  const Five = CustomElement.define({ name: 'five', template: '!five!', }, class { public async canLoad() { return 'route-zero'; } });
+  const Five = CustomElement.define({ name: 'five', template: '!five!', }, class Five { public async canLoad() { return 'route-zero'; } });
 
   const routeSets = [
     [
@@ -97,12 +97,12 @@ describe('router/router.redirect.spec.ts', function () {
       { path: 'route-five', component: Promise.resolve(Five) },
     ],
     [
-      { path: ['', 'home'], component: 'defaultpage' },
+      { path: ['', 'home'], component: Promise.resolve(DefaultPage) },
       { path: 'route-zero', component: Promise.resolve(Zero) },
-      { path: 'route-one', component: 'one' },
-      { path: 'route-two', component: 'two' },
-      { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
-      { path: 'route-five', component: Promise.resolve(Five) },
+      { path: 'route-one', component: Promise.resolve(One) },
+      { path: 'route-two', component: Promise.resolve(Two) },
+      { id: 'zero-id', path: 'route-zero-id', component: Promise.resolve(Zero) },
+      { path: 'route-five', component: Five },
     ],
   ];
 

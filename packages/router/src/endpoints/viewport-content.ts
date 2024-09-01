@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, onResolve } from '@aurelia/kernel';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
@@ -203,7 +203,7 @@ export class ViewportContent extends EndpointContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        return Runner.runWith<IRouteableComponent | null>(
+        return onResolve(
           this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element),
           (component: IRouteableComponent | null) => {
             this.instruction.component.set(component);
@@ -233,7 +233,7 @@ export class ViewportContent extends EndpointContent {
 
           // ...and try again.
           try {
-            return Runner.runWith<IRouteableComponent | null>(
+            return onResolve(
               this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element),
               (fallbackComponent: IRouteableComponent | null) => {
                 this.instruction.component.set(fallbackComponent);

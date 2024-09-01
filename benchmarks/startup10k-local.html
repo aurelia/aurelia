@@ -6,9 +6,8 @@ performance.mark('10k-start');
 const au = start(host, 10000);
 
 performance.mark('10k-end');
+performance.measure('startup-10k', '10k-start', '10k-end');
 
 // measure memory in MBs
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
-
-performance.measure('startup-10k', '10k-start', '10k-end');
 </script>

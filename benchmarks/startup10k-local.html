@@ -1,9 +1,10 @@
 <script type="module">
-import { start } from './local/dist/app.local.js';
+import { start as startPlain } from './local/dist/app.local.js';
+import { start as startCe } from './local/dist/app-repeat-ce.local.js';
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('10k-start');
-const au = start(host, 10000);
+const au = startPlain(host, 10000);
 
 performance.mark('10k-end');
 
@@ -11,4 +12,11 @@ performance.mark('10k-end');
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
 
 performance.measure('startup-10k', '10k-start', '10k-end');
+
+host.textContent = '';
+
+performance.mark('10k-ce-start');
+startCe(host, 10000);
+
+performance.mark('10k-ce-end');
 </script>

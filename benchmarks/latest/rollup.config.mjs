@@ -6,6 +6,19 @@ import url from 'url';
 
 // const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const aliases = [
+  'kernel',
+  'metadata',
+  'expression-parser',
+  'runtime',
+  'template-compiler',
+  'runtime-html',
+  'platform',
+  'platform-browser',
+].map(name => ({
+  find: `@aurelia/${name}`,
+  replacement: path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`)
+}));
 
 /** @type {import('rollup').RollupOptions[]} */
 export default [{
@@ -16,21 +29,20 @@ export default [{
   },
   plugins: [
     alias({
-      entries: [
-        ...[
-          'kernel',
-          'metadata',
-          'expression-parser',
-          'runtime',
-          'template-compiler',
-          'runtime-html',
-          'platform',
-          'platform-browser',
-        ].map(name => ({
-          find: `@aurelia/${name}`,
-          replacement: path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`)
-        }))
-      ]
+      entries: aliases
+    }),
+    nodeResolve(),
+    terser()
+  ]
+}, {
+  input: '../app-repeat-ce',
+  output: {
+    file: 'dist/app-repeat-ce.latest.js',
+    sourcemap: true
+  },
+  plugins: [
+    alias({
+      entries: aliases
     }),
     nodeResolve(),
     terser()
@@ -43,21 +55,7 @@ export default [{
   },
   plugins: [
     alias({
-      entries: [
-        ...[
-          'kernel',
-          'metadata',
-          'expression-parser',
-          'runtime',
-          'template-compiler',
-          'runtime-html',
-          'platform',
-          'platform-browser',
-        ].map(name => ({
-          find: `@aurelia/${name}`,
-          replacement: path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`)
-        }))
-      ]
+      entries: aliases
     }),
     nodeResolve(),
     terser()

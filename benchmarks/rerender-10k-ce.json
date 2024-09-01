@@ -10,20 +10,20 @@
         "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
       },
       "measurement": [
-        { "name": "perf", "mode": "performance", "entryName": "startup-10k" },
+        { "name": "perf", "mode": "performance", "entryName": "rerender-10k" },
         { "name": "memory", "mode": "expression", "expression": "jsHeapSize" }
       ],
       "expand": [
         {
-          "name": "10k CE dev",
-          "url": "startup10k-ce-latest.html"
+          "name": "10k ce dev",
+          "url": "rerender10k-ce-latest.html"
         },
         {
-          "name": "10k CE local",
-          "url": "startup10k-ce-local.html"
+          "name": "10k ce local",
+          "url": "rerender10k-ce-local.html"
         }
       ]
     }
   ],
-  "timeout": 0.25
+  "timeout": 0.5
 }

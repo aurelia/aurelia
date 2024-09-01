@@ -899,6 +899,12 @@ workflows:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
+          name: benchmark_rerender__custom_element
+          command: npm run bench:rerender10k-ce
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
           name: benchmark_rerender1k-big-template
           command: npm run bench:rerender1k-big
           requires:

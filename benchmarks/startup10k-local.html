@@ -19,4 +19,5 @@ performance.mark('10k-ce-start');
 startCe(host, 10000);
 
 performance.mark('10k-ce-end');
+performance.measure('startup-ce-10k', '10k-start', '10k-end');
 </script>

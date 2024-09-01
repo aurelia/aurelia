@@ -1,32 +1,13 @@
 <script type="module">
-import { start as startPlain } from './latest/dist/app.latest.js';
-import { start as startCe } from './latest/dist/app-repeat-ce.latest.js';
+import { start } from './latest/dist/app.latest.js';
 
 const host = document.body.appendChild(document.createElement('div'));
 performance.mark('10k-start');
 const au = startPlain(host, 10000);
 
 performance.mark('10k-end');
+performance.measure('startup-10k', '10k-start', '10k-end');
 
 // measure memory in MBs
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
-
-performance.measure('startup-10k', '10k-start', '10k-end');
-
-host.textContent = '';
-try {
-    gc();
-} catch {}
-
-// measure memory in MBs
-window.jsHeapSizeMid = performance.memory.usedJSHeapSize / 1e6;
-
-
-performance.mark('10k-ce-start');
-startCe(host, 10000);
-
-performance.mark('10k-ce-end');
-performance.measure('startup-ce-10k', '10k-ce-start', '10k-ce-end');
-// measure memory in MBs
-window.jsHeapSizeCe = performance.memory.usedJSHeapSize / 1e6;
 </script>

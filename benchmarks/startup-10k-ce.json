@@ -15,12 +15,12 @@
       ],
       "expand": [
         {
-          "name": "startup 10k latest",
-          "url": "startup10k-latest.html"
+          "name": "startup 10k CE latest",
+          "url": "startup-10k-ce-latest.html"
         },
         {
-          "name": "startup 10k local",
-          "url": "startup10k-local.html"
+          "name": "startup 10k CE local",
+          "url": "startup-10k-ce-local.html"
         }
       ]
     }

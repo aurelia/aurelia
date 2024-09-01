@@ -12,6 +12,7 @@
     "bench:startup1k-big": "tach --config startup-1k-big-template.json --json-file results/startup-1k-big-template.json",
     "bench:rerender10k": "tach --config rerender-10k.json --json-file results/rerender-10k.json",
     "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",
+    "bench:startup10k-ce": "tach --config startup-10k-ce.json --json-file results/startup-10k-ce.json",
     "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json"
   },
   "dependencies": {

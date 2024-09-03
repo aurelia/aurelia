@@ -216,7 +216,7 @@ export class InstructionComponent {
    * Throws instantiation error if there was an error during instantiation.
    */
   public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null | Promise<IRouteableComponent | null> {
-    return onResolve(this.resolve(instruction) as IRouteableComponent, (_notUsed) => {
+    return onResolve(this.resolve(instruction) as IRouteableComponent, () => {
       if (this.instance !== null) {
         return this.instance;
       }
@@ -239,6 +239,7 @@ export class InstructionComponent {
     return this.name;
   }
 
+  /** @internal */
   /**
    * Creates the component instance for this instruction.
    *

@@ -435,7 +435,6 @@ export class Viewport extends Endpoint {
    * @param coordinator - The coordinator of the navigation
    */
   public async transition(coordinator: NavigationCoordinator): Promise<void> {
-    // console.log('transition', ...this.contents.map(c => c.instruction.component.name ?? c.instruction.component.instance?.constructor.name));
     const navigatingPrefix = this.router.configuration.options.indicators.viewportNavigating;
 
     this.coordinators.push(coordinator);

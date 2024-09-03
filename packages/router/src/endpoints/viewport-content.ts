@@ -256,7 +256,6 @@ export class ViewportContent extends EndpointContent {
    * Check if the viewport content's component can be loaded.
    */
   public canLoad(): boolean | LoadInstruction | LoadInstruction[] | Promise<boolean | LoadInstruction | LoadInstruction[]> {
-    // console.log('ViewportContent.canLoad');
     // Since canLoad is called from more than one place multiple calls can happen (and is fine)
     if (!this.contentStates.has('created') || (this.contentStates.has('checkedLoad') && !this.reload)) {
       // If we got here, an earlier check has already stated it can be loaded
@@ -266,8 +265,6 @@ export class ViewportContent extends EndpointContent {
     if (instance == null) {
       return true;
     }
-
-    // console.log('ViewportContent.canLoad', instance.constructor.name);
 
     this.contentStates.set('checkedLoad', void 0);
 
@@ -314,7 +311,6 @@ export class ViewportContent extends EndpointContent {
    * @param navigation - The navigation that causes the content change
    */
   public canUnload(navigation: Navigation | null): boolean | Promise<boolean> {
-    // console.log('ViewportContent.canUnload');
     // Since canUnload is called recursively multiple calls can happen (and is fine)
     if (this.contentStates.has('checkedUnload') && !this.reload) {
       // If we got here, an earlier check has already stated it can be unloaded
@@ -328,8 +324,6 @@ export class ViewportContent extends EndpointContent {
     }
 
     const instance = this.instruction.component.instance!;
-
-    // console.log('ViewportContent.canUnload', instance.constructor.name);
 
     // If it's an unload without a navigation, such as custom element simply
     // being removed, create an empty navigation for canUnload hook
@@ -374,7 +368,6 @@ export class ViewportContent extends EndpointContent {
    * @param step - The previous step in this transition Run
    */
   public load(step: Step<void>): Step<void> {
-    // console.log('ViewportContent.load');
     return Runner.run(step,
       () => this.contentStates.await('checkedLoad'),
       () => {
@@ -388,8 +381,6 @@ export class ViewportContent extends EndpointContent {
         this.contentStates.set('loaded', void 0);
 
         const instance = this.instruction.component.instance!;
-
-        // console.log('ViewportContent.loaded', instance.constructor.name);
 
         // Propagate parent parameters
         // TODO: Do we really want this?
@@ -442,7 +433,6 @@ export class ViewportContent extends EndpointContent {
    * @param navigation - The navigation that causes the content change
    */
   public unload(navigation: Navigation | null): void | Promise<void> {
-    // console.log('ViewportContent.unload');
     // Since load is called from more than one place multiple calls can happen (and is fine)
     if (!this.contentStates.has('loaded')) {
       // If we got here, it's already unloaded (or wasn't loaded in the first place)
@@ -451,8 +441,6 @@ export class ViewportContent extends EndpointContent {
     this.contentStates.delete('loaded');
 
     const instance = this.instruction.component.instance!;
-
-    // console.log('ViewportContent.unloaded', instance.constructor.name);
 
     if (navigation === null) {
       navigation = Navigation.create({

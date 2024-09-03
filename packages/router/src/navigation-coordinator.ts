@@ -354,6 +354,11 @@ export class NavigationCoordinator {
           // of a configured route.
           // Inform endpoint of new content and retrieve the action it'll take
           const action = endpoint.setNextContent(matchedInstruction, this.navigation);
+          if (action !== 'skip') {
+            // Add endpoint to changed endpoints this iteration and to the coordinator's purview
+            changedEndpoints.push(endpoint);
+            this.addEndpoint(endpoint);
+          }
           // We're doing something, so don't clear this endpoint...
           const dontClear = [endpoint];
           if (action === 'swap') {
@@ -391,11 +396,6 @@ export class NavigationCoordinator {
             // If there are no next scope instructions the endpoint's scope (its children)
             // needs to be cleared
             clearEndpoints.push(...(matchedInstruction.endpoint.instance as Endpoint).scope.children.map(s => s.endpoint));
-          }
-          if (action !== 'skip') {
-            // Add endpoint to changed endpoints this iteration and to the coordinator's purview
-            changedEndpoints.push(endpoint);
-            this.addEndpoint(endpoint);
           }
         }
       }

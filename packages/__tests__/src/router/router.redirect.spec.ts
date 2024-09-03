@@ -196,29 +196,24 @@ describe('router/router.redirect.spec.ts', function () {
 
             // 1) The default root page will be loaded at the beginning, so we do "minus" to clear the page/content.
             await $load('-', router, platform);
-            // await platform.domQueue.yield();
+
             assert.strictEqual(host.textContent, '!root!', `1) ${test.load} -`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `1) ${test.load} - path`);
 
             // 2) Load the wanted page
             await $load(test.load, router, platform);
 
-            // await new Promise((r) => setTimeout(r, 25));
-
-            // await platform.domQueue.yield();
             assert.strictEqual(host.textContent, test.result, `2) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `2) ${test.load} path`);
 
             // 3) Unload
             await $load('-', router, platform);
-            // await platform.domQueue.yield();
+
             assert.strictEqual(host.textContent, '!root!', `3) ${test.load} -`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `3) ${test.load} - path`);
 
             // 4) reload
             await $load(test.load, router, platform);
-
-            // await new Promise((r) => setTimeout(r, 25));
 
             assert.strictEqual(host.textContent, test.result, `4) ${test.load}`);
             assert.strictEqual(locationPath, test.path, `4) ${test.load} path`);
@@ -226,28 +221,23 @@ describe('router/router.redirect.spec.ts', function () {
             // 5. back to (3) empty
             await $goBack(router, platform);
 
-            // await new Promise((r) => setTimeout(r, 25));
-
             assert.strictEqual(host.textContent, '!root!', `5) back to empty content (-)`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `5) back to empty page (-)`);
+
             // 6. back to (2) the page
             await $goBack(router, platform);
 
-            // await new Promise((r) => setTimeout(r, 25));
-
             assert.strictEqual(host.textContent, test.result, `6) back to ${test.load} content`);
             assert.strictEqual(locationPath, test.path, `6) back to ${test.load} path`);
+
             // 7. back to (1) empty
             await $goBack(router, platform);
 
-            // await new Promise((r) => setTimeout(r, 25));
-
             assert.strictEqual(host.textContent, '!root!', `7) back to empty content (-)`); // Clearing the content now triggers the defaults
             assert.strictEqual(locationPath, '/', `7) back to empty page (-)`);
+
             // 8. back to the root page (0)
             await $goBack(router, platform);
-
-            // await new Promise((r) => setTimeout(r, 25));
 
             assert.strictEqual(host.textContent, '!root!', '8) back to root default content');
             assert.strictEqual(locationPath, '/', '8) back to root default path');

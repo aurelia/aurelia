@@ -14,7 +14,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-a 1-b 2-a 3-a ');
     });
 
-    it.skip('duplicate primitive string + push + sort', function () {
+    it('duplicate primitive string + push + sort', function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['a', 'b', 'a']; }
@@ -37,7 +37,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 3-0 ');
     });
 
-    it.skip('duplicate primitive number + sort', function () {
+    it('duplicate primitive number + sort', function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [0, 1, 0]; }
@@ -64,7 +64,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 3-0 ');
     });
 
-    it.skip('duplicate object + sort', function () {
+    it('duplicate object + sort', function () {
       const obj0 = { toString() { return '0'; } };
       const obj1 = { toString() { return '1'; } };
 
@@ -80,7 +80,8 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     });
 
     // TODO: fix contextual props $index when sorting
-    it.skip('primitive string + sort (move to contextual props tests)', function () {
+    // it('primitive string + sort (move to contextual props tests)', function () {
+    it('primitive string + sort (move to contextual props tests)', function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['c', 'b', 'a']; }

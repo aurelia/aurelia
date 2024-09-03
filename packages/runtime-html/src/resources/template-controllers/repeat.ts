@@ -276,8 +276,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             if (hasKey) {
               oldItem = oldItems[i];
               newItem = newItems[i];
-              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
-              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
+              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
             } else {
               oldItem = oldKey = ensureUnique(oldItems[i], i);
               newItem = newKey = ensureUnique(newItems[i], i);
@@ -306,8 +306,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             if (hasKey) {
               oldItem = oldItems[j];
               newItem = newItems[j];
-              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
-              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding);
+              oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
+              newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
             } else {
               oldItem = oldKey = ensureUnique(oldItems[i], i);
               newItem = newKey = ensureUnique(newItems[i], i);
@@ -334,7 +334,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             newKey = keyMap.get(newItem);
           } else {
             newKey = hasKey
-              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal), binding)
+              ? getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding)
               : newItem;
             keyMap.set(newItem, newKey);
           }
@@ -459,8 +459,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     $items.forEach((item, i) => {
       view = views[i] = _factory.create().setLocation(_location);
       view.nodes.unlink();
-      viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
-      setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+      viewScope = getScope(_scopeMap, item as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal, i, newLen);
 
       ret = view.activate(initiator ?? view, $controller, viewScope);
       if (isPromise(ret)) {
@@ -588,8 +587,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.link(next?.nodes ?? _location);
 
       if (indexMap[i] === -2) {
-        viewScope = getScope(_scopeMap, _normalizedItems![i] as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal);
-        setContextualProperties(viewScope.overrideContext as IRepeatOverrideContext, i, newLen);
+        viewScope = getScope(_scopeMap, _normalizedItems![i] as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal, i, newLen);
         view.setLocation(_location);
 
         ret = view.activate(view, $controller, viewScope);
@@ -723,16 +721,31 @@ interface IRepeatOverrideContext extends IOverrideContext {
   $length: number; // new in v2, there are a few requests, not sure if it should stay
 }
 
+class RepeatOverrideContext implements IRepeatOverrideContext {
+  public get $odd(): boolean {
+    return !this.$even;
+  }
+  public get $even(): boolean {
+    return this.$index % 2 === 0;
+  }
+  public get $first(): boolean {
+    return this.$index === 0;
+  }
+  public get $middle(): boolean {
+    return !this.$first && !this.$last;
+  }
+  public get $last(): boolean {
+    return this.$index === this.$length - 1;
+  }
+
+  public constructor(
+    public readonly $index: number = 0,
+    public readonly $length: number = 1,
+  ) {}
+}
+
 const setContextualProperties = (oc: IRepeatOverrideContext, index: number, length: number): void => {
-  const isFirst = index === 0;
-  const isLast = index === length - 1;
-  const isEven = index % 2 === 0;
   oc.$index = index;
-  oc.$first = isFirst;
-  oc.$last = isLast;
-  oc.$middle = !isFirst && !isLast;
-  oc.$even = isEven;
-  oc.$odd = !isEven;
   oc.$length = length;
 };
 
@@ -912,15 +925,18 @@ const getScope = (
   binding: PropertyBinding,
   local: string,
   hasDestructuredLocal: boolean,
+  index: number,
+  length: number,
 ) => {
-  let scope = scopeMap.get(item);
+  const key = ensureUnique(item, index);
+  let scope = scopeMap.get(key);
   if (scope === void 0) {
     if (hasDestructuredLocal) {
-      astAssign(forOf.declaration as DestructuringAssignmentExpression, scope = Scope.fromParent(parentScope, new BindingContext()), binding, item);
+      astAssign(forOf.declaration as DestructuringAssignmentExpression, scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext(index, length)), binding, item);
     } else {
-      scope = Scope.fromParent(parentScope, new BindingContext(local, item));
+      scope = Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext(index, length));
     }
-    scopeMap.set(item, scope);
+    scopeMap.set(key, scope);
   }
   return scope;
 };
@@ -930,8 +946,10 @@ const ensureUnique = <T>(item: T, index: number): T | string => {
   switch (type) {
     case 'object':
       if (item !== null) return item;
-      // falls through
+      return `${index}null`;
     case 'string':
+      if ((item as string).startsWith(`${index}string`)) return item;
+      // falls through
     case 'number':
     case 'bigint':
     case 'undefined':

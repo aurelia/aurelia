@@ -145,12 +145,12 @@ describe('router/router.link-click-defaults.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, [Nav, Parent, Child, GrandChild]);
 
       await $load('/nav', router, platform);
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
 
       const links = host.getElementsByTagName('A') as unknown as HTMLElement[];
       const link = links[i];
       link.click();
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
 
       await new Promise((resolve) => { setTimeout(() => resolve(0), 200); });
 
@@ -166,5 +166,5 @@ describe('router/router.link-click-defaults.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  platform.taskQueue.flush();
 };

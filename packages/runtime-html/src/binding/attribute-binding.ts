@@ -17,19 +17,11 @@ import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';
 
-import type {
-  ITask,
-  QueueTaskOptions,
-  TaskQueue
-} from '@aurelia/platform';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-
-const taskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -69,7 +61,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -84,7 +76,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: ITaskQueue,
     ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -160,7 +152,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
         this._task = this._taskQueue.queueTask(() => {
           this._task = null;
           this.updateTarget(newValue);
-        }, taskOptions);
+        });
         task?.cancel();
       } else {
         this.updateTarget(newValue);

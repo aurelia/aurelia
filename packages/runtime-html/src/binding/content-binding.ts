@@ -10,7 +10,6 @@ import {
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   ICollectionSubscriber,
   IObserverLocator,
@@ -23,10 +22,7 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -62,7 +58,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
    */
   public readonly oL: IObserverLocator;
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -83,7 +79,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: ITaskQueue,
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
@@ -219,7 +215,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     this._task = this._taskQueue.queueTask(() => {
       this._task = null;
       this.updateTarget(newValue);
-    }, queueTaskOptions);
+    });
     task?.cancel();
   }
 }

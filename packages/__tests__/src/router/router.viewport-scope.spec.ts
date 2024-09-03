@@ -110,10 +110,10 @@ describe('router/router.viewport-scope.spec.ts', function () {
       const { platform, host, router, $teardown } = await $setup({}, appDependencies, [], locationCallback);
 
       await $load('/my-siblings', router, platform);
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
 
       (host.getElementsByTagName('A')[test.anchor] as HTMLElement).click();
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
 
       assert.strictEqual(host.textContent, test.result, `host.textContent`);
       // // assert.strictEqual(locationPath, `#/${test.url}`, 'location.path');
@@ -126,5 +126,5 @@ describe('router/router.viewport-scope.spec.ts', function () {
 
 const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  platform.taskQueue.flush();
 };

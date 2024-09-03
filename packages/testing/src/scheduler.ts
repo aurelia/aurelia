@@ -1,5 +1,5 @@
 import { ensureEmpty } from '@aurelia/platform';
-import { BrowserPlatform } from '@aurelia/platform-browser';
+import { BrowserPlatform, ensureDOMQueueEmpty } from '@aurelia/platform-browser';
 import { IPlatform } from '@aurelia/runtime-html';
 
 export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
@@ -9,6 +9,5 @@ export function ensureTaskQueuesEmpty(platform?: IPlatform): void {
 
   // canceling pending heading to remove the sticky tasks
   ensureEmpty(platform.taskQueue);
-  ensureEmpty(platform.domQueue);
-  ensureEmpty(platform.domReadQueue);
+  ensureDOMQueueEmpty(platform.domQueue);
 }

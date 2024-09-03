@@ -60,8 +60,7 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
 
     this.performanceNow = 'performanceNow' in overrides ? overrides.performanceNow! : g.performance?.now?.bind(g.performance) ?? notImplemented('performance.now');
 
-    this.flushMacroTask = this.flushMacroTask.bind(this);
-    this.taskQueue = new TaskQueue(this, this.requestMacroTask.bind(this), this.cancelMacroTask.bind(this));
+    this.taskQueue = new TaskQueue(this);
   }
 
   public static getOrCreate<TGlobal extends typeof globalThis = typeof globalThis>(
@@ -78,34 +77,23 @@ export class Platform<TGlobal extends typeof globalThis = typeof globalThis> {
   public static set(g: typeof globalThis, platform: Platform): void {
     lookup.set(g, platform);
   }
-
-  protected macroTaskRequested: boolean = false;
-  protected macroTaskHandle: number = -1;
-  protected requestMacroTask(): void {
-    this.macroTaskRequested = true;
-    if (this.macroTaskHandle === -1) {
-      this.macroTaskHandle = this.setTimeout(this.flushMacroTask, 0);
-    }
-  }
-  protected cancelMacroTask(): void {
-    this.macroTaskRequested = false;
-    if (this.macroTaskHandle > -1) {
-      this.clearTimeout(this.macroTaskHandle);
-      this.macroTaskHandle = -1;
-    }
-  }
-  protected flushMacroTask(): void {
-    this.macroTaskHandle = -1;
-    if (this.macroTaskRequested === true) {
-      this.macroTaskRequested = false;
-      this.taskQueue.flush();
-    }
-  }
 }
 
 type TaskCallback<T = any> = (delta: number) => T;
+export interface ITaskQueue {
+  readonly isEmpty: boolean;
+  flush(timestamp?: number): void;
+  cancel(): void;
+  yield(): Promise<void>;
+  queueTask(callback: (timestamp: number) => void): ITask;
+}
 
-export class TaskQueue {
+export interface ITask {
+  run(): void;
+  cancel(): void;
+}
+
+export class TaskQueue implements ITaskQueue {
 
   /** @internal */ public _suspenderTask: Task | undefined = void 0;
   /** @internal */ public _pendingAsyncCount: number = 0;
@@ -130,6 +118,9 @@ export class TaskQueue {
 
   /** @internal */
   private _lastFlush: number = 0;
+
+  /** @internal */
+  private _handle: number = -1;
 
   /** @internal */
   private readonly _now: () => number;
@@ -165,8 +156,6 @@ export class TaskQueue {
   /** @internal */ private readonly _tracer: Tracer;
   public constructor(
     public readonly platform: Platform,
-    private readonly $request: () => void,
-    private readonly $cancel: () => void,
   ) {
     this._now = platform.performanceNow;
     this._tracer = new Tracer(platform.console);
@@ -175,7 +164,6 @@ export class TaskQueue {
   public flush(now: number = this._now()): void {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'flush'); }
 
-    this._flushRequested = false;
     this._lastFlush = now;
 
     // Only process normally if we are *not* currently waiting for an async task to finish
@@ -258,7 +246,10 @@ export class TaskQueue {
     if (__DEV__ && this._tracer.enabled) { this._tracer.enter(this, 'cancel'); }
 
     if (this._flushRequested) {
-      this.$cancel();
+      if (this._handle > -1) {
+        this.platform.clearTimeout(this._handle);
+        this._handle = -1;
+      }
       this._flushRequested = false;
     }
 
@@ -418,7 +409,15 @@ export class TaskQueue {
     if (!this._flushRequested) {
       this._flushRequested = true;
       this._lastRequest = this._now();
-      this.$request();
+      if (this._handle === -1) {
+        this._handle = this.platform.setTimeout(() => {
+          this._handle = -1;
+          if (this._flushRequested) {
+            this._flushRequested = false;
+            this.flush();
+          }
+        });
+      }
     }
 
     if (__DEV__ && this._tracer.enabled) { this._tracer.leave(this, 'requestFlush'); }
@@ -434,13 +433,6 @@ export class TaskAbortError<T = any> extends Error {
 let id: number = 0;
 
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
-
-export interface ITask<T = any> {
-  readonly result: Promise<UnwrapPromise<T>>;
-  readonly status: TaskStatus;
-  run(): void;
-  cancel(): boolean;
-}
 
 export class Task<T = any> implements ITask {
   public readonly id: number = ++id;

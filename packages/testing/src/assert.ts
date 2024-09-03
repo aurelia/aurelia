@@ -47,7 +47,7 @@ import {
   Object_is,
   Object_keys,
 } from './util';
-import { BrowserPlatform } from '@aurelia/platform-browser';
+import { BrowserPlatform, DOMQueue, DOMTask, reportDOMQueue } from '@aurelia/platform-browser';
 import {
   CustomElement,
   CustomAttribute,
@@ -782,6 +782,10 @@ const areTaskQueuesEmpty = (function () {
       + `    task callback="${task.callback?.toString()}"`;
   }
 
+  function reportDOMTask(task: DOMTask) {
+    return `    task callback="${task.callback?.toString()}"`;
+  }
+
   function $reportTaskQueue(name: string, taskQueue: TaskQueue) {
     const { processing, pending, delayed, flushRequested: flushReq } = reportTaskQueue(taskQueue);
 
@@ -799,6 +803,20 @@ const areTaskQueuesEmpty = (function () {
     return info;
   }
 
+  function $reportDOMQueue(name: string, domQueue: DOMQueue) {
+    const { readQueue, writeQueue, flushRequested: flushReq } = reportDOMQueue(domQueue);
+
+    let info = `${name} has readQueue=${readQueue.length} writeQueue=${writeQueue.length} flushRequested=${flushReq}\n\n`;
+    if (readQueue.length > 0) {
+      info += `  Tasks in readQueue:\n${readQueue.map(reportDOMTask).join('')}`;
+    }
+    if (writeQueue.length > 0) {
+      info += `  Tasks in writeQueue:\n${writeQueue.map(reportDOMTask).join('')}`;
+    }
+
+    return info;
+  }
+
   return function $areTaskQueuesEmpty(clearBeforeThrow?: any) {
     const platform = BrowserPlatform.getOrCreate(globalThis)!;
 
@@ -808,7 +826,7 @@ const areTaskQueuesEmpty = (function () {
     let isEmpty = true;
     let message = '';
     if (!domQueue.isEmpty) {
-      message += `\n${$reportTaskQueue('domQueue', domQueue)}\n\n`;
+      message += `\n${$reportDOMQueue('domQueue', domQueue)}\n\n`;
       isEmpty = false;
     }
     if (!taskQueue.isEmpty) {

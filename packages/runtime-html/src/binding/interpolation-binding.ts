@@ -12,7 +12,6 @@ import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
   IAccessor,
@@ -25,10 +24,7 @@ import { type Scope } from './scope';
 import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -59,7 +55,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   /** @internal */
   private readonly _controller: IBindingController;
@@ -68,7 +64,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: ITaskQueue,
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -122,7 +118,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
       this._task = this._taskQueue.queueTask(() => {
         this._task = null;
         targetObserver.setValue(result, this.target, this.targetProperty);
-      }, queueTaskOptions);
+      });
       task?.cancel();
       task = null;
     } else {

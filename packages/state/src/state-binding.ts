@@ -1,6 +1,5 @@
 
 import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
-import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import {
   connectable,
   type IAccessor,
@@ -27,6 +26,7 @@ import {
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 const atLayout = AccessorType.Layout;
 const stateActivating = State.activating;
@@ -51,7 +51,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   private readonly targetProperty: PropertyKey;
 
   /** @internal */ private _task: ITask | null = null;
-  /** @internal */ private readonly _taskQueue: TaskQueue;
+  /** @internal */ private readonly _taskQueue: ITaskQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private _targetObserver!: IAccessor;
@@ -70,7 +70,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: ITaskQueue,
     ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
@@ -166,7 +166,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
         this._task = null;
-      }, updateTaskOpts);
+      });
       task?.cancel();
       task = null;
     } else {
@@ -201,7 +201,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(value);
         this._task = null;
-      }, updateTaskOpts);
+      });
       task?.cancel();
     } else {
       this.updateTarget(this._value);
@@ -230,10 +230,6 @@ type SubscribableValue = {
 
 type Unsubscribable = {
   unsubscribe(): void;
-};
-
-const updateTaskOpts: QueueTaskOptions = {
-  preempt: true,
 };
 
 connectable(StateBinding, null!);

@@ -257,7 +257,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
   private validateBinding() {
     // Queue the new one before canceling the old one, to prevent early yield
     const task = this.task;
-    this.task = this._platform.domQueue.queueTask(() =>
+    this.task = this._platform.taskQueue.queueTask(() =>
       this.controller.validateBinding(this.propertyBinding)
     );
     if (task !== this.task) {

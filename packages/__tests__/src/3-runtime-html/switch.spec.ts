@@ -897,7 +897,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
         [],
         async (ctx) => {
           ctx.app.status = Status.delivered;
-          ctx.platform.domQueue.flush();
+          ctx.platform.taskQueue.flush();
           assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
         }
       );

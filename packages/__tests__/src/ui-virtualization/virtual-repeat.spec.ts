@@ -104,6 +104,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(0, 10);
       flush();
+      flush(); // TODO(fkleuver): why do we need to flush twice?
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
 
       const virtualRepeat = virtualRepeats[0];
@@ -135,6 +136,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       component.items.splice(10, 10);
       flush();
+      flush(); // TODO(fkleuver): why do we need to flush twice?
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];
       const firstView = virtualRepeat.getViews()[10];

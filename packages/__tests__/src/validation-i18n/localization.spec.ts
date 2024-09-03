@@ -231,7 +231,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function assertEventHandler(target: HTMLElement, event: 'change' | 'focusout', callCount: number, platform: IPlatform, controllerSpy: Spy, ctx: TestContext) {
       controllerSpy.clearCallRecords();
       target.dispatchEvent(new ctx.Event(event));
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
       controllerSpy.methodCalledTimes('validateBinding', callCount);
       controllerSpy.methodCalledTimes('validate', callCount);
     }
@@ -239,7 +239,7 @@ describe('validation-i18n/localization.spec.ts', function () {
     async function changeLocale(container: IContainer, platform: IPlatform, controllerSpy: Spy, locale: string = 'de') {
       const i18n = container.get(I18N);
       await i18n.setLocale(locale);
-      await platform.domQueue.yield();
+      await platform.taskQueue.yield();
       controllerSpy.methodCalledTimes('validate', 1);
     }
 

@@ -1,5 +1,4 @@
 import { resolve } from "@aurelia/kernel";
-import type { ITask } from '@aurelia/platform';
 import {
   Collection,
   getCollectionObserver,
@@ -42,6 +41,7 @@ import type {
 } from "./interfaces";
 import { calcOuterHeight, calcScrollerViewportHeight, getDistanceToScroller } from "./utilities-dom";
 import { IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
+import type { DOMTask } from '@aurelia/platform-browser';
 
 const noScrollInfo: IScrollerInfo = {
   height: 0,
@@ -75,8 +75,8 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /** @internal */ private readonly _obsMediator: CollectionObservationMediator;
 
   /** @internal */ private readonly views: ISyntheticView[] = [];
-  /** @internal */ private readonly taskQueue: IPlatform['domWriteQueue'];
-  /** @internal */ private task: ITask | null = null;
+  /** @internal */ private readonly taskQueue: IPlatform['taskQueue'];
+  /** @internal */ private task: DOMTask | null = null;
   /** @internal */ private _currScrollerInfo: IScrollerInfo = noScrollInfo;
 
   /** @internal */ private _needInitCalculation = true;
@@ -101,7 +101,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const hasWrapExpression = this._hasWrapExpression = forOf.iterable !== iterable;
     this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
-    this.taskQueue = resolve(IPlatform).domQueue;
+    this.taskQueue = resolve(IPlatform).taskQueue;
   }
 
   /**

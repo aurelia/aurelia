@@ -5,7 +5,6 @@ import { BindingTargetSubscriber, IFlushQueue, createPrototypeMixer, mixinAstEva
 import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
   ICollectionSubscriber,
@@ -18,6 +17,7 @@ import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { atLayout } from '../utilities';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
+import type { ITaskQueue, ITask } from '@aurelia/platform';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -58,7 +58,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  private readonly _taskQueue: ITaskQueue;
 
   // see Listener binding for explanation
   /** @internal */
@@ -68,7 +68,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
+    taskQueue: ITaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
@@ -111,7 +111,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
       this._task = this._taskQueue.queueTask(() => {
         this.updateTarget(newValue);
         this._task = null;
-      }, updateTaskOpts);
+      });
       task?.cancel();
       task = null;
     } else {
@@ -209,7 +209,3 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 }
 
 let task: ITask | null = null;
-
-const updateTaskOpts: QueueTaskOptions = {
-  preempt: true,
-};

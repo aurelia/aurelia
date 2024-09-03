@@ -2337,7 +2337,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         ]
       });
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       const rootVp = host.querySelector('au-viewport');
       let childVp = rootVp.querySelector('au-viewport');
@@ -2672,7 +2672,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
@@ -2774,7 +2774,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
@@ -2906,7 +2906,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
@@ -3044,7 +3044,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
@@ -3195,7 +3195,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, container, host } = await start({ appRoot: MyApp });
     const router = container.get(IRouter);
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
     const vps = Array.from(host.querySelectorAll(':scope>au-viewport'));
 
@@ -3344,7 +3344,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.strictEqual(host.querySelector('a').getAttribute('href'), 'abc');
 
     component.href = null;
-    ctx.platform.domQueue.flush();
+    ctx.platform.taskQueue.flush();
 
     assert.strictEqual(host.querySelector('a').getAttribute('href'), null);
 
@@ -3964,7 +3964,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4077,7 +4077,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4190,7 +4190,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4283,7 +4283,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4390,7 +4390,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4489,7 +4489,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4563,7 +4563,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get(IRouter);
 
       // Start
@@ -4620,7 +4620,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       await au.app({ component: Root, host }).start();
 
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       await queue.yield();
       assert.html.textContent(host, 'no nav model root no nav model p1 c11');
@@ -4770,7 +4770,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     assert.strictEqual(host.querySelector('ce-p2'), null);
 
     anchors[0].click();
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
 
     assert.notEqual(host.querySelector('ce-p1'), null);
@@ -5328,7 +5328,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       host.querySelector('a').click();
       await queue.yield();
@@ -5390,7 +5390,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       host.querySelector('a').click();
       await queue.yield();
@@ -5434,7 +5434,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       host.querySelector('a').click();
       await queue.yield();
@@ -5497,7 +5497,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       host.querySelector('a').click();
       await queue.yield();
@@ -5593,7 +5593,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root });
       const router = container.get(IRouter);
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       await router.load('p1/1/c2/1');
       await queue.yield();
@@ -5655,7 +5655,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
@@ -5718,7 +5718,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
@@ -5785,7 +5785,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
@@ -5852,7 +5852,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get<Router>(IRouter);
 
       host.querySelector('a').click();
@@ -5919,7 +5919,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
       const router = container.get<Router>(IRouter);
 
       await router.load('ce1/42');
@@ -5976,7 +5976,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class Root { }
 
       const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne] });
-      const queue = container.get(IPlatform).domQueue;
+      const queue = container.get(IPlatform).taskQueue;
 
       host.querySelector('a').click();
       await queue.yield();
@@ -6060,7 +6060,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         }
 
         const { au, container, host } = await start({ appRoot: Root, registrations: [CeOne, CeTwo], historyStrategy: data.strategy });
-        const queue = container.get(IPlatform).domQueue;
+        const queue = container.get(IPlatform).taskQueue;
         const router = container.get<Router>(IRouter);
 
         const expectations = data.expectations;
@@ -6121,7 +6121,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'push', registrations: [getLocationChangeHandlerRegistration()] });
       const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
+      const dwQueue = platform.taskQueue;
       await dwQueue.yield();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
@@ -6208,7 +6208,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'replace', registrations: [getLocationChangeHandlerRegistration()] });
       const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
+      const dwQueue = platform.taskQueue;
       await dwQueue.yield();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
@@ -6295,7 +6295,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
       const { au, container, host } = await start({ appRoot: Root, historyStrategy: 'none', registrations: [getLocationChangeHandlerRegistration()] });
       const platform = container.get(IPlatform);
-      const dwQueue = platform.domQueue;
+      const dwQueue = platform.taskQueue;
       await dwQueue.yield();
 
       const historyEl = host.querySelector<HTMLSpanElement>('#history');
@@ -6654,7 +6654,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       assert.html.textContent(host, 'p-2/c1 - 42 - 3 - 3');
 
       await router.load('p2/c1/24');
-      await container.get(IPlatform).domQueue.yield();
+      await container.get(IPlatform).taskQueue.yield();
       assert.html.textContent(host, 'p-2/c1 - 24 - 3 - 4');
 
       await au.stop(true);
@@ -7127,7 +7127,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     const { au, host, container } = await start({ appRoot: Root });
 
-    const queue = container.get(IPlatform).domQueue;
+    const queue = container.get(IPlatform).taskQueue;
     await queue.yield();
 
     const router = container.get(IRouter);

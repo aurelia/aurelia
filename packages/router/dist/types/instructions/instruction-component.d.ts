@@ -70,7 +70,7 @@ export declare class InstructionComponent {
      *
      * Throws instantiation error if there was an error during instantiation.
      */
-    toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null;
+    toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null | Promise<IRouteableComponent | null>;
     same(other: InstructionComponent, compareType?: boolean): boolean;
     private getNewName;
 }

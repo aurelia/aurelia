@@ -816,23 +816,16 @@ class InstructionComponent {
         }
         return null;
     }
-    toInstance(t, s, e, n) {
-        void this.resolve(n);
-        if (this.instance !== null) {
-            return this.instance;
-        }
-        if (t == null) {
-            return null;
-        }
-        const r = t.createChild();
-        const o = this.isType() ? this.type : r.getResolver(i.CustomElement.keyFrom(this.name)).getFactory(r).Type;
-        const h = r.invoke(o);
-        if (h == null) {
-            throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
-        }
-        const u = i.Controller.$el(r, h, e, null);
-        u.parent = s;
-        return h;
+    toInstance(i, s, e, n) {
+        return t.onResolve(this.resolve(n), (() => {
+            if (this.instance !== null) {
+                return this.instance;
+            }
+            if (i == null) {
+                return null;
+            }
+            return this.t(i, s, e, n);
+        }));
     }
     same(t, i = false) {
         return i ? this.type === t.type : this.name === t.name;
@@ -842,6 +835,17 @@ class InstructionComponent {
             return InstructionComponent.getName(t);
         }
         return this.name;
+    }
+    t(t, s, e, n) {
+        const r = t.createChild();
+        const o = this.isType() ? this.type : r.getResolver(i.CustomElement.keyFrom(this.name)).getFactory(r).Type;
+        const h = r.invoke(o);
+        if (h == null) {
+            throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
+        }
+        const u = i.Controller.$el(r, h, e, null);
+        u.parent = s;
+        return h;
     }
 }
 
@@ -872,22 +876,28 @@ function arrayUnique(t, i = false) {
 }
 
 class OpenPromise {
-    constructor() {
+    constructor(t = "") {
+        this.description = t;
         this.isPending = true;
         this.promise = new Promise(((t, i) => {
-            this.t = t;
-            this.i = i;
+            this.i = t;
+            this.h = i;
+            OpenPromise.promises.push(this);
         }));
     }
     resolve(t) {
-        this.t(t);
-        this.isPending = false;
-    }
-    reject(t) {
         this.i(t);
         this.isPending = false;
+        OpenPromise.promises = OpenPromise.promises.filter((t => t !== this));
+    }
+    reject(t) {
+        this.h(t);
+        this.isPending = false;
+        OpenPromise.promises = OpenPromise.promises.filter((t => t !== this));
     }
 }
+
+OpenPromise.promises = [];
 
 class Runner {
     constructor() {
@@ -902,8 +912,8 @@ class Runner {
             return void 0;
         }
         let s = false;
-        if (t === null) {
-            t = new Step;
+        if (t === null || typeof t === "string") {
+            t = new Step(t);
             s = true;
         }
         const e = new Step(i.shift());
@@ -1043,7 +1053,7 @@ class Runner {
     }
     static ensurePromise(t) {
         if (t.finally === null) {
-            t.finally = new OpenPromise;
+            t.finally = new OpenPromise(`Runner: ${t.name}, ${t.previousValue}, ${t.value}, ${t.root.report}`);
             t.promise = t.finally.promise;
             return true;
         }
@@ -1087,6 +1097,9 @@ class Step {
         this.exited = null;
         this.id = "-1";
         this.id = `${Step.id++}`;
+        if (typeof t === "string") {
+            this.id += ` ${t}`;
+        }
     }
     get isParallelParent() {
         return this.child?.runParallel ?? false;
@@ -1450,7 +1463,7 @@ class ViewportScope extends r {
         return "swap";
     }
     transition(t) {
-        Runner.run(null, (i => t.setEndpointStep(this, i.root)), (() => t.addEndpointState(this, "guardedUnload")), (() => t.addEndpointState(this, "guardedLoad")), (() => t.addEndpointState(this, "guarded")), (() => t.addEndpointState(this, "loaded")), (() => t.addEndpointState(this, "unloaded")), (() => t.addEndpointState(this, "routed")), (() => t.addEndpointState(this, "swapped")), (() => t.addEndpointState(this, "completed")));
+        Runner.run("viewport-scope.transition", (i => t.setEndpointStep(this, i.root)), (() => t.addEndpointState(this, "guardedUnload")), (() => t.addEndpointState(this, "guardedLoad")), (() => t.addEndpointState(this, "guarded")), (() => t.addEndpointState(this, "loaded")), (() => t.addEndpointState(this, "unloaded")), (() => t.addEndpointState(this, "routed")), (() => t.addEndpointState(this, "swapped")), (() => t.addEndpointState(this, "completed")));
     }
     finalizeContentChange(t, i) {
         const s = this.contents.findIndex((i => i.navigation === t.navigation));
@@ -1651,7 +1664,7 @@ class AwaitableMap {
     }
     await(t) {
         if (!this.map.has(t)) {
-            const i = new OpenPromise;
+            const i = new OpenPromise(`AwaitableMap: ${t}`);
             this.map.set(t, i);
             return i.promise;
         }
@@ -1713,40 +1726,40 @@ class ViewportContent extends EndpointContent {
     contentController(t) {
         return i.Controller.$el(t.container.createChild(), this.instruction.component.instance, t.element, null);
     }
-    createComponent(t, i, s, e) {
+    createComponent(i, s, e, n) {
         if (this.contentStates.has("created")) {
             return;
         }
         if (!this.fromCache && !this.fromHistory) {
             try {
-                this.instruction.component.set(this.toComponentInstance(i.container, i.controller, i.element));
-            } catch (n) {
-                if (!n.message.startsWith("AUR0009:")) {
-                    throw n;
-                }
-                if ((s ?? "") !== "") {
-                    if (e === "process-children") {
+                return t.onResolve(this.toComponentInstance(s.container, s.controller, s.element), (t => {
+                    this.instruction.component.set(t);
+                    this.contentStates.set("created", void 0);
+                }));
+            } catch (r) {
+                this.u(r);
+                if ((e ?? "") !== "") {
+                    if (n === "process-children") {
                         this.instruction.parameters.set([ this.instruction.component.name ]);
                     } else {
                         this.instruction.parameters.set([ this.instruction.unparsed ?? this.instruction.component.name ]);
                         if (this.instruction.hasNextScopeInstructions) {
-                            t.removeInstructions(this.instruction.nextScopeInstructions);
+                            i.removeInstructions(this.instruction.nextScopeInstructions);
                             this.instruction.nextScopeInstructions = null;
                         }
                     }
-                    this.instruction.component.set(s);
+                    this.instruction.component.set(e);
                     try {
-                        this.instruction.component.set(this.toComponentInstance(i.container, i.controller, i.element));
+                        return t.onResolve(this.toComponentInstance(s.container, s.controller, s.element), (t => {
+                            this.instruction.component.set(t);
+                            this.contentStates.set("created", void 0);
+                        }));
                     } catch (t) {
-                        if (!t.message.startsWith("AUR0009:")) {
-                            throw t;
-                        }
-                        const i = this.instruction.component.name;
-                        throw createMappedError(2017, i, t);
+                        this.u(t);
+                        throw createMappedError(2017, this.instruction.component.name, t);
                     }
                 } else {
-                    const t = this.instruction.component.name;
-                    throw createMappedError(2017, t);
+                    throw createMappedError(2017, this.instruction.component.name);
                 }
             }
         }
@@ -1768,7 +1781,7 @@ class ViewportContent extends EndpointContent {
             ...i,
             ...s
         };
-        const n = this.h(t, "canLoad").map((i => s => {
+        const n = this.R(t, "canLoad").map((i => s => {
             if (s?.previousValue != null && s.previousValue !== true) {
                 s.exit();
                 return s.previousValue ?? false;
@@ -1789,7 +1802,7 @@ class ViewportContent extends EndpointContent {
         if (n.length === 1) {
             return n[0](null);
         }
-        return Runner.run(null, ...n);
+        return Runner.run("canLoad", ...n);
     }
     canUnload(t) {
         if (this.contentStates.has("checkedUnload") && !this.reload) {
@@ -1807,7 +1820,7 @@ class ViewportContent extends EndpointContent {
                 previous: this.navigation
             });
         }
-        const s = this.h(i, "canUnload").map((s => e => {
+        const s = this.R(i, "canUnload").map((s => e => {
             if ((e?.previousValue ?? true) === false) {
                 return false;
             }
@@ -1827,7 +1840,7 @@ class ViewportContent extends EndpointContent {
         if (s.length === 1) {
             return s[0](null);
         }
-        return Runner.run(null, ...s);
+        return Runner.run("canUnload", ...s);
     }
     load(t) {
         return Runner.run(t, (() => this.contentStates.await("checkedLoad")), (() => {
@@ -1844,8 +1857,8 @@ class ViewportContent extends EndpointContent {
                 ...i,
                 ...s
             };
-            const n = this.h(t, "loading").map((i => () => i(t, e, this.instruction, this.navigation)));
-            n.push(...this.h(t, "load").map((i => () => {
+            const n = this.R(t, "loading").map((i => () => i(t, e, this.instruction, this.navigation)));
+            n.push(...this.R(t, "load").map((i => () => {
                 console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
                 return i(t, e, this.instruction, this.navigation);
             })));
@@ -1857,7 +1870,7 @@ class ViewportContent extends EndpointContent {
                     console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
                     n.push((() => t.load(e, this.instruction, this.navigation)));
                 }
-                return Runner.run(null, ...n);
+                return Runner.run("load", ...n);
             }
             if (hasVmHook(t, "loading")) {
                 return t.loading(e, this.instruction, this.navigation);
@@ -1881,8 +1894,8 @@ class ViewportContent extends EndpointContent {
                 previous: this.navigation
             });
         }
-        const s = this.h(i, "unloading").map((s => () => s(i, this.instruction, t)));
-        s.push(...this.h(i, "unload").map((s => () => {
+        const s = this.R(i, "unloading").map((s => () => s(i, this.instruction, t)));
+        s.push(...this.R(i, "unload").map((s => () => {
             console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
             return s(i, this.instruction, t);
         })));
@@ -1894,7 +1907,7 @@ class ViewportContent extends EndpointContent {
                 console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
                 s.push((() => i.unload(this.instruction, t)));
             }
-            return Runner.run(null, ...s);
+            return Runner.run("unload", ...s);
         }
         if (hasVmHook(i, "unloading")) {
             return i.unloading(this.instruction, t);
@@ -1972,7 +1985,12 @@ class ViewportContent extends EndpointContent {
             }));
         }
     }
-    h(t, i) {
+    u(t) {
+        if (!t.message.startsWith("AUR0009:")) {
+            throw t;
+        }
+    }
+    R(t, i) {
         const s = t.$controller.lifecycleHooks[i] ?? [];
         return s.map((t => t.instance[i].bind(t.instance)));
     }
@@ -2223,15 +2241,20 @@ class Viewport extends r {
             if (this.isActiveNavigation(t)) {
                 if ((i.previousValue ?? true) === false) {
                     t.cancel();
-                } else {
-                    if (this.router.isRestrictedNavigation) {
-                        const i = this.router.configuration.options;
-                        this.getNavigationContent(t).createComponent(t, this.connectedCE, this.options.fallback || i.fallback, this.options.fallbackAction || i.fallbackAction);
-                    }
                 }
             }
-            t.addEndpointState(this, "guardedUnload");
-        }, () => t.waitForSyncState("guardedUnload", this), () => s !== null ? t.waitForEndpointState(s, "guardedLoad") : void 0, i => {
+        }, i => {
+            if (this.isActiveNavigation(t)) {
+                return RoutingInstruction.resolve([ this.getNavigationContent(t).instruction ]);
+            }
+        }, i => {
+            if (this.isActiveNavigation(t)) {
+                if (this.router.isRestrictedNavigation) {
+                    const i = this.router.configuration.options;
+                    return this.getNavigationContent(t).createComponent(t, this.connectedCE, this.options.fallback || i.fallback, this.options.fallbackAction || i.fallbackAction);
+                }
+            }
+        }, () => t.addEndpointState(this, "guardedUnload"), () => t.waitForSyncState("guardedUnload", this), () => s !== null ? t.waitForEndpointState(s, "guardedLoad") : void 0, i => {
             if (this.isActiveNavigation(t)) {
                 return this.canLoad(t, i);
             }
@@ -2265,12 +2288,11 @@ class Viewport extends r {
                         }
                         s = e;
                     }
-                    return Runner.run(i, (i => this.cancelContentChange(t, i)), (i => {
+                    return Runner.run(i, (() => {
                         void this.router.load(s, {
                             append: t
                         });
-                        return i.exit();
-                    }));
+                    }), (i => this.cancelContentChange(t, i)), (() => RoutingInstruction.resolve(s)), (t => t.exit()));
                 }
             }
             t.addEndpointState(this, "guardedLoad");
@@ -2339,7 +2361,7 @@ class Viewport extends r {
         r.push((() => t.addEndpointState(this, "swapped")));
         this.connectedCE?.setActivity?.(i, true);
         this.connectedCE?.setActivity?.(t.navigation.navigation, true);
-        const h = Runner.run(null, (i => t.setEndpointStep(this, i.root)), ...e, ...n, ...r, (() => t.addEndpointState(this, "completed")), (() => t.waitForSyncState("bound")), (() => {
+        const h = Runner.run("transition", (i => t.setEndpointStep(this, i.root)), ...e, ...n, ...r, (() => t.addEndpointState(this, "completed")), (() => t.waitForSyncState("bound")), (() => {
             this.connectedCE?.setActivity?.(i, false);
             this.connectedCE?.setActivity?.(t.navigation.navigation, false);
         }));
@@ -2362,9 +2384,8 @@ class Viewport extends r {
         return Runner.run(i, (() => this.waitForConnected()), (() => {
             const i = this.router.configuration.options;
             const s = this.getNavigationContent(t);
-            s.createComponent(t, this.connectedCE, this.options.fallback || i.fallback, this.options.fallbackAction || i.fallbackAction);
-            return s.canLoad();
-        }));
+            return s.createComponent(t, this.connectedCE, this.options.fallback || i.fallback, this.options.fallbackAction || i.fallbackAction);
+        }), (() => this.getNavigationContent(t).canLoad()));
     }
     load(t, i) {
         if (this.clear) {
@@ -3067,7 +3088,7 @@ class Navigator {
         }
         t.navigation = i;
         t.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
-        t.process = new OpenPromise;
+        t.process = new OpenPromise(`navigation: ${t.path}`);
         this.lastNavigationIndex = t.index;
         this.notifySubscribers(t);
         return t.process.promise;
@@ -3219,7 +3240,7 @@ class Navigator {
             return;
         }
         if (!i.some((t => t === e))) {
-            return Runner.run(null, (t => n.freeContent(t, e)), (() => {
+            return Runner.run("freeInstructionComponents", (t => n.freeContent(t, e)), (() => {
                 s.push(e);
             }));
         }
@@ -4381,7 +4402,7 @@ class NavigationCoordinator {
         }
     }
     addSyncState(t) {
-        const i = new OpenPromise;
+        const i = new OpenPromise(`addSyncState: ${t}`);
         this.syncStates.set(t, i);
     }
     addEndpoint(t) {
@@ -4444,7 +4465,7 @@ class NavigationCoordinator {
             const e = this.entities.find((t => t.endpoint === i));
             if (e?.syncPromise === null && s.isPending) {
                 e.syncingState = t;
-                e.syncPromise = new OpenPromise;
+                e.syncPromise = new OpenPromise(`waitForSyncState: ${t}`);
                 e.checkedStates.push(t);
                 this.checkedSyncStates.add(t);
                 Promise.resolve().then((() => {
@@ -4470,7 +4491,7 @@ class NavigationCoordinator {
         }
         let e = s.states.get(i);
         if (e == null) {
-            e = new OpenPromise;
+            e = new OpenPromise(`waitForEndpointState: ${i}`);
             s.states.set(i, e);
         }
         return e.promise;
@@ -4747,8 +4768,8 @@ class Router {
         this.isActive = false;
         this.coordinators = [];
         this.loadedFirst = false;
-        this.u = false;
-        this.R = t.resolve(t.ILogger);
+        this.C = false;
+        this.I = t.resolve(t.ILogger);
         this.container = t.resolve(t.IContainer);
         this.ea = t.resolve(t.IEventAggregator);
         this.navigator = t.resolve(Navigator);
@@ -4756,7 +4777,7 @@ class Router {
         this.store = t.resolve(BrowserViewerStore);
         this.configuration = t.resolve(m);
         this.handleNavigatorNavigateEvent = t => {
-            void this.C(t);
+            void this.N(t);
         };
         this.handleNavigatorStateChangeEvent = t => {
             if (t.state?.navigationIndex != null) {
@@ -4807,8 +4828,14 @@ class Router {
             if (i.completeStateNavigations) {
                 arrayUnique(e, false).map((t => t.scope)).forEach((t => s.ensureClearStateInstruction(t)));
             }
-            await s.processInstructions();
-            return Runner.run(null, (() => {
+            let r = 100;
+            do {
+                if (!r--) {
+                    this.unresolvedInstructionsError(t, s.instructions);
+                }
+                await s.processInstructions();
+            } while (s.instructions.length > 0);
+            return Runner.run("processNavigation", (() => {
                 s.closed = true;
                 s.finalEndpoint();
                 return s.waitForSyncState("completed");
@@ -4863,8 +4890,8 @@ class Router {
             viewer: this.viewer,
             statefulHistoryLength: this.configuration.options.statefulHistoryLength
         });
-        this.I = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
-        this.N = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
+        this.$ = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
+        this.P = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
         this.viewer.start({
             useUrlFragmentHash: this.configuration.options.useUrlFragmentHash
         });
@@ -4877,8 +4904,8 @@ class Router {
         this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
         this.navigator.stop();
         this.viewer.stop();
-        this.I.dispose();
-        this.N.dispose();
+        this.$.dispose();
+        this.P.dispose();
     }
     async initialLoad() {
         const {instruction: t, hash: i} = this.viewer.viewerState;
@@ -4890,30 +4917,30 @@ class Router {
         this.loadedFirst = true;
         return s;
     }
-    async C(t) {
-        if (this.u) {
-            if (this.$) {
-                this.$.navigation.process?.resolve(false);
+    async N(t) {
+        if (this.C) {
+            if (this.V) {
+                this.V.navigation.process?.resolve(false);
             }
-            this.$ = t;
+            this.V = t;
             return;
         }
-        this.u = true;
+        this.C = true;
         try {
             await this.processNavigation(t.navigation);
         } catch (i) {
             t.navigation.process?.reject(i);
         } finally {
-            this.u = false;
+            this.C = false;
         }
-        if (this.$) {
-            const t = this.$;
-            this.$ = undefined;
-            await this.C(t);
+        if (this.V) {
+            const t = this.V;
+            this.V = undefined;
+            await this.N(t);
         }
     }
     get isProcessingNav() {
-        return this.u || this.$ != null;
+        return this.C || this.V != null;
     }
     getEndpoint(t, i) {
         return this.allEndpoints(t).find((t => t.name === i)) ?? null;
@@ -5040,7 +5067,7 @@ class Router {
     unresolvedInstructionsError(t, i) {
         this.ea.publish(RouterNavigationErrorEvent.eventName, RouterNavigationErrorEvent.create(t));
         this.ea.publish(RouterNavigationEndEvent.eventName, RouterNavigationEndEvent.create(t));
-        throw createUnresolvedinstructionsError(i, this.R);
+        throw createUnresolvedinstructionsError(i, this.I);
     }
     cancelNavigation(t, i) {
         i.cancel();
@@ -5386,7 +5413,7 @@ class ViewportCustomElement {
         if (i && this.parentViewport != null) {
             this.parentViewport.pendingChildren.push(this);
             if (this.parentViewport.pendingPromise === null) {
-                this.parentViewport.pendingPromise = new OpenPromise;
+                this.parentViewport.pendingPromise = new OpenPromise(`hydrated: ViewportCustomElement`);
             }
         }
         Runner.run(null, (() => waitForRouterStart(this.router, this.ea)), (() => {
@@ -5397,7 +5424,7 @@ class ViewportCustomElement {
     }
     binding(t, i) {
         this.isBound = true;
-        return Runner.run(null, (() => waitForRouterStart(this.router, this.ea)), (() => {
+        return Runner.run("binding", (() => waitForRouterStart(this.router, this.ea)), (() => {
             if (!this.router.isRestrictedNavigation) {
                 this.connect();
             }
@@ -5563,7 +5590,7 @@ i.CustomElement.define({
 
 class LoadCustomAttribute {
     constructor() {
-        this.P = false;
+        this.A = false;
         this.hasHref = null;
         this.element = t.resolve(i.INode);
         this.router = t.resolve(f);
@@ -5576,7 +5603,7 @@ class LoadCustomAttribute {
     }
     binding() {
         if (this.value == null) {
-            this.P = true;
+            this.A = true;
         }
         this.element.addEventListener("click", this.linkHandler);
         this.updateValue();
@@ -5592,7 +5619,7 @@ class LoadCustomAttribute {
         void this.updateActive();
     }
     updateValue() {
-        if (this.P) {
+        if (this.A) {
             this.value = {
                 component: this.component,
                 parameters: this.parameters,
@@ -5607,7 +5634,7 @@ class LoadCustomAttribute {
             let t = this.value;
             if (typeof t !== "string") {
                 const i = RoutingInstruction.from(this.router, t).shift();
-                const s = this.V(t);
+                const s = this.O(t);
                 if (s.foundConfiguration) {
                     i.route = s.matching;
                 }
@@ -5628,14 +5655,14 @@ class LoadCustomAttribute {
             id: this.value,
             path: this.value
         } : this.value;
-        const e = this.V(s);
+        const e = this.O(s);
         const n = e.foundConfiguration ? e.instructions : getConsideredActiveInstructions(this.router, t, this.element, this.value);
         const r = getLoadIndicator(this.element);
         r.classList.toggle(this.activeClass, this.router.checkActive(n, {
             context: t
         }));
     }
-    V(t) {
+    O(t) {
         if (typeof t === "string") {
             return new FoundRoute;
         }

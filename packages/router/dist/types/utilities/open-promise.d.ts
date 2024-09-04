@@ -2,6 +2,7 @@
  * The OpenPromise provides an open API to a promise.
  */
 export declare class OpenPromise<T = void> {
+    readonly description: string;
     /**
      * Whether the promise is still pending (not settled)
      */
@@ -10,7 +11,8 @@ export declare class OpenPromise<T = void> {
      * The actual promise
      */
     promise: Promise<T>;
-    constructor();
+    static promises: OpenPromise<any>[];
+    constructor(description?: string);
     /**
      * Resolve the (open) promise.
      *

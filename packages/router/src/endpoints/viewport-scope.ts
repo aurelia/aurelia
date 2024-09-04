@@ -129,7 +129,7 @@ export class ViewportScope extends Endpoint {
   }
 
   public transition(coordinator: NavigationCoordinator): void {
-    Runner.run(null,
+    Runner.run('viewport-scope.transition',
       (step: Step<void>) => coordinator.setEndpointStep(this, step.root),
       () => coordinator.addEndpointState(this, 'guardedUnload'),
       () => coordinator.addEndpointState(this, 'guardedLoad'),

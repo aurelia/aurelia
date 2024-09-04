@@ -236,7 +236,7 @@ export class Navigator {
     // Set the previous navigation.
     navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
     // Create a process with an awaitable promise.
-    (navigation as Navigation).process = new OpenPromise();
+    (navigation as Navigation).process = new OpenPromise(`navigation: ${navigation.path}`);
 
     // Set the last navigated index to the navigation index
     this.lastNavigationIndex = navigation.index as number;
@@ -530,7 +530,7 @@ export class Navigator {
       return;
     }
     if (!excludeComponents.some(exclude => exclude === component)) {
-      return Runner.run(null,
+      return Runner.run('freeInstructionComponents',
         (step: Step<void>) => viewport.freeContent(step, component),
         () => {
           alreadyDone.push(component);

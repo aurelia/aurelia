@@ -54,15 +54,15 @@ export class Runner {
    * If first parameter is an existing Step, the additional steps will be added to run after it. In this
    * case, the return value will be the first new step and not the result (since it doesn't exist yet).
    */
-  public static run<T = unknown>(predecessor: Step<T> | null, ...steps: unknown[]): T | Promise<T> | Step<T> {
+  public static run<T = unknown>(predecessor: Step<T> | null | string, ...steps: unknown[]): T | Promise<T> | Step<T> {
     if (steps.length === 0) {
       return void 0 as T;
     }
 
     let newRoot = false;
     // No predecessor, so create a new root and add steps as children to it
-    if (predecessor === null) {
-      predecessor = new Step<T>();
+    if (predecessor === null || typeof predecessor === 'string') {
+      predecessor = new Step<T>(predecessor);
       newRoot = true;
     }
 
@@ -291,7 +291,7 @@ export class Runner {
 
   private static ensurePromise<T = unknown>(step: Step<T>): boolean {
     if (step.finally === null) {
-      step.finally = new OpenPromise();
+      step.finally = new OpenPromise(`Runner: ${step.name}, ${step.previousValue}, ${step.value}, ${step.root.report}`);
       step.promise = step.finally.promise;
       return true;
     }
@@ -339,6 +339,9 @@ export class Step<T = unknown> {
     public runParallel: boolean = false,
   ) {
     this.id = `${Step.id++}`;
+    if (typeof step === 'string') {
+      this.id += ` ${step}`;
+    }
   }
 
   public get isParallelParent(): boolean {

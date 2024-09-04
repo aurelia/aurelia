@@ -1,4 +1,4 @@
-import { IContainer } from '@aurelia/kernel';
+import { IContainer, onResolve } from '@aurelia/kernel';
 import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
@@ -195,7 +195,7 @@ export class ViewportContent extends EndpointContent {
    * will be processed under the fallback component or if the child
    * instructions will be aborted.
    */
-  public createComponent(coordinator: NavigationCoordinator, connectedCE: IConnectedCustomElement, fallback?: ComponentAppellation, fallbackAction?: FallbackAction): void {
+  public createComponent(coordinator: NavigationCoordinator, connectedCE: IConnectedCustomElement, fallback?: ComponentAppellation, fallbackAction?: FallbackAction): void | Promise<void> {
     // Can be called at multiple times, only process the first
     if (this.contentStates.has('created')) {
       return;
@@ -203,18 +203,14 @@ export class ViewportContent extends EndpointContent {
     // Don't load cached content or instantiated history content
     if (!this.fromCache && !this.fromHistory) {
       try {
-        this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
-      } catch (e) {
-        // TODO: Improve this by extracting the existance check separately
-        if (!(e as Error).message.startsWith('AUR0009:')) {
-          throw e;
-        }
-
-        if (__DEV__) {
-          const componentName = this.instruction.component.name as string;
-          // eslint-disable-next-line no-console
-          console.warn(createMappedError(ErrorNames.endpoint_instantiation_error, componentName, e));
-        }
+        return onResolve(
+          this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element),
+          (component: IRouteableComponent | null) => {
+            this.instruction.component.set(component);
+            this.contentStates.set('created', void 0);
+          }) as void | Promise<void>;
+      } catch (e: unknown) {
+        this._assertInstantiationError(e);
 
         // If there's a fallback component...
         if ((fallback ?? '') !== '') {
@@ -235,21 +231,21 @@ export class ViewportContent extends EndpointContent {
           // ...fallback is the new component...
           this.instruction.component.set(fallback);
 
+          // ...and try again.
           try {
-            // ...and try again.
-            this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
+            return onResolve(
+              this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element),
+              (fallbackComponent: IRouteableComponent | null) => {
+                this.instruction.component.set(fallbackComponent);
+                this.contentStates.set('created', void 0);
+              }) as void | Promise<void>;
           } catch (ee) {
-            if (!(ee as Error).message.startsWith('AUR0009:')) {
-              throw ee;
-            }
-            const componentName = this.instruction.component.name as string;
-            throw createMappedError(ErrorNames.endpoint_instantiation_error, componentName, ee);
-            // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+            this._assertInstantiationError(ee);
+
+            throw createMappedError(ErrorNames.endpoint_instantiation_error, this.instruction.component.name, ee);
           }
         } else {
-          const componentName = this.instruction.component.name as string;
-          throw createMappedError(ErrorNames.endpoint_instantiation_error, componentName);
-          // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+          throw createMappedError(ErrorNames.endpoint_instantiation_error, this.instruction.component.name);
         }
       }
     }
@@ -306,7 +302,7 @@ export class ViewportContent extends EndpointContent {
     if (hooks.length === 1) {
       return hooks[0](null);
     }
-    return Runner.run(null, ...hooks) as Promise<RoutingInstruction[]>;
+    return Runner.run('canLoad', ...hooks) as Promise<RoutingInstruction[]>;
   }
 
   /**
@@ -363,7 +359,7 @@ export class ViewportContent extends EndpointContent {
     if (hooks.length === 1) {
       return hooks[0](null);
     }
-    return Runner.run(null, ...hooks) as boolean | Promise<boolean>;
+    return Runner.run('canUnload', ...hooks) as boolean | Promise<boolean>;
   }
 
   /**
@@ -414,7 +410,7 @@ export class ViewportContent extends EndpointContent {
             hooks.push(() => instance.load(merged, this.instruction, this.navigation));
           }
 
-          return Runner.run(null, ...hooks);
+          return Runner.run('load', ...hooks);
         }
 
         // Skip if there's no hook in component
@@ -475,7 +471,7 @@ export class ViewportContent extends EndpointContent {
         hooks.push(() => instance.unload(this.instruction, navigation));
       }
 
-      return Runner.run(null, ...hooks) as void | Promise<void>;
+      return Runner.run('unload', ...hooks) as void | Promise<void>;
     }
 
     // Skip if there's no hook in component
@@ -649,7 +645,7 @@ export class ViewportContent extends EndpointContent {
   /**
    * Get the content's component instance (if any).
    */
-  public toComponentInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement): IRouteableComponent | null {
+  public toComponentInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement): IRouteableComponent | null | Promise<IRouteableComponent> {
     if (this.instruction.component.none) {
       return null;
     }
@@ -669,6 +665,24 @@ export class ViewportContent extends EndpointContent {
       return new Promise((resolve) => {
         (this.endpoint as Viewport).activeResolve = resolve;
       });
+    }
+  }
+
+  /**
+   * Assert that the error is an instantiation error. If it's not, throw
+   * the error. If it is, log a warning in development mode.
+   *
+   * @param e - The error to assert
+   */
+  private _assertInstantiationError(e: unknown): void {
+    if (!(e as Error).message.startsWith('AUR0009:')) {
+      throw e;
+    }
+
+    if (__DEV__) {
+      const componentName = this.instruction.component.name as string;
+      // eslint-disable-next-line no-console
+      console.warn(createMappedError(ErrorNames.endpoint_instantiation_error, componentName, e));
     }
   }
 

@@ -608,9 +608,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         } else {
           view.scope.bindingContext[local] = _normalizedItems![i];
         }
-        if (oldLength !== newLen) {
-          setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
-        }
+        setContextualProperties(view.scope.overrideContext as IRepeatOverrideContext, i, newLen);
         --j;
       }
     }

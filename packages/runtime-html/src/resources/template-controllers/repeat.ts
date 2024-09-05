@@ -68,7 +68,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     bindables: ['items'],
   };
 
-  private views: ISyntheticView[] = [];
+  public views: ISyntheticView[] = [];
   private _oldViews: ISyntheticView[] = [];
   private _scopes: Scope[] = [];
   private _oldScopes: Scope[] = [];
@@ -426,6 +426,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal, i, len);
     }
 
+    for (const scope of oldScopeMap.values()) {
+      // Make sure they don't get reused by the key map
+      if (scope instanceof Scope) {
+        (scope.overrideContext as IRepeatOverrideContext).$index = -1;
+      } else {
+        for (const s of scope) {
+          (s.overrideContext as IRepeatOverrideContext).$index = -1;
+        }
+      }
+    }
     oldScopeMap.clear();
     this._scopeMap = newScopeMap;
   }

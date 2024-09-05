@@ -250,7 +250,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         for (i = 0; i < oldLen; ++i) {
           oldScope = oldScopes[i];
           oldItem = oldItems[i] = getItem(hasDestructuredLocal, dec, oldScope, binding, local);
-          oldKeys[i] = getKeyValue(key, oldItem, oldScope, binding);
+          oldKeys[i] = getKeyValue(key, oldItem, oldScope, binding, null);
         }
 
         let newItem: unknown;
@@ -273,8 +273,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           while (true) {
             oldScope = oldScopes[i];
             newScope = newScopes[i];
-            oldKey = getKeyValue(key, oldItem, oldScope, binding);
-            newKey = getKeyValue(key, newItem, newScope, binding);
+            oldKey = getKeyValue(key, oldItem, oldScope, binding, null);
+            newKey = getKeyValue(key, newItem, newScope, binding, i);
             if (oldKey !== newKey) {
               keyMap.set(oldScope, oldKey);
               keyMap.set(newScope, newKey);
@@ -298,8 +298,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           while (true) {
             oldScope = oldScopes[j];
             newScope = newScopes[j];
-            oldKey = getKeyValue(key, oldItem, oldScope, binding);
-            newKey = getKeyValue(key, newItem, newScope, binding);
+            oldKey = getKeyValue(key, oldItem, oldScope, binding, null);
+            newKey = getKeyValue(key, newItem, newScope, binding, i);
             if (oldKey !== newKey) {
               keyMap.set(oldScope, oldKey);
               keyMap.set(newScope, newKey);
@@ -318,7 +318,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
-          newKey = getKeyValue(key, newItem, newScopes[i], binding);
+          newKey = getKeyValue(key, newItem, newScopes[i], binding, i);
           newIndices.set(newKey, i);
         }
 
@@ -326,7 +326,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(oldScope = oldScopes[i])) {
             oldKey = keyMap.get(oldScope);
           } else {
-            oldKey = getKeyValue(key, oldItem, oldScopes[i], binding);
+            oldKey = getKeyValue(key, oldItem, oldScopes[i], binding, null);
           }
           oldIndices.set(oldKey, i);
 
@@ -426,16 +426,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal, i, len);
     }
 
-    for (const scope of oldScopeMap.values()) {
-      // Make sure they don't get reused by the key map
-      if (scope instanceof Scope) {
-        (scope.overrideContext as IRepeatOverrideContext).$index = -1;
-      } else {
-        for (const s of scope) {
-          (s.overrideContext as IRepeatOverrideContext).$index = -1;
-        }
-      }
-    }
+    resetScopeKeys(oldScopeMap);
     oldScopeMap.clear();
     this._scopeMap = newScopeMap;
   }
@@ -557,19 +548,15 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let promises: Promise<void>[] | undefined = void 0;
     let ret: void | Promise<void>;
     let view: ISyntheticView;
-    let scope: Scope;
     let i = 0;
 
-    const { $controller, _factory, local, _normalizedItems, _location, views, _scopes, _hasDestructuredLocal, _forOfBinding, _oldViews, _oldScopes, forOf } = this;
+    const { $controller, _factory, local, _normalizedItems, _location, views, _scopes, _hasDestructuredLocal, _forOfBinding, _oldViews, forOf } = this;
     const newLen = indexMap.length;
-    const parentScope = $controller.scope;
 
     for (; newLen > i; ++i) {
       if (indexMap[i] === -2) {
         view = _factory.create();
         views.splice(i, 0, view);
-        scope = createScope(_normalizedItems![i] as IIndexable, forOf, parentScope, _forOfBinding, local, _hasDestructuredLocal, i, newLen);
-        _scopes.splice(i, 0, scope);
       }
     }
 
@@ -582,7 +569,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     for (; i < indexMap.length; ++i) {
       if ((source = indexMap[i]) !== -2) {
         views[i] = _oldViews[source];
-        _scopes[i] = _oldScopes[source];
       }
     }
 
@@ -898,6 +884,19 @@ const _unknownHandler: IRepeatableHandler = {
 
 type Repeatable = Collection | ArrayLike<unknown> | number | null | undefined;
 
+const resetScopeKeys = (scopeMap: Map<unknown, Scope | Scope[]>) => {
+  for (const scope of scopeMap.values()) {
+    // Make sure they don't get reused by the key map
+    if (scope instanceof Scope) {
+      (scope.overrideContext as IRepeatOverrideContext).$index = -1;
+    } else {
+      for (const s of scope) {
+        (s.overrideContext as IRepeatOverrideContext).$index = -1;
+      }
+    }
+  }
+};
+
 const setItem = (
   hasDestructuredLocal: boolean,
   dec: ForOfStatement['declaration'],
@@ -931,9 +930,10 @@ const getKeyValue = (
   item: unknown,
   scope: Scope,
   binding: PropertyBinding,
+  fallbackKey: number | null,
 ) => {
   if (key === null) {
-    return (scope.overrideContext as IRepeatOverrideContext).$index;
+    return fallbackKey ?? (scope.overrideContext as IRepeatOverrideContext).$index;
   } else if (typeof key === 'string') {
     return (item as IIndexable)[key];
   }

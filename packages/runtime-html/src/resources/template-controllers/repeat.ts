@@ -273,14 +273,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           // views with same key at start
           // eslint-disable-next-line no-constant-condition
           while (true) {
+            oldItem = oldItems[i];
+            newItem = newItems[i];
             if (hasKey) {
-              oldItem = oldItems[i];
-              newItem = newItems[i];
               oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
               newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
             } else {
-              oldItem = oldKey = ensureUnique(oldItems[i], i);
-              newItem = newKey = ensureUnique(newItems[i], i);
+              oldKey = (oldViews[i].scope.overrideContext as IRepeatOverrideContext).$index;
+              newKey = i;
             }
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);
@@ -309,8 +309,10 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
               oldKey = getKeyValue(keyMap, key, oldItem, getScope(scopeMap, oldItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
               newKey = getKeyValue(keyMap, key, newItem, getScope(scopeMap, newItem, forOf, parentScope, binding, local, hasDestructuredLocal, i, newLen), binding);
             } else {
-              oldItem = oldKey = ensureUnique(oldItems[i], i);
-              newItem = newKey = ensureUnique(newItems[i], i);
+              oldItem = oldItems[i];
+              newItem = newItems[i];
+              oldKey = (oldViews[i].scope.overrideContext as IRepeatOverrideContext).$index;
+              newKey = i;
             }
             if (oldKey !== newKey) {
               keyMap.set(oldItem, oldKey);

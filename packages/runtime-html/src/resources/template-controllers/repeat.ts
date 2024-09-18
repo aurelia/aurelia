@@ -229,7 +229,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const hasDestructuredLocal = this._hasDestructuredLocal;
       indexMap = createIndexMap(newLen);
       let i = 0;
-      let oldItem: unknown;
+      let newScope: Scope;
       let oldScope: Scope;
 
       if (oldLen === 0) {
@@ -249,12 +249,19 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
         for (i = 0; i < oldLen; ++i) {
           oldScope = oldScopes[i];
-          oldItem = oldItems[i] = getItem(hasDestructuredLocal, dec, oldScope, binding, local);
-          oldKeys[i] = getKeyValue(key, oldItem, oldScope, binding, null);
+          oldItems[i] = getItem(hasDestructuredLocal, dec, oldScope, binding, local);
+          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
         }
 
-        let newItem: unknown;
-        let newScope: Scope;
+        const newItems = Array<unknown>(oldLen);
+        const newKeys = Array<unknown>(oldLen);
+
+        for (i = 0; i < newLen; ++i) {
+          newScope = newScopes[i];
+          newItems[i] = getItem(hasDestructuredLocal, dec, newScope, binding, local);
+          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, null);
+        }
+
         let oldKey: unknown;
         let newKey: unknown;
         let j = 0;
@@ -273,8 +280,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           while (true) {
             oldScope = oldScopes[i];
             newScope = newScopes[i];
-            oldKey = getKeyValue(key, oldItem, oldScope, binding, null);
-            newKey = getKeyValue(key, newItem, newScope, binding, i);
+            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
+            newKey = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, i);
             if (oldKey !== newKey) {
               keyMap.set(oldScope, oldKey);
               keyMap.set(newScope, newKey);
@@ -298,8 +305,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           while (true) {
             oldScope = oldScopes[j];
             newScope = newScopes[j];
-            oldKey = getKeyValue(key, oldItem, oldScope, binding, null);
-            newKey = getKeyValue(key, newItem, newScope, binding, i);
+            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
+            newKey = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, j);
             if (oldKey !== newKey) {
               keyMap.set(oldScope, oldKey);
               keyMap.set(newScope, newKey);
@@ -318,7 +325,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         const newStart = i;
 
         for (i = newStart; i <= newEnd; ++i) {
-          newKey = getKeyValue(key, newItem, newScopes[i], binding, i);
+          newKey = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local, i);
           newIndices.set(newKey, i);
         }
 
@@ -326,7 +333,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           if (keyMap.has(oldScope = oldScopes[i])) {
             oldKey = keyMap.get(oldScope);
           } else {
-            oldKey = getKeyValue(key, oldItem, oldScopes[i], binding, null);
+            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local, null);
           }
           oldIndices.set(oldKey, i);
 
@@ -334,7 +341,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             indexMap[newIndices.get(oldKey)!] = i;
           } else {
             indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(oldItem);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
           }
         }
 
@@ -426,7 +433,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal, i, len);
     }
 
-    resetScopeKeys(oldScopeMap);
+    // resetScopeKeys(oldScopeMap);
     oldScopeMap.clear();
     this._scopeMap = newScopeMap;
   }
@@ -728,6 +735,7 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
+    public readonly $key: unknown = $index,
   ) {}
 }
 
@@ -926,15 +934,18 @@ const getItem = (
 };
 
 const getKeyValue = (
+  hasDestructuredLocal: boolean,
   key: null | string | IsBindingBehavior,
-  item: unknown,
+  dec: ForOfStatement['declaration'],
   scope: Scope,
   binding: PropertyBinding,
+  local: string,
   fallbackKey: number | null,
 ) => {
   if (key === null) {
     return fallbackKey ?? (scope.overrideContext as IRepeatOverrideContext).$index;
   } else if (typeof key === 'string') {
+    const item = getItem(hasDestructuredLocal, dec, scope, binding, local);
     return (item as IIndexable)[key];
   }
 
@@ -953,6 +964,7 @@ const getScope = (
   index: number,
   length: number,
 ) => {
+  // let scope = void 0 as Scope | Scope[] | undefined;
   let scope = oldScopeMap.get(item);
   if (scope === void 0) {
     scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal, index, length);

@@ -68,10 +68,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   };
 
   public views: ISyntheticView[] = [];
-  private _oldViews: ISyntheticView[] = [];
-  private _scopes: Scope[] = [];
-  private _oldScopes: Scope[] = [];
-
   public forOf!: ForOfStatement;
   public local!: string;
 
@@ -80,6 +76,9 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
 
+  /** @internal */ private _oldViews: ISyntheticView[] = [];
+  /** @internal */ private _scopes: Scope[] = [];
+  /** @internal */ private _oldScopes: Scope[] = [];
   /** @internal */ private _scopeMap: Map<unknown, Scope | Scope[]> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;

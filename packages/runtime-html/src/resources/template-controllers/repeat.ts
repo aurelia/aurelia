@@ -242,24 +242,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
       } else if (hasKey) {
-        let oldScope: Scope;
-        const oldItems = Array<unknown>(oldLen);
         const oldKeys = Array<unknown>(oldLen);
 
         for (i = 0; i < oldLen; ++i) {
-          oldScope = oldScopes[i];
-          oldItems[i] = getItem(hasDestructuredLocal, dec, oldScope, binding, local);
-          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
+          oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local);
         }
 
-        let newScope: Scope;
-        const newItems = Array<unknown>(oldLen);
         const newKeys = Array<unknown>(oldLen);
 
         for (i = 0; i < newLen; ++i) {
-          newScope = newScopes[i];
-          newItems[i] = getItem(hasDestructuredLocal, dec, newScope, binding, local);
-          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, null);
+          newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local);
         }
 
         for (i = 0; i < newLen; ++i) {
@@ -859,16 +851,13 @@ const getItem = (
 
 const getKeyValue = (
   hasDestructuredLocal: boolean,
-  key: null | string | IsBindingBehavior,
+  key: string | IsBindingBehavior,
   dec: ForOfStatement['declaration'],
   scope: Scope,
   binding: PropertyBinding,
   local: string,
-  fallbackKey: number | null,
 ) => {
-  if (key === null) {
-    return fallbackKey ?? (scope.overrideContext as IRepeatOverrideContext).$index;
-  } else if (typeof key === 'string') {
+  if (typeof key === 'string') {
     const item = getItem(hasDestructuredLocal, dec, scope, binding, local);
     return (item as IIndexable)[key];
   }

@@ -15,7 +15,6 @@ import {
 } from '@aurelia/kernel';
 import {
   BindingBehaviorExpression,
-  DestructuringAssignmentExpression,
   ForOfStatement,
   type IsBindingBehavior,
   ValueConverterExpression,
@@ -81,7 +80,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   public items: Items<C>;
   public key: null | string | IsBindingBehavior = null;
 
-  /** @internal */ private readonly _keyMap: Map<Scope, unknown> = new Map();
   /** @internal */ private _scopeMap: Map<unknown, Scope | Scope[]> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
@@ -173,7 +171,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._scopeMap.clear();
-    this._keyMap.clear();
   }
 
   // called by SetterObserver
@@ -302,14 +299,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           this._deactivateAndRemoveViewsByKey(indexMap),
           () => {
             // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(oldLen, indexMap);
+            return this._createAndActivateAndSortViewsByKey(indexMap);
           },
         );
         if (isPromise(ret)) { ret.catch(rethrow); }
       } else {
         // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(oldLen, indexMap);
+        this._createAndActivateAndSortViewsByKey(indexMap);
       }
     }
   }
@@ -360,7 +357,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const hasDestructuredLocal = this._hasDestructuredLocal;
 
     for (let i = 0; i < len; ++i) {
-      scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal, i, len);
+      scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
     }
 
     oldScopeMap.clear();
@@ -401,6 +398,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view.nodes.unlink();
       scope = _scopes[i];
 
+      setContextualProperties(scope.overrideContext as RepeatOverrideContext, i, newLen);
       ret = view.activate(initiator ?? view, $controller, scope);
       if (isPromise(ret)) {
         (promises ??= []).push(ret);
@@ -478,7 +476,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
   /** @internal */
   private _createAndActivateAndSortViewsByKey(
-    oldLength: number,
     indexMap: IndexMap,
   ): void | Promise<void> {
     let promises: Promise<void>[] | undefined = void 0;
@@ -486,7 +483,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     let view: ISyntheticView;
     let i = 0;
 
-    const { $controller, _factory, local, _normalizedItems, _location, views, _scopes, _hasDestructuredLocal, _forOfBinding, _oldViews, forOf } = this;
+    const { $controller, _factory, _location, views, _scopes, _oldViews } = this;
     const newLen = indexMap.length;
 
     for (; newLen > i; ++i) {
@@ -513,7 +510,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const seq = longestIncreasingSubsequence(indexMap);
     const seqLen = seq.length;
 
-    const dec = forOf.declaration as DestructuringAssignmentExpression;
     let next: ISyntheticView;
     let j = seqLen - 1;
     i = newLen - 1;
@@ -525,13 +521,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
       if (indexMap[i] === -2) {
         view.setLocation(_location);
+        setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen);
         ret = view.activate(view, $controller, _scopes[i]);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
+        setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen);
         --j;
       }
     }
@@ -826,15 +825,12 @@ const setItem = (
   binding: PropertyBinding,
   local: string,
   item: unknown,
-  index: number,
-  length: number,
 ) => {
   if (hasDestructuredLocal) {
     astAssign(dec, scope, binding, item);
   } else {
     scope.bindingContext[local] = item;
   }
-  setContextualProperties(scope.overrideContext as IRepeatOverrideContext, index, length);
 };
 
 const getItem = (
@@ -872,13 +868,11 @@ const getScope = (
   binding: PropertyBinding,
   local: string,
   hasDestructuredLocal: boolean,
-  index: number,
-  length: number,
 ) => {
   // let scope = void 0 as Scope | Scope[] | undefined;
   let scope = oldScopeMap.get(item);
   if (scope === void 0) {
-    scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal, index, length);
+    scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
   } else if (scope instanceof Scope) {
     oldScopeMap.delete(item);
   } else if (scope.length === 1) {
@@ -898,7 +892,7 @@ const getScope = (
   } else {
     newScopeMap.set(item, scope);
   }
-  setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item, index, length);
+  setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item);
   return scope;
 };
 
@@ -909,14 +903,12 @@ const createScope = (
   binding: PropertyBinding,
   local: string,
   hasDestructuredLocal: boolean,
-  index: number,
-  length: number,
 ) => {
   if (hasDestructuredLocal) {
-    const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext(index, length));
+    const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
     astAssign(forOf.declaration, scope, binding, item);
   }
-  return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext(index, length));
+  return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
 };
 
 const compareNumber = (a: number, b: number): number => a - b;

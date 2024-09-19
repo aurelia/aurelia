@@ -218,7 +218,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldScopes = this._oldScopes;
     const newScopes = this._scopes;
 
-    if (hasKey || indexMap === void 0) {
+    if (hasKey) {
       const local = this.local;
       const newItems = this._normalizedItems as IIndexable[];
 
@@ -229,8 +229,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       const hasDestructuredLocal = this._hasDestructuredLocal;
       indexMap = createIndexMap(newLen);
       let i = 0;
-      let newScope: Scope;
-      let oldScope: Scope;
 
       if (oldLen === 0) {
         // Only add new views
@@ -244,6 +242,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
       } else {
+        let oldScope: Scope;
         const oldItems = Array<unknown>(oldLen);
         const oldKeys = Array<unknown>(oldLen);
 
@@ -253,6 +252,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           oldKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
         }
 
+        let newScope: Scope;
         const newItems = Array<unknown>(oldLen);
         const newKeys = Array<unknown>(oldLen);
 
@@ -262,97 +262,59 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           newKeys[i] = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, null);
         }
 
-        let oldKey: unknown;
-        let newKey: unknown;
-        let j = 0;
-        const oldEnd = oldLen - 1;
-        const newEnd = newLen - 1;
-
-        const oldIndices = new Map<unknown, number>();
-        const newIndices = new Map<unknown, number>();
-        const keyMap = this._keyMap;
-
-        i = 0;
-        // Step 1: narrow down the loop range as much as possible by checking the start and end for key equality
-        outer: {
-          // views with same key at start
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            oldScope = oldScopes[i];
-            newScope = newScopes[i];
-            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
-            newKey = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, i);
-            if (oldKey !== newKey) {
-              keyMap.set(oldScope, oldKey);
-              keyMap.set(newScope, newKey);
-              break;
-            }
-
-            ++i;
-            if (i > oldEnd || i > newEnd) {
-              break outer;
-            }
-          }
-
-          // TODO(perf): might be able to remove this condition with some offset magic?
-          if (oldEnd !== newEnd) {
-            break outer;
-          }
-
-          // views with same key at end
-          j = newEnd;
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            oldScope = oldScopes[j];
-            newScope = newScopes[j];
-            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScope, binding, local, null);
-            newKey = getKeyValue(hasDestructuredLocal, key, dec, newScope, binding, local, j);
-            if (oldKey !== newKey) {
-              keyMap.set(oldScope, oldKey);
-              keyMap.set(newScope, newKey);
-              break;
-            }
-
-            --j;
-            if (i > j) {
-              break outer;
-            }
-          }
-        }
-
-        // Step 2: map keys to indices and adjust the indexMap
-        const oldStart = i;
-        const newStart = i;
-
-        for (i = newStart; i <= newEnd; ++i) {
-          newKey = getKeyValue(hasDestructuredLocal, key, dec, newScopes[i], binding, local, i);
-          newIndices.set(newKey, i);
-        }
-
-        for (i = oldStart; i <= oldEnd; ++i) {
-          if (keyMap.has(oldScope = oldScopes[i])) {
-            oldKey = keyMap.get(oldScope);
+        for (i = 0; i < newLen; ++i) {
+          if (oldKeys.includes(newKeys[i])) {
+            indexMap[i] = oldKeys.indexOf(newKeys[i]);
           } else {
-            oldKey = getKeyValue(hasDestructuredLocal, key, dec, oldScopes[i], binding, local, null);
-          }
-          oldIndices.set(oldKey, i);
-
-          if (newIndices.has(oldKey)) {
-            indexMap[newIndices.get(oldKey)!] = i;
-          } else {
-            indexMap.deletedIndices.push(i);
-            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
-          }
-        }
-
-        for (i = newStart; i <= newEnd; ++i) {
-          if (!oldIndices.has(keyMap.get(newScopes[i]))) {
             indexMap[i] = -2;
           }
         }
 
-        oldIndices.clear();
-        newIndices.clear();
+        for (i = 0; i < oldLen; ++i) {
+          if (!newKeys.includes(oldKeys[i])) {
+            indexMap.deletedIndices.push(i);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+          }
+        }
+      }
+    } else if (indexMap === void 0) {
+      const local = this.local;
+      const newItems = this._normalizedItems as IIndexable[];
+
+      const newLen = newItems.length;
+      const forOf = this.forOf;
+      const dec = forOf.declaration;
+      const binding = this._forOfBinding;
+      const hasDestructuredLocal = this._hasDestructuredLocal;
+      indexMap = createIndexMap(newLen);
+      let i = 0;
+
+      if (oldLen === 0) {
+        // Only add new views
+        for (; i < newLen; ++i) {
+          indexMap[i] = -2;
+        }
+      } else if (newLen === 0) {
+        // Only remove old views
+        for (i = 0; i < oldLen; ++i) {
+          indexMap.deletedIndices.push(i);
+          indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+        }
+      } else {
+        for (i = 0; i < newLen; ++i) {
+          if (oldScopes.includes(newScopes[i])) {
+            indexMap[i] = oldScopes.indexOf(newScopes[i]);
+          } else {
+            indexMap[i] = -2;
+          }
+        }
+
+        for (i = 0; i < oldLen; ++i) {
+          if (!newScopes.includes(oldScopes[i])) {
+            indexMap.deletedIndices.push(i);
+            indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
+          }
+        }
       }
     }
 
@@ -433,7 +395,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal, i, len);
     }
 
-    // resetScopeKeys(oldScopeMap);
     oldScopeMap.clear();
     this._scopeMap = newScopeMap;
   }
@@ -891,19 +852,6 @@ const _unknownHandler: IRepeatableHandler = {
 };
 
 type Repeatable = Collection | ArrayLike<unknown> | number | null | undefined;
-
-const resetScopeKeys = (scopeMap: Map<unknown, Scope | Scope[]>) => {
-  for (const scope of scopeMap.values()) {
-    // Make sure they don't get reused by the key map
-    if (scope instanceof Scope) {
-      (scope.overrideContext as IRepeatOverrideContext).$index = -1;
-    } else {
-      for (const s of scope) {
-        (s.overrideContext as IRepeatOverrideContext).$index = -1;
-      }
-    }
-  }
-};
 
 const setItem = (
   hasDestructuredLocal: boolean,

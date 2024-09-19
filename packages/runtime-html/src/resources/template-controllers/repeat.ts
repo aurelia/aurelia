@@ -283,31 +283,20 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       }
     }
 
-    if (indexMap === void 0) {
+    // first detach+unbind+(remove from array) the deleted view indices
+    if (indexMap.deletedIndices.length > 0) {
       const ret = onResolve(
-        this._deactivateAllViews(null),
+        this._deactivateAndRemoveViewsByKey(indexMap),
         () => {
           // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-          return this._activateAllViews(null, this._normalizedItems ?? emptyArray);
+          return this._createAndActivateAndSortViewsByKey(indexMap);
         },
       );
       if (isPromise(ret)) { ret.catch(rethrow); }
     } else {
-      // first detach+unbind+(remove from array) the deleted view indices
-      if (indexMap.deletedIndices.length > 0) {
-        const ret = onResolve(
-          this._deactivateAndRemoveViewsByKey(indexMap),
-          () => {
-            // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add a variety of `if` integration tests
-            return this._createAndActivateAndSortViewsByKey(indexMap);
-          },
-        );
-        if (isPromise(ret)) { ret.catch(rethrow); }
-      } else {
-        // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        this._createAndActivateAndSortViewsByKey(indexMap);
-      }
+      // TODO(fkleuver): add logic to the controller that ensures correct handling of race conditions and add integration tests
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this._createAndActivateAndSortViewsByKey(indexMap);
     }
   }
 
@@ -661,7 +650,6 @@ class RepeatOverrideContext implements IRepeatOverrideContext {
   public constructor(
     public readonly $index: number = 0,
     public readonly $length: number = 1,
-    public readonly $key: unknown = $index,
   ) {}
 }
 
@@ -879,7 +867,7 @@ const getScope = (
     scope = scope[0];
     oldScopeMap.delete(item);
   } else {
-    scope = scope.pop()!;
+    scope = scope.shift()!;
   }
 
   if (newScopeMap.has(item)) {

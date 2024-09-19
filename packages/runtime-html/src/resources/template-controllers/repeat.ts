@@ -530,10 +530,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           (promises ?? (promises = [])).push(ret);
         }
       } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
-        setItem(_hasDestructuredLocal, dec, view.scope, _forOfBinding, local, _normalizedItems![i], i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {
-        setItem(_hasDestructuredLocal, dec, view.scope, _forOfBinding, local, _normalizedItems![i], i, newLen);
         --j;
       }
     }
@@ -900,6 +898,7 @@ const getScope = (
   } else {
     newScopeMap.set(item, scope);
   }
+  setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item, index, length);
   return scope;
 };
 

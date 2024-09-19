@@ -218,7 +218,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const oldScopes = this._oldScopes;
     const newScopes = this._scopes;
 
-    if (hasKey) {
+    if (hasKey || indexMap === void 0) {
       const local = this.local;
       const newItems = this._normalizedItems as IIndexable[];
 
@@ -241,7 +241,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           indexMap.deletedIndices.push(i);
           indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
-      } else {
+      } else if (hasKey) {
         let oldScope: Scope;
         const oldItems = Array<unknown>(oldLen);
         const oldKeys = Array<unknown>(oldLen);
@@ -275,30 +275,6 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             indexMap.deletedIndices.push(i);
             indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
           }
-        }
-      }
-    } else if (indexMap === void 0) {
-      const local = this.local;
-      const newItems = this._normalizedItems as IIndexable[];
-
-      const newLen = newItems.length;
-      const forOf = this.forOf;
-      const dec = forOf.declaration;
-      const binding = this._forOfBinding;
-      const hasDestructuredLocal = this._hasDestructuredLocal;
-      indexMap = createIndexMap(newLen);
-      let i = 0;
-
-      if (oldLen === 0) {
-        // Only add new views
-        for (; i < newLen; ++i) {
-          indexMap[i] = -2;
-        }
-      } else if (newLen === 0) {
-        // Only remove old views
-        for (i = 0; i < oldLen; ++i) {
-          indexMap.deletedIndices.push(i);
-          indexMap.deletedItems.push(getItem(hasDestructuredLocal, dec, oldScopes[i], binding, local));
         }
       } else {
         for (i = 0; i < newLen; ++i) {

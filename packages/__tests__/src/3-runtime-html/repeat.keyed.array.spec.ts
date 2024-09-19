@@ -253,7 +253,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, '0111');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations, 0);
         assertAdd(1, mutations, 1);
       });
@@ -269,7 +269,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, '0001');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations, 1);
         assertAdd(1, mutations, 0);
       });
@@ -285,7 +285,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, '0111');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations, '0');
         assertAdd(1, mutations, '1');
       });
@@ -301,7 +301,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, 'falsetruetruetrue');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations, false);
         assertAdd(1, mutations, true);
       });
@@ -317,7 +317,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, '');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations);
         assertAdd(1, mutations);
       });
@@ -333,7 +333,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
 
         assert.strictEqual(host.textContent, '');
-        assert.strictEqual(mutations.length, 4);
+        assert.strictEqual(mutations.length, 2);
         assertRem(0, mutations);
         assertAdd(1, mutations);
       });

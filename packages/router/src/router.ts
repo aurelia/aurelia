@@ -435,9 +435,27 @@ export class Router implements IRouter {
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
     // Invoke the transformFromUrl hook if it exists
-    let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-      ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-      : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
+    // let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
+    //   ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
+    //   : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
+    let transformedInstruction;
+    // If we're using full state instruction, use that...
+    if (navigation.useFullStateInstruction) {
+      // ...and extract query and fragment from it
+      transformedInstruction = navigation.fullStateInstruction;
+      const options: ILoadOptions = {};
+      transformedInstruction = this.extractFragment(transformedInstruction, options) as string;
+      navigation.fragment = options.fragment ?? navigation.fragment;
+      transformedInstruction = this.extractQuery(transformedInstruction, options) as string;
+      navigation.query = options.query ?? navigation.query;
+      navigation.parameters = (options.parameters as Record<string, unknown>) ?? navigation.parameters;
+    } else {
+      // If we're not using full state instruction, transform the instruction, invoking
+      // the transformFromUrl hook if it exists
+      transformedInstruction = typeof navigation.instruction === 'string'
+        ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
+        : navigation.instruction;
+    }
 
     // If app uses a base path remove it if present (unless we're using fragment hash)
     const basePath = options.basePath;

@@ -251,14 +251,20 @@ export const {
       case ekAccessKeyed: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
         const key = astEvaluate(ast.key, s, e, c) as string;
-        if (isObject(instance)) {
-          if (c !== null && !ast.accessGlobal) {
-            c.observe(instance, key);
+
+        if (instance == null) {
+          if (e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
-          return instance[key];
+          return instance;
         }
+
+        if (c !== null && !ast.accessGlobal) {
+          c.observe(instance, key);
+        }
+
         return instance == null
-          ? ''
+          ? instance
           : instance[key];
       }
       case ekTaggedTemplate: {

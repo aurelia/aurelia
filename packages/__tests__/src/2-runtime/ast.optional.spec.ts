@@ -67,19 +67,19 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assertText('');
     });
 
-    it('[text] works with ?? on missing prop', function () {
+    it('[text] works with ?? on undefined prop - access scope', function () {
       const { assertText } = createFixture('${a ?? "b"}', { a: undefined });
 
       assertText('b');
     });
 
-    it('[text] works with ?? on missing prop from access member', function () {
+    it('[text] works with ?? on missing instance - access member', function () {
       const { assertText } = createFixture('${a.c ?? "b"}');
 
       assertText('b');
     });
 
-    it('[text] works with ?? on missing prop from access keyed', function () {
+    it('[text] works with ?? on missing instance - access keyed', function () {
       const { assertText } = createFixture('${a[c] ?? "b"}');
 
       assertText('b');

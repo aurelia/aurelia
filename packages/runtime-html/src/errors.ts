@@ -26,6 +26,7 @@ export const enum ErrorNames {
   ast_destruct_null = 112,
   ast_increment_infinite_loop = 113,
   ast_nullish_member_access = 114,
+  ast_nullish_keyed_access = 115,
 
   binding_behavior_def_not_found = 151,
   value_converter_def_not_found = 152,
@@ -147,6 +148,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.ast_destruct_null]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
   [ErrorNames.ast_increment_infinite_loop]: `Ast eval error: infinite loop detected. Increment operators should only be used in event handlers.`,
   [ErrorNames.ast_nullish_member_access]: `Ast eval error: cannot access property "{{0}}" of {{1}}.`,
+  [ErrorNames.ast_nullish_keyed_access]: `Ast eval error: cannot access key "{{0}}" of {{1}}.`,
 
   [ErrorNames.binding_behavior_def_not_found]: `No binding behavior definition found for type {{0:name}}`,
   [ErrorNames.value_converter_def_not_found]: `No value converter definition found for type {{0:name}}`,

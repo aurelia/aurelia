@@ -117,7 +117,7 @@ export const {
             : evaluatedValue;
         }
         return evaluatedValue == null
-          ? ''
+          ? null
           : e?.boundFn && isFunction(evaluatedValue)
             ? evaluatedValue.bind(obj)
             : evaluatedValue;
@@ -232,31 +232,21 @@ export const {
       }
       case ekAccessMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
-        let ret: unknown;
-        if (e?.strict) {
-          if (instance == null) {
-            return undefined;
+        if (instance == null) {
+          if (e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
-          if (c !== null && !ast.accessGlobal) {
-            c.observe(instance, ast.name);
-          }
-          ret = instance[ast.name];
-          if (e?.boundFn && isFunction(ret)) {
-            return ret.bind(instance);
-          }
-          return ret;
+          return instance;
         }
-        if (c !== null && isObject(instance) && !ast.accessGlobal) {
+
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, ast.name);
         }
-        if (instance) {
-          ret = instance[ast.name];
-          if (e?.boundFn && isFunction(ret)) {
-            return ret.bind(instance);
-          }
-          return ret;
-        }
-        return '';
+        const ret = instance[ast.name];
+        return e?.boundFn && isFunction(ret)
+          // event listener wants the returned function to be bound to the instance
+          ? ret.bind(instance)
+          : ret;
       }
       case ekAccessKeyed: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
@@ -268,7 +258,7 @@ export const {
           return instance[key];
         }
         return instance == null
-          ? void 0
+          ? ''
           : instance[key];
       }
       case ekTaggedTemplate: {

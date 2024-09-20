@@ -77,7 +77,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   public readonly boundFn = false;
 
-  public strict = true;
+  public strict = false;
 
   public constructor(
     controller: IBindingController,

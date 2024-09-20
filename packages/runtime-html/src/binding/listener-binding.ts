@@ -25,7 +25,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public static mix = createPrototypeMixer(function () {
     mixinUseScope(ListenerBinding);
     mixingBindingLimited(ListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(ListenerBinding);
+    mixinAstEvaluator(void 0, true)(ListenerBinding);
   });
 
   public isBound: boolean = false;
@@ -54,6 +54,8 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   /** @internal */
   private readonly _modifiedEventHandler: IModifiedEventHandler | null = null;
+
+  public strict = false;
 
   public constructor(
     locator: IServiceLocator,

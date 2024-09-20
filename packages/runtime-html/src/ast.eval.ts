@@ -178,25 +178,22 @@ export const {
         }
       }
       case ekCallScope: {
-        const args = ast.args.map(a => astEvaluate(a, s, e, c));
         const context = getContext(s, ast.name, ast.ancestor)!;
         // ideally, should observe property represents by ast.name as well
         // because it could be changed
         // todo: did it ever surprise anyone?
-        const func = getFunction(e?.strictFnCall, context, ast.name);
+        const func = getFunction(e?.strict, context, ast.name);
         if (func) {
-          return func.apply(context, args);
+          return func.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
         }
         return void 0;
       }
       case ekCallMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-
-        const args = ast.args.map(a => astEvaluate(a, s, e, c));
-        const func = getFunction(e?.strictFnCall, instance, ast.name);
+        const func = getFunction(e?.strict, instance, ast.name);
         let ret: unknown;
         if (func) {
-          ret = func.apply(instance, args);
+          ret = func.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
           // todo(doc): investigate & document in engineering doc the difference
           //            between observing before/after func.apply
           if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
@@ -210,7 +207,7 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        if (!e?.strictFnCall && func == null) {
+        if (!e?.strict) {
           return void 0;
         }
         throw createMappedError(ErrorNames.ast_not_a_function);

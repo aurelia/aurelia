@@ -435,16 +435,13 @@ export class Router implements IRouter {
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
     // Invoke the transformFromUrl hook if it exists
-    // let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-    //   ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-    //   : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
     let transformedInstruction;
     // If we're using full state instruction, use that...
     if (navigation.useFullStateInstruction) {
       // ...and extract query and fragment from it
       transformedInstruction = navigation.fullStateInstruction;
       let options: ILoadOptions = {};
-      ({ instructions: transformedInstruction, options } = this.extractFragmentAndQuery(transformedInstruction, options) as { instructions: string; options: ILoadOptions });
+      ({ instructions: transformedInstruction, options } = this._extractFragmentAndQuery(transformedInstruction, options) as { instructions: string; options: ILoadOptions });
       navigation.fragment = options.fragment ?? navigation.fragment;
       navigation.query = options.query ?? navigation.query;
       navigation.parameters = (options.parameters as Record<string, unknown>) ?? navigation.parameters;
@@ -625,7 +622,7 @@ export class Router implements IRouter {
    * @param options - The options to use when loading the instructions
    */
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
-    ({ instructions, options } = this.extractFragmentAndQuery(instructions, options ?? {}));
+    ({ instructions, options } = this._extractFragmentAndQuery(instructions, options ?? {}));
 
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
@@ -940,7 +937,7 @@ export class Router implements IRouter {
    *
    * @internal
    */
-  private extractFragmentAndQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): { instructions: LoadInstruction | LoadInstruction[]; options: ILoadOptions } {
+  private _extractFragmentAndQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): { instructions: LoadInstruction | LoadInstruction[]; options: ILoadOptions } {
     options = { ...options };
 
     // If instructions is a string and contains a fragment, extract it

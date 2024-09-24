@@ -443,10 +443,9 @@ export class Router implements IRouter {
     if (navigation.useFullStateInstruction) {
       // ...and extract query and fragment from it
       transformedInstruction = navigation.fullStateInstruction;
-      const options: ILoadOptions = {};
-      transformedInstruction = this.extractFragment(transformedInstruction, options) as string;
+      let options: ILoadOptions = {};
+      ({ instructions: transformedInstruction, options } = this.extractFragmentAndQuery(transformedInstruction, options ?? {}) as { instructions: string; options: ILoadOptions });
       navigation.fragment = options.fragment ?? navigation.fragment;
-      transformedInstruction = this.extractQuery(transformedInstruction, options) as string;
       navigation.query = options.query ?? navigation.query;
       navigation.parameters = (options.parameters as Record<string, unknown>) ?? navigation.parameters;
     } else {
@@ -626,9 +625,7 @@ export class Router implements IRouter {
    * @param options - The options to use when loading the instructions
    */
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
-    options = options ?? {};
-    instructions = this.extractFragment(instructions, options);
-    instructions = this.extractQuery(instructions, options);
+    ({ instructions, options } = this.extractFragmentAndQuery(instructions, options ?? {}));
 
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
@@ -934,16 +931,18 @@ export class Router implements IRouter {
   }
 
   /**
-   * Extract and setup the fragment from instructions or options.
+   * Extract and setup the fragment and query from instructions or options.
    *
-   * @param instructions - The instructions to extract the fragment from
-   * @param options - The options containing the fragment
+   * @param instructions - The string instructions to extract from
+   * @param options - The options containing the fragment and query
    *
    * TODO: Review query extraction; different pos for path and fragment
    *
    * @internal
    */
-  private extractFragment(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
+  private extractFragmentAndQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): { instructions: LoadInstruction | LoadInstruction[]; options: ILoadOptions } {
+    options = { ...options };
+
     // If instructions is a string and contains a fragment, extract it
     if (typeof instructions === 'string' && options.fragment == null) {
       const [path, fragment] = instructions.split('#');
@@ -951,20 +950,6 @@ export class Router implements IRouter {
       options.fragment = fragment;
     }
 
-    return instructions;
-  }
-
-  /**
-   * Extract and setup the query and parameters from instructions or options.
-   *
-   * @param instructions - The instructions to extract the query from
-   * @param options - The options containing query and/or parameters
-   *
-   * TODO: Review query extraction; different pos for path and fragment
-   *
-   * @internal
-   */
-  private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
     // If instructions is a string and contains a query string, extract it
     if (typeof instructions === 'string' && options.query == null) {
       const [path, search] = instructions.split('?');
@@ -995,7 +980,7 @@ export class Router implements IRouter {
       });
     }
 
-    return instructions;
+    return { instructions, options };
   }
 }
 

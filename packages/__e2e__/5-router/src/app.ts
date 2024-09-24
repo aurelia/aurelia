@@ -7,6 +7,7 @@ export class App {
     { path: ['', 'home'], component: import('./pages/home') },
     { path: 'pages/one-route', component: import('./pages/one') },
     { path: 'pages/two-route', component: import('./pages/two') },
+    { path: 'pages/params-route', component: import('./pages/params') },
   ];
 
   public message = 'Hello, World!';

@@ -444,7 +444,7 @@ export class Router implements IRouter {
       // ...and extract query and fragment from it
       transformedInstruction = navigation.fullStateInstruction;
       let options: ILoadOptions = {};
-      ({ instructions: transformedInstruction, options } = this.extractFragmentAndQuery(transformedInstruction, options ?? {}) as { instructions: string; options: ILoadOptions });
+      ({ instructions: transformedInstruction, options } = this.extractFragmentAndQuery(transformedInstruction, options) as { instructions: string; options: ILoadOptions });
       navigation.fragment = options.fragment ?? navigation.fragment;
       navigation.query = options.query ?? navigation.query;
       navigation.parameters = (options.parameters as Record<string, unknown>) ?? navigation.parameters;

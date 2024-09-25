@@ -7,7 +7,6 @@ type Items<C extends Collection = unknown[]> = C | undefined;
 export declare class Repeat<C extends Collection = unknown[]> implements ICustomAttributeViewModel {
     static readonly $au: CustomAttributeStaticAuDefinition;
     views: ISyntheticView[];
-    private _oldViews;
     forOf: ForOfStatement;
     local: string;
     readonly $controller: ICustomAttributeController<this>;

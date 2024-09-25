@@ -4804,7 +4804,17 @@ class Router {
             this.coordinators.push(s);
             s.appendInstructions(this.appendedInstructions.splice(0));
             this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(t));
-            let e = typeof t.instruction === "string" && !t.useFullStateInstruction ? await RoutingHook.invokeTransformFromUrl(t.instruction, s.navigation) : t.useFullStateInstruction ? t.fullStateInstruction : t.instruction;
+            let e;
+            if (t.useFullStateInstruction) {
+                e = t.fullStateInstruction;
+                let i = {};
+                ({instructions: e, options: i} = this.$(e, i));
+                t.fragment = i.fragment ?? t.fragment;
+                t.query = i.query ?? t.query;
+                t.parameters = i.parameters ?? t.parameters;
+            } else {
+                e = typeof t.instruction === "string" ? await RoutingHook.invokeTransformFromUrl(t.instruction, s.navigation) : t.instruction;
+            }
             const n = i.basePath;
             if (n !== null && typeof e === "string" && e.startsWith(n) && !i.useUrlFragmentHash) {
                 e = e.slice(n.length);
@@ -4890,8 +4900,8 @@ class Router {
             viewer: this.viewer,
             statefulHistoryLength: this.configuration.options.statefulHistoryLength
         });
-        this.$ = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
-        this.P = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
+        this.P = this.ea.subscribe(NavigatorStateChangeEvent.eventName, this.handleNavigatorStateChangeEvent);
+        this.V = this.ea.subscribe(NavigatorNavigateEvent.eventName, this.handleNavigatorNavigateEvent);
         this.viewer.start({
             useUrlFragmentHash: this.configuration.options.useUrlFragmentHash
         });
@@ -4904,8 +4914,8 @@ class Router {
         this.ea.publish(RouterStopEvent.eventName, RouterStopEvent.create());
         this.navigator.stop();
         this.viewer.stop();
-        this.$.dispose();
         this.P.dispose();
+        this.V.dispose();
     }
     async initialLoad() {
         const {instruction: t, hash: i} = this.viewer.viewerState;
@@ -4919,10 +4929,10 @@ class Router {
     }
     async N(t) {
         if (this.C) {
-            if (this.V) {
-                this.V.navigation.process?.resolve(false);
+            if (this.A) {
+                this.A.navigation.process?.resolve(false);
             }
-            this.V = t;
+            this.A = t;
             return;
         }
         this.C = true;
@@ -4933,14 +4943,14 @@ class Router {
         } finally {
             this.C = false;
         }
-        if (this.V) {
-            const t = this.V;
-            this.V = undefined;
+        if (this.A) {
+            const t = this.A;
+            this.A = undefined;
             await this.N(t);
         }
     }
     get isProcessingNav() {
-        return this.C || this.V != null;
+        return this.C || this.A != null;
     }
     getEndpoint(t, i) {
         return this.allEndpoints(t).find((t => t.name === i)) ?? null;
@@ -4967,9 +4977,7 @@ class Router {
         }
     }
     async load(t, i) {
-        i = i ?? {};
-        t = this.extractFragment(t, i);
-        t = this.extractQuery(t, i);
+        ({instructions: t, options: i} = this.$(t, i ?? {}));
         let s = null;
         ({instructions: t, scope: s} = this.applyLoadOptions(t, i));
         const e = i.append ?? false;
@@ -5155,15 +5163,15 @@ class Router {
         }
         return Promise.resolve();
     }
-    extractFragment(t, i) {
+    $(t, i) {
+        i = {
+            ...i
+        };
         if (typeof t === "string" && i.fragment == null) {
             const [s, e] = t.split("#");
             t = s;
             i.fragment = e;
         }
-        return t;
-    }
-    extractQuery(t, i) {
         if (typeof t === "string" && i.query == null) {
             const [s, e] = t.split("?");
             t = s;
@@ -5189,7 +5197,10 @@ class Router {
                 }
             }));
         }
-        return t;
+        return {
+            instructions: t,
+            options: i
+        };
     }
 }
 
@@ -5590,7 +5601,7 @@ i.CustomElement.define({
 
 class LoadCustomAttribute {
     constructor() {
-        this.A = false;
+        this.O = false;
         this.hasHref = null;
         this.element = t.resolve(i.INode);
         this.router = t.resolve(f);
@@ -5603,7 +5614,7 @@ class LoadCustomAttribute {
     }
     binding() {
         if (this.value == null) {
-            this.A = true;
+            this.O = true;
         }
         this.element.addEventListener("click", this.linkHandler);
         this.updateValue();
@@ -5619,7 +5630,7 @@ class LoadCustomAttribute {
         void this.updateActive();
     }
     updateValue() {
-        if (this.A) {
+        if (this.O) {
             this.value = {
                 component: this.component,
                 parameters: this.parameters,
@@ -5634,7 +5645,7 @@ class LoadCustomAttribute {
             let t = this.value;
             if (typeof t !== "string") {
                 const i = RoutingInstruction.from(this.router, t).shift();
-                const s = this.O(t);
+                const s = this.T(t);
                 if (s.foundConfiguration) {
                     i.route = s.matching;
                 }
@@ -5655,14 +5666,14 @@ class LoadCustomAttribute {
             id: this.value,
             path: this.value
         } : this.value;
-        const e = this.O(s);
+        const e = this.T(s);
         const n = e.foundConfiguration ? e.instructions : getConsideredActiveInstructions(this.router, t, this.element, this.value);
         const r = getLoadIndicator(this.element);
         r.classList.toggle(this.activeClass, this.router.checkActive(n, {
             context: t
         }));
     }
-    O(t) {
+    T(t) {
         if (typeof t === "string") {
             return new FoundRoute;
         }

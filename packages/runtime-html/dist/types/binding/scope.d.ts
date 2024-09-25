@@ -40,7 +40,7 @@ export declare class Scope {
      * @param oc - null. This overload is functionally equivalent to not passing this argument at all.
      */
     static create(bc: object, oc: null, isBoundary?: boolean): Scope;
-    static fromParent(ps: Scope | null, bc: object): Scope;
+    static fromParent(ps: Scope | null, bc: object, oc?: IOverrideContext): Scope;
 }
 /**
  * A class for creating context in synthetic scope to keep the number of classes of context in scope small

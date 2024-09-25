@@ -7548,9 +7548,24 @@ class Router {
             coordinator.appendInstructions(this.appendedInstructions.splice(0));
             this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
             // Invoke the transformFromUrl hook if it exists
-            let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-                ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-                : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
+            let transformedInstruction;
+            // If we're using full state instruction, use that...
+            if (navigation.useFullStateInstruction) {
+                // ...and extract query and fragment from it
+                transformedInstruction = navigation.fullStateInstruction;
+                let options = {};
+                ({ instructions: transformedInstruction, options } = this._extractFragmentAndQuery(transformedInstruction, options));
+                navigation.fragment = options.fragment ?? navigation.fragment;
+                navigation.query = options.query ?? navigation.query;
+                navigation.parameters = options.parameters ?? navigation.parameters;
+            }
+            else {
+                // If we're not using full state instruction, transform the instruction, invoking
+                // the transformFromUrl hook if it exists
+                transformedInstruction = typeof navigation.instruction === 'string'
+                    ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
+                    : navigation.instruction;
+            }
             // If app uses a base path remove it if present (unless we're using fragment hash)
             const basePath = options.basePath;
             if (basePath !== null &&
@@ -7828,9 +7843,7 @@ class Router {
      * @param options - The options to use when loading the instructions
      */
     async load(instructions, options) {
-        options = options ?? {};
-        instructions = this.extractFragment(instructions, options);
-        instructions = this.extractQuery(instructions, options);
+        ({ instructions, options } = this._extractFragmentAndQuery(instructions, options ?? {}));
         let scope = null;
         ({ instructions, scope } = this.applyLoadOptions(instructions, options));
         const append = options.append ?? false;
@@ -8108,35 +8121,23 @@ class Router {
         return Promise.resolve();
     }
     /**
-     * Extract and setup the fragment from instructions or options.
+     * Extract and setup the fragment and query from instructions or options.
      *
-     * @param instructions - The instructions to extract the fragment from
-     * @param options - The options containing the fragment
+     * @param instructions - The string instructions to extract from
+     * @param options - The options containing the fragment and query
      *
      * TODO: Review query extraction; different pos for path and fragment
      *
      * @internal
      */
-    extractFragment(instructions, options) {
+    _extractFragmentAndQuery(instructions, options) {
+        options = { ...options };
         // If instructions is a string and contains a fragment, extract it
         if (typeof instructions === 'string' && options.fragment == null) {
             const [path, fragment] = instructions.split('#');
             instructions = path;
             options.fragment = fragment;
         }
-        return instructions;
-    }
-    /**
-     * Extract and setup the query and parameters from instructions or options.
-     *
-     * @param instructions - The instructions to extract the query from
-     * @param options - The options containing query and/or parameters
-     *
-     * TODO: Review query extraction; different pos for path and fragment
-     *
-     * @internal
-     */
-    extractQuery(instructions, options) {
         // If instructions is a string and contains a query string, extract it
         if (typeof instructions === 'string' && options.query == null) {
             const [path, search] = instructions.split('?');
@@ -8165,7 +8166,7 @@ class Router {
                 }
             });
         }
-        return instructions;
+        return { instructions, options };
     }
 }
 Router.closestEndpointKey = kernel.Protocol.annotation.keyFor('closest-endpoint');

@@ -82,7 +82,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       });
 
       trigger.click('div');
-      assert.includes(String(error), 'AUR0107:');
+      assert.includes(String(error), 'AUR0111:');
     });
 
     it('[event] does not throw on handler missing - call keyed', function () {
@@ -154,7 +154,11 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.throws(() => createStrictFixture('${a[5]}'));
     });
 
-    it('[text] throws on call scope with function missing', function () {
+    it('[text] throws on call scope - prop missing', function () {
+      assert.throws(() => createStrictFixture('${a()}'));
+    });
+
+    it('[text] throws on call scope - prop nullish', function () {
       assert.throws(() => createStrictFixture('${a()}'));
     });
 
@@ -162,12 +166,16 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.throws(() => createStrictFixture('${a()}', { a: 5 }));
     });
 
-    it('[text] throws on call member with obj missing', function () {
-      assert.throws(() => createStrictFixture('${a.b()}'));
+    it('[text] does not throw on call scope - optional call + prop missing', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a?.()}'));
     });
 
-    it('[text] does not throw on optional call scope with missing function', function () {
-      assert.doesNotThrow(() => createStrictFixture('${a?.()}'));
+    it('[text] throws on call scope - optional call + prop is not a fn', function () {
+      assert.throws(() => createStrictFixture('${a?.()}', { a: 5 }));
+    });
+
+    it('[text] throws on call member - obj missing', function () {
+      assert.throws(() => createStrictFixture('${a.b()}'));
     });
 
     it('[text] throws on call member - missing member', function () {
@@ -178,7 +186,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.throws(() => createStrictFixture('${a.b()}', { a: { b: 5 } }));
     });
 
-    it('[text] does not throw on optional call member with missing object', function () {
+    it('[text] does not throw on call member - optional call + object missing', function () {
       assert.doesNotThrow(() => createStrictFixture('${a.b?.()}', { a: {} }));
     });
 
@@ -236,7 +244,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       });
 
       trigger.click('div');
-      assert.includes(String(error), 'AUR0107:');
+      assert.includes(String(error), 'AUR0111:');
     });
 
     it('[trigger] throws on call member optional call - not a fn', function () {
@@ -250,7 +258,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       });
 
       trigger.click('div');
-      assert.includes(String(error), 'AUR0107:');
+      assert.includes(String(error), 'AUR0111:');
     });
 
   });

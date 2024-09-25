@@ -179,14 +179,23 @@ export const {
       }
       case ekCallScope: {
         const context = getContext(s, ast.name, ast.ancestor)!;
-        // ideally, should observe property represents by ast.name as well
-        // because it could be changed
-        // todo: did it ever surprise anyone?
-        const func = getFunction(!ast.optional && e?.strict, context, ast.name);
-        if (func) {
-          return func.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+        if (context == null) {
+          if (e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, context);
+          }
+          return void 0;
         }
-        return void 0;
+        const fn: unknown = context[ast.name];
+        if (isFunction(fn)) {
+          return fn.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+        }
+        if (fn == null) {
+          if (e?.strict && !ast.optional) {
+            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
+          }
+          return void 0;
+        }
+        throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
       }
       case ekCallMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
@@ -198,12 +207,12 @@ export const {
         const fn = instance?.[ast.name];
         if (fn == null) {
           if (!ast.optionalCall && e?.strict) {
-            throw createMappedError(ErrorNames.ast_not_a_function);
+            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
           }
           return void 0;
         }
         if (!isFunction(fn)) {
-          throw createMappedError(ErrorNames.ast_not_a_function);
+          throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
         }
         const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
         if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
@@ -665,17 +674,6 @@ export const {
       }
     }
   }
-
-  const getFunction = (mustExist: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
-    const func = obj == null ? null : (obj as IIndexable)[name];
-    if (isFunction(func)) {
-      return func as (...args: unknown[]) => unknown;
-    }
-    if (!mustExist && func == null) {
-      return null;
-    }
-    throw createMappedError(ErrorNames.ast_name_is_not_a_function, name);
-  };
 
   /**
    * Determines if the value passed is a number or bigint for parsing purposes

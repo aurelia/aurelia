@@ -42,25 +42,39 @@ describe('2-runtime/ast.optional.spec.ts', function () {
     it('[event] does not throw on handler missing - call scope', function () {
       const { trigger } = createFixture('<div click.trigger="a()"></div>');
 
-      assert.doesNotThrow(() => trigger.click('div'));
+      trigger.click('div');
     });
 
     it('[event] does not throw on event handler missing - call member', function () {
       const { trigger } = createFixture('<div click.trigger="a.b()"></div>');
 
-      assert.doesNotThrow(() => trigger.click('div'));
+      trigger.click('div');
+    });
+
+    it('[event] throws on event handler not a fn - call member', function () {
+      const { platform, trigger } = createFixture('<div click.trigger="a.b()"></div>', { a: { b: 5 } });
+
+      let error: unknown;
+      platform.window.addEventListener('au-event-error', function handler(e: CustomEvent<{ error: Error }>) {
+        e.preventDefault();
+        error = e.detail.error;
+        platform.window.removeEventListener('au-event-error', handler);
+      });
+
+      trigger.click('div');
+      assert.includes(String(error), 'AUR0107:');
     });
 
     it('[event] does not throw on handler missing - call keyed', function () {
       const { trigger } = createFixture('<div click.trigger="a[`b`]()"></div>');
 
-      assert.doesNotThrow(() => trigger.click('div'));
+      trigger.click('div');
     });
 
     it('[event] does not throw on handler missing - complex expression', function () {
       const { trigger } = createFixture('<div click.trigger="(a ? b : c)()"></div>');
 
-      assert.doesNotThrow(() => trigger.click('div'));
+      trigger.click('div');
     });
 
     it('[text] renders empty string on undefined', function () {
@@ -100,7 +114,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
     });
   });
 
-  describe.only('strict mode', function () {
+  describe('strict mode', function () {
     const createStrictFixture = (template: string, component?: unknown) =>
       createFixture
         .html(template)
@@ -169,6 +183,20 @@ describe('2-runtime/ast.optional.spec.ts', function () {
 
     it('[trigger] throws on call member fn not a fn', function () {
       const { platform, trigger } = createStrictFixture('<div click.trigger="a.b()"></div>', { a: { b: 5 } });
+
+      let error: unknown;
+      platform.window.addEventListener('au-event-error', function handler(e: CustomEvent<{ error: Error }>) {
+        e.preventDefault();
+        error = e.detail.error;
+        platform.window.removeEventListener('au-event-error', handler);
+      });
+
+      trigger.click('div');
+      assert.includes(String(error), 'AUR0107:');
+    });
+
+    it('[trigger] throws on call member optional call - not a fn', function () {
+      const { platform, trigger } = createStrictFixture('<div click.trigger="a.b?.()"></div>', { a: { b: 5 } });
 
       let error: unknown;
       platform.window.addEventListener('au-event-error', function handler(e: CustomEvent<{ error: Error }>) {

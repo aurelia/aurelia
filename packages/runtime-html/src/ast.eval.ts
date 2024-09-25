@@ -203,10 +203,7 @@ export const {
           return void 0;
         }
         if (!isFunction(fn)) {
-          if (e?.strict) {
-            throw createMappedError(ErrorNames.ast_not_a_function);
-          }
-          return void 0;
+          throw createMappedError(ErrorNames.ast_not_a_function);
         }
         const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
         if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {

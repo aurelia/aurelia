@@ -37,6 +37,16 @@ export class MyApp implements IRouteableComponent {
       component: () => import('./views/disallowed/disallowed'),
       title: 'Disallowed',
       viewport: 'global'
-    } as IRoute
+    } as IRoute,
+
+
+    {
+      id: 'first-section',
+      path: 'first-section',
+      component: () => import('./views/first-section/first-section'),
+      title: 'First Section',
+      viewport: 'starter'
+    } as IRoute,
+
   ];
 }

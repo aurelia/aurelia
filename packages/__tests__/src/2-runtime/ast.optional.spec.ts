@@ -7,23 +7,23 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.doesNotThrow(() => createFixture('${a.b}'));
     });
 
-    it('[text] does not throw on optional access member', function () {
+    it('[text] does not throw on access member - missing object + optional access', function () {
       assert.doesNotThrow(() => createFixture('${a?.b}'));
     });
 
-    it('[text] does not throw on access keyed', function () {
+    it('[text] does not throw on access keyed - misssing object', function () {
       assert.doesNotThrow(() => createFixture('${a[b]}'));
     });
 
-    it('[text] does not throw on optional access keyed', function () {
+    it('[text] does not throw on access keyed - missing object + optional access', function () {
       assert.doesNotThrow(() => createFixture('${a?.[b]}'));
     });
 
-    it('[text] does not throw on access keyed with literal', function () {
+    it('[text] does not throw on access keyed - literal key', function () {
       assert.doesNotThrow(() => createFixture('${a[5]}'));
     });
 
-    it('[text] does not throw on call scope with function missing', function () {
+    it('[text] does not throw on call scope - prop missing', function () {
       assert.doesNotThrow(() => createFixture('${a()}'));
     });
 
@@ -31,20 +31,32 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.throws(() => createFixture('${a()}', { a: 5 }));
     });
 
-    it('[text] does not throw on call member with object missing', function () {
+    it('[text] does not throw on call member - object missing', function () {
       assert.doesNotThrow(() => createFixture('${a.b()}'));
     });
 
-    it('[text] does not throw on optional call scope with missing function', function () {
+    it('[text] does not throw on call scope - optional call + missing function', function () {
       assert.doesNotThrow(() => createFixture('${a?.()}'));
     });
 
-    it('[text] does not throw on optional call member with missing prop', function () {
+    it('[text] does not throw on call member - optional call + missing prop', function () {
       assert.doesNotThrow(() => createFixture('${a.b?.()}', { a: {} }));
     });
 
-    it('[text] throws on optional call member - prop is not a fn', function () {
+    it('[text] throws on optional call member - optional call + member is not a fn', function () {
       assert.throws(() => createFixture('${a.b?.()}', { a: { b: 5 } }));
+    });
+
+    it('[text] does not throw on call function - object missing', function () {
+      assert.doesNotThrow(() => createFixture('${a[5]?.()}'));
+    });
+
+    it('[text] does not throw on call function - value is nullish', function () {
+      assert.doesNotThrow(() => createFixture('${a[5]?.()}', { a: {} }));
+    });
+
+    it('[text] throws on call function - value is not a function', function () {
+      assert.throws(() => createFixture('${a[5]?.()}', { a: { 5: 5 } }));
     });
 
     it('[event] does not throw on handler missing - call scope', function () {
@@ -172,6 +184,18 @@ describe('2-runtime/ast.optional.spec.ts', function () {
 
     it('[text] throws on optional call member - member not a fn', function () {
       assert.throws(() => createStrictFixture('${a.b?.()}', { a: { b: 5 } }));
+    });
+
+    it('[text] throws on call function - nullish fn', function () {
+      assert.throws(() => createStrictFixture('${a[5]()}', { a: {  } }));
+    });
+
+    it('[text] does not throw on call function - optional call + nullish fn', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a[5]?.()}', { a: { 5: null } }));
+    });
+
+    it('[text] throws on call function - optional call + fn not a function', function () {
+      assert.throws(() => createStrictFixture('${a[5]?.()}', { a: { 5: 5 } }));
     });
 
     it('[trigger] throws on missing call scope fn', function () {

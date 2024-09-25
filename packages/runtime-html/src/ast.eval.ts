@@ -216,10 +216,13 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        if (e?.strict) {
-          throw createMappedError(ErrorNames.ast_not_a_function);
+        if (func == null) {
+          if (!ast.optional && e?.strict) {
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
+          return void 0;
         }
-        return void 0;
+        throw createMappedError(ErrorNames.ast_not_a_function);
       }
       case ekArrowFunction: {
         const func = (...args: unknown[]) => {

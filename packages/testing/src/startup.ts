@@ -577,7 +577,7 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
 type TaggedTemplateLambda<M> = (vm: M) => unknown;
 type TemplateValues<M> = string | number | TaggedTemplateLambda<M>;
 
-export type IFixtureConfig = Pick<IAppRootConfig, 'allowActionlessForm'>;
+export type IFixtureConfig = Pick<IAppRootConfig, 'allowActionlessForm' | 'strictBinding'>;
 
 class FixtureBuilder<T> {
   private _html?: string | TemplateStringsArray;
@@ -614,7 +614,10 @@ class FixtureBuilder<T> {
     return createFixture<any>(
       typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []),
       this._comp,
-      this._args
+      this._args,
+      void 0,
+      void 0,
+      this._config,
     );
   }
 }

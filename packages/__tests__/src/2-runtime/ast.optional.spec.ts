@@ -2,13 +2,21 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/ast.optional.spec.ts', function () {
 
-  describe.only('non-strict mode', function () {
+  describe('non-strict mode', function () {
     it('[text] does not throw on access member', function () {
       assert.doesNotThrow(() => createFixture('${a.b}'));
     });
 
+    it('[text] does not throw on optional access member', function () {
+      assert.doesNotThrow(() => createFixture('${a?.b}'));
+    });
+
     it('[text] does not throw on access keyed', function () {
       assert.doesNotThrow(() => createFixture('${a[b]}'));
+    });
+
+    it('[text] does not throw on optional access keyed', function () {
+      assert.doesNotThrow(() => createFixture('${a?.[b]}'));
     });
 
     it('[text] does not throw on access keyed with literal', function () {
@@ -27,7 +35,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.doesNotThrow(() => createFixture('${a?.()}'));
     });
 
-    it('[text] does not throw on optional call member with missing object', function () {
+    it('[text] does not throw on optional call member with missing prop', function () {
       assert.doesNotThrow(() => createFixture('${a.b?.()}', { a: {} }));
     });
 
@@ -92,45 +100,85 @@ describe('2-runtime/ast.optional.spec.ts', function () {
     });
   });
 
-  describe('strict mode', function () {
-    it('throws on access member', function () {
-      assert.throws(() => createFixture('${a.b}'));
+  describe.only('strict mode', function () {
+    const createStrictFixture = (template: string, component?: unknown) =>
+      createFixture
+        .html(template)
+        .component(component)
+        .config({ strictBinding: true })
+        .build();
+
+    it('[text] throws on access member - object missing', function () {
+      assert.throws(() => createStrictFixture('${a.b}'));
     });
 
-    it('does not throw on access keyed', function () {
-      assert.throws(() => createFixture('${a[b]}'));
+    it('[text] throws on access keyed - object missing', function () {
+      assert.throws(() => createStrictFixture('${a[b]}'));
     });
 
-    it('does not throw on access keyed with literal', function () {
-      assert.throws(() => createFixture('${a[5]}'));
+    it('[text] throws on access keyed - literal key - object missing', function () {
+      assert.throws(() => createStrictFixture('${a[5]}'));
     });
 
-    it('throws on call scope with function missing', function () {
-      assert.throws(() => createFixture('${a()}'));
+    it('[text] throws on call scope with function missing', function () {
+      assert.throws(() => createStrictFixture('${a()}'));
     });
 
-    it('throws on call member with obj missing', function () {
-      assert.throws(() => createFixture('${a.b()}'));
+    it('[text] throws on call member with obj missing', function () {
+      assert.throws(() => createStrictFixture('${a.b()}'));
     });
 
-    it('does not throw on optional call scope with missing function', function () {
-      assert.doesNotThrow(() => createFixture('${a?.()}'));
+    it('[text] does not throw on optional call scope with missing function', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a?.()}'));
     });
 
-    it('does not throw on optional call member with missing object', function () {
-      assert.doesNotThrow(() => createFixture('${a.b?.()}', { a: {} }));
+    it('[text] throws on call member with missing member/not a function', function () {
+      assert.throws(() => createStrictFixture('${a.b()}', { a: {} }));
+    });
+
+    it('[text] does not throw on optional call member with missing object', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a.b?.()}', { a: {} }));
     });
 
     it('[trigger] throws on missing call scope fn', function () {
-      const { trigger } = createFixture('<div click.trigger="a()"></div>');
+      const { platform, trigger } = createStrictFixture('<div click.trigger="a()"></div>');
 
-      assert.throws(() => trigger.click('div'));
+      let handled = false;
+      platform.window.addEventListener('au-event-error', function handler(e) {
+        e.preventDefault();
+        handled = true;
+        platform.window.removeEventListener('au-event-error', handler);
+      });
+      trigger.click('div');
+      assert.strictEqual(handled, true);
     });
 
     it('[trigger] throws on missing call member fn', function () {
-      const { trigger } = createFixture('<div click.trigger="a.b()"></div>', { a: {} });
+      const { platform, trigger } = createStrictFixture('<div click.trigger="a.b()"></div>', { a: {} });
 
-      assert.throws(() => trigger.click('div'));
+      let handled = false;
+      platform.window.addEventListener('au-event-error', function handler(e) {
+        e.preventDefault();
+        handled = true;
+        platform.window.removeEventListener('au-event-error', handler);
+      });
+
+      trigger.click('div');
+      assert.strictEqual(handled, true);
+    });
+
+    it('[trigger] throws on call member fn not a fn', function () {
+      const { platform, trigger } = createStrictFixture('<div click.trigger="a.b()"></div>', { a: { b: 5 } });
+
+      let error: unknown;
+      platform.window.addEventListener('au-event-error', function handler(e: CustomEvent<{ error: Error }>) {
+        e.preventDefault();
+        error = e.detail.error;
+        platform.window.removeEventListener('au-event-error', handler);
+      });
+
+      trigger.click('div');
+      assert.includes(String(error), 'AUR0107:');
     });
 
   });

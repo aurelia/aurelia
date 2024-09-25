@@ -1,5 +1,5 @@
 import { isPromise, DI, InstanceProvider, onResolve } from '@aurelia/kernel';
-import { AppRoot, IAppRoot } from './app-root';
+import { AppRoot, IAppRoot, IAppRootConfig } from './app-root';
 import { createInterface, registerResolver } from './utilities-di';
 
 import type {
@@ -62,7 +62,7 @@ export class Aurelia implements IDisposable {
     return this;
   }
 
-  public app(config: ISinglePageAppConfig<object>): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageAppConfig): Omit<this, 'register' | 'app' | 'enhance'> {
     this.next = new AppRoot(config, this.container, this._rootProvider);
     return this;
   }
@@ -152,25 +152,11 @@ export class Aurelia implements IDisposable {
   }
 }
 
-export interface ISinglePageAppConfig<T = unknown> {
-  /**
-   * The host element of the app
-   */
-  host: HTMLElement;
-  /**
-   * The root component of the app
-   */
-  component: T | Constructable<T>;
-  /**
-   * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
-   * This is not desirable for SPA applications, so by default, this behavior is prevented.
-   *
-   * This option re-enables the default behavior of HTML forms.
-   */
-  allowActionlessForm?: boolean;
-}
+export type ISinglePageAppConfig<T extends object = object> = IAppRootConfig<T> & {
+  host: Element;
+};
 
-export interface IEnhancementConfig<T> {
+export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & {
   host: Element;
   /**
    * The binding context of the enhancement. Will be instantiate by DI if a constructor is given
@@ -180,11 +166,4 @@ export interface IEnhancementConfig<T> {
    * A predefined container for the enhanced view.
    */
   container?: IContainer;
-  /**
-   * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
-   * This is not desirable for SPA applications, so by default, this behavior is prevented.
-   *
-   * This option re-enables the default behavior of HTML forms.
-   */
-  allowActionlessForm?: boolean;
-}
+};

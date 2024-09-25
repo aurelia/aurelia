@@ -382,8 +382,19 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
   }
 }, null!);
 
+/** @internal */
+export interface IBindingConfiguration {
+  strict: boolean;
+}
+/** @internal */
+export const IBindingConfiguration = createInterface<IBindingConfiguration>('IBindingConfiguration', x => x.instance({
+  strict: false,
+}));
+
 export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer implements IRenderer {
   public readonly target = InstructionType.hydrateLetElement;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     LetBinding.mix();
   }
@@ -413,6 +424,7 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
         expr,
         childInstruction.to,
         toBindingContext,
+        this._defaultBindingConfig.strict
       ));
       ++i;
     }
@@ -470,6 +482,8 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
 
 export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRenderer implements IRenderer {
   public readonly target = InstructionType.propertyBinding;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     PropertyBinding.mix();
   }
@@ -490,7 +504,8 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
-      instruction.mode
+      instruction.mode,
+      this._defaultBindingConfig.strict
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
@@ -502,6 +517,8 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
 
 export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRenderer implements IRenderer {
   public readonly target = InstructionType.iteratorBinding;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     PropertyBinding.mix();
   }
@@ -522,12 +539,15 @@ export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBind
       getTarget(target),
       instruction.to,
       toView,
+      this._defaultBindingConfig.strict
     ));
   }
 }, null!);
 
 export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer implements IRenderer {
   public readonly target = InstructionType.textBinding;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     ContentBinding.mix();
   }
@@ -547,6 +567,7 @@ export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRende
       platform,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       target as Text,
+      this._defaultBindingConfig.strict
     ));
   }
 }, null!);
@@ -559,9 +580,27 @@ export interface IListenerBindingOptions {
    * Indicate whether listener should by default call preventDefault on all the events
    */
   prevent: boolean;
+
+  /**
+   * The error handler for listener bindings, by default, it will dispatch an event `au-event-error` on the window object
+   * and if the event is not prevented, it will throw the errors caught by the listener bindings
+   */
+  onError: (event: Event, error: unknown) => void;
+
 }
-export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.instance({
-  prevent: false,
+export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.singleton(class {
+  /** @internal */
+  private readonly p = resolve(IPlatform);
+  public prevent = false;
+
+  public onError = (event: Event, error: unknown) => {
+    const errorEvent = new this.p.CustomEvent('au-event-error', { cancelable: true, detail: { event, error } });
+    this.p.window.dispatchEvent(errorEvent);
+    if (errorEvent.defaultPrevented) {
+      return;
+    }
+    throw error;
+  };
 }));
 
 export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
@@ -571,6 +610,8 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
   public readonly _modifierHandler = resolve(IEventModifier);
   /** @internal */
   public readonly _defaultOptions = resolve(IListenerBindingOptions);
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
 
   public constructor() {
     ListenerBinding.mix();
@@ -588,8 +629,9 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
       ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
-      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture),
+      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture, this._defaultOptions.onError),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
+      this._defaultBindingConfig.strict,
     ));
   }
 }, null!);

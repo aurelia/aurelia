@@ -129,7 +129,7 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        /* istanbul-ignore-next */
+        /* istanbul ignore next */
         if (!e?.strictFnCall && func == null) {
           return void 0;
         }
@@ -149,7 +149,7 @@ export const {
       case ekTemplate: {
         let result = ast.cooked[0];
         for (let i = 0; i < ast.expressions.length; ++i) {
-          result += String(astEvaluate(ast.expressions[i], s, e, c));
+          result += safeString(astEvaluate(ast.expressions[i], s, e, c));
           result += ast.cooked[i + 1];
         }
         return result;
@@ -182,7 +182,7 @@ export const {
         // ideally, should observe property represents by ast.name as well
         // because it could be changed
         // todo: did it ever surprise anyone?
-        const func = getFunction(e?.strict, context, ast.name);
+        const func = getFunction(!ast.optional && e?.strict, context, ast.name);
         if (func) {
           return func.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
         }
@@ -190,15 +190,27 @@ export const {
       }
       case ekCallMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-        const func = getFunction(e?.strict, instance, ast.name);
-        let ret: unknown;
-        if (func) {
-          ret = func.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
-          // todo(doc): investigate & document in engineering doc the difference
-          //            between observing before/after func.apply
-          if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
-            c?.observeCollection(instance);
+        if (instance == null) {
+          if (e?.strict && !ast.optionalMember) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
+        }
+        const fn = instance?.[ast.name];
+        if (fn == null) {
+          if (!ast.optionalCall && e?.strict) {
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
+          return void 0;
+        }
+        if (!isFunction(fn)) {
+          if (e?.strict) {
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
+          return void 0;
+        }
+        const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+        if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
+          c?.observeCollection(instance);
         }
         return ret;
       }
@@ -207,10 +219,10 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        if (!e?.strict) {
-          return void 0;
+        if (e?.strict) {
+          throw createMappedError(ErrorNames.ast_not_a_function);
         }
-        throw createMappedError(ErrorNames.ast_not_a_function);
+        return void 0;
       }
       case ekArrowFunction: {
         const func = (...args: unknown[]) => {
@@ -654,12 +666,12 @@ export const {
     }
   }
 
-  const getFunction = (mustEvaluate: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
+  const getFunction = (mustExist: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
     const func = obj == null ? null : (obj as IIndexable)[name];
     if (isFunction(func)) {
       return func as (...args: unknown[]) => unknown;
     }
-    if (!mustEvaluate && func == null) {
+    if (!mustExist && func == null) {
       return null;
     }
     throw createMappedError(ErrorNames.ast_name_is_not_a_function, name);

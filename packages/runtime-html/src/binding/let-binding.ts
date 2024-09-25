@@ -59,16 +59,20 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   /** @internal */
   public readonly boundFn = false;
 
+  public strict: boolean;
+
   public constructor(
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
     toBindingContext: boolean = false,
+    strict: boolean = false,
   ) {
     this.l = locator;
     this.oL = observerLocator;
     this._toBindingContext = toBindingContext;
+    this.strict = strict;
   }
 
   public updateTarget() {

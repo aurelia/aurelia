@@ -106,7 +106,8 @@ class Comparison {
           !isUndefined(actual)
           && isString(actual[key])
           && isRegExp(obj[key])
-          && obj[key].test(actual[key])
+          // eslint-disable-next-line
+          && (obj[key] as RegExp).test(actual[key] as string)
         ) {
           this[key] = actual[key];
         } else {

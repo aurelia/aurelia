@@ -1058,11 +1058,11 @@ describe('2-runtime/ast.spec.ts', function () {
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
       scope = createScopeForTest({});
-      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), false, `isNaN(astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
-      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), false, `isNaN(astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
     });
 
     it(`concats strings - STRICT`, function () {

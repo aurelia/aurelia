@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 // Significant portion of this code is copy-pasted from the node.js source
 // Modifications consist primarily of removing dependencies on v8 natives and adding typings
 
@@ -106,7 +107,6 @@ class Comparison {
           !isUndefined(actual)
           && isString(actual[key])
           && isRegExp(obj[key])
-          // eslint-disable-next-line
           && (obj[key] as RegExp).test(actual[key] as string)
         ) {
           this[key] = actual[key];

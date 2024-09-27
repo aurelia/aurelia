@@ -102,11 +102,11 @@ export class Scope {
     return new Scope(null, bc as IBindingContext, oc ?? new OverrideContext(), isBoundary ?? false);
   }
 
-  public static fromParent(ps: Scope | null, bc: object): Scope {
+  public static fromParent(ps: Scope | null, bc: object, oc: IOverrideContext = new OverrideContext()): Scope {
     if (ps == null) {
       throw createMappedError(ErrorNames.null_scope);
     }
-    return new Scope(ps, bc as IBindingContext, new OverrideContext(), false);
+    return new Scope(ps, bc as IBindingContext, oc, false);
   }
 }
 

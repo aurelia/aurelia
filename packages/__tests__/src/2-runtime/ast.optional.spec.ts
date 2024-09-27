@@ -159,7 +159,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
     });
 
     it('[text] throws on call scope - prop nullish', function () {
-      assert.throws(() => createStrictFixture('${a()}'));
+      assert.throws(() => createStrictFixture('${a()}', { a: null }));
     });
 
     it('[text] throws on call scope - prop not a fn', function () {

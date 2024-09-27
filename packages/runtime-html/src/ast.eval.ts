@@ -107,20 +107,15 @@ export const {
           c.observe(obj, ast.name);
         }
         const evaluatedValue: unknown = obj[ast.name];
-        if (evaluatedValue == null && ast.name === '$host') {
-          throw createMappedError(ErrorNames.ast_$host_not_found);
+        if (evaluatedValue == null) {
+          if (ast.name === '$host') {
+            throw createMappedError(ErrorNames.ast_$host_not_found);
+          }
+          return evaluatedValue;
         }
-        if (e?.strict) {
-          // return evaluatedValue;
-          return e?.boundFn && isFunction(evaluatedValue)
-            ? evaluatedValue.bind(obj)
-            : evaluatedValue;
-        }
-        return evaluatedValue == null
-          ? null
-          : e?.boundFn && isFunction(evaluatedValue)
-            ? evaluatedValue.bind(obj)
-            : evaluatedValue;
+        return e?.boundFn && isFunction(evaluatedValue)
+          ? evaluatedValue.bind(obj)
+          : evaluatedValue;
       }
       case ekAccessGlobal:
         return globalThis[ast.name as keyof typeof globalThis];
@@ -284,9 +279,7 @@ export const {
           c.observe(instance, key);
         }
 
-        return instance == null
-          ? instance
-          : instance[key];
+        return instance[key];
       }
       case ekTaggedTemplate: {
         const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));

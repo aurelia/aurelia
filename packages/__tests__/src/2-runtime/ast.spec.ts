@@ -1,6 +1,5 @@
 import { IServiceLocator, Writable, IIndexable } from '@aurelia/kernel';
 import {
-  eachCartesianJoin,
   eachCartesianJoinFactory,
   createScopeForTest,
   MockTracingExpression,

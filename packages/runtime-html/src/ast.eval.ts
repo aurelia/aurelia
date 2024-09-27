@@ -125,7 +125,7 @@ export const {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
         /* istanbul ignore next */
-        if (!e?.strictFnCall && func == null) {
+        if (!e?.strict && func == null) {
           return void 0;
         }
         throw createMappedError(ErrorNames.ast_not_a_function);

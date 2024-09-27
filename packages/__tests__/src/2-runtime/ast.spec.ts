@@ -1302,10 +1302,10 @@ describe('2-runtime/ast.spec.ts', function () {
       const s2 = createScopeForTest({ foo: {} });
       const s3 = createScopeForTest({ foo: { bar: undefined } });
       const s4 = createScopeForTest({ foo: { bar: null } });
-      assert.throws(() => astEvaluate(expression, s1, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s2, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s3, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s4, { strictFnCall: true }, null));
+      assert.throws(() => astEvaluate(expression, s1, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s2, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s3, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s4, { strict: true }, null));
     });
   });
 

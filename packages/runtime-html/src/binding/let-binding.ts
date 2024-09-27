@@ -30,7 +30,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinUseScope(LetBinding);
     mixingBindingLimited(LetBinding, () => 'updateTarget');
     connectable(LetBinding, null!);
-    mixinAstEvaluator(true)(LetBinding);
+    mixinAstEvaluator()(LetBinding);
   });
 
   public isBound: boolean = false;

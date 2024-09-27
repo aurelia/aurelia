@@ -252,7 +252,7 @@ export const {
           if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
-          return instance;
+          return void 0;
         }
 
         if (c !== null && !ast.accessGlobal) {
@@ -272,7 +272,7 @@ export const {
           if (e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
-          return instance;
+          return void 0;
         }
 
         if (c !== null && !ast.accessGlobal) {
@@ -340,7 +340,7 @@ export const {
             // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
             if (!$left || !$right) {
               if (isNumberOrBigInt($left) || isNumberOrBigInt($right)) {
-                return ($left as number || 0) + ($right as number || 0);
+                return ($left as number) + ($right as number);
               }
               if (isStringOrDate($left) || isStringOrDate($right)) {
                 return ($left as string || '') + ($right as string || '');

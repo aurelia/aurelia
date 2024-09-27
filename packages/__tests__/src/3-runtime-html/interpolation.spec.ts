@@ -132,21 +132,21 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
-        interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
+        interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly',
       },
       {
-        expected: `undefined${testDateString}`,
+        expected: `${testDateString}`,
         expectedStrictMode: `undefined${testDateString}`,
-        expectedValueAfterChange: `undefined${ThreeDaysDateString}`,
+        expectedValueAfterChange: `${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
         interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly',
       },
       {
-        expected: `null${testDateString}`,
+        expected: `${testDateString}`,
         expectedStrictMode: `null${testDateString}`,
-        expectedValueAfterChange: `null${ThreeDaysDateString}`,
+        expectedValueAfterChange: `${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
@@ -318,7 +318,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       if (x.expectedStrictMode) {
         $it(`${x.it} STRICT MODE `, async function () {
           const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}` }, x.app);
-          const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
+          const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict], void 0, void 0, { strictBinding: true });
           assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
           await tearDown();
         });

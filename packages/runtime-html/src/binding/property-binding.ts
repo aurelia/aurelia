@@ -27,7 +27,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     mixinUseScope(PropertyBinding);
     mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
     connectable(PropertyBinding, null!);
-    mixinAstEvaluator(void 0, false)(PropertyBinding);
+    mixinAstEvaluator(PropertyBinding);
   });
 
   public isBound: boolean = false;

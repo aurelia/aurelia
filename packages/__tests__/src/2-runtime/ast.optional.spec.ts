@@ -135,6 +135,18 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assertText('b');
     });
 
+    it('[interpolation] does not throw on access member - missing object', function () {
+      assert.doesNotThrow(() => createFixture('<div id="${a.b}">'));
+    });
+
+    it('[ref] does not throw on access member - missing object', function () {
+      assert.doesNotThrow(() => createFixture('<div ref="a.b">'));
+    });
+
+    it('[let] does not throw on access member - missing object', function () {
+      assert.doesNotThrow(() => createFixture('<let id.bind="a.b">'));
+    });
+
     describe('assignment', function () {
       @customElement({ name: 'my-el', template: '', bindables: [{ name: 'value', mode: 'fromView' }] })
       class MyEl {
@@ -193,6 +205,22 @@ describe('2-runtime/ast.optional.spec.ts', function () {
 
     it('[text] throws on access member - object missing', function () {
       assert.throws(() => createStrictFixture('${a.b}'));
+    });
+
+    // only 1 to test demonstrate strict mode is applied for interpolation
+    // the rest of the tests are assumed to be similar to text binding
+    it('[interpolation] throws on access member - missing object', function () {
+      assert.throws(() => createStrictFixture('<div id="${a.b}">'));
+    });
+
+    // only 1 to test demonstrate strict mode is applied for ref
+    // the rest of the tests are assumed to be similar to text binding
+    it('[ref] throws on access member - missing object', function () {
+      assert.throws(() => createStrictFixture('<div ref="a.b">'));
+    });
+
+    it('[let] throws on access member - missing object', function () {
+      assert.throws(() => createStrictFixture('<let id.bind="a.b">'));
     });
 
     it('[text] does not throw on access member - object missing + optional', function () {

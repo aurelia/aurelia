@@ -123,7 +123,7 @@ export interface ExpressionWatcher extends IObserverLocatorBasedConnectable, /* 
 export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnectable {
   static {
     connectable(ExpressionWatcher, null!);
-    mixinAstEvaluator(void 0)(ExpressionWatcher);
+    mixinAstEvaluator(ExpressionWatcher);
   }
 
   public isBound: boolean = false;

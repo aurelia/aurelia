@@ -161,7 +161,7 @@ export class SpreadValueBinding implements IBinding {
     mixinUseScope(SpreadValueBinding);
     mixingBindingLimited(SpreadValueBinding, () => 'updateTarget');
     connectable(SpreadValueBinding, null!);
-    mixinAstEvaluator(true, false)(SpreadValueBinding);
+    mixinAstEvaluator(SpreadValueBinding);
   });
 
   /** @internal */

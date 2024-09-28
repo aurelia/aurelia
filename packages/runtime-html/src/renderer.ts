@@ -433,6 +433,8 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
 
 export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer implements IRenderer {
   public readonly target = InstructionType.refBinding;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public render(
     renderingCtrl: IHydratableController,
     target: INode,
@@ -443,13 +445,16 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
     renderingCtrl.addBinding(new RefBinding(
       renderingCtrl.container,
       ensureExpression(exprParser, instruction.from, etIsProperty),
-      getRefTarget(target, instruction.to)
+      getRefTarget(target, instruction.to),
+      this._defaultBindingConfig.strict,
     ));
   }
 }, null!);
 
 export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer implements IRenderer {
   public readonly target = InstructionType.interpolation;
+  /** @internal */
+  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     InterpolationPartBinding.mix();
   }
@@ -470,7 +475,8 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
       ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
-      toView
+      toView,
+      this._defaultBindingConfig.strict
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));

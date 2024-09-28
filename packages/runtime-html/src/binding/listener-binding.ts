@@ -26,7 +26,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public static mix = createPrototypeMixer(function () {
     mixinUseScope(ListenerBinding);
     mixingBindingLimited(ListenerBinding, () => 'callSource');
-    mixinAstEvaluator(void 0, true)(ListenerBinding);
+    mixinAstEvaluator(ListenerBinding);
   });
 
   public isBound: boolean = false;

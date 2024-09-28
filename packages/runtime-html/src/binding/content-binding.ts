@@ -40,7 +40,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     mixinUseScope(ContentBinding);
     mixingBindingLimited(ContentBinding, () => 'updateTarget');
     connectable(ContentBinding, null!);
-    mixinAstEvaluator(void 0, false)(ContentBinding);
+    mixinAstEvaluator(ContentBinding);
   });
 
   public isBound: boolean = false;

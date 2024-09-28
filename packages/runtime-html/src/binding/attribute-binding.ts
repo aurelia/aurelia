@@ -43,7 +43,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       mixinUseScope(AttributeBinding);
       mixingBindingLimited(AttributeBinding, () => 'updateTarget');
       connectable(AttributeBinding, null!);
-      mixinAstEvaluator(true)(AttributeBinding);
+      mixinAstEvaluator(AttributeBinding);
   });
 
   public isBound: boolean = false;

@@ -28,8 +28,6 @@ export interface IAstEvaluator {
   strict?: boolean;
   /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
   boundFn?: boolean;
-  /** describe whether the evaluator wants to evaluate the function call in strict mode */
-  strictFnCall?: boolean;
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
   /** Allow an AST to retrieve a value converter that it needs */

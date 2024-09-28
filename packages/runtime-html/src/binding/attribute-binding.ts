@@ -95,6 +95,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     public targetAttribute: string,
     public targetProperty: string,
     public mode: BindingMode,
+    public strict: boolean,
   ) {
     this.l = locator;
     this.ast = ast;

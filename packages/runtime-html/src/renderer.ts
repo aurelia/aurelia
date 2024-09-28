@@ -382,19 +382,8 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
   }
 }, null!);
 
-/** @internal */
-export interface IBindingConfiguration {
-  strict: boolean;
-}
-/** @internal */
-export const IBindingConfiguration = createInterface<IBindingConfiguration>('IBindingConfiguration', x => x.instance({
-  strict: false,
-}));
-
 export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer implements IRenderer {
   public readonly target = InstructionType.hydrateLetElement;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     LetBinding.mix();
   }
@@ -424,7 +413,7 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
         expr,
         childInstruction.to,
         toBindingContext,
-        this._defaultBindingConfig.strict
+        renderingCtrl.strict ?? false,
       ));
       ++i;
     }
@@ -433,8 +422,6 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
 
 export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer implements IRenderer {
   public readonly target = InstructionType.refBinding;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public render(
     renderingCtrl: IHydratableController,
     target: INode,
@@ -446,15 +433,13 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
       renderingCtrl.container,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getRefTarget(target, instruction.to),
-      this._defaultBindingConfig.strict,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
 
 export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer implements IRenderer {
   public readonly target = InstructionType.interpolation;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     InterpolationPartBinding.mix();
   }
@@ -476,7 +461,7 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
       getTarget(target),
       instruction.to,
       toView,
-      this._defaultBindingConfig.strict
+      renderingCtrl.strict ?? false,
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
@@ -488,8 +473,6 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
 
 export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRenderer implements IRenderer {
   public readonly target = InstructionType.propertyBinding;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     PropertyBinding.mix();
   }
@@ -511,7 +494,7 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
       getTarget(target),
       instruction.to,
       instruction.mode,
-      this._defaultBindingConfig.strict
+      renderingCtrl.strict ?? false,
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
@@ -523,8 +506,6 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
 
 export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRenderer implements IRenderer {
   public readonly target = InstructionType.iteratorBinding;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     PropertyBinding.mix();
   }
@@ -545,15 +526,13 @@ export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBind
       getTarget(target),
       instruction.to,
       toView,
-      this._defaultBindingConfig.strict
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
 
 export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer implements IRenderer {
   public readonly target = InstructionType.textBinding;
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
   public constructor() {
     ContentBinding.mix();
   }
@@ -573,7 +552,7 @@ export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRende
       platform,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       target as Text,
-      this._defaultBindingConfig.strict
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -616,8 +595,6 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
   public readonly _modifierHandler = resolve(IEventModifier);
   /** @internal */
   public readonly _defaultOptions = resolve(IListenerBindingOptions);
-  /** @internal */
-  public readonly _defaultBindingConfig = resolve(IBindingConfiguration);
 
   public constructor() {
     ListenerBinding.mix();
@@ -637,7 +614,7 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
       instruction.to,
       new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture, this._defaultOptions.onError),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
-      this._defaultBindingConfig.strict,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -725,6 +702,7 @@ export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePr
           target.style,
           instruction.to,
           toView,
+          renderingCtrl.strict ?? false,
         ));
         return;
       }
@@ -738,6 +716,7 @@ export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePr
       target.style,
       instruction.to,
       toView,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -783,6 +762,7 @@ export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBi
         ? instruction.to/* targetKey */
         : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '),
       toView,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -838,7 +818,8 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
         exprParser.parse(instruction.from, etIsProperty),
         observerLocator,
         renderingCtrl.container,
-        platform.domQueue
+        platform.domQueue,
+        renderingCtrl.strict ?? false,
       ));
     } else {
       throw createMappedError(ErrorNames.spreading_invalid_target, instructionTarget);

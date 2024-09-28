@@ -73,7 +73,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    public strict = false,
+    public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = observerLocator;
@@ -217,7 +217,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     public readonly targetProperty: string,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public strict = false,
+    public strict: boolean,
     public readonly owner: InterpolationBinding,
   ) {
     this.l = locator;

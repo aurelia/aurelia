@@ -436,7 +436,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
   // #endregion
 }
-mixinAstEvaluator()(PropertyRule);
+mixinAstEvaluator(PropertyRule);
 
 export class ModelBasedRule {
   public constructor(

@@ -11,7 +11,6 @@ import type { ICustomElementViewModel, ICustomElementController } from './templa
 import { IPlatform } from './platform';
 import { IEventTarget, registerHostNode } from './dom';
 import { ErrorNames, createMappedError } from './errors';
-import { IBindingConfiguration } from './renderer';
 
 export interface IAppRootConfig<T extends object = object> {
   host: HTMLElement;
@@ -91,7 +90,6 @@ export class AppRoot<
 
     registerResolver(container, IEventTarget, new InstanceProvider<IEventTarget>('IEventTarget', host));
     registerHostNode(container, host, this.platform = this._createPlatform(container, host));
-    registerResolver(container, IBindingConfiguration, new InstanceProvider<IBindingConfiguration>('IBindingConfiguration', { strict: config.strictBinding ?? false }));
 
     this._hydratePromise = onResolve(this._runAppTasks('creating'), () => {
       if (!config.allowActionlessForm !== false) {
@@ -117,7 +115,7 @@ export class AppRoot<
 
       const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
       const definition = enhance
-        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true })
+        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
         // leave the work of figuring out the definition to the controller
         // there's proper error messages in case of failure inside the $el() call
         : void 0;

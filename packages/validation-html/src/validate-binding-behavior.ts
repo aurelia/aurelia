@@ -362,7 +362,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
 }
 
 connectable(ValidationConnector, null!);
-mixinAstEvaluator(true)(ValidationConnector);
+mixinAstEvaluator(ValidationConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
   public constructor(
@@ -408,4 +408,4 @@ export class BindingMediator<K extends string> {
 }
 
 connectable(BindingMediator, null!);
-mixinAstEvaluator(true)(BindingMediator);
+mixinAstEvaluator(BindingMediator);

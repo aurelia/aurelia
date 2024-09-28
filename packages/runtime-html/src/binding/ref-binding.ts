@@ -24,7 +24,7 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: object,
-    public strict = false,
+    public strict: boolean,
   ) {
     this.l = locator;
   }

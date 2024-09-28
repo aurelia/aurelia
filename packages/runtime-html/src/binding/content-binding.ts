@@ -85,7 +85,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
-    public strict = false,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._controller = controller;

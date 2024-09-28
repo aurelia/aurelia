@@ -66,13 +66,13 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
-    toBindingContext: boolean = false,
-    strict: boolean = false,
+    toBindingContext: boolean,
+    strict: boolean,
   ) {
     this.l = locator;
     this.oL = observerLocator;
-    this._toBindingContext = toBindingContext;
     this.strict = strict;
+    this._toBindingContext = toBindingContext;
   }
 
   public updateTarget() {

@@ -63,7 +63,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     public targetEvent: string,
     options: ListenerBindingOptions,
     modifiedEventHandler: IModifiedEventHandler | null,
-    public strict = false,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._options = options;

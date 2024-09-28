@@ -136,6 +136,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
   public coercion: ICoercionConfiguration | undefined;
 
+  public get strict() {
+    return (this.definition as CustomElementDefinition)?.strict;
+  }
+
   public constructor(
     public container: IContainer,
     public readonly vmKind: ViewModelKind,
@@ -1529,6 +1533,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly vmKind: 'customElement' | 'synthetic';
   readonly mountTarget: MountTarget;
   readonly definition: CustomElementDefinition | null;
+  readonly strict: boolean | undefined | null;
 
   readonly children: readonly IHydratedController[] | null;
 
@@ -1681,6 +1686,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
 export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IHydratableController<C> {
   readonly vmKind: 'customElement';
   readonly definition: CustomElementDefinition;
+  readonly strict: boolean | undefined | null;
   /**
    * The scope that belongs to this custom element. This property is set immediately after the controller is created and is always guaranteed to be available.
    *

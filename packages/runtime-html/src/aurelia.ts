@@ -152,7 +152,7 @@ export class Aurelia implements IDisposable {
   }
 }
 
-export type ISinglePageAppConfig<T extends object = object> = IAppRootConfig<T> & {
+export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {
   host: Element;
 };
 

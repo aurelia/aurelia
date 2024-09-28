@@ -322,4 +322,4 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
   }
 }
 
-mixinAstEvaluator()(ModelValidationExpressionHydrator);
+mixinAstEvaluator(ModelValidationExpressionHydrator);

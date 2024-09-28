@@ -147,6 +147,10 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.doesNotThrow(() => createFixture('<let id.bind="a.b">'));
     });
 
+    it('[attribute] does not throw on access member - missing object', function () {
+      assert.doesNotThrow(() => createFixture('<div selected.class="a.b">'));
+    });
+
     describe('assignment', function () {
       @customElement({ name: 'my-el', template: '', bindables: [{ name: 'value', mode: 'fromView' }] })
       class MyEl {
@@ -199,8 +203,7 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       createFixture
         .html(template)
         .deps(...registrations)
-        .component(component)
-        .config({ strictBinding: true })
+        .component(component, { strict: true })
         .build();
 
     it('[text] throws on access member - object missing', function () {
@@ -221,6 +224,10 @@ describe('2-runtime/ast.optional.spec.ts', function () {
 
     it('[let] throws on access member - missing object', function () {
       assert.throws(() => createStrictFixture('<let id.bind="a.b">'));
+    });
+
+    it('[attribute] throws on access member - missing object', function () {
+      assert.throws(() => createStrictFixture('<div selected.class="a.b">'));
     });
 
     it('[text] does not throw on access member - object missing + optional', function () {

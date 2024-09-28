@@ -73,7 +73,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
-    public strict: boolean = false,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._controller = controller;

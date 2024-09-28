@@ -249,7 +249,7 @@ export const {
       case ekAccessMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
         if (instance == null) {
-          if (e?.strict) {
+          if (e?.strict && !ast.optional) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
           return void 0;
@@ -269,7 +269,7 @@ export const {
         const key = astEvaluate(ast.key, s, e, c) as string;
 
         if (instance == null) {
-          if (e?.strict) {
+          if (e?.strict && !ast.optional) {
             throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
           return void 0;

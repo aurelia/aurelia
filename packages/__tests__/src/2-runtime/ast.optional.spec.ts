@@ -146,8 +146,16 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       assert.throws(() => createStrictFixture('${a.b}'));
     });
 
+    it('[text] does not throw on access member - object missing + optional', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a?.b}'));
+    });
+
     it('[text] throws on access keyed - object missing', function () {
       assert.throws(() => createStrictFixture('${a[b]}'));
+    });
+
+    it('[text] does not throw on access keyed - object missing + optional', function () {
+      assert.doesNotThrow(() => createStrictFixture('${a?.[b]}'));
     });
 
     it('[text] throws on access keyed - literal key - object missing', function () {

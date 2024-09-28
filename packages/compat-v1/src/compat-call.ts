@@ -100,7 +100,7 @@ export class CallBinding implements IBinding {
   static {
     mixinUseScope(CallBinding);
     mixingBindingLimited(CallBinding, () => 'callSource');
-    mixinAstEvaluator(true)(CallBinding);
+    mixinAstEvaluator(CallBinding);
   }
 
   public isBound: boolean = false;

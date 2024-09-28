@@ -123,7 +123,7 @@ export class DelegateListenerBinding implements IBinding {
   static {
     mixinUseScope(DelegateListenerBinding);
     mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(DelegateListenerBinding);
+    mixinAstEvaluator(DelegateListenerBinding);
   }
 
   public isBound: boolean = false;

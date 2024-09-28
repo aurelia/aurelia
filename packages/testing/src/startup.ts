@@ -280,7 +280,7 @@ export function createFixture<T extends object>(
       throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
     }
     (el as HTMLInputElement).value = value;
-    el.dispatchEvent(new platform.window.Event('input'));
+    el.dispatchEvent(new platform.window.Event('input', { bubbles: true }));
   }
 
   const scrollBy = (selector: string, init: number | ScrollToOptions) => {

@@ -1,3 +1,5 @@
+import { Constructable } from '@aurelia/kernel';
+import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/ast.optional.spec.ts', function () {
@@ -132,12 +134,59 @@ describe('2-runtime/ast.optional.spec.ts', function () {
 
       assertText('b');
     });
+
+    describe('assignment', function () {
+      @customElement({ name: 'my-el', template: '', bindables: [{ name: 'value', mode: 'fromView' }] })
+      class MyEl {
+        public value: unknown;
+      }
+
+      it('assigns on access member assignment - missing scope', function () {
+        const { component } = createFixture(
+          '<my-el value.from-view="a.b" component.ref="el">',
+          class App {
+            // starts with an empty object to avoid error
+            a = {};
+            el: MyEl;
+          },
+          [MyEl]
+        );
+
+        component.a = null;
+        component.el.value = 5;
+        assert.deepStrictEqual(component.a, { b: 5 });
+      });
+
+      it('assigns on access member assignment - missing scope + optional', function () {
+        const { component } = createFixture(
+          '<my-el value.from-view="a?.b" component.ref="el">',
+          class App {
+            // starts with an empty object to avoid error
+            a = {};
+            el: MyEl;
+          },
+          [MyEl]
+        );
+
+        component.a = null;
+        component.el.value = 5;
+        assert.deepStrictEqual(component.a, { b: 5 });
+      });
+
+      it('throws on access keyed assignment - missing scope', function () {
+        const { trigger, component } = createFixture('<button click.trigger="a[5] = 1">', class { a: unknown; });
+
+        trigger.click('button');
+        assert.deepStrictEqual(component.a, { 5: 1 });
+      });
+    });
   });
 
   describe('strict mode', function () {
-    const createStrictFixture = (template: string, component?: unknown) =>
+    const createStrictFixture = <T>(template: string, component?: T | Constructable<T>, registrations: unknown[] = []) =>
       createFixture
         .html(template)
+        .deps(...registrations)
         .component(component)
         .config({ strictBinding: true })
         .build();
@@ -259,15 +308,82 @@ describe('2-runtime/ast.optional.spec.ts', function () {
       const { platform, trigger } = createStrictFixture('<div click.trigger="a.b?.()"></div>', { a: { b: 5 } });
 
       let error: unknown;
-      platform.window.addEventListener('au-event-error', function handler(e: CustomEvent<{ error: Error }>) {
-        e.preventDefault();
+      handleAuEventError(platform, function (e) {
         error = e.detail.error;
-        platform.window.removeEventListener('au-event-error', handler);
       });
 
       trigger.click('div');
       assert.includes(String(error), 'AUR0111:');
     });
 
+    describe('assignment', function () {
+      @customElement({ name: 'my-el', template: '', bindables: [{ name: 'value', mode: 'fromView' }] })
+      class MyEl {
+        public value: unknown;
+      }
+
+      it('throws on access member assignment - missing scope', function () {
+        const { component } = createStrictFixture(
+          '<my-el value.from-view="a.b" component.ref="el">',
+          class App {
+            // starts with an empty object to avoid error
+            a = {};
+            el: MyEl;
+          },
+          [MyEl]
+        );
+
+        let i = 0;
+        component.a = null;
+        try {
+          component.el.value = 5;
+        } catch (error) {
+          i = 1;
+          assert.includes(String(error), 'AUR0114');
+        }
+        assert.strictEqual(i, 1);
+      });
+
+      it('throws on access member assignment - missing scope + optional', function () {
+        // in the future when official JS supports optional chaining arrives, this won't throw
+        const { component } = createStrictFixture(
+          '<my-el value.from-view="a?.b" component.ref="el">',
+          class App {
+            // starts with an empty object to avoid error
+            a = {};
+            el: MyEl;
+          },
+          [MyEl]
+        );
+
+        let i = 0;
+        component.a = null;
+        try {
+          component.el.value = 5;
+        } catch (error) {
+          i = 1;
+          assert.includes(String(error), 'AUR0116');
+        }
+        assert.strictEqual(i, 1);
+      });
+
+      it('throws on access keyed assignment - missing scope', function () {
+        const { platform, trigger } = createStrictFixture('<button click.trigger="a[5] = 1">');
+
+        let error: unknown;
+        handleAuEventError(platform, e => error = e.detail.error);
+
+        trigger.click('button');
+        assert.includes(String(error), 'AUR0116');
+      });
+    });
   });
+
+  function handleAuEventError(platform: IPlatform, handler: (e: CustomEvent<{ error: Error }>) => void) {
+    platform.window.addEventListener('au-event-error', function auEventErrorHandler(e: CustomEvent<{ error: Error }>) {
+      e.preventDefault();
+      handler(e);
+      platform.window.removeEventListener('au-event-error', auEventErrorHandler);
+    });
+  }
 });

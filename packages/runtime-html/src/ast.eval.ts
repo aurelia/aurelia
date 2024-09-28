@@ -7,7 +7,7 @@ import {
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { AnyFunction, IIndexable, isArrayIndex, isArray, isFunction, isObject } from '@aurelia/kernel';
+import { AnyFunction, IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction } from '@aurelia/kernel';
 import { IConnectable, IObservable, ISubscriber } from '@aurelia/runtime';
 import { Scope, type IBindingContext, IOverrideContext } from './binding/scope';
 import { ErrorNames, createMappedError } from './errors';
@@ -249,7 +249,7 @@ export const {
       case ekAccessMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
         if (instance == null) {
-          if (e?.strict && !ast.optional) {
+          if (!ast.optional && e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
           return void 0;
@@ -269,7 +269,7 @@ export const {
         const key = astEvaluate(ast.key, s, e, c) as string;
 
         if (instance == null) {
-          if (e?.strict && !ast.optional) {
+          if (!ast.optional && e?.strict) {
             throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
           return void 0;
@@ -320,7 +320,7 @@ export const {
           }
           case 'in': {
             const $right = astEvaluate(right, s, e, c);
-            if (isObject($right)) {
+            if (isObjectOrFunction($right)) {
               return astEvaluate(left, s, e, c) as string in $right;
             }
             return false;
@@ -467,20 +467,44 @@ export const {
       }
       case ekAccessMember: {
         const obj = astEvaluate(ast.object, s, e, null) as IObservable;
-        if (isObject(obj)) {
+        if (obj == null) {
+          if (e?.strict) {
+            // if ast optional and the optional assignment proposal goes ahead
+            // we can allow this to be a no-op instead of throwing (check via ast.optional)
+            // https://github.com/tc39/proposal-optional-chaining-assignment
+            throw createMappedError(ErrorNames.ast_nullish_assignment, ast.name);
+          }
+          // creating an object and assign it to the owning property of the ast
+          // this is a good enough behavior, and it works well in v1
+          astAssign(ast.object, s, e, { [ast.name]: val });
+        } else if (isObjectOrFunction(obj)) {
           if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
             obj.splice(val as number);
           } else {
             obj[ast.name] = val;
           }
         } else {
-          astAssign(ast.object, s, e, { [ast.name]: val });
+          // obj is a primitive, assigning a value to a property on a primitive
+          // does nothing
         }
         return val;
       }
       case ekAccessKeyed: {
         const instance = astEvaluate(ast.object, s, e, null) as IIndexable;
         const key = astEvaluate(ast.key, s, e, null) as string;
+        if (instance == null) {
+          if (e?.strict) {
+            // if ast optional and the optional assignment proposal goes ahead
+            // we can allow this to be a no-op instead of throwing (check via ast.optional)
+            // https://github.com/tc39/proposal-optional-chaining-assignment
+            throw createMappedError(ErrorNames.ast_nullish_assignment, key);
+          }
+          // creating an object and assign it to the owning property of the ast
+          // this is a good enough behavior, and it works well in v1
+          astAssign(ast.object, s, e, { [key]: val });
+          return val;
+        }
+
         if (isArray(instance)) {
           if (key === 'length' && !isNaN(val as number)) {
             instance.splice(val as number);
@@ -491,6 +515,7 @@ export const {
             return val;
           }
         }
+
         return instance[key] = val;
       }
       case ekAssign:

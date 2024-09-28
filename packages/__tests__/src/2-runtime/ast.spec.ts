@@ -666,20 +666,15 @@ describe('2-runtime/ast.spec.ts', function () {
         astEvaluate(sut, scope, dummyLocator, binding);
         assert.strictEqual(
           binding.calls.filter(c => c[0] === 'observe').length,
-          obj == null ? 1 : 2,
+          2,
           `binding.calls.filter(c => c[0] === 'observe').length`
         );
 
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          astAssign(sut, scope, null, 42);
-          if (obj == null) {
-            assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-            assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
-          } else {
-            assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-            assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
-          }
+          astAssign(sut, scope, null, 42);// }
+          assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+          assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
         }
       });
 
@@ -1035,19 +1030,19 @@ describe('2-runtime/ast.spec.ts', function () {
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'a', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'anull', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'b', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'nullb', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'a', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'aundefined', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'b', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'undefinedb', `astEvaluate(expression, scope, null, null)`);
     });
 
     it(`adds numbers`, function () {

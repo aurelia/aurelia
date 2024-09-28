@@ -323,18 +323,8 @@ export const {
             }
             return false;
           }
-          case '+': {
-            const $left: unknown = astEvaluate(left, s, e, c);
-            const $right: unknown = astEvaluate(right, s, e, c);
-
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            if ((!$left || !$right) && !e?.strict) {
-              if (isStringOrDate($left) || isStringOrDate($right)) {
-                return ($left as string || '') + ($right as string || '');
-              }
-            }
-            return ($left as number) + ($right as number);
-          }
+          case '+':
+            return (astEvaluate(left, s, e, c) as number) + (astEvaluate(right, s, e, c) as number);
           case '-':
             return (astEvaluate(left, s, e, c) as number) - (astEvaluate(right, s, e, c) as number);
           case '*':
@@ -679,22 +669,6 @@ export const {
       }
     }
   }
-
-  /**
-   * Determines if the value passed is a string or Date for parsing purposes
-   *
-   * @param value - Value to evaluate
-   */
-  const isStringOrDate = (value: unknown): value is string | Date => {
-    switch (typeof value) {
-      case 'string':
-        return true;
-      case 'object':
-        return value instanceof Date;
-      default:
-        return false;
-    }
-  };
 
   const autoObserveArrayMethods =
     'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');

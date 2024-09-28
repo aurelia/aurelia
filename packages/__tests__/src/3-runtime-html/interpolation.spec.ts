@@ -135,18 +135,18 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly',
       },
       {
-        expected: `${testDateString}`,
+        expected: `undefined${testDateString}`,
         expectedStrictMode: `undefined${testDateString}`,
-        expectedValueAfterChange: `${ThreeDaysDateString}`,
+        expectedValueAfterChange: `undefined${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
         interpolation: `$\{undefined + value}`, it: 'Date works with undefined expression and setDate triggers change properly',
       },
       {
-        expected: `${testDateString}`,
+        expected: `null${testDateString}`,
         expectedStrictMode: `null${testDateString}`,
-        expectedValueAfterChange: `${ThreeDaysDateString}`,
+        expectedValueAfterChange: `null${ThreeDaysDateString}`,
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },

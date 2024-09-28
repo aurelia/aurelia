@@ -44,6 +44,7 @@ describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
             undefined,
             undefined,
             initMode,
+            false,
           );
           sut.bind(undefined, binding);
         });

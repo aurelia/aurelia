@@ -323,23 +323,12 @@ export const {
             }
             return false;
           }
-          // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
-          // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
-          // ast makes bugs in user code easier to track down for end users
-          // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
           case '+': {
             const $left: unknown = astEvaluate(left, s, e, c);
             const $right: unknown = astEvaluate(right, s, e, c);
 
-            if (e?.strict) {
-              return ($left as number) + ($right as number);
-            }
-
             // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            if (!$left || !$right) {
-              if (isNumberOrBigInt($left) || isNumberOrBigInt($right)) {
-                return ($left as number) + ($right as number);
-              }
+            if ((!$left || !$right) && !e?.strict) {
               if (isStringOrDate($left) || isStringOrDate($right)) {
                 return ($left as string || '') + ($right as string || '');
               }
@@ -690,21 +679,6 @@ export const {
       }
     }
   }
-
-  /**
-   * Determines if the value passed is a number or bigint for parsing purposes
-   *
-   * @param value - Value to evaluate
-   */
-  const isNumberOrBigInt = (value: unknown): value is number | bigint => {
-    switch (typeof value) {
-      case 'number':
-      case 'bigint':
-        return true;
-      default:
-        return false;
-    }
-  };
 
   /**
    * Determines if the value passed is a string or Date for parsing purposes

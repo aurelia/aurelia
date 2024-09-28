@@ -673,8 +673,13 @@ describe('2-runtime/ast.spec.ts', function () {
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
           astAssign(sut, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          if (obj == null) {
+            assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          } else {
+            assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          }
         }
       });
 
@@ -699,13 +704,16 @@ describe('2-runtime/ast.spec.ts', function () {
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
           astAssign(sut, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          if (obj == null) {
+            assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          } else {
+            assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          }
         }
       });
-
-    })
-    );
+    }));
 
     it('evaluates member on bindingContext', function () {
       const scope = createScopeForTest({ foo: { bar: 'baz' } });

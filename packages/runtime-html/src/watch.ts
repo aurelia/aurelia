@@ -73,7 +73,7 @@ export function watch<T extends object = object, TV extends AnyMethod = AnyMetho
       ) {
         throw createMappedError(ErrorNames.watch_invalid_change_handler, `${safeString(changeHandlerOrCallback)}@${target.name}}`);
       }
-    } else if (!isFunction(target)) {
+    } else if (!isFunction(target) || context.static) {
       throw createMappedError(ErrorNames.watch_non_method_decorator_usage, context.name);
     }
 
@@ -85,8 +85,13 @@ export function watch<T extends object = object, TV extends AnyMethod = AnyMetho
     if (isClassDecorator) {
       addDefinition(target as Constructable);
     } else {
+      // instance method decorator initializer is called for each instance
+      let added = false;
       context.addInitializer(function (this: T) {
-        addDefinition(this.constructor as Constructable);
+        if (!added) {
+          added = true;
+          addDefinition(this.constructor as Constructable);
+        }
       });
     }
 

@@ -1,12 +1,10 @@
 import {
-  connectable
-} from '@aurelia/runtime';
-import {
+  connectable,
   IAstEvaluator,
   astBind,
   astEvaluate,
   astUnbind,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import { type IServiceLocator, isArray } from '@aurelia/kernel';

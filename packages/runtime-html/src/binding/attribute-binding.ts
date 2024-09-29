@@ -4,15 +4,13 @@ import {
   type IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
-  ICollectionSubscriber
-} from '@aurelia/runtime';
-import { type Scope } from './scope';
-import {
+  ICollectionSubscriber,
   astBind,
   astEvaluate,
   astUnbind,
-  IAstEvaluator,
-} from '../ast.eval';
+  type IAstEvaluator,
+} from '@aurelia/runtime';
+import { type Scope } from './scope';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';

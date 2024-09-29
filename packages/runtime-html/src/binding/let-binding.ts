@@ -5,14 +5,12 @@ import {
   connectable,
   type IObservable,
   type IObserverLocator,
-} from '@aurelia/runtime';
-import { type Scope } from './scope';
-import {
+  type Scope,
   astBind,
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';

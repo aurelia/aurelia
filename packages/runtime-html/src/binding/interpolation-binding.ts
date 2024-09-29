@@ -1,13 +1,11 @@
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
-} from '@aurelia/runtime';
-import {
   astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';

@@ -10,6 +10,8 @@ import {
   Scope,
   type IAstEvaluator,
   astEvaluate,
+} from '@aurelia/runtime';
+import {
   mixinAstEvaluator,
 } from '@aurelia/runtime-html';
 import {

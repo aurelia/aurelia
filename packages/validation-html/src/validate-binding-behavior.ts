@@ -1,17 +1,18 @@
-import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
+import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
+import { BindingBehaviorExpression } from '@aurelia/expression-parser';
 import {
   connectable,
-  IConnectable,
+  type IConnectable,
   IObserverLocator,
-  IObserverLocatorBasedConnectable,
+  type IObserverLocatorBasedConnectable,
+  type IAstEvaluator,
+  Scope,
+  astEvaluate,
 } from '@aurelia/runtime';
 import {
-  type IAstEvaluator,
   type IBinding,
-  astEvaluate,
   type BindingBehaviorInstance,
-  Scope,
   BindingBehavior,
   BindingTargetSubscriber,
   IFlushQueue,
@@ -22,7 +23,6 @@ import {
 } from '@aurelia/runtime-html';
 import { PropertyRule } from '@aurelia/validation';
 import { BindingInfo, BindingWithBehavior, IValidationController, ValidationController, ValidationEvent, ValidationResultsSubscriber } from './validation-controller';
-import { BindingBehaviorExpression } from '@aurelia/expression-parser';
 import { ErrorNames, createMappedError } from './errors';
 
 /**

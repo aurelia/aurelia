@@ -1,7 +1,7 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import { type ISubscriber } from '@aurelia/runtime';
-import { astEvaluate } from '../ast.eval';
+import { astBind, astEvaluate } from '../ast.eval';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { BindingBehavior, BindingBehaviorInstance } from '../resources/binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../resources/value-converter';
@@ -71,42 +71,115 @@ export const mixinUseScope = /*@__PURE__*/(() => {
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
 export const mixinAstEvaluator = /*@__PURE__*/(() => {
-  type IHasServiceLocator = { l: IServiceLocator };
+  type IHasServiceLocator = IBinding & { l: IServiceLocator };
 
-  const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
-  const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup>();
+  const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<ValueConverterInstance>>();
+  const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<BindingBehaviorInstance>>();
+  const appliedBehaviors = new WeakMap<{ l: IServiceLocator }, Record<string, boolean>>();
 
   function evaluatorGet<T extends IHasServiceLocator>(this: T, key: Key) {
     return this.l.get(key);
   }
-  function evaluatorGetSignaler<T extends IHasServiceLocator>(this: T) {
-    return this.l.root.get(ISignaler);
-  }
-  function evaluatorGetConverter<T extends IHasServiceLocator>(this: T, name: string) {
-    let resourceLookup = converterResourceLookupCache.get(this);
+  function evaluatorGetBehavior<T extends IHasServiceLocator>(b: T, name: string) {
+    let resourceLookup = behaviorResourceLookupCache.get(b);
     if (resourceLookup == null) {
-      converterResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+      behaviorResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
     }
-    return resourceLookup[name] ??= ValueConverter.get(this.l as IContainer, name);
+    return resourceLookup[name] ??= BindingBehavior.get(b.l, name);
   }
-  function evaluatorGetBehavior<T extends IHasServiceLocator>(this: T, name: string) {
-    let resourceLookup = behaviorResourceLookupCache.get(this);
-    if (resourceLookup == null) {
-      behaviorResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+  function evaluatorBindBehavior<T extends IHasServiceLocator>(this: T, name: string, scope: Scope, args: unknown[]) {
+    const behavior = evaluatorGetBehavior(this, name);
+    if (behavior == null) {
+      throw createMappedError(ErrorNames.ast_behavior_not_found, name);
     }
-    return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
+
+    let applied = appliedBehaviors.get(this);
+    if (applied == null) {
+      appliedBehaviors.set(this, applied = {});
+    }
+    if (applied[name]) {
+      throw createMappedError(ErrorNames.ast_behavior_duplicated, name);
+    }
+    behavior.bind?.(scope, this, ...args);
   }
 
-  return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
+  function evaluatorUnbindBehavior<T extends IHasServiceLocator>(this: T, name: string, scope: Scope) {
+    const behavior = evaluatorGetBehavior(this, name);
+    const applied = appliedBehaviors.get(this);
+
+    behavior?.unbind?.(scope, this);
+    if (applied != null) {
+      applied[name] = false;
+    }
+  }
+
+  function evaluatorGetConverter_2<T extends IHasServiceLocator>(b: T, name: string) {
+    let resourceLookup = converterResourceLookupCache.get(b);
+    if (resourceLookup == null) {
+      converterResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
+    }
+    return resourceLookup[name] ??= ValueConverter.get(b.l as IContainer, name);
+  }
+  function evaluatorBindConverter<T extends IHasServiceLocator>(this: T, name: string) {
+    const vc = evaluatorGetConverter_2(this, name);
+    if (vc == null) {
+      throw createMappedError(ErrorNames.ast_converter_not_found, name);
+    }
+    const signals = vc.signals;
+    if (signals != null) {
+      const signaler = this.l.get(ISignaler);
+      const ii = signals.length;
+      let i = 0;
+      for (; i < ii; ++i) {
+        // note: the cast is expected. To connect, it just needs to be a IConnectable
+        // though to work with signal, it needs to have `handleChange`
+        // so having `handleChange` as a guard in the connectable as a safe measure is needed
+        // to make sure signaler works
+        signaler?.addSignalListener(signals[i], this as unknown as ISubscriber);
+      }
+    }
+  }
+
+  function evaluatorUnbindConverter<T extends IHasServiceLocator>(this: T, name: string) {
+    const vc = evaluatorGetConverter_2(this, name);
+    if (vc?.signals === void 0) {
+      return;
+    }
+    const signaler = this.l.get(ISignaler);
+    let i = 0;
+    for (; i < vc.signals.length; ++i) {
+      signaler?.removeSignalListener(vc.signals[i], this as unknown as ISubscriber);
+    }
+  }
+
+  function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
+    const vc = evaluatorGetConverter_2(this, name);
+    if (vc == null) {
+      throw createMappedError(ErrorNames.ast_converter_not_found, name);
+    }
+    switch (mode) {
+      case 'toView':
+        return 'toView' in vc ? vc.toView(value, ...args) : value;
+      case 'fromView':
+        return 'fromView' in vc ? vc.fromView?.(value, ...args) : value;
+    }
+  }
+
+  return <T extends IHasServiceLocator>(target: Constructable<T>) => {
     const proto = target.prototype;
     defineHiddenProp(proto, 'get', evaluatorGet<T>);
-    defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
-    defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
-    defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
+    defineHiddenProp(proto, 'bindBehavior', evaluatorBindBehavior<T>);
+    defineHiddenProp(proto, 'unbindBehavior', evaluatorUnbindBehavior<T>);
+    defineHiddenProp(proto, 'bindConverter', evaluatorBindConverter<T>);
+    defineHiddenProp(proto, 'unbindConverter', evaluatorUnbindConverter<T>);
+    defineHiddenProp(proto, 'useConverter', evaluatorUseConverter<T>);
+    // defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
+    // defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
+    // defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
   };
 })();
-class ResourceLookup {
-  [key: string]: ValueConverterInstance | BindingBehaviorInstance;
+class ResourceLookup<T extends ValueConverterInstance | BindingBehaviorInstance> {
+  [key: string]: T;
 }
 
 export interface IFlushable {

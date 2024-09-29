@@ -62,11 +62,11 @@ const dummyLocatorThatReturnsNull = {
 const dummyBinding = {
   observe: () => { return; },
   locator: dummyLocator
-} as unknown as IBinding & IObserverLocatorBasedConnectable;
+} as unknown as IBinding & IObserverLocatorBasedConnectable & IAstEvaluator;
 const dummyBindingWithLocatorThatReturnsNull = {
   observe: () => { return; },
   locator: dummyLocatorThatReturnsNull,
-} as unknown as IBinding & IObserverLocatorBasedConnectable;
+} as unknown as IBinding & IObserverLocatorBasedConnectable & IAstEvaluator;
 const dummyScope = Scope.create({});
 
 function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {

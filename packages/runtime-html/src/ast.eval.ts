@@ -8,14 +8,10 @@ import {
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
 import { AnyFunction, IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction } from '@aurelia/kernel';
-import { IConnectable, IObservable, ISubscriber } from '@aurelia/runtime';
+import { IConnectable, IObservable } from '@aurelia/runtime';
 import { Scope, type IBindingContext, IOverrideContext } from './binding/scope';
 import { ErrorNames, createMappedError } from './errors';
 import { safeString } from './utilities';
-import { ISignaler } from './signaler';
-import { BindingBehaviorInstance } from './resources/binding-behavior';
-import { ValueConverterInstance } from './resources/value-converter';
-import { IBinding } from './binding/interfaces-bindings';
 
 // -----------------------------------
 // this interface causes issues to sourcemap mapping in devtool
@@ -48,12 +44,6 @@ export interface IAstEvaluator {
    * use a converter to convert a value
    */
   useConverter?(name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]): unknown;
-  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
-  getSignaler?(): ISignaler;
-  /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
-  /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
 }
 
 export const {
@@ -590,34 +580,17 @@ export const {
     }
   }
 
-  function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
+  function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) {
     switch (ast.$kind) {
       case ekBindingBehavior: {
         b.bindBehavior?.(ast.name, s, ast.args.map(a => astEvaluate(a, s, b, null)));
         astBind(ast.expression, s, b);
-        return;
+        break;
       }
       case ekValueConverter: {
-        const name = ast.name;
-        const vc = b.getConverter?.(name);
-        if (vc == null) {
-          throw createMappedError(ErrorNames.ast_converter_not_found, name);
-        }
-        // note: the cast is expected. To connect, it just needs to be a IConnectable
-        // though to work with signal, it needs to have `handleChange`
-        // so having `handleChange` as a guard in the connectable as a safe measure is needed
-        // to make sure signaler works
-        const signals = vc.signals;
-        if (signals != null) {
-          const signaler = b.getSignaler?.();
-          const ii = signals.length;
-          let i = 0;
-          for (; i < ii; ++i) {
-            signaler?.addSignalListener(signals[i], b as unknown as ISubscriber);
-          }
-        }
+        b.bindConverter?.(ast.name);
         astBind(ast.expression, s, b);
-        return;
+        break;
       }
       case ekForOfStatement: {
         astBind(ast.iterable, s, b);
@@ -629,7 +602,7 @@ export const {
     }
   }
 
-  function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
+  function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) {
     switch (ast.$kind) {
       case ekBindingBehavior: {
         b.unbindBehavior?.(ast.name, s);

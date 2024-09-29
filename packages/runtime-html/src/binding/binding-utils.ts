@@ -73,8 +73,12 @@ export const mixinUseScope = /*@__PURE__*/(() => {
 export const mixinAstEvaluator = /*@__PURE__*/(() => {
   type IHasServiceLocator = { l: IServiceLocator };
 
-  const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<ValueConverterInstance>>();
-  const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<BindingBehaviorInstance>>();
+  class ResourceLookup {
+    [key: string]: ValueConverterInstance | BindingBehaviorInstance;
+  }
+
+  const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, Record<string, ValueConverterInstance>>();
+  const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, Record<string, BindingBehaviorInstance>>();
   const appliedBehaviors = new WeakMap<{ l: IServiceLocator }, Record<string, boolean>>();
 
   function evaluatorGet<T extends IHasServiceLocator>(this: T, key: Key) {
@@ -83,7 +87,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
   function evaluatorGetBehavior<T extends IHasServiceLocator>(b: T, name: string) {
     let resourceLookup = behaviorResourceLookupCache.get(b);
     if (resourceLookup == null) {
-      behaviorResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
+      behaviorResourceLookupCache.set(b, resourceLookup = new ResourceLookup() as Record<string, BindingBehaviorInstance>);
     }
     return resourceLookup[name] ??= BindingBehavior.get(b.l, name);
   }
@@ -119,15 +123,15 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     }
   }
 
-  function evaluatorGetConverter_2<T extends IHasServiceLocator>(b: T, name: string) {
+  function evaluatorGetConverter<T extends IHasServiceLocator>(b: T, name: string) {
     let resourceLookup = converterResourceLookupCache.get(b);
     if (resourceLookup == null) {
-      converterResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
+      converterResourceLookupCache.set(b, resourceLookup = new ResourceLookup() as Record<string, ValueConverterInstance>);
     }
     return resourceLookup[name] ??= ValueConverter.get(b.l as IContainer, name);
   }
   function evaluatorBindConverter<T extends IHasServiceLocator>(this: T, name: string) {
-    const vc = evaluatorGetConverter_2(this, name);
+    const vc = evaluatorGetConverter(this, name);
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
@@ -141,25 +145,25 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
         // though to work with signal, it needs to have `handleChange`
         // so having `handleChange` as a guard in the connectable as a safe measure is needed
         // to make sure signaler works
-        signaler?.addSignalListener(signals[i], this as unknown as ISubscriber);
+        signaler.addSignalListener(signals[i], this as unknown as ISubscriber);
       }
     }
   }
 
   function evaluatorUnbindConverter<T extends IHasServiceLocator>(this: T, name: string) {
-    const vc = evaluatorGetConverter_2(this, name);
+    const vc = evaluatorGetConverter(this, name);
     if (vc?.signals === void 0) {
       return;
     }
     const signaler = this.l.get(ISignaler);
     let i = 0;
     for (; i < vc.signals.length; ++i) {
-      signaler?.removeSignalListener(vc.signals[i], this as unknown as ISubscriber);
+      signaler.removeSignalListener(vc.signals[i], this as unknown as ISubscriber);
     }
   }
 
   function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
-    const vc = evaluatorGetConverter_2(this, name);
+    const vc = evaluatorGetConverter(this, name);
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
@@ -181,10 +185,6 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     defineHiddenProp(proto, 'useConverter', evaluatorUseConverter<T>);
   };
 })();
-
-class ResourceLookup<T extends ValueConverterInstance | BindingBehaviorInstance> {
-  [key: string]: T;
-}
 
 export interface IFlushable {
   flush(): void;

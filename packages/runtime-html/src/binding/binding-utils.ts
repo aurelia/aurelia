@@ -1,7 +1,6 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
-import { type ISubscriber } from '@aurelia/runtime';
-import { astEvaluate } from '../ast.eval';
+import { type ISubscriber, astEvaluate, type Scope } from '@aurelia/runtime';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { BindingBehavior, BindingBehaviorInstance } from '../resources/binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../resources/value-converter';
@@ -10,7 +9,6 @@ import { createInterface } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
-import { type Scope } from './scope';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding

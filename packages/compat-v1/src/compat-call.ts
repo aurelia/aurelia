@@ -1,4 +1,5 @@
 import { camelCase, type IContainer, type IServiceLocator } from '@aurelia/kernel';
+import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   IAccessor,
   IObserverLocator,
@@ -27,7 +28,6 @@ import {
   type BindingCommandStaticAuDefinition,
 } from '@aurelia/template-compiler';
 import { ensureExpression, etIsFunction } from './utilities';
-import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const callRegisteredContainer = new WeakSet<IContainer>();
 

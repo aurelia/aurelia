@@ -1,32 +1,32 @@
 
-import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
   type IAccessor,
   type IObserverLocator,
   AccessorType,
   type IObserverLocatorBasedConnectable,
-  ISubscriber
+  ISubscriber,
+  type IAstEvaluator,
+  type Scope,
+  astEvaluate,
+  type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   BindingMode,
-  type Scope,
-  type IOverrideContext,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,
   State,
-  astEvaluate,
-  IAstEvaluator,
-  IBinding,
+  type IBinding,
 } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
-import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 const atLayout = AccessorType.Layout;
 const stateActivating = State.activating;

@@ -1,15 +1,16 @@
-import { resolve } from "@aurelia/kernel";
 import type { ITask } from '@aurelia/platform';
+import { resolve } from "@aurelia/kernel";
+import { type IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 import {
   Collection,
   getCollectionObserver,
   IndexMap,
-} from '@aurelia/runtime';
-import {
-  astEvaluate,
   Scope,
   type IOverrideContext,
   BindingContext,
+  astEvaluate,
+} from '@aurelia/runtime';
+import {
   IController,
   IViewFactory,
   IHydratedComponentController,
@@ -41,7 +42,6 @@ import type {
   IVirtualRepeater
 } from "./interfaces";
 import { calcOuterHeight, calcScrollerViewportHeight, getDistanceToScroller } from "./utilities-dom";
-import { IsBindingBehavior, ForOfStatement, BindingIdentifier } from '@aurelia/expression-parser';
 
 const noScrollInfo: IScrollerInfo = {
   height: 0,

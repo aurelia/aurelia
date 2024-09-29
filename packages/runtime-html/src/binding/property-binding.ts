@@ -27,7 +27,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     mixinUseScope(PropertyBinding);
     mixingBindingLimited(PropertyBinding, (propBinding: PropertyBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
     connectable(PropertyBinding, null!);
-    mixinAstEvaluator(true, false)(PropertyBinding);
+    mixinAstEvaluator(PropertyBinding);
   });
 
   public isBound: boolean = false;
@@ -73,6 +73,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     public target: object,
     public targetProperty: string,
     public mode: BindingMode,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._controller = controller;

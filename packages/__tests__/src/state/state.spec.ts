@@ -35,6 +35,25 @@ describe('state/state.spec.ts', function () {
     assertValue('input', '1');
   });
 
+  it('does not throw in access member - object nullish', async function () {
+    const state = { a: null };
+    assert.doesNotThrow(() => createFixture
+      .html`<input value.state="a.b">`
+      .deps(StateDefaultConfiguration.init(state))
+      .build()
+    );
+  });
+
+  it('[strict] throws in access member - object nullish', async function () {
+    const state = { a: null };
+    assert.throws(() => createFixture
+      .html`<input value.state="a.b">`
+      .component(class { static strict = true; })
+      .deps(StateDefaultConfiguration.init(state))
+      .build()
+    );
+  });
+
   it('works with value converter', async function () {
     const state = { text: 'aaa' };
     const { getBy } = await createFixture

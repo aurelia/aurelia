@@ -40,7 +40,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     mixinUseScope(ContentBinding);
     mixingBindingLimited(ContentBinding, () => 'updateTarget');
     connectable(ContentBinding, null!);
-    mixinAstEvaluator(void 0, false)(ContentBinding);
+    mixinAstEvaluator(ContentBinding);
   });
 
   public isBound: boolean = false;
@@ -77,8 +77,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   public readonly boundFn = false;
 
-  public strict = true;
-
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -87,6 +85,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._controller = controller;

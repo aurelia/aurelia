@@ -161,7 +161,7 @@ export class SpreadValueBinding implements IBinding {
     mixinUseScope(SpreadValueBinding);
     mixingBindingLimited(SpreadValueBinding, () => 'updateTarget');
     connectable(SpreadValueBinding, null!);
-    mixinAstEvaluator(true, false)(SpreadValueBinding);
+    mixinAstEvaluator(SpreadValueBinding);
   });
 
   /** @internal */
@@ -207,6 +207,7 @@ export class SpreadValueBinding implements IBinding {
     ol: IObserverLocator,
     l: IServiceLocator,
     taskQueue: TaskQueue,
+    public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = ol;
@@ -320,7 +321,8 @@ export class SpreadValueBinding implements IBinding {
             SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,
-            BindingMode.toView
+            BindingMode.toView,
+            this.strict,
           );
         }
         binding.bind(scope);

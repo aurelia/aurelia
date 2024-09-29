@@ -5,7 +5,7 @@ import { astEvaluate } from '../ast.eval';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { BindingBehavior, BindingBehaviorInstance } from '../resources/binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../resources/value-converter';
-import { addSignalListener, def, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
+import { addSignalListener, defineHiddenProp, removeSignalListener, tsPending } from '../utilities';
 import { createInterface } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
@@ -97,20 +97,12 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
   }
 
-  return (strict?: boolean | undefined, strictFnCall = true) => {
-    return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
-      const proto = target.prototype;
-      // some evaluator may have their strict configurable in some way
-      // undefined to leave the property alone
-      if (strict != null) {
-        def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
-      }
-      def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-      defineHiddenProp(proto, 'get', evaluatorGet<T>);
-      defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
-      defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
-      defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
-    };
+  return <T extends { l: IServiceLocator }>(target: Constructable<T>) => {
+    const proto = target.prototype;
+    defineHiddenProp(proto, 'get', evaluatorGet<T>);
+    defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
+    defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
+    defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
   };
 })();
 class ResourceLookup {

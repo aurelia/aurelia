@@ -43,7 +43,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       mixinUseScope(AttributeBinding);
       mixingBindingLimited(AttributeBinding, () => 'updateTarget');
       connectable(AttributeBinding, null!);
-      mixinAstEvaluator(true)(AttributeBinding);
+      mixinAstEvaluator(AttributeBinding);
   });
 
   public isBound: boolean = false;
@@ -95,6 +95,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     public targetAttribute: string,
     public targetProperty: string,
     public mode: BindingMode,
+    public strict: boolean,
   ) {
     this.l = locator;
     this.ast = ast;

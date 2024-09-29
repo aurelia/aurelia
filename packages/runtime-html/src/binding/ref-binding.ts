@@ -9,7 +9,7 @@ import { IBinding } from './interfaces-bindings';
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
-    mixinAstEvaluator(false)(RefBinding);
+    mixinAstEvaluator(RefBinding);
   });
 
   public isBound: boolean = false;
@@ -24,6 +24,7 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     locator: IServiceLocator,
     public ast: IsBindingBehavior,
     public target: object,
+    public strict: boolean,
   ) {
     this.l = locator;
   }

@@ -141,6 +141,8 @@ export class TranslationBinding implements IBinding {
   /** @internal */
   public readonly boundFn = false;
 
+  public strict = true;
+
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -355,7 +357,7 @@ export class TranslationBinding implements IBinding {
   }
 }
 connectable(TranslationBinding, null!);
-mixinAstEvaluator(true)(TranslationBinding);
+mixinAstEvaluator(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
 class AccessorUpdateTask {
@@ -374,6 +376,11 @@ class AccessorUpdateTask {
 interface ParameterBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 class ParameterBinding implements IBinding {
+  static {
+    connectable(ParameterBinding, null!);
+    mixinAstEvaluator(ParameterBinding);
+  }
+
   public isBound: boolean = false;
   public value!: i18next.TOptions;
   /**
@@ -390,6 +397,8 @@ class ParameterBinding implements IBinding {
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
+
+  public strict = true;
 
   public constructor(
     public readonly owner: TranslationBinding,
@@ -436,5 +445,3 @@ class ParameterBinding implements IBinding {
   }
 }
 
-connectable(ParameterBinding, null!);
-mixinAstEvaluator(true)(ParameterBinding);

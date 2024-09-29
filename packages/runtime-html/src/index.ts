@@ -1,12 +1,4 @@
 export {
-  type IAstEvaluator,
-  astAssign,
-  astBind,
-  astEvaluate,
-  astUnbind,
-} from './ast.eval';
-
-export {
   bindable,
   Bindable,
   BindableDefinition,

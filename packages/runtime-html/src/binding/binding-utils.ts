@@ -1,7 +1,7 @@
 import { type IServiceLocator, Key, type Constructable, IDisposable, IContainer } from '@aurelia/kernel';
 import { ITask } from '@aurelia/platform';
 import { type ISubscriber } from '@aurelia/runtime';
-import { astBind, astEvaluate } from '../ast.eval';
+import { astEvaluate } from '../ast.eval';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { BindingBehavior, BindingBehaviorInstance } from '../resources/binding-behavior';
 import { ValueConverter, ValueConverterInstance } from '../resources/value-converter';
@@ -71,7 +71,7 @@ export const mixinUseScope = /*@__PURE__*/(() => {
  * @param strict - whether the evaluation of AST nodes will be in strict mode
  */
 export const mixinAstEvaluator = /*@__PURE__*/(() => {
-  type IHasServiceLocator = IBinding & { l: IServiceLocator };
+  type IHasServiceLocator = { l: IServiceLocator };
 
   const converterResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<ValueConverterInstance>>();
   const behaviorResourceLookupCache = new WeakMap<{ l: IServiceLocator }, ResourceLookup<BindingBehaviorInstance>>();
@@ -100,14 +100,20 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     if (applied[name]) {
       throw createMappedError(ErrorNames.ast_behavior_duplicated, name);
     }
-    behavior.bind?.(scope, this, ...args);
+    // todo: remove casting
+    // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
+    // so observation infra can be free of template oriented features: behaviors/converters
+    behavior.bind?.(scope, this as unknown as IBinding, ...args);
   }
 
   function evaluatorUnbindBehavior<T extends IHasServiceLocator>(this: T, name: string, scope: Scope) {
     const behavior = evaluatorGetBehavior(this, name);
     const applied = appliedBehaviors.get(this);
 
-    behavior?.unbind?.(scope, this);
+    // todo: remove casting
+    // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
+    // so observation infra can be free of template oriented features: behaviors/converters
+    behavior?.unbind?.(scope, this as unknown as IBinding);
     if (applied != null) {
       applied[name] = false;
     }
@@ -173,11 +179,9 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     defineHiddenProp(proto, 'bindConverter', evaluatorBindConverter<T>);
     defineHiddenProp(proto, 'unbindConverter', evaluatorUnbindConverter<T>);
     defineHiddenProp(proto, 'useConverter', evaluatorUseConverter<T>);
-    // defineHiddenProp(proto, 'getSignaler', evaluatorGetSignaler<T>);
-    // defineHiddenProp(proto, 'getConverter', evaluatorGetConverter<T>);
-    // defineHiddenProp(proto, 'getBehavior', evaluatorGetBehavior<T>);
   };
 })();
+
 class ResourceLookup<T extends ValueConverterInstance | BindingBehaviorInstance> {
   [key: string]: T;
 }

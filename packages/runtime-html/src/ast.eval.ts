@@ -28,12 +28,25 @@ export interface IAstEvaluator {
   strict?: boolean;
   /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
   boundFn?: boolean;
+  /**
+   * bind a behavior by the given name
+   */
   bindBehavior?(name: string, scope: Scope, args: unknown[]): void;
+  /**
+   * unbind a behavior by the given name
+   */
   unbindBehavior?(name: string, scope: Scope): void;
+  /**
+   * bind a converter by the given name
+   */
   bindConverter?(name: string): void;
+  /**
+   * unbind a converter by the given name
+   */
   unbindConverter?(name: string): void;
-  // useBehavior?(name: string, action: 'bind' | 'unbind'): void;
-  // useConverter?(name: string, action: 'bind' | 'unbind'): void;
+  /**
+   * use a converter to convert a value
+   */
   useConverter?(name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]): unknown;
   /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
   getSignaler?(): ISignaler;
@@ -383,14 +396,6 @@ export const {
       }
       case ekValueConverter: {
         return e?.useConverter?.(ast.name, 'toView', astEvaluate(ast.expression, s, e, c), ast.args.map(a => astEvaluate(a, s, e, c)));
-        // const vc = e?.getConverter?.(ast.name);
-        // if (vc == null) {
-        //   throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
-        // }
-        // if ('toView' in vc) {
-        //   return vc.toView(astEvaluate(ast.expression, s, e, c), ...ast.args.map(a => astEvaluate(a, s, e, c)));
-        // }
-        // return astEvaluate(ast.expression, s, e, c);
       }
       case ekBindingBehavior:
         return astEvaluate(ast.expression, s, e, c);
@@ -508,13 +513,6 @@ export const {
         return astAssign(ast.target, s, e, val);
       case ekValueConverter: {
         val = e?.useConverter?.(ast.name, 'fromView', val, ast.args.map(a => astEvaluate(a, s, e, null)));
-        // const vc = e?.getConverter?.(ast.name);
-        // if (vc == null) {
-        //   throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
-        // }
-        // if ('fromView' in vc) {
-        //   val = vc.fromView!(val, ...ast.args.map(a => astEvaluate(a, s, e, null)));
-        // }
         return astAssign(ast.expression, s, e, val);
       }
       case ekBindingBehavior:
@@ -592,8 +590,6 @@ export const {
     }
   }
 
-  type BindingWithBehavior = IConnectable & IBinding & { [key: string]: BindingBehaviorInstance | undefined };
-
   function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
     switch (ast.$kind) {
       case ekBindingBehavior: {
@@ -642,15 +638,6 @@ export const {
       }
       case ekValueConverter: {
         b.unbindConverter?.(ast.name);
-        // const vc = b.getConverter?.(ast.name);
-        // if (vc?.signals === void 0) {
-        //   return;
-        // }
-        // const signaler = b.getSignaler?.();
-        // let i = 0;
-        // for (; i < vc.signals.length; ++i) {
-        //   signaler?.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);
-        // }
         astUnbind(ast.expression, s, b);
         break;
       }

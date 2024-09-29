@@ -412,10 +412,10 @@ describe('2-runtime/ast.spec.ts', function () {
     });
 
     describe('BindingBehaviorExpression', function () {
-      describe('bind() throws when returned behavior is null', function () {
+      describe('bind() does not throws when evaluator does not implement bindBehavior', function () {
         for (const [text, expr] of SimpleBindingBehaviorList) {
           it(`${text}, undefined`, function () {
-            throwsOn(astBind, `AUR0101:b`, expr, dummyScope, dummyBindingWithLocatorThatReturnsNull);
+            assert.doesNotThrow(() => astBind(expr, dummyScope, dummyBindingWithLocatorThatReturnsNull));
             // throwsOn(expr, 'bind', `BindingBehavior named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyBindingWithLocatorThatReturnsNull);
           });
         }

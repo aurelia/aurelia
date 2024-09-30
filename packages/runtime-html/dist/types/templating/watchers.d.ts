@@ -1,8 +1,7 @@
 import { type IServiceLocator } from '@aurelia/kernel';
-import { type Scope } from '../binding/scope';
-import type { ICollectionSubscriber, IConnectable, IObservable, IObserverLocator, IObserverLocatorBasedConnectable, ISubscriber } from '@aurelia/runtime';
-import type { IWatcherCallback } from '../watch';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
+import type { ICollectionSubscriber, IConnectable, IObservable, IObserverLocator, IObserverLocatorBasedConnectable, ISubscriber, Scope } from '@aurelia/runtime';
+import type { IWatcherCallback } from '../watch';
 import { IBinding } from '../binding/interfaces-bindings';
 export interface ComputedWatcher extends IObserverLocatorBasedConnectable, IServiceLocator {
 }

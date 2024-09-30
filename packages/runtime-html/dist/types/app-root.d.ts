@@ -12,6 +12,16 @@ export interface IAppRootConfig<T extends object = object> {
      * This option re-enables the default behavior of HTML forms.
      */
     allowActionlessForm?: boolean;
+    /**
+     * Indicates strictness of expression evaluation.
+     *
+     * When strictBinding is true, standard JS behavior applies, which means accessing a property of undefined will throw an error.
+     * Use optional syntaxes (?./?.()/?.[]) to prevent errors.
+     *
+     * When strictBinding is false (default), the behavior is more lenient, which means accessing a property of undefined will return undefined.
+     * In this mode, calling an undefined function will return undefined as well.
+     */
+    strictBinding?: boolean;
 }
 export interface IAppRoot<C extends object = object> extends IDisposable {
     readonly config: IAppRootConfig<C>;

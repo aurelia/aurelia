@@ -1,7 +1,7 @@
 import { BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, CallFunctionExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, ArrowFunction, astVisit, Unparser, IExpressionParser } from '@aurelia/expression-parser';
-import { astEvaluate, astAssign, astBind, astUnbind, mixinUseScope, mixingBindingLimited, mixinAstEvaluator, renderer, IListenerBindingOptions, IEventTarget, AppTask, PropertyBinding, AttributeBinding, ListenerBinding, LetBinding, InterpolationPartBinding, ContentBinding, RefBinding, AuCompose, CustomElement, BindableDefinition, Scope, ExpressionWatcher } from '@aurelia/runtime-html';
-import { camelCase, resolve, DI } from '@aurelia/kernel';
-import { IObserverLocator, getCollectionObserver } from '@aurelia/runtime';
+import { astEvaluate, astAssign, astBind, astUnbind, IObserverLocator, getCollectionObserver, Scope } from '@aurelia/runtime';
+import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, renderer, IListenerBindingOptions, IEventTarget, AppTask, PropertyBinding, AttributeBinding, ListenerBinding, LetBinding, InterpolationPartBinding, ContentBinding, RefBinding, AuCompose, CustomElement, BindableDefinition, ExpressionWatcher } from '@aurelia/runtime-html';
+import { isString, camelCase, resolve, isFunction, DI, createLookup } from '@aurelia/kernel';
 
 let defined$1 = false;
 function defineAstMethods() {
@@ -56,13 +56,9 @@ function defineAstMethods() {
         });
     });
     console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".'
-        + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.');
+        + ' Import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.');
 }
 
-/** @internal */ const createLookup = () => Object.create(null);
-// eslint-disable-next-line @typescript-eslint/ban-types
-/** @internal */ const isFunction = (v) => typeof v === 'function';
-/** @internal */ const isString = (v) => typeof v === 'string';
 // /** @internal */ export const rethrow = (err: unknown) => { throw err; };
 // /** @internal */ export const areEqual = Object.is;
 /** @internal */
@@ -175,7 +171,7 @@ class CallBinding {
 (() => {
     mixinUseScope(CallBinding);
     mixingBindingLimited(CallBinding, () => 'callSource');
-    mixinAstEvaluator(true)(CallBinding);
+    mixinAstEvaluator(CallBinding);
 })();
 
 const preventDefaultRegisteredContainer = new WeakSet();
@@ -304,7 +300,7 @@ class DelegateListenerBinding {
 (() => {
     mixinUseScope(DelegateListenerBinding);
     mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(DelegateListenerBinding);
+    mixinAstEvaluator(DelegateListenerBinding);
 })();
 const defaultOptions = {
     capture: false,

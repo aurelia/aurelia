@@ -1,6 +1,6 @@
+import { type Scope } from '@aurelia/runtime';
 import { type IBinding, type BindingMode } from '../../binding/interfaces-bindings';
 import { BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
-import { type Scope } from '../../binding/scope';
 export declare abstract class BindingModeBehavior implements BindingBehaviorInstance {
     abstract readonly mode: BindingMode;
     bind(scope: Scope, binding: IBinding & {

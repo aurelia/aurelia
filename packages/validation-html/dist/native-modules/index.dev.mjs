@@ -1,8 +1,8 @@
 import { DI, resolve, IServiceLocator, optional, IContainer, Registration, noop } from '../../../kernel/dist/native-modules/index.mjs';
 import { IValidator, parsePropertyName, ValidationResult, ValidateInstruction, PropertyRule, getDefaultValidationConfiguration, ValidationConfiguration } from '../../../validation/dist/native-modules/index.mjs';
-import { astEvaluate, IPlatform, INode, bindable, CustomAttribute, BindingMode, BindingBehavior, mixinAstEvaluator, PropertyBinding, IFlushQueue, BindingTargetSubscriber, CustomElement } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { IPlatform, INode, bindable, CustomAttribute, BindingMode, BindingBehavior, PropertyBinding, IFlushQueue, BindingTargetSubscriber, CustomElement } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { IExpressionParser } from '../../../expression-parser/dist/native-modules/index.mjs';
-import { connectable, IObserverLocator } from '../../../runtime/dist/native-modules/index.mjs';
+import { astEvaluate, connectable, mixinNoopAstEvaluator, IObserverLocator } from '../../../runtime/dist/native-modules/index.mjs';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -876,7 +876,7 @@ class ValidationConnector {
     }
 }
 connectable(ValidationConnector, null);
-mixinAstEvaluator(true)(ValidationConnector);
+mixinNoopAstEvaluator(ValidationConnector);
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
     constructor(_validationSubscriber, binding, flushQueue) {
         super(binding, flushQueue);
@@ -906,7 +906,7 @@ class BindingMediator {
     }
 }
 connectable(BindingMediator, null);
-mixinAstEvaluator(true)(BindingMediator);
+mixinNoopAstEvaluator(BindingMediator);
 
 function getDefaultValidationHtmlConfiguration() {
     return {

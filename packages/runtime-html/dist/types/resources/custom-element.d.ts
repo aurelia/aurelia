@@ -11,6 +11,7 @@ export type PartialCustomElementDefinition<TBindables extends string = string> =
     readonly injectable?: InterfaceSymbol | null;
     readonly enhance?: boolean;
     readonly watches?: IWatchDefinition[];
+    readonly strict?: boolean;
 }>;
 export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {
     type: 'custom-element';
@@ -134,6 +135,7 @@ export declare class CustomElementDefinition<C extends Constructable = Construct
     readonly hasSlots: boolean;
     readonly enhance: boolean;
     readonly watches: IWatchDefinition[];
+    readonly strict: boolean | undefined;
     readonly processContent: ProcessContentHook | null;
     get type(): 'custom-element';
     private constructor();

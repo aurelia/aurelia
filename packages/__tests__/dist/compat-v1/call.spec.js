@@ -40,6 +40,37 @@ import { compatRegistration } from '@aurelia/compat-v1';
 import { bindable, customElement } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 describe('compat-v1/call.spec.ts', function () {
+    it('does not throw on missing function', function () {
+        let MyCe = (() => {
+            let _classDecorators = [customElement({ name: 'my-ce', template: '<button click.trigger="action()"></button>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _action_decorators;
+            let _action_initializers = [];
+            let _action_extraInitializers = [];
+            var MyCe = _classThis = class {
+                constructor() {
+                    this.action = __runInitializers(this, _action_initializers, void 0);
+                    __runInitializers(this, _action_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "MyCe");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _action_decorators = [bindable];
+                __esDecorate(null, null, _action_decorators, { kind: "field", name: "action", static: false, private: false, access: { has: obj => "action" in obj, get: obj => obj.action, set: (obj, value) => { obj.action = value; } }, metadata: _metadata }, _action_initializers, _action_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                MyCe = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return MyCe = _classThis;
+        })();
+        const { trigger } = createFixture('<my-ce action.bind="a.b()"></my-ce>', class App {
+        }, [MyCe, compatRegistration]);
+        trigger.click('button');
+    });
     it('works with function call binding', async function () {
         let MyCe = (() => {
             let _classDecorators = [customElement({ name: 'my-ce', template: '<button click.trigger="action()"></button>' })];

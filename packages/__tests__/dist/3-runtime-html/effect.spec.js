@@ -35,6 +35,72 @@ var __runInitializers = (this && this.__runInitializers) || function (thisArg, i
 import { IObservation, observable } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/effect.spec.ts', function () {
+    it('runs effect cleanup', function () {
+        const { container, component } = createFixture('', (() => {
+            var _a;
+            let _a_decorators;
+            let _a_initializers = [];
+            let _a_extraInitializers = [];
+            return _a = class App {
+                    constructor() {
+                        this.a = __runInitializers(this, _a_initializers, 1);
+                        __runInitializers(this, _a_extraInitializers);
+                    }
+                },
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _a_decorators = [observable];
+                    __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                    if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                })(),
+                _a;
+        })());
+        let v;
+        let count = 0;
+        container.get(IObservation).run(() => {
+            v = component.a;
+            return () => count++;
+        });
+        assert.strictEqual(v, 1);
+        assert.strictEqual(count, 0);
+        component.a = 2;
+        assert.strictEqual(v, 2);
+        assert.strictEqual(count, 1);
+    });
+    it('does not runs after effect has been stopped', function () {
+        const { container, component } = createFixture('', (() => {
+            var _a;
+            let _a_decorators;
+            let _a_initializers = [];
+            let _a_extraInitializers = [];
+            return _a = class App {
+                    constructor() {
+                        this.a = __runInitializers(this, _a_initializers, 1);
+                        __runInitializers(this, _a_extraInitializers);
+                    }
+                },
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _a_decorators = [observable];
+                    __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                    if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                })(),
+                _a;
+        })());
+        let v;
+        let count = 0;
+        const { stop } = container.get(IObservation).run(() => {
+            v = component.a;
+            return () => count++;
+        });
+        assert.strictEqual(v, 1);
+        assert.strictEqual(count, 0);
+        stop();
+        component.a = 2;
+        assert.strictEqual(v, 1);
+        // but still run cleanup
+        assert.strictEqual(count, 1);
+    });
     it('runs effect with @observable', async function () {
         const { ctx, component, startPromise, tearDown } = createFixture('<div ref="div"></div>', class App {
         });
@@ -337,41 +403,137 @@ describe('3-runtime-html/effect.spec.ts', function () {
             tearDown = $tearDown;
             observation = container.get(IObservation);
         });
-        it('runs immediately', function () {
-            let v = 0;
-            observation.watch({ a: 1 }, o => o.a, vv => v = vv);
-            assert.strictEqual(v, 1);
+        describe('getter', function () {
+            it('runs immediately', function () {
+                let v = 0;
+                observation.watch({ a: 1 }, o => o.a, vv => v = vv);
+                assert.strictEqual(v, 1);
+            });
+            it('does not run immediately', function () {
+                let v = 0;
+                const obj = { a: 1 };
+                const { run } = observation.watch(obj, o => o.a, vv => v = vv, { immediate: false });
+                assert.strictEqual(v, 0);
+                obj.a = 2;
+                assert.strictEqual(v, 0);
+                run();
+                assert.strictEqual(v, 2);
+            });
+            it('does not run after stopped', function () {
+                let v = 0;
+                const obj = { a: 1 };
+                const { stop } = observation.watch(obj, o => o.a, vv => v = vv);
+                stop();
+                obj.a = 2;
+                assert.strictEqual(v, 1);
+            });
+            it('run is idempotent', function () {
+                let v = 0;
+                const { run } = observation.watch({ a: 1 }, o => o.a, _ => ++v);
+                assert.strictEqual(v, 1);
+                run();
+                assert.strictEqual(v, 1);
+            });
+            it('runs independently with owning application', function () {
+                let v = 0;
+                const obj = { a: 1 };
+                observation.watch(obj, o => o.a, vv => v = vv);
+                assert.strictEqual(v, 1);
+                tearDown();
+                obj.a = 2;
+                assert.strictEqual(v, 2);
+            });
+            it('calls cleanup function in next run', function () {
+                let v = 0;
+                let cancelled = 0;
+                const obj = { a: 1 };
+                observation.watch(obj, o => o.a, vv => {
+                    v = vv;
+                    return () => cancelled++;
+                });
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 0);
+                obj.a = 2;
+                assert.strictEqual(v, 2);
+                assert.strictEqual(cancelled, 1);
+            });
+            it('calls cleanup function when stopped', function () {
+                let v = 0;
+                let cancelled = 0;
+                const obj = { a: 1 };
+                const { stop } = observation.watch(obj, o => o.a, vv => {
+                    v = vv;
+                    return () => cancelled++;
+                });
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 0);
+                stop();
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 1);
+            });
         });
-        it('does not run immediately', function () {
-            let v = 0;
-            const { run } = observation.watch({ a: 1 }, o => o.a, vv => v = vv, { immediate: false });
-            assert.strictEqual(v, 0);
-            run();
-            assert.strictEqual(v, 1);
-        });
-        it('does not run after stopped', function () {
-            let v = 0;
-            const obj = { a: 1 };
-            const { stop } = observation.watch(obj, o => o.a, vv => v = vv);
-            stop();
-            obj.a = 2;
-            assert.strictEqual(v, 1);
-        });
-        it('runs can be called again', function () {
-            let v = 0;
-            const { run } = observation.watch({ a: 1 }, o => o.a, _ => v++);
-            run();
-            assert.strictEqual(v, 2);
-        });
-        it('runs independently with owning application', function () {
-            let v = 0;
-            const obj = { a: 1 };
-            const { run } = observation.watch(obj, o => o.a, _ => v++);
-            run();
-            assert.strictEqual(v, 2);
-            tearDown();
-            obj.a = 2;
-            assert.strictEqual(v, 3);
+        describe('watch expression effect', function () {
+            it('runs immediately', function () {
+                let v = 0;
+                observation.watchExpression({ a: 1 }, 'a', vv => v = vv);
+                assert.strictEqual(v, 1);
+            });
+            it('does not run immediately', function () {
+                let v = 0;
+                const { run } = observation.watchExpression({ a: 1 }, 'a', vv => v = vv, { immediate: false });
+                assert.strictEqual(v, 0);
+                run();
+                assert.strictEqual(v, 1);
+            });
+            it('runs again after stopped when called', function () {
+                let v = 0;
+                const obj = { a: 1 };
+                const { run, stop } = observation.watchExpression(obj, 'a', vv => v = vv);
+                stop();
+                obj.a = 2;
+                assert.strictEqual(v, 1);
+                run();
+                obj.a = 3;
+                assert.strictEqual(v, 3);
+            });
+            it('runs independently with owning application', function () {
+                let v = 0;
+                const obj = { a: 1 };
+                const { run } = observation.watchExpression(obj, 'a', _ => v++);
+                run();
+                assert.strictEqual(v, 1);
+                tearDown();
+                obj.a = 2;
+                assert.strictEqual(v, 2);
+            });
+            it('calls cleanup function in next run', function () {
+                let v = 0;
+                let cancelled = 0;
+                const obj = { a: 1 };
+                observation.watchExpression(obj, 'a', vv => {
+                    v = vv;
+                    return () => cancelled++;
+                });
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 0);
+                obj.a = 2;
+                assert.strictEqual(v, 2);
+                assert.strictEqual(cancelled, 1);
+            });
+            it('calls cleanup function when stopped', function () {
+                let v = 0;
+                let cancelled = 0;
+                const obj = { a: 1 };
+                const { stop } = observation.watchExpression(obj, 'a', vv => {
+                    v = vv;
+                    return () => cancelled++;
+                });
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 0);
+                stop();
+                assert.strictEqual(v, 1);
+                assert.strictEqual(cancelled, 1);
+            });
         });
     });
 });

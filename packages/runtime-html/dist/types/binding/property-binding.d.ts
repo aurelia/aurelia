@@ -1,10 +1,7 @@
-import { ISubscriber } from '@aurelia/runtime';
-import { IAstEvaluator } from '../ast.eval';
+import { ISubscriber, IAstEvaluator, type Scope, type ICollectionSubscriber, type IObserver, type IObserverLocator, type IObserverLocatorBasedConnectable } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { TaskQueue } from '@aurelia/platform';
-import type { ICollectionSubscriber, IObserver, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {
@@ -14,8 +11,9 @@ export declare class PropertyBinding implements IBinding, ISubscriber, ICollecti
     target: object;
     targetProperty: string;
     mode: BindingMode;
+    strict: boolean;
     isBound: boolean;
-    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: IsBindingBehavior | ForOfStatement, target: object, targetProperty: string, mode: BindingMode);
+    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: IsBindingBehavior | ForOfStatement, target: object, targetProperty: string, mode: BindingMode, strict: boolean);
     updateTarget(value: unknown): void;
     updateSource(value: unknown): void;
     handleChange(): void;

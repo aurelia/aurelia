@@ -1,7 +1,7 @@
 import { ensureEmpty, reportTaskQueue } from '@aurelia/platform';
 import { noop, isArrayIndex, DI, Registration, kebabCase, emptyArray, EventAggregator, ILogger, ISink, LogLevel } from '@aurelia/kernel';
-import { IObserverLocator, IDirtyChecker, INodeObserverLocator } from '@aurelia/runtime';
-import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia, astEvaluate, astAssign, astBind, astUnbind, Scope } from '@aurelia/runtime-html';
+import { IObserverLocator, astEvaluate, astAssign, astBind, astUnbind, IDirtyChecker, INodeObserverLocator, Scope } from '@aurelia/runtime';
+import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia } from '@aurelia/runtime-html';
 import { ITemplateCompiler, InstructionType } from '@aurelia/template-compiler';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { Metadata } from '@aurelia/metadata';
@@ -2597,9 +2597,7 @@ class Comparison {
         for (const key of keys) {
             if (key in obj) {
                 if (!isUndefined(actual)
-                    && isString(actual[key])
-                    && isRegExp(obj[key])
-                    && obj[key].test(actual[key])) {
+                    && (isString(actual[key]) && isRegExp(obj[key]) && obj[key].test(actual[key]))) {
                     this[key] = actual[key];
                 }
                 else {
@@ -7733,7 +7731,7 @@ const onFixtureCreated = (callback) => {
     });
 };
 // eslint-disable-next-line max-lines-per-function
-function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.create(), appConfig = {}) {
+function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.create(), appConfig = {}, rootElementDef) {
     const { container } = ctx;
     container.register(...registrations);
     // platform and observer locator have side effect when accessed on ctx
@@ -7752,7 +7750,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
                 Object.setPrototypeOf($class, $Ctor.prototype);
                 return $class;
             };
-    const annotations = ['aliases', 'bindables', /* 'cache',  */ 'capture', 'containerless', 'dependencies', 'enhance'];
+    const annotations = ['aliases', 'bindables', /* 'cache',  */ 'capture', 'containerless', 'dependencies', 'enhance', 'strict'];
     if ($$class !== $class && $class != null) {
         annotations.forEach(anno => {
             Metadata.define(CustomElement.getAnnotation($class, anno, null), $$class, anno);
@@ -7761,6 +7759,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
     const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {});
     const App = CustomElement.define({
         ...existingDefs,
+        ...rootElementDef,
         name: existingDefs.name ?? 'app',
         template,
     }, $$class);
@@ -7966,7 +7965,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
             throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
         }
         el.value = value;
-        el.dispatchEvent(new platform.window.Event('input'));
+        el.dispatchEvent(new platform.window.Event('input', { bubbles: true }));
     }
     const scrollBy = (selector, init) => {
         const el = strictQueryBy(selector, `to scroll by "${JSON.stringify(init)}"`);
@@ -8069,8 +8068,9 @@ class FixtureBuilder {
         this._htmlArgs = htmlArgs;
         return this;
     }
-    component(comp) {
+    component(comp, def) {
         this._comp = comp;
+        this._def = def;
         return this;
     }
     deps(...args) {
@@ -8085,7 +8085,7 @@ class FixtureBuilder {
         if (this._html === void 0) {
             throw new Error('Builder is not ready, missing template, call .html()/.html`` first');
         }
-        return createFixture(typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []), this._comp, this._args);
+        return createFixture(typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []), this._comp, this._args, void 0, void 0, this._config, this._def);
     }
 }
 function brokenProcessFastTemplate(html, ..._args) {

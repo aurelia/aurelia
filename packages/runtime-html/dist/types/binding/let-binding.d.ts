@@ -1,6 +1,4 @@
-import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, type IObservable, type IObserverLocator } from '@aurelia/runtime';
-import { type Scope } from './scope';
-import { type IAstEvaluator } from '../ast.eval';
+import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, type IObservable, type IObserverLocator, type Scope, type IAstEvaluator } from '@aurelia/runtime';
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
@@ -11,7 +9,8 @@ export declare class LetBinding implements IBinding, ISubscriber, ICollectionSub
     targetProperty: string;
     isBound: boolean;
     target: (IObservable & IIndexable) | null;
-    constructor(locator: IServiceLocator, observerLocator: IObserverLocator, ast: IsExpression, targetProperty: string, toBindingContext?: boolean);
+    strict: boolean;
+    constructor(locator: IServiceLocator, observerLocator: IObserverLocator, ast: IsExpression, targetProperty: string, toBindingContext: boolean, strict: boolean);
     updateTarget(): void;
     handleChange(): void;
     handleCollectionChange(): void;

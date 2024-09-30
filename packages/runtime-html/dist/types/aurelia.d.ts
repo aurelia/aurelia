@@ -1,4 +1,4 @@
-import { IAppRoot } from './app-root';
+import { IAppRoot, IAppRootConfig } from './app-root';
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 export interface IAurelia extends Aurelia {
 }
@@ -12,7 +12,7 @@ export declare class Aurelia implements IDisposable {
     private next;
     constructor(container?: IContainer);
     register(...params: unknown[]): this;
-    app(config: ISinglePageAppConfig<object>): Omit<this, 'register' | 'app' | 'enhance'>;
+    app(config: ISinglePageAppConfig): Omit<this, 'register' | 'app' | 'enhance'>;
     /**
      * @param parentController - The owning controller of the view created by this enhance call
      */
@@ -22,24 +22,10 @@ export declare class Aurelia implements IDisposable {
     stop(dispose?: boolean): void | Promise<void>;
     dispose(): void;
 }
-export interface ISinglePageAppConfig<T = unknown> {
-    /**
-     * The host element of the app
-     */
-    host: HTMLElement;
-    /**
-     * The root component of the app
-     */
-    component: T | Constructable<T>;
-    /**
-     * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
-     * This is not desirable for SPA applications, so by default, this behavior is prevented.
-     *
-     * This option re-enables the default behavior of HTML forms.
-     */
-    allowActionlessForm?: boolean;
-}
-export interface IEnhancementConfig<T> {
+export type ISinglePageAppConfig<T extends object = object> = Omit<IAppRootConfig<T>, 'strictBinding'> & {
+    host: Element;
+};
+export type IEnhancementConfig<T extends object = object> = IAppRootConfig<T> & {
     host: Element;
     /**
      * The binding context of the enhancement. Will be instantiate by DI if a constructor is given
@@ -49,12 +35,5 @@ export interface IEnhancementConfig<T> {
      * A predefined container for the enhanced view.
      */
     container?: IContainer;
-    /**
-     * When a HTML form is submitted, the default behavior is to "redirect" the page to the action of the form
-     * This is not desirable for SPA applications, so by default, this behavior is prevented.
-     *
-     * This option re-enables the default behavior of HTML forms.
-     */
-    allowActionlessForm?: boolean;
-}
+};
 //# sourceMappingURL=aurelia.d.ts.map

@@ -1,6 +1,6 @@
 import { DI, Registration, resolve, optional, all, ILogger, lazy, onResolve, isPromise, camelCase, IContainer, Protocol } from '../../../kernel/dist/native-modules/index.mjs';
-import { Scope, IWindow, State as State$1, mixinAstEvaluator, mixingBindingLimited, BindingMode, astEvaluate, BindingBehavior, astBind, astUnbind, renderer, AppTask, LifecycleHooks, ILifecycleHooks } from '../../../runtime-html/dist/native-modules/index.mjs';
-import { AccessorType, connectable } from '../../../runtime/dist/native-modules/index.mjs';
+import { Scope, AccessorType, connectable, astEvaluate, astBind, astUnbind } from '../../../runtime/dist/native-modules/index.mjs';
+import { IWindow, State as State$1, mixinAstEvaluator, mixingBindingLimited, BindingMode, BindingBehavior, renderer, AppTask, LifecycleHooks, ILifecycleHooks } from '../../../runtime-html/dist/native-modules/index.mjs';
 
 /** @internal */
 const createInterface = DI.createInterface;
@@ -210,7 +210,7 @@ function tryParseJson(str) {
 const atLayout = AccessorType.Layout;
 const stateActivating = State$1.activating;
 class StateBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store) {
+    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store, strict) {
         this.isBound = false;
         /** @internal */ this._task = null;
         /** @internal */ this._value = void 0;
@@ -228,6 +228,7 @@ class StateBinding {
         this.ast = ast;
         this.target = target;
         this.targetProperty = prop;
+        this.strict = strict;
     }
     updateTarget(value) {
         const targetAccessor = this._targetObserver;
@@ -344,15 +345,17 @@ class StateBinding {
         this._sub = void 0;
     }
 }
+(() => {
+    connectable(StateBinding, null);
+    mixinAstEvaluator(StateBinding);
+    mixingBindingLimited(StateBinding, () => 'updateTarget');
+})();
 function isSubscribable(v) {
     return v instanceof Object && 'subscribe' in v;
 }
 const updateTaskOpts = {
     preempt: true,
 };
-connectable(StateBinding, null);
-mixinAstEvaluator(true)(StateBinding);
-mixingBindingLimited(StateBinding, () => 'updateTarget');
 
 const bindingStateSubscriberMap = new WeakMap();
 class StateBindingBehavior {
@@ -402,7 +405,7 @@ class StateSubscriber {
 }
 
 class StateDispatchBinding {
-    constructor(locator, expr, target, prop, store) {
+    constructor(locator, expr, target, prop, store, strict) {
         this.isBound = false;
         // see Listener binding for explanation
         /** @internal */
@@ -412,6 +415,7 @@ class StateDispatchBinding {
         this.ast = expr;
         this._target = target;
         this._targetProperty = prop;
+        this.strict = strict;
     }
     callSource(e) {
         const scope = this._scope;
@@ -449,9 +453,11 @@ class StateDispatchBinding {
         scope.bindingContext = overrideContext.bindingContext = state;
     }
 }
-connectable(StateDispatchBinding, null);
-mixinAstEvaluator(true)(StateDispatchBinding);
-mixingBindingLimited(StateDispatchBinding, () => 'callSource');
+(() => {
+    connectable(StateDispatchBinding, null);
+    mixinAstEvaluator(StateDispatchBinding);
+    mixingBindingLimited(StateDispatchBinding, () => 'callSource');
+})();
 
 class StateBindingCommand {
     get ignoreAttr() { return false; }
@@ -508,7 +514,7 @@ const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class StateBindin
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
-        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer));
+        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class DispatchBindingInstructionRenderer {
@@ -518,7 +524,7 @@ const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class Dispatch
     }
     render(renderingCtrl, target, instruction, platform, exprParser) {
         const expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
-        renderingCtrl.addBinding(new StateDispatchBinding(renderingCtrl.container, expr, target, instruction.from, this._stateContainer));
+        renderingCtrl.addBinding(new StateDispatchBinding(renderingCtrl.container, expr, target, instruction.from, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 function ensureExpression(parser, srcOrExpr, expressionType) {

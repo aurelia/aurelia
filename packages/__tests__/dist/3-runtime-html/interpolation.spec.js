@@ -169,7 +169,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
                         this.value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)');
                     }
                 },
-                interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
+                interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly',
             },
             {
                 expected: `undefined${testDateString}`,
@@ -394,9 +394,9 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
             });
             if (x.expectedStrictMode) {
                 $it(`${x.it} STRICT MODE `, async function () {
-                    const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}` }, x.app);
+                    const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, strict: true }, x.app);
                     const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class {
-                    }, [strict]);
+                    }, [strict], void 0, void 0);
                     assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
                     await tearDown();
                 });
@@ -408,7 +408,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
                 const observerLocator = createObserverLocator(container);
                 const interpolation = new Interpolation(['', ''], [new ConditionalExpression(new AccessScopeExpression('checked'), new AccessScopeExpression('yesMsg'), new AccessScopeExpression('noMsg'))]);
                 const target = { value: '' };
-                const binding = new InterpolationBinding({ state: 0 }, container, observerLocator, {}, interpolation, target, 'value', BindingMode.toView);
+                const binding = new InterpolationBinding({ state: 0 }, container, observerLocator, {}, interpolation, target, 'value', BindingMode.toView, false);
                 const source = { checked: false, yesMsg: 'yes', noMsg: 'no' };
                 let handleChangeCallCount = 0;
                 let updateTargetCallCount = 0;
@@ -449,7 +449,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
                     new ConditionalExpression(new AccessScopeExpression('checked2'), new AccessScopeExpression('yes2'), new AccessScopeExpression('no2'))
                 ]);
                 const target = { value: '' };
-                const binding = new InterpolationBinding({ state: 0 }, container, observerLocator, {}, interpolation, target, 'value', BindingMode.toView);
+                const binding = new InterpolationBinding({ state: 0 }, container, observerLocator, {}, interpolation, target, 'value', BindingMode.toView, false);
                 const source = {
                     checked1: false,
                     yes1: 'yes1',

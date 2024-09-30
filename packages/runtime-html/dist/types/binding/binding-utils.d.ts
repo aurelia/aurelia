@@ -1,8 +1,7 @@
 import { type IServiceLocator, type Constructable } from '@aurelia/kernel';
-import { type ISubscriber } from '@aurelia/runtime';
+import { type ISubscriber, type Scope } from '@aurelia/runtime';
 import { type IBinding, type IRateLimitOptions } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { type Scope } from './scope';
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
  */
@@ -18,11 +17,9 @@ export declare const mixinUseScope: <T extends {
     _scope?: Scope;
 }>(target: Constructable<T>) => void;
 /**
- * Turns a class into AST evaluator. For internal use only
- *
- * @param strict - whether the evaluation of AST nodes will be in strict mode
+ * Turns a class into AST evaluator with support for value converter & binding behavior. For internal use only
  */
-export declare const mixinAstEvaluator: (strict?: boolean | undefined, strictFnCall?: boolean) => <T extends {
+export declare const mixinAstEvaluator: <T extends {
     l: IServiceLocator;
 }>(target: Constructable<T>) => void;
 export interface IFlushable {

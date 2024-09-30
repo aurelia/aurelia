@@ -1,4 +1,5 @@
-import { DI, isArray, isFunction, isSet, isMap, areEqual, Registration, resolve, IPlatform, ILogger, isObject, isArrayIndex, createLookup, emptyObject } from '@aurelia/kernel';
+import { DestructuringAssignmentSingleExpression, IExpressionParser } from '@aurelia/expression-parser';
+import { DI, isObjectOrFunction, isFunction, isArray, isArrayIndex, isSet, isMap, areEqual, Registration, resolve, IPlatform, ILogger, isObject, createLookup, emptyObject } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 
 /**
@@ -37,6 +38,788 @@ function ensureProto(proto, key, defaultValue) {
 /** @internal */ const rtCreateInterface = DI.createInterface;
 /** @internal */ const rtGetMetadata = Metadata.get;
 /** @internal */ const rtDefineMetadata = Metadata.define;
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable prefer-template */
+/** @internal */
+const createMappedError = (code, ...details) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+    ;
+
+const errorsMap = {
+    [99 /* ErrorNames.method_not_implemented */]: 'Method {{0}} not implemented',
+    [101 /* ErrorNames.ast_behavior_not_found */]: `Ast eval error: binding behavior "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+    [102 /* ErrorNames.ast_behavior_duplicated */]: `Ast eval error: binding behavior "{{0}}" already applied.`,
+    [103 /* ErrorNames.ast_converter_not_found */]: `Ast eval error: value converter "{{0}}" could not be found. Did you forget to register it as a dependency?`,
+    [105 /* ErrorNames.ast_$host_not_found */]: `Ast eval error: unable to find $host context. Did you forget [au-slot] attribute?`,
+    [106 /* ErrorNames.ast_no_assign_$host */]: `Ast eval error: invalid assignment. "$host" is a reserved keyword.`,
+    [107 /* ErrorNames.ast_not_a_function */]: `Ast eval error: expression is not a function.`,
+    [109 /* ErrorNames.ast_unknown_unary_operator */]: `Ast eval error: unknown unary operator: "{{0}}"`,
+    [108 /* ErrorNames.ast_unknown_binary_operator */]: `Ast eval error: unknown binary operator: "{{0}}"`,
+    [110 /* ErrorNames.ast_tagged_not_a_function */]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
+    [111 /* ErrorNames.ast_name_is_not_a_function */]: `Ast eval error: expected "{{0}}" to be a function`,
+    [112 /* ErrorNames.ast_destruct_null */]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
+    [113 /* ErrorNames.ast_increment_infinite_loop */]: `Ast eval error: infinite loop detected. Increment operators should only be used in event handlers.`,
+    [114 /* ErrorNames.ast_nullish_member_access */]: `Ast eval error: cannot access property "{{0}}" of {{1}}.`,
+    [115 /* ErrorNames.ast_nullish_keyed_access */]: `Ast eval error: cannot access key "{{0}}" of {{1}}.`,
+    [116 /* ErrorNames.ast_nullish_assignment */]: `Ast eval error: cannot assign value to property "{{0}}" of null/undefined.`,
+    [151 /* ErrorNames.parse_invalid_start */]: `Expression error: invalid start: "{{0}}"`,
+    [152 /* ErrorNames.parse_no_spread */]: `Expression error: spread operator is not supported: "{{0}}"`,
+    [153 /* ErrorNames.parse_expected_identifier */]: `Expression error: expected identifier: "{{0}}"`,
+    [154 /* ErrorNames.parse_invalid_member_expr */]: `Expression error: invalid member expression: "{{0}}"`,
+    [155 /* ErrorNames.parse_unexpected_end */]: `Expression error: unexpected end of expression: "{{0}}"`,
+    [156 /* ErrorNames.parse_unconsumed_token */]: `Expression error: unconsumed token: "{{0}}" at position {{1}} of "{{2}}"`,
+    [157 /* ErrorNames.parse_invalid_empty */]: `Expression error: invalid empty expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)`,
+    [158 /* ErrorNames.parse_left_hand_side_not_assignable */]: `Expression error: left hand side of expression is not assignable: "{{0}}"`,
+    [159 /* ErrorNames.parse_expected_converter_identifier */]: `Expression error: expected identifier to come after value converter operator: "{{0}}"`,
+    [160 /* ErrorNames.parse_expected_behavior_identifier */]: `Expression error: expected identifier to come after binding behavior operator: {{0}}`,
+    [161 /* ErrorNames.parse_unexpected_keyword_of */]: `Expression error: unexpected keyword "of": "{{0}}"`,
+    [162 /* ErrorNames.parse_unexpected_keyword_import */]: `Expression error: unexpected keyword "import": "{{0}}"`,
+    [163 /* ErrorNames.parse_invalid_identifier_in_forof */]: `Expression error: invalid BindingIdentifier at left hand side of "of": "{{0}}" | kind: {{1}}`,
+    [164 /* ErrorNames.parse_invalid_identifier_object_literal_key */]: `Expression error: invalid or unsupported property definition in object literal: "{{0}}"`,
+    [165 /* ErrorNames.parse_unterminated_string */]: `Expression error: unterminated quote in string literal: "{{0}}"`,
+    [166 /* ErrorNames.parse_unterminated_template_string */]: `Expression error: unterminated template string: "{{0}}"`,
+    [167 /* ErrorNames.parse_missing_expected_token */]: `Expression error: missing expected token "{{0}}" in "{{1}}"`,
+    [168 /* ErrorNames.parse_unexpected_character */]: `Expression error: unexpected character: "{{0}}"`,
+    [170 /* ErrorNames.parse_unexpected_token_destructuring */]: `Expression error: unexpected "{{0}}" at position "{{1}}" for destructuring assignment in "{{2}}"`,
+    [171 /* ErrorNames.parse_unexpected_token_optional_chain */]: `Expression error: unexpected {{0}} at position "{{1}}" for optional chain in "{{2}}"`,
+    [172 /* ErrorNames.parse_invalid_tag_in_optional_chain */]: `Expression error: invalid tagged template on optional chain in "{{1}}"`,
+    [173 /* ErrorNames.parse_invalid_arrow_params */]: `Expression error: invalid arrow parameter list in "{{0}}"`,
+    [174 /* ErrorNames.parse_no_arrow_param_default_value */]: `Expression error: arrow function with default parameters is not supported: "{{0}}"`,
+    [175 /* ErrorNames.parse_no_arrow_param_destructuring */]: `Expression error: arrow function with destructuring parameters is not supported: "{{0}}"`,
+    [176 /* ErrorNames.parse_rest_must_be_last */]: `Expression error: rest parameter must be last formal parameter in arrow function: "{{0}}"`,
+    [178 /* ErrorNames.parse_no_arrow_fn_body */]: `Expression error: arrow function with function body is not supported: "{{0}}"`,
+    [179 /* ErrorNames.parse_unexpected_double_dot */]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
+    [199 /* ErrorNames.observing_null_undefined */]: `Trying to observe property {{0}} on null/undefined`,
+    [203 /* ErrorNames.null_scope */]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
+    [204 /* ErrorNames.create_scope_with_null_context */]: 'Trying to create a scope with null/undefined binding context',
+    [206 /* ErrorNames.switch_on_null_connectable */]: `Trying to switch to a null/undefined connectable`,
+    [207 /* ErrorNames.switch_active_connectable */]: `Trying to enter an active connectable`,
+    [208 /* ErrorNames.switch_off_null_connectable */]: `Trying to pop a null/undefined connectable`,
+    [209 /* ErrorNames.switch_off_inactive_connectable */]: `Trying to exit an inactive connectable`,
+    [210 /* ErrorNames.non_recognisable_collection_type */]: `Unrecognised collection type {{0:toString}}.`,
+    [217 /* ErrorNames.dirty_check_no_handler */]: 'There is no registration for IDirtyChecker interface. If you want to use your own dirty checker, make sure you register it.',
+    [218 /* ErrorNames.dirty_check_not_allowed */]: `Dirty checked is not permitted in this application. Property key {{0}} is being dirty checked.`,
+    [219 /* ErrorNames.dirty_check_setter_not_allowed */]: `Trying to set value for property {{0}} in dirty checker`,
+    [220 /* ErrorNames.assign_readonly_size */]: `Map/Set "size" is a readonly property`,
+    [221 /* ErrorNames.assign_readonly_readonly_property_from_computed */]: `Trying to assign value to readonly property "{{0}}" through computed observer.`,
+    [224 /* ErrorNames.invalid_observable_decorator_usage */]: `Invalid @observable decorator usage, cannot determine property name`,
+    [225 /* ErrorNames.stopping_a_stopped_effect */]: `Trying to stop an effect that has already been stopped`,
+    [226 /* ErrorNames.effect_maximum_recursion_reached */]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
+};
+const getMessageByCode = (name, ...details) => {
+    let cooked = errorsMap[name];
+    for (let i = 0; i < details.length; ++i) {
+        const regex = new RegExp(`{{${i}(:.*)?}}`, 'g');
+        let matches = regex.exec(cooked);
+        while (matches != null) {
+            const method = matches[1]?.slice(1);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let value = details[i];
+            if (value != null) {
+                switch (method) {
+                    case 'typeof':
+                        value = typeof value;
+                        break;
+                    case 'toString':
+                        value = Object.prototype.toString.call(value);
+                        break;
+                    case 'join(!=)':
+                        value = value.join('!=');
+                        break;
+                    case 'element':
+                        value = value === '*' ? 'all elements' : `<${value} />`;
+                        break;
+                    default: {
+                        // property access
+                        if (method?.startsWith('.')) {
+                            value = rtSafeString(value[method.slice(1)]);
+                        }
+                        else {
+                            value = rtSafeString(value);
+                        }
+                    }
+                }
+            }
+            cooked = cooked.slice(0, matches.index) + value + cooked.slice(regex.lastIndex);
+            matches = regex.exec(cooked);
+        }
+    }
+    return cooked;
+};
+
+class Scope {
+    constructor(parent, bindingContext, overrideContext, isBoundary) {
+        this.parent = parent;
+        this.bindingContext = bindingContext;
+        this.overrideContext = overrideContext;
+        this.isBoundary = isBoundary;
+    }
+    static getContext(scope, name, ancestor) {
+        if (scope == null) {
+            throw createMappedError(203 /* ErrorNames.null_scope */);
+        }
+        let overrideContext = scope.overrideContext;
+        let currentScope = scope;
+        if (ancestor > 0) {
+            // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
+            while (ancestor > 0) {
+                ancestor--;
+                currentScope = currentScope.parent;
+                if (currentScope == null) {
+                    return void 0;
+                }
+            }
+            overrideContext = currentScope.overrideContext;
+            // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
+            return name in overrideContext ? overrideContext : currentScope.bindingContext;
+        }
+        // walk the scope hierarchy until
+        // the first scope that has the property in its contexts
+        // or
+        // the closet boundary scope
+        // -------------------------
+        // this behavior is different with v1
+        // where it would fallback to the immediate scope instead of the root one
+        // TODO: maybe avoid immediate loop and return earlier
+        // -------------------------
+        while (currentScope != null
+            && !currentScope.isBoundary
+            && !(name in currentScope.overrideContext)
+            && !(name in currentScope.bindingContext)) {
+            currentScope = currentScope.parent;
+        }
+        if (currentScope == null) {
+            return scope.bindingContext;
+        }
+        overrideContext = currentScope.overrideContext;
+        return name in overrideContext ? overrideContext : currentScope.bindingContext;
+    }
+    static create(bc, oc, isBoundary) {
+        if (bc == null) {
+            throw createMappedError(204 /* ErrorNames.create_scope_with_null_context */);
+        }
+        return new Scope(null, bc, oc ?? new OverrideContext(), isBoundary ?? false);
+    }
+    static fromParent(ps, bc, oc = new OverrideContext()) {
+        if (ps == null) {
+            throw createMappedError(203 /* ErrorNames.null_scope */);
+        }
+        return new Scope(ps, bc, oc, false);
+    }
+}
+/**
+ * A class for creating context in synthetic scope to keep the number of classes of context in scope small
+ */
+class BindingContext {
+    constructor(key, value) {
+        if (key !== void 0) {
+            this[key] = value;
+        }
+    }
+}
+class OverrideContext {
+}
+
+/* eslint-disable no-fallthrough */
+const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
+    const ekAccessThis = 'AccessThis';
+    const ekAccessBoundary = 'AccessBoundary';
+    const ekAccessGlobal = 'AccessGlobal';
+    const ekAccessScope = 'AccessScope';
+    const ekArrayLiteral = 'ArrayLiteral';
+    const ekObjectLiteral = 'ObjectLiteral';
+    const ekPrimitiveLiteral = 'PrimitiveLiteral';
+    const ekTemplate = 'Template';
+    const ekUnary = 'Unary';
+    const ekCallScope = 'CallScope';
+    const ekCallMember = 'CallMember';
+    const ekCallFunction = 'CallFunction';
+    const ekCallGlobal = 'CallGlobal';
+    const ekAccessMember = 'AccessMember';
+    const ekAccessKeyed = 'AccessKeyed';
+    const ekTaggedTemplate = 'TaggedTemplate';
+    const ekBinary = 'Binary';
+    const ekConditional = 'Conditional';
+    const ekAssign = 'Assign';
+    const ekArrowFunction = 'ArrowFunction';
+    const ekValueConverter = 'ValueConverter';
+    const ekBindingBehavior = 'BindingBehavior';
+    const ekArrayBindingPattern = 'ArrayBindingPattern';
+    const ekObjectBindingPattern = 'ObjectBindingPattern';
+    const ekBindingIdentifier = 'BindingIdentifier';
+    const ekForOfStatement = 'ForOfStatement';
+    const ekInterpolation = 'Interpolation';
+    const ekArrayDestructuring = 'ArrayDestructuring';
+    const ekObjectDestructuring = 'ObjectDestructuring';
+    const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
+    const ekCustom = 'Custom';
+    const getContext = Scope.getContext;
+    // eslint-disable-next-line max-lines-per-function
+    function astEvaluate(ast, s, e, c) {
+        switch (ast.$kind) {
+            case ekAccessThis: {
+                let oc = s.overrideContext;
+                let currentScope = s;
+                let i = ast.ancestor;
+                while (i-- && oc) {
+                    currentScope = currentScope.parent;
+                    oc = currentScope?.overrideContext ?? null;
+                }
+                return i < 1 && currentScope ? currentScope.bindingContext : void 0;
+            }
+            case ekAccessBoundary: {
+                let currentScope = s;
+                while (currentScope != null
+                    && !currentScope.isBoundary) {
+                    currentScope = currentScope.parent;
+                }
+                return currentScope ? currentScope.bindingContext : void 0;
+            }
+            case ekAccessScope: {
+                const obj = getContext(s, ast.name, ast.ancestor);
+                if (c !== null) {
+                    c.observe(obj, ast.name);
+                }
+                const evaluatedValue = obj[ast.name];
+                if (evaluatedValue == null) {
+                    if (ast.name === '$host') {
+                        throw createMappedError(105 /* ErrorNames.ast_$host_not_found */);
+                    }
+                    return evaluatedValue;
+                }
+                return e?.boundFn && isFunction(evaluatedValue)
+                    ? evaluatedValue.bind(obj)
+                    : evaluatedValue;
+            }
+            case ekAccessGlobal:
+                return globalThis[ast.name];
+            case ekCallGlobal: {
+                const func = globalThis[ast.name];
+                if (isFunction(func)) {
+                    return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+                }
+                /* istanbul ignore next */
+                if (!e?.strict && func == null) {
+                    return void 0;
+                }
+                throw createMappedError(107 /* ErrorNames.ast_not_a_function */);
+            }
+            case ekArrayLiteral:
+                return ast.elements.map(expr => astEvaluate(expr, s, e, c));
+            case ekObjectLiteral: {
+                const instance = {};
+                for (let i = 0; i < ast.keys.length; ++i) {
+                    instance[ast.keys[i]] = astEvaluate(ast.values[i], s, e, c);
+                }
+                return instance;
+            }
+            case ekPrimitiveLiteral:
+                return ast.value;
+            case ekTemplate: {
+                let result = ast.cooked[0];
+                for (let i = 0; i < ast.expressions.length; ++i) {
+                    result += rtSafeString(astEvaluate(ast.expressions[i], s, e, c));
+                    result += ast.cooked[i + 1];
+                }
+                return result;
+            }
+            case ekUnary: {
+                const value = astEvaluate(ast.expression, s, e, c);
+                switch (ast.operation) {
+                    case 'void':
+                        return void value;
+                    case 'typeof':
+                        return typeof value;
+                    case '!':
+                        return !value;
+                    case '-':
+                        return -value;
+                    case '+':
+                        return +value;
+                    case '--':
+                        if (c != null)
+                            throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
+                        return astAssign(ast.expression, s, e, value - 1) + ast.pos;
+                    case '++':
+                        if (c != null)
+                            throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
+                        return astAssign(ast.expression, s, e, value + 1) - ast.pos;
+                    default:
+                        throw createMappedError(109 /* ErrorNames.ast_unknown_unary_operator */, ast.operation);
+                }
+            }
+            case ekCallScope: {
+                const context = getContext(s, ast.name, ast.ancestor);
+                if (context == null) {
+                    if (e?.strict) {
+                        throw createMappedError(114 /* ErrorNames.ast_nullish_member_access */, ast.name, context);
+                    }
+                    return void 0;
+                }
+                const fn = context[ast.name];
+                if (isFunction(fn)) {
+                    return fn.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+                }
+                if (fn == null) {
+                    if (e?.strict && !ast.optional) {
+                        throw createMappedError(111 /* ErrorNames.ast_name_is_not_a_function */, ast.name);
+                    }
+                    return void 0;
+                }
+                throw createMappedError(111 /* ErrorNames.ast_name_is_not_a_function */, ast.name);
+            }
+            case ekCallMember: {
+                const instance = astEvaluate(ast.object, s, e, c);
+                if (instance == null) {
+                    if (e?.strict && !ast.optionalMember) {
+                        throw createMappedError(114 /* ErrorNames.ast_nullish_member_access */, ast.name, instance);
+                    }
+                }
+                const fn = instance?.[ast.name];
+                if (fn == null) {
+                    if (!ast.optionalCall && e?.strict) {
+                        throw createMappedError(111 /* ErrorNames.ast_name_is_not_a_function */, ast.name);
+                    }
+                    return void 0;
+                }
+                if (!isFunction(fn)) {
+                    throw createMappedError(111 /* ErrorNames.ast_name_is_not_a_function */, ast.name);
+                }
+                const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+                if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
+                    c?.observeCollection(instance);
+                }
+                return ret;
+            }
+            case ekCallFunction: {
+                const func = astEvaluate(ast.func, s, e, c);
+                if (isFunction(func)) {
+                    return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+                }
+                if (func == null) {
+                    if (!ast.optional && e?.strict) {
+                        throw createMappedError(107 /* ErrorNames.ast_not_a_function */);
+                    }
+                    return void 0;
+                }
+                throw createMappedError(107 /* ErrorNames.ast_not_a_function */);
+            }
+            case ekArrowFunction: {
+                const func = (...args) => {
+                    const params = ast.args;
+                    const rest = ast.rest;
+                    const lastIdx = params.length - 1;
+                    const context = params.reduce((map, param, i) => {
+                        if (rest && i === lastIdx) {
+                            map[param.name] = args.slice(i);
+                        }
+                        else {
+                            map[param.name] = args[i];
+                        }
+                        return map;
+                    }, {});
+                    const functionScope = Scope.fromParent(s, context);
+                    return astEvaluate(ast.body, functionScope, e, c);
+                };
+                return func;
+            }
+            case ekAccessMember: {
+                const instance = astEvaluate(ast.object, s, e, c);
+                if (instance == null) {
+                    if (!ast.optional && e?.strict) {
+                        throw createMappedError(114 /* ErrorNames.ast_nullish_member_access */, ast.name, instance);
+                    }
+                    return void 0;
+                }
+                if (c !== null && !ast.accessGlobal) {
+                    c.observe(instance, ast.name);
+                }
+                const ret = instance[ast.name];
+                return e?.boundFn && isFunction(ret)
+                    // event listener wants the returned function to be bound to the instance
+                    ? ret.bind(instance)
+                    : ret;
+            }
+            case ekAccessKeyed: {
+                const instance = astEvaluate(ast.object, s, e, c);
+                const key = astEvaluate(ast.key, s, e, c);
+                if (instance == null) {
+                    if (!ast.optional && e?.strict) {
+                        throw createMappedError(115 /* ErrorNames.ast_nullish_keyed_access */, key, instance);
+                    }
+                    return void 0;
+                }
+                if (c !== null && !ast.accessGlobal) {
+                    c.observe(instance, key);
+                }
+                return instance[key];
+            }
+            case ekTaggedTemplate: {
+                const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));
+                const func = astEvaluate(ast.func, s, e, c);
+                if (!isFunction(func)) {
+                    throw createMappedError(110 /* ErrorNames.ast_tagged_not_a_function */);
+                }
+                return func(ast.cooked, ...results);
+            }
+            case ekBinary: {
+                const left = ast.left;
+                const right = ast.right;
+                switch (ast.operation) {
+                    case '&&':
+                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                        return astEvaluate(left, s, e, c) && astEvaluate(right, s, e, c);
+                    case '||':
+                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                        return astEvaluate(left, s, e, c) || astEvaluate(right, s, e, c);
+                    case '??':
+                        return astEvaluate(left, s, e, c) ?? astEvaluate(right, s, e, c);
+                    case '==':
+                        // eslint-disable-next-line eqeqeq
+                        return astEvaluate(left, s, e, c) == astEvaluate(right, s, e, c);
+                    case '===':
+                        return astEvaluate(left, s, e, c) === astEvaluate(right, s, e, c);
+                    case '!=':
+                        // eslint-disable-next-line eqeqeq
+                        return astEvaluate(left, s, e, c) != astEvaluate(right, s, e, c);
+                    case '!==':
+                        return astEvaluate(left, s, e, c) !== astEvaluate(right, s, e, c);
+                    case 'instanceof': {
+                        const $right = astEvaluate(right, s, e, c);
+                        if (isFunction($right)) {
+                            return astEvaluate(left, s, e, c) instanceof $right;
+                        }
+                        return false;
+                    }
+                    case 'in': {
+                        const $right = astEvaluate(right, s, e, c);
+                        if (isObjectOrFunction($right)) {
+                            return astEvaluate(left, s, e, c) in $right;
+                        }
+                        return false;
+                    }
+                    case '+':
+                        return astEvaluate(left, s, e, c) + astEvaluate(right, s, e, c);
+                    case '-':
+                        return astEvaluate(left, s, e, c) - astEvaluate(right, s, e, c);
+                    case '*':
+                        return astEvaluate(left, s, e, c) * astEvaluate(right, s, e, c);
+                    case '/':
+                        return astEvaluate(left, s, e, c) / astEvaluate(right, s, e, c);
+                    case '%':
+                        return astEvaluate(left, s, e, c) % astEvaluate(right, s, e, c);
+                    case '<':
+                        return astEvaluate(left, s, e, c) < astEvaluate(right, s, e, c);
+                    case '>':
+                        return astEvaluate(left, s, e, c) > astEvaluate(right, s, e, c);
+                    case '<=':
+                        return astEvaluate(left, s, e, c) <= astEvaluate(right, s, e, c);
+                    case '>=':
+                        return astEvaluate(left, s, e, c) >= astEvaluate(right, s, e, c);
+                    default:
+                        throw createMappedError(108 /* ErrorNames.ast_unknown_binary_operator */, ast.operation);
+                }
+            }
+            case ekConditional:
+                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                return astEvaluate(ast.condition, s, e, c) ? astEvaluate(ast.yes, s, e, c) : astEvaluate(ast.no, s, e, c);
+            case ekAssign: {
+                let value = astEvaluate(ast.value, s, e, c);
+                if (ast.op !== '=') {
+                    if (c != null) {
+                        throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
+                    }
+                    const target = astEvaluate(ast.target, s, e, c);
+                    switch (ast.op) {
+                        case '/=':
+                            value = target / value;
+                            break;
+                        case '*=':
+                            value = target * value;
+                            break;
+                        case '+=':
+                            value = target + value;
+                            break;
+                        case '-=':
+                            value = target - value;
+                            break;
+                        default:
+                            throw createMappedError(108 /* ErrorNames.ast_unknown_binary_operator */, ast.op);
+                    }
+                }
+                return astAssign(ast.target, s, e, value);
+            }
+            case ekValueConverter: {
+                return e?.useConverter?.(ast.name, 'toView', astEvaluate(ast.expression, s, e, c), ast.args.map(a => astEvaluate(a, s, e, c)));
+            }
+            case ekBindingBehavior:
+                return astEvaluate(ast.expression, s, e, c);
+            case ekBindingIdentifier:
+                return ast.name;
+            case ekForOfStatement:
+                return astEvaluate(ast.iterable, s, e, c);
+            case ekInterpolation:
+                if (ast.isMulti) {
+                    let result = ast.parts[0];
+                    let i = 0;
+                    for (; i < ast.expressions.length; ++i) {
+                        result += rtSafeString(astEvaluate(ast.expressions[i], s, e, c));
+                        result += ast.parts[i + 1];
+                    }
+                    return result;
+                }
+                else {
+                    return `${ast.parts[0]}${astEvaluate(ast.firstExpression, s, e, c)}${ast.parts[1]}`;
+                }
+            case ekDestructuringAssignmentLeaf:
+                return astEvaluate(ast.target, s, e, c);
+            case ekArrayDestructuring: {
+                return ast.list.map(x => astEvaluate(x, s, e, c));
+            }
+            // TODO: this should come after batch
+            // as a destructuring expression like [x, y] = value
+            //
+            // should only trigger change only once:
+            // batch(() => {
+            //   object.x = value[0]
+            //   object.y = value[1]
+            // })
+            //
+            // instead of twice:
+            // object.x = value[0]
+            // object.y = value[1]
+            case ekArrayBindingPattern:
+            // TODO
+            // similar to array binding ast, this should only come after batch
+            // for a single notification per destructing,
+            // regardless number of property assignments on the scope binding context
+            case ekObjectBindingPattern:
+            case ekObjectDestructuring:
+            default:
+                return void 0;
+            case ekCustom:
+                return ast.evaluate(s, e, c);
+        }
+    }
+    function astAssign(ast, s, e, val) {
+        switch (ast.$kind) {
+            case ekAccessScope: {
+                if (ast.name === '$host') {
+                    throw createMappedError(106 /* ErrorNames.ast_no_assign_$host */);
+                }
+                const obj = getContext(s, ast.name, ast.ancestor);
+                return obj[ast.name] = val;
+            }
+            case ekAccessMember: {
+                const obj = astEvaluate(ast.object, s, e, null);
+                if (obj == null) {
+                    if (e?.strict) {
+                        // if ast optional and the optional assignment proposal goes ahead
+                        // we can allow this to be a no-op instead of throwing (check via ast.optional)
+                        // https://github.com/tc39/proposal-optional-chaining-assignment
+                        throw createMappedError(116 /* ErrorNames.ast_nullish_assignment */, ast.name);
+                    }
+                    // creating an object and assign it to the owning property of the ast
+                    // this is a good enough behavior, and it works well in v1
+                    astAssign(ast.object, s, e, { [ast.name]: val });
+                }
+                else if (isObjectOrFunction(obj)) {
+                    if (ast.name === 'length' && isArray(obj) && !isNaN(val)) {
+                        obj.splice(val);
+                    }
+                    else {
+                        obj[ast.name] = val;
+                    }
+                }
+                else ;
+                return val;
+            }
+            case ekAccessKeyed: {
+                const instance = astEvaluate(ast.object, s, e, null);
+                const key = astEvaluate(ast.key, s, e, null);
+                if (instance == null) {
+                    if (e?.strict) {
+                        // if ast optional and the optional assignment proposal goes ahead
+                        // we can allow this to be a no-op instead of throwing (check via ast.optional)
+                        // https://github.com/tc39/proposal-optional-chaining-assignment
+                        throw createMappedError(116 /* ErrorNames.ast_nullish_assignment */, key);
+                    }
+                    // creating an object and assign it to the owning property of the ast
+                    // this is a good enough behavior, and it works well in v1
+                    astAssign(ast.object, s, e, { [key]: val });
+                    return val;
+                }
+                if (isArray(instance)) {
+                    if (key === 'length' && !isNaN(val)) {
+                        instance.splice(val);
+                        return val;
+                    }
+                    if (isArrayIndex(key)) {
+                        instance.splice(key, 1, val);
+                        return val;
+                    }
+                }
+                return instance[key] = val;
+            }
+            case ekAssign:
+                astAssign(ast.value, s, e, val);
+                return astAssign(ast.target, s, e, val);
+            case ekValueConverter: {
+                val = e?.useConverter?.(ast.name, 'fromView', val, ast.args.map(a => astEvaluate(a, s, e, null)));
+                return astAssign(ast.expression, s, e, val);
+            }
+            case ekBindingBehavior:
+                return astAssign(ast.expression, s, e, val);
+            case ekArrayDestructuring:
+            case ekObjectDestructuring: {
+                const list = ast.list;
+                const len = list.length;
+                let i;
+                let item;
+                for (i = 0; i < len; i++) {
+                    item = list[i];
+                    switch (item.$kind) {
+                        case ekDestructuringAssignmentLeaf:
+                            astAssign(item, s, e, val);
+                            break;
+                        case ekArrayDestructuring:
+                        case ekObjectDestructuring: {
+                            if (typeof val !== 'object' || val === null) {
+                                throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
+                            }
+                            let source = astEvaluate(item.source, Scope.create(val), e, null);
+                            if (source === void 0 && item.initializer) {
+                                source = astEvaluate(item.initializer, s, e, null);
+                            }
+                            astAssign(item, s, e, source);
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            case ekDestructuringAssignmentLeaf: {
+                if (ast instanceof DestructuringAssignmentSingleExpression) {
+                    if (val == null) {
+                        return;
+                    }
+                    if (typeof val !== 'object') {
+                        throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
+                    }
+                    let source = astEvaluate(ast.source, Scope.create(val), e, null);
+                    if (source === void 0 && ast.initializer) {
+                        source = astEvaluate(ast.initializer, s, e, null);
+                    }
+                    astAssign(ast.target, s, e, source);
+                }
+                else {
+                    if (val == null) {
+                        return;
+                    }
+                    if (typeof val !== 'object') {
+                        throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
+                    }
+                    const indexOrProperties = ast.indexOrProperties;
+                    let restValue;
+                    if (isArrayIndex(indexOrProperties)) {
+                        if (!Array.isArray(val)) {
+                            throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
+                        }
+                        restValue = val.slice(indexOrProperties);
+                    }
+                    else {
+                        restValue = Object
+                            .entries(val)
+                            .reduce((acc, [k, v]) => {
+                            if (!indexOrProperties.includes(k)) {
+                                acc[k] = v;
+                            }
+                            return acc;
+                            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        }, {});
+                    }
+                    astAssign(ast.target, s, e, restValue);
+                }
+                break;
+            }
+            case ekCustom:
+                return ast.assign(s, e, val);
+            default:
+                return void 0;
+        }
+    }
+    function astBind(ast, s, b) {
+        switch (ast.$kind) {
+            case ekBindingBehavior: {
+                b.bindBehavior?.(ast.name, s, ast.args.map(a => astEvaluate(a, s, b, null)));
+                astBind(ast.expression, s, b);
+                break;
+            }
+            case ekValueConverter: {
+                b.bindConverter?.(ast.name);
+                astBind(ast.expression, s, b);
+                break;
+            }
+            case ekForOfStatement: {
+                astBind(ast.iterable, s, b);
+                break;
+            }
+            case ekCustom: {
+                ast.bind?.(s, b);
+            }
+        }
+    }
+    function astUnbind(ast, s, b) {
+        switch (ast.$kind) {
+            case ekBindingBehavior: {
+                b.unbindBehavior?.(ast.name, s);
+                astUnbind(ast.expression, s, b);
+                break;
+            }
+            case ekValueConverter: {
+                b.unbindConverter?.(ast.name);
+                astUnbind(ast.expression, s, b);
+                break;
+            }
+            case ekForOfStatement: {
+                astUnbind(ast.iterable, s, b);
+                break;
+            }
+            case ekCustom: {
+                ast.unbind?.(s, b);
+            }
+        }
+    }
+    const autoObserveArrayMethods = 'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
+    // sort,      // bad supported, self mutation + unclear dependency
+    // push,      // not supported, self mutation + unclear dependency
+    // pop,       // not supported, self mutation + unclear dependency
+    // shift,     // not supported, self mutation + unclear dependency
+    // splice,    // not supported, self mutation + unclear dependency
+    // unshift,   // not supported, self mutation + unclear dependency
+    // reverse,   // not supported, self mutation + unclear dependency
+    // keys,    // not meaningful in template
+    // values,  // not meaningful in template
+    // entries, // not meaningful in template
+    return {
+        astEvaluate,
+        astAssign,
+        astBind,
+        astUnbind,
+    };
+})();
+
+/**
+ * For Aurelia packages internal use only, do not use this in application code.
+ *
+ * Add ast evaluator mixin with throw implementation for all methods.
+ */
+const mixinNoopAstEvaluator = (() => (target) => {
+    const proto = target.prototype;
+    ['bindBehavior', 'unbindBehavior', 'bindConverter', 'unbindConverter', 'useConverter'].forEach(name => {
+        rtDefineHiddenProp(proto, name, () => { throw createMappedError(99 /* ErrorNames.method_not_implemented */, name); });
+    });
+})();
 
 const ICoercionConfiguration = /*@__PURE__*/ DI.createInterface('ICoercionConfiguration');
 /** @internal */ const atNone = 0b0_000_000;
@@ -281,110 +1064,6 @@ const subscriberCollection = /*@__PURE__*/ (() => {
     }
     return subscriberCollection;
 })();
-
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable prefer-template */
-/** @internal */
-const createMappedError = (code, ...details) => new Error(`AUR${rtSafeString(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
-    ;
-
-const errorsMap = {
-    [99 /* ErrorNames.method_not_implemented */]: 'Method {{0}} not implemented',
-    [101 /* ErrorNames.ast_behavior_not_found */]: `Ast eval error: binding behavior "{{0}}" could not be found. Did you forget to register it as a dependency?`,
-    [102 /* ErrorNames.ast_behavior_duplicated */]: `Ast eval error: binding behavior "{{0}}" already applied.`,
-    [103 /* ErrorNames.ast_converter_not_found */]: `Ast eval error: value converter "{{0}}" could not be found. Did you forget to register it as a dependency?`,
-    [105 /* ErrorNames.ast_$host_not_found */]: `Ast eval error: unable to find $host context. Did you forget [au-slot] attribute?`,
-    [106 /* ErrorNames.ast_no_assign_$host */]: `Ast eval error: invalid assignment. "$host" is a reserved keyword.`,
-    [107 /* ErrorNames.ast_not_a_function */]: `Ast eval error: expression is not a function.`,
-    [109 /* ErrorNames.ast_unknown_unary_operator */]: `Ast eval error: unknown unary operator: "{{0}}"`,
-    [108 /* ErrorNames.ast_unknown_binary_operator */]: `Ast eval error: unknown binary operator: "{{0}}"`,
-    [110 /* ErrorNames.ast_tagged_not_a_function */]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
-    [111 /* ErrorNames.ast_name_is_not_a_function */]: `Ast eval error: expected "{{0}}" to be a function`,
-    [112 /* ErrorNames.ast_destruct_null */]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
-    [151 /* ErrorNames.parse_invalid_start */]: `Expression error: invalid start: "{{0}}"`,
-    [152 /* ErrorNames.parse_no_spread */]: `Expression error: spread operator is not supported: "{{0}}"`,
-    [153 /* ErrorNames.parse_expected_identifier */]: `Expression error: expected identifier: "{{0}}"`,
-    [154 /* ErrorNames.parse_invalid_member_expr */]: `Expression error: invalid member expression: "{{0}}"`,
-    [155 /* ErrorNames.parse_unexpected_end */]: `Expression error: unexpected end of expression: "{{0}}"`,
-    [156 /* ErrorNames.parse_unconsumed_token */]: `Expression error: unconsumed token: "{{0}}" at position {{1}} of "{{2}}"`,
-    [157 /* ErrorNames.parse_invalid_empty */]: `Expression error: invalid empty expression. Empty expression is only valid in event bindings (trigger, delegate, capture etc...)`,
-    [158 /* ErrorNames.parse_left_hand_side_not_assignable */]: `Expression error: left hand side of expression is not assignable: "{{0}}"`,
-    [159 /* ErrorNames.parse_expected_converter_identifier */]: `Expression error: expected identifier to come after value converter operator: "{{0}}"`,
-    [160 /* ErrorNames.parse_expected_behavior_identifier */]: `Expression error: expected identifier to come after binding behavior operator: {{0}}`,
-    [161 /* ErrorNames.parse_unexpected_keyword_of */]: `Expression error: unexpected keyword "of": "{{0}}"`,
-    [162 /* ErrorNames.parse_unexpected_keyword_import */]: `Expression error: unexpected keyword "import": "{{0}}"`,
-    [163 /* ErrorNames.parse_invalid_identifier_in_forof */]: `Expression error: invalid BindingIdentifier at left hand side of "of": "{{0}}" | kind: {{1}}`,
-    [164 /* ErrorNames.parse_invalid_identifier_object_literal_key */]: `Expression error: invalid or unsupported property definition in object literal: "{{0}}"`,
-    [165 /* ErrorNames.parse_unterminated_string */]: `Expression error: unterminated quote in string literal: "{{0}}"`,
-    [166 /* ErrorNames.parse_unterminated_template_string */]: `Expression error: unterminated template string: "{{0}}"`,
-    [167 /* ErrorNames.parse_missing_expected_token */]: `Expression error: missing expected token "{{0}}" in "{{1}}"`,
-    [168 /* ErrorNames.parse_unexpected_character */]: `Expression error: unexpected character: "{{0}}"`,
-    [170 /* ErrorNames.parse_unexpected_token_destructuring */]: `Expression error: unexpected "{{0}}" at position "{{1}}" for destructuring assignment in "{{2}}"`,
-    [171 /* ErrorNames.parse_unexpected_token_optional_chain */]: `Expression error: unexpected {{0}} at position "{{1}}" for optional chain in "{{2}}"`,
-    [172 /* ErrorNames.parse_invalid_tag_in_optional_chain */]: `Expression error: invalid tagged template on optional chain in "{{1}}"`,
-    [173 /* ErrorNames.parse_invalid_arrow_params */]: `Expression error: invalid arrow parameter list in "{{0}}"`,
-    [174 /* ErrorNames.parse_no_arrow_param_default_value */]: `Expression error: arrow function with default parameters is not supported: "{{0}}"`,
-    [175 /* ErrorNames.parse_no_arrow_param_destructuring */]: `Expression error: arrow function with destructuring parameters is not supported: "{{0}}"`,
-    [176 /* ErrorNames.parse_rest_must_be_last */]: `Expression error: rest parameter must be last formal parameter in arrow function: "{{0}}"`,
-    [178 /* ErrorNames.parse_no_arrow_fn_body */]: `Expression error: arrow function with function body is not supported: "{{0}}"`,
-    [179 /* ErrorNames.parse_unexpected_double_dot */]: `Expression error: unexpected token '.' at position "{{1}}" in "{{0}}"`,
-    [199 /* ErrorNames.observing_null_undefined */]: `Trying to observe property {{0}} on null/undefined`,
-    [203 /* ErrorNames.null_scope */]: `Trying to retrieve a property or build a scope from a null/undefined scope`,
-    [204 /* ErrorNames.create_scope_with_null_context */]: 'Trying to create a scope with null/undefined binding context',
-    [206 /* ErrorNames.switch_on_null_connectable */]: `Trying to switch to a null/undefined connectable`,
-    [207 /* ErrorNames.switch_active_connectable */]: `Trying to enter an active connectable`,
-    [208 /* ErrorNames.switch_off_null_connectable */]: `Trying to pop a null/undefined connectable`,
-    [209 /* ErrorNames.switch_off_inactive_connectable */]: `Trying to exit an inactive connectable`,
-    [210 /* ErrorNames.non_recognisable_collection_type */]: `Unrecognised collection type {{0:toString}}.`,
-    [217 /* ErrorNames.dirty_check_no_handler */]: 'There is no registration for IDirtyChecker interface. If you want to use your own dirty checker, make sure you register it.',
-    [218 /* ErrorNames.dirty_check_not_allowed */]: `Dirty checked is not permitted in this application. Property key {{0}} is being dirty checked.`,
-    [219 /* ErrorNames.dirty_check_setter_not_allowed */]: `Trying to set value for property {{0}} in dirty checker`,
-    [220 /* ErrorNames.assign_readonly_size */]: `Map/Set "size" is a readonly property`,
-    [221 /* ErrorNames.assign_readonly_readonly_property_from_computed */]: `Trying to assign value to readonly property "{{0}}" through computed observer.`,
-    [224 /* ErrorNames.invalid_observable_decorator_usage */]: `Invalid @observable decorator usage, cannot determine property name`,
-    [225 /* ErrorNames.stopping_a_stopped_effect */]: `Trying to stop an effect that has already been stopped`,
-    [226 /* ErrorNames.effect_maximum_recursion_reached */]: `Maximum number of recursive effect run reached. Consider handle effect dependencies differently.`,
-};
-const getMessageByCode = (name, ...details) => {
-    let cooked = errorsMap[name];
-    for (let i = 0; i < details.length; ++i) {
-        const regex = new RegExp(`{{${i}(:.*)?}}`, 'g');
-        let matches = regex.exec(cooked);
-        while (matches != null) {
-            const method = matches[1]?.slice(1);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let value = details[i];
-            if (value != null) {
-                switch (method) {
-                    case 'typeof':
-                        value = typeof value;
-                        break;
-                    case 'toString':
-                        value = Object.prototype.toString.call(value);
-                        break;
-                    case 'join(!=)':
-                        value = value.join('!=');
-                        break;
-                    case 'element':
-                        value = value === '*' ? 'all elements' : `<${value} />`;
-                        break;
-                    default: {
-                        // property access
-                        if (method?.startsWith('.')) {
-                            value = rtSafeString(value[method.slice(1)]);
-                        }
-                        else {
-                            value = rtSafeString(value);
-                        }
-                    }
-                }
-            }
-            cooked = cooked.slice(0, matches.index) + value + cooked.slice(regex.lastIndex);
-            matches = regex.exec(cooked);
-        }
-    }
-    return cooked;
-};
 
 class CollectionLengthObserver {
     constructor(owner) {
@@ -2379,11 +3058,11 @@ const getObserverLookup = (instance) => {
 
 const IObservation = /*@__PURE__*/ rtCreateInterface('IObservation', x => x.singleton(Observation));
 class Observation {
-    static get inject() { return [IObserverLocator]; }
-    constructor(oL) {
-        this.oL = oL;
+    constructor() {
         /** @internal */
-        this._defaultWatchOptions = { immediate: true };
+        this.oL = resolve(IObserverLocator);
+        /** @internal */
+        this._parser = resolve(IExpressionParser);
     }
     run(fn) {
         const effect = new RunEffect(this.oL, fn);
@@ -2391,25 +3070,70 @@ class Observation {
         effect.run();
         return effect;
     }
-    watch(obj, getter, callback, options = this._defaultWatchOptions) {
+    watch(obj, getter, callback, options) {
         // eslint-disable-next-line no-undef-init
         let $oldValue = undefined;
-        let stopped = false;
+        let running = false;
+        let cleanupTask;
         const observer = this.oL.getObserver(obj, getter);
+        const handleChange = (newValue, oldValue) => {
+            cleanupTask?.();
+            cleanupTask = void 0;
+            const result = callback(newValue, $oldValue = oldValue);
+            if (isFunction(result)) {
+                cleanupTask = result;
+            }
+        };
         const handler = {
-            handleChange: (newValue, oldValue) => callback(newValue, $oldValue = oldValue),
+            handleChange
         };
         const run = () => {
-            if (stopped)
+            if (running)
                 return;
-            callback(observer.getValue(), $oldValue);
+            running = true;
+            observer.subscribe(handler);
+            handleChange(observer.getValue(), $oldValue);
         };
         const stop = () => {
-            stopped = true;
+            if (!running)
+                return;
+            running = false;
             observer.unsubscribe(handler);
+            cleanupTask?.();
+            cleanupTask = void 0;
         };
-        observer.subscribe(handler);
-        if (options.immediate) {
+        if (options?.immediate !== false) {
+            run();
+        }
+        return { run, stop };
+    }
+    watchExpression(obj, expression, callback, options) {
+        let running = false;
+        let cleanupTask;
+        const handleChange = (newValue, oldValue) => {
+            cleanupTask?.();
+            cleanupTask = void 0;
+            const result = callback(newValue, oldValue);
+            if (isFunction(result)) {
+                cleanupTask = result;
+            }
+        };
+        const observer = new ExpressionObserver(Scope.create(obj), this.oL, this._parser.parse(expression, 'IsProperty'), handleChange);
+        const run = () => {
+            if (running)
+                return;
+            running = true;
+            observer.run();
+        };
+        const stop = () => {
+            if (!running)
+                return;
+            running = false;
+            observer.stop();
+            cleanupTask?.();
+            cleanupTask = void 0;
+        };
+        if (options?.immediate !== false) {
             run();
         }
         return { run, stop };
@@ -2425,6 +3149,50 @@ class RunEffect {
         this.running = false;
         this.runCount = 0;
         this.stopped = false;
+        /** @internal */
+        this._cleanupTask = undefined;
+        this.run = () => {
+            if (this.stopped) {
+                throw createMappedError(225 /* ErrorNames.stopping_a_stopped_effect */);
+            }
+            if (this.running) {
+                return;
+            }
+            ++this.runCount;
+            this.running = true;
+            this.queued = false;
+            ++this.obs.version;
+            try {
+                this._cleanupTask?.call(void 0);
+                enterConnectable(this);
+                this._cleanupTask = this.fn(this);
+            }
+            finally {
+                this.obs.clear();
+                this.running = false;
+                exitConnectable(this);
+            }
+            // when doing this.fn(this), there's a chance that it has recursive effect
+            // continue to run for a certain number before bailing
+            // whenever there's a dependency change while running, this.queued will be true
+            // so we use it as an indicator to continue to run the effect
+            if (this.queued) {
+                if (this.runCount > this.maxRunCount) {
+                    this.runCount = 0;
+                    throw createMappedError(226 /* ErrorNames.effect_maximum_recursion_reached */);
+                }
+                this.run();
+            }
+            else {
+                this.runCount = 0;
+            }
+        };
+        this.stop = () => {
+            this._cleanupTask?.call(void 0);
+            this._cleanupTask = void 0;
+            this.stopped = true;
+            this.obs.clearAll();
+        };
     }
     handleChange() {
         this.queued = true;
@@ -2434,48 +3202,46 @@ class RunEffect {
         this.queued = true;
         this.run();
     }
-    run() {
-        if (this.stopped) {
-            throw createMappedError(225 /* ErrorNames.stopping_a_stopped_effect */);
-        }
-        if (this.running) {
-            return;
-        }
-        ++this.runCount;
-        this.running = true;
-        this.queued = false;
-        ++this.obs.version;
-        try {
-            enterConnectable(this);
-            this.fn(this);
-        }
-        finally {
-            this.obs.clear();
-            this.running = false;
-            exitConnectable(this);
-        }
-        // when doing this.fn(this), there's a chance that it has recursive effect
-        // continue to run for a certain number before bailing
-        // whenever there's a dependency change while running, this.queued will be true
-        // so we use it as an indicator to continue to run the effect
-        if (this.queued) {
-            if (this.runCount > this.maxRunCount) {
-                this.runCount = 0;
-                throw createMappedError(226 /* ErrorNames.effect_maximum_recursion_reached */);
-            }
-            this.run();
-        }
-        else {
-            this.runCount = 0;
-        }
-    }
-    stop() {
-        this.stopped = true;
-        this.obs.clearAll();
-    }
 }
 (() => {
     connectable(RunEffect, null);
+})();
+class ExpressionObserver {
+    constructor(scope, oL, expression, callback) {
+        this.oL = oL;
+        /** @internal */
+        this._value = void 0;
+        // see Listener binding for explanation
+        /** @internal */
+        this.boundFn = false;
+        this._scope = scope;
+        this.ast = expression;
+        this._callback = callback;
+    }
+    handleChange() {
+        this.run();
+    }
+    handleCollectionChange() {
+        this.run();
+    }
+    run() {
+        this.obs.version++;
+        const oldValue = this._value;
+        const value = astEvaluate(this.ast, this._scope, this, this);
+        this.obs.clear();
+        if (!areEqual(value, oldValue)) {
+            this._value = value;
+            this._callback.call(void 0, value, oldValue);
+        }
+    }
+    stop() {
+        this.obs.clearAll();
+        this._value = void 0;
+    }
+}
+(() => {
+    connectable(ExpressionObserver, null);
+    mixinNoopAstEvaluator(ExpressionObserver);
 })();
 
 const observable = /*@__PURE__*/ (() => {
@@ -2671,5 +3437,5 @@ function nowrap(target, context) {
 }
 /* eslint-enable */
 
-export { AccessorType, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConnectableSwitcher, DirtyCheckProperty, DirtyCheckSettings, DirtyChecker, ICoercionConfiguration, IComputedObserverLocator, IDirtyChecker, INodeObserverLocator, IObservation, IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, ProxyObservable, SetterObserver, batch, cloneIndexMap, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, nowrap, observable, subscriberCollection };
+export { AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConnectableSwitcher, DirtyCheckProperty, DirtyCheckSettings, DirtyChecker, ICoercionConfiguration, IComputedObserverLocator, IDirtyChecker, INodeObserverLocator, IObservation, IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, ProxyObservable, Scope, SetterObserver, astAssign, astBind, astEvaluate, astUnbind, batch, cloneIndexMap, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, mixinNoopAstEvaluator, nowrap, observable, subscriberCollection };
 //# sourceMappingURL=index.dev.mjs.map

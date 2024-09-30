@@ -2428,7 +2428,7 @@ class Comparison {
     constructor(e, t, n) {
         for (const i of t) {
             if (i in e) {
-                if (!isUndefined(n) && isString(n[i]) && isRegExp(e[i]) && e[i].test(n[i])) {
+                if (!isUndefined(n) && (isString(n[i]) && isRegExp(e[i]) && e[i].test(n[i]))) {
                     this[i] = n[i];
                 } else {
                     this[i] = e[i];
@@ -4321,50 +4321,51 @@ const onFixtureCreated = e => Ee.subscribe("fixture:created", (t => {
     }
 }));
 
-function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {}) {
-    const {container: u} = o;
-    u.register(...r);
-    const {platform: c, observerLocator: f} = o;
-    const d = o.doc.body.appendChild(o.createElement("div"));
-    const p = d.appendChild(o.createElement("app"));
-    const m = new i.Aurelia(u);
-    const g = typeof n === "function" ? n : n == null ? class {} : function $Ctor() {
+function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {}, u) {
+    const {container: c} = o;
+    c.register(...r);
+    const {platform: f, observerLocator: d} = o;
+    const p = o.doc.body.appendChild(o.createElement("div"));
+    const m = p.appendChild(o.createElement("app"));
+    const g = new i.Aurelia(c);
+    const b = typeof n === "function" ? n : n == null ? class {} : function $Ctor() {
         Object.setPrototypeOf(n, $Ctor.prototype);
         return n;
     };
-    const b = [ "aliases", "bindables", "capture", "containerless", "dependencies", "enhance" ];
-    if (g !== n && n != null) {
-        b.forEach((e => {
-            s.Metadata.define(i.CustomElement.getAnnotation(n, e, null), g, e);
+    const v = [ "aliases", "bindables", "capture", "containerless", "dependencies", "enhance", "strict" ];
+    if (b !== n && n != null) {
+        v.forEach((e => {
+            s.Metadata.define(i.CustomElement.getAnnotation(n, e, null), b, e);
         }));
     }
-    const v = i.CustomElement.isType(g) ? i.CustomElement.getDefinition(g) : {};
-    const y = i.CustomElement.define({
-        ...v,
-        name: v.name ?? "app",
+    const y = i.CustomElement.isType(b) ? i.CustomElement.getDefinition(b) : {};
+    const x = i.CustomElement.define({
+        ...y,
+        ...u,
+        name: y.name ?? "app",
         template: e
-    }, g);
-    if (u.has(y, true)) {
+    }, b);
+    if (c.has(x, true)) {
         throw new Error("Container of the context contains instance of the application root component. " + "Consider using a different class, or context as it will likely cause surprises in tests.");
     }
-    const x = u.get(y);
-    let $ = void 0;
+    const $ = c.get(x);
+    let w = void 0;
     function startFixtureApp() {
         if (a) {
             try {
-                m.app({
-                    host: p,
-                    component: x,
+                g.app({
+                    host: m,
+                    component: $,
                     ...l
                 });
-                E.startPromise = $ = m.start();
+                S.startPromise = w = g.start();
             } catch (e) {
                 try {
                     const dispose = () => {
-                        d.remove();
-                        m.dispose();
+                        p.remove();
+                        g.dispose();
                     };
-                    const e = m.stop();
+                    const e = g.stop();
                     if (e instanceof Promise) void e.then(dispose); else dispose();
                 } catch {
                     console.warn("(!) corrupted fixture state, should isolate the failing test and restart the run" + "as it is likely that this failing fixture creation will pollute others.");
@@ -4373,9 +4374,9 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
             }
         }
     }
-    let w = 0;
+    let k = 0;
     const getBy = e => {
-        const t = p.querySelectorAll(e);
+        const t = m.querySelectorAll(e);
         if (t.length > 1) {
             throw new Error(`There is more than 1 element with selector "${e}": ${t.length} found`);
         }
@@ -4385,17 +4386,17 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         return t[0];
     };
     function getAllBy(e) {
-        return Array.from(p.querySelectorAll(e));
+        return Array.from(m.querySelectorAll(e));
     }
     function queryBy(e) {
-        const t = p.querySelectorAll(e);
+        const t = m.querySelectorAll(e);
         if (t.length > 1) {
             throw new Error(`There is more than 1 element with selector "${e}": ${t.length} found`);
         }
         return t.length === 0 ? null : t[0];
     }
     function strictQueryBy(e, t = "") {
-        const n = p.querySelectorAll(e);
+        const n = m.querySelectorAll(e);
         if (n.length > 1) {
             throw new Error(`There is more than 1 element with selector "${e}": ${n.length} found${t ? ` ${t}` : ""}`);
         }
@@ -4408,7 +4409,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         let i;
         let r;
         if (arguments.length === 1) {
-            ye.strictEqual(getVisibleText(p, false), e);
+            ye.strictEqual(getVisibleText(m, false), e);
             return;
         }
         if (t == null) {
@@ -4417,7 +4418,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         if (typeof t !== "string") {
             i = e;
             r = t;
-            ye.strictEqual(getVisibleText(p, r?.compact), i);
+            ye.strictEqual(getVisibleText(m, r?.compact), i);
             return;
         }
         const a = strictQueryBy(e, `to compare text content against "${t}`);
@@ -4432,7 +4433,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
             }
             ye.includes(getVisibleText(n), t);
         } else {
-            ye.includes(getVisibleText(p), e);
+            ye.includes(getVisibleText(m), e);
         }
     }
     function getInnerHtml(e, t) {
@@ -4446,7 +4447,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         let i;
         let r;
         if (arguments.length === 1) {
-            ye.strictEqual(getInnerHtml(p), e);
+            ye.strictEqual(getInnerHtml(m), e);
             return;
         }
         if (t == null) {
@@ -4455,7 +4456,7 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         if (typeof t !== "string") {
             i = e;
             r = t;
-            ye.strictEqual(getInnerHtml(p, r?.compact), i);
+            ye.strictEqual(getInnerHtml(m, r?.compact), i);
             return;
         }
         const a = strictQueryBy(e, `to compare innerHTML against "${t}`);
@@ -4524,14 +4525,16 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
             throw new Error(`No <input>/<textarea> element found for selector "${e}" to emulate input for "${t}"`);
         }
         n.value = t;
-        n.dispatchEvent(new c.window.Event("input"));
+        n.dispatchEvent(new f.window.Event("input", {
+            bubbles: true
+        }));
     }
     const scrollBy = (e, t) => {
         const n = strictQueryBy(e, `to scroll by "${JSON.stringify(t)}"`);
         n.scrollBy(typeof t === "number" ? {
             top: t
         } : t);
-        n.dispatchEvent(new c.window.Event("scroll"));
+        n.dispatchEvent(new f.window.Event("scroll"));
     };
     const flush = e => {
         o.platform.domQueue.flush(e);
@@ -4539,15 +4542,15 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
     const stop = (e = false) => {
         let t = void 0;
         try {
-            t = m.stop(e);
+            t = g.stop(e);
         } finally {
             if (e) {
-                if (++w > 1) {
+                if (++k > 1) {
                     console.log("(!) Fixture has already been torn down");
                 } else {
                     const $dispose = () => {
-                        d.remove();
-                        m.dispose();
+                        p.remove();
+                        g.dispose();
                     };
                     if (t instanceof Promise) {
                         t = t.then($dispose);
@@ -4559,19 +4562,19 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
         }
         return t;
     };
-    let k;
-    const E = new class Results {
+    let E;
+    const S = new class Results {
         constructor() {
-            this.startPromise = $;
+            this.startPromise = w;
             this.ctx = o;
-            this.container = u;
-            this.platform = c;
-            this.testHost = d;
-            this.appHost = p;
-            this.au = m;
-            this.component = x;
-            this.observerLocator = f;
-            this.logger = u.get(t.ILogger);
+            this.container = c;
+            this.platform = f;
+            this.testHost = p;
+            this.appHost = m;
+            this.au = g;
+            this.component = $;
+            this.observerLocator = d;
+            this.logger = c.get(t.ILogger);
             this.hJsx = hJsx.bind(o.doc);
             this.stop = stop;
             this.getBy = getBy;
@@ -4586,39 +4589,39 @@ function createFixture(e, n, r = [], a = true, o = TestContext.create(), l = {})
             this.assertStyles = assertStyles;
             this.assertValue = assertValue;
             this.assertChecked = assertChecked;
-            this.createEvent = (e, t) => new c.CustomEvent(e, t);
+            this.createEvent = (e, t) => new f.CustomEvent(e, t);
             this.trigger = trigger;
             this.type = type;
             this.scrollBy = scrollBy;
             this.flush = flush;
         }
         start() {
-            return (k ??= m.app({
-                host: p,
-                component: x
+            return (E ??= g.app({
+                host: m,
+                component: $
             })).start();
         }
         tearDown() {
             return stop(true);
         }
         get torn() {
-            return w > 0;
+            return k > 0;
         }
         get started() {
-            if ($ instanceof Promise) {
-                return Promise.resolve($).then((() => this));
+            if (w instanceof Promise) {
+                return Promise.resolve(w).then((() => this));
             }
             return Promise.resolve(this);
         }
         printHtml() {
-            const e = p.innerHTML;
+            const e = m.innerHTML;
             console.log(e);
             return e;
         }
     };
-    Ee.publish("fixture:created", E);
+    Ee.publish("fixture:created", S);
     startFixtureApp();
-    return E;
+    return S;
 }
 
 class FixtureBuilder {
@@ -4627,12 +4630,13 @@ class FixtureBuilder {
         this.h = t;
         return this;
     }
-    component(e) {
+    component(e, t) {
         this.$ = e;
+        this.C = t;
         return this;
     }
     deps(...e) {
-        this.C = e;
+        this.O = e;
         return this;
     }
     config(e) {
@@ -4643,7 +4647,7 @@ class FixtureBuilder {
         if (this.u === void 0) {
             throw new Error("Builder is not ready, missing template, call .html()/.html`` first");
         }
-        return createFixture(typeof this.u === "string" ? this.u : brokenProcessFastTemplate(this.u, ...this.h ?? []), this.$, this.C);
+        return createFixture(typeof this.u === "string" ? this.u : brokenProcessFastTemplate(this.u, ...this.h ?? []), this.$, this.O, void 0, void 0, this.cf, this.C);
     }
 }
 
@@ -4863,19 +4867,19 @@ class MockTracingExpression {
     }
     evaluate(...e) {
         this.trace("evaluate", ...e);
-        return i.astEvaluate(this.inner, ...e);
+        return n.astEvaluate(this.inner, ...e);
     }
     assign(...e) {
         this.trace("assign", ...e);
-        return i.astAssign(this.inner, ...e);
+        return n.astAssign(this.inner, ...e);
     }
     bind(...e) {
         this.trace("bind", ...e);
-        i.astBind(this.inner, ...e);
+        n.astBind(this.inner, ...e);
     }
     unbind(...e) {
         this.trace("unbind", ...e);
-        i.astUnbind(this.inner, ...e);
+        n.astUnbind(this.inner, ...e);
     }
     accept(...e) {
         this.trace("accept", ...e);
@@ -5032,25 +5036,25 @@ class MockBrowserHistoryLocation {
 
 class ChangeSet {
     get newValue() {
-        return this.O;
+        return this.q;
     }
     get oldValue() {
         return this.ov;
     }
     constructor(e, t, n) {
         this.index = e;
-        this.O = t;
+        this.q = t;
         this.ov = n;
     }
     dispose() {
-        this.O = void 0;
+        this.q = void 0;
         this.ov = void 0;
     }
 }
 
 class ProxyChangeSet {
     get newValue() {
-        return this.O;
+        return this.q;
     }
     get oldValue() {
         return this.ov;
@@ -5058,87 +5062,87 @@ class ProxyChangeSet {
     constructor(e, t, n, i) {
         this.index = e;
         this.key = t;
-        this.O = n;
+        this.q = n;
         this.ov = i;
     }
     dispose() {
-        this.O = void 0;
+        this.q = void 0;
         this.ov = void 0;
     }
 }
 
 class CollectionChangeSet {
     get indexMap() {
-        return this.q;
+        return this.j;
     }
     constructor(e, t) {
         this.index = e;
-        this.q = t;
+        this.j = t;
     }
     dispose() {
-        this.q = void 0;
+        this.j = void 0;
     }
 }
 
 class SpySubscriber {
     get changes() {
-        if (this.j === void 0) {
-            return [];
-        }
-        return this.j;
-    }
-    get collectionChanges() {
         if (this.A === void 0) {
             return [];
         }
         return this.A;
     }
+    get collectionChanges() {
+        if (this.T === void 0) {
+            return [];
+        }
+        return this.T;
+    }
     get hasChanges() {
-        return this.j !== void 0;
-    }
-    get hasProxyChanges() {
-        return this.T !== void 0;
-    }
-    get hasCollectionChanges() {
         return this.A !== void 0;
     }
+    get hasProxyChanges() {
+        return this.F !== void 0;
+    }
+    get hasCollectionChanges() {
+        return this.T !== void 0;
+    }
     get callCount() {
-        return this.F;
+        return this.I;
     }
     constructor() {
-        this.j = void 0;
-        this.T = void 0;
         this.A = void 0;
-        this.F = 0;
+        this.F = void 0;
+        this.T = void 0;
+        this.I = 0;
     }
     handleChange(e, t) {
-        if (this.j === void 0) {
-            this.j = [ new ChangeSet(this.F++, e, t) ];
+        if (this.A === void 0) {
+            this.A = [ new ChangeSet(this.I++, e, t) ];
         } else {
-            this.j.push(new ChangeSet(this.F++, e, t));
+            this.A.push(new ChangeSet(this.I++, e, t));
         }
     }
     handleCollectionChange(e, t) {
-        if (this.A === void 0) {
-            this.A = [ new CollectionChangeSet(this.F++, t) ];
+        if (this.T === void 0) {
+            this.T = [ new CollectionChangeSet(this.I++, t) ];
         } else {
-            this.A.push(new CollectionChangeSet(this.F++, t));
+            this.T.push(new CollectionChangeSet(this.I++, t));
         }
     }
     dispose() {
-        if (this.j !== void 0) {
-            this.j.forEach((e => e.dispose()));
-            this.j = void 0;
+        if (this.A !== void 0) {
+            this.A.forEach((e => e.dispose()));
+            this.A = void 0;
+        }
+        if (this.F !== void 0) {
+            this.F.forEach((e => e.dispose()));
+            this.F = void 0;
         }
         if (this.T !== void 0) {
             this.T.forEach((e => e.dispose()));
             this.T = void 0;
         }
-        if (this.A !== void 0) {
-            this.A.forEach((e => e.dispose()));
-            this.A = void 0;
-        }
-        this.F = 0;
+        this.I = 0;
     }
 }
 
@@ -5320,8 +5324,8 @@ function createObserverLocator(e) {
     return i.get(n.IObserverLocator);
 }
 
-function createScopeForTest(e = {}, t, n) {
-    return t ? i.Scope.fromParent(i.Scope.create(t), e) : i.Scope.create(e, null, n);
+function createScopeForTest(e = {}, t, i) {
+    return t ? n.Scope.fromParent(n.Scope.create(t), e) : n.Scope.create(e, null, i);
 }
 
 class Call {

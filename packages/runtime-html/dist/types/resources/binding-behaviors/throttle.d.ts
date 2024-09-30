@@ -1,4 +1,4 @@
-import { type Scope } from '../../binding/scope';
+import { type Scope } from '@aurelia/runtime';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 import { type IBinding } from '../../binding/interfaces-bindings';
 export declare class ThrottleBindingBehavior implements BindingBehaviorInstance {

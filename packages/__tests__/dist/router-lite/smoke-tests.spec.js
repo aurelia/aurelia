@@ -12254,5 +12254,199 @@ describe('router-lite/smoke-tests.spec.ts', function () {
             }
         }
     });
+    it('allows dot in route parameter value - required', async function () {
+        let CeOne = (() => {
+            let _classDecorators = [customElement({ name: 'c-1', template: 'c1 ${id}' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var CeOne = _classThis = class {
+                loading(params, _next, _current) {
+                    this.id = params.id;
+                }
+            };
+            __setFunctionName(_classThis, "CeOne");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                CeOne = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return CeOne = _classThis;
+        })();
+        let Root = (() => {
+            let _classDecorators = [route({
+                    routes: [
+                        { id: 'c1', path: 'c1/:id', component: CeOne }
+                    ]
+                }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var Root = _classThis = class {
+            };
+            __setFunctionName(_classThis, "Root");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                Root = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return Root = _classThis;
+        })();
+        const { container, host, au } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        await router.load('c1/foo.txt');
+        assert.html.textContent(host, 'c1 foo.txt');
+        await au.stop(true);
+    });
+    it('allows dot in route parameter value - optional', async function () {
+        let CeOne = (() => {
+            let _classDecorators = [customElement({ name: 'c-1', template: 'c1 ${id}' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var CeOne = _classThis = class {
+                loading(params, _next, _current) {
+                    this.id = params.id;
+                }
+            };
+            __setFunctionName(_classThis, "CeOne");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                CeOne = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return CeOne = _classThis;
+        })();
+        let Root = (() => {
+            let _classDecorators = [route({
+                    routes: [
+                        { id: 'c1', path: 'c1/:id?', component: CeOne }
+                    ]
+                }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var Root = _classThis = class {
+            };
+            __setFunctionName(_classThis, "Root");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                Root = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return Root = _classThis;
+        })();
+        const { container, host, au } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        await router.load('c1/foo.txt');
+        assert.html.textContent(host, 'c1 foo.txt');
+        await au.stop(true);
+    });
+    it('allows dot in route parameter value - catch-all', async function () {
+        let CeOne = (() => {
+            let _classDecorators = [customElement({ name: 'c-1', template: 'c1 ${id}' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var CeOne = _classThis = class {
+                loading(params, _next, _current) {
+                    this.id = params.id;
+                }
+            };
+            __setFunctionName(_classThis, "CeOne");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                CeOne = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return CeOne = _classThis;
+        })();
+        let Root = (() => {
+            let _classDecorators = [route({
+                    routes: [
+                        { id: 'c1', path: 'c1/*id', component: CeOne }
+                    ]
+                }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var Root = _classThis = class {
+            };
+            __setFunctionName(_classThis, "Root");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                Root = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return Root = _classThis;
+        })();
+        const { container, host, au } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        await router.load('c1/foo.txt');
+        assert.html.textContent(host, 'c1 foo.txt', 'round#1');
+        await router.load('c1/foo/bar.txt');
+        assert.html.textContent(host, 'c1 foo/bar.txt', 'round#2');
+        await au.stop(true);
+    });
+    it('allows dot in route', async function () {
+        let CeOne = (() => {
+            let _classDecorators = [customElement({ name: 'c-1', template: 'c1 ${id}' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var CeOne = _classThis = class {
+                loading(params, _next, _current) {
+                    this.id = params.id;
+                }
+            };
+            __setFunctionName(_classThis, "CeOne");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                CeOne = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return CeOne = _classThis;
+        })();
+        let Root = (() => {
+            let _classDecorators = [route({
+                    routes: [
+                        { id: 'c1', path: 'c.1/:id', component: CeOne }
+                    ]
+                }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var Root = _classThis = class {
+            };
+            __setFunctionName(_classThis, "Root");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                Root = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return Root = _classThis;
+        })();
+        const { container, host, au } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        await router.load('c.1/foo');
+        assert.html.textContent(host, 'c1 foo');
+        await au.stop(true);
+    });
 });
 //# sourceMappingURL=smoke-tests.spec.js.map

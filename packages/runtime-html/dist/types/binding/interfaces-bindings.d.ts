@@ -1,7 +1,7 @@
-import { IDisposable, IServiceLocator } from '@aurelia/kernel';
-import { State } from '../templating/controller';
-import { type Scope } from './scope';
 import { TaskQueue } from '@aurelia/platform';
+import { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { type Scope } from '@aurelia/runtime';
+import { State } from '../templating/controller';
 export { BindingMode } from '@aurelia/template-compiler';
 export interface IBindingController {
     readonly state: State;

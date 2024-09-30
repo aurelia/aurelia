@@ -1,7 +1,5 @@
 import { type IServiceLocator } from '@aurelia/kernel';
-import { type IObserverLocator, IObserverLocatorBasedConnectable, ISubscriber, ICollectionSubscriber } from '@aurelia/runtime';
-import { type Scope } from './scope';
-import { IAstEvaluator } from '../ast.eval';
+import { type IObserverLocator, IObserverLocatorBasedConnectable, ISubscriber, ICollectionSubscriber, type IAstEvaluator, type Scope } from '@aurelia/runtime';
 import type { TaskQueue } from '@aurelia/platform';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
@@ -15,10 +13,11 @@ export declare class AttributeBinding implements IBinding, ISubscriber, ICollect
     targetAttribute: string;
     targetProperty: string;
     mode: BindingMode;
+    strict: boolean;
     isBound: boolean;
     target: HTMLElement;
     ast: IsBindingBehavior | ForOfStatement;
-    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: IsBindingBehavior | ForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode);
+    constructor(controller: IBindingController, locator: IServiceLocator, observerLocator: IObserverLocator, taskQueue: TaskQueue, ast: IsBindingBehavior | ForOfStatement, target: INode, targetAttribute: string, targetProperty: string, mode: BindingMode, strict: boolean);
     updateTarget(value: unknown): void;
     handleChange(): void;
     handleCollectionChange(): void;

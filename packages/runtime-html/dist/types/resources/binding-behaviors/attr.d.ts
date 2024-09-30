@@ -1,5 +1,5 @@
+import { type Scope } from '@aurelia/runtime';
 import { IBinding } from '../../binding/interfaces-bindings';
-import { type Scope } from '../../binding/scope';
 import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 export declare class AttrBindingBehavior implements BindingBehaviorInstance {
     static readonly $au: BindingBehaviorStaticAuDefinition;

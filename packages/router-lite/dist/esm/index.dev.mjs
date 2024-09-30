@@ -1012,12 +1012,12 @@ function createNavigationInstruction(routeable) {
 // These symbols are basically the minimum necessary terminals.
 // const viewportTerminal = ['?', '#', '/', '+', ')', '!'];
 // const actionTerminal = [...componentTerminal, '@', '('];
-// const componentTerminal = [...actionTerminal, '.'];
+// const componentTerminal = [...actionTerminal];
 // const paramTerminal = ['=', ',', ')'];
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
 // so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
-const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 /** @internal */
 class ParserState {
     get _done() {

@@ -1,7 +1,7 @@
 import { Key } from '@aurelia/kernel';
-import { type ISignaler, type IRateLimitOptions, type IBinding, type Scope } from '@aurelia/runtime-html';
+import { type Scope, type IndexMap, type IObserverLocator, type Collection, type ISubscribable, type ICollectionSubscribable, type IObserverLocatorBasedConnectable, type IObserverRecord } from '@aurelia/runtime';
+import { type ISignaler, type IRateLimitOptions, type IBinding } from '@aurelia/runtime-html';
 import type { IContainer, IDisposable, IIndexable, IServiceLocator } from '@aurelia/kernel';
-import type { IndexMap, IObserverLocator, Collection, ISubscribable, ICollectionSubscribable, IObserverLocatorBasedConnectable, IObserverRecord } from '@aurelia/runtime';
 export declare class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
     observerSlots: number;
     version: number;

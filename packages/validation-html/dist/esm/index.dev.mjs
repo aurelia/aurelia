@@ -1,8 +1,8 @@
 import { DI, resolve, IServiceLocator, optional, IContainer, Registration, noop } from '@aurelia/kernel';
 import { IValidator, parsePropertyName, ValidationResult, ValidateInstruction, PropertyRule, getDefaultValidationConfiguration, ValidationConfiguration } from '@aurelia/validation';
-import { astEvaluate, IPlatform, INode, bindable, CustomAttribute, BindingMode, BindingBehavior, mixinAstEvaluator, PropertyBinding, IFlushQueue, BindingTargetSubscriber, CustomElement } from '@aurelia/runtime-html';
+import { IPlatform, INode, bindable, CustomAttribute, BindingMode, BindingBehavior, PropertyBinding, IFlushQueue, BindingTargetSubscriber, CustomElement } from '@aurelia/runtime-html';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { connectable, IObserverLocator } from '@aurelia/runtime';
+import { astEvaluate, connectable, mixinNoopAstEvaluator, IObserverLocator } from '@aurelia/runtime';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -876,7 +876,7 @@ class ValidationConnector {
     }
 }
 connectable(ValidationConnector, null);
-mixinAstEvaluator(true)(ValidationConnector);
+mixinNoopAstEvaluator(ValidationConnector);
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
     constructor(_validationSubscriber, binding, flushQueue) {
         super(binding, flushQueue);
@@ -906,7 +906,7 @@ class BindingMediator {
     }
 }
 connectable(BindingMediator, null);
-mixinAstEvaluator(true)(BindingMediator);
+mixinNoopAstEvaluator(BindingMediator);
 
 function getDefaultValidationHtmlConfiguration() {
     return {

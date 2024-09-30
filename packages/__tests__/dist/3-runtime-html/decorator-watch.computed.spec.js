@@ -97,6 +97,24 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
             /AUR0773/);
         });
     }
+    it('throws on @watch usage on static method', function () {
+        assert.throws(() => (() => {
+            var _a;
+            let _staticExtraInitializers = [];
+            let _static_method_decorators;
+            return _a = class App {
+                    static method() { }
+                },
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _static_method_decorators = [watch('')];
+                    __esDecorate(_a, null, _static_method_decorators, { kind: "method", name: "method", static: true, private: false, access: { has: obj => "method" in obj, get: obj => obj.method }, metadata: _metadata }, null, _staticExtraInitializers);
+                    if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_a, _staticExtraInitializers);
+                })(),
+                _a;
+        })(), /AUR0774/);
+    });
     it('works in basic scenario', function () {
         let callCount = 0;
         let App = (() => {
@@ -1694,5 +1712,43 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     function json(d) {
         return JSON.stringify(d);
     }
+    it('initialises once for each instance', function () {
+        const logs = [];
+        let MyButton = (() => {
+            let _classDecorators = [customElement({
+                    name: 'my-button',
+                    template: '<button click.trigger="count++">Count: ${count}</button>'
+                })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _instanceExtraInitializers = [];
+            let _logCountChanged_decorators;
+            var MyButton = _classThis = class {
+                constructor() {
+                    this.count = (__runInitializers(this, _instanceExtraInitializers), 0);
+                }
+                logCountChanged() {
+                    logs.push(this.count);
+                }
+            };
+            __setFunctionName(_classThis, "MyButton");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _logCountChanged_decorators = [watch('count')];
+                __esDecorate(_classThis, null, _logCountChanged_decorators, { kind: "method", name: "logCountChanged", static: false, private: false, access: { has: obj => "logCountChanged" in obj, get: obj => obj.logCountChanged }, metadata: _metadata }, null, _instanceExtraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                MyButton = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return MyButton = _classThis;
+        })();
+        const { getAllBy } = createFixture('<my-button repeat.for="i of 3">', {}, [MyButton]);
+        const buttons = getAllBy('button');
+        assert.strictEqual(buttons.length, 3);
+        buttons.forEach(button => button.click());
+        assert.deepStrictEqual(logs, [1, 1, 1]);
+    });
 });
 //# sourceMappingURL=decorator-watch.computed.spec.js.map

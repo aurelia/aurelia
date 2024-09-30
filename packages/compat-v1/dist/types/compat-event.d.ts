@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
-import { type IAstEvaluator, type IBinding, type Scope } from '@aurelia/runtime-html';
+import { IObserverLocatorBasedConnectable, type IAstEvaluator, type Scope } from '@aurelia/runtime';
+import { type IBinding } from '@aurelia/runtime-html';
 import { type BindingCommandInstance, type ICommandBuildInfo, type IInstruction, type BindingCommandStaticAuDefinition } from '@aurelia/template-compiler';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';

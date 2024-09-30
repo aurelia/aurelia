@@ -2,13 +2,43 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var expressionParser = require('@aurelia/expression-parser');
 var kernel = require('@aurelia/kernel');
-var runtime = require('@aurelia/runtime');
 var templateCompiler = require('@aurelia/template-compiler');
 var metadata = require('@aurelia/metadata');
+var runtime = require('@aurelia/runtime');
 var platformBrowser = require('@aurelia/platform-browser');
+var expressionParser = require('@aurelia/expression-parser');
 var platform = require('@aurelia/platform');
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol */
+
+
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+/** @internal */ const { default: defaultMode, oneTime, toView, fromView, twoWay } = templateCompiler.BindingMode;
+
+/** @internal */ const getMetadata = metadata.Metadata.get;
+/** @internal */ const hasMetadata = metadata.Metadata.has;
+/** @internal */ const defineMetadata = metadata.Metadata.define;
+const { annotation } = kernel.Protocol;
+/** @internal */ const getAnnotationKeyFor = annotation.keyFor;
 
 const O = Object;
 /** @internal */ const safeString = String;
@@ -84,6 +114,9 @@ const errorsMap = {
     [111 /* ErrorNames.ast_name_is_not_a_function */]: `Ast eval error: expected "{{0}}" to be a function`,
     [112 /* ErrorNames.ast_destruct_null */]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
     [113 /* ErrorNames.ast_increment_infinite_loop */]: `Ast eval error: infinite loop detected. Increment operators should only be used in event handlers.`,
+    [114 /* ErrorNames.ast_nullish_member_access */]: `Ast eval error: cannot access property "{{0}}" of {{1}}.`,
+    [115 /* ErrorNames.ast_nullish_keyed_access */]: `Ast eval error: cannot access key "{{0}}" of {{1}}.`,
+    [116 /* ErrorNames.ast_nullish_assignment */]: `Ast eval error: cannot assign value to property "{{0}}" of null/undefined.`,
     [151 /* ErrorNames.binding_behavior_def_not_found */]: `No binding behavior definition found for type {{0:name}}`,
     [152 /* ErrorNames.value_converter_def_not_found */]: `No value converter definition found for type {{0:name}}`,
     [153 /* ErrorNames.element_existed */]: `Element "{{0}}" has already been registered.`,
@@ -249,786 +282,6 @@ function getBindingCommandHelp(name) {
             return '';
     }
 }
-
-class Scope {
-    constructor(parent, bindingContext, overrideContext, isBoundary) {
-        this.parent = parent;
-        this.bindingContext = bindingContext;
-        this.overrideContext = overrideContext;
-        this.isBoundary = isBoundary;
-    }
-    static getContext(scope, name, ancestor) {
-        if (scope == null) {
-            throw createMappedError(203 /* ErrorNames.null_scope */);
-        }
-        let overrideContext = scope.overrideContext;
-        let currentScope = scope;
-        if (ancestor > 0) {
-            // jump up the required number of ancestor contexts (eg $parent.$parent requires two jumps)
-            while (ancestor > 0) {
-                ancestor--;
-                currentScope = currentScope.parent;
-                if (currentScope == null) {
-                    return void 0;
-                }
-            }
-            overrideContext = currentScope.overrideContext;
-            // Here we are giving benefit of doubt considering the dev has used one or more `$parent` token, and thus should know what s/he is targeting.
-            return name in overrideContext ? overrideContext : currentScope.bindingContext;
-        }
-        // walk the scope hierarchy until
-        // the first scope that has the property in its contexts
-        // or
-        // the closet boundary scope
-        // -------------------------
-        // this behavior is different with v1
-        // where it would fallback to the immediate scope instead of the root one
-        // TODO: maybe avoid immediate loop and return earlier
-        // -------------------------
-        while (currentScope != null
-            && !currentScope.isBoundary
-            && !(name in currentScope.overrideContext)
-            && !(name in currentScope.bindingContext)) {
-            currentScope = currentScope.parent;
-        }
-        if (currentScope == null) {
-            return scope.bindingContext;
-        }
-        overrideContext = currentScope.overrideContext;
-        return name in overrideContext ? overrideContext : currentScope.bindingContext;
-    }
-    static create(bc, oc, isBoundary) {
-        if (bc == null) {
-            throw createMappedError(204 /* ErrorNames.create_scope_with_null_context */);
-        }
-        return new Scope(null, bc, oc ?? new OverrideContext(), isBoundary ?? false);
-    }
-    static fromParent(ps, bc, oc = new OverrideContext()) {
-        if (ps == null) {
-            throw createMappedError(203 /* ErrorNames.null_scope */);
-        }
-        return new Scope(ps, bc, oc, false);
-    }
-}
-/**
- * A class for creating context in synthetic scope to keep the number of classes of context in scope small
- */
-class BindingContext {
-    constructor(key, value) {
-        if (key !== void 0) {
-            this[key] = value;
-        }
-    }
-}
-class OverrideContext {
-}
-
-/* eslint-disable no-fallthrough */
-const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
-    const ekAccessThis = 'AccessThis';
-    const ekAccessBoundary = 'AccessBoundary';
-    const ekAccessGlobal = 'AccessGlobal';
-    const ekAccessScope = 'AccessScope';
-    const ekArrayLiteral = 'ArrayLiteral';
-    const ekObjectLiteral = 'ObjectLiteral';
-    const ekPrimitiveLiteral = 'PrimitiveLiteral';
-    const ekTemplate = 'Template';
-    const ekUnary = 'Unary';
-    const ekCallScope = 'CallScope';
-    const ekCallMember = 'CallMember';
-    const ekCallFunction = 'CallFunction';
-    const ekCallGlobal = 'CallGlobal';
-    const ekAccessMember = 'AccessMember';
-    const ekAccessKeyed = 'AccessKeyed';
-    const ekTaggedTemplate = 'TaggedTemplate';
-    const ekBinary = 'Binary';
-    const ekConditional = 'Conditional';
-    const ekAssign = 'Assign';
-    const ekArrowFunction = 'ArrowFunction';
-    const ekValueConverter = 'ValueConverter';
-    const ekBindingBehavior = 'BindingBehavior';
-    const ekArrayBindingPattern = 'ArrayBindingPattern';
-    const ekObjectBindingPattern = 'ObjectBindingPattern';
-    const ekBindingIdentifier = 'BindingIdentifier';
-    const ekForOfStatement = 'ForOfStatement';
-    const ekInterpolation = 'Interpolation';
-    const ekArrayDestructuring = 'ArrayDestructuring';
-    const ekObjectDestructuring = 'ObjectDestructuring';
-    const ekDestructuringAssignmentLeaf = 'DestructuringAssignmentLeaf';
-    const ekCustom = 'Custom';
-    const getContext = Scope.getContext;
-    // eslint-disable-next-line max-lines-per-function
-    function astEvaluate(ast, s, e, c) {
-        switch (ast.$kind) {
-            case ekAccessThis: {
-                let oc = s.overrideContext;
-                let currentScope = s;
-                let i = ast.ancestor;
-                while (i-- && oc) {
-                    currentScope = currentScope.parent;
-                    oc = currentScope?.overrideContext ?? null;
-                }
-                return i < 1 && currentScope ? currentScope.bindingContext : void 0;
-            }
-            case ekAccessBoundary: {
-                let currentScope = s;
-                while (currentScope != null
-                    && !currentScope.isBoundary) {
-                    currentScope = currentScope.parent;
-                }
-                return currentScope ? currentScope.bindingContext : void 0;
-            }
-            case ekAccessScope: {
-                const obj = getContext(s, ast.name, ast.ancestor);
-                if (c !== null) {
-                    c.observe(obj, ast.name);
-                }
-                const evaluatedValue = obj[ast.name];
-                if (evaluatedValue == null && ast.name === '$host') {
-                    throw createMappedError(105 /* ErrorNames.ast_$host_not_found */);
-                }
-                if (e?.strict) {
-                    // return evaluatedValue;
-                    return e?.boundFn && kernel.isFunction(evaluatedValue)
-                        ? evaluatedValue.bind(obj)
-                        : evaluatedValue;
-                }
-                return evaluatedValue == null
-                    ? ''
-                    : e?.boundFn && kernel.isFunction(evaluatedValue)
-                        ? evaluatedValue.bind(obj)
-                        : evaluatedValue;
-            }
-            case ekAccessGlobal:
-                return globalThis[ast.name];
-            case ekCallGlobal: {
-                const func = globalThis[ast.name];
-                if (kernel.isFunction(func)) {
-                    return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
-                }
-                /* istanbul-ignore-next */
-                if (!e?.strictFnCall && func == null) {
-                    return void 0;
-                }
-                throw createMappedError(107 /* ErrorNames.ast_not_a_function */);
-            }
-            case ekArrayLiteral:
-                return ast.elements.map(expr => astEvaluate(expr, s, e, c));
-            case ekObjectLiteral: {
-                const instance = {};
-                for (let i = 0; i < ast.keys.length; ++i) {
-                    instance[ast.keys[i]] = astEvaluate(ast.values[i], s, e, c);
-                }
-                return instance;
-            }
-            case ekPrimitiveLiteral:
-                return ast.value;
-            case ekTemplate: {
-                let result = ast.cooked[0];
-                for (let i = 0; i < ast.expressions.length; ++i) {
-                    result += String(astEvaluate(ast.expressions[i], s, e, c));
-                    result += ast.cooked[i + 1];
-                }
-                return result;
-            }
-            case ekUnary: {
-                const value = astEvaluate(ast.expression, s, e, c);
-                switch (ast.operation) {
-                    case 'void':
-                        return void value;
-                    case 'typeof':
-                        return typeof value;
-                    case '!':
-                        return !value;
-                    case '-':
-                        return -value;
-                    case '+':
-                        return +value;
-                    case '--':
-                        if (c != null)
-                            throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
-                        return astAssign(ast.expression, s, e, value - 1) + ast.pos;
-                    case '++':
-                        if (c != null)
-                            throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
-                        return astAssign(ast.expression, s, e, value + 1) - ast.pos;
-                    default:
-                        throw createMappedError(109 /* ErrorNames.ast_unknown_unary_operator */, ast.operation);
-                }
-            }
-            case ekCallScope: {
-                const args = ast.args.map(a => astEvaluate(a, s, e, c));
-                const context = getContext(s, ast.name, ast.ancestor);
-                // ideally, should observe property represents by ast.name as well
-                // because it could be changed
-                // todo: did it ever surprise anyone?
-                const func = getFunction(e?.strictFnCall, context, ast.name);
-                if (func) {
-                    return func.apply(context, args);
-                }
-                return void 0;
-            }
-            case ekCallMember: {
-                const instance = astEvaluate(ast.object, s, e, c);
-                const args = ast.args.map(a => astEvaluate(a, s, e, c));
-                const func = getFunction(e?.strictFnCall, instance, ast.name);
-                let ret;
-                if (func) {
-                    ret = func.apply(instance, args);
-                    // todo(doc): investigate & document in engineering doc the difference
-                    //            between observing before/after func.apply
-                    if (kernel.isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
-                        c?.observeCollection(instance);
-                    }
-                }
-                return ret;
-            }
-            case ekCallFunction: {
-                const func = astEvaluate(ast.func, s, e, c);
-                if (kernel.isFunction(func)) {
-                    return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
-                }
-                if (!e?.strictFnCall && func == null) {
-                    return void 0;
-                }
-                throw createMappedError(107 /* ErrorNames.ast_not_a_function */);
-            }
-            case ekArrowFunction: {
-                const func = (...args) => {
-                    const params = ast.args;
-                    const rest = ast.rest;
-                    const lastIdx = params.length - 1;
-                    const context = params.reduce((map, param, i) => {
-                        if (rest && i === lastIdx) {
-                            map[param.name] = args.slice(i);
-                        }
-                        else {
-                            map[param.name] = args[i];
-                        }
-                        return map;
-                    }, {});
-                    const functionScope = Scope.fromParent(s, context);
-                    return astEvaluate(ast.body, functionScope, e, c);
-                };
-                return func;
-            }
-            case ekAccessMember: {
-                const instance = astEvaluate(ast.object, s, e, c);
-                let ret;
-                if (e?.strict) {
-                    if (instance == null) {
-                        return undefined;
-                    }
-                    if (c !== null && !ast.accessGlobal) {
-                        c.observe(instance, ast.name);
-                    }
-                    ret = instance[ast.name];
-                    if (e?.boundFn && kernel.isFunction(ret)) {
-                        return ret.bind(instance);
-                    }
-                    return ret;
-                }
-                if (c !== null && kernel.isObject(instance) && !ast.accessGlobal) {
-                    c.observe(instance, ast.name);
-                }
-                if (instance) {
-                    ret = instance[ast.name];
-                    if (e?.boundFn && kernel.isFunction(ret)) {
-                        return ret.bind(instance);
-                    }
-                    return ret;
-                }
-                return '';
-            }
-            case ekAccessKeyed: {
-                const instance = astEvaluate(ast.object, s, e, c);
-                const key = astEvaluate(ast.key, s, e, c);
-                if (kernel.isObject(instance)) {
-                    if (c !== null && !ast.accessGlobal) {
-                        c.observe(instance, key);
-                    }
-                    return instance[key];
-                }
-                return instance == null
-                    ? void 0
-                    : instance[key];
-            }
-            case ekTaggedTemplate: {
-                const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));
-                const func = astEvaluate(ast.func, s, e, c);
-                if (!kernel.isFunction(func)) {
-                    throw createMappedError(110 /* ErrorNames.ast_tagged_not_a_function */);
-                }
-                return func(ast.cooked, ...results);
-            }
-            case ekBinary: {
-                const left = ast.left;
-                const right = ast.right;
-                switch (ast.operation) {
-                    case '&&':
-                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                        return astEvaluate(left, s, e, c) && astEvaluate(right, s, e, c);
-                    case '||':
-                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                        return astEvaluate(left, s, e, c) || astEvaluate(right, s, e, c);
-                    case '??':
-                        return astEvaluate(left, s, e, c) ?? astEvaluate(right, s, e, c);
-                    case '==':
-                        // eslint-disable-next-line eqeqeq
-                        return astEvaluate(left, s, e, c) == astEvaluate(right, s, e, c);
-                    case '===':
-                        return astEvaluate(left, s, e, c) === astEvaluate(right, s, e, c);
-                    case '!=':
-                        // eslint-disable-next-line eqeqeq
-                        return astEvaluate(left, s, e, c) != astEvaluate(right, s, e, c);
-                    case '!==':
-                        return astEvaluate(left, s, e, c) !== astEvaluate(right, s, e, c);
-                    case 'instanceof': {
-                        const $right = astEvaluate(right, s, e, c);
-                        if (kernel.isFunction($right)) {
-                            return astEvaluate(left, s, e, c) instanceof $right;
-                        }
-                        return false;
-                    }
-                    case 'in': {
-                        const $right = astEvaluate(right, s, e, c);
-                        if (kernel.isObject($right)) {
-                            return astEvaluate(left, s, e, c) in $right;
-                        }
-                        return false;
-                    }
-                    // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
-                    // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
-                    // ast makes bugs in user code easier to track down for end users
-                    // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-                    case '+': {
-                        const $left = astEvaluate(left, s, e, c);
-                        const $right = astEvaluate(right, s, e, c);
-                        if (e?.strict) {
-                            return $left + $right;
-                        }
-                        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                        if (!$left || !$right) {
-                            if (isNumberOrBigInt($left) || isNumberOrBigInt($right)) {
-                                return ($left || 0) + ($right || 0);
-                            }
-                            if (isStringOrDate($left) || isStringOrDate($right)) {
-                                return ($left || '') + ($right || '');
-                            }
-                        }
-                        return $left + $right;
-                    }
-                    case '-':
-                        return astEvaluate(left, s, e, c) - astEvaluate(right, s, e, c);
-                    case '*':
-                        return astEvaluate(left, s, e, c) * astEvaluate(right, s, e, c);
-                    case '/':
-                        return astEvaluate(left, s, e, c) / astEvaluate(right, s, e, c);
-                    case '%':
-                        return astEvaluate(left, s, e, c) % astEvaluate(right, s, e, c);
-                    case '<':
-                        return astEvaluate(left, s, e, c) < astEvaluate(right, s, e, c);
-                    case '>':
-                        return astEvaluate(left, s, e, c) > astEvaluate(right, s, e, c);
-                    case '<=':
-                        return astEvaluate(left, s, e, c) <= astEvaluate(right, s, e, c);
-                    case '>=':
-                        return astEvaluate(left, s, e, c) >= astEvaluate(right, s, e, c);
-                    default:
-                        throw createMappedError(108 /* ErrorNames.ast_unknown_binary_operator */, ast.operation);
-                }
-            }
-            case ekConditional:
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                return astEvaluate(ast.condition, s, e, c) ? astEvaluate(ast.yes, s, e, c) : astEvaluate(ast.no, s, e, c);
-            case ekAssign: {
-                let value = astEvaluate(ast.value, s, e, c);
-                if (ast.op !== '=') {
-                    if (c != null) {
-                        throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
-                    }
-                    const target = astEvaluate(ast.target, s, e, c);
-                    switch (ast.op) {
-                        case '/=':
-                            value = target / value;
-                            break;
-                        case '*=':
-                            value = target * value;
-                            break;
-                        case '+=':
-                            value = target + value;
-                            break;
-                        case '-=':
-                            value = target - value;
-                            break;
-                        default:
-                            throw createMappedError(108 /* ErrorNames.ast_unknown_binary_operator */, ast.op);
-                    }
-                }
-                return astAssign(ast.target, s, e, value);
-            }
-            case ekValueConverter: {
-                const vc = e?.getConverter?.(ast.name);
-                if (vc == null) {
-                    throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, ast.name);
-                }
-                if ('toView' in vc) {
-                    return vc.toView(astEvaluate(ast.expression, s, e, c), ...ast.args.map(a => astEvaluate(a, s, e, c)));
-                }
-                return astEvaluate(ast.expression, s, e, c);
-            }
-            case ekBindingBehavior:
-                return astEvaluate(ast.expression, s, e, c);
-            case ekBindingIdentifier:
-                return ast.name;
-            case ekForOfStatement:
-                return astEvaluate(ast.iterable, s, e, c);
-            case ekInterpolation:
-                if (ast.isMulti) {
-                    let result = ast.parts[0];
-                    let i = 0;
-                    for (; i < ast.expressions.length; ++i) {
-                        result += safeString(astEvaluate(ast.expressions[i], s, e, c));
-                        result += ast.parts[i + 1];
-                    }
-                    return result;
-                }
-                else {
-                    return `${ast.parts[0]}${astEvaluate(ast.firstExpression, s, e, c)}${ast.parts[1]}`;
-                }
-            case ekDestructuringAssignmentLeaf:
-                return astEvaluate(ast.target, s, e, c);
-            case ekArrayDestructuring: {
-                return ast.list.map(x => astEvaluate(x, s, e, c));
-            }
-            // TODO: this should come after batch
-            // as a destructuring expression like [x, y] = value
-            //
-            // should only trigger change only once:
-            // batch(() => {
-            //   object.x = value[0]
-            //   object.y = value[1]
-            // })
-            //
-            // instead of twice:
-            // object.x = value[0]
-            // object.y = value[1]
-            case ekArrayBindingPattern:
-            // TODO
-            // similar to array binding ast, this should only come after batch
-            // for a single notification per destructing,
-            // regardless number of property assignments on the scope binding context
-            case ekObjectBindingPattern:
-            case ekObjectDestructuring:
-            default:
-                return void 0;
-            case ekCustom:
-                return ast.evaluate(s, e, c);
-        }
-    }
-    function astAssign(ast, s, e, val) {
-        switch (ast.$kind) {
-            case ekAccessScope: {
-                if (ast.name === '$host') {
-                    throw createMappedError(106 /* ErrorNames.ast_no_assign_$host */);
-                }
-                const obj = getContext(s, ast.name, ast.ancestor);
-                return obj[ast.name] = val;
-            }
-            case ekAccessMember: {
-                const obj = astEvaluate(ast.object, s, e, null);
-                if (kernel.isObject(obj)) {
-                    if (ast.name === 'length' && kernel.isArray(obj) && !isNaN(val)) {
-                        obj.splice(val);
-                    }
-                    else {
-                        obj[ast.name] = val;
-                    }
-                }
-                else {
-                    astAssign(ast.object, s, e, { [ast.name]: val });
-                }
-                return val;
-            }
-            case ekAccessKeyed: {
-                const instance = astEvaluate(ast.object, s, e, null);
-                const key = astEvaluate(ast.key, s, e, null);
-                if (kernel.isArray(instance)) {
-                    if (key === 'length' && !isNaN(val)) {
-                        instance.splice(val);
-                        return val;
-                    }
-                    if (kernel.isArrayIndex(key)) {
-                        instance.splice(key, 1, val);
-                        return val;
-                    }
-                }
-                return instance[key] = val;
-            }
-            case ekAssign:
-                astAssign(ast.value, s, e, val);
-                return astAssign(ast.target, s, e, val);
-            case ekValueConverter: {
-                const vc = e?.getConverter?.(ast.name);
-                if (vc == null) {
-                    throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, ast.name);
-                }
-                if ('fromView' in vc) {
-                    val = vc.fromView(val, ...ast.args.map(a => astEvaluate(a, s, e, null)));
-                }
-                return astAssign(ast.expression, s, e, val);
-            }
-            case ekBindingBehavior:
-                return astAssign(ast.expression, s, e, val);
-            case ekArrayDestructuring:
-            case ekObjectDestructuring: {
-                const list = ast.list;
-                const len = list.length;
-                let i;
-                let item;
-                for (i = 0; i < len; i++) {
-                    item = list[i];
-                    switch (item.$kind) {
-                        case ekDestructuringAssignmentLeaf:
-                            astAssign(item, s, e, val);
-                            break;
-                        case ekArrayDestructuring:
-                        case ekObjectDestructuring: {
-                            if (typeof val !== 'object' || val === null) {
-                                throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
-                            }
-                            let source = astEvaluate(item.source, Scope.create(val), e, null);
-                            if (source === void 0 && item.initializer) {
-                                source = astEvaluate(item.initializer, s, e, null);
-                            }
-                            astAssign(item, s, e, source);
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
-            case ekDestructuringAssignmentLeaf: {
-                if (ast instanceof expressionParser.DestructuringAssignmentSingleExpression) {
-                    if (val == null) {
-                        return;
-                    }
-                    if (typeof val !== 'object') {
-                        throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
-                    }
-                    let source = astEvaluate(ast.source, Scope.create(val), e, null);
-                    if (source === void 0 && ast.initializer) {
-                        source = astEvaluate(ast.initializer, s, e, null);
-                    }
-                    astAssign(ast.target, s, e, source);
-                }
-                else {
-                    if (val == null) {
-                        return;
-                    }
-                    if (typeof val !== 'object') {
-                        throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
-                    }
-                    const indexOrProperties = ast.indexOrProperties;
-                    let restValue;
-                    if (kernel.isArrayIndex(indexOrProperties)) {
-                        if (!Array.isArray(val)) {
-                            throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
-                        }
-                        restValue = val.slice(indexOrProperties);
-                    }
-                    else {
-                        restValue = Object
-                            .entries(val)
-                            .reduce((acc, [k, v]) => {
-                            if (!indexOrProperties.includes(k)) {
-                                acc[k] = v;
-                            }
-                            return acc;
-                            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                        }, {});
-                    }
-                    astAssign(ast.target, s, e, restValue);
-                }
-                break;
-            }
-            case ekCustom:
-                return ast.assign(s, e, val);
-            default:
-                return void 0;
-        }
-    }
-    function astBind(ast, s, b) {
-        switch (ast.$kind) {
-            case ekBindingBehavior: {
-                const name = ast.name;
-                const key = ast.key;
-                const behavior = b.getBehavior?.(name);
-                if (behavior == null) {
-                    throw createMappedError(101 /* ErrorNames.ast_behavior_not_found */, name);
-                }
-                if (b[key] === void 0) {
-                    b[key] = behavior;
-                    behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null)));
-                }
-                else {
-                    throw createMappedError(102 /* ErrorNames.ast_behavior_duplicated */, name);
-                }
-                astBind(ast.expression, s, b);
-                return;
-            }
-            case ekValueConverter: {
-                const name = ast.name;
-                const vc = b.getConverter?.(name);
-                if (vc == null) {
-                    throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, name);
-                }
-                // note: the cast is expected. To connect, it just needs to be a IConnectable
-                // though to work with signal, it needs to have `handleChange`
-                // so having `handleChange` as a guard in the connectable as a safe measure is needed
-                // to make sure signaler works
-                const signals = vc.signals;
-                if (signals != null) {
-                    const signaler = b.getSignaler?.();
-                    const ii = signals.length;
-                    let i = 0;
-                    for (; i < ii; ++i) {
-                        signaler?.addSignalListener(signals[i], b);
-                    }
-                }
-                astBind(ast.expression, s, b);
-                return;
-            }
-            case ekForOfStatement: {
-                astBind(ast.iterable, s, b);
-                break;
-            }
-            case ekCustom: {
-                ast.bind?.(s, b);
-            }
-        }
-    }
-    function astUnbind(ast, s, b) {
-        switch (ast.$kind) {
-            case ekBindingBehavior: {
-                const key = ast.key;
-                const $b = b;
-                if ($b[key] !== void 0) {
-                    $b[key].unbind?.(s, b);
-                    $b[key] = void 0;
-                }
-                astUnbind(ast.expression, s, b);
-                break;
-            }
-            case ekValueConverter: {
-                const vc = b.getConverter?.(ast.name);
-                if (vc?.signals === void 0) {
-                    return;
-                }
-                const signaler = b.getSignaler?.();
-                let i = 0;
-                for (; i < vc.signals.length; ++i) {
-                    signaler?.removeSignalListener(vc.signals[i], b);
-                }
-                astUnbind(ast.expression, s, b);
-                break;
-            }
-            case ekForOfStatement: {
-                astUnbind(ast.iterable, s, b);
-                break;
-            }
-            case ekCustom: {
-                ast.unbind?.(s, b);
-            }
-        }
-    }
-    const getFunction = (mustEvaluate, obj, name) => {
-        const func = obj == null ? null : obj[name];
-        if (kernel.isFunction(func)) {
-            return func;
-        }
-        if (!mustEvaluate && func == null) {
-            return null;
-        }
-        throw createMappedError(111 /* ErrorNames.ast_name_is_not_a_function */, name);
-    };
-    /**
-     * Determines if the value passed is a number or bigint for parsing purposes
-     *
-     * @param value - Value to evaluate
-     */
-    const isNumberOrBigInt = (value) => {
-        switch (typeof value) {
-            case 'number':
-            case 'bigint':
-                return true;
-            default:
-                return false;
-        }
-    };
-    /**
-     * Determines if the value passed is a string or Date for parsing purposes
-     *
-     * @param value - Value to evaluate
-     */
-    const isStringOrDate = (value) => {
-        switch (typeof value) {
-            case 'string':
-                return true;
-            case 'object':
-                return value instanceof Date;
-            default:
-                return false;
-        }
-    };
-    const autoObserveArrayMethods = 'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');
-    // sort,      // bad supported, self mutation + unclear dependency
-    // push,      // not supported, self mutation + unclear dependency
-    // pop,       // not supported, self mutation + unclear dependency
-    // shift,     // not supported, self mutation + unclear dependency
-    // splice,    // not supported, self mutation + unclear dependency
-    // unshift,   // not supported, self mutation + unclear dependency
-    // reverse,   // not supported, self mutation + unclear dependency
-    // keys,    // not meaningful in template
-    // values,  // not meaningful in template
-    // entries, // not meaningful in template
-    return {
-        astEvaluate,
-        astAssign,
-        astBind,
-        astUnbind,
-    };
-})();
-
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
-
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
-/** @internal */ const { default: defaultMode, oneTime, toView, fromView, twoWay } = templateCompiler.BindingMode;
-
-/** @internal */ const getMetadata = metadata.Metadata.get;
-/** @internal */ const hasMetadata = metadata.Metadata.has;
-/** @internal */ const defineMetadata = metadata.Metadata.define;
-const { annotation } = kernel.Protocol;
-/** @internal */ const getAnnotationKeyFor = annotation.keyFor;
 
 function bindable(configOrPropOrTarget, context) {
     let configOrProp = void 0;
@@ -1235,7 +488,7 @@ function alias(...aliases) {
 }
 function registerAliases(aliases, resource, key, container) {
     for (let i = 0, ii = aliases.length; i < ii; ++i) {
-        kernel.Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
+        aliasRegistration(key, resource.keyFrom(aliases[i])).register(container);
     }
 }
 
@@ -1584,7 +837,7 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
                 throw createMappedError(773 /* ErrorNames.watch_invalid_change_handler */, `${safeString(changeHandlerOrCallback)}@${target.name}}`);
             }
         }
-        else if (!kernel.isFunction(target)) {
+        else if (!kernel.isFunction(target) || context.static) {
             throw createMappedError(774 /* ErrorNames.watch_non_method_decorator_usage */, context.name);
         }
         const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, (isClassDecorator ? changeHandlerOrCallback : target));
@@ -1592,8 +845,13 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
             addDefinition(target);
         }
         else {
+            // instance method decorator initializer is called for each instance
+            let added = false;
             context.addInitializer(function () {
-                addDefinition(this.constructor);
+                if (!added) {
+                    added = true;
+                    addDefinition(this.constructor);
+                }
             });
         }
         function addDefinition(type) {
@@ -2003,7 +1261,7 @@ class BindingTargetSubscriber {
     // deepscan-disable-next-line
     handleChange(value, _) {
         const b = this.b;
-        if (value !== astEvaluate(b.ast, b._scope, b, null)) {
+        if (value !== runtime.astEvaluate(b.ast, b._scope, b, null)) {
             this._value = value;
             this._flushQueue.add(this);
         }
@@ -2021,51 +1279,113 @@ const mixinUseScope = /*@__PURE__*/ (() => {
     };
 })();
 /**
- * Turns a class into AST evaluator. For internal use only
- *
- * @param strict - whether the evaluation of AST nodes will be in strict mode
+ * Turns a class into AST evaluator with support for value converter & binding behavior. For internal use only
  */
 const mixinAstEvaluator = /*@__PURE__*/ (() => {
+    class ResourceLookup {
+    }
     const converterResourceLookupCache = new WeakMap();
     const behaviorResourceLookupCache = new WeakMap();
+    const appliedBehaviors = new WeakMap();
     function evaluatorGet(key) {
         return this.l.get(key);
     }
-    function evaluatorGetSignaler() {
-        return this.l.root.get(ISignaler);
-    }
-    function evaluatorGetConverter(name) {
-        let resourceLookup = converterResourceLookupCache.get(this);
+    function evaluatorGetBehavior(b, name) {
+        let resourceLookup = behaviorResourceLookupCache.get(b);
         if (resourceLookup == null) {
-            converterResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+            behaviorResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
         }
-        return resourceLookup[name] ??= ValueConverter.get(this.l, name);
+        return resourceLookup[name] ??= BindingBehavior.get(b.l, name);
     }
-    function evaluatorGetBehavior(name) {
-        let resourceLookup = behaviorResourceLookupCache.get(this);
+    function evaluatorBindBehavior(name, scope, args) {
+        const behavior = evaluatorGetBehavior(this, name);
+        if (behavior == null) {
+            throw createMappedError(101 /* ErrorNames.ast_behavior_not_found */, name);
+        }
+        let applied = appliedBehaviors.get(this);
+        if (applied == null) {
+            appliedBehaviors.set(this, applied = {});
+        }
+        if (applied[name]) {
+            throw createMappedError(102 /* ErrorNames.ast_behavior_duplicated */, name);
+        }
+        // todo: remove casting
+        // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
+        // so observation infra can be free of template oriented features: behaviors/converters
+        // or anything that is not supposed to be supporting binding behavior shouldn't be using this mixin
+        behavior.bind?.(scope, this, ...args);
+    }
+    function evaluatorUnbindBehavior(name, scope) {
+        const behavior = evaluatorGetBehavior(this, name);
+        const applied = appliedBehaviors.get(this);
+        // todo: remove casting
+        // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
+        // so observation infra can be free of template oriented features: behaviors/converters
+        // or anything that is not supposed to be supporting binding behavior shouldn't be using this mixin
+        behavior?.unbind?.(scope, this);
+        if (applied != null) {
+            applied[name] = false;
+        }
+    }
+    function evaluatorGetConverter(b, name) {
+        let resourceLookup = converterResourceLookupCache.get(b);
         if (resourceLookup == null) {
-            behaviorResourceLookupCache.set(this, resourceLookup = new ResourceLookup());
+            converterResourceLookupCache.set(b, resourceLookup = new ResourceLookup());
         }
-        return resourceLookup[name] ??= BindingBehavior.get(this.l, name);
+        return resourceLookup[name] ??= ValueConverter.get(b.l, name);
     }
-    return (strict, strictFnCall = true) => {
-        return (target) => {
-            const proto = target.prototype;
-            // some evaluator may have their strict configurable in some way
-            // undefined to leave the property alone
-            if (strict != null) {
-                def(proto, 'strict', { enumerable: true, get: function () { return strict; } });
+    function evaluatorBindConverter(name) {
+        const vc = evaluatorGetConverter(this, name);
+        if (vc == null) {
+            throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, name);
+        }
+        const signals = vc.signals;
+        if (signals != null) {
+            const signaler = this.l.get(ISignaler);
+            const ii = signals.length;
+            let i = 0;
+            for (; i < ii; ++i) {
+                // note: the cast is expected. To connect, it just needs to be a IConnectable
+                // though to work with signal, it needs to have `handleChange`
+                // so having `handleChange` as a guard in the connectable as a safe measure is needed
+                // to make sure signaler works
+                signaler.addSignalListener(signals[i], this);
             }
-            def(proto, 'strictFnCall', { enumerable: true, get: function () { return strictFnCall; } });
-            defineHiddenProp(proto, 'get', (evaluatorGet));
-            defineHiddenProp(proto, 'getSignaler', (evaluatorGetSignaler));
-            defineHiddenProp(proto, 'getConverter', (evaluatorGetConverter));
-            defineHiddenProp(proto, 'getBehavior', (evaluatorGetBehavior));
-        };
+        }
+    }
+    function evaluatorUnbindConverter(name) {
+        const vc = evaluatorGetConverter(this, name);
+        if (vc?.signals === void 0) {
+            return;
+        }
+        const signaler = this.l.get(ISignaler);
+        let i = 0;
+        for (; i < vc.signals.length; ++i) {
+            signaler.removeSignalListener(vc.signals[i], this);
+        }
+    }
+    function evaluatorUseConverter(name, mode, value, args) {
+        const vc = evaluatorGetConverter(this, name);
+        if (vc == null) {
+            throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, name);
+        }
+        switch (mode) {
+            case 'toView':
+                return 'toView' in vc ? vc.toView(value, ...args) : value;
+            case 'fromView':
+                return 'fromView' in vc ? vc.fromView?.(value, ...args) : value;
+        }
+    }
+    return (target) => {
+        const proto = target.prototype;
+        defineHiddenProp(proto, 'get', (evaluatorGet));
+        defineHiddenProp(proto, 'bindBehavior', (evaluatorBindBehavior));
+        defineHiddenProp(proto, 'unbindBehavior', (evaluatorUnbindBehavior));
+        defineHiddenProp(proto, 'bindConverter', (evaluatorBindConverter));
+        defineHiddenProp(proto, 'unbindConverter', (evaluatorUnbindConverter));
+        defineHiddenProp(proto, 'useConverter', (evaluatorUseConverter));
     };
 })();
-class ResourceLookup {
-}
 const IFlushQueue = /*@__PURE__*/ createInterface('IFlushQueue', x => x.singleton(FlushQueue));
 class FlushQueue {
     constructor() {
@@ -2249,10 +1569,11 @@ class AttributeBinding {
     // such as style -> collection of style rules
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-    targetAttribute, targetProperty, mode) {
+    targetAttribute, targetProperty, mode, strict) {
         this.targetAttribute = targetAttribute;
         this.targetProperty = targetProperty;
         this.mode = mode;
+        this.strict = strict;
         this.isBound = false;
         /** @internal */
         this._scope = void 0;
@@ -2306,7 +1627,7 @@ class AttributeBinding {
         }
         let task;
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
+        const newValue = runtime.astEvaluate(this.ast, this._scope, this, 
         // should observe?
         (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
@@ -2340,9 +1661,9 @@ class AttributeBinding {
             this.unbind();
         }
         this._scope = _scope;
-        astBind(this.ast, _scope, this);
+        runtime.astBind(this.ast, _scope, this);
         if (this.mode & (toView | oneTime)) {
-            this.updateTarget(this._value = astEvaluate(this.ast, _scope, this, /* should connect? */ (this.mode & toView) > 0 ? this : null));
+            this.updateTarget(this._value = runtime.astEvaluate(this.ast, _scope, this, /* should connect? */ (this.mode & toView) > 0 ? this : null));
         }
         this.isBound = true;
     }
@@ -2352,7 +1673,7 @@ class AttributeBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this._value = void 0;
         this._task?.cancel();
@@ -2365,18 +1686,19 @@ AttributeBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(AttributeBinding);
     mixingBindingLimited(AttributeBinding, () => 'updateTarget');
     runtime.connectable(AttributeBinding, null);
-    mixinAstEvaluator(true)(AttributeBinding);
+    mixinAstEvaluator(AttributeBinding);
 });
 
 const queueTaskOptions$1 = {
     preempt: true,
 };
 class InterpolationBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode) {
+    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode, strict) {
         this.ast = ast;
         this.target = target;
         this.targetProperty = targetProperty;
         this.mode = mode;
+        this.strict = strict;
         this.isBound = false;
         /** @internal */
         this._scope = void 0;
@@ -2391,7 +1713,7 @@ class InterpolationBinding {
         const ii = expressions.length;
         let i = 0;
         for (; ii > i; ++i) {
-            partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+            partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, strict, this);
         }
     }
     /** @internal */
@@ -2478,10 +1800,11 @@ class InterpolationBinding {
     }
 }
 class InterpolationPartBinding {
-    constructor(ast, target, targetProperty, locator, observerLocator, owner) {
+    constructor(ast, target, targetProperty, locator, observerLocator, strict, owner) {
         this.ast = ast;
         this.target = target;
         this.targetProperty = targetProperty;
+        this.strict = strict;
         this.owner = owner;
         // at runtime, mode may be overriden by binding behavior
         // but it wouldn't matter here, just start with something for later check
@@ -2505,7 +1828,7 @@ class InterpolationPartBinding {
             return;
         }
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
+        const newValue = runtime.astEvaluate(this.ast, this._scope, this, 
         // should observe?
         (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
@@ -2531,8 +1854,8 @@ class InterpolationPartBinding {
             this.unbind();
         }
         this._scope = _scope;
-        astBind(this.ast, _scope, this);
-        this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+        runtime.astBind(this.ast, _scope, this);
+        this._value = runtime.astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         if (kernel.isArray(this._value)) {
             this.observeCollection(this._value);
         }
@@ -2544,7 +1867,7 @@ class InterpolationPartBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.obs.clearAll();
     }
@@ -2554,7 +1877,7 @@ InterpolationPartBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(InterpolationPartBinding);
     mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
     runtime.connectable(InterpolationPartBinding, null);
-    mixinAstEvaluator(true)(InterpolationPartBinding);
+    mixinAstEvaluator(InterpolationPartBinding);
 });
 
 const queueTaskOptions = {
@@ -2564,10 +1887,11 @@ const queueTaskOptions = {
  * A binding for handling the element content interpolation
  */
 class ContentBinding {
-    constructor(controller, locator, observerLocator, taskQueue, p, ast, target) {
+    constructor(controller, locator, observerLocator, taskQueue, p, ast, target, strict) {
         this.p = p;
         this.ast = ast;
         this.target = target;
+        this.strict = strict;
         this.isBound = false;
         // at runtime, mode may be overriden by binding behavior
         // but it wouldn't matter here, just start with something for later check
@@ -2581,7 +1905,6 @@ class ContentBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
-        this.strict = true;
         this.l = locator;
         this._controller = controller;
         this.oL = observerLocator;
@@ -2609,7 +1932,7 @@ class ContentBinding {
             return;
         }
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
+        const newValue = runtime.astEvaluate(this.ast, this._scope, this, 
         // should observe?
         (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
@@ -2635,7 +1958,7 @@ class ContentBinding {
             return;
         }
         this.obs.version++;
-        const v = this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+        const v = this._value = runtime.astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
         if (kernel.isArray(v)) {
             this.observeCollection(v);
@@ -2657,8 +1980,8 @@ class ContentBinding {
             this.unbind();
         }
         this._scope = _scope;
-        astBind(this.ast, _scope, this);
-        const v = this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+        runtime.astBind(this.ast, _scope, this);
+        const v = this._value = runtime.astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         if (kernel.isArray(v)) {
             this.observeCollection(v);
         }
@@ -2671,7 +1994,7 @@ class ContentBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         if (this._needsRemoveNode) {
             this._value.parentNode?.removeChild(this._value);
         }
@@ -2699,11 +2022,11 @@ ContentBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(ContentBinding);
     mixingBindingLimited(ContentBinding, () => 'updateTarget');
     runtime.connectable(ContentBinding, null);
-    mixinAstEvaluator(void 0, false)(ContentBinding);
+    mixinAstEvaluator(ContentBinding);
 });
 
 class LetBinding {
-    constructor(locator, observerLocator, ast, targetProperty, toBindingContext = false) {
+    constructor(locator, observerLocator, ast, targetProperty, toBindingContext, strict) {
         this.ast = ast;
         this.targetProperty = targetProperty;
         this.isBound = false;
@@ -2715,6 +2038,7 @@ class LetBinding {
         this.boundFn = false;
         this.l = locator;
         this.oL = observerLocator;
+        this.strict = strict;
         this._toBindingContext = toBindingContext;
     }
     updateTarget() {
@@ -2726,7 +2050,7 @@ class LetBinding {
             return;
         }
         this.obs.version++;
-        this._value = astEvaluate(this.ast, this._scope, this, this);
+        this._value = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();
         this.updateTarget();
     }
@@ -2743,8 +2067,8 @@ class LetBinding {
         }
         this._scope = _scope;
         this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext);
-        astBind(this.ast, _scope, this);
-        this._value = astEvaluate(this.ast, this._scope, this, this);
+        runtime.astBind(this.ast, _scope, this);
+        this._value = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.updateTarget();
         this.isBound = true;
     }
@@ -2754,7 +2078,7 @@ class LetBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.obs.clearAll();
     }
@@ -2768,15 +2092,16 @@ LetBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(LetBinding);
     mixingBindingLimited(LetBinding, () => 'updateTarget');
     runtime.connectable(LetBinding, null);
-    mixinAstEvaluator(true)(LetBinding);
+    mixinAstEvaluator(LetBinding);
 });
 
 class PropertyBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode) {
+    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode, strict) {
         this.ast = ast;
         this.target = target;
         this.targetProperty = targetProperty;
         this.mode = mode;
+        this.strict = strict;
         this.isBound = false;
         /** @internal */
         this._scope = void 0;
@@ -2798,7 +2123,7 @@ class PropertyBinding {
         this._targetObserver.setValue(value, this.target, this.targetProperty);
     }
     updateSource(value) {
-        astAssign(this.ast, this._scope, this, value);
+        runtime.astAssign(this.ast, this._scope, this, value);
     }
     handleChange() {
         if (!this.isBound) {
@@ -2806,7 +2131,7 @@ class PropertyBinding {
             return;
         }
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
+        const newValue = runtime.astEvaluate(this.ast, this._scope, this, 
         // should observe?
         (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
@@ -2838,7 +2163,7 @@ class PropertyBinding {
             this.unbind();
         }
         this._scope = scope;
-        astBind(this.ast, scope, this);
+        runtime.astBind(this.ast, scope, this);
         const observerLocator = this.oL;
         const $mode = this.mode;
         let targetObserver = this._targetObserver;
@@ -2853,7 +2178,7 @@ class PropertyBinding {
         }
         const shouldConnect = ($mode & toView) > 0;
         if ($mode & (toView | oneTime)) {
-            this.updateTarget(astEvaluate(this.ast, this._scope, this, shouldConnect ? this : null));
+            this.updateTarget(runtime.astEvaluate(this.ast, this._scope, this, shouldConnect ? this : null));
         }
         if ($mode & fromView) {
             targetObserver.subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.l.get(IFlushQueue)));
@@ -2869,7 +2194,7 @@ class PropertyBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         if (this._targetSubscriber) {
             this._targetObserver.unsubscribe(this._targetSubscriber);
@@ -2904,7 +2229,7 @@ PropertyBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(PropertyBinding);
     mixingBindingLimited(PropertyBinding, (propBinding) => (propBinding.mode & fromView) ? 'updateSource' : 'updateTarget');
     runtime.connectable(PropertyBinding, null);
-    mixinAstEvaluator(true, false)(PropertyBinding);
+    mixinAstEvaluator(PropertyBinding);
 });
 let task = null;
 const updateTaskOpts = {
@@ -2912,9 +2237,10 @@ const updateTaskOpts = {
 };
 
 class RefBinding {
-    constructor(locator, ast, target) {
+    constructor(locator, ast, target, strict) {
         this.ast = ast;
         this.target = target;
+        this.strict = strict;
         this.isBound = false;
         /** @internal */
         this._scope = void 0;
@@ -2929,8 +2255,8 @@ class RefBinding {
             this.unbind();
         }
         this._scope = _scope;
-        astBind(this.ast, _scope, this);
-        astAssign(this.ast, this._scope, this, this.target);
+        runtime.astBind(this.ast, _scope, this);
+        runtime.astAssign(this.ast, this._scope, this, this.target);
         // add isBound flag and remove isBinding flag
         this.isBound = true;
     }
@@ -2940,31 +2266,33 @@ class RefBinding {
             return;
         }
         this.isBound = false;
-        if (astEvaluate(this.ast, this._scope, this, null) === this.target) {
-            astAssign(this.ast, this._scope, this, null);
+        if (runtime.astEvaluate(this.ast, this._scope, this, null) === this.target) {
+            runtime.astAssign(this.ast, this._scope, this, null);
         }
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
     }
 }
 RefBinding.mix = createPrototypeMixer(() => {
-    mixinAstEvaluator(false)(RefBinding);
+    mixinAstEvaluator(RefBinding);
 });
 
 class ListenerBindingOptions {
-    constructor(prevent, capture = false) {
+    constructor(prevent, capture = false, onError) {
         this.prevent = prevent;
         this.capture = capture;
+        this.onError = onError;
     }
 }
 /**
  * Listener binding. Handle event binding between view and view model
  */
 class ListenerBinding {
-    constructor(locator, ast, target, targetEvent, options, modifiedEventHandler) {
+    constructor(locator, ast, target, targetEvent, options, modifiedEventHandler, strict) {
         this.ast = ast;
         this.target = target;
         this.targetEvent = targetEvent;
+        this.strict = strict;
         this.isBound = false;
         /**
          * Whether this binding only handles events originate from the target this binding is bound to
@@ -2986,7 +2314,12 @@ class ListenerBinding {
     callSource(event) {
         const overrideContext = this._scope.overrideContext;
         overrideContext.$event = event;
-        let result = astEvaluate(this.ast, this._scope, this, null);
+        // let result
+        let result = runtime.astEvaluate(this.ast, this._scope, this, null);
+        // try {
+        // } catch (ex) {
+        //   console.log(ex);
+        // }
         delete overrideContext.$event;
         if (kernel.isFunction(result)) {
             result = result(event);
@@ -2994,7 +2327,6 @@ class ListenerBinding {
         if (result !== true && this._options.prevent) {
             event.preventDefault();
         }
-        return result;
     }
     handleEvent(event) {
         if (this.self) {
@@ -3004,7 +2336,12 @@ class ListenerBinding {
             }
         }
         if (this._modifiedEventHandler?.(event) !== false) {
-            this.callSource(event);
+            try {
+                this.callSource(event);
+            }
+            catch (ex) {
+                this._options.onError(event, ex);
+            }
         }
     }
     bind(scope) {
@@ -3016,7 +2353,7 @@ class ListenerBinding {
             this.unbind();
         }
         this._scope = scope;
-        astBind(this.ast, scope, this);
+        runtime.astBind(this.ast, scope, this);
         this.target.addEventListener(this.targetEvent, this, this._options);
         this.isBound = true;
     }
@@ -3026,7 +2363,7 @@ class ListenerBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.target.removeEventListener(this.targetEvent, this, this._options);
     }
@@ -3035,7 +2372,7 @@ class ListenerBinding {
 ListenerBinding.mix = createPrototypeMixer(function () {
     mixinUseScope(ListenerBinding);
     mixingBindingLimited(ListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(ListenerBinding);
+    mixinAstEvaluator(ListenerBinding);
 });
 const IModifiedEventHandlerCreator = /*@__PURE__*/ createInterface('IEventModifier');
 const IKeyMapping = /*@__PURE__*/ createInterface('IKeyMapping', x => x.instance({
@@ -3521,10 +2858,11 @@ class SpreadBinding {
     }
 }
 class SpreadValueBinding {
-    constructor(controller, target, targetKeys, ast, ol, l, taskQueue) {
+    constructor(controller, target, targetKeys, ast, ol, l, taskQueue, strict) {
         this.target = target;
         this.targetKeys = targetKeys;
         this.ast = ast;
+        this.strict = strict;
         this.isBound = false;
         /** @internal */
         this._scope = void 0;
@@ -3544,7 +2882,7 @@ class SpreadValueBinding {
     }
     updateTarget() {
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, this);
+        const newValue = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();
         this._createBindings(newValue, true);
     }
@@ -3577,8 +2915,8 @@ class SpreadValueBinding {
         }
         this.isBound = true;
         this._scope = scope;
-        astBind(this.ast, scope, this);
-        const value = astEvaluate(this.ast, scope, this, this);
+        runtime.astBind(this.ast, scope, this);
+        const value = runtime.astEvaluate(this.ast, scope, this, this);
         this._createBindings(value, false);
     }
     unbind() {
@@ -3588,7 +2926,7 @@ class SpreadValueBinding {
             return;
         }
         this.isBound = false;
-        astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         let key;
         // can also try to keep track of what the active bindings are
@@ -3619,13 +2957,13 @@ class SpreadValueBinding {
         // whenever there's a new evaluation
         let scope = this._scopeCache.get(value);
         if (scope == null) {
-            this._scopeCache.set(value, scope = Scope.fromParent(this._scope, value));
+            this._scopeCache.set(value, scope = runtime.Scope.fromParent(this._scope, value));
         }
         for (key of this.targetKeys) {
             binding = this._bindingCache[key];
             if (key in value) {
                 if (binding == null) {
-                    binding = this._bindingCache[key] = new PropertyBinding(this._controller, this.l, this.oL, this._taskQueue, SpreadValueBinding._astCache[key] ??= new expressionParser.AccessScopeExpression(key, 0), this.target, key, templateCompiler.BindingMode.toView);
+                    binding = this._bindingCache[key] = new PropertyBinding(this._controller, this.l, this.oL, this._taskQueue, SpreadValueBinding._astCache[key] ??= new expressionParser.AccessScopeExpression(key, 0), this.target, key, templateCompiler.BindingMode.toView, this.strict);
                 }
                 binding.bind(scope);
             }
@@ -3640,7 +2978,7 @@ SpreadValueBinding.mix = createPrototypeMixer(() => {
     mixinUseScope(SpreadValueBinding);
     mixingBindingLimited(SpreadValueBinding, () => 'updateTarget');
     runtime.connectable(SpreadValueBinding, null);
-    mixinAstEvaluator(true, false)(SpreadValueBinding);
+    mixinAstEvaluator(SpreadValueBinding);
 });
 /** @internal */
 SpreadValueBinding._astCache = {};
@@ -3802,6 +3140,8 @@ function splitClassString(classString) {
 
 /**
  * Create a resolver for a given key that will only resolve from the nearest hydration context.
+ *
+ * @internal
  */
 const fromHydrationContext = (key) => ({
     $isResolver: true,
@@ -4076,7 +3416,7 @@ const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer {
         while (ii > i) {
             childInstruction = childInstructions[i];
             expr = ensureExpression(exprParser, childInstruction.from, etIsProperty);
-            renderingCtrl.addBinding(new LetBinding(container, observerLocator, expr, childInstruction.to, toBindingContext));
+            renderingCtrl.addBinding(new LetBinding(container, observerLocator, expr, childInstruction.to, toBindingContext, renderingCtrl.strict ?? false));
             ++i;
         }
     }
@@ -4086,7 +3426,7 @@ const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer {
         this.target = templateCompiler.InstructionType.refBinding;
     }
     render(renderingCtrl, target, instruction, platform, exprParser) {
-        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to)));
+        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
     }
 }, null);
 const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer {
@@ -4096,7 +3436,7 @@ const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationB
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const container = renderingCtrl.container;
-        const binding = new InterpolationBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etInterpolation), getTarget(target), instruction.to, toView);
+        const binding = new InterpolationBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etInterpolation), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false);
         if (instruction.to === 'class' && binding.target.nodeType > 0) {
             const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
             binding.useAccessor(new ClassAttributeAccessor(binding.target, cssMapping));
@@ -4111,7 +3451,7 @@ const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRend
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const container = renderingCtrl.container;
-        const binding = new PropertyBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), getTarget(target), instruction.to, instruction.mode);
+        const binding = new PropertyBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), getTarget(target), instruction.to, instruction.mode, renderingCtrl.strict ?? false);
         if (instruction.to === 'class' && binding.target.nodeType > 0) {
             const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
             binding.useTargetObserver(new ClassAttributeAccessor(binding.target, cssMapping));
@@ -4125,7 +3465,7 @@ const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRend
         PropertyBinding.mix();
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
-        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.forOf, etIsIterator), getTarget(target), instruction.to, toView));
+        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.forOf, etIsIterator), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false));
     }
 }, null);
 const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer {
@@ -4134,11 +3474,23 @@ const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer {
         ContentBinding.mix();
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
-        renderingCtrl.addBinding(new ContentBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, platform, ensureExpression(exprParser, instruction.from, etIsProperty), target));
+        renderingCtrl.addBinding(new ContentBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, platform, ensureExpression(exprParser, instruction.from, etIsProperty), target, renderingCtrl.strict ?? false));
     }
 }, null);
-const IListenerBindingOptions = createInterface('IListenerBindingOptions', x => x.instance({
-    prevent: false,
+const IListenerBindingOptions = createInterface('IListenerBindingOptions', x => x.singleton(class {
+    constructor() {
+        /** @internal */
+        this.p = kernel.resolve(IPlatform);
+        this.prevent = false;
+        this.onError = (event, error) => {
+            const errorEvent = new this.p.CustomEvent('au-event-error', { cancelable: true, detail: { event, error } });
+            this.p.window.dispatchEvent(errorEvent);
+            if (errorEvent.defaultPrevented) {
+                return;
+            }
+            throw error;
+        };
+    }
 }));
 const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer {
     constructor() {
@@ -4150,7 +3502,7 @@ const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRend
         ListenerBinding.mix();
     }
     render(renderingCtrl, target, instruction, platform, exprParser) {
-        renderingCtrl.addBinding(new ListenerBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsFunction), target, instruction.to, new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture), this._modifierHandler.getHandler(instruction.to, instruction.modifier)));
+        renderingCtrl.addBinding(new ListenerBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsFunction), target, instruction.to, new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture, this._defaultOptions.onError), this._modifierHandler.getHandler(instruction.to, instruction.modifier), renderingCtrl.strict ?? false));
     }
 }, null);
 const SetAttributeRenderer = /*@__PURE__*/ renderer(class SetAttributeRenderer {
@@ -4210,11 +3562,11 @@ const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePropertyB
         {
             /* istanbul ignore next */
             if (ambiguousStyles.includes(instruction.to)) {
-                renderingCtrl.addBinding(new DevStylePropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView));
+                renderingCtrl.addBinding(new DevStylePropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
                 return;
             }
         }
-        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView));
+        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
     }
 }, null);
 /* istanbul ignore next */
@@ -4239,7 +3591,7 @@ const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBindingRe
             : null;
         renderingCtrl.addBinding(new AttributeBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target, instruction.attr /* targetAttribute */, classMapping == null
             ? instruction.to /* targetKey */
-            : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '), toView));
+            : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '), toView, renderingCtrl.strict ?? false));
     }
 }, null);
 const SpreadRenderer = /*@__PURE__*/ renderer(class SpreadRenderer {
@@ -4261,7 +3613,7 @@ const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRenderer {
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const instructionTarget = instruction.target;
         if (instructionTarget === '$bindables') {
-            renderingCtrl.addBinding(new SpreadValueBinding(renderingCtrl, target.viewModel, objectKeys(target.definition.bindables), exprParser.parse(instruction.from, etIsProperty), observerLocator, renderingCtrl.container, platform.domQueue));
+            renderingCtrl.addBinding(new SpreadValueBinding(renderingCtrl, target.viewModel, objectKeys(target.definition.bindables), exprParser.parse(instruction.from, etIsProperty), observerLocator, renderingCtrl.container, platform.domQueue, renderingCtrl.strict ?? false));
         }
         else {
             throw createMappedError(820 /* ErrorNames.spreading_invalid_target */, instructionTarget);
@@ -4794,7 +4146,7 @@ class ExpressionWatcher {
         const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
         if (!canOptimize) {
             this.obs.version++;
-            value = astEvaluate(expr, this.scope, this, this);
+            value = runtime.astEvaluate(expr, this.scope, this, this);
             this.obs.clear();
         }
         if (!kernel.areEqual(value, oldValue)) {
@@ -4808,7 +4160,7 @@ class ExpressionWatcher {
             return;
         }
         this.obs.version++;
-        this._value = astEvaluate(this._expression, this.scope, this, this);
+        this._value = runtime.astEvaluate(this._expression, this.scope, this, this);
         this.obs.clear();
         this.isBound = true;
     }
@@ -4823,7 +4175,7 @@ class ExpressionWatcher {
 }
 (() => {
     runtime.connectable(ExpressionWatcher, null);
-    mixinAstEvaluator(true)(ExpressionWatcher);
+    mixinAstEvaluator(ExpressionWatcher);
 })();
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
@@ -4862,6 +4214,9 @@ class Controller {
     set viewModel(v) {
         this._vm = v;
         this._vmHooks = v == null || this.vmKind === vmkSynth ? HooksDefinition.none : new HooksDefinition(v);
+    }
+    get strict() {
+        return this.definition?.strict;
     }
     constructor(container, vmKind, definition, 
     /**
@@ -5068,7 +4423,7 @@ class Controller {
         const container = this.container;
         const instance = this._vm;
         const definition = this.definition;
-        this.scope = Scope.create(instance, null, true);
+        this.scope = runtime.Scope.create(instance, null, true);
         if (definition.watches.length > 0) {
             createWatchers(this, container, definition, instance);
         }
@@ -5934,7 +5289,7 @@ function createWatchers(controller, context, definition, instance) {
     const scope = controller.vmKind === vmkCe
         ? controller.scope
         // custom attribute does not have own scope
-        : Scope.create(instance, null, true);
+        : runtime.Scope.create(instance, null, true);
     const ii = watches.length;
     let expression;
     let callback;
@@ -6398,7 +5753,7 @@ class CustomElementDefinition {
     /**
      * Indicates whether the custom element has <slot/> in its template
      */
-    hasSlots, enhance, watches, processContent) {
+    hasSlots, enhance, watches, strict, processContent) {
         this.Type = Type;
         this.name = name;
         this.aliases = aliases;
@@ -6416,6 +5771,7 @@ class CustomElementDefinition {
         this.hasSlots = hasSlots;
         this.enhance = enhance;
         this.watches = watches;
+        this.strict = strict;
         this.processContent = processContent;
     }
     static create(nameOrDef, Type = null) {
@@ -6437,12 +5793,14 @@ class CustomElementDefinition {
             for (const bindable of Object.values(Bindable.from(def.bindables))) {
                 Bindable._add(bindable, Type);
             }
-            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => getElementKeyFrom(name)), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(getElementAnnotation(Type, 'bindables'), def.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', def, Type, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => getElementKeyFrom(name)), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(getElementAnnotation(Type, 'bindables'), def.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', def, Type, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), 
+            // casting is incorrect, but it's good enough
+            kernel.fromDefinitionOrDefault('strict', def, returnUndefined), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // If a type is passed in, we ignore the Type property on the definition if it exists.
         // TODO: document this behavior
         if (kernel.isString(nameOrDef)) {
-            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), getElementKeyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('template', Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), kernel.mergeArrays(Watch.getDefinitions(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
+            return new CustomElementDefinition(Type, nameOrDef, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), Type.aliases), getElementKeyFrom(nameOrDef), kernel.fromAnnotationOrTypeOrDefault('capture', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('template', Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), Type.dependencies), kernel.fromAnnotationOrTypeOrDefault('injectable', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('needsCompile', Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables), kernel.fromAnnotationOrTypeOrDefault('containerless', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('shadowOptions', Type, returnNull), kernel.fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse), kernel.fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse), kernel.mergeArrays(Watch.getDefinitions(Type), Type.watches), kernel.fromAnnotationOrTypeOrDefault('strict', Type, returnUndefined), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
         // This is the typical default behavior, e.g. from regular CustomElement.define invocations or from @customElement deco
         // The ViewValueConverter also uses this signature and passes in a definition where everything except for the 'hooks'
@@ -6452,7 +5810,7 @@ class CustomElementDefinition {
         for (const bindable of Object.values(Bindable.from(nameOrDef.bindables))) {
             Bindable._add(bindable, Type);
         }
-        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), getElementKeyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), kernel.mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
+        return new CustomElementDefinition(Type, name, kernel.mergeArrays(getElementAnnotation(Type, 'aliases'), nameOrDef.aliases, Type.aliases), getElementKeyFrom(name), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', nameOrDef, Type, returnNull), kernel.mergeArrays(getElementAnnotation(Type, 'instructions'), nameOrDef.instructions, Type.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), nameOrDef.dependencies, Type.dependencies), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('injectable', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('needsCompile', nameOrDef, Type, returnTrue), kernel.mergeArrays(getElementAnnotation(Type, 'surrogates'), nameOrDef.surrogates, Type.surrogates), Bindable.from(...Bindable.getAll(Type), getElementAnnotation(Type, 'bindables'), Type.bindables, nameOrDef.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('shadowOptions', nameOrDef, Type, returnNull), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse), kernel.mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('strict', nameOrDef, Type, returnUndefined), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull));
     }
     static getOrCreate(partialDefinition) {
         if (partialDefinition instanceof CustomElementDefinition) {
@@ -6489,6 +5847,7 @@ const defaultForOpts = {
     optional: false,
 };
 const returnNull = () => null;
+const returnUndefined = () => void 0;
 const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => kernel.emptyArray;
@@ -6729,7 +6088,7 @@ class AppRoot {
             }
             const hydrationInst = { hydrate: false, projections: null };
             const definition = enhance
-                ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true })
+                ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
                 // leave the work of figuring out the definition to the controller
                 // there's proper error messages in case of failure inside the $el() call
                 : void 0;
@@ -8595,7 +7954,7 @@ class Repeat {
         this._refreshCollectionObserver();
         const dec = forOf.declaration;
         if (!(this._hasDestructuredLocal = dec.$kind === 'ArrayDestructuring' || dec.$kind === 'ObjectDestructuring')) {
-            this.local = astEvaluate(dec, this.$controller.scope, binding, null);
+            this.local = runtime.astEvaluate(dec, this.$controller.scope, binding, null);
         }
     }
     attaching(initiator, _parent) {
@@ -8630,7 +7989,7 @@ class Repeat {
                 return;
             }
             this._reevaluating = true;
-            this.items = astEvaluate(this.forOf.iterable, $controller.scope, this._forOfBinding, null);
+            this.items = runtime.astEvaluate(this.forOf.iterable, $controller.scope, this._forOfBinding, null);
             this._reevaluating = false;
             return;
         }
@@ -8735,7 +8094,7 @@ class Repeat {
         let observingInnerItems = this._observingInnerItems;
         let newObserver;
         if (observingInnerItems) {
-            innerItems = this._innerItems = astEvaluate(this._innerItemsExpression, scope, this._forOfBinding, null) ?? null;
+            innerItems = this._innerItems = runtime.astEvaluate(this._innerItemsExpression, scope, this._forOfBinding, null) ?? null;
             observingInnerItems = this._observingInnerItems = !kernel.areEqual(this.items, innerItems);
         }
         const oldObserver = this._observer;
@@ -9146,21 +8505,21 @@ const _unknownHandler = {
 };
 const setItem = (hasDestructuredLocal, dec, scope, binding, local, item) => {
     if (hasDestructuredLocal) {
-        astAssign(dec, scope, binding, item);
+        runtime.astAssign(dec, scope, binding, item);
     }
     else {
         scope.bindingContext[local] = item;
     }
 };
 const getItem = (hasDestructuredLocal, dec, scope, binding, local) => {
-    return hasDestructuredLocal ? astEvaluate(dec, scope, binding, null) : scope.bindingContext[local];
+    return hasDestructuredLocal ? runtime.astEvaluate(dec, scope, binding, null) : scope.bindingContext[local];
 };
 const getKeyValue = (hasDestructuredLocal, key, dec, scope, binding, local) => {
     if (typeof key === 'string') {
         const item = getItem(hasDestructuredLocal, dec, scope, binding, local);
         return item[key];
     }
-    return astEvaluate(key, scope, binding, null);
+    return runtime.astEvaluate(key, scope, binding, null);
 };
 const getScope = (oldScopeMap, newScopeMap, item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
     // let scope = void 0 as Scope | Scope[] | undefined;
@@ -9168,7 +8527,7 @@ const getScope = (oldScopeMap, newScopeMap, item, forOf, parentScope, binding, l
     if (scope === void 0) {
         scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
     }
-    else if (scope instanceof Scope) {
+    else if (scope instanceof runtime.Scope) {
         oldScopeMap.delete(item);
     }
     else if (scope.length === 1) {
@@ -9180,7 +8539,7 @@ const getScope = (oldScopeMap, newScopeMap, item, forOf, parentScope, binding, l
     }
     if (newScopeMap.has(item)) {
         const entry = newScopeMap.get(item);
-        if (entry instanceof Scope) {
+        if (entry instanceof runtime.Scope) {
             newScopeMap.set(item, [entry, scope]);
         }
         else {
@@ -9195,10 +8554,10 @@ const getScope = (oldScopeMap, newScopeMap, item, forOf, parentScope, binding, l
 };
 const createScope = (item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
     if (hasDestructuredLocal) {
-        const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
-        astAssign(forOf.declaration, scope, binding, item);
+        const scope = runtime.Scope.fromParent(parentScope, new runtime.BindingContext(), new RepeatOverrideContext());
+        runtime.astAssign(forOf.declaration, scope, binding, item);
     }
-    return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
+    return runtime.Scope.fromParent(parentScope, new runtime.BindingContext(local, item), new RepeatOverrideContext());
 };
 const compareNumber = (a, b) => a - b;
 
@@ -9212,7 +8571,7 @@ class With {
         let scope;
         let i = 0, ii = 0;
         if ($controller.isActive && bindings != null) {
-            scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue);
+            scope = runtime.Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue);
             for (ii = bindings.length; ii > i; ++i) {
                 bindings[i].bind(scope);
             }
@@ -9220,7 +8579,7 @@ class With {
     }
     attaching(initiator, _parent) {
         const { $controller, value } = this;
-        const scope = Scope.fromParent($controller.scope, value === void 0 ? {} : value);
+        const scope = runtime.Scope.fromParent($controller.scope, value === void 0 ? {} : value);
         return this.view.activate(initiator, $controller, scope);
     }
     detaching(initiator, _parent) {
@@ -9554,7 +8913,7 @@ class PromiseTemplateController {
     attaching(initiator, _parent) {
         const view = this.view;
         const $controller = this.$controller;
-        return kernel.onResolve(view.activate(initiator, $controller, this.viewScope = Scope.fromParent($controller.scope, {})), () => this.swap(initiator));
+        return kernel.onResolve(view.activate(initiator, $controller, this.viewScope = runtime.Scope.fromParent($controller.scope, {})), () => this.swap(initiator));
     }
     valueChanged(_newValue, _oldValue) {
         if (!this.$controller.isActive) {
@@ -10263,7 +9622,7 @@ class AuSlot {
             // - binding context & override context pointing to the outer scope binding & override context respectively
             // - override context has the $host pointing to inner scope binding context
             outerScope = this._hdrContext.controller.scope.parent;
-            (this._outerScope = Scope.fromParent(outerScope, outerScope.bindingContext))
+            (this._outerScope = runtime.Scope.fromParent(outerScope, outerScope.bindingContext))
                 .overrideContext.$host = this.expose ?? host;
         }
     }
@@ -10562,8 +9921,8 @@ class AuCompose {
                 const viewFactory = this._rendering.getViewFactory(targetDef, childCtn);
                 const controller = Controller.$view(viewFactory, $controller);
                 const scope = this.scopeBehavior === 'auto'
-                    ? Scope.fromParent(this.parent.scope, comp)
-                    : Scope.create(comp);
+                    ? runtime.Scope.fromParent(this.parent.scope, comp)
+                    : runtime.Scope.create(comp);
                 controller.setHost(compositionHost);
                 if (compositionLocation == null) {
                     // only spread the bindings if there is an actual host
@@ -11139,7 +10498,6 @@ exports.Bindable = Bindable;
 exports.BindableDefinition = BindableDefinition;
 exports.BindingBehavior = BindingBehavior;
 exports.BindingBehaviorDefinition = BindingBehaviorDefinition;
-exports.BindingContext = BindingContext;
 exports.BindingModeBehavior = BindingModeBehavior;
 exports.BindingTargetSubscriber = BindingTargetSubscriber;
 exports.CSSModulesProcessorRegistry = CSSModulesProcessorRegistry;
@@ -11233,7 +10591,6 @@ exports.Repeat = Repeat;
 exports.RuntimeTemplateCompilerImplementation = RuntimeTemplateCompilerImplementation;
 exports.SVGAnalyzer = SVGAnalyzer;
 exports.SanitizeValueConverter = SanitizeValueConverter;
-exports.Scope = Scope;
 exports.SelectValueObserver = SelectValueObserver;
 exports.SelfBindingBehavior = SelfBindingBehavior;
 exports.SetAttributeRenderer = SetAttributeRenderer;
@@ -11264,10 +10621,6 @@ exports.ViewFactory = ViewFactory;
 exports.Watch = Watch;
 exports.With = With;
 exports.alias = alias;
-exports.astAssign = astAssign;
-exports.astBind = astBind;
-exports.astEvaluate = astEvaluate;
-exports.astUnbind = astUnbind;
 exports.bindable = bindable;
 exports.bindingBehavior = bindingBehavior;
 exports.capture = capture;

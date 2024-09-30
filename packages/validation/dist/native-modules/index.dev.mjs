@@ -1,8 +1,9 @@
 import { DI, Protocol, toArray, onResolve, resolve, IServiceLocator, ILogger, Registration, noop } from '../../../kernel/dist/native-modules/index.mjs';
 import * as AST from '../../../expression-parser/dist/native-modules/index.mjs';
 import { IExpressionParser, PrimitiveLiteralExpression } from '../../../expression-parser/dist/native-modules/index.mjs';
-import { mixinAstEvaluator, Scope, astEvaluate } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { mixinNoopAstEvaluator, Scope, astEvaluate } from '../../../runtime/dist/native-modules/index.mjs';
 import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
+import { mixinAstEvaluator } from '../../../runtime-html/dist/native-modules/index.mjs';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const IValidationExpressionHydrator = /*@__PURE__*/ DI.createInterface('IValidationExpressionHydrator');
@@ -650,7 +651,7 @@ class PropertyRule {
     }
 }
 PropertyRule.$TYPE = 'PropertyRule';
-mixinAstEvaluator()(PropertyRule);
+mixinNoopAstEvaluator(PropertyRule);
 class ModelBasedRule {
     constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1460,7 +1461,7 @@ class ModelValidationExpressionHydrator {
         return new RuleProperty(expression, name, raw.displayName);
     }
 }
-mixinAstEvaluator()(ModelValidationExpressionHydrator);
+mixinAstEvaluator(ModelValidationExpressionHydrator);
 
 /**
  * IInstruction for the validation controller's validate method.

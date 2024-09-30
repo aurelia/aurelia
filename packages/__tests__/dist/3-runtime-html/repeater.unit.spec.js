@@ -1,9 +1,9 @@
+import { Registration } from '@aurelia/kernel';
 import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
-import { DirtyChecker } from '@aurelia/runtime';
-import { Scope, BindingContext, Repeat, Controller, CustomElementDefinition, IRenderLocation, PropertyBindingRenderer, TextBindingRenderer, NodeObserverLocator, IRendering, IController, IViewFactory, } from '@aurelia/runtime-html';
+import { DirtyChecker, Scope, BindingContext, } from '@aurelia/runtime';
+import { Repeat, Controller, CustomElementDefinition, IRenderLocation, PropertyBindingRenderer, TextBindingRenderer, NodeObserverLocator, IRendering, IController, IViewFactory, } from '@aurelia/runtime-html';
 import { IInstruction, TextBindingInstruction, ITemplateCompiler, } from '@aurelia/template-compiler';
 import { eachCartesianJoin, assert, PLATFORM, createContainer, } from '@aurelia/testing';
-import { Registration } from '@aurelia/kernel';
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     function runActivateLifecycle(sut, scope) {
         void sut.$controller.activate(sut.$controller, null, scope);

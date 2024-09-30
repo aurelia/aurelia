@@ -11,7 +11,9 @@ export function $setup(platform) {
     setPlatform(platform);
     BrowserPlatform.set(globalThis, platform);
     if (typeof window !== 'undefined')
-        window.addEventListener('error', e => console.log(e));
+        window.addEventListener('error', e => {
+            console.log('Globally caught error:', String(e.error));
+        });
     const globalStart = platform.performanceNow();
     let firstTestStart = 0;
     let currentRootSuite = (void 0);

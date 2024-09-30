@@ -1,6 +1,6 @@
 import { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
-import { type IAstEvaluator } from '@aurelia/runtime-html';
+import { type IAstEvaluator } from '@aurelia/runtime';
 import { Deserializer } from './ast-serialization';
 import { IPropertyRule, IRuleProperty, IValidationExpressionHydrator, IValidationRule, IValidationVisitor, IValidateable } from './rule-interfaces';
 import { IValidationRules, PropertyRule, RuleProperty } from './rule-provider';

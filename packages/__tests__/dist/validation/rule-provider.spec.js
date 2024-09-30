@@ -2,7 +2,7 @@
 import { Metadata } from '@aurelia/metadata';
 import { DI, ISink, LogLevel, Protocol, Registration } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression, IExpressionParser, ExpressionParser, } from '@aurelia/expression-parser';
-import { Scope, astEvaluate, } from '@aurelia/runtime-html';
+import { Scope, astEvaluate, } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { EqualsRule, IValidationMessageProvider, IValidationRules, LengthRule, PropertyRule, RangeRule, RegexRule, RequiredRule, SizeRule, ValidationConfiguration, BaseValidationRule, parsePropertyName, ValidationRuleAliasMessage, validationRulesRegistrar, rootObjectSymbol, } from '@aurelia/validation';
 import { Person } from './_test-resources.js';

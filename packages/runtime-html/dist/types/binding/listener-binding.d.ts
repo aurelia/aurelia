@@ -1,13 +1,12 @@
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { type IServiceLocator, IContainer } from '@aurelia/kernel';
-import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber } from '@aurelia/runtime';
-import { type Scope } from './scope';
-import { IAstEvaluator } from '../ast.eval';
+import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, type Scope, IAstEvaluator } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
 export declare class ListenerBindingOptions {
     readonly prevent: boolean;
     readonly capture: boolean;
-    constructor(prevent: boolean, capture?: boolean);
+    readonly onError: (event: Event, error: unknown) => void;
+    constructor(prevent: boolean, capture: boolean, onError: (event: Event, error: unknown) => void);
 }
 export interface ListenerBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {
 }
@@ -18,13 +17,14 @@ export declare class ListenerBinding implements IBinding, ISubscriber, ICollecti
     ast: IsBindingBehavior;
     target: Node;
     targetEvent: string;
+    strict: boolean;
     isBound: boolean;
     /**
      * Whether this binding only handles events originate from the target this binding is bound to
      */
     self: boolean;
-    constructor(locator: IServiceLocator, ast: IsBindingBehavior, target: Node, targetEvent: string, options: ListenerBindingOptions, modifiedEventHandler: IModifiedEventHandler | null);
-    callSource(event: Event): unknown;
+    constructor(locator: IServiceLocator, ast: IsBindingBehavior, target: Node, targetEvent: string, options: ListenerBindingOptions, modifiedEventHandler: IModifiedEventHandler | null, strict: boolean);
+    callSource(event: Event): void;
     handleEvent(event: Event): void;
     bind(scope: Scope): void;
     unbind(): void;

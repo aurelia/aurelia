@@ -1,3 +1,6 @@
+export { type IAstEvaluator, astAssign, astBind, astEvaluate, astUnbind, } from './ast.eval';
+export { mixinNoopAstEvaluator, } from './ast.utilities';
+export { Scope, BindingContext, type IBindingContext, type IOverrideContext, } from './scope';
 export { type IObserverLocatorBasedConnectable, type IObserverRecord, connectable, } from './connectable';
 export { type ArrayObserver, type ArrayIndexObserver, } from './array-observer';
 export { type MapObserver, } from './map-observer';
@@ -5,7 +8,7 @@ export { type SetObserver, } from './set-observer';
 export { CollectionLengthObserver, CollectionSizeObserver, } from './collection-length-observer';
 export { ComputedObserver, type ComputedGetterFn, } from './computed-observer';
 export { IDirtyChecker, DirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './dirty-checker';
-export { type IEffect, IObservation, Observation, type EffectRunFunc, } from './effect-runner';
+export { type IEffect, IObservation, Observation, type EffectRunFunc, } from './observation';
 export { type IObservableDefinition, observable, } from './observable';
 export { type IObjectObservationAdapter, IObserverLocator, INodeObserverLocator, IComputedObserverLocator, getCollectionObserver, ObserverLocator, getObserverLookup, type ObservableGetter, } from './observer-locator';
 export { PrimitiveObserver, } from './primitive-observer';

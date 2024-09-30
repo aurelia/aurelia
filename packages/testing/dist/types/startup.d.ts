@@ -1,10 +1,10 @@
 import { Constructable, IContainer, ILogger } from '@aurelia/kernel';
 import { IObserverLocator } from '@aurelia/runtime';
-import { Aurelia, IPlatform, type ICustomElementViewModel, IAppRootConfig } from '@aurelia/runtime-html';
+import { Aurelia, IPlatform, type ICustomElementViewModel, IAppRootConfig, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { TestContext } from './test-context';
 export declare const onFixtureCreated: <T extends object>(callback: (fixture: IFixture<T>) => unknown) => import("@aurelia/kernel").IDisposable;
 export type ObjectType<T> = T extends Constructable<infer U extends object> ? U : T;
-export declare function createFixture<T extends object>(template: string | Node, $class?: T | Constructable<T>, registrations?: unknown[], autoStart?: boolean, ctx?: TestContext, appConfig?: IFixtureConfig): IFixture<ICustomElementViewModel & ObjectType<T>>;
+export declare function createFixture<T extends object>(template: string | Node, $class?: T | Constructable<T>, registrations?: unknown[], autoStart?: boolean, ctx?: TestContext, appConfig?: IFixtureConfig, rootElementDef?: Partial<PartialCustomElementDefinition>): IFixture<ICustomElementViewModel & ObjectType<T>>;
 export declare namespace createFixture {
     var html: <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => CreateBuilder<T, "component" | "deps" | "config">;
     var component: <T, K extends ObjectType<T>>(component: T) => {
@@ -20,7 +20,7 @@ export declare namespace createFixture {
             (html: string): CreateBuilder<T, Exclude<"html" | "component" | "config", "html">>;
             (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<"html" | "component" | "config", "html">>;
         };
-        component: <K>(comp: K | Constructable<K>) => CreateBuilder<K, Exclude<"html" | "component" | "config", "component">>;
+        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<"html" | "component" | "config", "component">>;
         config: (config: IFixtureConfig) => CreateBuilder<T, Exclude<"html" | "component" | "config", "config">>;
     };
     var config: <T = Record<PropertyKey, any>>(config: IFixtureConfig) => {
@@ -28,7 +28,7 @@ export declare namespace createFixture {
             (html: string): CreateBuilder<T, Exclude<"html" | "component" | "deps", "html">>;
             (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<"html" | "component" | "deps", "html">>;
         };
-        component: <K>(comp: K | Constructable<K>) => CreateBuilder<K, Exclude<"html" | "component" | "deps", "component">>;
+        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<"html" | "component" | "deps", "component">>;
         deps: (...args: unknown[]) => CreateBuilder<T, Exclude<"html" | "component" | "deps", "deps">>;
     };
 }
@@ -187,7 +187,7 @@ export type ITrigger = {
 export interface IFixtureBuilderBase<T, E = {}> {
     html(html: string): this & E;
     html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
-    component(comp: T): this & E;
+    component(comp: T, def?: Partial<PartialCustomElementDefinition>): this & E;
     deps(...args: unknown[]): this & E;
     config(config: IFixtureConfig): this & E;
 }
@@ -196,7 +196,7 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
     [key in Availables]: key extends 'html' ? {
         (html: string): CreateBuilder<T, Exclude<Availables, 'html'>>;
         (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
-    } : key extends 'component' ? <K>(comp: Constructable<K> | K) => CreateBuilder<K, Exclude<Availables, 'component'>> : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>;
+    } : key extends 'component' ? <K>(comp: Constructable<K> | K, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<Availables, 'component'>> : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>;
 } & ('html' extends Availables ? {} : {
     build(): IFixture<T>;
 });

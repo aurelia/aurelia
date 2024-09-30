@@ -1,8 +1,9 @@
 import { DI, Protocol, toArray, onResolve, resolve, IServiceLocator, ILogger, Registration, noop } from '@aurelia/kernel';
 import * as AST from '@aurelia/expression-parser';
 import { IExpressionParser, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
-import { mixinAstEvaluator, Scope, astEvaluate } from '@aurelia/runtime-html';
+import { mixinNoopAstEvaluator, Scope, astEvaluate } from '@aurelia/runtime';
 import { Metadata } from '@aurelia/metadata';
+import { mixinAstEvaluator } from '@aurelia/runtime-html';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const IValidationExpressionHydrator = /*@__PURE__*/ DI.createInterface('IValidationExpressionHydrator');
@@ -650,7 +651,7 @@ class PropertyRule {
     }
 }
 PropertyRule.$TYPE = 'PropertyRule';
-mixinAstEvaluator()(PropertyRule);
+mixinNoopAstEvaluator(PropertyRule);
 class ModelBasedRule {
     constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1460,7 +1461,7 @@ class ModelValidationExpressionHydrator {
         return new RuleProperty(expression, name, raw.displayName);
     }
 }
-mixinAstEvaluator()(ModelValidationExpressionHydrator);
+mixinAstEvaluator(ModelValidationExpressionHydrator);
 
 /**
  * IInstruction for the validation controller's validate method.

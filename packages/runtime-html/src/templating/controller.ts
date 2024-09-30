@@ -14,13 +14,12 @@ import {
   isPromise,
   isString,
 } from '@aurelia/kernel';
-import { isObject } from '@aurelia/metadata';
 import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@aurelia/expression-parser';
 import {
   ICoercionConfiguration,
   IObserverLocator,
+  Scope,
 } from '@aurelia/runtime';
-import { Scope } from '../binding/scope';
 import { convertToRenderLocation, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
@@ -136,6 +135,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   }
 
   public coercion: ICoercionConfiguration | undefined;
+
+  public get strict() {
+    return (this.definition as CustomElementDefinition)?.strict;
+  }
 
   public constructor(
     public container: IContainer,
@@ -253,7 +256,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     controllerLookup.set(viewModel, controller as Controller);
 
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      controller._hydrateCustomElement(hydrationInst, hydrationContext);
+      controller._hydrateCustomElement(hydrationInst);
     }
 
     return controller as ICustomElementController<C>;
@@ -340,12 +343,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   public _hydrateCustomElement(
     hydrationInst: IControllerElementHydrationInstruction | null,
-    /**
-     * The context where this custom element is hydrated.
-     *
-     * This is the context controller creating this this controller
-     */
-    _hydrationContext: IHydrationContext | null,
   ): void {
     if (__DEV__) {
       this.logger = this.container.get(ILogger).root;
@@ -387,13 +384,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate();
+      this._hydrate(hydrationInst?.hostController);
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(): void {
+  public _hydrate(hostController?: Controller | null): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -411,11 +408,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     let host = this.host!;
     let location: IRenderLocation | null = this.location;
 
-    if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
+    let createLocation = false;
+    if (hostController != null) {
+      this.hostController = hostController;
+      createLocation = true;
+    } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
       host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-      if (containerless && location == null) {
-        location = this.location = convertToRenderLocation(host);
-      }
+      createLocation = true;
+    }
+
+    if (createLocation && containerless && location == null) {
+      location = this.location = convertToRenderLocation(host);
     }
 
     setRef(host, elementBaseName, this as IHydratedController);
@@ -1249,28 +1252,65 @@ function createObservers(
   const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
   const locator = controller.container.get(IObserverLocator);
-  if (length > 0) {
-    for (let i = 0; i < length; ++i) {
-      const name = observableNames[i];
-      const bindable = bindables[name];
-      const handler = bindable.callback;
-      const obs = locator.getObserver(instance, name);
+  const hasAggregatedCallbacks = 'propertiesChanged' in instance;
 
-      if (bindable.set !== noop) {
-        if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
-          throw createMappedError(ErrorNames.controller_property_not_coercible, name);
-        }
-      }
-      if (instance[handler] != null || instance.propertyChanged != null) {
-        const callback = (newValue: unknown, oldValue: unknown) => {
-          if (controller.isBound) {
-            (instance[handler] as AnyFunction)?.(newValue, oldValue);
-            instance.propertyChanged?.(name, newValue, oldValue);
+  if (length === 0) return;
+
+  const queueCallback = hasAggregatedCallbacks
+    ? (() => {
+        let changes: Record<string, { newValue: unknown; oldValue: unknown }> = {};
+        let promise: Promise<void> | void = void 0;
+        let changeCount = 0;
+        const resolvedPromise = Promise.resolve();
+        const callPropertiesChanged = () => {
+          if (promise == null) {
+            promise = resolvedPromise.then(() => {
+              const $changes = changes;
+              changes = {};
+              changeCount = 0;
+              promise = void 0;
+              if (controller.isBound) {
+                instance.propertiesChanged?.($changes);
+                if (changeCount > 0) {
+                  callPropertiesChanged();
+                }
+              }
+            });
           }
         };
-        if (obs.useCallback?.(callback) !== true) {
-          throw createMappedError(ErrorNames.controller_property_no_change_handler, name);
+
+        return (key: string, newValue: unknown, oldValue: unknown) => {
+          changes[key] = { newValue, oldValue };
+          changeCount++;
+          callPropertiesChanged();
+        };
+    })()
+    : noop;
+
+  for (let i = 0; i < length; ++i) {
+    const name = observableNames[i];
+    const bindable = bindables[name];
+    const handler = bindable.callback;
+    const obs = locator.getObserver(instance, name);
+
+    if (bindable.set !== noop) {
+      if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
+        throw createMappedError(ErrorNames.controller_property_not_coercible, name);
+      }
+    }
+    if (instance[handler] != null
+      || instance.propertyChanged != null
+      || hasAggregatedCallbacks
+    ) {
+      const callback = (newValue: unknown, oldValue: unknown) => {
+        if (controller.isBound) {
+          (instance[handler] as AnyFunction)?.(newValue, oldValue);
+          instance.propertyChanged?.(name, newValue, oldValue);
+          queueCallback(name, newValue, oldValue);
         }
+      };
+      if (obs.useCallback?.(callback) !== true) {
+        throw createMappedError(ErrorNames.controller_property_no_change_handler, name);
       }
     }
   }
@@ -1342,7 +1382,7 @@ export function isCustomElementController<C extends ICustomElementViewModel = IC
 }
 
 export function isCustomElementViewModel(value: unknown): value is ICustomElementViewModel {
-  return isObject(value) && isElementType(value.constructor);
+  return isElementType(value?.constructor);
 }
 
 class HooksDefinition {
@@ -1493,6 +1533,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
   readonly vmKind: 'customElement' | 'synthetic';
   readonly mountTarget: MountTarget;
   readonly definition: CustomElementDefinition | null;
+  readonly strict: boolean | undefined | null;
 
   readonly children: readonly IHydratedController[] | null;
 
@@ -1645,6 +1686,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
 export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IHydratableController<C> {
   readonly vmKind: 'customElement';
   readonly definition: CustomElementDefinition;
+  readonly strict: boolean | undefined | null;
   /**
    * The scope that belongs to this custom element. This property is set immediately after the controller is created and is always guaranteed to be available.
    *
@@ -1807,6 +1849,7 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
     controller: ICustomElementController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+  propertiesChanged?(changes: Record<string, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
@@ -1821,6 +1864,7 @@ export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<
     controller: ICustomAttributeController<this>,
   ): void;
   propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+  propertiesChanged?(changes: Record<string, { newValue: unknown; oldValue: unknown }>): void;
 }
 
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {
@@ -1850,6 +1894,11 @@ export interface IControllerElementHydrationInstruction {
    * Indicates whether the custom element was used with "containerless" attribute
    */
   readonly containerless?: boolean;
+  /**
+   * When provided, the controller is used while hydrating the custom element.
+   * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
+   */
+  readonly hostController?: Controller | null;
 }
 
 function callDispose(disposable: IDisposable): void {

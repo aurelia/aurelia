@@ -1,6 +1,19 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import { emptyArray, toArray, ILogger, camelCase, noop, getResourceKeyFor, allResources, IPlatform, pascalCase, createImplementationRegister, registrableMetadataKey } from '@aurelia/kernel';
+import {
+  emptyArray,
+  toArray,
+  ILogger,
+  camelCase,
+  noop,
+  getResourceKeyFor,
+  allResources,
+  IPlatform,
+  pascalCase,
+  createImplementationRegister,
+  registrableMetadataKey,
+  isString,
+} from '@aurelia/kernel';
 import {
   IExpressionParser,
   PrimitiveLiteralExpression,
@@ -28,7 +41,7 @@ import {
 } from './instructions';
 import { AttrSyntax, IAttributeParser } from './attribute-pattern';
 import { BindingCommand, BindingCommandInstance, ICommandBuildInfo } from './binding-command';
-import { etInterpolation, etIsProperty, isString, objectFreeze, createInterface, singletonRegistration, definitionTypeElement } from './utilities';
+import { etInterpolation, etIsProperty, tcObjectFreeze, tcCreateInterface, singletonRegistration, definitionTypeElement } from './utilities';
 import { auLocationStart, auLocationEnd, appendManyToTemplate, appendToTemplate, insertBefore, insertManyBefore, isElement, isTextNode } from './utilities-dom';
 
 import type {
@@ -1902,12 +1915,12 @@ export interface IResourceResolver<
   bindables(def: TAttrDef | TElementDef): IAttributeBindablesInfo | IElementBindablesInfo;
 }
 
-export const IResourceResolver = /*@__PURE__*/ createInterface<IResourceResolver>('IResourceResolver');
+export const IResourceResolver = /*@__PURE__*/ tcCreateInterface<IResourceResolver>('IResourceResolver');
 
 export interface IBindingCommandResolver {
   get(c: IContainer, name: string): BindingCommandInstance | null;
 }
-export const IBindingCommandResolver = /*@__PURE__*/ createInterface<IBindingCommandResolver>('IBindingCommandResolver', x => {
+export const IBindingCommandResolver = /*@__PURE__*/ tcCreateInterface<IBindingCommandResolver>('IBindingCommandResolver', x => {
   class DefaultBindingCommandResolver implements IBindingCommandResolver {
     private readonly _cache = new WeakMap<IContainer, Record<string, BindingCommandInstance>>();
     public get(c: IContainer, name: string): BindingCommandInstance | null {
@@ -1929,7 +1942,7 @@ const enum LocalTemplateBindableAttributes {
   mode = "mode",
 }
 _END_CONST_ENUM();
-const allowedLocalTemplateBindableAttributes: readonly string[] = objectFreeze([
+const allowedLocalTemplateBindableAttributes: readonly string[] = tcObjectFreeze([
   LocalTemplateBindableAttributes.name,
   LocalTemplateBindableAttributes.attribute,
   LocalTemplateBindableAttributes.mode
@@ -1955,7 +1968,7 @@ const processTemplateName = (owningElementName: string, localTemplate: HTMLTempl
  *
  * A feature available to the default template compiler.
  */
-export const ITemplateCompilerHooks = /*@__PURE__*/createInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
+export const ITemplateCompilerHooks = /*@__PURE__*/tcCreateInterface<ITemplateCompilerHooks>('ITemplateCompilerHooks');
 export interface ITemplateCompilerHooks {
   /**
    * Should be invoked immediately before a template gets compiled
@@ -1963,7 +1976,7 @@ export interface ITemplateCompilerHooks {
   compiling?(template: HTMLElement): void;
 }
 
-export const TemplateCompilerHooks = objectFreeze({
+export const TemplateCompilerHooks = tcObjectFreeze({
   name: /*@__PURE__*/getResourceKeyFor('compiler-hooks'),
   define<K extends ITemplateCompilerHooks, T extends Constructable<K>>(Type: T): IRegistry {
     return {

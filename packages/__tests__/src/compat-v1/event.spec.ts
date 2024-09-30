@@ -3,6 +3,17 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('compat-v1/event.spec.ts', function () {
 
+  it('does not throw when function is missing', function () {
+    const { trigger } = createFixture(
+      '<button click.delegate="a.b()">',
+      class App {
+      },
+      [compatRegistration]
+    );
+
+    trigger.click('button', { bubbles: true});
+  });
+
   it('works with delegate event binding', function () {
     const { trigger, component } = createFixture(
       '<button click.delegate="doSomething()"></my-ce>',

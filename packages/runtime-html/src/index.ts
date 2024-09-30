@@ -1,12 +1,4 @@
 export {
-  type IAstEvaluator,
-  astAssign,
-  astBind,
-  astEvaluate,
-  astUnbind,
-} from './ast.eval';
-
-export {
   bindable,
   Bindable,
   BindableDefinition,
@@ -111,12 +103,6 @@ export {
 export {
   RefBinding,
 } from './binding/ref-binding';
-export {
-  Scope,
-  BindingContext,
-  type IBindingContext,
-  type IOverrideContext
-} from './binding/scope';
 
 export {
   IRenderer,

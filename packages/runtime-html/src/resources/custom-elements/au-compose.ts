@@ -1,6 +1,7 @@
 import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
-import { IObserverLocator } from '@aurelia/runtime';
-import { Scope } from '../../binding/scope';
+import { IExpressionParser } from '@aurelia/expression-parser';
+import { IObserverLocator, Scope } from '@aurelia/runtime';
+import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
 import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
 import { IPlatform } from '../../platform';
 import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView, vmkCe } from '../../templating/controller';
@@ -10,8 +11,6 @@ import { CustomElement, CustomElementDefinition, CustomElementStaticAuDefinition
 import { ErrorNames, createMappedError } from '../../errors';
 import { fromView } from '../../binding/interfaces-bindings';
 import { SpreadBinding } from '../../binding/spread-binding';
-import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
-import { IExpressionParser } from '@aurelia/expression-parser';
 
 /**
  * An optional interface describing the dynamic composition activate convention.

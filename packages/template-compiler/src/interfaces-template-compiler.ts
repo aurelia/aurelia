@@ -1,5 +1,5 @@
 import { Constructable, IContainer, IPlatform, Key } from '@aurelia/kernel';
-import { createInterface } from './utilities';
+import { tcCreateInterface } from './utilities';
 import { AttrSyntax } from './attribute-pattern';
 import { IInstruction } from './instructions';
 
@@ -60,7 +60,7 @@ export type ICompiledElementComponentDefinition = IElementComponentDefinition & 
 /**
  * An interface describing the template compiler used by Aurelia applicaitons
  */
-export const ITemplateCompiler = /*@__PURE__*/createInterface<ITemplateCompiler>('ITemplateCompiler');
+export const ITemplateCompiler = /*@__PURE__*/tcCreateInterface<ITemplateCompiler>('ITemplateCompiler');
 export interface ITemplateCompiler {
   /**
    * Indicates whether this compiler should compile template in debug mode

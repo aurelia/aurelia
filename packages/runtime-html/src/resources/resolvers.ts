@@ -3,6 +3,8 @@ import { IHydrationContext } from '../templating/controller';
 
 /**
  * Create a resolver for a given key that will only resolve from the nearest hydration context.
+ *
+ * @internal
  */
 export const fromHydrationContext = <T extends Key>(key: T): IResolver<T | undefined> => ({
   $isResolver: true,

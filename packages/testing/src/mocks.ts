@@ -6,10 +6,19 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
+  type Scope,
+  type IndexMap,
+  type IObserverLocator,
+  type Collection,
+  type ISubscribable,
+  type ICollectionSubscribable,
+  type IObserverLocatorBasedConnectable,
+  type IObserverRecord,
+} from '@aurelia/runtime';
+import {
   type ISignaler,
   type IRateLimitOptions,
   type IBinding,
-  type Scope,
 } from '@aurelia/runtime-html';
 
 import type {
@@ -18,15 +27,6 @@ import type {
   IIndexable,
   IServiceLocator,
 } from '@aurelia/kernel';
-import type {
-  IndexMap,
-  IObserverLocator,
-  Collection,
-  ISubscribable,
-  ICollectionSubscribable,
-  IObserverLocatorBasedConnectable,
-  IObserverRecord,
-} from '@aurelia/runtime';
 
 export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
   public observerSlots!: number;

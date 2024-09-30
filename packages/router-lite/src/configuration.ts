@@ -1,5 +1,4 @@
-import { isObject } from '@aurelia/metadata';
-import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry, isObjectOrFunction, Registration } from '@aurelia/kernel';
 import { AppTask, IWindow } from '@aurelia/runtime-html';
 
 import { RouteContext } from './route-context';
@@ -52,7 +51,7 @@ export interface IRouterConfigurationOptions extends $IRouterOptions {
 
 function configure(container: IContainer, options?: IRouterConfigurationOptions): IContainer {
   let basePath: string | null = null;
-  if (isObject(options)) {
+  if (isObjectOrFunction(options)) {
     basePath = (options as IRouterConfigurationOptions).basePath ?? null;
   } else {
     options = {};

@@ -315,3 +315,44 @@ In the context of swapping two views/components it is as follows.
 - `loading` hook (when present) of the current component is invoked.
 
 Note that the last 2 steps may run in parallel, if the hooks are asynchronous.
+
+## Order of invocations of component lifecycle hooks
+
+The component [lifecycle hooks](../components/component-lifecycles.md) are invoked bottom-up. As an example, let us assume that we have the following constellation of components.
+
+```html
+<app-root>
+  <component-one>
+    <component-two>
+    </component-two>
+  </component-one>
+</app-root>
+```
+
+In this case, the component lifecycle hooks are invoked in the following order.
+
+1. component-two `attached`.
+2. component-one `attached`.
+3. app-root `attached`.
+
+This is also the same for the router-lite, except for the "application root" component. Tweaking the example above slightly, let us assume that we have the following constellation of components.
+
+```html
+<app-root>
+  <routed-view>
+    <component-one>
+      <component-two>
+      </component-two>
+    </component-one>
+  </routed-view>
+</app-root>
+```
+
+In this case, the component lifecycle hooks are invoked in the following order.
+
+1. app-root `attached`.
+2. component-two `attached`.
+3. component-one `attached`.
+4. routed-view `attached`.
+
+Note that the application root is attached before any other components are attached. This happens because the router-lite starts loading the first route only after the app-root, and thereby the viewport(s) it is hosting, are fully activated/attached. In order to load a route, the router needs registered viewports. The registration process of a viewport only happens during the `attaching` phase of a viewport. More details on this topic, can be found in this [GitHub issue](https://github.com/aurelia/aurelia/issues/2019).

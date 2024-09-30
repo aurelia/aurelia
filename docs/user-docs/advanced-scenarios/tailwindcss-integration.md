@@ -18,12 +18,22 @@ npx makes aurelia
 
 ![](../.gitbook/assets/1%20%281%29.png)
 
-3- Install Tailwind CSS in your project via this command
+3- If using Webpack install Tailwind CSS in your project via this command
 
 ```bash
 npm i tailwindcss -D
 or
 yarn add tailwindcss -D
+```
+If you're using Vite instead of Webpack, you can install Tailwind CSS in your project with the following command:
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+```
+
+Then run
+```bash
+npx tailwindcss init -p
 ```
 
 4- After installation go to the root folder and run the below command too
@@ -32,7 +42,7 @@ yarn add tailwindcss -D
 ./node_modules/.bin/tailwind init
 ```
 
-This command will create a `tailwind.config.js` file in the root folder beside the `webpack.config.js` file with the following content
+This command will create a `tailwind.config.js` file in the root folder beside the `webpack.config.js` or `vite.config.ts` file with the following content
 
 ```typescript
 module.exports = {
@@ -45,7 +55,7 @@ module.exports = {
 }
 ```
 
-5- Open your `webpack.config.js` file and add the below line into the `postcssLoader` literal object as a first item in `plugins` array. \(Just like the picture\)
+5- If using Webpack open your `webpack.config.js` file and add the below line into the `postcssLoader` literal object as a first item in `plugins` array. \(Just like the picture\)
 
 ```typescript
 require('tailwindcss')('tailwind.config.js'),
@@ -54,6 +64,22 @@ require('tailwindcss')('tailwind.config.js'),
 ![](../.gitbook/assets/2.png)
 
 ![](../.gitbook/assets/screenshot_1.png)
+
+If you're using Vite, open your `tailwind.config.js` file and update it to the following configuration:
+
+```bash
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{ts,html}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+```
 
 6- Add these lines to the **top** of your main CSS file \(for example `my-app.css`\)
 

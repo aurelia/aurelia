@@ -22,6 +22,16 @@ export interface IAppRootConfig<T extends object = object> {
    * This option re-enables the default behavior of HTML forms.
    */
   allowActionlessForm?: boolean;
+  /**
+   * Indicates strictness of expression evaluation.
+   *
+   * When strictBinding is true, standard JS behavior applies, which means accessing a property of undefined will throw an error.
+   * Use optional syntaxes (?./?.()/?.[]) to prevent errors.
+   *
+   * When strictBinding is false (default), the behavior is more lenient, which means accessing a property of undefined will return undefined.
+   * In this mode, calling an undefined function will return undefined as well.
+   */
+  strictBinding?: boolean;
 }
 
 export interface IAppRoot<C extends object = object> extends IDisposable {
@@ -105,7 +115,7 @@ export class AppRoot<
 
       const hydrationInst: IControllerElementHydrationInstruction = { hydrate: false, projections: null };
       const definition = enhance
-        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true })
+        ? CustomElementDefinition.create({ name: generateElementName(), template: this.host, enhance: true, strict: config.strictBinding })
         // leave the work of figuring out the definition to the controller
         // there's proper error messages in case of failure inside the $el() call
         : void 0;
@@ -117,7 +127,7 @@ export class AppRoot<
         definition
       )) as Controller<K>;
 
-      controller._hydrateCustomElement(hydrationInst, /* root does not have hydration context */null);
+      controller._hydrateCustomElement(hydrationInst);
       return onResolve(this._runAppTasks('hydrating'), () => {
         controller._hydrate();
         return onResolve(this._runAppTasks('hydrated'), () => {

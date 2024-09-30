@@ -60,9 +60,15 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
       }
       oV = this._value;
       this._value = newValue;
-      this._callback?.(newValue, oV);
       this.subs.notifyDirty();
       this.subs.notify(newValue, oV);
+
+      // only call the callback if _value is the same with newValue
+      // which means if during subs.notify() the value of this observer is changed
+      // then it's the job of that setValue() to call the callback
+      if (areEqual(newValue, this._value)) {
+        this._callback?.(newValue, oV);
+      }
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
       // so calling obj[propertyKey] will actually return this.value.

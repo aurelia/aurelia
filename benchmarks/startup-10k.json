@@ -15,15 +15,15 @@
       ],
       "expand": [
         {
-          "name": "startup 10k latest",
+          "name": "10k views latest",
           "url": "startup10k-latest.html"
         },
         {
-          "name": "startup 10k local",
+          "name": "10k views local",
           "url": "startup10k-local.html"
         }
       ]
     }
   ],
-  "timeout": 0.5
+  "timeout": 0.15
 }

@@ -103,10 +103,6 @@ export function isNull(arg: unknown): arg is null {
   return arg === null;
 }
 
-export function isNullOrUndefined(arg: unknown): arg is null | undefined {
-  return arg === null || arg === void 0;
-}
-
 export function isNumber(arg: unknown): arg is number {
   return typeof arg === 'number';
 }
@@ -123,6 +119,7 @@ export function isUndefined(arg: unknown): arg is undefined {
   return arg === void 0;
 }
 
+/** @internal */
 export function isObject(arg: unknown): arg is Object {
   return arg !== null && typeof arg === 'object';
 }

@@ -19,12 +19,14 @@ import {
 } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Address, Organization } from './_test-resources.js';
+import { ExpressionParser } from '@aurelia/expression-parser';
 
 describe('validation/validator.spec.ts', function () {
   describe('IValidator', function () {
-    function setup(validator?: Class<IValidator>) {
+    function $createFixture(validator?: Class<IValidator>) {
       const container = DI.createContainer();
       container.register(
+        ExpressionParser,
         validator
           ? ValidationConfiguration.customize((options) => {
             options.ValidatorType = validator;
@@ -34,7 +36,7 @@ describe('validation/validator.spec.ts', function () {
     }
 
     it('registered to Singleton StandardValidator by default', function () {
-      const { sut: sut1, container } = setup();
+      const { sut: sut1, container } = $createFixture();
       const sut2 = container.get(IValidator);
 
       assert.instanceOf(sut1, StandardValidator);
@@ -48,7 +50,7 @@ describe('validation/validator.spec.ts', function () {
           throw new Error('Method not implemented.');
         }
       }
-      const { sut: sut1, container } = setup(CustomValidator);
+      const { sut: sut1, container } = $createFixture(CustomValidator);
       const sut2 = container.get(IValidator);
 
       assert.instanceOf(sut1, CustomValidator);
@@ -60,7 +62,7 @@ describe('validation/validator.spec.ts', function () {
   describe('StandardValidator', function () {
     function setup() {
       const container = DI.createContainer();
-      container.register(ValidationConfiguration);
+      container.register(ExpressionParser, ValidationConfiguration);
       return {
         sut: container.get(IValidator),
         validationRules: container.get(IValidationRules),

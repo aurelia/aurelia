@@ -45,6 +45,7 @@ export type PartialCustomElementDefinition<TBindables extends string = string> =
   readonly injectable?: InterfaceSymbol | null;
   readonly enhance?: boolean;
   readonly watches?: IWatchDefinition[];
+  readonly strict?: boolean;
 }>;
 
 export type CustomElementStaticAuDefinition<TBindables extends string = string> = PartialCustomElementDefinition<TBindables> & {
@@ -225,6 +226,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
     public readonly hasSlots: boolean,
     public readonly enhance: boolean,
     public readonly watches: IWatchDefinition[],
+    public readonly strict: boolean | undefined,
     public readonly processContent: ProcessContentHook | null,
   ) { }
 
@@ -282,7 +284,10 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromDefinitionOrDefault('hasSlots', def, returnFalse),
         fromDefinitionOrDefault('enhance', def, returnFalse),
         fromDefinitionOrDefault('watches', def as CustomElementDefinition, returnEmptyArray),
+        // casting is incorrect, but it's good enough
+        fromDefinitionOrDefault('strict', def, returnUndefined as () => boolean),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
+
       );
     }
 
@@ -312,6 +317,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         fromAnnotationOrTypeOrDefault('hasSlots', Type, returnFalse),
         fromAnnotationOrTypeOrDefault('enhance', Type, returnFalse),
         mergeArrays(Watch.getDefinitions(Type), Type.watches),
+        fromAnnotationOrTypeOrDefault('strict', Type, returnUndefined as () => boolean),
         fromAnnotationOrTypeOrDefault('processContent', Type, returnNull as () => ProcessContentHook | null),
       );
     }
@@ -349,6 +355,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
       fromAnnotationOrDefinitionOrTypeOrDefault('hasSlots', nameOrDef, Type, returnFalse),
       fromAnnotationOrDefinitionOrTypeOrDefault('enhance', nameOrDef, Type, returnFalse),
       mergeArrays(nameOrDef.watches, Watch.getDefinitions(Type), Type.watches),
+      fromAnnotationOrDefinitionOrTypeOrDefault('strict', nameOrDef, Type, returnUndefined as () => boolean),
       fromAnnotationOrDefinitionOrTypeOrDefault('processContent', nameOrDef, Type, returnNull),
     );
   }
@@ -403,6 +410,7 @@ const defaultForOpts: ForOpts = {
   optional: false,
 };
 const returnNull = <T>(): T | null => null;
+const returnUndefined = <T>(): T | undefined => void 0;
 const returnFalse = () => false;
 const returnTrue = () => true;
 const returnEmptyArray = () => emptyArray;

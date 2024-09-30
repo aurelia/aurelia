@@ -1,8 +1,11 @@
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier, IExpressionParser } from '@aurelia/expression-parser';
-import { DirtyChecker } from '@aurelia/runtime';
+import { Registration, Writable } from '@aurelia/kernel';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
 import {
+  DirtyChecker,
   Scope,
   BindingContext,
+} from '@aurelia/runtime';
+import {
   Repeat,
   Controller,
   CustomElementDefinition,
@@ -28,7 +31,6 @@ import {
   PLATFORM,
   createContainer,
 } from '@aurelia/testing';
-import { Registration, Writable } from '@aurelia/kernel';
 
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   function runActivateLifecycle(sut: Repeat, scope: Scope): void {
@@ -509,6 +511,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     NodeObserverLocator,
     PropertyBindingRenderer,
     TextBindingRenderer,
+    ExpressionParser,
     Registration.instance(ITemplateCompiler, { compile: (d) => d }),
   );
 
@@ -558,11 +561,12 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
           props: [{ props: [] }]
         } as any;
         const child = container.createChild();
-        child.register(Registration.instance(IInstruction, instruction));
-        child.register(Registration.instance(IExpressionParser, null));
-        child.register(Registration.instance(IRenderLocation, loc));
-        child.register(Registration.instance(IController, hydratable));
-        child.register(Registration.instance(IViewFactory, itemFactory));
+        child.register(
+          Registration.instance(IInstruction, instruction),
+          Registration.instance(IRenderLocation, loc),
+          Registration.instance(IController, hydratable),
+          Registration.instance(IViewFactory, itemFactory),
+        );
         const sut = child.invoke(Repeat);
         (sut as Writable<Repeat>).$controller = Controller.$attr(container, sut, (void 0)!);
         binding.target = sut as any;

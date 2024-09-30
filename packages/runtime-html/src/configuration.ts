@@ -1,4 +1,5 @@
 import { IContainer, noop } from '@aurelia/kernel';
+import { ExpressionParser } from '@aurelia/expression-parser';
 import { DirtyChecker, ICoercionConfiguration } from '@aurelia/runtime';
 import {
   AtPrefixedTriggerAttributePattern,
@@ -239,6 +240,7 @@ function createConfiguration(optionsProvider: ConfigurationOptionsProvider) {
        */
       return container.register(
         instanceRegistration(ICoercionConfiguration, runtimeConfigurationOptions.coercingOptions),
+        ExpressionParser,
         ...DefaultComponents,
         ...DefaultResources,
         ...DefaultBindingSyntax,

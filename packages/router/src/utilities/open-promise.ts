@@ -24,10 +24,13 @@ export class OpenPromise<T = void> {
    */
   private _reject!: (reason?: unknown) => void;
 
-  public constructor() {
+  public static promises: OpenPromise<any>[] = [];
+
+  public constructor(public readonly description: string = '') {
     this.promise = new Promise((resolve, reject) => {
       this._resolve = resolve as (value?: T | PromiseLike<T>) => void;
       this._reject = reject;
+      OpenPromise.promises.push(this);
     });
   }
 
@@ -39,6 +42,7 @@ export class OpenPromise<T = void> {
   public resolve(value?: T | PromiseLike<T>): void {
     this._resolve(value);
     this.isPending = false;
+    OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
   }
 
   /**
@@ -49,5 +53,6 @@ export class OpenPromise<T = void> {
   public reject(reason?: unknown): void {
     this._reject(reason);
     this.isPending = false;
+    OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
   }
 }

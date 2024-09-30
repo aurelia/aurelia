@@ -127,7 +127,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
     if (hasDefault && this.parentViewport != null) {
       this.parentViewport.pendingChildren.push(this);
       if (this.parentViewport.pendingPromise === null) {
-        this.parentViewport.pendingPromise = new OpenPromise();
+        this.parentViewport.pendingPromise = new OpenPromise(`hydrated: ViewportCustomElement`);
       }
     }
 
@@ -145,7 +145,7 @@ export class ViewportCustomElement implements ICustomElementViewModel {
 
   public binding(initiator: IHydratedController, _parent: IHydratedParentController | null): void | Promise<void> {
     this.isBound = true;
-    return Runner.run(null,
+    return Runner.run('binding',
       // The first viewport(s) might be bound before the router is started
       () => waitForRouterStart(this.router, this.ea),
       () => {

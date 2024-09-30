@@ -11,7 +11,7 @@ import {
   TranslationInstructionType,
 } from '@aurelia/i18n';
 import { Registration } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import {
   IObserverLocator,
 } from '@aurelia/runtime';
@@ -139,6 +139,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
       aliases = aliases || [];
       aliases = aliases.map(alias => `${alias}.bind`);
       const container = createContainer().register(
+        ExpressionParser,
         BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand),
         Registration.singleton(IAttrMapper, AttrMapper),
       );

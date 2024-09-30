@@ -1,6 +1,6 @@
-import { Scope } from '@aurelia/runtime-html';
-import { type SubscribableValue } from './interfaces';
 import { DI } from '@aurelia/kernel';
+import { Scope } from '@aurelia/runtime';
+import { type SubscribableValue } from './interfaces';
 
 /** @internal */
 export const createInterface = DI.createInterface;

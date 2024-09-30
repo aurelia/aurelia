@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.22"></a>
+# 2.0.0-beta.22 (2024-09-30)
+
+### Features:
+
+* **observation:** ability to watch an expression (#2059) ([6cd6b8d](https://github.com/aurelia/aurelia/commit/6cd6b8d))
+
+
+### Refactorings:
+
+* **ast:** separate & allow binding behavior and value converter evaluation to be optional (#2058) ([7d7e21b](https://github.com/aurelia/aurelia/commit/7d7e21b))
+* **observers:** change callback timing to after notify (#2039) ([1e587e1](https://github.com/aurelia/aurelia/commit/1e587e1))
+
 <a name="2.0.0-beta.21"></a>
 # 2.0.0-beta.21 (2024-08-08)
 

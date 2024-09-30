@@ -49,7 +49,7 @@ import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig,
 import { Events, getMessage } from './events';
 import { pathUrlParser } from './url-parser';
 
-export interface IRouteNode {
+export interface IRouteNodeInitializationOptions {
   path: string;
   finalPath: string;
   context: IRouteContext;
@@ -64,9 +64,10 @@ export interface IRouteNode {
   component: CustomElementDefinition;
   children?: RouteNode[];
   residue?: ViewportInstruction[];
+  originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
 }
 
-export class RouteNode implements IRouteNode {
+export class RouteNode {
   /** @internal */ public _tree!: RouteTree;
   /** @internal */ public _version: number = 1;
 
@@ -132,7 +133,7 @@ export class RouteNode implements IRouteNode {
     this._originalInstruction ??= instruction;
   }
 
-  public static create(input: IRouteNode & { originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null }): RouteNode {
+  public static create(input: IRouteNodeInitializationOptions): RouteNode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { [RESIDUE]: _, ...params } = input.params ?? {};
     return new RouteNode(

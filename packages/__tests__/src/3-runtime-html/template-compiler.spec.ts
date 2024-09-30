@@ -9,6 +9,7 @@ import {
   AccessScopeExpression,
   PrimitiveLiteralExpression,
   IExpressionParser,
+  ExpressionParser,
 } from '@aurelia/expression-parser';
 import {
   bindable,
@@ -1776,7 +1777,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
     const ctx = TestContext.create();
     const container = ctx.container;
     const sut = ctx.templateCompiler;
-    container.register(...extraResources);
+    container.register(ExpressionParser, ...extraResources);
     const markup = typeof markupOrOptions === 'string' || 'nodeType' in markupOrOptions
         ? markupOrOptions
         : markupOrOptions.template;

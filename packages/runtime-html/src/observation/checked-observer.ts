@@ -275,6 +275,7 @@ export class CheckedObserver implements INodeObserver {
    * @internal
    */
   public _stop(): void {
+    this._value = this._oldValue = void 0;
     this._collectionObserver?.unsubscribe(this);
     this._valueObserver?.unsubscribe(this);
     this._collectionObserver = this._valueObserver = void 0;
@@ -285,6 +286,7 @@ export class CheckedObserver implements INodeObserver {
     oV = this._oldValue;
     this._oldValue = this._value;
     this.subs.notify(this._value, oV);
+    oV = void 0;
   }
 
   /** @internal */

@@ -5,9 +5,9 @@ import {
   type ArrayObserver,
   IObserverLocator,
   getCollectionObserver,
+  Scope,
 } from '@aurelia/runtime';
 import {
-  Scope,
   type BindingBehaviorInstance,
   type IBinding,
   bindable,
@@ -29,6 +29,7 @@ import {
   ValidationHtmlConfiguration,
   ValidationTrigger,
   BindingMediator,
+  type ControllerValidateResult,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
 import { Organization, Person } from '../validation/_test-resources.js';
@@ -1228,7 +1229,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
         assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
         await controller.validate();
-        assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error2');
+        assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 1, 'error2');
 
         target.value = '123456';
         await assertEventHandler(target, 'change', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
@@ -1522,6 +1523,73 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       );
 
       await stop(true);
+    });
+
+    it('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
+      type Model = { someProperty: number };
+
+      @customElement({ name: 'ce-one', template: `<input value.bind="model.someProperty & validate">` })
+      class CeOne {
+        @bindable public model: Model;
+
+        public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+        private readonly validationRules: IValidationRules = resolve(IValidationRules);
+
+        public bound() {
+          this.model = structuredClone(this.model);
+        }
+
+        public attached() {
+          this.setupValidationRules();
+        }
+
+        public detaching() {
+          this.validationController.reset();
+          this.validationRules.off();
+        }
+
+        private setupValidationRules() {
+          this.validationRules
+            .on(this.model)
+            .ensure((x) => x.someProperty)
+            .range(3, 20);
+        }
+      }
+
+      class AppRoot {
+        public isEditing: boolean = false;
+        public model: Model = { someProperty: 1 };
+      }
+
+      const { startPromise, stop, component, appHost } = createFixture(
+        `<ce-one if.bind="isEditing" model.bind></ce-one>`,
+        AppRoot,
+        [ValidationHtmlConfiguration, CeOne]
+      );
+      await startPromise;
+
+      component.isEditing = true;
+      const ceOne: CeOne = CustomElement.for<CeOne>(appHost.querySelector('ce-one')).viewModel;
+      const validationController = ceOne.validationController;
+      let result = await validationController.validate();
+      assertInvalidResult(result, 1);
+
+      component.isEditing = false;
+      result = await validationController.validate();
+      assert.strictEqual(result.valid, true, 'result.valid 2');
+
+      component.isEditing = true;
+      result = await validationController.validate();
+      assertInvalidResult(result, 3);
+
+      await stop(true);
+
+      function assertInvalidResult(result: ControllerValidateResult, iteration: number): void {
+        assert.strictEqual(result.valid, false, `result.valid ${iteration}`);
+        assert.strictEqual(result.results.length, 1, `result.results.length ${iteration}`);
+        assert.strictEqual(result.results[0].propertyName, 'someProperty', `result.results[0].propertyName ${iteration}`);
+        assert.strictEqual(result.results[0].message, 'Some Property must be between or equal to 3 and 20.', `result.results[0].message ${iteration}`);
+      }
     });
   });
 });

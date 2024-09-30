@@ -132,7 +132,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         changeFnc: (_val: Date) => {
           return new Date(ThreeDaysDateString);
         }, app: class { public value = new Date('Sat Feb 02 2002 00:00:00 GMT+0000 (Coordinated Universal Time)'); },
-        interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly'
+        interpolation: `$\{value}`, it: 'Date works and setDate triggers change properly',
       },
       {
         expected: `undefined${testDateString}`,
@@ -317,8 +317,8 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       });
       if (x.expectedStrictMode) {
         $it(`${x.it} STRICT MODE `, async function () {
-          const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}` }, x.app);
-          const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict]);
+          const strict = CustomElement.define({ name: 'strict', template: `${x.interpolation}`, strict: true }, x.app);
+          const { tearDown, appHost } = createFixture(`<template><strict></strict></template>`, class { }, [strict], void 0, void 0);
           assert.strictEqual(appHost.textContent, x.expectedStrictMode.toString(), `host.textContent`);
           await tearDown();
         });
@@ -347,6 +347,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           target,
           'value',
           BindingMode.toView,
+          false,
         );
         const source = { checked: false, yesMsg: 'yes', noMsg: 'no' };
 
@@ -431,6 +432,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           target,
           'value',
           BindingMode.toView,
+          false,
         );
         const source = {
           checked1: false,

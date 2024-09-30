@@ -67,6 +67,7 @@ export {
 } from './route-expression';
 
 export {
+  IRouteNodeInitializationOptions,
   RouteNode,
   RouteTree,
 } from './route-tree';

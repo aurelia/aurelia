@@ -1,7 +1,7 @@
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
-import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
@@ -29,6 +29,7 @@ export function createFixture<T extends object>(
   autoStart: boolean = true,
   ctx: TestContext = TestContext.create(),
   appConfig: IFixtureConfig =  {},
+  rootElementDef?: Partial<PartialCustomElementDefinition>,
 ): IFixture<ICustomElementViewModel & ObjectType<T>> {
   type K = ObjectType<T>;
   const { container } = ctx;
@@ -51,7 +52,7 @@ export function createFixture<T extends object>(
       } as unknown as Constructable<K>;
 
   const annotations: (Exclude<keyof CustomElementDefinition, 'Type' | 'key' | 'kind' | 'register' | 'type' | 'toString'>)[] =
-    ['aliases', 'bindables', /* 'cache',  */'capture', 'containerless', 'dependencies', 'enhance'];
+    ['aliases', 'bindables', /* 'cache',  */'capture', 'containerless', 'dependencies', 'enhance', 'strict'];
   if ($$class !== $class as any && $class != null) {
     annotations.forEach(anno => {
       Metadata.define(CustomElement.getAnnotation($class as Constructable<T>, anno, null), $$class, anno);
@@ -61,6 +62,7 @@ export function createFixture<T extends object>(
   const existingDefs = (CustomElement.isType($$class) ? CustomElement.getDefinition($$class) : {}) as CustomElementDefinition;
   const App = CustomElement.define({
     ...existingDefs,
+    ...rootElementDef,
     name: existingDefs.name ?? 'app',
     template,
   }, $$class);
@@ -236,6 +238,13 @@ export function createFixture<T extends object>(
     const el = strictQueryBy(selector, `to compare value against "${value}"`);
     assert.strictEqual((el as any).value, value);
   }
+  function assertChecked(selector: string, value: boolean) {
+    const el = strictQueryBy(selector, `to compare value against "${value}"`);
+    if (!('checked' in el)) {
+      throw new Error('Element does not have a checked property');
+    }
+    assert.strictEqual((el as any).checked, value, `Expected element (${selector}) to  have :checked state as ${value}, but received ${!value}`);
+  }
 
   function trigger(selector: string, event: string, init?: CustomEventInit, overrides?: Record<string, unknown>): void {
     const el = strictQueryBy(selector, `to fire event "${event}"`);
@@ -273,7 +282,7 @@ export function createFixture<T extends object>(
       throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
     }
     (el as HTMLInputElement).value = value;
-    el.dispatchEvent(new platform.window.Event('input'));
+    el.dispatchEvent(new platform.window.Event('input', { bubbles: true }));
   }
 
   const scrollBy = (selector: string, init: number | ScrollToOptions) => {
@@ -366,6 +375,7 @@ export function createFixture<T extends object>(
     public assertAttrNS = assertAttrNS;
     public assertStyles = assertStyles;
     public assertValue = assertValue;
+    public assertChecked = assertChecked;
     public createEvent = (name: string, init?: CustomEventInit) => new platform.CustomEvent(name, init);
     public trigger = trigger as ITrigger;
     public type = type;
@@ -499,6 +509,13 @@ export interface IFixture<T> {
    */
   assertValue(selector: string, value: unknown): void;
   /**
+   * Assert whether an element matching the given selector has the :checked state.
+   *
+   * Will throw if there's no checked property on the element
+   * Will throw if there' more than one elements with matching selector
+   */
+  assertChecked(selector: string, value: boolean): void;
+  /**
    * Create a custom event by the given name and init for the current platform
    */
   createEvent<T>(name: string, init?: CustomEventInit<T>): CustomEvent;
@@ -541,7 +558,7 @@ export type ITrigger = {
 export interface IFixtureBuilderBase<T, E = {}> {
   html(html: string): this & E;
   html<M>(html: TemplateStringsArray, ...values: TemplateValues<M>[]): this & E;
-  component(comp: T): this & E;
+  component(comp: T, def?: Partial<PartialCustomElementDefinition>): this & E;
   deps(...args: unknown[]): this & E;
   config(config: IFixtureConfig): this & E;
 }
@@ -555,7 +572,7 @@ type CreateBuilder<T, Availables extends BuilderMethodNames> = {
         (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<Availables, 'html'>>;
       }
       : key extends 'component'
-        ? <K>(comp: Constructable<K> | K) => CreateBuilder<K, Exclude<Availables, 'component'>>
+        ? <K>(comp: Constructable<K> | K, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<Availables, 'component'>>
         : (...args: Parameters<IFixtureBuilderBase<T>[key]>) => CreateBuilder<T, Exclude<Availables, key>>
 } & ('html' extends Availables ? {} : { build(): IFixture<T> });
 
@@ -568,6 +585,7 @@ class FixtureBuilder<T> {
   private _html?: string | TemplateStringsArray;
   private _htmlArgs?: TemplateValues<T>[];
   private _comp?: T;
+  private _def?: Partial<PartialCustomElementDefinition>;
   private _args?: unknown[];
   private _config?: IFixtureConfig;
 
@@ -577,8 +595,9 @@ class FixtureBuilder<T> {
     return this as unknown as CreateBuilder<T, Exclude<BuilderMethodNames, 'html'>>;
   }
 
-  public component(comp: T): CreateBuilder<T, Exclude<BuilderMethodNames, 'component'>> {
+  public component(comp: T, def?: Partial<PartialCustomElementDefinition>): CreateBuilder<T, Exclude<BuilderMethodNames, 'component'>> {
     this._comp = comp;
+    this._def = def;
     return this;
   }
 
@@ -599,7 +618,11 @@ class FixtureBuilder<T> {
     return createFixture<any>(
       typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []),
       this._comp,
-      this._args
+      this._args,
+      void 0,
+      void 0,
+      this._config,
+      this._def,
     );
   }
 }

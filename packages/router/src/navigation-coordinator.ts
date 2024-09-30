@@ -542,7 +542,7 @@ export class NavigationCoordinator {
    * @param state - The state to add
    */
   public addSyncState(state: NavigationState): void {
-    const openPromise = new OpenPromise();
+    const openPromise = new OpenPromise(`addSyncState: ${state}`);
     this.syncStates.set(state, openPromise);
   }
 
@@ -671,7 +671,7 @@ export class NavigationCoordinator {
       if (entity?.syncPromise === null && openPromise.isPending) {
         // ...mark the entity as waiting for the state.
         entity.syncingState = state;
-        entity.syncPromise = new OpenPromise();
+        entity.syncPromise = new OpenPromise(`waitForSyncState: ${state}`);
         // Also add the state as checked for the entity...
         entity.checkedStates.push(state);
         // ...and over all.
@@ -716,7 +716,7 @@ export class NavigationCoordinator {
     let openPromise = entity.states.get(state);
     // ...creating a new one if necessary.
     if (openPromise == null) {
-      openPromise = new OpenPromise();
+      openPromise = new OpenPromise(`waitForEndpointState: ${state}`);
       entity.states.set(state, openPromise);
     }
 

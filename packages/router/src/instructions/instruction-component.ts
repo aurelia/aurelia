@@ -1,4 +1,4 @@
-import { Constructable, IContainer, Writable } from '@aurelia/kernel';
+import { Constructable, IContainer, onResolve, Writable } from '@aurelia/kernel';
 import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
@@ -215,17 +215,37 @@ export class InstructionComponent {
    *
    * Throws instantiation error if there was an error during instantiation.
    */
-  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null {
-    // TODO: Allow instantiation from a promise here, but awaiting resolve?
-    void this.resolve(instruction);
+  public toInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null | Promise<IRouteableComponent | null> {
+    return onResolve(this.resolve(instruction) as IRouteableComponent, () => {
+      if (this.instance !== null) {
+        return this.instance;
+      }
+      if (parentContainer == null) {
+        return null;
+      }
 
-    if (this.instance !== null) {
-      return this.instance;
-    }
-    if (parentContainer == null) {
-      return null;
-    }
+      return this._createInstance(parentContainer, parentController, parentElement, instruction);
+    });
+  }
 
+  public same(other: InstructionComponent, compareType: boolean = false): boolean {
+    return compareType ? this.type === other.type : this.name === other.name;
+  }
+
+  private getNewName(type: RouteableComponentType): string {
+    if (this.name === null) {
+      return InstructionComponent.getName(type);
+    }
+    return this.name;
+  }
+
+  /** @internal */
+  /**
+   * Creates the component instance for this instruction.
+   *
+   * Throws instantiation error if there was an error during instantiation.
+   */
+  private _createInstance(parentContainer: IContainer, parentController: IHydratedController, parentElement: HTMLElement, instruction: RoutingInstruction): IRouteableComponent | null {
     const container = parentContainer.createChild();
     const Type = this.isType()
       ? this.type!
@@ -263,17 +283,6 @@ export class InstructionComponent {
     (controller as Writable<typeof controller>).parent = parentController;
 
     return instance;
-  }
-
-  public same(other: InstructionComponent, compareType: boolean = false): boolean {
-    return compareType ? this.type === other.type : this.name === other.name;
-  }
-
-  private getNewName(type: RouteableComponentType): string {
-    if (this.name === null) {
-      return InstructionComponent.getName(type);
-    }
-    return this.name;
   }
 }
 

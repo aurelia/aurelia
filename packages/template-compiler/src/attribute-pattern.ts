@@ -1,6 +1,6 @@
 import type { Constructable, IRegistry, } from '@aurelia/kernel';
 import { IContainer, registrableMetadataKey, emptyArray, getResourceKeyFor, resolve } from '@aurelia/kernel';
-import { createInterface, objectFreeze, singletonRegistration } from './utilities';
+import { tcCreateInterface, tcObjectFreeze, singletonRegistration } from './utilities';
 import { ErrorNames, createMappedError } from './errors';
 
 export interface AttributePatternDefinition<T extends string = string> {
@@ -286,7 +286,7 @@ export interface ISyntaxInterpreter {
   add(defs: AttributePatternDefinition[]): void;
   interpret(name: string): Interpretation;
 }
-export const ISyntaxInterpreter = /*@__PURE__*/createInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
+export const ISyntaxInterpreter = /*@__PURE__*/tcCreateInterface<ISyntaxInterpreter>('ISyntaxInterpreter', x => x.singleton(SyntaxInterpreter));
 
 /**
  * The default implementation of @see {ISyntaxInterpreter}.
@@ -444,13 +444,13 @@ export class AttrSyntax {
 
 export type IAttributePattern<T extends string = string> = Record<T, (rawName: string, rawValue: string, parts: readonly string[]) => AttrSyntax>;
 
-export const IAttributePattern = /*@__PURE__*/createInterface<IAttributePattern>('IAttributePattern');
+export const IAttributePattern = /*@__PURE__*/tcCreateInterface<IAttributePattern>('IAttributePattern');
 
 export interface IAttributeParser {
   registerPattern(patterns: AttributePatternDefinition[], Type: Constructable<IAttributePattern>): void;
   parse(name: string, value: string): AttrSyntax;
 }
-export const IAttributeParser = /*@__PURE__*/createInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
+export const IAttributeParser = /*@__PURE__*/tcCreateInterface<IAttributeParser>('IAttributeParser', x => x.singleton(AttributeParser));
 
 /**
  * The default implementation of the @see IAttributeParser interface
@@ -531,13 +531,12 @@ export function attributePattern<const K extends AttributePatternDefinition>(...
   return function decorator<T extends Constructable<IAttributePattern<K['pattern']>>>(target: T, context: ClassDecoratorContext<T>): T {
     const registrable = AttributePattern.create(patternDefs, target);
     // Decorators are by nature static, so we need to store the metadata on the class itself, assuming only one set of patterns per class.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     context.metadata[registrableMetadataKey] = registrable;
     return target;
   };
 }
 
-export const AttributePattern = /*@__PURE__*/ objectFreeze<AttributePatternKind>({
+export const AttributePattern = /*@__PURE__*/ tcObjectFreeze<AttributePatternKind>({
   name: getResourceKeyFor('attribute-pattern'),
   create(patternDefs, Type) {
     return {

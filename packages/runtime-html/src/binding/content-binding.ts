@@ -1,12 +1,10 @@
 import {
-  connectable
-} from '@aurelia/runtime';
-import {
+  connectable,
   IAstEvaluator,
   astBind,
   astEvaluate,
   astUnbind,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
@@ -16,8 +14,8 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
+  Scope,
 } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import type { IPlatform } from '../platform';
 import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
@@ -40,7 +38,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     mixinUseScope(ContentBinding);
     mixingBindingLimited(ContentBinding, () => 'updateTarget');
     connectable(ContentBinding, null!);
-    mixinAstEvaluator(void 0, false)(ContentBinding);
+    mixinAstEvaluator(ContentBinding);
   });
 
   public isBound: boolean = false;
@@ -77,8 +75,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   public readonly boundFn = false;
 
-  public strict = true;
-
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -87,6 +83,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._controller = controller;

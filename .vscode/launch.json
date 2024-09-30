@@ -165,13 +165,16 @@
         "--recursive",
         "--timeout",
         "5000",
+        "-r",
+        "source-map-support/register",
         "--watch-extensions",
         "js",
         "${workspaceRoot}/packages/__tests__/dist/setup-node.js",
         "${workspaceRoot}/packages/__tests__/dist/router-lite/**/*.spec.js"
       ],
       "cwd": "${workspaceRoot}",
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "preLaunchTask": "npm: build all"
     },
     {
       "type": "node",

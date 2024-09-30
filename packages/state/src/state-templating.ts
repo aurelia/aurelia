@@ -98,6 +98,7 @@ export const StateBindingInstructionRenderer = /*@__PURE__*/ renderer(class Stat
       target,
       instruction.to,
       this._stateContainer,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -120,6 +121,7 @@ export const DispatchBindingInstructionRenderer = /*@__PURE__*/ renderer(class D
       target,
       instruction.from,
       this._stateContainer,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);

@@ -33,12 +33,16 @@ describe('validation-i18n/localization.spec.ts', function () {
       public constructor(public name: string, public age: number) { }
     }
 
+    interface Model {
+      someProperty: number;
+    }
     type StateError = 'none' | 'foo' | 'bar';
     class App {
       public person1: Person = new Person((void 0)!, (void 0)!);
       public person2: Person = new Person((void 0)!, (void 0)!);
       public person3: Person = new Person((void 0)!, (void 0)!);
       public person4: Person = new Person((void 0)!, (void 0)!);
+      public model: Partial<Model> = { someProperty: 1 };
       public factory: LocalizedValidationControllerFactory;
       public controller: IValidationController;
       public controllerSpy: Spy;
@@ -81,6 +85,11 @@ describe('validation-i18n/localization.spec.ts', function () {
           .ensure('name')
           .satisfiesState<StateError, string>('none', (_v, _o) => this.stateError, { foo: 'stateError.foo', bar: 'stateError.bar' })
           .withMessageKey('customStateError');
+
+        validationRules
+          .on(this.model)
+          .ensure('someProperty')
+          .range(3, 20);
       }
 
       public unbinding() {
@@ -123,11 +132,15 @@ describe('validation-i18n/localization.spec.ts', function () {
                   errorMessages: {
                     required: 'The value is required'
                   },
+                  validation: {
+                    range: "${$displayName} should conform the interval [${$rule.min}, ${$rule.max}].",
+                    someProperty: "FooBar"
+                  },
                   stateError: {
                     foo: 'Foo Error',
                     bar: 'Bar Error'
                   },
-                  customStateError: 'Invalid state'
+                  customStateError: 'Invalid state',
                 },
                 errorMessages: {
                   required: `The value of the \${$displayName} is required.`,
@@ -147,6 +160,10 @@ describe('validation-i18n/localization.spec.ts', function () {
                   nameRequired: 'Name ist notwendig',
                   errorMessages: {
                     required: 'Der Wert ist notwendig'
+                  },
+                  validation: {
+                    range: "${$displayName} sollte dem Intervall [${$rule.min}, ${$rule.max}] entsprechen.",
+                    someProperty: "FooBar"
                   },
                   stateError: {
                     foo: 'Foo Fehler',
@@ -392,6 +409,34 @@ describe('validation-i18n/localization.spec.ts', function () {
       {
         template: `<input type="text" value.two-way="person1.age & validate">`,
         defaultKeyPrefix: 'errorMessages'
+      }
+    );
+
+    // Issue: https://discourse.aurelia.io/t/au2-validation-in-conditionally-rendered-component/5507/8
+    $it('supports registration of default prefix - Discourse 5507',
+      async function ({ app, container, host, platform, ctx }) {
+        const controller = app.controller;
+        const controllerSpy = app.controllerSpy;
+
+        const target = host.querySelector('input');
+        assertControllerBinding(controller as ValidationController, 'model.someProperty', target, controllerSpy);
+
+        await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['FooBar should conform the interval [3, 20].']
+        );
+
+        await changeLocale(container, platform, controllerSpy);
+
+        assert.deepStrictEqual(
+          controller.results.filter(r => !r.valid).map((r) => r.toString()),
+          ['FooBar sollte dem Intervall [3, 20] entsprechen.']
+        );
+      },
+      {
+        template: `<input type="text" value.two-way="model.someProperty & validate">`,
+        defaultKeyPrefix: 'validation'
       }
     );
 

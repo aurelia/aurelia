@@ -435,9 +435,23 @@ export class Router implements IRouter {
     this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
 
     // Invoke the transformFromUrl hook if it exists
-    let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-      ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-      : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
+    let transformedInstruction;
+    // If we're using full state instruction, use that...
+    if (navigation.useFullStateInstruction) {
+      // ...and extract query and fragment from it
+      transformedInstruction = navigation.fullStateInstruction;
+      let options: ILoadOptions = {};
+      ({ instructions: transformedInstruction, options } = this._extractFragmentAndQuery(transformedInstruction, options) as { instructions: string; options: ILoadOptions });
+      navigation.fragment = options.fragment ?? navigation.fragment;
+      navigation.query = options.query ?? navigation.query;
+      navigation.parameters = (options.parameters as Record<string, unknown>) ?? navigation.parameters;
+    } else {
+      // If we're not using full state instruction, transform the instruction, invoking
+      // the transformFromUrl hook if it exists
+      transformedInstruction = typeof navigation.instruction === 'string'
+        ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
+        : navigation.instruction;
+    }
 
     // If app uses a base path remove it if present (unless we're using fragment hash)
     const basePath = options.basePath;
@@ -484,11 +498,19 @@ export class Router implements IRouter {
         .forEach(scope => coordinator.ensureClearStateInstruction(scope));
     }
 
-    await coordinator.processInstructions();
+    let guard = 100;
+    do {
+      if (!guard--) { // Guard against endless loop
+        this.unresolvedInstructionsError(navigation, coordinator.instructions);
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await coordinator.processInstructions();
+    } while (coordinator.instructions.length > 0);
 
     // TODO: Look into adding everything above as well
-    return Runner.run(null,
+    return Runner.run('processNavigation',
       () => {
+        // console.log('### processNavigation DONE', coordinator.navigation.instruction, coordinator.navigation, coordinator);
         coordinator.closed = true;
         coordinator.finalEndpoint();
         return coordinator.waitForSyncState('completed');
@@ -600,9 +622,7 @@ export class Router implements IRouter {
    * @param options - The options to use when loading the instructions
    */
   public async load(instructions: LoadInstruction | LoadInstruction[], options?: ILoadOptions): Promise<boolean | void> {
-    options = options ?? {};
-    instructions = this.extractFragment(instructions, options);
-    instructions = this.extractQuery(instructions, options);
+    ({ instructions, options } = this._extractFragmentAndQuery(instructions, options ?? {}));
 
     let scope: RoutingScope | null = null;
     ({ instructions, scope } = this.applyLoadOptions(instructions, options));
@@ -908,16 +928,18 @@ export class Router implements IRouter {
   }
 
   /**
-   * Extract and setup the fragment from instructions or options.
+   * Extract and setup the fragment and query from instructions or options.
    *
-   * @param instructions - The instructions to extract the fragment from
-   * @param options - The options containing the fragment
+   * @param instructions - The string instructions to extract from
+   * @param options - The options containing the fragment and query
    *
    * TODO: Review query extraction; different pos for path and fragment
    *
    * @internal
    */
-  private extractFragment(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
+  private _extractFragmentAndQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): { instructions: LoadInstruction | LoadInstruction[]; options: ILoadOptions } {
+    options = { ...options };
+
     // If instructions is a string and contains a fragment, extract it
     if (typeof instructions === 'string' && options.fragment == null) {
       const [path, fragment] = instructions.split('#');
@@ -925,20 +947,6 @@ export class Router implements IRouter {
       options.fragment = fragment;
     }
 
-    return instructions;
-  }
-
-  /**
-   * Extract and setup the query and parameters from instructions or options.
-   *
-   * @param instructions - The instructions to extract the query from
-   * @param options - The options containing query and/or parameters
-   *
-   * TODO: Review query extraction; different pos for path and fragment
-   *
-   * @internal
-   */
-  private extractQuery(instructions: LoadInstruction | LoadInstruction[], options: ILoadOptions): LoadInstruction | LoadInstruction[] {
     // If instructions is a string and contains a query string, extract it
     if (typeof instructions === 'string' && options.query == null) {
       const [path, search] = instructions.split('?');
@@ -969,7 +977,7 @@ export class Router implements IRouter {
       });
     }
 
-    return instructions;
+    return { instructions, options };
   }
 }
 

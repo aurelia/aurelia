@@ -233,6 +233,21 @@ test.describe('router', () => {
     expect(page.url()).toBe(`${baseURL}/pages/two-route`);
     expect(await page.locator('#root-vp').textContent()).toBe('Two page');
   });
+
+  test('loads route with parameters', async ({ page }) => {
+    await page.click('a:text("Pages params-route 123")');
+    await expect(page.locator('#root-vp')).toContainText('Params page');
+    await expect(page.locator('#params')).toHaveText('{"p":"123"}');
+  });
+
+  test('reloads route with parameters', async ({ page }) => {
+    await page.click('a:text("Pages params-route 123")');
+    await expect(page.locator('#root-vp')).toContainText('Params page');
+    await expect(page.locator('#params')).toHaveText('{"p":"123"}');
+    await page.reload();
+    await expect(page.locator('#root-vp')).toContainText('Params page');
+    await expect(page.locator('#params')).toHaveText('{"p":"123"}');
+  });
 });
 
 /** Wait until the navigation processing is complete */

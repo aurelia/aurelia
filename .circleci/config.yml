@@ -674,8 +674,10 @@ jobs:
           key: cache-{{ .Revision }}-benchmark-app
           paths:
             - benchmarks/latest/dist/app.latest.js
+            - benchmarks/latest/dist/app-repeat-ce.latest.js
             - benchmarks/latest/dist/app-big-template.latest.js
             - benchmarks/local/dist/app.local.js
+            - benchmarks/local/dist/app-repeat-ce.local.js
             - benchmarks/local/dist/app-big-template.local.js
 
   tacho_benchmark:
@@ -863,6 +865,12 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
+          name: e2e_validation_issue_2025
+          path: "packages/__e2e__/11-validation"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
           name: e2e_virtual_repeat
           path: "packages/__e2e__/8-ui-virtualization"
           requires:
@@ -879,8 +887,20 @@ workflows:
             - tacho_benchmark_prep
       - tacho_benchmark:
           <<: *filter_ignore_develop_release
+          name: benchmark_startup___custom_element
+          command: npm run bench:startup10k-ce
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
           name: benchmark_rerender
           command: npm run bench:rerender10k
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_rerender__custom_element
+          command: npm run bench:rerender10k-ce
           requires:
             - tacho_benchmark_prep
       - tacho_benchmark:
@@ -1047,6 +1067,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_i18n
           path: "packages/__e2e__/4-i18n"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_validation_issue_2025
+          path: "packages/__e2e__/11-validation"
           requires:
             - build_release
       - e2e_test:

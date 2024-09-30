@@ -5,9 +5,9 @@ import {
   type ArrayObserver,
   IObserverLocator,
   getCollectionObserver,
+  Scope,
 } from '@aurelia/runtime';
 import {
-  Scope,
   type BindingBehaviorInstance,
   type IBinding,
   bindable,

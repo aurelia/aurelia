@@ -1,12 +1,10 @@
 import {
-  connectable
-} from '@aurelia/runtime';
-import {
+  connectable,
   IAstEvaluator,
   astBind,
   astEvaluate,
   astUnbind,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
@@ -16,8 +14,8 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
+  Scope,
 } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import type { IPlatform } from '../platform';
 import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';

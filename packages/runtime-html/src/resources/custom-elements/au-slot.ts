@@ -1,4 +1,6 @@
-import { Scope } from '../../binding/scope';
+import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
+import { Scope } from '@aurelia/runtime';
+import { IInstruction, type HydrateElementInstruction } from '@aurelia/template-compiler';
 import { IRenderLocation } from '../../dom';
 import { CustomElementDefinition, CustomElementStaticAuDefinition, elementTypeName } from '../custom-element';
 import { IHydrationContext } from '../../templating/controller';
@@ -6,8 +8,6 @@ import { IRendering } from '../../templating/rendering';
 import { registerResolver } from '../../utilities-di';
 import { createMutationObserver, isElement } from '../../utilities-dom';
 
-import { IInstruction, type HydrateElementInstruction } from '@aurelia/template-compiler';
-import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
 import type { ControllerVisitor, ICustomElementController, ICustomElementViewModel, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import type { IViewFactory } from '../../templating/view';
 import { type IAuSlot, type IAuSlotSubscriber, IAuSlotWatcher, defaultSlotName, auslotAttr } from '../../templating/controller.projection';

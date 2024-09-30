@@ -1,26 +1,26 @@
 
 import { type Writable, type IServiceLocator } from '@aurelia/kernel';
+import type { IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
-  IObserverLocatorBasedConnectable,
+  type IObserverLocatorBasedConnectable,
+  astEvaluate,
+  astBind,
+  astUnbind,
+  type Scope,
+  type IOverrideContext,
+  type IAstEvaluator,
 } from '@aurelia/runtime';
 import {
   mixinAstEvaluator,
   mixingBindingLimited,
-  astEvaluate,
-  astBind,
-  astUnbind,
-  IBinding,
-  IAstEvaluator,
-  type Scope,
-  type IOverrideContext,
+  type IBinding,
 } from '@aurelia/runtime-html';
 import {
-  IStoreSubscriber,
+  type IStoreSubscriber,
   type IStore,
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
-import type { IsBindingBehavior } from '@aurelia/expression-parser';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object

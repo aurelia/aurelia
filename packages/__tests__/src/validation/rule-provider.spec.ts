@@ -17,7 +17,7 @@ import {
 import {
   Scope,
   astEvaluate,
-} from '@aurelia/runtime-html';
+} from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import {
   EqualsRule,

@@ -1,8 +1,8 @@
-import { IDisposable, IServiceLocator } from '@aurelia/kernel';
-import { State } from '../templating/controller';
-import { type Scope } from './scope';
 import { TaskQueue } from '@aurelia/platform';
+import { IDisposable, IServiceLocator } from '@aurelia/kernel';
+import { type Scope } from '@aurelia/runtime';
 import { BindingMode } from '@aurelia/template-compiler';
+import { State } from '../templating/controller';
 
 /** @internal */ export const { default: defaultMode, oneTime, toView, fromView, twoWay } = BindingMode;
 export { BindingMode } from '@aurelia/template-compiler';

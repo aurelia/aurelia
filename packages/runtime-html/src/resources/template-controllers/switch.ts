@@ -9,8 +9,9 @@ import {
 import {
   type ICollectionObserver,
   IObserverLocator,
+  type Scope,
 } from '@aurelia/runtime';
-import { type Scope } from '../../binding/scope';
+import type { IInstruction } from '@aurelia/template-compiler';
 import { IRenderLocation } from '../../dom';
 import { attrTypeName, CustomAttributeStaticAuDefinition, defineAttribute } from '../custom-attribute';
 import { IViewFactory } from '../../templating/view';
@@ -18,7 +19,6 @@ import { oneTime } from '../../binding/interfaces-bindings';
 
 import type { Controller, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
 import type { INode } from '../../dom';
-import type { IInstruction } from '@aurelia/template-compiler';
 import { createMappedError, ErrorNames } from '../../errors';
 import { PartialBindableDefinition } from '../../bindable';
 

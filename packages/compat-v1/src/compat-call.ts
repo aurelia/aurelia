@@ -1,9 +1,16 @@
 import { camelCase, type IContainer, type IServiceLocator } from '@aurelia/kernel';
-import { IAccessor, IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 import {
+  IAccessor,
+  IObserverLocator,
+  IObserverLocatorBasedConnectable,
   astBind,
   astEvaluate,
   astUnbind,
+  type IAstEvaluator,
+  Scope,
+} from '@aurelia/runtime';
+import {
   IController,
   IHydratableController,
   IRenderer,
@@ -12,9 +19,7 @@ import {
   mixingBindingLimited,
   renderer,
   IPlatform,
-  type IAstEvaluator,
   type IBinding,
-  Scope,
 } from '@aurelia/runtime-html';
 import {
   type BindingCommandInstance,
@@ -23,7 +28,6 @@ import {
   type BindingCommandStaticAuDefinition,
 } from '@aurelia/template-compiler';
 import { ensureExpression, etIsFunction } from './utilities';
-import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 const callRegisteredContainer = new WeakSet<IContainer>();
 

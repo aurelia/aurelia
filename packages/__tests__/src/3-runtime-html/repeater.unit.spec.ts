@@ -1,8 +1,11 @@
+import { Registration, Writable } from '@aurelia/kernel';
 import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
-import { DirtyChecker } from '@aurelia/runtime';
 import {
+  DirtyChecker,
   Scope,
   BindingContext,
+} from '@aurelia/runtime';
+import {
   Repeat,
   Controller,
   CustomElementDefinition,
@@ -28,7 +31,6 @@ import {
   PLATFORM,
   createContainer,
 } from '@aurelia/testing';
-import { Registration, Writable } from '@aurelia/kernel';
 
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   function runActivateLifecycle(sut: Repeat, scope: Scope): void {

@@ -1,13 +1,11 @@
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
-} from '@aurelia/runtime';
-import {
   astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
@@ -20,8 +18,8 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
+  Scope,
 } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';

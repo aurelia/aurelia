@@ -19,7 +19,7 @@ export class Aurelia extends $Aurelia {
     super(container);
   }
 
-  public static app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
+  public static app(config: ISinglePageAppConfig | CustomElementType): Omit<Aurelia, 'register' | 'app' | 'enhance'> {
     return new Aurelia().app(config);
   }
 
@@ -31,7 +31,7 @@ export class Aurelia extends $Aurelia {
     return new Aurelia().register(...params);
   }
 
-  public app(config: ISinglePageAppConfig<object> | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
+  public app(config: ISinglePageAppConfig | CustomElementType): Omit<this, 'register' | 'app' | 'enhance'> {
     if (CustomElement.isType(config)) {
       // Default to custom element element name
       const definition = CustomElement.getDefinition(config);
@@ -296,6 +296,7 @@ export {
   // ICollectionSubscriber,
 
   type IndexMap,
+  Scope,
 
 } from '@aurelia/runtime';
 
@@ -668,7 +669,6 @@ export {
   IEventModifier,
   type IModifiedEventHandler,
 
-  Scope,
   ISignaler,
 
   IWindow,

@@ -2,12 +2,16 @@ import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   connectable,
-} from '@aurelia/runtime';
-import {
   astEvaluate,
   astUnbind,
   astBind,
   IAstEvaluator,
+  type Scope,
+  type IObserverLocator,
+  type IAccessor,
+  type IObserverLocatorBasedConnectable,
+} from '@aurelia/runtime';
+import {
   CustomElement,
   IPlatform,
   type IBindingController,
@@ -16,7 +20,6 @@ import {
   type IHydratableController,
   type INode,
   IBinding,
-  type Scope,
 } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -24,11 +27,6 @@ import { I18N } from '../i18n';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
-import type {
-  IObserverLocator,
-  IAccessor,
-  IObserverLocatorBasedConnectable,
-} from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 import { etInterpolation, etIsProperty, stateActivating } from '../utils';

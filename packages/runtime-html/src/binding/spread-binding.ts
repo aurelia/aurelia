@@ -1,9 +1,17 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
-import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
+import {
+  type IObserverLocator,
+  type IObserverLocatorBasedConnectable,
+  connectable,
+  Scope,
+  type IAstEvaluator,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
-import { IAstEvaluator, astBind, astEvaluate, astUnbind } from '../ast.eval';
 import { ErrorNames, createMappedError } from '../errors';
 import { IPlatform } from '../platform';
 import { IHasController, } from '../renderer';
@@ -13,7 +21,6 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { Scope } from './scope';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,

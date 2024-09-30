@@ -3,14 +3,16 @@ import { IDisposable, IIndexable, IServiceLocator, type Writable } from '@aureli
 import {
   connectable,
   IObserverLocatorBasedConnectable,
+  Scope,
+  type IOverrideContext,
 } from '@aurelia/runtime';
+import { IBinding } from '@aurelia/runtime-html';
 import {
   IStore,
   type Unsubscribable,
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope, isSubscribable } from './state-utilities';
-import { IBinding, Scope, type IOverrideContext, } from '@aurelia/runtime-html';
 
 /**
  * A binding that handles the connection of the global state to a property of a target object

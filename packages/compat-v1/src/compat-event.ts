@@ -1,5 +1,13 @@
-import { DI, IContainer, resolve } from '@aurelia/kernel';
-import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { createLookup, DI, IContainer, isFunction, resolve } from '@aurelia/kernel';
+import {
+  IObserverLocatorBasedConnectable,
+  astBind,
+  astEvaluate,
+  astUnbind,
+  type IAstEvaluator,
+  // type IBinding,
+  type Scope,
+} from '@aurelia/runtime';
 import {
   AppTask,
   IEventTarget,
@@ -11,12 +19,7 @@ import {
   renderer,
   IPlatform,
   IListenerBindingOptions,
-  astBind,
-  astEvaluate,
-  astUnbind,
-  type IAstEvaluator,
   type IBinding,
-  type Scope,
 } from '@aurelia/runtime-html';
 import {
   type BindingCommandInstance,
@@ -24,7 +27,7 @@ import {
   type IInstruction,
   type BindingCommandStaticAuDefinition,
 } from '@aurelia/template-compiler';
-import { createLookup, ensureExpression, etIsFunction, isFunction } from './utilities';
+import { ensureExpression, etIsFunction } from './utilities';
 import { IExpressionParser, IsBindingBehavior } from '@aurelia/expression-parser';
 
 import type { IDisposable, IServiceLocator } from '@aurelia/kernel';

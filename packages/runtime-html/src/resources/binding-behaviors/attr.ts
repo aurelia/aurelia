@@ -1,7 +1,8 @@
+import { type Scope } from '@aurelia/runtime';
+
 import { IBinding } from '../../binding/interfaces-bindings';
 import { attrAccessor } from '../../observation/data-attribute-accessor';
 
-import { type Scope } from '../../binding/scope';
 import { PropertyBinding } from '../../binding/property-binding';
 import { ErrorNames, createMappedError } from '../../errors';
 import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';

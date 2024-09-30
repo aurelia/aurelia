@@ -1,4 +1,4 @@
-import { ErrorNames, createMappedError } from '../errors';
+import { ErrorNames, createMappedError } from './errors';
 
 export interface IBindingContext {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

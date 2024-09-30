@@ -63,6 +63,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     });
   }
 
+  it('throws on @watch usage on static method', function () {
+    assert.throws(() => class App {
+      @watch('')
+      static method() {}
+    }, /AUR0774/);
+  });
+
   it('works in basic scenario', function () {
     let callCount = 0;
     class App {
@@ -1518,4 +1525,26 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   function json(d: any) {
     return JSON.stringify(d);
   }
+
+  it('initialises once for each instance', function () {
+    const logs = [];
+    @customElement({
+      name: 'my-button',
+      template: '<button click.trigger="count++">Count: ${count}</button>'
+    })
+    class MyButton {
+      count: number = 0;
+
+      @watch('count')
+      logCountChanged() {
+        logs.push(this.count);
+      }
+    }
+
+    const { getAllBy } = createFixture('<my-button repeat.for="i of 3">', {}, [MyButton]);
+    const buttons = getAllBy('button');
+    assert.strictEqual(buttons.length, 3);
+    buttons.forEach(button => button.click());
+    assert.deepStrictEqual(logs, [1, 1, 1]);
+  });
 });

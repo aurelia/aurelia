@@ -2,20 +2,15 @@
 import {
   CustomExpression,
   DestructuringAssignmentSingleExpression,
-  // type IAstEvaluator,
   type DestructuringAssignmentExpression,
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { AnyFunction, IIndexable, isArrayIndex, isArray, isFunction, isObject } from '@aurelia/kernel';
-import { IConnectable, IObservable, ISubscriber } from '@aurelia/runtime';
-import { Scope, type IBindingContext, IOverrideContext } from './binding/scope';
+import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction } from '@aurelia/kernel';
+import { type IConnectable, type IObservable } from './interfaces';
+import { Scope, type IBindingContext, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
-import { safeString } from './utilities';
-import { ISignaler } from './signaler';
-import { BindingBehaviorInstance } from './resources/binding-behavior';
-import { ValueConverterInstance } from './resources/value-converter';
-import { IBinding } from './binding/interfaces-bindings';
+import { rtSafeString as safeString } from './utilities';
 
 // -----------------------------------
 // this interface causes issues to sourcemap mapping in devtool
@@ -28,14 +23,26 @@ export interface IAstEvaluator {
   strict?: boolean;
   /** describe whether the evaluator wants a bound function to be returned, in case the returned value is a function */
   boundFn?: boolean;
-  /** describe whether the evaluator wants to evaluate the function call in strict mode */
-  strictFnCall?: boolean;
-  /** Allow an AST to retrieve a signaler instance for connecting/disconnecting */
-  getSignaler?(): ISignaler;
-  /** Allow an AST to retrieve a value converter that it needs */
-  getConverter?<T extends {}>(name: string): ValueConverterInstance<T> | undefined;
-  /** Allow an AST to retrieve a binding behavior that it needs */
-  getBehavior?<T extends {}>(name: string): BindingBehaviorInstance<T> | undefined;
+  /**
+   * bind a behavior by the given name
+   */
+  bindBehavior?(name: string, scope: Scope, args: unknown[]): void;
+  /**
+   * unbind a behavior by the given name
+   */
+  unbindBehavior?(name: string, scope: Scope): void;
+  /**
+   * bind a converter by the given name
+   */
+  bindConverter?(name: string): void;
+  /**
+   * unbind a converter by the given name
+   */
+  unbindConverter?(name: string): void;
+  /**
+   * use a converter to convert a value
+   */
+  useConverter?(name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]): unknown;
 }
 
 export const {
@@ -107,20 +114,15 @@ export const {
           c.observe(obj, ast.name);
         }
         const evaluatedValue: unknown = obj[ast.name];
-        if (evaluatedValue == null && ast.name === '$host') {
-          throw createMappedError(ErrorNames.ast_$host_not_found);
+        if (evaluatedValue == null) {
+          if (ast.name === '$host') {
+            throw createMappedError(ErrorNames.ast_$host_not_found);
+          }
+          return evaluatedValue;
         }
-        if (e?.strict) {
-          // return evaluatedValue;
-          return e?.boundFn && isFunction(evaluatedValue)
-            ? evaluatedValue.bind(obj)
-            : evaluatedValue;
-        }
-        return evaluatedValue == null
-          ? ''
-          : e?.boundFn && isFunction(evaluatedValue)
-            ? evaluatedValue.bind(obj)
-            : evaluatedValue;
+        return e?.boundFn && isFunction(evaluatedValue)
+          ? evaluatedValue.bind(obj)
+          : evaluatedValue;
       }
       case ekAccessGlobal:
         return globalThis[ast.name as keyof typeof globalThis];
@@ -129,8 +131,8 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        /* istanbul-ignore-next */
-        if (!e?.strictFnCall && func == null) {
+        /* istanbul ignore next */
+        if (!e?.strict && func == null) {
           return void 0;
         }
         throw createMappedError(ErrorNames.ast_not_a_function);
@@ -149,7 +151,7 @@ export const {
       case ekTemplate: {
         let result = ast.cooked[0];
         for (let i = 0; i < ast.expressions.length; ++i) {
-          result += String(astEvaluate(ast.expressions[i], s, e, c));
+          result += safeString(astEvaluate(ast.expressions[i], s, e, c));
           result += ast.cooked[i + 1];
         }
         return result;
@@ -178,30 +180,45 @@ export const {
         }
       }
       case ekCallScope: {
-        const args = ast.args.map(a => astEvaluate(a, s, e, c));
         const context = getContext(s, ast.name, ast.ancestor)!;
-        // ideally, should observe property represents by ast.name as well
-        // because it could be changed
-        // todo: did it ever surprise anyone?
-        const func = getFunction(e?.strictFnCall, context, ast.name);
-        if (func) {
-          return func.apply(context, args);
+        if (context == null) {
+          if (e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, context);
+          }
+          return void 0;
         }
-        return void 0;
+        const fn: unknown = context[ast.name];
+        if (isFunction(fn)) {
+          return fn.apply(context, ast.args.map(a => astEvaluate(a, s, e, c)));
+        }
+        if (fn == null) {
+          if (e?.strict && !ast.optional) {
+            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
+          }
+          return void 0;
+        }
+        throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
       }
       case ekCallMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
-
-        const args = ast.args.map(a => astEvaluate(a, s, e, c));
-        const func = getFunction(e?.strictFnCall, instance, ast.name);
-        let ret: unknown;
-        if (func) {
-          ret = func.apply(instance, args);
-          // todo(doc): investigate & document in engineering doc the difference
-          //            between observing before/after func.apply
-          if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
-            c?.observeCollection(instance);
+        if (instance == null) {
+          if (e?.strict && !ast.optionalMember) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
+        }
+        const fn = instance?.[ast.name];
+        if (fn == null) {
+          if (!ast.optionalCall && e?.strict) {
+            throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
+          }
+          return void 0;
+        }
+        if (!isFunction(fn)) {
+          throw createMappedError(ErrorNames.ast_name_is_not_a_function, ast.name);
+        }
+        const ret = fn.apply(instance, ast.args.map(a => astEvaluate(a, s, e, c)));
+        if (isArray(instance) && autoObserveArrayMethods.includes(ast.name)) {
+          c?.observeCollection(instance);
         }
         return ret;
       }
@@ -210,7 +227,10 @@ export const {
         if (isFunction(func)) {
           return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        if (!e?.strictFnCall && func == null) {
+        if (func == null) {
+          if (!ast.optional && e?.strict) {
+            throw createMappedError(ErrorNames.ast_not_a_function);
+          }
           return void 0;
         }
         throw createMappedError(ErrorNames.ast_not_a_function);
@@ -235,44 +255,38 @@ export const {
       }
       case ekAccessMember: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable | null;
-        let ret: unknown;
-        if (e?.strict) {
-          if (instance == null) {
-            return undefined;
+        if (instance == null) {
+          if (!ast.optional && e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_member_access, ast.name, instance);
           }
-          if (c !== null && !ast.accessGlobal) {
-            c.observe(instance, ast.name);
-          }
-          ret = instance[ast.name];
-          if (e?.boundFn && isFunction(ret)) {
-            return ret.bind(instance);
-          }
-          return ret;
+          return void 0;
         }
-        if (c !== null && isObject(instance) && !ast.accessGlobal) {
+
+        if (c !== null && !ast.accessGlobal) {
           c.observe(instance, ast.name);
         }
-        if (instance) {
-          ret = instance[ast.name];
-          if (e?.boundFn && isFunction(ret)) {
-            return ret.bind(instance);
-          }
-          return ret;
-        }
-        return '';
+        const ret = instance[ast.name];
+        return e?.boundFn && isFunction(ret)
+          // event listener wants the returned function to be bound to the instance
+          ? ret.bind(instance)
+          : ret;
       }
       case ekAccessKeyed: {
         const instance = astEvaluate(ast.object, s, e, c) as IIndexable;
         const key = astEvaluate(ast.key, s, e, c) as string;
-        if (isObject(instance)) {
-          if (c !== null && !ast.accessGlobal) {
-            c.observe(instance, key);
+
+        if (instance == null) {
+          if (!ast.optional && e?.strict) {
+            throw createMappedError(ErrorNames.ast_nullish_keyed_access, key, instance);
           }
-          return instance[key];
+          return void 0;
         }
-        return instance == null
-          ? void 0
-          : instance[key];
+
+        if (c !== null && !ast.accessGlobal) {
+          c.observe(instance, key);
+        }
+
+        return instance[key];
       }
       case ekTaggedTemplate: {
         const results = ast.expressions.map(expr => astEvaluate(expr, s, e, c));
@@ -313,34 +327,13 @@ export const {
           }
           case 'in': {
             const $right = astEvaluate(right, s, e, c);
-            if (isObject($right)) {
+            if (isObjectOrFunction($right)) {
               return astEvaluate(left, s, e, c) as string in $right;
             }
             return false;
           }
-          // note: autoConvertAdd (and the null check) is removed because the default spec behavior is already largely similar
-          // and where it isn't, you kind of want it to behave like the spec anyway (e.g. return NaN when adding a number to undefined)
-          // ast makes bugs in user code easier to track down for end users
-          // also, skipping these checks and leaving it to the runtime is a nice little perf boost and simplifies our code
-          case '+': {
-            const $left: unknown = astEvaluate(left, s, e, c);
-            const $right: unknown = astEvaluate(right, s, e, c);
-
-            if (e?.strict) {
-              return ($left as number) + ($right as number);
-            }
-
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            if (!$left || !$right) {
-              if (isNumberOrBigInt($left) || isNumberOrBigInt($right)) {
-                return ($left as number || 0) + ($right as number || 0);
-              }
-              if (isStringOrDate($left) || isStringOrDate($right)) {
-                return ($left as string || '') + ($right as string || '');
-              }
-            }
-            return ($left as number) + ($right as number);
-          }
+          case '+':
+            return (astEvaluate(left, s, e, c) as number) + (astEvaluate(right, s, e, c) as number);
           case '-':
             return (astEvaluate(left, s, e, c) as number) - (astEvaluate(right, s, e, c) as number);
           case '*':
@@ -391,14 +384,7 @@ export const {
         return astAssign(ast.target, s, e, value);
       }
       case ekValueConverter: {
-        const vc = e?.getConverter?.(ast.name);
-        if (vc == null) {
-          throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
-        }
-        if ('toView' in vc) {
-          return vc.toView(astEvaluate(ast.expression, s, e, c), ...ast.args.map(a => astEvaluate(a, s, e, c)));
-        }
-        return astEvaluate(ast.expression, s, e, c);
+        return e?.useConverter?.(ast.name, 'toView', astEvaluate(ast.expression, s, e, c), ast.args.map(a => astEvaluate(a, s, e, c)));
       }
       case ekBindingBehavior:
         return astEvaluate(ast.expression, s, e, c);
@@ -460,20 +446,44 @@ export const {
       }
       case ekAccessMember: {
         const obj = astEvaluate(ast.object, s, e, null) as IObservable;
-        if (isObject(obj)) {
+        if (obj == null) {
+          if (e?.strict) {
+            // if ast optional and the optional assignment proposal goes ahead
+            // we can allow this to be a no-op instead of throwing (check via ast.optional)
+            // https://github.com/tc39/proposal-optional-chaining-assignment
+            throw createMappedError(ErrorNames.ast_nullish_assignment, ast.name);
+          }
+          // creating an object and assign it to the owning property of the ast
+          // this is a good enough behavior, and it works well in v1
+          astAssign(ast.object, s, e, { [ast.name]: val });
+        } else if (isObjectOrFunction(obj)) {
           if (ast.name === 'length' && isArray(obj) && !isNaN(val as number)) {
             obj.splice(val as number);
           } else {
             obj[ast.name] = val;
           }
         } else {
-          astAssign(ast.object, s, e, { [ast.name]: val });
+          // obj is a primitive, assigning a value to a property on a primitive
+          // does nothing
         }
         return val;
       }
       case ekAccessKeyed: {
         const instance = astEvaluate(ast.object, s, e, null) as IIndexable;
         const key = astEvaluate(ast.key, s, e, null) as string;
+        if (instance == null) {
+          if (e?.strict) {
+            // if ast optional and the optional assignment proposal goes ahead
+            // we can allow this to be a no-op instead of throwing (check via ast.optional)
+            // https://github.com/tc39/proposal-optional-chaining-assignment
+            throw createMappedError(ErrorNames.ast_nullish_assignment, key);
+          }
+          // creating an object and assign it to the owning property of the ast
+          // this is a good enough behavior, and it works well in v1
+          astAssign(ast.object, s, e, { [key]: val });
+          return val;
+        }
+
         if (isArray(instance)) {
           if (key === 'length' && !isNaN(val as number)) {
             instance.splice(val as number);
@@ -484,19 +494,14 @@ export const {
             return val;
           }
         }
+
         return instance[key] = val;
       }
       case ekAssign:
         astAssign(ast.value, s, e, val);
         return astAssign(ast.target, s, e, val);
       case ekValueConverter: {
-        const vc = e?.getConverter?.(ast.name);
-        if (vc == null) {
-          throw createMappedError(ErrorNames.ast_converter_not_found, ast.name);
-        }
-        if ('fromView' in vc) {
-          val = vc.fromView!(val, ...ast.args.map(a => astEvaluate(a, s, e, null)));
-        }
+        val = e?.useConverter?.(ast.name, 'fromView', val, ast.args.map(a => astEvaluate(a, s, e, null)));
         return astAssign(ast.expression, s, e, val);
       }
       case ekBindingBehavior:
@@ -574,47 +579,17 @@ export const {
     }
   }
 
-  type BindingWithBehavior = IConnectable & IBinding & { [key: string]: BindingBehaviorInstance | undefined };
-
-  function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
+  function astBind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) {
     switch (ast.$kind) {
       case ekBindingBehavior: {
-        const name = ast.name;
-        const key = ast.key;
-        const behavior = b.getBehavior?.<BindingBehaviorInstance>(name);
-        if (behavior == null) {
-          throw createMappedError(ErrorNames.ast_behavior_not_found, name);
-        }
-        if ((b as BindingWithBehavior)[key] === void 0) {
-          (b as BindingWithBehavior)[key] = behavior;
-          behavior.bind?.(s, b, ...ast.args.map(a => astEvaluate(a, s, b, null)));
-        } else {
-          throw createMappedError(ErrorNames.ast_behavior_duplicated, name);
-        }
+        b.bindBehavior?.(ast.name, s, ast.args.map(a => astEvaluate(a, s, b, null)));
         astBind(ast.expression, s, b);
-        return;
+        break;
       }
       case ekValueConverter: {
-        const name = ast.name;
-        const vc = b.getConverter?.(name);
-        if (vc == null) {
-          throw createMappedError(ErrorNames.ast_converter_not_found, name);
-        }
-        // note: the cast is expected. To connect, it just needs to be a IConnectable
-        // though to work with signal, it needs to have `handleChange`
-        // so having `handleChange` as a guard in the connectable as a safe measure is needed
-        // to make sure signaler works
-        const signals = vc.signals;
-        if (signals != null) {
-          const signaler = b.getSignaler?.();
-          const ii = signals.length;
-          let i = 0;
-          for (; i < ii; ++i) {
-            signaler?.addSignalListener(signals[i], b as unknown as ISubscriber);
-          }
-        }
+        b.bindConverter?.(ast.name);
         astBind(ast.expression, s, b);
-        return;
+        break;
       }
       case ekForOfStatement: {
         astBind(ast.iterable, s, b);
@@ -626,28 +601,15 @@ export const {
     }
   }
 
-  function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator & IConnectable & IBinding) {
+  function astUnbind(ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) {
     switch (ast.$kind) {
       case ekBindingBehavior: {
-        const key = ast.key;
-        const $b = b as BindingWithBehavior;
-        if ($b[key] !== void 0) {
-          $b[key]!.unbind?.(s, b);
-          $b[key] = void 0;
-        }
+        b.unbindBehavior?.(ast.name, s);
         astUnbind(ast.expression, s, b);
         break;
       }
       case ekValueConverter: {
-        const vc = b.getConverter?.(ast.name);
-        if (vc?.signals === void 0) {
-          return;
-        }
-        const signaler = b.getSignaler?.();
-        let i = 0;
-        for (; i < vc.signals.length; ++i) {
-          signaler?.removeSignalListener(vc.signals[i], b as unknown as ISubscriber);
-        }
+        b.unbindConverter?.(ast.name);
         astUnbind(ast.expression, s, b);
         break;
       }
@@ -660,48 +622,6 @@ export const {
       }
     }
   }
-
-  const getFunction = (mustEvaluate: boolean | undefined, obj: object, name: string): ((...args: unknown[]) => unknown) | null => {
-    const func = obj == null ? null : (obj as IIndexable)[name];
-    if (isFunction(func)) {
-      return func as (...args: unknown[]) => unknown;
-    }
-    if (!mustEvaluate && func == null) {
-      return null;
-    }
-    throw createMappedError(ErrorNames.ast_name_is_not_a_function, name);
-  };
-
-  /**
-   * Determines if the value passed is a number or bigint for parsing purposes
-   *
-   * @param value - Value to evaluate
-   */
-  const isNumberOrBigInt = (value: unknown): value is number | bigint => {
-    switch (typeof value) {
-      case 'number':
-      case 'bigint':
-        return true;
-      default:
-        return false;
-    }
-  };
-
-  /**
-   * Determines if the value passed is a string or Date for parsing purposes
-   *
-   * @param value - Value to evaluate
-   */
-  const isStringOrDate = (value: unknown): value is string | Date => {
-    switch (typeof value) {
-      case 'string':
-        return true;
-      case 'object':
-        return value instanceof Date;
-      default:
-        return false;
-    }
-  };
 
   const autoObserveArrayMethods =
     'at map filter includes indexOf lastIndexOf findIndex find flat flatMap join reduce reduceRight slice every some sort'.split(' ');

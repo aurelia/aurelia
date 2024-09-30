@@ -7474,4 +7474,115 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     }
 
   });
+
+  it('allows dot in route parameter value - required', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne implements IRouteViewModel {
+      public id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:id', component: CeOne }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('c1/foo.txt');
+    assert.html.textContent(host, 'c1 foo.txt');
+
+    await au.stop(true);
+  });
+
+  it('allows dot in route parameter value - optional', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne implements IRouteViewModel {
+      public id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/:id?', component: CeOne }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('c1/foo.txt');
+    assert.html.textContent(host, 'c1 foo.txt');
+
+    await au.stop(true);
+  });
+
+  it('allows dot in route parameter value - catch-all', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne implements IRouteViewModel {
+      public id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c1/*id', component: CeOne }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('c1/foo.txt');
+    assert.html.textContent(host, 'c1 foo.txt', 'round#1');
+
+    await router.load('c1/foo/bar.txt');
+    assert.html.textContent(host, 'c1 foo/bar.txt', 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('allows dot in route', async function () {
+    @customElement({ name: 'c-1', template: 'c1 ${id}' })
+    class CeOne implements IRouteViewModel {
+      public id: string;
+      public loading(params: Params, _next: RouteNode, _current: RouteNode): void | Promise<void> {
+        this.id = params.id;
+      }
+    }
+
+    @route({
+      routes: [
+        { id: 'c1', path: 'c.1/:id', component: CeOne }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('c.1/foo');
+    assert.html.textContent(host, 'c1 foo');
+
+    await au.stop(true);
+  });
 });

@@ -104,9 +104,7 @@ class Comparison {
       if (key in obj) {
         if (
           !isUndefined(actual)
-          && isString(actual[key])
-          && isRegExp(obj[key])
-          && obj[key].test(actual[key])
+          && (isString(actual[key]) && isRegExp(obj[key]) && (obj[key] as RegExp).test(actual[key] as string))
         ) {
           this[key] = actual[key];
         } else {

@@ -48,6 +48,6 @@ export function alias(...aliases: readonly string[]) {
 
 export function registerAliases(aliases: readonly string[], resource: IResourceKind, key: string, container: IContainer) {
   for (let i = 0, ii = aliases.length; i < ii; ++i) {
-    Registration.aliasTo(key, resource.keyFrom(aliases[i])).register(container);
+    aliasRegistration(key, resource.keyFrom(aliases[i])).register(container);
   }
 }

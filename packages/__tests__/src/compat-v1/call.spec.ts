@@ -4,6 +4,23 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('compat-v1/call.spec.ts', function () {
 
+  it('does not throw on missing function', function () {
+
+    @customElement({ name: 'my-ce', template: '<button click.trigger="action()"></button>' })
+    class MyCe {
+      @bindable public action: () => void;
+    }
+
+    const { trigger } = createFixture(
+      '<my-ce action.bind="a.b()"></my-ce>',
+      class App {
+      },
+      [MyCe, compatRegistration]
+    );
+
+    trigger.click('button');
+  });
+
   it('works with function call binding', async function () {
     @customElement({ name: 'my-ce', template: '<button click.trigger="action()"></button>' })
     class MyCe {

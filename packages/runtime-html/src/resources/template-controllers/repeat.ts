@@ -25,16 +25,12 @@ import {
   getCollectionObserver,
   type IndexMap,
   createIndexMap,
-} from '@aurelia/runtime';
-import {
   astEvaluate,
   astAssign,
-} from '../../ast.eval';
-import {
   Scope,
   BindingContext,
   type IOverrideContext,
-} from '../../binding/scope';
+} from '@aurelia/runtime';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';

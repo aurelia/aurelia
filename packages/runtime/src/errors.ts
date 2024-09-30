@@ -24,6 +24,10 @@ export const enum ErrorNames {
   ast_tagged_not_a_function = 110,
   ast_name_is_not_a_function = 111,
   ast_destruct_null = 112,
+  ast_increment_infinite_loop = 113,
+  ast_nullish_member_access = 114,
+  ast_nullish_keyed_access = 115,
+  ast_nullish_assignment = 116,
 
   null_scope = 203,
   create_scope_with_null_context = 204,
@@ -86,6 +90,10 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.ast_tagged_not_a_function]: `Ast eval error: left-hand side of tagged template expression is not a function.`,
   [ErrorNames.ast_name_is_not_a_function]: `Ast eval error: expected "{{0}}" to be a function`,
   [ErrorNames.ast_destruct_null]: `Ast eval error: cannot use non-object value for destructuring assignment.`,
+  [ErrorNames.ast_increment_infinite_loop]: `Ast eval error: infinite loop detected. Increment operators should only be used in event handlers.`,
+  [ErrorNames.ast_nullish_member_access]: `Ast eval error: cannot access property "{{0}}" of {{1}}.`,
+  [ErrorNames.ast_nullish_keyed_access]: `Ast eval error: cannot access key "{{0}}" of {{1}}.`,
+  [ErrorNames.ast_nullish_assignment]: `Ast eval error: cannot assign value to property "{{0}}" of null/undefined.`,
 
   [ErrorNames.parse_invalid_start]: `Expression error: invalid start: "{{0}}"`,
   [ErrorNames.parse_no_spread]: `Expression error: spread operator is not supported: "{{0}}"`,

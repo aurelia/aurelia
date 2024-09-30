@@ -14,7 +14,7 @@ import {
   pathUrlParser,
 } from '@aurelia/router-lite';
 
-const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 
 describe('router-lite/ast.spec.ts', function () {
   const specs: Record<string, [RouteExpression, string]> = {};
@@ -505,21 +505,12 @@ describe('router-lite/ast.spec.ts', function () {
     '/a,',
     '/a&',
 
-    // '/a.b?',
-    // '/a.b#',
-    '/a.b)',
-    '/a.b=',
-    '/a.b,',
-    '/a.b&',
-    '/a.b.',
-
     // '/a@c?',
     // '/a@c#',
     '/a@c)',
     '/a@c=',
     '/a@c,',
     '/a@c&',
-    '/a@c.',
     '/a@c(',
     '/a@c@',
 

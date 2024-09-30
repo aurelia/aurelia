@@ -1,7 +1,7 @@
 import { isString, type IDisposable, IPlatform, emptyArray, resolve } from '@aurelia/kernel';
+import { type Scope } from '@aurelia/runtime';
 import { type BindingBehaviorInstance, BindingBehaviorStaticAuDefinition, behaviorTypeName } from '../binding-behavior';
 
-import { type Scope } from '../../binding/scope';
 import { type IBinding, type IRateLimitOptions } from '../../binding/interfaces-bindings';
 
 const bindingHandlerMap: WeakMap<IBinding, IDisposable> = new WeakMap();

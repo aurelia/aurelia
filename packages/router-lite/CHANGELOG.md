@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.22"></a>
+# 2.0.0-beta.22 (2024-09-30)
+
+### Bug Fixes:
+
+* **router-lite:** allowed dot in parameter value (#2057) ([9337c84](https://github.com/aurelia/aurelia/commit/9337c84))
+* **router-lite:** element injection issue (#2045) ([4d93507](https://github.com/aurelia/aurelia/commit/4d93507))
+* **router-lite:** adding a quick-fix for the element injection issue ([4d93507](https://github.com/aurelia/aurelia/commit/4d93507))
+
 <a name="2.0.0-beta.21"></a>
 # 2.0.0-beta.21 (2024-08-08)
 

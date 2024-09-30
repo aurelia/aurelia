@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.22"></a>
+# 2.0.0-beta.22 (2024-09-30)
+
+### Features:
+
+* **runtime-html:** reuse host and hostController (#2043) ([0fe216e](https://github.com/aurelia/aurelia/commit/0fe216e))
+* **bindable:** support aggregated callback (#2033) ([7cdf3f0](https://github.com/aurelia/aurelia/commit/7cdf3f0))
+
+
+### Bug Fixes:
+
+* **watch:** initialise only once (#2056) ([7ae2cfa](https://github.com/aurelia/aurelia/commit/7ae2cfa))
+* **ast:** correct null/undefined handling (#2055) ([b96d7c4](https://github.com/aurelia/aurelia/commit/b96d7c4))
+* **repeat:** set contextual properties for sort ops ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **radio:** handle repeated start/stop correctly (#2031) ([430b8f0](https://github.com/aurelia/aurelia/commit/430b8f0))
+
+
+### Performance Improvements:
+
+* **repeat:** pass 1 ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** pass 2 ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+
+
+### Refactorings:
+
+* **ast:** separate & allow binding behavior and value converter evaluation to be optional (#2058) ([7d7e21b](https://github.com/aurelia/aurelia/commit/7d7e21b))
+* **repeat:** get key from oldViews ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** overhaul scope / key caching ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** bust key cache ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** fix newKey thing ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** inefficient but working thing ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** fix update issue ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** more bugfixing / cleanup ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **repeat:** cleanup unnecessary stuff ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **parser:** no longer provide default to exp parser interface (#2024) ([b55cbcd](https://github.com/aurelia/aurelia/commit/b55cbcd))
+
 <a name="2.0.0-beta.21"></a>
 # 2.0.0-beta.21 (2024-08-08)
 

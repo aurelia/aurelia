@@ -413,6 +413,7 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
         expr,
         childInstruction.to,
         toBindingContext,
+        renderingCtrl.strict ?? false,
       ));
       ++i;
     }
@@ -431,7 +432,8 @@ export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRendere
     renderingCtrl.addBinding(new RefBinding(
       renderingCtrl.container,
       ensureExpression(exprParser, instruction.from, etIsProperty),
-      getRefTarget(target, instruction.to)
+      getRefTarget(target, instruction.to),
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -458,7 +460,8 @@ export const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class Interpo
       ensureExpression(exprParser, instruction.from, etInterpolation),
       getTarget(target),
       instruction.to,
-      toView
+      toView,
+      renderingCtrl.strict ?? false,
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
@@ -490,7 +493,8 @@ export const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBind
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getTarget(target),
       instruction.to,
-      instruction.mode
+      instruction.mode,
+      renderingCtrl.strict ?? false,
     );
     if (instruction.to === 'class' && (binding.target as Node).nodeType > 0) {
       const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
@@ -522,6 +526,7 @@ export const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBind
       getTarget(target),
       instruction.to,
       toView,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -547,6 +552,7 @@ export const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRende
       platform,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       target as Text,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -559,9 +565,27 @@ export interface IListenerBindingOptions {
    * Indicate whether listener should by default call preventDefault on all the events
    */
   prevent: boolean;
+
+  /**
+   * The error handler for listener bindings, by default, it will dispatch an event `au-event-error` on the window object
+   * and if the event is not prevented, it will throw the errors caught by the listener bindings
+   */
+  onError: (event: Event, error: unknown) => void;
+
 }
-export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.instance({
-  prevent: false,
+export const IListenerBindingOptions = createInterface<IListenerBindingOptions>('IListenerBindingOptions', x => x.singleton(class {
+  /** @internal */
+  private readonly p = resolve(IPlatform);
+  public prevent = false;
+
+  public onError = (event: Event, error: unknown) => {
+    const errorEvent = new this.p.CustomEvent('au-event-error', { cancelable: true, detail: { event, error } });
+    this.p.window.dispatchEvent(errorEvent);
+    if (errorEvent.defaultPrevented) {
+      return;
+    }
+    throw error;
+  };
 }));
 
 export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBindingRenderer implements IRenderer {
@@ -588,8 +612,9 @@ export const ListenerBindingRenderer = /*@__PURE__*/ renderer(class ListenerBind
       ensureExpression(exprParser, instruction.from, etIsFunction),
       target,
       instruction.to,
-      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture),
+      new ListenerBindingOptions(this._defaultOptions.prevent, instruction.capture, this._defaultOptions.onError),
       this._modifierHandler.getHandler(instruction.to, instruction.modifier),
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -677,6 +702,7 @@ export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePr
           target.style,
           instruction.to,
           toView,
+          renderingCtrl.strict ?? false,
         ));
         return;
       }
@@ -690,6 +716,7 @@ export const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePr
       target.style,
       instruction.to,
       toView,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -735,6 +762,7 @@ export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBi
         ? instruction.to/* targetKey */
         : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '),
       toView,
+      renderingCtrl.strict ?? false,
     ));
   }
 }, null!);
@@ -790,7 +818,8 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
         exprParser.parse(instruction.from, etIsProperty),
         observerLocator,
         renderingCtrl.container,
-        platform.domQueue
+        platform.domQueue,
+        renderingCtrl.strict ?? false,
       ));
     } else {
       throw createMappedError(ErrorNames.spreading_invalid_target, instructionTarget);

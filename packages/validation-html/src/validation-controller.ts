@@ -14,9 +14,11 @@ import {
 } from '@aurelia/expression-parser';
 import {
   astEvaluate,
+  type Scope,
+} from '@aurelia/runtime';
+import {
   IPlatform,
   PropertyBinding,
-  type Scope,
 } from '@aurelia/runtime-html';
 import {
   parsePropertyName,

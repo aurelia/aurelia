@@ -1949,6 +1949,76 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
 
         assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
       });
+
+      it(`custom-element bindable - nested property - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<ce-one prop.bind="prop.x"></ce-one>';
+        const depFile = `dep${isTs ? '' : `.${extn}`}`;
+        const additionalModules = {
+          [depFile]: `export class Dep {
+          ${isTs ? 'public constructor(public x: string) {}' : '/** @type {string} */x'}
+      }`};
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+import { Dep } from './${depFile}';
+
+@customElement({ name: 'ce-one', template: '\${prop}' })
+export class CeOne {
+@bindable
+${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Dep} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code, additionalModules);
+      });
+
+      it(`custom-element bindable - nested property - fail - incorrect host property - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<ce-one prop.bind="prop.y"></ce-one>';
+        const depFile = `dep${isTs ? '' : `.${extn}`}`;
+        const additionalModules = {
+          [depFile]: `export class Dep {
+          ${isTs ? 'public constructor(public x: string) {}' : '/** @type {string} */x'}
+      }`};
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+import { Dep } from './${depFile}';
+
+@customElement({ name: 'ce-one', template: '\${prop}' })
+export class CeOne {
+@bindable
+${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Dep} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
+      });
     }
   });
 

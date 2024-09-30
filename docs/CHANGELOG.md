@@ -3,6 +3,54 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.22"></a>
+# 2.0.0-beta.22 (2024-09-30)
+
+### BREAKING CHANGES:
+
+* **ast:** correct null/undefined handling (#2055) ([b96d7c4](https://github.com/aurelia/aurelia/commit/b96d7c4))
+
+    the default non-strict mode now behaves like optional syntax: property access on null/undefined will return undefined
+    null/undefined function calls will return undefined. The rest will behave like standard JS, including strict mode
+* **observers:** change callback timing to after notify (#2039) ([1e587e1](https://github.com/aurelia/aurelia/commit/1e587e1))
+
+    bindable callback will be called with the timing as "after all have settled", instead of "right when new value comes"
+* **parser:** no longer provide default to exp parser interface (#2024) ([b55cbcd](https://github.com/aurelia/aurelia/commit/b55cbcd))
+
+    In build time compilation, template expressions are parsed at build time, we don't need to bundle the expression parser code again.
+    This cleanup is to prepare for that.
+
+* **ast:** separate & allow binding behavior and value converter evaluation to be optional (#2058) ([7d7e21b](https://github.com/aurelia/aurelia/commit/7d7e21b))
+
+    Try simplify the interface of ast evaluator so that evaluating ast doesn't always require value converter/binding behavior to be supported.
+    This is useful in scenarios where we dont need those two: watch/effect/computed/validation message etc...
+
+
+### Features:
+
+* **observation:** ability to watch an expression (#2059) ([6cd6b8d](https://github.com/aurelia/aurelia/commit/6cd6b8d))
+* **runtime-html:** reuse host and hostController (#2043) ([0fe216e](https://github.com/aurelia/aurelia/commit/0fe216e))
+* **bindable:** support aggregated callback (#2033) ([7cdf3f0](https://github.com/aurelia/aurelia/commit/7cdf3f0))
+
+
+### Bug Fixes:
+
+* **router-lite:** allowed dot in parameter value (#2057) ([9337c84](https://github.com/aurelia/aurelia/commit/9337c84))
+* **watch:** initialise only once (#2056) ([7ae2cfa](https://github.com/aurelia/aurelia/commit/7ae2cfa))
+* **router:** fix refresh with url params issue (#2051) ([6b733b1](https://github.com/aurelia/aurelia/commit/6b733b1))
+* **repeat:** fix update issues when there are duplicates ([9834c40](https://github.com/aurelia/aurelia/commit/9834c40))
+* **router:** fix redirect to async raise cond issue (#2046) ([c5dfca3](https://github.com/aurelia/aurelia/commit/c5dfca3))
+* **router-lite:** element injection issue (#2045) ([4d93507](https://github.com/aurelia/aurelia/commit/4d93507))
+* **validation-i18n:** prioritization of translated messages (#2029) ([a5340f8](https://github.com/aurelia/aurelia/commit/a5340f8))
+* **radio:** handle repeated start/stop correctly (#2031) ([430b8f0](https://github.com/aurelia/aurelia/commit/430b8f0))
+* **validation-html:** reset binding while unbinding BB (#2027) ([a3b1d09](https://github.com/aurelia/aurelia/commit/a3b1d09))
+
+
+### Docs:
+
+* **vite-plugin:** add vite instruction for tailwindcss-integration.md (#2028) ([47913c5](https://github.com/aurelia/aurelia/commit/47913c5))
+
+
 <a name="2.0.0-beta.21"></a>
 # 2.0.0-beta.21 (2024-08-08)
 

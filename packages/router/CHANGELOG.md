@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.22"></a>
+# 2.0.0-beta.22 (2024-09-30)
+
+### Bug Fixes:
+
+* **router:** fix refresh with url params issue (#2051) ([6b733b1](https://github.com/aurelia/aurelia/commit/6b733b1))
+* **router:** fix redirect to async raise cond issue (#2046) ([c5dfca3](https://github.com/aurelia/aurelia/commit/c5dfca3))
+
 <a name="2.0.0-beta.21"></a>
 # 2.0.0-beta.21 (2024-08-08)
 

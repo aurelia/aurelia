@@ -56,9 +56,52 @@ The effect APIs are provided via the default implementation of the interface `IO
 
 After getting the observation object, there are two APIs that can be used to created effects as described in the following sections:
 
-## Watch effect
+## Run effect
 
-Watch effect is a way to describe a getter based observation of an object. An example to create watch effect is per the following:
+Run effects describe a function to be called repeatedly whenever any dependency tracked inside it changes.
+
+### Creating an Effect
+
+After getting an `IObservation` instance, a run effect can be created via the method `run` of it:
+
+```typescript
+const effect = observation.run(() => {
+  // code here
+});
+```
+
+Note that the effect function will be run immediately.
+
+By default, a effect is independent of any application lifecycle, which means it does not stop when the application that owns the `observation` instance has stopped. To stop/destroy an effect, call the method `stop()` on the effect object:
+
+```typescript
+const effect = observation.run(() => {
+  // code here
+});
+
+// stop the effect like this
+effect.stop();
+```
+
+## Cleaning up effect
+
+Sometimes it's desirable to cleanup an effect, i.e we only want to send a request to track the last mouse position within 100ms, not all the intermediate movements.
+Setting a timeout in effect body and removing the timeout in the cleanup function is a simple way to achieve this, like the following example:
+
+```ts
+const effect = observation.run(() => {
+  // assume mouse tracker is an observable property
+  const { x, y } = app.mouseTracker;
+  const id = setTimeout(() => {
+    fetch(`/user/mousemove?x=${x}&y=${y}`);
+  }, 100);
+  return () => clearTimeout(id);
+})
+```
+
+## Watching a value with a getter
+
+Watch is a way to describe a getter based observation of an object. The below example demos how to create a watch effect:
 
 ```typescript
 import { inject, IObservation } from 'aurelia';
@@ -80,33 +123,26 @@ Note that the effect function will be run immediately. If you do not want to run
 observation.watch(obj, getter, callback, { immediate: false });
 ```
 
-By default, a watch effect is independent of any application lifecycle, which means it does not stop when the application that owns the `observation` instance has stopped. To stop/destroy an effect, call the method `stop()` on the effect object.
+By default, a watch effect is independent of any application lifecycle, which means it does not stop when the application that owns the `observation` instance has stopped. To stop an effect, call the method `stop()` on the effect object.
 
-## Run effect
+## Watching a value with a string as expression
 
-Run effects describe a function to be called repeatedly whenever any dependency tracked inside it changes.
-
-### Creating an Effect
-
-After getting an `IObservation` instance, a run effect can be created via the method `run` of it:
+Instead of having getter as a watch expression, a string can also be used, like the following example:
 
 ```typescript
-const effect = observation.run(() => {
-  // code here
-});
-```
+import { inject, IObservation } from 'aurelia';
 
-Note that the effect function will be run immediately.
+@inject(IObservation)
+class PersonalInfo {
+  constructor(observation) {
+    this.person = { name: 'bob', address: { code: '1234' } };
+    const effect = observation.watchExpression(this.person, 'address.code', function nameChanged(newCode, oldCode) {
+      // do something with code
+    });
 
-By default, a effect is independent of any application lifecycle, which means it does not stop when the application that owns the `observation` instance has stopped. To stop/destroy an effect, call the method `stop()` on the effect object:
-
-```typescript
-const effect = IObservation.run(() => {
-  // code here
-});
-
-// stop the effect like this
-effect.stop();
+    // effect.stop() later when necessary
+  }
+}
 ```
 
 ## Effect examples
@@ -116,24 +152,24 @@ The following section gives some examples of what it looks like when combining `
 ### Creating a run effect that logs the user mouse movement on the document
 
 ```typescript
-import { inject, IObservation, observable } from 'aurelia'
+import { resolve, IObservation, observable } from 'aurelia'
 
 class MouseTracker {
   @observable coord = [0, 0]; // x: 0, y: 0 is the default value
 }
 
 // Inside an application:
-@inject(IObservation)
 class App {
-  constructor(observation) {
+  constructor() {
+    const observation = resolve(IObservation);
     const mouseTracker = new MouseTracker();
 
     document.addEventListener('mousemove', (e) => {
-      mouseTracker.coord = [e.pageX, e.pageY]
+      mouseTracker.coord = [e.pageX, e.pageY];
     });
 
     observation.run(() => {
-      console.log(mouseTracker.coord)
+      console.log(mouseTracker.coord);
     });
   }
 }
@@ -144,16 +180,15 @@ Now whenever the user moves the mouse around, a log will be added to the console
 ### Creating a run effect that sends a request whenever user focus/unfocus the browser tab
 
 ```typescript
-import { inject, IObservation, observable } from 'aurelia'
+import { resolve, IObservation, observable } from 'aurelia'
 
 class PageActivity {
   @observable active = false
 }
 
-// Inside an application:
-@inject(IObservation)
 class App {
-  constructor(observation) {
+  constructor() {
+    const observation = resolve(IObservation)
     const pageActivity = new PageActivity();
 
     document.addEventListener(visibilityChange, (e) => {

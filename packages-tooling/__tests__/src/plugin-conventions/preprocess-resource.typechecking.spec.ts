@@ -1774,7 +1774,7 @@ ${isTs ? '' : '/** @type {Dep} */'}
 ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
 }
 `,
-            readFile: createMarkupReader(markupFile,  markup),
+            readFile: createMarkupReader(markupFile, markup),
           }, options);
 
         assertSuccess(entry, result.code, additionalModules);
@@ -1803,7 +1803,7 @@ ${isTs ? '' : '/** @type {Dep} */'}
 ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
 }
 `,
-            readFile: createMarkupReader(markupFile,  markup),
+            readFile: createMarkupReader(markupFile, markup),
           }, options);
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
@@ -1985,7 +1985,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
         assertSuccess(entry, result.code, additionalModules);
       });
 
-      it(`custom-element bindable - nested property - fail - incorrect host property - language: ${lang}`, function () {
+      it(`custom-element bindable - nested property - fail - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '<ce-one prop.bind="prop.y"></ce-one>';
@@ -2006,6 +2006,132 @@ import { Dep } from './${depFile}';
 export class CeOne {
 @bindable
 ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Dep} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
+      });
+
+      it(`custom-attribute bindable - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<div ca-one.bind="prop"></div>';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customAttribute, customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customAttribute('ca-one')
+export class CaOne {
+@bindable
+${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`custom-attribute bindable - fail - incorrect host property - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<div ca-one.bind="prop"></div>';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customAttribute, customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customAttribute('ca-one')
+export class CaOne {
+@bindable
+${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
+      });
+
+      it(`custom-attribute bindable - nested property - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<div ca-one.bind="prop.x"></div>';
+        const depFile = `dep${isTs ? '' : `.${extn}`}`;
+        const additionalModules = {
+          [depFile]: `export class Dep {
+          ${isTs ? 'public constructor(public x: string) {}' : '/** @type {string} */x'}
+      }`};
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customAttribute, customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+import { Dep } from './${depFile}';
+
+@customAttribute('ca-one')
+export class CaOne {
+@bindable
+${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+}
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Dep} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code, additionalModules);
+      });
+
+      it(`custom-attribute bindable - nested property - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<div ca-one.bind="prop.y"></div>';
+        const depFile = `dep${isTs ? '' : `.${extn}`}`;
+        const additionalModules = {
+          [depFile]: `export class Dep {
+          ${isTs ? 'public constructor(public x: string) {}' : '/** @type {string} */x'}
+      }`};
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customAttribute, customElement, bindable } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+import { Dep } from './${depFile}';
+
+@customAttribute('ca-one')
+export class CaOne {
+@bindable
+${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
 }
 
 @customElement({ name: 'foo', template })

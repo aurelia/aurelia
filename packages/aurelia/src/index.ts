@@ -234,6 +234,7 @@ export {
 
   ComputedObserver,
 
+  IObservation,
   // IObjectObservationAdapter,
   IObserverLocator,
   // ITargetObserverLocator,

@@ -52,7 +52,7 @@ export {
   IObservation,
   Observation,
   type EffectRunFunc,
-} from './effect-runner';
+} from './observation';
 export {
   type IObservableDefinition,
   observable,

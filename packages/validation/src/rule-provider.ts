@@ -10,10 +10,8 @@ import {
   Scope,
   type IAstEvaluator,
   astEvaluate,
+  mixinNoopAstEvaluator,
 } from '@aurelia/runtime';
-import {
-  mixinAstEvaluator,
-} from '@aurelia/runtime-html';
 import {
   ValidationRuleAlias,
   RequiredRule,
@@ -438,7 +436,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
   // #endregion
 }
-mixinAstEvaluator(PropertyRule);
+mixinNoopAstEvaluator(PropertyRule);
 
 export class ModelBasedRule {
   public constructor(

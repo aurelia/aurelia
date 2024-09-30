@@ -103,12 +103,6 @@ export {
 export {
   RefBinding,
 } from './binding/ref-binding';
-export {
-  Scope,
-  BindingContext,
-  type IBindingContext,
-  type IOverrideContext
-} from './binding/scope';
 
 export {
   IRenderer,

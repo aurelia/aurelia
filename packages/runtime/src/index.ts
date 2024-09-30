@@ -11,10 +11,10 @@ export {
 } from './ast.utilities';
 
 export {
+  Scope,
   BindingContext,
   type IBindingContext,
   type IOverrideContext,
-  Scope,
 } from './scope';
 
 export {

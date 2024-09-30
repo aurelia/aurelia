@@ -18,8 +18,8 @@ import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@au
 import {
   ICoercionConfiguration,
   IObserverLocator,
+  Scope,
 } from '@aurelia/runtime';
-import { Scope } from '../binding/scope';
 import { convertToRenderLocation, setRef } from '../dom';
 import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';

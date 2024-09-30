@@ -9,6 +9,7 @@ import {
   type IAstEvaluator,
   Scope,
   astEvaluate,
+  mixinNoopAstEvaluator,
 } from '@aurelia/runtime';
 import {
   type IBinding,
@@ -17,7 +18,6 @@ import {
   BindingTargetSubscriber,
   IFlushQueue,
   IPlatform,
-  mixinAstEvaluator,
   PropertyBinding,
   type ICustomElementViewModel,
 } from '@aurelia/runtime-html';
@@ -362,7 +362,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
 }
 
 connectable(ValidationConnector, null!);
-mixinAstEvaluator(ValidationConnector);
+mixinNoopAstEvaluator(ValidationConnector);
 
 class WithValidationTargetSubscriber extends BindingTargetSubscriber {
   public constructor(
@@ -408,4 +408,4 @@ export class BindingMediator<K extends string> {
 }
 
 connectable(BindingMediator, null!);
-mixinAstEvaluator(BindingMediator);
+mixinNoopAstEvaluator(BindingMediator);

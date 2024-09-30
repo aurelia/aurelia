@@ -64,9 +64,7 @@ export const mixinUseScope = /*@__PURE__*/(() => {
 })();
 
 /**
- * Turns a class into AST evaluator. For internal use only
- *
- * @param strict - whether the evaluation of AST nodes will be in strict mode
+ * Turns a class into AST evaluator with support for value converter & binding behavior. For internal use only
  */
 export const mixinAstEvaluator = /*@__PURE__*/(() => {
   type IHasServiceLocator = { l: IServiceLocator };
@@ -105,6 +103,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     // todo: remove casting
     // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
     // so observation infra can be free of template oriented features: behaviors/converters
+    // or anything that is not supposed to be supporting binding behavior shouldn't be using this mixin
     behavior.bind?.(scope, this as unknown as IBinding, ...args);
   }
 
@@ -115,6 +114,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     // todo: remove casting
     // there should be a base "mixinAstEvaluator" factory that takes parameters to handle behaviors/converters
     // so observation infra can be free of template oriented features: behaviors/converters
+    // or anything that is not supposed to be supporting binding behavior shouldn't be using this mixin
     behavior?.unbind?.(scope, this as unknown as IBinding);
     if (applied != null) {
       applied[name] = false;

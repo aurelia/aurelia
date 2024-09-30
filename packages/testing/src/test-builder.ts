@@ -6,8 +6,8 @@ import {
   IDirtyChecker,
   IObserverLocator,
   INodeObserverLocator,
+  Scope,
 } from '@aurelia/runtime';
-import { Scope } from '@aurelia/runtime-html';
 import { createContainer } from './test-context';
 // import {
 //   IInstruction,

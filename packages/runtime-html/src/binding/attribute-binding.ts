@@ -9,8 +9,8 @@ import {
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
+  type Scope,
 } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';

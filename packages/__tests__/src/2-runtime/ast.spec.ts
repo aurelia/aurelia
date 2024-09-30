@@ -86,22 +86,6 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
   });
 }
 
-function throwsOn<
-  TMethod extends typeof astEvaluate | typeof astAssign | typeof astBind,
->(method: TMethod, msg: string, ...args: Parameters<TMethod>): void {
-  let err = null;
-  try {
-    // (expr as any)[method](...args);
-    (method as any)(...args);
-  } catch (e) {
-    err = e;
-  }
-  assert.notStrictEqual(err, null, 'err');
-  if (msg?.length) {
-    assert.includes(err.message, msg, 'err.message.includes(msg)');
-  }
-}
-
 describe('2-runtime/ast.spec.ts', function () {
   // const $num1 = new PrimitiveLiteralExpression(1);
   // const $str1 = new PrimitiveLiteralExpression('1');
@@ -399,19 +383,19 @@ describe('2-runtime/ast.spec.ts', function () {
     // });
 
     describe('ValueConverterExpression', function () {
-      describe('evaluate() throws when returned converter is null', function () {
+      describe('evaluate() does not throw when returned converter is null', function () {
         for (const [text, expr] of SimpleValueConverterList) {
           it(`${text}, undefined`, function () {
-            throwsOn(astEvaluate, `AUR0103:b`, expr, dummyScope, dummyLocatorThatReturnsNull, null);
+            assert.doesNotThrow(() => astEvaluate(expr, dummyScope, dummyLocatorThatReturnsNull, null));
             // throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
           });
         }
       });
 
-      describe('assign() throws when returned converter is null', function () {
+      describe('assign() does not throw when returned converter is null', function () {
         for (const [text, expr] of SimpleValueConverterList) {
           it(`${text}, null`, function () {
-            throwsOn(astAssign, `AUR0103:b`, expr, dummyScope, dummyLocatorThatReturnsNull, null);
+            assert.doesNotThrow(() => astAssign(expr, dummyScope, dummyLocatorThatReturnsNull, null));
             // throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
           });
         }

@@ -1,7 +1,7 @@
-import { Metadata, isObject } from '@aurelia/metadata';
-import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '@aurelia/kernel';
+import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '@aurelia/kernel';
 import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, Controller, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '@aurelia/runtime-html';
 import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '@aurelia/route-recognizer';
+import { Metadata } from '@aurelia/metadata';
 import { batch } from '@aurelia/runtime';
 
 /**
@@ -1012,12 +1012,12 @@ function createNavigationInstruction(routeable) {
 // These symbols are basically the minimum necessary terminals.
 // const viewportTerminal = ['?', '#', '/', '+', ')', '!'];
 // const actionTerminal = [...componentTerminal, '@', '('];
-// const componentTerminal = [...actionTerminal, '.'];
+// const componentTerminal = [...actionTerminal];
 // const paramTerminal = ['=', ',', ')'];
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
 // so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
-const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 /** @internal */
 class ParserState {
     get _done() {
@@ -2842,7 +2842,7 @@ function createFallbackNode(log, rc, node, vi) {
 /** @internal */
 const emptyQuery = Object.freeze(new URLSearchParams());
 function isManagedState(state) {
-    return isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+    return isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 function toManagedState(state, navId) {
     return { ...state, [AuNavId]: navId };
@@ -3862,7 +3862,7 @@ class TypedNavigationInstruction {
         if (typeof instruction === 'string')
             return new TypedNavigationInstruction(0 /* NavigationInstructionType.string */, instruction);
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-        if (!isObject(instruction))
+        if (!isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
         if (typeof instruction === 'function') {
             if (CustomElement.isType(instruction)) {
@@ -4390,7 +4390,7 @@ class RouteContext {
             ? void 0
             : onResolve(resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null), config => this._processConfig(config));
         return onResolve(task, () => {
-            const controller = Controller.$el(container, componentInstance, hostController.host, null, elDefn);
+            const controller = Controller.$el(container, componentInstance, host, { hostController: hostController, projections: null }, elDefn);
             const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
             this._hostControllerProvider.dispose();
             return componentAgent;
@@ -5019,7 +5019,7 @@ const DefaultResources = [
 ];
 function configure(container, options) {
     let basePath = null;
-    if (isObject(options)) {
+    if (isObjectOrFunction(options)) {
         basePath = options.basePath ?? null;
     }
     else {

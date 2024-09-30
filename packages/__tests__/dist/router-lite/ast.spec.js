@@ -1,6 +1,6 @@
 import { assert } from '@aurelia/testing';
 import { RouteExpression, CompositeSegmentExpression, ScopedSegmentExpression, SegmentGroupExpression, SegmentExpression, ComponentExpression, ViewportExpression, ParameterListExpression, ParameterExpression, NavigationOptions, RouterOptions, pathUrlParser, } from '@aurelia/router-lite';
-const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 describe('router-lite/ast.spec.ts', function () {
     const specs = {};
     const emptyQuerystring = Object.freeze(new URLSearchParams());
@@ -359,20 +359,12 @@ describe('router-lite/ast.spec.ts', function () {
         '/a=',
         '/a,',
         '/a&',
-        // '/a.b?',
-        // '/a.b#',
-        '/a.b)',
-        '/a.b=',
-        '/a.b,',
-        '/a.b&',
-        '/a.b.',
         // '/a@c?',
         // '/a@c#',
         '/a@c)',
         '/a@c=',
         '/a@c,',
         '/a@c&',
-        '/a@c.',
         '/a@c(',
         '/a@c@',
         // '/a!?',

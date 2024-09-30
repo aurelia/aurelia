@@ -1,6 +1,6 @@
 import { I18N as i, Signals as t } from "../../../i18n/dist/native-modules/index.mjs";
 
-import { DI as o, resolve as e, IEventAggregator as a, Registration as r, noop as n } from "../../../kernel/dist/native-modules/index.mjs";
+import { DI as o, resolve as e, IEventAggregator as r, Registration as a, noop as n } from "../../../kernel/dist/native-modules/index.mjs";
 
 import { IPlatform as s } from "../../../runtime-html/dist/native-modules/index.mjs";
 
@@ -13,7 +13,7 @@ const m = "i18n:locale:changed:validation";
 const v = /*@__PURE__*/ o.createInterface("I18nKeyConfiguration");
 
 class LocalizedValidationController extends d {
-    constructor(i = e(a), t = e(s)) {
+    constructor(i = e(r), t = e(s)) {
         super();
         this.localeChangeSubscription = i.subscribe(m, (() => {
             t.domQueue.queueTask((async () => {
@@ -32,7 +32,7 @@ class LocalizedValidationControllerFactory extends u {
 const p = Symbol.for("au:validation:explicit-message-key");
 
 class LocalizedValidationMessageProvider extends l {
-    constructor(o = e(v), r = e(a)) {
+    constructor(o = e(v), a = e(r)) {
         super(undefined, []);
         this.i18n = e(i);
         const n = o.DefaultNamespace;
@@ -41,9 +41,9 @@ class LocalizedValidationMessageProvider extends l {
             this.keyPrefix = n !== void 0 ? `${n}:` : "";
             this.keyPrefix = s !== void 0 ? `${this.keyPrefix}${s}.` : this.keyPrefix;
         }
-        r.subscribe(t.I18N_EA_CHANNEL, (() => {
+        a.subscribe(t.I18N_EA_CHANNEL, (() => {
             this.registeredMessages = new WeakMap;
-            r.publish(m);
+            a.publish(m);
         }));
     }
     getMessage(i) {
@@ -56,17 +56,18 @@ class LocalizedValidationMessageProvider extends l {
             }
         }
         let e = t;
-        if (!this.i18n.i18next.exists(e)) {
-            const o = c.getDefaultMessages(i);
-            const a = o.length;
-            if (a === 1 && t === void 0) {
-                e = o[0].defaultMessage;
-            } else {
-                e = o.find((i => i.name === t))?.defaultMessage;
-            }
-            e ??= t;
+        const r = e != null ? this.getKey(e) : [];
+        const a = this.i18n;
+        if (a.i18next.exists(r)) return this.setMessage(i, a.tr(r));
+        const n = c.getDefaultMessages(i);
+        const s = n.length;
+        if (s === 1 && t === void 0) {
+            e = n[0].defaultMessage;
+        } else {
+            e = n.find((i => i.name === t))?.defaultMessage;
         }
-        return this.setMessage(i, this.i18n.tr(this.getKey(e)));
+        e ??= t;
+        return this.setMessage(i, a.tr(this.getKey(e)));
     }
     getDisplayName(i, t) {
         if (t !== null && t !== undefined) {
@@ -105,7 +106,7 @@ function createConfiguration(i) {
                         i[t] = o[t];
                     }
                 }
-            })), r.callback(v, (() => e)));
+            })), a.callback(v, (() => e)));
         },
         customize(t) {
             return createConfiguration(t ?? i);

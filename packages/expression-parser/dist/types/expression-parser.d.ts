@@ -10,6 +10,7 @@ export declare const IExpressionParser: import("@aurelia/kernel").InterfaceSymbo
  * A default implementation of the IExpressionParser interface
  */
 export declare class ExpressionParser<TCustom extends CustomExpression = CustomExpression> implements IExpressionParser<TCustom> {
+    static readonly register: <C extends import("@aurelia/kernel").Constructable>(this: C, container: import("@aurelia/kernel").IContainer) => void;
     parse(expression: string, expressionType: 'IsIterator'): ForOfStatement;
     parse(expression: string, expressionType: 'Interpolation'): Interpolation;
     parse(expression: string, expressionType: Exclude<ExpressionType, 'IsIterator' | 'Interpolation'>): IsBindingBehavior;

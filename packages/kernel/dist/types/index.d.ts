@@ -10,5 +10,5 @@ export { noop, emptyArray, emptyObject, } from './platform';
 export { resourceBaseName, getResourceKeyFor, type IResourceKind, type PartialResourceDefinition, Protocol, type ResourceDefinition, type StaticResourceType, type ResourceType, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, } from './resource';
 export { EventAggregator, IEventAggregator, } from './eventaggregator';
 export { isArrayIndex, camelCase, kebabCase, pascalCase, toArray, bound, mergeArrays, firstDefined, getPrototypeChain, isNativeFunction, onResolve, onResolveAll, } from './functions';
-export { isObject, isArray, isMap, isSet, isPromise, isFunction, isNumber, isString, isSymbol, areEqual, createLookup, type AnyFunction, type FunctionPropNames, type MaybePromise, } from './utilities';
+export { isObject, isArray, isMap, isSet, isPromise, isFunction, isObjectOrFunction, isNumber, isString, isSymbol, areEqual, createLookup, type AnyFunction, type FunctionPropNames, type MaybePromise, } from './utilities';
 //# sourceMappingURL=index.d.ts.map

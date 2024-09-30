@@ -100,11 +100,11 @@ class PropertyInfo {
 }
 
 function getPropertyInfo(t, i) {
-    let s = i.propertyInfo;
-    if (s !== void 0) {
-        return s;
+    let e = i.propertyInfo;
+    if (e !== void 0) {
+        return e;
     }
-    const r = i.scope;
+    const s = i.scope;
     let n = t.ast.expression;
     let o = true;
     let a = "";
@@ -122,19 +122,19 @@ function getPropertyInfo(t, i) {
 
           case "AccessKeyed":
             {
-                const s = n.key;
+                const e = n.key;
                 if (o) {
-                    o = s.$kind === "PrimitiveLiteral";
+                    o = e.$kind === "PrimitiveLiteral";
                 }
-                i = `[${e.astEvaluate(s, r, t, null).toString()}]`;
+                i = `[${r.astEvaluate(e, s, t, null).toString()}]`;
                 break;
             }
 
           default:
             throw createMappedError(4205, n.constructor.name);
         }
-        const s = a.startsWith("[") ? "" : ".";
-        a = a.length === 0 ? i : `${i}${s}${a}`;
+        const e = a.startsWith("[") ? "" : ".";
+        a = a.length === 0 ? i : `${i}${e}${a}`;
         n = n.object;
     }
     if (n === void 0) {
@@ -143,18 +143,18 @@ function getPropertyInfo(t, i) {
     let l;
     if (a.length === 0) {
         a = n.name;
-        l = r.bindingContext;
+        l = s.bindingContext;
     } else {
-        l = e.astEvaluate(n, r, t, null);
+        l = r.astEvaluate(n, s, t, null);
     }
     if (l === null || l === void 0) {
         return void 0;
     }
-    s = new PropertyInfo(l, a);
+    e = new PropertyInfo(l, a);
     if (o) {
-        i.propertyInfo = s;
+        i.propertyInfo = e;
     }
-    return s;
+    return e;
 }
 
 const n = /*@__PURE__*/ t.DI.createInterface("IValidationController");
@@ -213,6 +213,7 @@ class ValidationController {
             r = [ new i.ValidateInstruction(e, t?.propertyName, t?.rules ?? this.objects.get(e), s, t?.propertyTag) ];
         } else {
             r = [ ...Array.from(this.objects.entries()).map((([t, e]) => new i.ValidateInstruction(t, void 0, e, s))), ...Array.from(this.bindings.entries()).reduce(((e, [r, n]) => {
+                if (!r.isBound) return e;
                 const o = getPropertyInfo(r, n);
                 if (o !== void 0 && !this.objects.has(o.object)) {
                     e.push(new i.ValidateInstruction(o.object, o.propertyName, n.rules, s, t?.propertyTag));
@@ -542,7 +543,7 @@ class ValidateBindingBehavior {
         }
         let r = c.get(s);
         if (r == null) {
-            c.set(s, r = new ValidatitionConnector(this.p, this.oL, s.get(h), s, s.get(t.IContainer)));
+            c.set(s, r = new ValidationConnector(this.p, this.oL, s.get(h), s, s.get(t.IContainer)));
         }
         let n = u.get(s);
         if (n == null) {
@@ -558,7 +559,7 @@ class ValidateBindingBehavior {
 
 e.BindingBehavior.define("validate", ValidateBindingBehavior);
 
-class ValidatitionConnector {
+class ValidationConnector {
     constructor(t, i, e, s, r) {
         this.isChangeTrigger = false;
         this.isDirty = false;
@@ -604,6 +605,7 @@ class ValidatitionConnector {
         if (t !== null) {
             this.target?.removeEventListener(t, this);
         }
+        this.controller?.resetBinding(this.propertyBinding);
         this.controller?.removeSubscriber(this);
     }
     handleTriggerChange(t, i) {
@@ -626,8 +628,8 @@ class ValidatitionConnector {
     C() {
         const t = this.scope;
         let i;
+        let e;
         let s;
-        let r;
         let n = this.propertyBinding.ast;
         while (n.name !== "validate" && n !== void 0) {
             n = n.expression;
@@ -637,22 +639,22 @@ class ValidatitionConnector {
             const a = o[n];
             switch (n) {
               case 0:
-                s = this._(e.astEvaluate(a, t, this, this.t));
+                e = this._(r.astEvaluate(a, t, this, this.t));
                 break;
 
               case 1:
-                r = this.R(e.astEvaluate(a, t, this, this.i));
+                s = this.R(r.astEvaluate(a, t, this, this.i));
                 break;
 
               case 2:
-                i = this.T(e.astEvaluate(a, t, this, this.h));
+                i = this.T(r.astEvaluate(a, t, this, this.h));
                 break;
 
               default:
-                throw createMappedError(4201, n + 1, e.astEvaluate(a, t, this, null));
+                throw createMappedError(4201, n + 1, r.astEvaluate(a, t, this, null));
             }
         }
-        return new ValidateArgumentsDelta(this.R(r), this._(s), i);
+        return new ValidateArgumentsDelta(this.R(s), this._(e), i);
     }
     validateBinding() {
         const t = this.task;
@@ -740,9 +742,9 @@ class ValidatitionConnector {
     }
 }
 
-r.connectable(ValidatitionConnector, null);
+r.connectable(ValidationConnector, null);
 
-e.mixinAstEvaluator(true)(ValidatitionConnector);
+r.mixinNoopAstEvaluator(ValidationConnector);
 
 class WithValidationTargetSubscriber extends e.BindingTargetSubscriber {
     constructor(t, i, e) {
@@ -777,7 +779,7 @@ class BindingMediator {
 
 r.connectable(BindingMediator, null);
 
-e.mixinAstEvaluator(true)(BindingMediator);
+r.mixinNoopAstEvaluator(BindingMediator);
 
 function getDefaultValidationHtmlConfiguration() {
     return {

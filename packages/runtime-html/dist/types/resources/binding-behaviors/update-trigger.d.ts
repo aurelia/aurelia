@@ -1,4 +1,4 @@
-import { type Scope } from '../../binding/scope';
+import { type Scope } from '@aurelia/runtime';
 import { type IBinding } from '../../binding/interfaces-bindings';
 import { type BindingBehaviorInstance, type BindingBehaviorStaticAuDefinition } from '../binding-behavior';
 export declare class UpdateTriggerBindingBehavior implements BindingBehaviorInstance {

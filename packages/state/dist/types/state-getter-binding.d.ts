@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
-import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { IObserverLocatorBasedConnectable, Scope } from '@aurelia/runtime';
+import { IBinding } from '@aurelia/runtime-html';
 import { IStore, type IStoreSubscriber } from './interfaces';
-import { IBinding, Scope } from '@aurelia/runtime-html';
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */

@@ -187,8 +187,6 @@ exports.NodeObserverLocator = r.NodeObserverLocator;
 
 exports.RuntimeTemplateCompilerImplementation = r.RuntimeTemplateCompilerImplementation;
 
-exports.Scope = r.Scope;
-
 exports.ShortHandBindingSyntax = r.ShortHandBindingSyntax;
 
 exports.StyleConfiguration = r.StyleConfiguration;
@@ -251,7 +249,11 @@ exports.IExpressionParser = o.IExpressionParser;
 
 exports.ComputedObserver = p.ComputedObserver;
 
+exports.IObservation = p.IObservation;
+
 exports.IObserverLocator = p.IObserverLocator;
+
+exports.Scope = p.Scope;
 
 exports.batch = p.batch;
 

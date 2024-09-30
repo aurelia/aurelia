@@ -4,8 +4,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var kernel = require('@aurelia/kernel');
 var AST = require('@aurelia/expression-parser');
-var runtimeHtml = require('@aurelia/runtime-html');
+var runtime = require('@aurelia/runtime');
 var metadata = require('@aurelia/metadata');
+var runtimeHtml = require('@aurelia/runtime-html');
 
 function _interopNamespaceDefault(e) {
     var n = Object.create(null);
@@ -436,7 +437,7 @@ class PropertyRule {
     }
     async validate(object, tag, scope) {
         if (scope === void 0) {
-            scope = runtimeHtml.Scope.create({ [rootObjectSymbol]: object });
+            scope = runtime.Scope.create({ [rootObjectSymbol]: object });
         }
         const expression = this.property.expression;
         let value;
@@ -444,7 +445,7 @@ class PropertyRule {
             value = object;
         }
         else {
-            value = runtimeHtml.astEvaluate(expression, scope, this, null);
+            value = runtime.astEvaluate(expression, scope, this, null);
         }
         let isValid = true;
         const validateRuleset = async (rules) => {
@@ -457,8 +458,8 @@ class PropertyRule {
                 const { displayName, name } = this.property;
                 let message;
                 if (!isValidOrPromise) {
-                    const messageEvaluationScope = runtimeHtml.Scope.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
-                    message = runtimeHtml.astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null);
+                    const messageEvaluationScope = runtime.Scope.create(new ValidationMessageEvaluationContext(this.messageProvider, this.messageProvider.getDisplayName(name, displayName), name, value, rule, object));
+                    message = runtime.astEvaluate(this.messageProvider.getMessage(rule), messageEvaluationScope, this, null);
                 }
                 return new ValidationResult(isValidOrPromise, message, name, object, rule, this);
             };
@@ -666,7 +667,7 @@ class PropertyRule {
     }
 }
 PropertyRule.$TYPE = 'PropertyRule';
-runtimeHtml.mixinAstEvaluator()(PropertyRule);
+runtime.mixinNoopAstEvaluator(PropertyRule);
 class ModelBasedRule {
     constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1424,7 +1425,7 @@ class ModelValidationExpressionHydrator {
             if (typeof when === 'string') {
                 const parsed = this.parser.parse(when, 'None');
                 rule.canExecute = (object) => {
-                    return runtimeHtml.astEvaluate(parsed, runtimeHtml.Scope.create({ $object: object }), this, null);
+                    return runtime.astEvaluate(parsed, runtime.Scope.create({ $object: object }), this, null);
                 };
             }
             else if (typeof when === 'function') {
@@ -1476,7 +1477,7 @@ class ModelValidationExpressionHydrator {
         return new RuleProperty(expression, name, raw.displayName);
     }
 }
-runtimeHtml.mixinAstEvaluator()(ModelValidationExpressionHydrator);
+runtimeHtml.mixinAstEvaluator(ModelValidationExpressionHydrator);
 
 /**
  * IInstruction for the validation controller's validate method.
@@ -1507,7 +1508,7 @@ class StandardValidator {
         const propertyName = instruction.propertyName;
         const propertyTag = instruction.propertyTag;
         const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
-        const scope = runtimeHtml.Scope.create({ [rootObjectSymbol]: object });
+        const scope = runtime.Scope.create({ [rootObjectSymbol]: object });
         if (propertyName !== void 0) {
             return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, scope)) ?? [];
         }

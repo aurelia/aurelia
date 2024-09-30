@@ -3,11 +3,12 @@ import { DI } from '@aurelia/kernel';
 import { ValidationConfiguration, IValidator, StandardValidator, PropertyRule, IValidationRules, RegexRule, LengthRule, RequiredRule, SizeRule, EqualsRule, ValidateInstruction, ValidationRuleAliasMessage, } from '@aurelia/validation';
 import { assert } from '@aurelia/testing';
 import { Person, Organization } from './_test-resources.js';
+import { ExpressionParser } from '@aurelia/expression-parser';
 describe('validation/validator.spec.ts', function () {
     describe('IValidator', function () {
-        function setup(validator) {
+        function $createFixture(validator) {
             const container = DI.createContainer();
-            container.register(validator
+            container.register(ExpressionParser, validator
                 ? ValidationConfiguration.customize((options) => {
                     options.ValidatorType = validator;
                 })
@@ -15,7 +16,7 @@ describe('validation/validator.spec.ts', function () {
             return { sut: container.get(IValidator), container };
         }
         it('registered to Singleton StandardValidator by default', function () {
-            const { sut: sut1, container } = setup();
+            const { sut: sut1, container } = $createFixture();
             const sut2 = container.get(IValidator);
             assert.instanceOf(sut1, StandardValidator);
             assert.instanceOf(sut2, StandardValidator);
@@ -27,7 +28,7 @@ describe('validation/validator.spec.ts', function () {
                     throw new Error('Method not implemented.');
                 }
             }
-            const { sut: sut1, container } = setup(CustomValidator);
+            const { sut: sut1, container } = $createFixture(CustomValidator);
             const sut2 = container.get(IValidator);
             assert.instanceOf(sut1, CustomValidator);
             assert.instanceOf(sut2, CustomValidator);
@@ -37,7 +38,7 @@ describe('validation/validator.spec.ts', function () {
     describe('StandardValidator', function () {
         function setup() {
             const container = DI.createContainer();
-            container.register(ValidationConfiguration);
+            container.register(ExpressionParser, ValidationConfiguration);
             return {
                 sut: container.get(IValidator),
                 validationRules: container.get(IValidationRules),

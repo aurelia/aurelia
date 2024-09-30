@@ -1048,7 +1048,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             assertControllerBinding(controller, 'person.address.pin|toNumber', target, app.controllerRegisterBindingSpy);
             assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error1');
             await controller.validate();
-            assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 0, 'error2');
+            assert.equal(controller.results.filter((r) => !r.valid && r.propertyName === 'address.pin').length, 1, 'error2');
             target.value = '123456';
             await assertEventHandler(target, 'change', 1, platform, app.controllerValidateBindingSpy, app.controllerValidateSpy, ctx);
             assert.equal(controller.results.filter((e) => !e.valid && e.propertyName === 'address.pin').length, 0, 'error3');
@@ -1278,6 +1278,77 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
             assert.strictEqual(result.valid, false, 'result.valid5');
             assert.deepStrictEqual(result.results.map(x => [x.propertyName, x.valid]), [['name', false], ['age', false]], 'result.results.every(x => !x.valid)');
             await stop(true);
+        });
+        it('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
+            let CeOne = (() => {
+                let _classDecorators = [customElement({ name: 'ce-one', template: `<input value.bind="model.someProperty & validate">` })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                let _model_decorators;
+                let _model_initializers = [];
+                let _model_extraInitializers = [];
+                var CeOne = _classThis = class {
+                    constructor() {
+                        this.model = __runInitializers(this, _model_initializers, void 0);
+                        this.validationController = (__runInitializers(this, _model_extraInitializers), resolve(newInstanceForScope(IValidationController)));
+                        this.validationRules = resolve(IValidationRules);
+                    }
+                    bound() {
+                        this.model = structuredClone(this.model);
+                    }
+                    attached() {
+                        this.setupValidationRules();
+                    }
+                    detaching() {
+                        this.validationController.reset();
+                        this.validationRules.off();
+                    }
+                    setupValidationRules() {
+                        this.validationRules
+                            .on(this.model)
+                            .ensure((x) => x.someProperty)
+                            .range(3, 20);
+                    }
+                };
+                __setFunctionName(_classThis, "CeOne");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _model_decorators = [bindable];
+                    __esDecorate(null, null, _model_decorators, { kind: "field", name: "model", static: false, private: false, access: { has: obj => "model" in obj, get: obj => obj.model, set: (obj, value) => { obj.model = value; } }, metadata: _metadata }, _model_initializers, _model_extraInitializers);
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    CeOne = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return CeOne = _classThis;
+            })();
+            class AppRoot {
+                constructor() {
+                    this.isEditing = false;
+                    this.model = { someProperty: 1 };
+                }
+            }
+            const { startPromise, stop, component, appHost } = createFixture(`<ce-one if.bind="isEditing" model.bind></ce-one>`, AppRoot, [ValidationHtmlConfiguration, CeOne]);
+            await startPromise;
+            component.isEditing = true;
+            const ceOne = CustomElement.for(appHost.querySelector('ce-one')).viewModel;
+            const validationController = ceOne.validationController;
+            let result = await validationController.validate();
+            assertInvalidResult(result, 1);
+            component.isEditing = false;
+            result = await validationController.validate();
+            assert.strictEqual(result.valid, true, 'result.valid 2');
+            component.isEditing = true;
+            result = await validationController.validate();
+            assertInvalidResult(result, 3);
+            await stop(true);
+            function assertInvalidResult(result, iteration) {
+                assert.strictEqual(result.valid, false, `result.valid ${iteration}`);
+                assert.strictEqual(result.results.length, 1, `result.results.length ${iteration}`);
+                assert.strictEqual(result.results[0].propertyName, 'someProperty', `result.results[0].propertyName ${iteration}`);
+                assert.strictEqual(result.results[0].message, 'Some Property must be between or equal to 3 and 20.', `result.results[0].message ${iteration}`);
+            }
         });
     });
 });

@@ -1,30 +1,30 @@
-import { BindingBehaviorExpression as t, ValueConverterExpression as e, AssignExpression as i, ConditionalExpression as n, AccessThisExpression as s, AccessScopeExpression as r, AccessMemberExpression as o, AccessKeyedExpression as l, CallScopeExpression as a, CallMemberExpression as h, CallFunctionExpression as c, BinaryExpression as u, UnaryExpression as d, PrimitiveLiteralExpression as g, ArrayLiteralExpression as f, ObjectLiteralExpression as p, TemplateExpression as b, TaggedTemplateExpression as m, ArrayBindingPattern as C, ObjectBindingPattern as v, BindingIdentifier as B, ForOfStatement as D, Interpolation as w, DestructuringAssignmentExpression as L, DestructuringAssignmentSingleExpression as y, DestructuringAssignmentRestExpression as E, ArrowFunction as I, astVisit as S, Unparser as O, IExpressionParser as k } from "@aurelia/expression-parser";
+import { BindingBehaviorExpression as t, ValueConverterExpression as e, AssignExpression as i, ConditionalExpression as n, AccessThisExpression as s, AccessScopeExpression as r, AccessMemberExpression as o, AccessKeyedExpression as l, CallScopeExpression as a, CallMemberExpression as h, CallFunctionExpression as c, BinaryExpression as u, UnaryExpression as d, PrimitiveLiteralExpression as g, ArrayLiteralExpression as f, ObjectLiteralExpression as p, TemplateExpression as m, TaggedTemplateExpression as b, ArrayBindingPattern as C, ObjectBindingPattern as v, BindingIdentifier as B, ForOfStatement as D, Interpolation as w, DestructuringAssignmentExpression as L, DestructuringAssignmentSingleExpression as E, DestructuringAssignmentRestExpression as I, ArrowFunction as y, astVisit as S, Unparser as k, IExpressionParser as x } from "@aurelia/expression-parser";
 
-import { astEvaluate as x, astAssign as M, astBind as A, astUnbind as R, mixinUseScope as T, mixingBindingLimited as $, mixinAstEvaluator as j, renderer as W, IListenerBindingOptions as _, IEventTarget as P, AppTask as V, PropertyBinding as F, AttributeBinding as U, ListenerBinding as q, LetBinding as z, InterpolationPartBinding as G, ContentBinding as H, RefBinding as J, AuCompose as K, CustomElement as N, BindableDefinition as Q, Scope as X, ExpressionWatcher as Y } from "@aurelia/runtime-html";
+import { astEvaluate as M, astAssign as O, astBind as A, astUnbind as R, IObserverLocator as T, getCollectionObserver as $, Scope as W } from "@aurelia/runtime";
 
-import { camelCase as Z, resolve as tt, DI as et } from "@aurelia/kernel";
+import { mixinUseScope as _, mixingBindingLimited as j, mixinAstEvaluator as P, renderer as V, IListenerBindingOptions as F, IEventTarget as U, AppTask as q, PropertyBinding as z, AttributeBinding as G, ListenerBinding as H, LetBinding as J, InterpolationPartBinding as K, ContentBinding as N, RefBinding as Q, AuCompose as X, CustomElement as Y, BindableDefinition as Z, ExpressionWatcher as tt } from "@aurelia/runtime-html";
 
-import { IObserverLocator as it, getCollectionObserver as nt } from "@aurelia/runtime";
+import { isString as et, camelCase as it, resolve as nt, isFunction as st, DI as rt, createLookup as ot } from "@aurelia/kernel";
 
-let st = false;
+let lt = false;
 
 function defineAstMethods() {
-    if (st) {
+    if (lt) {
         return;
     }
-    st = true;
+    lt = true;
     const def = (t, e, i) => Object.defineProperty(t.prototype, e, {
         configurable: true,
         enumerable: false,
         writable: true,
         value: i
     });
-    [ t, e, i, n, s, r, o, l, a, h, c, u, d, g, f, p, b, m, C, v, B, D, w, L, y, E, I ].forEach((t => {
+    [ t, e, i, n, s, r, o, l, a, h, c, u, d, g, f, p, m, b, C, v, B, D, w, L, E, I, y ].forEach((t => {
         def(t, "evaluate", (function(...t) {
-            return x(this, ...t);
+            return M(this, ...t);
         }));
         def(t, "assign", (function(...t) {
-            return M(this, ...t);
+            return O(this, ...t);
         }));
         def(t, "accept", (function(...t) {
             return S(this, ...t);
@@ -36,19 +36,13 @@ function defineAstMethods() {
             return R(this, ...t);
         }));
     }));
-    console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".' + " Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.");
+    console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".' + " Import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.");
 }
 
-const createLookup = () => Object.create(null);
-
-const isFunction = t => typeof t === "function";
-
-const isString = t => typeof t === "string";
-
-const rt = Reflect.defineProperty;
+const at = Reflect.defineProperty;
 
 const defineHiddenProp = (t, e, i) => {
-    rt(t, e, {
+    at(t, e, {
         enumerable: false,
         configurable: true,
         writable: true,
@@ -58,32 +52,32 @@ const defineHiddenProp = (t, e, i) => {
 };
 
 const ensureExpression = (t, e, i) => {
-    if (isString(e)) {
+    if (et(e)) {
         return t.parse(e, i);
     }
     return e;
 };
 
-const ot = "IsFunction";
+const ht = "IsFunction";
 
-const lt = new WeakSet;
+const ct = new WeakSet;
 
-const at = {
+const ut = {
     register(t) {
-        if (!lt.has(t)) {
-            lt.add(t);
-            t.register(CallBindingCommand, ct);
+        if (!ct.has(t)) {
+            ct.add(t);
+            t.register(CallBindingCommand, gt);
         }
     }
 };
 
-const ht = "rh";
+const dt = "rh";
 
 class CallBindingInstruction {
     constructor(t, e) {
         this.from = t;
         this.to = e;
-        this.type = ht;
+        this.type = dt;
     }
 }
 
@@ -92,8 +86,8 @@ class CallBindingCommand {
         return false;
     }
     build(t, e) {
-        const i = t.bindable === null ? Z(t.attr.target) : t.bindable.name;
-        return new CallBindingInstruction(e.parse(t.attr.rawValue, ot), i);
+        const i = t.bindable === null ? it(t.attr.target) : t.bindable.name;
+        return new CallBindingInstruction(e.parse(t.attr.rawValue, ht), i);
     }
 }
 
@@ -102,12 +96,12 @@ CallBindingCommand.$au = {
     name: "call"
 };
 
-const ct = /*@__PURE__*/ W(class CallBindingRenderer {
+const gt = /*@__PURE__*/ V(class CallBindingRenderer {
     constructor() {
-        this.target = ht;
+        this.target = dt;
     }
     render(t, e, i, n, s, r) {
-        const o = ensureExpression(s, i.from, ot);
+        const o = ensureExpression(s, i.from, ht);
         t.addBinding(new CallBinding(t.container, r, o, getTarget(e), i.to));
     }
 }, null);
@@ -132,7 +126,7 @@ class CallBinding {
     callSource(t) {
         const e = this.s.overrideContext;
         e.$event = t;
-        const i = x(this.ast, this.s, this, null);
+        const i = M(this.ast, this.s, this, null);
         Reflect.deleteProperty(e, "$event");
         return i;
     }
@@ -160,30 +154,30 @@ class CallBinding {
 }
 
 (() => {
-    T(CallBinding);
-    $(CallBinding, (() => "callSource"));
-    j(true)(CallBinding);
+    _(CallBinding);
+    j(CallBinding, (() => "callSource"));
+    P(CallBinding);
 })();
 
-const ut = new WeakSet;
+const ft = new WeakSet;
 
-const dt = {
+const pt = {
     register(t) {
-        if (ut.has(t)) {
+        if (ft.has(t)) {
             return;
         }
-        ut.add(t);
-        t.get(_).prevent = true;
+        ft.add(t);
+        t.get(F).prevent = true;
     }
 };
 
-const gt = new WeakSet;
+const mt = new WeakSet;
 
-const ft = {
+const bt = {
     register(t) {
-        if (!gt.has(t)) {
-            gt.add(t);
-            t.register(mt, DelegateBindingCommand, pt);
+        if (!mt.has(t)) {
+            mt.add(t);
+            t.register(Bt, DelegateBindingCommand, Ct);
         }
     }
 };
@@ -193,7 +187,7 @@ class DelegateBindingCommand {
         return true;
     }
     build(t, e) {
-        return new DelegateBindingInstruction(e.parse(t.attr.rawValue, ot), t.attr.target, true);
+        return new DelegateBindingInstruction(e.parse(t.attr.rawValue, ht), t.attr.target, true);
     }
 }
 
@@ -202,13 +196,13 @@ DelegateBindingCommand.$au = {
     name: "delegate"
 };
 
-const pt = /*@__PURE__*/ W(class ListenerBindingRenderer {
+const Ct = /*@__PURE__*/ V(class ListenerBindingRenderer {
     constructor() {
         this.target = "dl";
-        this.t = tt(mt);
+        this.t = nt(Bt);
     }
     render(t, e, i, n, s) {
-        const r = ensureExpression(s, i.from, ot);
+        const r = ensureExpression(s, i.from, ht);
         t.addBinding(new DelegateListenerBinding(t.container, r, e, i.to, this.t, new DelegateListenerOptions(i.preventDefault)));
     }
 }, null);
@@ -244,9 +238,9 @@ class DelegateListenerBinding {
     callSource(t) {
         const e = this.s.overrideContext;
         e.$event = t;
-        let i = x(this.ast, this.s, this, null);
+        let i = M(this.ast, this.s, this, null);
         delete e.$event;
-        if (isFunction(i)) {
+        if (st(i)) {
             i = i(t);
         }
         if (i !== true && this.i.prevent) {
@@ -271,7 +265,7 @@ class DelegateListenerBinding {
         }
         this.s = t;
         A(this.ast, t, this);
-        this.handler = this.eventDelegator.addEventListener(this.l.get(P), this.target, this.targetEvent, this);
+        this.handler = this.eventDelegator.addEventListener(this.l.get(U), this.target, this.targetEvent, this);
         this.isBound = true;
     }
     unbind() {
@@ -287,17 +281,17 @@ class DelegateListenerBinding {
 }
 
 (() => {
-    T(DelegateListenerBinding);
-    $(DelegateListenerBinding, (() => "callSource"));
-    j(true, true)(DelegateListenerBinding);
+    _(DelegateListenerBinding);
+    j(DelegateListenerBinding, (() => "callSource"));
+    P(DelegateListenerBinding);
 })();
 
-const bt = {
+const vt = {
     capture: false
 };
 
 class ListenerTracker {
-    constructor(t, e, i = bt) {
+    constructor(t, e, i = vt) {
         this.h = t;
         this.u = e;
         this.i = i;
@@ -310,7 +304,7 @@ class ListenerTracker {
             this.h.addEventListener(this.u, this, this.i);
         }
     }
-    O() {
+    M() {
         if (--this.C === 0) {
             this.h.removeEventListener(this.u, this, this.i);
         }
@@ -323,11 +317,11 @@ class ListenerTracker {
         this.B.clear();
         this.L.clear();
     }
-    M(t) {
+    O(t) {
         const e = this.i.capture === true ? this.B : this.L;
         let i = e.get(t);
         if (i === void 0) {
-            e.set(t, i = createLookup());
+            e.set(t, i = ot());
         }
         return i;
     }
@@ -346,7 +340,7 @@ class ListenerTracker {
             if (s === void 0) {
                 continue;
             }
-            if (isFunction(s)) {
+            if (st(s)) {
                 s(t);
             } else {
                 s.handleEvent(t);
@@ -367,20 +361,20 @@ class DelegateSubscription {
         e[i] = n;
     }
     dispose() {
-        this.A.O();
+        this.A.M();
         this.R[this.u] = void 0;
     }
 }
 
-const mt = /*@__PURE__*/ et.createInterface("IEventDelegator", (t => t.cachedCallback((t => {
+const Bt = /*@__PURE__*/ rt.createInterface("IEventDelegator", (t => t.cachedCallback((t => {
     const e = t.invoke(EventDelegator);
-    t.register(V.deactivating((() => e.dispose())));
+    t.register(q.deactivating((() => e.dispose())));
     return e;
 }))));
 
 class EventDelegator {
     constructor() {
-        this.T = createLookup();
+        this.T = ot();
     }
     addEventListener(t, e, i, n, s) {
         const r = this.T[i] ??= new Map;
@@ -388,7 +382,7 @@ class EventDelegator {
         if (o === void 0) {
             r.set(t, o = new ListenerTracker(t, i, s));
         }
-        return new DelegateSubscription(o, o.M(e), i, n);
+        return new DelegateSubscription(o, o.O(e), i, n);
     }
     dispose() {
         for (const t in this.T) {
@@ -401,12 +395,12 @@ class EventDelegator {
     }
 }
 
-let Ct = false;
+let Dt = false;
 
 const defineBindingMethods = () => {
-    if (Ct) return;
-    Ct = true;
-    [ [ F, "Property binding" ], [ U, "Attribute binding" ], [ q, "Listener binding" ], [ CallBinding, "Call binding" ], [ z, "Let binding" ], [ G, "Interpolation binding" ], [ H, "Text binding" ], [ J, "Ref binding" ], [ DelegateListenerBinding, "Delegate Listener binding" ] ].forEach((([t, e]) => {
+    if (Dt) return;
+    Dt = true;
+    [ [ z, "Property binding" ], [ G, "Attribute binding" ], [ H, "Listener binding" ], [ CallBinding, "Call binding" ], [ J, "Let binding" ], [ K, "Interpolation binding" ], [ N, "Text binding" ], [ Q, "Ref binding" ], [ DelegateListenerBinding, "Delegate Listener binding" ] ].forEach((([t, e]) => {
         Object.defineProperty(t.prototype, "sourceExpression", {
             configurable: true,
             enumerable: false,
@@ -420,51 +414,51 @@ const defineBindingMethods = () => {
             }
         });
     }));
-    const getMessage = (t, e) => console.warn(`[DEV:aurelia] @deprecated "sourceExpression" property for expression on ${t}. It has been renamed to "ast". expression: "${O.unparse(e)}"`);
+    const getMessage = (t, e) => console.warn(`[DEV:aurelia] @deprecated "sourceExpression" property for expression on ${t}. It has been renamed to "ast". expression: "${k.unparse(e)}"`);
 };
 
-let vt = false;
+let wt = false;
 
-let Bt = false;
+let Lt = false;
 
-const Dt = K.prototype;
+const Et = X.prototype;
 
-const wt = Symbol();
+const It = Symbol();
 
-const Lt = Dt.attaching;
+const yt = Et.attaching;
 
-const yt = Dt.propertyChanged;
+const St = Et.propertyChanged;
 
 function enableComposeCompat() {
-    if (vt) {
+    if (wt) {
         return;
     }
-    vt = true;
-    if (!Bt) {
-        Bt = true;
-        const t = N.getDefinition(K);
-        t.bindables.viewModel = Q.create("viewModel");
-        t.bindables.view = Q.create("view");
+    wt = true;
+    if (!Lt) {
+        Lt = true;
+        const t = Y.getDefinition(X);
+        t.bindables.viewModel = Z.create("viewModel");
+        t.bindables.view = Z.create("view");
     }
-    defineHiddenProp(Dt, "viewModelChanged", (function(t) {
+    defineHiddenProp(Et, "viewModelChanged", (function(t) {
         this.component = t;
     }));
-    defineHiddenProp(Dt, "viewChanged", (function(t) {
+    defineHiddenProp(Et, "viewChanged", (function(t) {
         this.template = t;
     }));
-    defineHiddenProp(Dt, "attaching", (function(...t) {
-        this[wt] = true;
+    defineHiddenProp(Et, "attaching", (function(...t) {
+        this[It] = true;
         if (this.viewModel !== void 0) {
             this.component = this.viewModel;
         }
         if (this.view !== void 0) {
             this.template = this.view;
         }
-        this[wt] = false;
-        return Lt.apply(this, t);
+        this[It] = false;
+        return yt.apply(this, t);
     }));
-    defineHiddenProp(Dt, "propertyChanged", (function(t) {
-        if (this[wt]) {
+    defineHiddenProp(Et, "propertyChanged", (function(t) {
+        if (this[It]) {
             return;
         }
         switch (t) {
@@ -472,31 +466,31 @@ function enableComposeCompat() {
           case "view":
             return;
         }
-        return yt.call(this, t);
+        return St.call(this, t);
     }));
 }
 
 function disableComposeCompat() {
-    if (!vt) {
+    if (!wt) {
         return;
     }
-    if (Bt) {
-        Bt = false;
-        const t = N.getDefinition(K);
+    if (Lt) {
+        Lt = false;
+        const t = Y.getDefinition(X);
         delete t.bindables.viewModel;
         delete t.bindables.view;
     }
-    vt = false;
-    delete Dt.viewModelChanged;
-    delete Dt.viewChanged;
-    defineHiddenProp(Dt, "attaching", Lt);
-    defineHiddenProp(Dt, "propertyChanged", yt);
+    wt = false;
+    delete Et.viewModelChanged;
+    delete Et.viewChanged;
+    defineHiddenProp(Et, "attaching", yt);
+    defineHiddenProp(Et, "propertyChanged", St);
 }
 
 class BindingEngine {
     constructor() {
-        this.parser = tt(k);
-        this.observerLocator = tt(it);
+        this.parser = nt(x);
+        this.observerLocator = nt(T);
     }
     propertyObserver(t, e) {
         return {
@@ -515,7 +509,7 @@ class BindingEngine {
     collectionObserver(t) {
         return {
             subscribe: e => {
-                const i = nt(t);
+                const i = $(t);
                 const n = {
                     handleCollectionChange: (t, i) => e(t, i)
                 };
@@ -527,10 +521,10 @@ class BindingEngine {
         };
     }
     expressionObserver(t, e) {
-        const i = X.create(t, {}, true);
+        const i = W.create(t, {}, true);
         return {
             subscribe: t => {
-                const n = new Y(i, null, this.observerLocator, this.parser.parse(e, "IsProperty"), t);
+                const n = new tt(i, null, this.observerLocator, this.parser.parse(e, "IsProperty"), t);
                 n.bind();
                 return {
                     dispose: () => n.unbind()
@@ -540,14 +534,14 @@ class BindingEngine {
     }
 }
 
-const Et = {
+const kt = {
     register(t) {
         defineAstMethods();
         defineBindingMethods();
         enableComposeCompat();
-        t.register(dt, ft, at);
+        t.register(pt, bt, ut);
     }
 };
 
-export { BindingEngine, CallBinding, CallBindingCommand, CallBindingInstruction, ct as CallBindingRenderer, DelegateBindingCommand, DelegateBindingInstruction, DelegateListenerBinding, DelegateListenerOptions, EventDelegator, mt as IEventDelegator, pt as ListenerBindingRenderer, at as callSyntax, Et as compatRegistration, ft as delegateSyntax, disableComposeCompat, enableComposeCompat, dt as eventPreventDefaultBehavior };
+export { BindingEngine, CallBinding, CallBindingCommand, CallBindingInstruction, gt as CallBindingRenderer, DelegateBindingCommand, DelegateBindingInstruction, DelegateListenerBinding, DelegateListenerOptions, EventDelegator, Bt as IEventDelegator, Ct as ListenerBindingRenderer, ut as callSyntax, kt as compatRegistration, bt as delegateSyntax, disableComposeCompat, enableComposeCompat, pt as eventPreventDefaultBehavior };
 //# sourceMappingURL=index.mjs.map

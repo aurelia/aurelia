@@ -759,7 +759,7 @@ class Unparser {
 
 const createMappedError = (e, ...s) => new Error(`AUR${$(e).padStart(4, "0")}:${s.map($)}`);
 
-const O = /*@__PURE__*/ e.DI.createInterface("IExpressionParser", (e => e.singleton(ExpressionParser)));
+const O = /*@__PURE__*/ e.DI.createInterface("IExpressionParser");
 
 class ExpressionParser {
     constructor() {
@@ -819,6 +819,8 @@ class ExpressionParser {
         return parse(61, s === void 0 ? J : s);
     }
 }
+
+ExpressionParser.register = e.createImplementationRegister(O);
 
 function unescapeCode(e) {
     switch (e) {

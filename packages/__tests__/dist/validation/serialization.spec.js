@@ -1,5 +1,5 @@
 /* eslint-disable mocha/no-sibling-hooks */
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import { assert, TestContext } from '@aurelia/testing';
 import { EqualsRule, IValidationMessageProvider, IValidationRules, LengthRule, PropertyRule, RangeRule, RegexRule, RequiredRule, SizeRule, ValidationConfiguration, parsePropertyName, ValidationSerializer, RuleProperty, ValidationDeserializer, ModelBasedRule, IValidator, ValidateInstruction, IValidationExpressionHydrator } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
@@ -7,7 +7,7 @@ describe('validation/serialization.spec.ts', function () {
     describe('validation de/serialization', function () {
         function setup() {
             const container = TestContext.create().container;
-            container.register(ValidationConfiguration.customize((options) => { options.HydratorType = ValidationDeserializer; }));
+            container.register(ExpressionParser, ValidationConfiguration.customize((options) => { options.HydratorType = ValidationDeserializer; }));
             return {
                 container,
                 parser: container.get(IExpressionParser),
@@ -275,7 +275,7 @@ describe('validation/serialization.spec.ts', function () {
     describe('ModelValidationExpressionHydrator', function () {
         function setup() {
             const container = TestContext.create().container;
-            container.register(ValidationConfiguration);
+            container.register(ExpressionParser, ValidationConfiguration);
             return {
                 container,
                 expressionHydrator: container.get(IValidationExpressionHydrator),

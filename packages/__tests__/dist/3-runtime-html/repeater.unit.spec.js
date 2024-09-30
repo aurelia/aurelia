@@ -1,9 +1,9 @@
-import { AccessScopeExpression, ForOfStatement, BindingIdentifier, IExpressionParser } from '@aurelia/expression-parser';
-import { DirtyChecker } from '@aurelia/runtime';
-import { Scope, BindingContext, Repeat, Controller, CustomElementDefinition, IRenderLocation, PropertyBindingRenderer, TextBindingRenderer, NodeObserverLocator, IRendering, IController, IViewFactory, } from '@aurelia/runtime-html';
+import { Registration } from '@aurelia/kernel';
+import { AccessScopeExpression, ForOfStatement, BindingIdentifier, ExpressionParser } from '@aurelia/expression-parser';
+import { DirtyChecker, Scope, BindingContext, } from '@aurelia/runtime';
+import { Repeat, Controller, CustomElementDefinition, IRenderLocation, PropertyBindingRenderer, TextBindingRenderer, NodeObserverLocator, IRendering, IController, IViewFactory, } from '@aurelia/runtime-html';
 import { IInstruction, TextBindingInstruction, ITemplateCompiler, } from '@aurelia/template-compiler';
 import { eachCartesianJoin, assert, PLATFORM, createContainer, } from '@aurelia/testing';
-import { Registration } from '@aurelia/kernel';
 describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
     function runActivateLifecycle(sut, scope) {
         void sut.$controller.activate(sut.$controller, null, scope);
@@ -423,7 +423,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
                 { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
             ] }
     ];
-    const container = createContainer().register(DirtyChecker, NodeObserverLocator, PropertyBindingRenderer, TextBindingRenderer, Registration.instance(ITemplateCompiler, { compile: (d) => d }));
+    const container = createContainer().register(DirtyChecker, NodeObserverLocator, PropertyBindingRenderer, TextBindingRenderer, ExpressionParser, Registration.instance(ITemplateCompiler, { compile: (d) => d }));
     const createStartLocation = () => PLATFORM.document.createComment('au-start');
     const createEndLocation = () => PLATFORM.document.createComment('au-end');
     const marker = PLATFORM.document.createComment('au*');
@@ -462,11 +462,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
                 props: [{ props: [] }]
             };
             const child = container.createChild();
-            child.register(Registration.instance(IInstruction, instruction));
-            child.register(Registration.instance(IExpressionParser, null));
-            child.register(Registration.instance(IRenderLocation, loc));
-            child.register(Registration.instance(IController, hydratable));
-            child.register(Registration.instance(IViewFactory, itemFactory));
+            child.register(Registration.instance(IInstruction, instruction), Registration.instance(IRenderLocation, loc), Registration.instance(IController, hydratable), Registration.instance(IViewFactory, itemFactory));
             const sut = child.invoke(Repeat);
             sut.$controller = Controller.$attr(container, sut, (void 0));
             binding.target = sut;

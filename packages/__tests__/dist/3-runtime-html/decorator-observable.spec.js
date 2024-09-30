@@ -38,8 +38,8 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
 };
 import { observable, SetterObserver, IObserverLocator } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
-import { noop } from '@aurelia/kernel';
-import { ValueConverter, customElement } from '@aurelia/runtime-html';
+import { noop, resolve } from '@aurelia/kernel';
+import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
     const oldValue = 'old';
     const newValue = 'new';
@@ -399,7 +399,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             await tearDown();
         });
     });
-    it('handle recursive changes', async function () {
+    it('handle recursive changes', function () {
         let MyApp = (() => {
             let _classDecorators = [customElement('')];
             let _classDescriptor;
@@ -414,13 +414,14 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
                     this.logs = [];
                     this.count = __runInitializers(this, _count_initializers, 0);
                     this.countObs = __runInitializers(this, _count_extraInitializers);
+                    this.obsLoc = resolve(IObserverLocator);
                 }
                 created() {
-                    this.countObs = this['$controller'].container.get(IObserverLocator).getObserver(this, 'count');
+                    this.countObs = this.obsLoc.getObserver(this, 'count');
                     this.countObs.subscribe({
                         handleChange: (value, oldValue) => {
-                            if (value > 0 && value < 10) {
-                                this.log('S.1. handleChange()', value);
+                            if (value > 0 && value < 3) {
+                                this.log('S.1. handleChange()', value, oldValue);
                                 if (value > oldValue) {
                                     this.count++;
                                 }
@@ -464,50 +465,81 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             })();
             return MyApp = _classThis;
         })();
-        const { component, appHost, startPromise, tearDown } = createFixture(`
+        const { component, getAllBy, stop } = createFixture(`
       <button click.trigger="incr()">Incr()</button>
       <button click.trigger="decr()">Decr()</button>
       <div id="logs"><div repeat.for="log of logs">\${log}</div></div>
     `, MyApp);
-        await startPromise;
         assert.deepStrictEqual(component.logs, []);
-        component.logs.splice(0);
-        const [incrButton, decrButton] = Array.from(appHost.querySelectorAll('button'));
+        const [incrButton, decrButton] = getAllBy('button');
+        // when clicking on increment, increase count all the way to 3 by 1 at a time
         incrButton.click();
-        assert.deepStrictEqual(component.logs, Array
-            .from({ length: 9 })
-            .reduce((acc, _, idx) => {
-            acc.push(['P.1. countChanged()', idx + 1], ['S.1. handleChange()', idx + 1]);
-            return acc;
-        }, [])
-            .concat([
-            ['P.1. countChanged()', 10],
-            ['After incr()', 10]
-        ]));
-        decrButton.click();
-        const logs = Array
-            .from({ length: 9 })
-            .reduce((acc, _, idx) => {
-            acc.push(['P.1. countChanged()', idx + 1], ['S.1. handleChange()', idx + 1]);
-            return acc;
-        }, [])
-            .concat([
-            ['P.1. countChanged()', 10],
-            ['After incr()', 10]
+        assert.deepStrictEqual(component.logs, [
+            ['S.1. handleChange()', 1, 0],
+            ['S.1. handleChange()', 2, 1],
+            ['P.1. countChanged()', 3],
+            ['After incr()', 3]
         ]);
-        assert.deepStrictEqual(component.logs, logs
-            .concat(Array
-            .from({ length: 9 })
-            .reduce((acc, _, idx) => {
-            // start at 10 when click, but the first value log will be after the substraction of 1, which is 10 - 1
-            acc.push(['P.1. countChanged()', 9 - idx], ['S.1. handleChange()', 9 - idx]);
-            return acc;
-        }, []))
-            .concat([
+        // when clicking on decrement, decrease count all the way to 0 by 1 at a time
+        decrButton.click();
+        assert.deepStrictEqual(component.logs, [
+            ['S.1. handleChange()', 1, 0],
+            ['S.1. handleChange()', 2, 1],
+            ['P.1. countChanged()', 3],
+            ['After incr()', 3],
+            ['S.1. handleChange()', 2, 3],
+            ['S.1. handleChange()', 1, 2],
             ['P.1. countChanged()', 0],
             ['After decr()', 0]
-        ]));
-        await tearDown();
+        ]);
+        void stop(true);
+    });
+    // https://github.com/aurelia/aurelia/issues/2022
+    it('calls change handler callback after propagating changes', function () {
+        const logs = [];
+        createFixture('<outer-component>', (() => {
+            var _a;
+            let _instanceExtraInitializers = [];
+            let _prop1_decorators;
+            let _prop1_initializers = [];
+            let _prop1_extraInitializers = [];
+            let _prop2_decorators;
+            let _prop2_initializers = [];
+            let _prop2_extraInitializers = [];
+            let _handleProp1Changed_decorators;
+            return _a = class OuterComponent {
+                    constructor() {
+                        this.prop1 = (__runInitializers(this, _instanceExtraInitializers), __runInitializers(this, _prop1_initializers, 1));
+                        this.prop2 = (__runInitializers(this, _prop1_extraInitializers), __runInitializers(this, _prop2_initializers, 1));
+                        this.prop3 = (__runInitializers(this, _prop2_extraInitializers), 0);
+                    }
+                    // trigger point here
+                    attached() {
+                        this.prop1 = 2;
+                    }
+                    prop1Changed() {
+                        this.prop2 = 2;
+                    }
+                    prop2Changed() {
+                        logs.push(`prop3: ${this.prop3}`);
+                    }
+                    handleProp1Changed() {
+                        this.prop3 = 3;
+                    }
+                },
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _prop1_decorators = [observable];
+                    _prop2_decorators = [observable];
+                    _handleProp1Changed_decorators = [watch('prop1')];
+                    __esDecorate(_a, null, _handleProp1Changed_decorators, { kind: "method", name: "handleProp1Changed", static: false, private: false, access: { has: obj => "handleProp1Changed" in obj, get: obj => obj.handleProp1Changed }, metadata: _metadata }, null, _instanceExtraInitializers);
+                    __esDecorate(null, null, _prop1_decorators, { kind: "field", name: "prop1", static: false, private: false, access: { has: obj => "prop1" in obj, get: obj => obj.prop1, set: (obj, value) => { obj.prop1 = value; } }, metadata: _metadata }, _prop1_initializers, _prop1_extraInitializers);
+                    __esDecorate(null, null, _prop2_decorators, { kind: "field", name: "prop2", static: false, private: false, access: { has: obj => "prop2" in obj, get: obj => obj.prop2, set: (obj, value) => { obj.prop2 = value; } }, metadata: _metadata }, _prop2_initializers, _prop2_extraInitializers);
+                    if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                })(),
+                _a;
+        })());
+        assert.deepStrictEqual(logs, ['prop3: 3']);
     });
 });
 //# sourceMappingURL=decorator-observable.spec.js.map

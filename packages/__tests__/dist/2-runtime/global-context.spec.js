@@ -1,4 +1,4 @@
-import { AccessGlobalExpression, IExpressionParser } from '@aurelia/expression-parser';
+import { AccessGlobalExpression, ExpressionParser } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 const globalNames = [
@@ -29,7 +29,7 @@ const globalNames = [
 const getParser = () => {
     const ctx = TestContext.create();
     const container = ctx.container;
-    const parser = container.get(IExpressionParser);
+    const parser = container.get(ExpressionParser);
     return parser;
 };
 const ensureGlobalsAreUntouched = ($globalThis) => {

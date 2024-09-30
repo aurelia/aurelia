@@ -1,4 +1,4 @@
-import { emptyArray, DI } from '../../../kernel/dist/native-modules/index.mjs';
+import { emptyArray, createImplementationRegister, DI } from '../../../kernel/dist/native-modules/index.mjs';
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /** @internal */ const ekAccessThis = 'AccessThis';
@@ -731,7 +731,7 @@ const getMessageByCode = (name, ...details) => {
 };
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-const IExpressionParser = /*@__PURE__*/ DI.createInterface('IExpressionParser', x => x.singleton(ExpressionParser));
+const IExpressionParser = /*@__PURE__*/ DI.createInterface('IExpressionParser');
 /**
  * A default implementation of the IExpressionParser interface
  */
@@ -790,6 +790,7 @@ class ExpressionParser {
         return parse(61 /* Precedence.Variadic */, expressionType === void 0 ? etIsProperty : expressionType);
     }
 }
+ExpressionParser.register = createImplementationRegister(IExpressionParser);
 
 function unescapeCode(code) {
     switch (code) {

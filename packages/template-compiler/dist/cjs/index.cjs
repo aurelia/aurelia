@@ -6,8 +6,6 @@ var e = require("@aurelia/metadata");
 
 var n = require("@aurelia/expression-parser");
 
-const isString = t => typeof t === "string";
-
 const r = t.DI.createInterface;
 
 const i = Object.freeze;
@@ -836,7 +834,7 @@ class BindingCommandDefinition {
     static create(e, n) {
         let r;
         let i;
-        if (isString(e)) {
+        if (t.isString(e)) {
             r = e;
             i = {
                 name: r
@@ -1009,7 +1007,7 @@ class DefaultBindingCommand {
             a = s.mode === 0 || s.mode == null ? u == null || u === 0 ? 2 : u : s.mode;
             o = s.name;
         }
-        return new PropertyBindingInstruction(n.parse(l, c), o, isString(a) ? h[a] ?? 0 : a);
+        return new PropertyBindingInstruction(n.parse(l, c), o, t.isString(a) ? h[a] ?? 0 : a);
     }
 }
 
@@ -1167,31 +1165,31 @@ class TemplateElementFactory {
     t() {
         return this.p.document.createElement("template");
     }
-    createTemplate(t) {
-        if (isString(t)) {
-            let e = Y[t];
-            if (e === void 0) {
+    createTemplate(e) {
+        if (t.isString(e)) {
+            let t = Y[e];
+            if (t === void 0) {
                 const n = this.Y;
-                n.innerHTML = t;
+                n.innerHTML = e;
                 const r = n.content.firstElementChild;
                 if (needsWrapping(r)) {
                     this.Y = this.t();
-                    e = n;
+                    t = n;
                 } else {
                     n.content.removeChild(r);
-                    e = r;
+                    t = r;
                 }
-                Y[t] = e;
+                Y[e] = t;
             }
-            return e.cloneNode(true);
+            return t.cloneNode(true);
         }
-        if (t.nodeName !== "TEMPLATE") {
-            const e = this.t();
-            e.content.appendChild(t);
-            return e;
+        if (e.nodeName !== "TEMPLATE") {
+            const t = this.t();
+            t.content.appendChild(e);
+            return t;
         }
-        t.parentNode?.removeChild(t);
-        return t.cloneNode(true);
+        e.parentNode?.removeChild(e);
+        return e.cloneNode(true);
         function needsWrapping(t) {
             if (t == null) return true;
             if (t.nodeName !== "TEMPLATE") return true;
@@ -1265,7 +1263,7 @@ class TemplateCompiler {
             return e;
         }
         const r = new CompilationContext(e, n, null, null, void 0);
-        const i = isString(e.template) || !e.enhance ? r.Z.createTemplate(e.template) : e.template;
+        const i = t.isString(e.template) || !e.enhance ? r.Z.createTemplate(e.template) : e.template;
         const s = i.nodeName === it && i.content != null;
         const l = s ? i.content : i;
         const o = pt.findAll(n);

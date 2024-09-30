@@ -1,10 +1,8 @@
 import { ArrayObserver } from './array-observer';
 import { ComputedGetterFn } from './computed-observer';
 import { MapObserver } from './map-observer';
-import { PropertyAccessor } from './property-accessor';
 import { SetObserver } from './set-observer';
 import type { Collection, IAccessor, ICollectionObserver, IObserver, AccessorOrObserver, CollectionObserver } from './interfaces';
-export declare const propertyAccessor: PropertyAccessor;
 export interface IObjectObservationAdapter {
     getObserver(object: unknown, key: PropertyKey, descriptor: PropertyDescriptor, requestor: IObserverLocator): IObserver | null;
 }

@@ -1,25 +1,25 @@
-/* eslint-disable no-constant-condition, mocha/no-sibling-hooks */
+/* eslint-disable no-constant-condition */
 import { Metadata } from '@aurelia/metadata';
 import { DI, ISink, LogLevel, Protocol, Registration } from '@aurelia/kernel';
-import { Interpolation, PrimitiveLiteralExpression, IExpressionParser, } from '@aurelia/expression-parser';
-import { Scope, astEvaluate, } from '@aurelia/runtime-html';
+import { Interpolation, PrimitiveLiteralExpression, IExpressionParser, ExpressionParser, } from '@aurelia/expression-parser';
+import { Scope, astEvaluate, } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { EqualsRule, IValidationMessageProvider, IValidationRules, LengthRule, PropertyRule, RangeRule, RegexRule, RequiredRule, SizeRule, ValidationConfiguration, BaseValidationRule, parsePropertyName, ValidationRuleAliasMessage, validationRulesRegistrar, rootObjectSymbol, } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 describe('validation/rule-provider.spec.ts', function () {
     describe('ValidationRules', function () {
-        function setup() {
+        function $createFixture() {
             const container = DI.createContainer();
-            container.register(ValidationConfiguration);
+            container.register(ExpressionParser, ValidationConfiguration);
             return { sut: container.get(IValidationRules), container };
         }
         it('is transient', function () {
-            const { sut: instance1, container } = setup();
+            const { sut: instance1, container } = $createFixture();
             const instance2 = container.get(IValidationRules);
             assert.notEqual(instance1, instance2);
         });
         it('can be used to define validation rules fluently on string properties', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const propName = 'name';
             const rules = sut
                 .ensure(propName)
@@ -59,7 +59,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.equal(equalRule['expectedValue'], 'foo@bar.com');
         });
         it('can be used to define validation rules fluently on number properties', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const propName = 'age';
             const rules = sut
                 .ensure(propName)
@@ -98,7 +98,7 @@ describe('validation/rule-provider.spec.ts', function () {
             }
         });
         it('can be used to define validation rules fluently on collection properties', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const propName = 'arrayProp';
             const rules = sut
                 .ensure(propName)
@@ -126,7 +126,7 @@ describe('validation/rule-provider.spec.ts', function () {
             }
         });
         it('can be used to define validation rules fluently using lambda', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const propName = 'fooBar';
             let executed = false;
             const rules = sut
@@ -148,7 +148,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.equal(executed, true);
         });
         it('can be used to define custom validation rules fluently', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const propName = 'fooBar';
             let executed = false;
             class CustomRule extends BaseValidationRule {
@@ -180,7 +180,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.equal(executed, true);
         });
         it('can be used to define validation rules on different properties', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const rules = sut
                 .ensure('name')
                 .required()
@@ -199,7 +199,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.instanceOf(rule2.$rules[0][0], RangeRule, 'expected range rule');
         });
         it('consolidates the rule based on property name', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const rules = sut
                 .ensure('name')
                 .required()
@@ -219,7 +219,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.instanceOf(rule2.$rules[0][0], RangeRule, 'expected range rule');
         });
         it('can define metadata annotation for rules on an object', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0));
             const rules = sut
                 .on(obj)
@@ -232,7 +232,7 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('can define metadata annotation for rules on a class', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const rules = sut
                 .on(Person)
                 .ensure('name')
@@ -251,7 +251,7 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('can define rules on properties of an object using lambda expression', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const rules = sut
                 .on(obj)
@@ -273,7 +273,7 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('can define rules on properties of a class using lambda expression', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const rules = sut
                 .on(Person)
                 .ensure((p) => p.name)
@@ -296,7 +296,7 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('can define rules on multiple objects', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj1 = new Person((void 0), (void 0), (void 0));
             const obj2 = new Person((void 0), (void 0), (void 0));
             sut
@@ -333,14 +333,14 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('calling .off on an object without rules does not cause error', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             assert.equal(validationRulesRegistrar.get(obj), void 0);
             sut.off(obj);
             assert.equal(validationRulesRegistrar.get(obj), void 0);
         });
         it('can define multiple ruleset for the same object using tagging', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag1 = 'tag1', tag2 = 'tag2';
             sut
@@ -360,7 +360,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.equal(validationRulesRegistrar.get(obj), void 0);
         });
         it('can be used to delete the rules defined for an object', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             sut
                 .on(obj)
@@ -372,7 +372,7 @@ describe('validation/rule-provider.spec.ts', function () {
             assert.equal(validationRulesRegistrar.get(obj), void 0);
         });
         it('can be used to delete specific ruleset', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag1 = 'tag1', tag2 = 'tag2';
             assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
@@ -398,7 +398,7 @@ describe('validation/rule-provider.spec.ts', function () {
             sut.off();
         });
         it('can be used to delete all ruleset by default for a given object', function () {
-            const { sut } = setup();
+            const { sut } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag1 = 'tag1', tag2 = 'tag2';
             assert.equal(validationRulesRegistrar.isValidationRulesSet(obj), false);
@@ -423,7 +423,7 @@ describe('validation/rule-provider.spec.ts', function () {
                 this.log.push(event);
             }
         }
-        function setup(customMessages) {
+        function $createFixture(customMessages) {
             const container = TestContext.create().container;
             const eventLog = new EventLog();
             const configuration = customMessages !== (void 0)
@@ -446,14 +446,14 @@ describe('validation/rule-provider.spec.ts', function () {
         ];
         for (const { message, expectedType } of messages1) {
             it(`#parseMessage parses message correctly - ${message}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 assert.instanceOf(sut.parseMessage(message), expectedType);
             });
         }
         const specialPropertyNames = ['displayName', 'propertyName', 'value', 'object', 'config', 'getDisplayName'];
         for (const property of specialPropertyNames) {
             it(`#parseMessage logs warning if the message contains contextual property expression w/o preceeding '$' - ${property}`, function () {
-                const { sut, eventLog } = setup();
+                const { sut, eventLog } = $createFixture();
                 const message = `\${${property}} foo bar`;
                 sut.parseMessage(message);
                 const log = eventLog.log;
@@ -468,7 +468,7 @@ describe('validation/rule-provider.spec.ts', function () {
         const invalidMessages = ['${$parent} foo bar', '${$parent.prop} foo bar'];
         for (const message of invalidMessages) {
             it(`#parseMessage throws error if the message contains '$parent' - ${message}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 assert.throws(() => {
                     sut.parseMessage(message);
                 }, '$parent is not permitted in validation message expressions.');
@@ -541,7 +541,7 @@ describe('validation/rule-provider.spec.ts', function () {
         for (let i = 0, ii = rules.length; i < ii; i++) {
             const { title, getRule } = rules[i];
             it(`rule.message returns the registered message for a rule instance - ${title}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 const message = 'FooBar';
                 const $rule = getRule();
                 sut.setMessage($rule, message);
@@ -550,14 +550,14 @@ describe('validation/rule-provider.spec.ts', function () {
                 assert.equal(actual, message);
             });
             it(`rule.message returns the registered default message for a rule type when no message for the instance is registered - ${title}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 const $rule = getRule();
                 const scope = Scope.create({ $displayName: 'FooBar', $rule });
                 const actual = astEvaluate(sut.getMessage($rule), scope, null, null);
                 assert.equal(actual, messages[i]);
             });
             it(`rule.message returns the default message if the registered key is not found - ${title}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 const $rule = getRule();
                 $rule.messageKey = 'foobar';
                 const scope = Scope.create({ $displayName: 'FooBar', $rule });
@@ -610,7 +610,7 @@ describe('validation/rule-provider.spec.ts', function () {
                     ],
                 },
             ];
-            const { sut, originalMessages } = setup(customMessages);
+            const { sut, originalMessages } = $createFixture(customMessages);
             for (const { getRule } of rules) {
                 const $rule = getRule();
                 const scope = Scope.create({ $displayName: 'FooBar', $rule });
@@ -636,7 +636,7 @@ describe('validation/rule-provider.spec.ts', function () {
                     ],
                 }
             ];
-            const { sut, originalMessages } = setup(customMessages);
+            const { sut, originalMessages } = $createFixture(customMessages);
             const $rule1 = new RequiredRule();
             $rule1.messageKey = 'required';
             const $rule2 = new RequiredRule();
@@ -664,15 +664,15 @@ describe('validation/rule-provider.spec.ts', function () {
         ];
         for (const { arg1, arg2, expected } of displayNames) {
             it(`#getDisplayName computes display name - (${arg1}, ${arg2?.toString() ?? Object.prototype.toString.call(arg2)}) => ${expected}`, function () {
-                const { sut } = setup();
+                const { sut } = $createFixture();
                 assert.equal(sut.getDisplayName(arg1, arg2), expected);
             });
         }
     });
     describe('parsePropertyName', function () {
-        function setup() {
+        function $createFixture() {
             const container = TestContext.create().container;
-            container.register(ValidationConfiguration);
+            container.register(ExpressionParser, ValidationConfiguration);
             return {
                 parser: container.get(IExpressionParser),
                 container,
@@ -983,7 +983,7 @@ describe('validation/rule-provider.spec.ts', function () {
         ];
         for (const { property, expected } of positiveDataRows) {
             it(`parses ${property.toString()} to ${expected}`, function () {
-                const { parser } = setup();
+                const { parser } = $createFixture();
                 assert.deepStrictEqual(parsePropertyName(property, parser), [expected, parser.parse(`${rootObjectSymbol}.${expected}`, 'None')]);
             });
         }
@@ -999,7 +999,7 @@ describe('validation/rule-provider.spec.ts', function () {
         ];
         for (const { property } of negativeDataRows) {
             it(`throws error when parsing ${property.toString()}`, function () {
-                const { parser } = setup();
+                const { parser } = $createFixture();
                 assert.throws(() => {
                     parsePropertyName(property, parser);
                 }, /AUR4102/);
@@ -1007,13 +1007,13 @@ describe('validation/rule-provider.spec.ts', function () {
         }
     });
     describe('PropertyRule', function () {
-        function setup() {
+        function $createFixture() {
             const container = TestContext.create().container;
-            container.register(ValidationConfiguration);
+            container.register(ExpressionParser, ValidationConfiguration);
             return { validationRules: container.get(IValidationRules), container };
         }
         it('can validate async rules', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj1 = new Person((void 0), (void 0), (void 0));
             const rules = validationRules
                 .on(obj1)
@@ -1035,7 +1035,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('respects a function for displayName', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             let i = 0;
             const rules = validationRules
@@ -1055,7 +1055,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('respects execution condition', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const rule = validationRules
                 .on(obj)
@@ -1072,7 +1072,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('respects rule chaining', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person('test', (void 0), (void 0));
             const rule = validationRules
                 .on(obj)
@@ -1092,7 +1092,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('can be used to tag the rules', function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag = 'foo';
             const rules = validationRules
@@ -1107,7 +1107,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('validates all rules by default despite some of those are tagged', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag = 'foo';
             const msg = 'not foobar';
@@ -1126,7 +1126,7 @@ describe('validation/rule-provider.spec.ts', function () {
             validationRules.off();
         });
         it('validates only the tagged rules when provided', async function () {
-            const { validationRules } = setup();
+            const { validationRules } = $createFixture();
             const obj = new Person((void 0), (void 0), (void 0));
             const tag = 'foo';
             const msg = 'not foobar';
@@ -1147,7 +1147,7 @@ describe('validation/rule-provider.spec.ts', function () {
         // The state rule is tested here as the individual unit tests are somewhat pointless.
         describe('StateRule', function () {
             it('stateful message - sync state function', async function () {
-                const { validationRules } = setup();
+                const { validationRules } = $createFixture();
                 const obj = new Person((void 0), (void 0), (void 0));
                 let state = 'none';
                 const rule = validationRules
@@ -1168,7 +1168,7 @@ describe('validation/rule-provider.spec.ts', function () {
                 assert.equal(result[0].valid, true);
             });
             it('stateful message - async state function', async function () {
-                const { validationRules } = setup();
+                const { validationRules } = $createFixture();
                 const obj = new Person((void 0), (void 0), (void 0));
                 let state = 'none';
                 const rule = validationRules
@@ -1189,7 +1189,7 @@ describe('validation/rule-provider.spec.ts', function () {
                 assert.equal(result[0].valid, true);
             });
             it('stateful message - interpolated message', async function () {
-                const { validationRules } = setup();
+                const { validationRules } = $createFixture();
                 const obj = new Person('awesome possum', (void 0), (void 0));
                 let state = 'none';
                 const rule = validationRules
@@ -1213,7 +1213,7 @@ describe('validation/rule-provider.spec.ts', function () {
                 assert.equal(result[0].valid, true);
             });
             it('overridden message', async function () {
-                const { validationRules } = setup();
+                const { validationRules } = $createFixture();
                 const obj = new Person((void 0), (void 0), (void 0));
                 let state = 'none';
                 const rule = validationRules

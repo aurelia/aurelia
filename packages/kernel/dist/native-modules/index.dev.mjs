@@ -1,4 +1,4 @@
-import { Metadata, isObject as isObject$1, initializeTC39Metadata } from '../../../metadata/dist/native-modules/index.mjs';
+import { Metadata, initializeTC39Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 
 /** @internal */ const objectFreeze = Object.freeze;
 /** @internal */ const objectAssign = Object.assign;
@@ -33,9 +33,68 @@ const isMap = (v) => v instanceof Map;
 /**
  * Returns true if the value is an object via checking if it's an instance of Object.
  * This does not work for objects across different realms (e.g., iframes).
- * An utility to be shared among core packages for better size optimization
+ * An utility to be shared among core packages only for better size optimization
+ *
+ * This is semi private to core packages and applications should not depend on this.
  */
 const isObject = (v) => v instanceof Object;
+/**
+ * IMPORTANT: This is semi private to core packages and applications should not depend on this.
+ *
+ * Determine whether a value is an object.
+ *
+ * Uses `typeof` to guarantee this works cross-realm, which is where `instanceof Object` might fail.
+ *
+ * Some environments where these issues are known to arise:
+ * - same-origin iframes (accessing the other realm via `window.top`)
+ * - `jest`.
+ *
+ * The exact test is:
+ * ```ts
+ * typeof value === 'object' && value !== null || typeof value === 'function'
+ * ```
+ *
+ * @param value - The value to test.
+ * @returns `true` if the value is an object, otherwise `false`.
+ * Also performs a type assertion that defaults to `value is Object | Function` which, if the input type is a union with an object type, will infer the correct type.
+ * This can be overridden with the generic type argument.
+ *
+ * @example
+ *
+ * ```ts
+ * class Foo {
+ *   bar = 42;
+ * }
+ *
+ * function doStuff(input?: Foo | null) {
+ *   input.bar; // Object is possibly 'null' or 'undefined'
+ *
+ *   // input has an object type in its union (Foo) so that type will be extracted for the 'true' condition
+ *   if (isObject(input)) {
+ *     input.bar; // OK (input is now typed as Foo)
+ *   }
+ * }
+ *
+ * function doOtherStuff(input: unknown) {
+ *   input.bar; // Object is of type 'unknown'
+ *
+ *   // input is 'unknown' so there is no union type to match and it will default to 'Object | Function'
+ *   if (isObject(input)) {
+ *     input.bar; // Property 'bar' does not exist on type 'Object | Function'
+ *   }
+ *
+ *   // if we know for sure that, if input is an object, it must be a specific type, we can explicitly tell the function to assert that for us
+ *   if (isObject<Foo>(input)) {
+ *    input.bar; // OK (input is now typed as Foo)
+ *   }
+ * }
+ * ```
+ *
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isObjectOrFunction(value) {
+    return typeof value === 'object' && value !== null || typeof value === 'function';
+}
 /**
  * Returns true if the value is a function
  * An utility to be shared among core packages for better size optimization
@@ -775,7 +834,7 @@ class Container {
         let def;
         for (; i < ii; ++i) {
             current = params[i];
-            if (!isObject$1(current)) {
+            if (!isObjectOrFunction(current)) {
                 continue;
             }
             if (isRegistry(current)) {
@@ -828,7 +887,7 @@ class Container {
                 jj = keys.length;
                 for (; j < jj; ++j) {
                     value = current[keys[j]];
-                    if (!isObject$1(value)) {
+                    if (!isObjectOrFunction(value)) {
                         continue;
                     }
                     // note: we could remove this if-branch and call this.register directly
@@ -2708,5 +2767,5 @@ class EventAggregator {
     }
 }
 
-export { AnalyzedModule, ConsoleSink, ContainerConfiguration, DI, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, DefaultResolver, EventAggregator, IContainer, IEventAggregator, ILogConfig, ILogEventFactory, ILogger, IModuleLoader, IPlatform, IServiceLocator, ISink, InstanceProvider, LogConfig, LogLevel, LoggerConfiguration, ModuleItem, Protocol, Registration, aliasedResourcesRegistry, all, allResources, areEqual, bound, camelCase, createImplementationRegister, createLookup, createResolver, emptyArray, emptyObject, factory, firstDefined, format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, getPrototypeChain, getResourceKeyFor, ignore, inject, isArray, isArrayIndex, isFunction, isMap, isNativeFunction, isNumber, isObject, isPromise, isSet, isString, isSymbol, kebabCase, last, lazy, mergeArrays, newInstanceForScope, newInstanceOf, noop, onResolve, onResolveAll, optional, optionalResource, own, pascalCase, registrableMetadataKey, resolve, resource, resourceBaseName, singleton, sink, toArray, transient };
+export { AnalyzedModule, ConsoleSink, ContainerConfiguration, DI, DefaultLogEvent, DefaultLogEventFactory, DefaultLogger, DefaultResolver, EventAggregator, IContainer, IEventAggregator, ILogConfig, ILogEventFactory, ILogger, IModuleLoader, IPlatform, IServiceLocator, ISink, InstanceProvider, LogConfig, LogLevel, LoggerConfiguration, ModuleItem, Protocol, Registration, aliasedResourcesRegistry, all, allResources, areEqual, bound, camelCase, createImplementationRegister, createLookup, createResolver, emptyArray, emptyObject, factory, firstDefined, format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, getPrototypeChain, getResourceKeyFor, ignore, inject, isArray, isArrayIndex, isFunction, isMap, isNativeFunction, isNumber, isObject, isObjectOrFunction, isPromise, isSet, isString, isSymbol, kebabCase, last, lazy, mergeArrays, newInstanceForScope, newInstanceOf, noop, onResolve, onResolveAll, optional, optionalResource, own, pascalCase, registrableMetadataKey, resolve, resource, resourceBaseName, singleton, sink, toArray, transient };
 //# sourceMappingURL=index.dev.mjs.map

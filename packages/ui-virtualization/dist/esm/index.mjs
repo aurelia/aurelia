@@ -1,8 +1,8 @@
 import { DI as t, resolve as e, Registration as s } from "@aurelia/kernel";
 
-import { getCollectionObserver as r } from "@aurelia/runtime";
+import { Scope as r, BindingContext as i, astEvaluate as n, getCollectionObserver as o } from "@aurelia/runtime";
 
-import { IRenderLocation as i, IController as n, IViewFactory as o, IPlatform as l, Scope as h, BindingContext as c, astEvaluate as a } from "@aurelia/runtime-html";
+import { IRenderLocation as l, IController as h, IViewFactory as c, IPlatform as a } from "@aurelia/runtime-html";
 
 import { IInstruction as u } from "@aurelia/template-compiler";
 
@@ -95,20 +95,20 @@ class VirtualRepeat {
         this.minViewsRequired = 0;
         this.dom = null;
         this.scrollerObserver = null;
-        this.location = e(i);
+        this.location = e(l);
         this.instruction = e(u);
-        this.parent = e(n);
-        this.f = e(o);
+        this.parent = e(h);
+        this.f = e(c);
         this.C = e(g);
         this.O = e(m);
         this.scrollerObserverLocator = e(p);
         const t = this.instruction.props[0];
         const s = t.forOf;
         const r = this.iterable = unwrapExpression(s.iterable) ?? s.iterable;
-        const h = this.$ = s.iterable !== r;
-        this.T = new CollectionObservationMediator(this, (() => h ? this.I() : this.L()));
+        const i = this.$ = s.iterable !== r;
+        this.T = new CollectionObservationMediator(this, (() => i ? this.I() : this.L()));
         this.local = s.declaration.name;
-        this.taskQueue = e(l).domQueue;
+        this.taskQueue = e(a).domQueue;
     }
     attaching() {
         this.dom = this.O.render(this.location);
@@ -164,17 +164,17 @@ class VirtualRepeat {
     }
     B(t, e) {
         const s = this.$controller;
-        const r = e.count;
-        const i = this.views;
-        let n = 0;
-        let o = i.length;
-        let l = null;
-        if (r === 0) {
-            for (n = 0; o > n; ++n) {
-                l = i[n];
-                void l.deactivate(l, s);
+        const n = e.count;
+        const o = this.views;
+        let l = 0;
+        let h = o.length;
+        let c = null;
+        if (n === 0) {
+            for (l = 0; h > l; ++l) {
+                c = o[l];
+                void c.deactivate(c, s);
             }
-            i.length = 0;
+            o.length = 0;
             this.R();
             return;
         }
@@ -189,51 +189,51 @@ class VirtualRepeat {
             }
         }
         const a = this.minViewsRequired * 2;
-        const u = Math.min(a, r);
-        if (o > a) {
-            while (o > a) {
-                l = i[o - 1];
-                void l.deactivate(l, s);
-                --o;
+        const u = Math.min(a, n);
+        if (h > a) {
+            while (h > a) {
+                c = o[h - 1];
+                void c.deactivate(c, s);
+                --h;
             }
-            i.length = o;
+            o.length = h;
         }
-        if (o > r) {
-            while (o > r) {
-                l = i[o - 1];
-                void l.deactivate(l, s);
-                --o;
+        if (h > n) {
+            while (h > n) {
+                c = o[h - 1];
+                void c.deactivate(c, s);
+                --h;
             }
-            i.length = r;
+            o.length = n;
         }
-        o = i.length;
-        for (n = o; n < u; n++) {
-            i.push(this.f.create());
+        h = o.length;
+        for (l = h; l < u; l++) {
+            o.push(this.f.create());
         }
         const f = this.itemHeight;
         const d = this.local;
-        const {firstIndex: m, topCount: p, botCount: g} = this.measureBuffer(this.scrollerObserver.getValue(), i.length, r, f);
+        const {firstIndex: m, topCount: p, botCount: g} = this.measureBuffer(this.scrollerObserver.getValue(), o.length, n, f);
         let w = 0;
         let C;
         let b;
         let v;
-        for (n = 0; u > n; ++n) {
-            w = m + n;
+        for (l = 0; u > l; ++l) {
+            w = m + l;
             C = e.item(w);
-            l = i[n];
-            b = i[n - 1];
-            if (l.isActive) {
-                v = l.scope;
+            c = o[l];
+            b = o[l - 1];
+            if (c.isActive) {
+                v = c.scope;
                 v.bindingContext[d] = C;
                 v.overrideContext.$index = w;
-                v.overrideContext.$length = r;
+                v.overrideContext.$length = n;
             } else {
-                l.nodes.insertBefore(b.nodes.firstChild.nextSibling);
-                v = h.fromParent(s.scope, new c(d, e.item(w)));
+                c.nodes.insertBefore(b.nodes.firstChild.nextSibling);
+                v = r.fromParent(s.scope, new i(d, e.item(w)));
                 v.overrideContext.$index = w;
-                v.overrideContext.$length = r;
+                v.overrideContext.$length = n;
                 enhanceOverrideContext(v.overrideContext);
-                void l.activate(s, s, v);
+                void c.activate(s, s, v);
             }
         }
         this.dom.update(p * f, g * f);
@@ -351,7 +351,7 @@ class VirtualRepeat {
         this.A();
     }
     I() {
-        const t = a(this.iterable, this.parent.scope, {
+        const t = n(this.iterable, this.parent.scope, {
             strict: true
         }, null);
         const e = this.items;
@@ -373,13 +373,13 @@ class VirtualRepeat {
         if (!t.isActive) {
             const e = this.$controller;
             const s = this.collectionStrategy;
-            const r = e.scope;
-            const i = h.fromParent(r, new c(this.local, s.first()));
-            i.overrideContext.$index = 0;
-            i.overrideContext.$length = s.count;
-            enhanceOverrideContext(i.overrideContext);
+            const n = e.scope;
+            const o = r.fromParent(n, new i(this.local, s.first()));
+            o.overrideContext.$index = 0;
+            o.overrideContext.$length = s.count;
+            enhanceOverrideContext(o.overrideContext);
             t.nodes.insertBefore(this.dom.bottom);
-            void t.activate(t, e, i);
+            void t.activate(t, e, o);
         }
         return t;
     }
@@ -417,11 +417,11 @@ class CollectionObservationMediator {
         }
         this.stop();
         if (t != null) {
-            r(this.N = t)?.subscribe(this);
+            o(this.N = t)?.subscribe(this);
         }
     }
     stop() {
-        r(this.N)?.unsubscribe(this);
+        o(this.N)?.unsubscribe(this);
     }
 }
 
@@ -565,7 +565,7 @@ class NullCollectionStrategy {
 
 class ScrollerObserverLocator {
     static get inject() {
-        return [ l ];
+        return [ a ];
     }
     static register(t) {
         return s.singleton(p, this).register(t);
@@ -671,7 +671,7 @@ const getResizeObserverClass = t => t.window.ResizeObserver;
 
 class DefaultDomRenderer {
     static get inject() {
-        return [ l ];
+        return [ a ];
     }
     static register(t) {
         return s.singleton(m, this).register(t);

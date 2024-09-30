@@ -1,6 +1,6 @@
 import { I18nConfiguration, TranslationBindBindingCommand, TranslationBindBindingInstruction, TranslationBindBindingRenderer, TranslationBinding, TranslationBindingCommand, TranslationBindingInstruction, TranslationBindingRenderer, TranslationBindInstructionType, TranslationInstructionType, } from '@aurelia/i18n';
 import { Registration } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import { StandardConfiguration, IPlatform, BindingMode, AttrMapper, } from '@aurelia/runtime-html';
 import { BindingCommand, IAttrMapper, InstructionType, } from '@aurelia/template-compiler';
 import { assert, PLATFORM, createContainer } from '@aurelia/testing';
@@ -71,7 +71,7 @@ describe('i18n/t/translation-renderer.spec.ts', function () {
         function createFixture(aliases) {
             aliases = aliases || [];
             aliases = aliases.map(alias => `${alias}.bind`);
-            const container = createContainer().register(BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand), Registration.singleton(IAttrMapper, AttrMapper));
+            const container = createContainer().register(ExpressionParser, BindingCommand.define({ name: 't.bind', aliases }, TranslationBindBindingCommand), Registration.singleton(IAttrMapper, AttrMapper));
             if (!aliases.includes('t.bind')) {
                 aliases.push('t.bind');
             }

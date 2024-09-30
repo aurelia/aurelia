@@ -735,7 +735,7 @@ const getMessageByCode = (name, ...details) => {
 };
 
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-const IExpressionParser = /*@__PURE__*/ kernel.DI.createInterface('IExpressionParser', x => x.singleton(ExpressionParser));
+const IExpressionParser = /*@__PURE__*/ kernel.DI.createInterface('IExpressionParser');
 /**
  * A default implementation of the IExpressionParser interface
  */
@@ -794,6 +794,7 @@ class ExpressionParser {
         return parse(61 /* Precedence.Variadic */, expressionType === void 0 ? etIsProperty : expressionType);
     }
 }
+ExpressionParser.register = kernel.createImplementationRegister(IExpressionParser);
 
 function unescapeCode(code) {
     switch (code) {

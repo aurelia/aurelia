@@ -431,6 +431,7 @@ class TranslationBinding {
         this.C = null;
         this.parameter = null;
         this.boundFn = false;
+        this.strict = true;
         this.l = n;
         this.I = t;
         this.target = i;
@@ -444,11 +445,11 @@ class TranslationBinding {
         if (this.isBound) {
             return;
         }
-        const e = this.ast;
-        if (e == null) throw createMappedError(4e3);
+        const n = this.ast;
+        if (n == null) throw createMappedError(4e3);
         this.s = t;
         this.i18n.subscribeLocaleChange(this);
-        this.F = n.astEvaluate(e, t, this, this);
+        this.F = i.astEvaluate(n, t, this, this);
         this._();
         this.parameter?.bind(t);
         this.updateTranslations();
@@ -459,7 +460,7 @@ class TranslationBinding {
             return;
         }
         this.i18n.unsubscribeLocaleChange(this);
-        n.astUnbind(this.ast, this.s, this);
+        i.astUnbind(this.ast, this.s, this);
         this.parameter?.unbind();
         this.P.clear();
         if (this.C !== null) {
@@ -469,9 +470,9 @@ class TranslationBinding {
         this.s = void 0;
         this.obs.clearAll();
     }
-    handleChange(t, e) {
+    handleChange(t, n) {
         this.obs.version++;
-        this.F = n.astEvaluate(this.ast, this.s, this, this);
+        this.F = i.astEvaluate(this.ast, this.s, this, this);
         this.obs.clear();
         this._();
         this.updateTranslations();
@@ -594,7 +595,7 @@ class TranslationBinding {
 
 i.connectable(TranslationBinding, null);
 
-n.mixinAstEvaluator(true)(TranslationBinding);
+n.mixinAstEvaluator(TranslationBinding);
 
 n.mixingBindingLimited(TranslationBinding, (() => "updateTranslations"));
 
@@ -617,15 +618,16 @@ class ParameterBinding {
         this.updater = e;
         this.isBound = false;
         this.boundFn = false;
+        this.strict = true;
         this.oL = t.oL;
         this.l = t.l;
     }
-    handleChange(t, e) {
+    handleChange(t, n) {
         if (!this.isBound) {
             return;
         }
         this.obs.version++;
-        this.value = n.astEvaluate(this.ast, this.s, this, this);
+        this.value = i.astEvaluate(this.ast, this.s, this, this);
         this.obs.clear();
         this.updater();
     }
@@ -634,23 +636,24 @@ class ParameterBinding {
             return;
         }
         this.s = t;
-        n.astBind(this.ast, t, this);
-        this.value = n.astEvaluate(this.ast, t, this, this);
+        i.astBind(this.ast, t, this);
+        this.value = i.astEvaluate(this.ast, t, this, this);
         this.isBound = true;
     }
     unbind() {
         if (!this.isBound) {
             return;
         }
-        n.astUnbind(this.ast, this.s, this);
+        i.astUnbind(this.ast, this.s, this);
         this.s = void 0;
         this.obs.clearAll();
     }
 }
 
-i.connectable(ParameterBinding, null);
-
-n.mixinAstEvaluator(true)(ParameterBinding);
+(() => {
+    i.connectable(ParameterBinding, null);
+    n.mixinAstEvaluator(ParameterBinding);
+})();
 
 var C;
 

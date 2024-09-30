@@ -164,9 +164,9 @@ class VirtualRepeat {
         this.itemHeight = 0;
         this.dom.update(0, 0);
     }
-    B(t, e) {
+    B(t, s) {
         const r = this.$controller;
-        const i = e.count;
+        const i = s.count;
         const n = this.views;
         let o = 0;
         let l = n.length;
@@ -221,7 +221,7 @@ class VirtualRepeat {
         let v;
         for (o = 0; a > o; ++o) {
             m = d + o;
-            w = e.item(m);
+            w = s.item(m);
             h = n[o];
             C = n[o - 1];
             if (h.isActive) {
@@ -231,7 +231,7 @@ class VirtualRepeat {
                 v.overrideContext.$length = i;
             } else {
                 h.nodes.insertBefore(C.nodes.firstChild.nextSibling);
-                v = s.Scope.fromParent(r.scope, new s.BindingContext(f, e.item(m)));
+                v = e.Scope.fromParent(r.scope, new e.BindingContext(f, s.item(m)));
                 v.overrideContext.$index = m;
                 v.overrideContext.$length = i;
                 enhanceOverrideContext(v.overrideContext);
@@ -353,12 +353,12 @@ class VirtualRepeat {
         this.A();
     }
     I() {
-        const t = s.astEvaluate(this.iterable, this.parent.scope, {
+        const t = e.astEvaluate(this.iterable, this.parent.scope, {
             strict: true
         }, null);
-        const e = this.items;
+        const s = this.items;
         this.items = t;
-        if (t === e) {
+        if (t === s) {
             this.A();
         }
     }
@@ -373,15 +373,15 @@ class VirtualRepeat {
     _() {
         const t = this.getOrCreateFirstView();
         if (!t.isActive) {
-            const e = this.$controller;
+            const s = this.$controller;
             const r = this.collectionStrategy;
-            const i = e.scope;
-            const n = s.Scope.fromParent(i, new s.BindingContext(this.local, r.first()));
+            const i = s.scope;
+            const n = e.Scope.fromParent(i, new e.BindingContext(this.local, r.first()));
             n.overrideContext.$index = 0;
             n.overrideContext.$length = r.count;
             enhanceOverrideContext(n.overrideContext);
             t.nodes.insertBefore(this.dom.bottom);
-            void t.activate(t, e, n);
+            void t.activate(t, s, n);
         }
         return t;
     }

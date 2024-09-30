@@ -22,6 +22,7 @@ describe('validation-i18n/localization.spec.ts', function () {
                 this.person2 = new Person((void 0), (void 0));
                 this.person3 = new Person((void 0), (void 0));
                 this.person4 = new Person((void 0), (void 0));
+                this.model = { someProperty: 1 };
                 this.stateError = 'none';
                 const factory = this.factory = new LocalizedValidationControllerFactory();
                 this.controllerSpy = new Spy();
@@ -50,6 +51,10 @@ describe('validation-i18n/localization.spec.ts', function () {
                     .ensure('name')
                     .satisfiesState('none', (_v, _o) => this.stateError, { foo: 'stateError.foo', bar: 'stateError.bar' })
                     .withMessageKey('customStateError');
+                validationRules
+                    .on(this.model)
+                    .ensure('someProperty')
+                    .range(3, 20);
             }
             unbinding() {
                 this.validationRules.off();
@@ -86,11 +91,15 @@ describe('validation-i18n/localization.spec.ts', function () {
                             errorMessages: {
                                 required: 'The value is required'
                             },
+                            validation: {
+                                range: "${$displayName} should conform the interval [${$rule.min}, ${$rule.max}].",
+                                someProperty: "FooBar"
+                            },
                             stateError: {
                                 foo: 'Foo Error',
                                 bar: 'Bar Error'
                             },
-                            customStateError: 'Invalid state'
+                            customStateError: 'Invalid state',
                         },
                         errorMessages: {
                             required: `The value of the \${$displayName} is required.`,
@@ -110,6 +119,10 @@ describe('validation-i18n/localization.spec.ts', function () {
                             nameRequired: 'Name ist notwendig',
                             errorMessages: {
                                 required: 'Der Wert ist notwendig'
+                            },
+                            validation: {
+                                range: "${$displayName} sollte dem Intervall [${$rule.min}, ${$rule.max}] entsprechen.",
+                                someProperty: "FooBar"
                             },
                             stateError: {
                                 foo: 'Foo Fehler',
@@ -260,6 +273,20 @@ describe('validation-i18n/localization.spec.ts', function () {
         }, {
             template: `<input type="text" value.two-way="person1.age & validate">`,
             defaultKeyPrefix: 'errorMessages'
+        });
+        // Issue: https://discourse.aurelia.io/t/au2-validation-in-conditionally-rendered-component/5507/8
+        $it('supports registration of default prefix - Discourse 5507', async function ({ app, container, host, platform, ctx }) {
+            const controller = app.controller;
+            const controllerSpy = app.controllerSpy;
+            const target = host.querySelector('input');
+            assertControllerBinding(controller, 'model.someProperty', target, controllerSpy);
+            await assertEventHandler(target, 'focusout', 1, platform, controllerSpy, ctx);
+            assert.deepStrictEqual(controller.results.filter(r => !r.valid).map((r) => r.toString()), ['FooBar should conform the interval [3, 20].']);
+            await changeLocale(container, platform, controllerSpy);
+            assert.deepStrictEqual(controller.results.filter(r => !r.valid).map((r) => r.toString()), ['FooBar sollte dem Intervall [3, 20] entsprechen.']);
+        }, {
+            template: `<input type="text" value.two-way="model.someProperty & validate">`,
+            defaultKeyPrefix: 'validation'
         });
         $it('supports registration of default namespace and prefix', async function ({ app, container, host, platform, ctx }) {
             const controller = app.controller;

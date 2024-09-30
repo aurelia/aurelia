@@ -19,7 +19,6 @@ export declare class If implements ICustomAttributeViewModel {
     attaching(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void>;
     detaching(initiator: IHydratedController, _parent: IHydratedParentController): void | Promise<void>;
     valueChanged(newValue: unknown, oldValue: unknown): void | Promise<void>;
-    private _swap;
     dispose(): void;
     accept(visitor: ControllerVisitor): void | true;
 }

@@ -58,17 +58,18 @@ class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
             }
         }
         let r = i;
-        if (!this.i18n.i18next.exists(r)) {
-            const t = o.ValidationRuleAliasMessage.getDefaultMessages(e);
-            const a = t.length;
-            if (a === 1 && i === void 0) {
-                r = t[0].defaultMessage;
-            } else {
-                r = t.find((e => e.name === i))?.defaultMessage;
-            }
-            r ??= i;
+        const a = r != null ? this.getKey(r) : [];
+        const n = this.i18n;
+        if (n.i18next.exists(a)) return this.setMessage(e, n.tr(a));
+        const l = o.ValidationRuleAliasMessage.getDefaultMessages(e);
+        const c = l.length;
+        if (c === 1 && i === void 0) {
+            r = l[0].defaultMessage;
+        } else {
+            r = l.find((e => e.name === i))?.defaultMessage;
         }
-        return this.setMessage(e, this.i18n.tr(this.getKey(r)));
+        r ??= i;
+        return this.setMessage(e, n.tr(this.getKey(r)));
     }
     getDisplayName(e, i) {
         if (i !== null && i !== undefined) {

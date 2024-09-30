@@ -1,6 +1,6 @@
 import { DI, resolve, Registration } from '@aurelia/kernel';
-import { getCollectionObserver } from '@aurelia/runtime';
-import { IRenderLocation, IController, IViewFactory, IPlatform, Scope, BindingContext, astEvaluate } from '@aurelia/runtime-html';
+import { Scope, BindingContext, astEvaluate, getCollectionObserver } from '@aurelia/runtime';
+import { IRenderLocation, IController, IViewFactory, IPlatform } from '@aurelia/runtime-html';
 import { IInstruction } from '@aurelia/template-compiler';
 import { BindingBehaviorExpression, ValueConverterExpression } from '@aurelia/expression-parser';
 

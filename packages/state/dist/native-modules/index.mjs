@@ -1,8 +1,8 @@
 import { DI as t, Registration as i, resolve as s, optional as n, all as e, ILogger as h, lazy as r, onResolve as o, isPromise as c, camelCase as a, IContainer as u, Protocol as l } from "../../../kernel/dist/native-modules/index.mjs";
 
-import { Scope as d, IWindow as f, State as g, mixinAstEvaluator as S, mixingBindingLimited as p, BindingMode as B, astEvaluate as b, BindingBehavior as m, astBind as y, astUnbind as v, renderer as w, AppTask as C, LifecycleHooks as I, ILifecycleHooks as D } from "../../../runtime-html/dist/native-modules/index.mjs";
+import { Scope as d, AccessorType as f, connectable as g, astEvaluate as S, astBind as p, astUnbind as B } from "../../../runtime/dist/native-modules/index.mjs";
 
-import { AccessorType as T, connectable as O } from "../../../runtime/dist/native-modules/index.mjs";
+import { IWindow as b, State as m, mixinAstEvaluator as y, mixingBindingLimited as v, BindingMode as w, BindingBehavior as C, renderer as I, AppTask as D, LifecycleHooks as T, ILifecycleHooks as O } from "../../../runtime-html/dist/native-modules/index.mjs";
 
 const E = t.createInterface;
 
@@ -42,7 +42,7 @@ const P = Object.freeze({
 });
 
 const k = /*@__PURE__*/ E("IDevToolsExtension", (t => t.cachedCallback((t => {
-    const i = t.get(f);
+    const i = t.get(b);
     const s = i.__REDUX_DEVTOOLS_EXTENSION__;
     return s ?? null;
 }))));
@@ -179,19 +179,19 @@ function tryParseJson(t) {
     }
 }
 
-const J = T.Layout;
+const J = f.Layout;
 
-const x = g.activating;
+const x = m.activating;
 
 class StateBinding {
-    constructor(t, i, s, n, e, h, r, o) {
+    constructor(t, i, s, n, e, h, r, o, c) {
         this.isBound = false;
         this.A = null;
         this.v = void 0;
         this._ = void 0;
         this.H = 0;
         this.boundFn = false;
-        this.mode = B.toView;
+        this.mode = w.toView;
         this.L = t;
         this.l = i;
         this.P = n;
@@ -200,6 +200,7 @@ class StateBinding {
         this.ast = e;
         this.target = h;
         this.targetProperty = r;
+        this.strict = c;
     }
     updateTarget(t) {
         const i = this.N;
@@ -232,7 +233,7 @@ class StateBinding {
         }
         this.N = this.oL.getAccessor(this.target, this.targetProperty);
         this.J.subscribe(this);
-        this.updateTarget(this.v = b(this.ast, this.s = createStateBindingScope(this.J.getState(), t), this, this.mode > B.oneTime ? this : null));
+        this.updateTarget(this.v = S(this.ast, this.s = createStateBindingScope(this.J.getState(), t), this, this.mode > w.oneTime ? this : null));
         this.isBound = true;
     }
     unbind() {
@@ -254,7 +255,7 @@ class StateBinding {
         const i = this.L.state !== x && (this.N.type & J) > 0;
         const s = this.obs;
         s.version++;
-        t = b(this.ast, this.s, this, this);
+        t = S(this.ast, this.s, this, this);
         s.clear();
         let n;
         if (i) {
@@ -277,7 +278,7 @@ class StateBinding {
         const i = this.s;
         const s = i.overrideContext;
         i.bindingContext = s.bindingContext = t;
-        const n = b(this.ast, i, this, this.mode > B.oneTime ? this : null);
+        const n = S(this.ast, i, this, this.mode > w.oneTime ? this : null);
         const e = this.L.state !== x && (this.N.type & J) > 0;
         if (n === this.v) {
             return;
@@ -306,6 +307,12 @@ class StateBinding {
     }
 }
 
+(() => {
+    g(StateBinding, null);
+    y(StateBinding);
+    v(StateBinding, (() => "updateTarget"));
+})();
+
 function isSubscribable(t) {
     return t instanceof Object && "subscribe" in t;
 }
@@ -313,12 +320,6 @@ function isSubscribable(t) {
 const N = {
     preempt: true
 };
-
-O(StateBinding, null);
-
-S(true)(StateBinding);
-
-p(StateBinding, (() => "updateTarget"));
 
 const $ = new WeakMap;
 
@@ -350,7 +351,7 @@ class StateBindingBehavior {
     }
 }
 
-m.define("state", StateBindingBehavior);
+C.define("state", StateBindingBehavior);
 
 class StateSubscriber {
     constructor(t, i) {
@@ -366,7 +367,7 @@ class StateSubscriber {
 }
 
 class StateDispatchBinding {
-    constructor(t, i, s, n, e) {
+    constructor(t, i, s, n, e, h) {
         this.isBound = false;
         this.boundFn = false;
         this.l = t;
@@ -374,11 +375,12 @@ class StateDispatchBinding {
         this.ast = i;
         this.G = s;
         this.j = n;
+        this.strict = h;
     }
     callSource(t) {
         const i = this.s;
         i.overrideContext.$event = t;
-        const s = b(this.ast, i, this, null);
+        const s = S(this.ast, i, this, null);
         delete i.overrideContext.$event;
         void this.J.dispatch(s);
     }
@@ -389,7 +391,7 @@ class StateDispatchBinding {
         if (this.isBound) {
             return;
         }
-        y(this.ast, t, this);
+        p(this.ast, t, this);
         this.s = createStateBindingScope(this.J.getState(), t);
         this.G.addEventListener(this.j, this);
         this.J.subscribe(this);
@@ -400,7 +402,7 @@ class StateDispatchBinding {
             return;
         }
         this.isBound = false;
-        v(this.ast, this.s, this);
+        B(this.ast, this.s, this);
         this.s = void 0;
         this.G.removeEventListener(this.j, this);
         this.J.unsubscribe(this);
@@ -412,11 +414,11 @@ class StateDispatchBinding {
     }
 }
 
-O(StateDispatchBinding, null);
-
-S(true)(StateDispatchBinding);
-
-p(StateDispatchBinding, (() => "callSource"));
+(() => {
+    g(StateDispatchBinding, null);
+    y(StateDispatchBinding);
+    v(StateDispatchBinding, (() => "callSource"));
+})();
 
 class StateBindingCommand {
     get ignoreAttr() {
@@ -472,25 +474,25 @@ class DispatchBindingInstruction {
     }
 }
 
-const M = /*@__PURE__*/ w(class StateBindingInstructionRenderer {
+const M = /*@__PURE__*/ I(class StateBindingInstructionRenderer {
     constructor() {
         this.target = "sb";
         this.K = s(_);
     }
     render(t, i, s, n, e, h) {
         const r = ensureExpression(e, s.from, "IsFunction");
-        t.addBinding(new StateBinding(t, t.container, h, n.domQueue, r, i, s.to, this.K));
+        t.addBinding(new StateBinding(t, t.container, h, n.domQueue, r, i, s.to, this.K, t.strict ?? false));
     }
 }, null);
 
-const R = /*@__PURE__*/ w(class DispatchBindingInstructionRenderer {
+const R = /*@__PURE__*/ I(class DispatchBindingInstructionRenderer {
     constructor() {
         this.target = "sd";
         this.K = s(_);
     }
     render(t, i, s, n, e) {
         const h = ensureExpression(e, s.ast, "IsProperty");
-        t.addBinding(new StateDispatchBinding(t.container, h, i, s.from, this.K));
+        t.addBinding(new StateDispatchBinding(t.container, h, i, s.from, this.K, t.strict ?? false));
     }
 }, null);
 
@@ -505,7 +507,7 @@ const G = [ StateBindingCommand, M, DispatchBindingCommand, R, StateBindingBehav
 
 const createConfiguration = (t, s, n = {}) => ({
     register: e => {
-        e.register(i.instance(H, t), ...G, ...s.map(P.define), C.creating(u, (t => {
+        e.register(i.instance(H, t), ...G, ...s.map(P.define), D.creating(u, (t => {
             const i = t.get(_);
             const s = t.get(k);
             if (n.devToolsOptions?.disable !== true && s != null) {
@@ -600,7 +602,7 @@ class StateGetterBinding {
     }
 }
 
-O(StateGetterBinding, null);
+g(StateGetterBinding, null);
 
 function fromState(t) {
     return function(i, s) {
@@ -621,7 +623,7 @@ class HydratingLifecycleHooks {
         this.key = i;
     }
     register(t) {
-        i.instance(D, this).register(t);
+        i.instance(O, this).register(t);
     }
     hydrating(t, i) {
         const s = i.container;
@@ -630,7 +632,7 @@ class HydratingLifecycleHooks {
     }
 }
 
-I.define({}, HydratingLifecycleHooks);
+T.define({}, HydratingLifecycleHooks);
 
 class CreatedLifecycleHooks {
     constructor(t, i) {
@@ -638,7 +640,7 @@ class CreatedLifecycleHooks {
         this.key = i;
     }
     register(t) {
-        i.instance(D, this).register(t);
+        i.instance(O, this).register(t);
     }
     created(t, i) {
         const s = i.container;
@@ -647,7 +649,7 @@ class CreatedLifecycleHooks {
     }
 }
 
-I.define({}, CreatedLifecycleHooks);
+T.define({}, CreatedLifecycleHooks);
 
 export { P as ActionHandler, DispatchBindingCommand, DispatchBindingInstruction, R as DispatchBindingInstructionRenderer, A as IActionHandler, H as IState, _ as IStore, StateBinding, StateBindingBehavior, StateBindingCommand, StateBindingInstruction, M as StateBindingInstructionRenderer, j as StateDefaultConfiguration, StateDispatchBinding, fromState };
 

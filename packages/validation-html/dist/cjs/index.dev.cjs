@@ -206,7 +206,7 @@ function getPropertyInfo(binding, info) {
                     toCachePropertyName = keyExpr.$kind === 'PrimitiveLiteral';
                 }
                 // eslint-disable-next-line
-                memberName = `[${runtimeHtml.astEvaluate(keyExpr, scope, binding, null).toString()}]`;
+                memberName = `[${runtime.astEvaluate(keyExpr, scope, binding, null).toString()}]`;
                 break;
             }
             default:
@@ -226,7 +226,7 @@ function getPropertyInfo(binding, info) {
         object = scope.bindingContext;
     }
     else {
-        object = runtimeHtml.astEvaluate(expression, scope, binding, null);
+        object = runtime.astEvaluate(expression, scope, binding, null);
     }
     if (object === null || object === void 0) {
         return (void 0);
@@ -304,6 +304,8 @@ class ValidationController {
                     .map(([object, rules]) => new validation.ValidateInstruction(object, void 0, rules, objectTag)),
                 ...Array.from(this.bindings.entries())
                     .reduce((acc, [binding, info]) => {
+                    if (!binding.isBound)
+                        return acc;
                     const propertyInfo = getPropertyInfo(binding, info);
                     if (propertyInfo !== void 0 && !this.objects.has(propertyInfo.object)) {
                         acc.push(new validation.ValidateInstruction(propertyInfo.object, propertyInfo.propertyName, info.rules, objectTag, instruction?.propertyTag));
@@ -653,7 +655,7 @@ class ValidateBindingBehavior {
         }
         let connector = validationConnectorMap.get(binding);
         if (connector == null) {
-            validationConnectorMap.set(binding, connector = new ValidatitionConnector(this._platform, this._observerLocator, binding.get(IDefaultTrigger), binding, binding.get(kernel.IContainer)));
+            validationConnectorMap.set(binding, connector = new ValidationConnector(this._platform, this._observerLocator, binding.get(IDefaultTrigger), binding, binding.get(kernel.IContainer)));
         }
         let targetSubscriber = validationTargetSubscriberMap.get(binding);
         if (targetSubscriber == null) {
@@ -674,7 +676,7 @@ runtimeHtml.BindingBehavior.define('validate', ValidateBindingBehavior);
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
-class ValidatitionConnector {
+class ValidationConnector {
     constructor(platform, observerLocator, defaultTrigger, propertyBinding, locator) {
         this.isChangeTrigger = false;
         this.isDirty = false;
@@ -725,6 +727,7 @@ class ValidatitionConnector {
         if (triggerEventName !== null) {
             this.target?.removeEventListener(triggerEventName, this);
         }
+        this.controller?.resetBinding(this.propertyBinding);
         this.controller?.removeSubscriber(this);
     }
     handleTriggerChange(newValue, _previousValue) {
@@ -762,16 +765,16 @@ class ValidatitionConnector {
             const arg = args[i];
             switch (i) {
                 case 0:
-                    trigger = this._ensureTrigger(runtimeHtml.astEvaluate(arg, scope, this, this._triggerMediator));
+                    trigger = this._ensureTrigger(runtime.astEvaluate(arg, scope, this, this._triggerMediator));
                     break;
                 case 1:
-                    controller = this._ensureController(runtimeHtml.astEvaluate(arg, scope, this, this._controllerMediator));
+                    controller = this._ensureController(runtime.astEvaluate(arg, scope, this, this._controllerMediator));
                     break;
                 case 2:
-                    rules = this._ensureRules(runtimeHtml.astEvaluate(arg, scope, this, this._rulesMediator));
+                    rules = this._ensureRules(runtime.astEvaluate(arg, scope, this, this._rulesMediator));
                     break;
                 default:
-                    throw createMappedError(4201 /* ErrorNames.validate_binding_behavior_extraneous_args */, i + 1, runtimeHtml.astEvaluate(arg, scope, this, null));
+                    throw createMappedError(4201 /* ErrorNames.validate_binding_behavior_extraneous_args */, i + 1, runtime.astEvaluate(arg, scope, this, null));
             }
         }
         return new ValidateArgumentsDelta(this._ensureController(controller), this._ensureTrigger(trigger), rules);
@@ -876,8 +879,8 @@ class ValidatitionConnector {
         return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
     }
 }
-runtime.connectable(ValidatitionConnector, null);
-runtimeHtml.mixinAstEvaluator(true)(ValidatitionConnector);
+runtime.connectable(ValidationConnector, null);
+runtime.mixinNoopAstEvaluator(ValidationConnector);
 class WithValidationTargetSubscriber extends runtimeHtml.BindingTargetSubscriber {
     constructor(_validationSubscriber, binding, flushQueue) {
         super(binding, flushQueue);
@@ -907,7 +910,7 @@ class BindingMediator {
     }
 }
 runtime.connectable(BindingMediator, null);
-runtimeHtml.mixinAstEvaluator(true)(BindingMediator);
+runtime.mixinNoopAstEvaluator(BindingMediator);
 
 function getDefaultValidationHtmlConfiguration() {
     return {

@@ -1,4 +1,3 @@
-export { type IAstEvaluator, astAssign, astBind, astEvaluate, astUnbind, } from './ast.eval';
 export { bindable, Bindable, BindableDefinition, type PartialBindableDefinition, coercer, } from './bindable';
 export { bindingBehavior, BindingBehavior, BindingBehaviorDefinition, type PartialBindingBehaviorDefinition, type BindingBehaviorStaticAuDefinition, type BindingBehaviorKind, type BindingBehaviorDecorator, type BindingBehaviorType, type BindingBehaviorInstance, } from './resources/binding-behavior';
 export { BindingModeBehavior, OneTimeBindingBehavior, ToViewBindingBehavior, FromViewBindingBehavior, TwoWayBindingBehavior, } from './resources/binding-behaviors/binding-mode';
@@ -22,7 +21,6 @@ export { ContentBinding, } from './binding/content-binding';
 export { LetBinding, } from './binding/let-binding';
 export { PropertyBinding, } from './binding/property-binding';
 export { RefBinding, } from './binding/ref-binding';
-export { Scope, BindingContext, type IBindingContext, type IOverrideContext } from './binding/scope';
 export { IRenderer, renderer, PropertyBindingRenderer, TextBindingRenderer, ListenerBindingRenderer, IListenerBindingOptions, LetElementRenderer, TemplateControllerRenderer, AttributeBindingRenderer, CustomAttributeRenderer, CustomElementRenderer, InterpolationBindingRenderer, IteratorBindingRenderer, RefBindingRenderer, SetAttributeRenderer, SetClassAttributeRenderer, SetPropertyRenderer, SetStyleAttributeRenderer, SpreadRenderer, StylePropertyBindingRenderer, } from './renderer';
 export { AttrMapper, } from './compiler/attribute-mapper';
 export { RuntimeTemplateCompilerImplementation, } from './compiler/template-compiler';

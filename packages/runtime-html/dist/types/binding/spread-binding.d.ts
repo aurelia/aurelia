@@ -1,16 +1,14 @@
 import { IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { type IServiceLocator, type Key } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
-import { IObserverLocator, IObserverLocatorBasedConnectable } from '@aurelia/runtime';
+import { type IObserverLocator, type IObserverLocatorBasedConnectable, Scope, type IAstEvaluator } from '@aurelia/runtime';
 import { ITemplateCompiler } from '@aurelia/template-compiler';
-import { IAstEvaluator } from '../ast.eval';
 import { IPlatform } from '../platform';
 import { IHasController } from '../renderer';
 import { CustomElementDefinition } from '../resources/custom-element';
 import { IController, ICustomElementController, IHydrationContext } from '../templating/controller';
 import { IRendering } from '../templating/rendering';
 import { IBinding, IBindingController } from './interfaces-bindings';
-import { Scope } from './scope';
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
  * which mainly is the addBinding method since a spread binding
@@ -48,8 +46,9 @@ export declare class SpreadValueBinding implements IBinding {
     target: object;
     targetKeys: string[];
     ast: IsBindingBehavior;
+    strict: boolean;
     isBound: boolean;
-    constructor(controller: IBindingController, target: object, targetKeys: string[], ast: IsBindingBehavior, ol: IObserverLocator, l: IServiceLocator, taskQueue: TaskQueue);
+    constructor(controller: IBindingController, target: object, targetKeys: string[], ast: IsBindingBehavior, ol: IObserverLocator, l: IServiceLocator, taskQueue: TaskQueue, strict: boolean);
     updateTarget(): void;
     handleChange(): void;
     handleCollectionChange(): void;

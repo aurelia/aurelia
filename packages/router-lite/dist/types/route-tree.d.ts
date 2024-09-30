@@ -3,7 +3,7 @@ import { CustomElementDefinition } from '@aurelia/runtime-html';
 import { ITypedNavigationInstruction_ResolvedComponent, Params, ViewportInstruction, ViewportInstructionTree } from './instructions';
 import { type IRouteContext } from './route-context';
 import { type NavigationOptions } from './options';
-export interface IRouteNode {
+export interface IRouteNodeInitializationOptions {
     path: string;
     finalPath: string;
     context: IRouteContext;
@@ -18,8 +18,9 @@ export interface IRouteNode {
     component: CustomElementDefinition;
     children?: RouteNode[];
     residue?: ViewportInstruction[];
+    originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
 }
-export declare class RouteNode implements IRouteNode {
+export declare class RouteNode {
     /**
      * The original configured path pattern that was matched.
      */
@@ -57,9 +58,7 @@ export declare class RouteNode implements IRouteNode {
     get isInstructionsFinalized(): boolean;
     readonly children: RouteNode[];
     private constructor();
-    static create(input: IRouteNode & {
-        originalInstruction?: ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent> | null;
-    }): RouteNode;
+    static create(input: IRouteNodeInitializationOptions): RouteNode;
     contains(instructions: ViewportInstructionTree, matchEndpoint?: boolean): boolean;
     getTitle(separator: string): string | null;
     computeAbsolutePath(): string;

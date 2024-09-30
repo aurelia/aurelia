@@ -13,7 +13,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const accessScopeExpr = new AccessScopeExpression('name', 0);
                 const source = { name: 'hello' };
                 const target = { name: '' };
-                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, {}, accessScopeExpr, target, 'name', BindingMode.toView);
+                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, {}, accessScopeExpr, target, 'name', BindingMode.toView, false);
                 binding.bind(createScopeForTest(source));
                 assert.strictEqual(target.name, 'hello');
                 Array.from({ length: 5 }).forEach(idx => {
@@ -28,7 +28,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const source = { checked: false, yesMessage: 'yes', noMessage: 'no' };
                 const target = { value: '' };
                 const scope = createScopeForTest(target, source);
-                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, container.get(IPlatform).domQueue, conditionalExpr, target, 'value', BindingMode.toView);
+                const binding = new PropertyBinding({ state: 0 }, container, observerLocator, container.get(IPlatform).domQueue, conditionalExpr, target, 'value', BindingMode.toView, false);
                 let handleChangeCallCount = 0;
                 binding.handleChange = (handleChange => {
                     return function (...args) {
@@ -78,7 +78,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const source = { value: '' };
                 const oc = { name: 'hello' };
                 const scope = createScopeForTest(source, oc);
-                const binding = new LetBinding(container, observerLocator, accessScopeExpr, 'value', true);
+                const binding = new LetBinding(container, observerLocator, accessScopeExpr, 'value', true, false);
                 binding.bind(scope);
                 assert.strictEqual(source.value, 'hello');
                 Array.from({ length: 5 }).forEach(idx => {
@@ -93,7 +93,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
                 const source = { value: '' };
                 const oc = { checked: false, yesMessage: 'yes', noMessage: 'no' };
                 const scope = createScopeForTest(source, oc);
-                const binding = new LetBinding(container, observerLocator, conditionalExpr, 'value', true);
+                const binding = new LetBinding(container, observerLocator, conditionalExpr, 'value', true, false);
                 let handleChangeCallCount = 0;
                 binding.handleChange = (handleChange => {
                     return function (...args) {

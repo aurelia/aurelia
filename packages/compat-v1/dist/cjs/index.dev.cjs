@@ -3,9 +3,9 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var expressionParser = require('@aurelia/expression-parser');
+var runtime = require('@aurelia/runtime');
 var runtimeHtml = require('@aurelia/runtime-html');
 var kernel = require('@aurelia/kernel');
-var runtime = require('@aurelia/runtime');
 
 let defined$1 = false;
 function defineAstMethods() {
@@ -44,29 +44,25 @@ function defineAstMethods() {
         expressionParser.ArrowFunction,
     ].forEach(ast => {
         def(ast, 'evaluate', function (...args) {
-            return runtimeHtml.astEvaluate(this, ...args);
+            return runtime.astEvaluate(this, ...args);
         });
         def(ast, 'assign', function (...args) {
-            return runtimeHtml.astAssign(this, ...args);
+            return runtime.astAssign(this, ...args);
         });
         def(ast, 'accept', function (...args) {
             return expressionParser.astVisit(this, ...args);
         });
         def(ast, 'bind', function (...args) {
-            return runtimeHtml.astBind(this, ...args);
+            return runtime.astBind(this, ...args);
         });
         def(ast, 'unbind', function (...args) {
-            return runtimeHtml.astUnbind(this, ...args);
+            return runtime.astUnbind(this, ...args);
         });
     });
     console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".'
-        + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.');
+        + ' Import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.');
 }
 
-/** @internal */ const createLookup = () => Object.create(null);
-// eslint-disable-next-line @typescript-eslint/ban-types
-/** @internal */ const isFunction = (v) => typeof v === 'function';
-/** @internal */ const isString = (v) => typeof v === 'string';
 // /** @internal */ export const rethrow = (err: unknown) => { throw err; };
 // /** @internal */ export const areEqual = Object.is;
 /** @internal */
@@ -83,7 +79,7 @@ const defineHiddenProp = (obj, key, value) => {
 };
 /** @internal */
 const ensureExpression = (parser, srcOrExpr, expressionType) => {
-    if (isString(srcOrExpr)) {
+    if (kernel.isString(srcOrExpr)) {
         return parser.parse(srcOrExpr, expressionType);
     }
     return srcOrExpr;
@@ -150,7 +146,7 @@ class CallBinding {
     callSource(args) {
         const overrideContext = this._scope.overrideContext;
         overrideContext.$event = args;
-        const result = runtimeHtml.astEvaluate(this.ast, this._scope, this, null);
+        const result = runtime.astEvaluate(this.ast, this._scope, this, null);
         Reflect.deleteProperty(overrideContext, '$event');
         return result;
     }
@@ -162,7 +158,7 @@ class CallBinding {
             this.unbind();
         }
         this._scope = _scope;
-        runtimeHtml.astBind(this.ast, _scope, this);
+        runtime.astBind(this.ast, _scope, this);
         this.targetObserver.setValue(($args) => this.callSource($args), this.target, this.targetProperty);
         this.isBound = true;
     }
@@ -171,7 +167,7 @@ class CallBinding {
             return;
         }
         this.isBound = false;
-        runtimeHtml.astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.targetObserver.setValue(null, this.target, this.targetProperty);
     }
@@ -179,7 +175,7 @@ class CallBinding {
 (() => {
     runtimeHtml.mixinUseScope(CallBinding);
     runtimeHtml.mixingBindingLimited(CallBinding, () => 'callSource');
-    runtimeHtml.mixinAstEvaluator(true)(CallBinding);
+    runtimeHtml.mixinAstEvaluator(CallBinding);
 })();
 
 const preventDefaultRegisteredContainer = new WeakSet();
@@ -263,9 +259,9 @@ class DelegateListenerBinding {
     callSource(event) {
         const overrideContext = this._scope.overrideContext;
         overrideContext.$event = event;
-        let result = runtimeHtml.astEvaluate(this.ast, this._scope, this, null);
+        let result = runtime.astEvaluate(this.ast, this._scope, this, null);
         delete overrideContext.$event;
-        if (isFunction(result)) {
+        if (kernel.isFunction(result)) {
             result = result(event);
         }
         if (result !== true && this._options.prevent) {
@@ -290,7 +286,7 @@ class DelegateListenerBinding {
             this.unbind();
         }
         this._scope = _scope;
-        runtimeHtml.astBind(this.ast, _scope, this);
+        runtime.astBind(this.ast, _scope, this);
         this.handler = this.eventDelegator.addEventListener(this.l.get(runtimeHtml.IEventTarget), this.target, this.targetEvent, this);
         this.isBound = true;
     }
@@ -299,7 +295,7 @@ class DelegateListenerBinding {
             return;
         }
         this.isBound = false;
-        runtimeHtml.astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this.handler.dispose();
         this.handler = null;
@@ -308,7 +304,7 @@ class DelegateListenerBinding {
 (() => {
     runtimeHtml.mixinUseScope(DelegateListenerBinding);
     runtimeHtml.mixingBindingLimited(DelegateListenerBinding, () => 'callSource');
-    runtimeHtml.mixinAstEvaluator(true, true)(DelegateListenerBinding);
+    runtimeHtml.mixinAstEvaluator(DelegateListenerBinding);
 })();
 const defaultOptions = {
     capture: false,
@@ -344,7 +340,7 @@ class ListenerTracker {
         const lookups = this._options.capture === true ? this._captureLookups : this._bubbleLookups;
         let lookup = lookups.get(target);
         if (lookup === void 0) {
-            lookups.set(target, lookup = createLookup());
+            lookups.set(target, lookup = kernel.createLookup());
         }
         return lookup;
     }
@@ -363,7 +359,7 @@ class ListenerTracker {
             if (listener === void 0) {
                 continue;
             }
-            if (isFunction(listener)) {
+            if (kernel.isFunction(listener)) {
                 listener(event);
             }
             else {
@@ -399,7 +395,7 @@ const IEventDelegator = /*@__PURE__*/ kernel.DI.createInterface('IEventDelegator
 class EventDelegator {
     constructor() {
         /** @internal */
-        this._trackerMaps = createLookup();
+        this._trackerMaps = kernel.createLookup();
     }
     addEventListener(publisher, target, eventName, listener, options) {
         const trackerMap = this._trackerMaps[eventName] ??= new Map();
@@ -562,7 +558,7 @@ class BindingEngine {
         };
     }
     expressionObserver(bindingContext, expression) {
-        const scope = runtimeHtml.Scope.create(bindingContext, {}, true);
+        const scope = runtime.Scope.create(bindingContext, {}, true);
         return {
             subscribe: callback => {
                 const observer = new runtimeHtml.ExpressionWatcher(scope, null, this.observerLocator, this.parser.parse(expression, 'IsProperty'), callback);

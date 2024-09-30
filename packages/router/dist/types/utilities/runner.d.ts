@@ -51,7 +51,7 @@ export declare class Runner {
      * If first parameter is an existing Step, the additional steps will be added to run after it. In this
      * case, the return value will be the first new step and not the result (since it doesn't exist yet).
      */
-    static run<T = unknown>(predecessor: Step<T> | null, ...steps: unknown[]): T | Promise<T> | Step<T>;
+    static run<T = unknown>(predecessor: Step<T> | null | string, ...steps: unknown[]): T | Promise<T> | Step<T>;
     /**
      * Runs a set of steps and retuns a list with their results
      *

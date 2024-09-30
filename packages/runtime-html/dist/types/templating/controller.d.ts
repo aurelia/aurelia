@@ -1,5 +1,4 @@
-import { ICoercionConfiguration } from '@aurelia/runtime';
-import { Scope } from '../binding/scope';
+import { ICoercionConfiguration, Scope } from '@aurelia/runtime';
 import { CustomAttributeDefinition } from '../resources/custom-attribute';
 import { CustomElementDefinition } from '../resources/custom-element';
 import type { IContainer, IDisposable, Writable } from '@aurelia/kernel';
@@ -48,6 +47,7 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     get viewModel(): ControllerBindingContext<C> | null;
     set viewModel(v: ControllerBindingContext<C> | null);
     coercion: ICoercionConfiguration | undefined;
+    get strict(): boolean | undefined;
     constructor(container: IContainer, vmKind: ViewModelKind, definition: CustomElementDefinition | CustomAttributeDefinition | null, 
     /**
      * The viewFactory. Only present for synthetic views.
@@ -232,6 +232,7 @@ export interface IHydratableController<C extends IViewModel = IViewModel> extend
     readonly vmKind: 'customElement' | 'synthetic';
     readonly mountTarget: MountTarget;
     readonly definition: CustomElementDefinition | null;
+    readonly strict: boolean | undefined | null;
     readonly children: readonly IHydratedController[] | null;
     addChild(controller: IController): void;
 }
@@ -339,6 +340,7 @@ export interface ICustomAttributeController<C extends ICustomAttributeViewModel 
 export interface IDryCustomElementController<C extends IViewModel = IViewModel> extends IComponentController<C>, IHydratableController<C> {
     readonly vmKind: 'customElement';
     readonly definition: CustomElementDefinition;
+    readonly strict: boolean | undefined | null;
     /**
      * The scope that belongs to this custom element. This property is set immediately after the controller is created and is always guaranteed to be available.
      *
@@ -440,12 +442,20 @@ export interface ICustomElementViewModel extends IViewModel, IActivationHooks<IH
     readonly $controller?: ICustomElementController<this>;
     created?(controller: ICustomElementController<this>): void;
     propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+    propertiesChanged?(changes: Record<string, {
+        newValue: unknown;
+        oldValue: unknown;
+    }>): void;
 }
 export interface ICustomAttributeViewModel extends IViewModel, IActivationHooks<IHydratedController> {
     readonly $controller?: ICustomAttributeController<this>;
     link?(controller: IHydratableController, childController: ICustomAttributeController, target: INode, instruction: IInstruction): void;
     created?(controller: ICustomAttributeController<this>): void;
     propertyChanged?(key: PropertyKey, newValue: unknown, oldValue: unknown): void;
+    propertiesChanged?(changes: Record<string, {
+        newValue: unknown;
+        oldValue: unknown;
+    }>): void;
 }
 export interface IHydratedCustomElementViewModel extends ICustomElementViewModel {
     readonly $controller: ICustomElementController<this>;
@@ -463,6 +473,11 @@ export interface IControllerElementHydrationInstruction {
      * Indicates whether the custom element was used with "containerless" attribute
      */
     readonly containerless?: boolean;
+    /**
+     * When provided, the controller is used while hydrating the custom element.
+     * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
+     */
+    readonly hostController?: Controller | null;
 }
 export {};
 //# sourceMappingURL=controller.d.ts.map

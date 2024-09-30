@@ -1,6 +1,6 @@
 import { DI, resolve, Registration } from '../../../kernel/dist/native-modules/index.mjs';
-import { getCollectionObserver } from '../../../runtime/dist/native-modules/index.mjs';
-import { IRenderLocation, IController, IViewFactory, IPlatform, Scope, BindingContext, astEvaluate } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { Scope, BindingContext, astEvaluate, getCollectionObserver } from '../../../runtime/dist/native-modules/index.mjs';
+import { IRenderLocation, IController, IViewFactory, IPlatform } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { IInstruction } from '../../../template-compiler/dist/native-modules/index.mjs';
 import { BindingBehaviorExpression, ValueConverterExpression } from '../../../expression-parser/dist/native-modules/index.mjs';
 

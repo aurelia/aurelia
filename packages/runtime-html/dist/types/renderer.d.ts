@@ -95,6 +95,11 @@ export interface IListenerBindingOptions {
      * Indicate whether listener should by default call preventDefault on all the events
      */
     prevent: boolean;
+    /**
+     * The error handler for listener bindings, by default, it will dispatch an event `au-event-error` on the window object
+     * and if the event is not prevented, it will throw the errors caught by the listener bindings
+     */
+    onError: (event: Event, error: unknown) => void;
 }
 export declare const IListenerBindingOptions: import("@aurelia/kernel").InterfaceSymbol<IListenerBindingOptions>;
 export declare const ListenerBindingRenderer: {

@@ -469,6 +469,7 @@ class TranslationBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        this.strict = true;
         this.l = locator;
         this._controller = controller;
         this.target = target;
@@ -487,7 +488,7 @@ class TranslationBinding {
             throw createMappedError(4000 /* ErrorNames.i18n_translation_key_not_found */);
         this._scope = _scope;
         this.i18n.subscribeLocaleChange(this);
-        this._keyExpression = runtimeHtml.astEvaluate(ast, _scope, this, this);
+        this._keyExpression = runtime.astEvaluate(ast, _scope, this, this);
         this._ensureKeyExpression();
         this.parameter?.bind(_scope);
         this.updateTranslations();
@@ -498,7 +499,7 @@ class TranslationBinding {
             return;
         }
         this.i18n.unsubscribeLocaleChange(this);
-        runtimeHtml.astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this.parameter?.unbind();
         this._targetAccessors.clear();
         if (this._task !== null) {
@@ -510,7 +511,7 @@ class TranslationBinding {
     }
     handleChange(_newValue, _previousValue) {
         this.obs.version++;
-        this._keyExpression = runtimeHtml.astEvaluate(this.ast, this._scope, this, this);
+        this._keyExpression = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();
         this._ensureKeyExpression();
         this.updateTranslations();
@@ -650,7 +651,7 @@ class TranslationBinding {
     }
 }
 runtime.connectable(TranslationBinding, null);
-runtimeHtml.mixinAstEvaluator(true)(TranslationBinding);
+runtimeHtml.mixinAstEvaluator(TranslationBinding);
 runtimeHtml.mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 class AccessorUpdateTask {
     constructor(accessor, v, el, attr) {
@@ -672,6 +673,7 @@ class ParameterBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        this.strict = true;
         this.oL = owner.oL;
         this.l = owner.l;
     }
@@ -682,7 +684,7 @@ class ParameterBinding {
             return;
         }
         this.obs.version++;
-        this.value = runtimeHtml.astEvaluate(this.ast, this._scope, this, this);
+        this.value = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();
         this.updater();
     }
@@ -691,21 +693,23 @@ class ParameterBinding {
             return;
         }
         this._scope = _scope;
-        runtimeHtml.astBind(this.ast, _scope, this);
-        this.value = runtimeHtml.astEvaluate(this.ast, _scope, this, this);
+        runtime.astBind(this.ast, _scope, this);
+        this.value = runtime.astEvaluate(this.ast, _scope, this, this);
         this.isBound = true;
     }
     unbind() {
         if (!this.isBound) {
             return;
         }
-        runtimeHtml.astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = (void 0);
         this.obs.clearAll();
     }
 }
-runtime.connectable(ParameterBinding, null);
-runtimeHtml.mixinAstEvaluator(true)(ParameterBinding);
+(() => {
+    runtime.connectable(ParameterBinding, null);
+    runtimeHtml.mixinAstEvaluator(ParameterBinding);
+})();
 
 var _a;
 const TranslationParametersInstructionType = 'tpt';

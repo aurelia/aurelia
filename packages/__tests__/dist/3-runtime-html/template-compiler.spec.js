@@ -38,7 +38,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
 };
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { kebabCase, } from '@aurelia/kernel';
-import { Interpolation, AccessScopeExpression, PrimitiveLiteralExpression, IExpressionParser, } from '@aurelia/expression-parser';
+import { Interpolation, AccessScopeExpression, PrimitiveLiteralExpression, IExpressionParser, ExpressionParser, } from '@aurelia/expression-parser';
 import { bindable, BindingMode, customAttribute, CustomAttribute, customElement, CustomElement, CustomElementDefinition, } from '@aurelia/runtime-html';
 import { TemplateCompilerHooks, HydrateElementInstruction, InstructionType as HTT, InstructionType as TT, HydrateAttributeInstruction, AttrSyntax, attributePattern, PropertyBindingInstruction, InterpolationInstruction, InstructionType, IteratorBindingInstruction, RefBindingInstruction, AttributeBindingInstruction, SetPropertyInstruction, SpreadValueBindingInstruction, } from '@aurelia/template-compiler';
 import { assert, TestContext, verifyBindingInstructionsEqual, } from '@aurelia/testing';
@@ -1781,7 +1781,7 @@ describe('3-runtime-html/template-compiler.spec.ts', function () {
         const ctx = TestContext.create();
         const container = ctx.container;
         const sut = ctx.templateCompiler;
-        container.register(...extraResources);
+        container.register(ExpressionParser, ...extraResources);
         const markup = typeof markupOrOptions === 'string' || 'nodeType' in markupOrOptions
             ? markupOrOptions
             : markupOrOptions.template;

@@ -1,11 +1,10 @@
-/* eslint-disable mocha/no-sibling-hooks */
-import { IExpressionParser, Interpolation, PrimitiveLiteralExpression, UnaryExpression, BinaryExpression, ConditionalExpression, ValueConverterExpression, BindingBehaviorExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, AccessThisExpression, ForOfStatement, ArrayLiteralExpression, ObjectLiteralExpression, CallFunctionExpression, CallScopeExpression, CallMemberExpression, TemplateExpression, TaggedTemplateExpression, AssignExpression, AccessBoundaryExpression, } from '@aurelia/expression-parser';
+import { Interpolation, PrimitiveLiteralExpression, UnaryExpression, BinaryExpression, ConditionalExpression, ValueConverterExpression, BindingBehaviorExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, AccessThisExpression, ForOfStatement, ArrayLiteralExpression, ObjectLiteralExpression, CallFunctionExpression, CallScopeExpression, CallMemberExpression, TemplateExpression, TaggedTemplateExpression, AssignExpression, AccessBoundaryExpression, ExpressionParser, } from '@aurelia/expression-parser';
 import { TestContext, assert } from '@aurelia/testing';
 import { Deserializer, Serializer } from '@aurelia/validation';
 describe('validation/expression-serialization.spec.ts', function () {
-    function setup() {
+    function createParser() {
         const ctx = TestContext.create();
-        return ctx.container.get(IExpressionParser);
+        return ctx.container.get(ExpressionParser);
     }
     const list = [
         { name: 'interpolation', strExpr: '${prop} static', expressionType: 'Interpolation', exprType: Interpolation },
@@ -65,7 +64,7 @@ describe('validation/expression-serialization.spec.ts', function () {
     ];
     for (const { strExpr, expressionType, exprType, name } of list) {
         it(`works for ${name} expression`, function () {
-            const parser = setup();
+            const parser = createParser();
             const expr = parser.parse(strExpr, expressionType);
             assert.instanceOf(expr, exprType);
             const serialized = Serializer.serialize(expr);
@@ -77,7 +76,7 @@ describe('validation/expression-serialization.spec.ts', function () {
     }
     it(`works for for of with binding identifier expression`, function () {
         const exprType = TaggedTemplateExpression;
-        const parser = setup();
+        const parser = createParser();
         const expr = parser.parse('a`static${prop}`', 'None');
         assert.instanceOf(expr, exprType);
         const serialized = Serializer.serialize(expr);

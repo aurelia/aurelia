@@ -1220,14 +1220,32 @@ class InstructionComponent {
      * Throws instantiation error if there was an error during instantiation.
      */
     toInstance(parentContainer, parentController, parentElement, instruction) {
-        // TODO: Allow instantiation from a promise here, but awaiting resolve?
-        void this.resolve(instruction);
-        if (this.instance !== null) {
-            return this.instance;
+        return kernel.onResolve(this.resolve(instruction), () => {
+            if (this.instance !== null) {
+                return this.instance;
+            }
+            if (parentContainer == null) {
+                return null;
+            }
+            return this._createInstance(parentContainer, parentController, parentElement, instruction);
+        });
+    }
+    same(other, compareType = false) {
+        return compareType ? this.type === other.type : this.name === other.name;
+    }
+    getNewName(type) {
+        if (this.name === null) {
+            return InstructionComponent.getName(type);
         }
-        if (parentContainer == null) {
-            return null;
-        }
+        return this.name;
+    }
+    /** @internal */
+    /**
+     * Creates the component instance for this instruction.
+     *
+     * Throws instantiation error if there was an error during instantiation.
+     */
+    _createInstance(parentContainer, parentController, parentElement, instruction) {
         const container = parentContainer.createChild();
         const Type = this.isType()
             ? this.type
@@ -1258,15 +1276,6 @@ class InstructionComponent {
         // TODO: Investigate if this is really necessary
         controller.parent = parentController;
         return instance;
-    }
-    same(other, compareType = false) {
-        return compareType ? this.type === other.type : this.name === other.name;
-    }
-    getNewName(type) {
-        if (this.name === null) {
-            return InstructionComponent.getName(type);
-        }
-        return this.name;
     }
 }
 // TODO: Investigate this (should possibly be added back)
@@ -1338,7 +1347,8 @@ function arrayUnique(arr, includeNullish = false) {
  * The OpenPromise provides an open API to a promise.
  */
 class OpenPromise {
-    constructor() {
+    constructor(description = '') {
+        this.description = description;
         /**
          * Whether the promise is still pending (not settled)
          */
@@ -1346,6 +1356,7 @@ class OpenPromise {
         this.promise = new Promise((resolve, reject) => {
             this._resolve = resolve;
             this._reject = reject;
+            OpenPromise.promises.push(this);
         });
     }
     /**
@@ -1356,6 +1367,7 @@ class OpenPromise {
     resolve(value) {
         this._resolve(value);
         this.isPending = false;
+        OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
     }
     /**
      * Reject the (open) promise.
@@ -1365,8 +1377,10 @@ class OpenPromise {
     reject(reason) {
         this._reject(reason);
         this.isPending = false;
+        OpenPromise.promises = OpenPromise.promises.filter((promise) => promise !== this);
     }
 }
+OpenPromise.promises = [];
 
 /**
  * Class for running a sequence of steps with values,
@@ -1426,8 +1440,8 @@ class Runner {
         }
         let newRoot = false;
         // No predecessor, so create a new root and add steps as children to it
-        if (predecessor === null) {
-            predecessor = new Step();
+        if (predecessor === null || typeof predecessor === 'string') {
+            predecessor = new Step(predecessor);
             newRoot = true;
         }
         // First new step
@@ -1632,7 +1646,7 @@ class Runner {
     }
     static ensurePromise(step) {
         if (step.finally === null) {
-            step.finally = new OpenPromise();
+            step.finally = new OpenPromise(`Runner: ${step.name}, ${step.previousValue}, ${step.value}, ${step.root.report}`);
             step.promise = step.finally.promise;
             return true;
         }
@@ -1673,6 +1687,9 @@ class Step {
         this.exited = null;
         this.id = '-1';
         this.id = `${Step.id++}`;
+        if (typeof step === 'string') {
+            this.id += ` ${step}`;
+        }
     }
     get isParallelParent() {
         return this.child?.runParallel ?? false;
@@ -2253,7 +2270,7 @@ class ViewportScope extends Endpoint$1 {
         return 'swap';
     }
     transition(coordinator) {
-        Runner.run(null, (step) => coordinator.setEndpointStep(this, step.root), () => coordinator.addEndpointState(this, 'guardedUnload'), () => coordinator.addEndpointState(this, 'guardedLoad'), () => coordinator.addEndpointState(this, 'guarded'), () => coordinator.addEndpointState(this, 'loaded'), () => coordinator.addEndpointState(this, 'unloaded'), () => coordinator.addEndpointState(this, 'routed'), () => coordinator.addEndpointState(this, 'swapped'), () => coordinator.addEndpointState(this, 'completed'));
+        Runner.run('viewport-scope.transition', (step) => coordinator.setEndpointStep(this, step.root), () => coordinator.addEndpointState(this, 'guardedUnload'), () => coordinator.addEndpointState(this, 'guardedLoad'), () => coordinator.addEndpointState(this, 'guarded'), () => coordinator.addEndpointState(this, 'loaded'), () => coordinator.addEndpointState(this, 'unloaded'), () => coordinator.addEndpointState(this, 'routed'), () => coordinator.addEndpointState(this, 'swapped'), () => coordinator.addEndpointState(this, 'completed'));
     }
     finalizeContentChange(coordinator, _step) {
         const nextContentIndex = this.contents.findIndex(content => content.navigation === coordinator.navigation);
@@ -2506,7 +2523,7 @@ class AwaitableMap {
     }
     await(key) {
         if (!this.map.has(key)) {
-            const openPromise = new OpenPromise();
+            const openPromise = new OpenPromise(`AwaitableMap: ${key}`);
             this.map.set(key, openPromise);
             return openPromise.promise;
         }
@@ -2673,18 +2690,13 @@ class ViewportContent extends EndpointContent {
         // Don't load cached content or instantiated history content
         if (!this.fromCache && !this.fromHistory) {
             try {
-                this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
+                return kernel.onResolve(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element), (component) => {
+                    this.instruction.component.set(component);
+                    this.contentStates.set('created', void 0);
+                });
             }
             catch (e) {
-                // TODO: Improve this by extracting the existance check separately
-                if (!e.message.startsWith('AUR0009:')) {
-                    throw e;
-                }
-                {
-                    const componentName = this.instruction.component.name;
-                    // eslint-disable-next-line no-console
-                    console.warn(createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, componentName, e));
-                }
+                this._assertInstantiationError(e);
                 // If there's a fallback component...
                 if ((fallback ?? '') !== '') {
                     if (fallbackAction === 'process-children') {
@@ -2704,23 +2716,20 @@ class ViewportContent extends EndpointContent {
                     }
                     // ...fallback is the new component...
                     this.instruction.component.set(fallback);
+                    // ...and try again.
                     try {
-                        // ...and try again.
-                        this.instruction.component.set(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element));
+                        return kernel.onResolve(this.toComponentInstance(connectedCE.container, connectedCE.controller, connectedCE.element), (fallbackComponent) => {
+                            this.instruction.component.set(fallbackComponent);
+                            this.contentStates.set('created', void 0);
+                        });
                     }
                     catch (ee) {
-                        if (!ee.message.startsWith('AUR0009:')) {
-                            throw ee;
-                        }
-                        const componentName = this.instruction.component.name;
-                        throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, componentName, ee);
-                        // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+                        this._assertInstantiationError(ee);
+                        throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, this.instruction.component.name, ee);
                     }
                 }
                 else {
-                    const componentName = this.instruction.component.name;
-                    throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, componentName);
-                    // throw new Error(`'${this.instruction.component.name as string}' did not match any configured route or registered component name - did you forget to add the component '${this.instruction.component.name}' to the dependencies or to register it as a global dependency?`);
+                    throw createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, this.instruction.component.name);
                 }
             }
         }
@@ -2770,7 +2779,7 @@ class ViewportContent extends EndpointContent {
         if (hooks.length === 1) {
             return hooks[0](null);
         }
-        return Runner.run(null, ...hooks);
+        return Runner.run('canLoad', ...hooks);
     }
     /**
      * Check if the viewport content's component can be unloaded.
@@ -2819,7 +2828,7 @@ class ViewportContent extends EndpointContent {
         if (hooks.length === 1) {
             return hooks[0](null);
         }
-        return Runner.run(null, ...hooks);
+        return Runner.run('canUnload', ...hooks);
     }
     /**
      * Load the viewport content's content.
@@ -2858,7 +2867,7 @@ class ViewportContent extends EndpointContent {
                     console.warn(`[Deprecated] Found deprecated hook name "load" in ${this.instruction.component.name}. Please use the new name "loading" instead.`);
                     hooks.push(() => instance.load(merged, this.instruction, this.navigation));
                 }
-                return Runner.run(null, ...hooks);
+                return Runner.run('load', ...hooks);
             }
             // Skip if there's no hook in component
             if (hasVmHook(instance, 'loading')) {
@@ -2908,7 +2917,7 @@ class ViewportContent extends EndpointContent {
                 console.warn(`[Deprecated] Found deprecated hook name "unload" in ${this.instruction.component.name}. Please use the new name "unloading" instead.`);
                 hooks.push(() => instance.unload(this.instruction, navigation));
             }
-            return Runner.run(null, ...hooks);
+            return Runner.run('unload', ...hooks);
         }
         // Skip if there's no hook in component
         if (hasVmHook(instance, 'unloading')) {
@@ -3059,6 +3068,22 @@ class ViewportContent extends EndpointContent {
             return new Promise((resolve) => {
                 this.endpoint.activeResolve = resolve;
             });
+        }
+    }
+    /**
+     * Assert that the error is an instantiation error. If it's not, throw
+     * the error. If it is, log a warning in development mode.
+     *
+     * @param e - The error to assert
+     */
+    _assertInstantiationError(e) {
+        if (!e.message.startsWith('AUR0009:')) {
+            throw e;
+        }
+        {
+            const componentName = this.instruction.component.name;
+            // eslint-disable-next-line no-console
+            console.warn(createMappedError(2017 /* ErrorNames.endpoint_instantiation_error */, componentName, e));
         }
     }
     _getLifecycleHooks(instance, name) {
@@ -3542,15 +3567,22 @@ class Viewport extends Endpoint$1 {
                         // step.cancel();
                         coordinator.cancel();
                     }
-                    else {
-                        if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
-                            const routerOptions = this.router.configuration.options;
-                            this.getNavigationContent(coordinator).createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
-                        }
+                }
+            },
+            (step) => {
+                if (this.isActiveNavigation(coordinator)) {
+                    return RoutingInstruction.resolve([this.getNavigationContent(coordinator).instruction]);
+                }
+            },
+            (step) => {
+                if (this.isActiveNavigation(coordinator)) {
+                    if (this.router.isRestrictedNavigation) { // Create the component early if restricted navigation
+                        const routerOptions = this.router.configuration.options;
+                        return this.getNavigationContent(coordinator).createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
                     }
                 }
-                coordinator.addEndpointState(this, 'guardedUnload');
             },
+            () => coordinator.addEndpointState(this, 'guardedUnload'),
             () => coordinator.waitForSyncState('guardedUnload', this), // Awaits all `canUnload` hooks
             () => actingParentViewport !== null ? coordinator.waitForEndpointState(actingParentViewport, 'guardedLoad') : void 0, // Awaits parent `canLoad`
             (step) => {
@@ -3589,8 +3621,9 @@ class Viewport extends Endpoint$1 {
                             }
                             canLoadResult = instructions;
                         }
-                        return Runner.run(step, (innerStep) => this.cancelContentChange(coordinator, innerStep), (innerStep) => {
+                        return Runner.run(step, () => {
                             void this.router.load(canLoadResult, { append: coordinator });
+                        }, (innerStep) => this.cancelContentChange(coordinator, innerStep), () => RoutingInstruction.resolve(canLoadResult), (innerStep) => {
                             return innerStep.exit();
                         });
                     }
@@ -3659,7 +3692,7 @@ class Viewport extends Endpoint$1 {
         this.connectedCE?.setActivity?.(navigatingPrefix, true);
         this.connectedCE?.setActivity?.(coordinator.navigation.navigation, true);
         // Run the steps and do the transition
-        const result = Runner.run(null, (step) => coordinator.setEndpointStep(this, step.root), ...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEndpointState(this, 'completed'), () => coordinator.waitForSyncState('bound'), () => {
+        const result = Runner.run('transition', (step) => coordinator.setEndpointStep(this, step.root), ...guardSteps, ...routingSteps, ...lifecycleSteps, () => coordinator.addEndpointState(this, 'completed'), () => coordinator.waitForSyncState('bound'), () => {
             this.connectedCE?.setActivity?.(navigatingPrefix, false);
             this.connectedCE?.setActivity?.(coordinator.navigation.navigation, false);
         });
@@ -3694,9 +3727,8 @@ class Viewport extends Endpoint$1 {
         return Runner.run(step, () => this.waitForConnected(), () => {
             const routerOptions = this.router.configuration.options;
             const navigationContent = this.getNavigationContent(coordinator);
-            navigationContent.createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
-            return navigationContent.canLoad();
-        });
+            return navigationContent.createComponent(coordinator, this.connectedCE, this.options.fallback || routerOptions.fallback, this.options.fallbackAction || routerOptions.fallbackAction);
+        }, () => this.getNavigationContent(coordinator).canLoad());
     }
     /**
      * Load the next content.
@@ -4918,7 +4950,7 @@ class Navigator {
         // Set the previous navigation.
         navigation.previous = this.navigations[Math.max(this.lastNavigationIndex, 0)];
         // Create a process with an awaitable promise.
-        navigation.process = new OpenPromise();
+        navigation.process = new OpenPromise(`navigation: ${navigation.path}`);
         // Set the last navigated index to the navigation index
         this.lastNavigationIndex = navigation.index;
         this.notifySubscribers(navigation);
@@ -5190,7 +5222,7 @@ class Navigator {
             return;
         }
         if (!excludeComponents.some(exclude => exclude === component)) {
-            return Runner.run(null, (step) => viewport.freeContent(step, component), () => {
+            return Runner.run('freeInstructionComponents', (step) => viewport.freeContent(step, component), () => {
                 alreadyDone.push(component);
             });
         }
@@ -6898,7 +6930,7 @@ class NavigationCoordinator {
      * @param state - The state to add
      */
     addSyncState(state) {
-        const openPromise = new OpenPromise();
+        const openPromise = new OpenPromise(`addSyncState: ${state}`);
         this.syncStates.set(state, openPromise);
     }
     /**
@@ -7017,7 +7049,7 @@ class NavigationCoordinator {
             if (entity?.syncPromise === null && openPromise.isPending) {
                 // ...mark the entity as waiting for the state.
                 entity.syncingState = state;
-                entity.syncPromise = new OpenPromise();
+                entity.syncPromise = new OpenPromise(`waitForSyncState: ${state}`);
                 // Also add the state as checked for the entity...
                 entity.checkedStates.push(state);
                 // ...and over all.
@@ -7057,7 +7089,7 @@ class NavigationCoordinator {
         let openPromise = entity.states.get(state);
         // ...creating a new one if necessary.
         if (openPromise == null) {
-            openPromise = new OpenPromise();
+            openPromise = new OpenPromise(`waitForEndpointState: ${state}`);
             entity.states.set(state, openPromise);
         }
         // Return the promise to await
@@ -7516,9 +7548,24 @@ class Router {
             coordinator.appendInstructions(this.appendedInstructions.splice(0));
             this.ea.publish(RouterNavigationStartEvent.eventName, RouterNavigationStartEvent.create(navigation));
             // Invoke the transformFromUrl hook if it exists
-            let transformedInstruction = typeof navigation.instruction === 'string' && !navigation.useFullStateInstruction
-                ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
-                : (navigation.useFullStateInstruction ? navigation.fullStateInstruction : navigation.instruction);
+            let transformedInstruction;
+            // If we're using full state instruction, use that...
+            if (navigation.useFullStateInstruction) {
+                // ...and extract query and fragment from it
+                transformedInstruction = navigation.fullStateInstruction;
+                let options = {};
+                ({ instructions: transformedInstruction, options } = this._extractFragmentAndQuery(transformedInstruction, options));
+                navigation.fragment = options.fragment ?? navigation.fragment;
+                navigation.query = options.query ?? navigation.query;
+                navigation.parameters = options.parameters ?? navigation.parameters;
+            }
+            else {
+                // If we're not using full state instruction, transform the instruction, invoking
+                // the transformFromUrl hook if it exists
+                transformedInstruction = typeof navigation.instruction === 'string'
+                    ? await RoutingHook.invokeTransformFromUrl(navigation.instruction, coordinator.navigation)
+                    : navigation.instruction;
+            }
             // If app uses a base path remove it if present (unless we're using fragment hash)
             const basePath = options.basePath;
             if (basePath !== null &&
@@ -7559,9 +7606,17 @@ class Router {
                     .map(instr => instr.scope)
                     .forEach(scope => coordinator.ensureClearStateInstruction(scope));
             }
-            await coordinator.processInstructions();
+            let guard = 100;
+            do {
+                if (!guard--) { // Guard against endless loop
+                    this.unresolvedInstructionsError(navigation, coordinator.instructions);
+                }
+                // eslint-disable-next-line no-await-in-loop
+                await coordinator.processInstructions();
+            } while (coordinator.instructions.length > 0);
             // TODO: Look into adding everything above as well
-            return Runner.run(null, () => {
+            return Runner.run('processNavigation', () => {
+                // console.log('### processNavigation DONE', coordinator.navigation.instruction, coordinator.navigation, coordinator);
                 coordinator.closed = true;
                 coordinator.finalEndpoint();
                 return coordinator.waitForSyncState('completed');
@@ -7788,9 +7843,7 @@ class Router {
      * @param options - The options to use when loading the instructions
      */
     async load(instructions, options) {
-        options = options ?? {};
-        instructions = this.extractFragment(instructions, options);
-        instructions = this.extractQuery(instructions, options);
+        ({ instructions, options } = this._extractFragmentAndQuery(instructions, options ?? {}));
         let scope = null;
         ({ instructions, scope } = this.applyLoadOptions(instructions, options));
         const append = options.append ?? false;
@@ -8068,35 +8121,23 @@ class Router {
         return Promise.resolve();
     }
     /**
-     * Extract and setup the fragment from instructions or options.
+     * Extract and setup the fragment and query from instructions or options.
      *
-     * @param instructions - The instructions to extract the fragment from
-     * @param options - The options containing the fragment
+     * @param instructions - The string instructions to extract from
+     * @param options - The options containing the fragment and query
      *
      * TODO: Review query extraction; different pos for path and fragment
      *
      * @internal
      */
-    extractFragment(instructions, options) {
+    _extractFragmentAndQuery(instructions, options) {
+        options = { ...options };
         // If instructions is a string and contains a fragment, extract it
         if (typeof instructions === 'string' && options.fragment == null) {
             const [path, fragment] = instructions.split('#');
             instructions = path;
             options.fragment = fragment;
         }
-        return instructions;
-    }
-    /**
-     * Extract and setup the query and parameters from instructions or options.
-     *
-     * @param instructions - The instructions to extract the query from
-     * @param options - The options containing query and/or parameters
-     *
-     * TODO: Review query extraction; different pos for path and fragment
-     *
-     * @internal
-     */
-    extractQuery(instructions, options) {
         // If instructions is a string and contains a query string, extract it
         if (typeof instructions === 'string' && options.query == null) {
             const [path, search] = instructions.split('?');
@@ -8125,7 +8166,7 @@ class Router {
                 }
             });
         }
-        return instructions;
+        return { instructions, options };
     }
 }
 Router.closestEndpointKey = kernel.Protocol.annotation.keyFor('closest-endpoint');
@@ -8412,7 +8453,7 @@ class ViewportCustomElement {
         if (hasDefault && this.parentViewport != null) {
             this.parentViewport.pendingChildren.push(this);
             if (this.parentViewport.pendingPromise === null) {
-                this.parentViewport.pendingPromise = new OpenPromise();
+                this.parentViewport.pendingPromise = new OpenPromise(`hydrated: ViewportCustomElement`);
             }
         }
         Runner.run(null, 
@@ -8426,7 +8467,7 @@ class ViewportCustomElement {
     }
     binding(initiator, _parent) {
         this.isBound = true;
-        return Runner.run(null, 
+        return Runner.run('binding', 
         // The first viewport(s) might be bound before the router is started
         () => waitForRouterStart(this.router, this.ea), () => {
             // Prefer to connect here since we've got bound data in component

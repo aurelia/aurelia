@@ -6,7 +6,7 @@ export { ILocationManager, } from './location-manager';
 export { RouteConfig, Route, type RouteType, route, } from './route';
 export { IRouteContext, RouteContext, type INavigationModel, type INavigationRoute, } from './route-context';
 export { AST, RouteExpression, CompositeSegmentExpression, ScopedSegmentExpression, SegmentGroupExpression, SegmentExpression, ComponentExpression, ViewportExpression, ParameterListExpression, ParameterExpression, type ExpressionKind, } from './route-expression';
-export { RouteNode, RouteTree, } from './route-tree';
+export { IRouteNodeInitializationOptions, RouteNode, RouteTree, } from './route-tree';
 export { isManagedState, toManagedState, IRouter, Router, Transition, } from './router';
 export { IRouterOptions, type INavigationOptions, RouterOptions, NavigationOptions, type HistoryStrategy, type FallbackFunction, type Routeable, type IRouteConfig, type IChildRouteConfig, } from './options';
 export { AuNavId, type ManagedState, IRouterEvents, type RouterEvent, LocationChangeEvent, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, NavigationErrorEvent, } from './router-events';

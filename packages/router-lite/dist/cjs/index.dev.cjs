@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var metadata = require('@aurelia/metadata');
 var kernel = require('@aurelia/kernel');
 var runtimeHtml = require('@aurelia/runtime-html');
 var routeRecognizer = require('@aurelia/route-recognizer');
+var metadata = require('@aurelia/metadata');
 var runtime = require('@aurelia/runtime');
 
 /**
@@ -1016,12 +1016,12 @@ function createNavigationInstruction(routeable) {
 // These symbols are basically the minimum necessary terminals.
 // const viewportTerminal = ['?', '#', '/', '+', ')', '!'];
 // const actionTerminal = [...componentTerminal, '@', '('];
-// const componentTerminal = [...actionTerminal, '.'];
+// const componentTerminal = [...actionTerminal];
 // const paramTerminal = ['=', ',', ')'];
 // These are the currently used terminal symbols.
 // We're deliberately having every "special" (including the not-in-use '&', ''', '~', ';') as a terminal symbol,
 // so as to make the syntax maximally restrictive for consistency and to minimize the risk of us having to introduce breaking changes in the future.
-const terminal = ['?', '#', '/', '+', '(', ')', '.', '@', '!', '=', ',', '&', '\'', '~', ';'];
+const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 /** @internal */
 class ParserState {
     get _done() {
@@ -2846,7 +2846,7 @@ function createFallbackNode(log, rc, node, vi) {
 /** @internal */
 const emptyQuery = Object.freeze(new URLSearchParams());
 function isManagedState(state) {
-    return metadata.isObject(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
+    return kernel.isObjectOrFunction(state) && Object.prototype.hasOwnProperty.call(state, AuNavId) === true;
 }
 function toManagedState(state, navId) {
     return { ...state, [AuNavId]: navId };
@@ -3866,7 +3866,7 @@ class TypedNavigationInstruction {
         if (typeof instruction === 'string')
             return new TypedNavigationInstruction(0 /* NavigationInstructionType.string */, instruction);
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
-        if (!metadata.isObject(instruction))
+        if (!kernel.isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
         if (typeof instruction === 'function') {
             if (runtimeHtml.CustomElement.isType(instruction)) {
@@ -4394,7 +4394,7 @@ class RouteContext {
             ? void 0
             : kernel.onResolve(resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null), config => this._processConfig(config));
         return kernel.onResolve(task, () => {
-            const controller = runtimeHtml.Controller.$el(container, componentInstance, hostController.host, null, elDefn);
+            const controller = runtimeHtml.Controller.$el(container, componentInstance, host, { hostController: hostController, projections: null }, elDefn);
             const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
             this._hostControllerProvider.dispose();
             return componentAgent;
@@ -5023,7 +5023,7 @@ const DefaultResources = [
 ];
 function configure(container, options) {
     let basePath = null;
-    if (metadata.isObject(options)) {
+    if (kernel.isObjectOrFunction(options)) {
         basePath = options.basePath ?? null;
     }
     else {

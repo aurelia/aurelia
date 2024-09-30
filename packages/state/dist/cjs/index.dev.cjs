@@ -3,15 +3,15 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var kernel = require('@aurelia/kernel');
-var runtimeHtml = require('@aurelia/runtime-html');
 var runtime = require('@aurelia/runtime');
+var runtimeHtml = require('@aurelia/runtime-html');
 
 /** @internal */
 const createInterface = kernel.DI.createInterface;
 /** @internal */
 function createStateBindingScope(state, scope) {
     const overrideContext = { bindingContext: state };
-    const stateScope = runtimeHtml.Scope.create(state, overrideContext, true);
+    const stateScope = runtime.Scope.create(state, overrideContext, true);
     stateScope.parent = scope;
     return stateScope;
 }
@@ -214,7 +214,7 @@ function tryParseJson(str) {
 const atLayout = runtime.AccessorType.Layout;
 const stateActivating = runtimeHtml.State.activating;
 class StateBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store) {
+    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store, strict) {
         this.isBound = false;
         /** @internal */ this._task = null;
         /** @internal */ this._value = void 0;
@@ -232,6 +232,7 @@ class StateBinding {
         this.ast = ast;
         this.target = target;
         this.targetProperty = prop;
+        this.strict = strict;
     }
     updateTarget(value) {
         const targetAccessor = this._targetObserver;
@@ -264,7 +265,7 @@ class StateBinding {
         }
         this._targetObserver = this.oL.getAccessor(this.target, this.targetProperty);
         this._store.subscribe(this);
-        this.updateTarget(this._value = runtimeHtml.astEvaluate(this.ast, this._scope = createStateBindingScope(this._store.getState(), _scope), this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null));
+        this.updateTarget(this._value = runtime.astEvaluate(this.ast, this._scope = createStateBindingScope(this._store.getState(), _scope), this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null));
         this.isBound = true;
     }
     unbind() {
@@ -291,7 +292,7 @@ class StateBinding {
         const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         const obsRecord = this.obs;
         obsRecord.version++;
-        newValue = runtimeHtml.astEvaluate(this.ast, this._scope, this, this);
+        newValue = runtime.astEvaluate(this.ast, this._scope, this, this);
         obsRecord.clear();
         let task;
         if (shouldQueueFlush) {
@@ -316,7 +317,7 @@ class StateBinding {
         const _scope = this._scope;
         const overrideContext = _scope.overrideContext;
         _scope.bindingContext = overrideContext.bindingContext = state;
-        const value = runtimeHtml.astEvaluate(this.ast, _scope, this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null);
+        const value = runtime.astEvaluate(this.ast, _scope, this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null);
         const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         if (value === this._value) {
             return;
@@ -348,15 +349,17 @@ class StateBinding {
         this._sub = void 0;
     }
 }
+(() => {
+    runtime.connectable(StateBinding, null);
+    runtimeHtml.mixinAstEvaluator(StateBinding);
+    runtimeHtml.mixingBindingLimited(StateBinding, () => 'updateTarget');
+})();
 function isSubscribable(v) {
     return v instanceof Object && 'subscribe' in v;
 }
 const updateTaskOpts = {
     preempt: true,
 };
-runtime.connectable(StateBinding, null);
-runtimeHtml.mixinAstEvaluator(true)(StateBinding);
-runtimeHtml.mixingBindingLimited(StateBinding, () => 'updateTarget');
 
 const bindingStateSubscriberMap = new WeakMap();
 class StateBindingBehavior {
@@ -406,7 +409,7 @@ class StateSubscriber {
 }
 
 class StateDispatchBinding {
-    constructor(locator, expr, target, prop, store) {
+    constructor(locator, expr, target, prop, store, strict) {
         this.isBound = false;
         // see Listener binding for explanation
         /** @internal */
@@ -416,11 +419,12 @@ class StateDispatchBinding {
         this.ast = expr;
         this._target = target;
         this._targetProperty = prop;
+        this.strict = strict;
     }
     callSource(e) {
         const scope = this._scope;
         scope.overrideContext.$event = e;
-        const value = runtimeHtml.astEvaluate(this.ast, scope, this, null);
+        const value = runtime.astEvaluate(this.ast, scope, this, null);
         delete scope.overrideContext.$event;
         void this._store.dispatch(value);
     }
@@ -431,7 +435,7 @@ class StateDispatchBinding {
         if (this.isBound) {
             return;
         }
-        runtimeHtml.astBind(this.ast, _scope, this);
+        runtime.astBind(this.ast, _scope, this);
         this._scope = createStateBindingScope(this._store.getState(), _scope);
         this._target.addEventListener(this._targetProperty, this);
         this._store.subscribe(this);
@@ -442,7 +446,7 @@ class StateDispatchBinding {
             return;
         }
         this.isBound = false;
-        runtimeHtml.astUnbind(this.ast, this._scope, this);
+        runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this._target.removeEventListener(this._targetProperty, this);
         this._store.unsubscribe(this);
@@ -453,9 +457,11 @@ class StateDispatchBinding {
         scope.bindingContext = overrideContext.bindingContext = state;
     }
 }
-runtime.connectable(StateDispatchBinding, null);
-runtimeHtml.mixinAstEvaluator(true)(StateDispatchBinding);
-runtimeHtml.mixingBindingLimited(StateDispatchBinding, () => 'callSource');
+(() => {
+    runtime.connectable(StateDispatchBinding, null);
+    runtimeHtml.mixinAstEvaluator(StateDispatchBinding);
+    runtimeHtml.mixingBindingLimited(StateDispatchBinding, () => 'callSource');
+})();
 
 class StateBindingCommand {
     get ignoreAttr() { return false; }
@@ -512,7 +518,7 @@ const StateBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
-        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer));
+        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 const DispatchBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class DispatchBindingInstructionRenderer {
@@ -522,7 +528,7 @@ const DispatchBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(cl
     }
     render(renderingCtrl, target, instruction, platform, exprParser) {
         const expr = ensureExpression(exprParser, instruction.ast, 'IsProperty');
-        renderingCtrl.addBinding(new StateDispatchBinding(renderingCtrl.container, expr, target, instruction.from, this._stateContainer));
+        renderingCtrl.addBinding(new StateDispatchBinding(renderingCtrl.container, expr, target, instruction.from, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 function ensureExpression(parser, srcOrExpr, expressionType) {

@@ -72,6 +72,7 @@ function isSymbol(arg) {
 function isUndefined(arg) {
     return arg === void 0;
 }
+/** @internal */
 function isObject(arg) {
     return arg !== null && typeof arg === 'object';
 }
@@ -2600,9 +2601,7 @@ class Comparison {
         for (const key of keys) {
             if (key in obj) {
                 if (!isUndefined(actual)
-                    && isString(actual[key])
-                    && isRegExp(obj[key])
-                    && obj[key].test(actual[key])) {
+                    && (isString(actual[key]) && isRegExp(obj[key]) && obj[key].test(actual[key]))) {
                     this[key] = actual[key];
                 }
                 else {
@@ -7736,7 +7735,7 @@ const onFixtureCreated = (callback) => {
     });
 };
 // eslint-disable-next-line max-lines-per-function
-function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.create(), appConfig = {}) {
+function createFixture(template, $class, registrations = [], autoStart = true, ctx = TestContext.create(), appConfig = {}, rootElementDef) {
     const { container } = ctx;
     container.register(...registrations);
     // platform and observer locator have side effect when accessed on ctx
@@ -7755,7 +7754,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
                 Object.setPrototypeOf($class, $Ctor.prototype);
                 return $class;
             };
-    const annotations = ['aliases', 'bindables', /* 'cache',  */ 'capture', 'containerless', 'dependencies', 'enhance'];
+    const annotations = ['aliases', 'bindables', /* 'cache',  */ 'capture', 'containerless', 'dependencies', 'enhance', 'strict'];
     if ($$class !== $class && $class != null) {
         annotations.forEach(anno => {
             metadata.Metadata.define(runtimeHtml.CustomElement.getAnnotation($class, anno, null), $$class, anno);
@@ -7764,6 +7763,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
     const existingDefs = (runtimeHtml.CustomElement.isType($$class) ? runtimeHtml.CustomElement.getDefinition($$class) : {});
     const App = runtimeHtml.CustomElement.define({
         ...existingDefs,
+        ...rootElementDef,
         name: existingDefs.name ?? 'app',
         template,
     }, $$class);
@@ -7927,6 +7927,13 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         const el = strictQueryBy(selector, `to compare value against "${value}"`);
         assert.strictEqual(el.value, value);
     }
+    function assertChecked(selector, value) {
+        const el = strictQueryBy(selector, `to compare value against "${value}"`);
+        if (!('checked' in el)) {
+            throw new Error('Element does not have a checked property');
+        }
+        assert.strictEqual(el.checked, value, `Expected element (${selector}) to  have :checked state as ${value}, but received ${!value}`);
+    }
     function trigger(selector, event, init, overrides) {
         const el = strictQueryBy(selector, `to fire event "${event}"`);
         return $triggerEvent(el, ctx, event, init, overrides);
@@ -7962,7 +7969,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
             throw new Error(`No <input>/<textarea> element found for selector "${selector}" to emulate input for "${value}"`);
         }
         el.value = value;
-        el.dispatchEvent(new platform.window.Event('input'));
+        el.dispatchEvent(new platform.window.Event('input', { bubbles: true }));
     }
     const scrollBy = (selector, init) => {
         const el = strictQueryBy(selector, `to scroll by "${JSON.stringify(init)}"`);
@@ -8024,6 +8031,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
             this.assertAttrNS = assertAttrNS;
             this.assertStyles = assertStyles;
             this.assertValue = assertValue;
+            this.assertChecked = assertChecked;
             this.createEvent = (name, init) => new platform.CustomEvent(name, init);
             this.trigger = trigger;
             this.type = type;
@@ -8064,8 +8072,9 @@ class FixtureBuilder {
         this._htmlArgs = htmlArgs;
         return this;
     }
-    component(comp) {
+    component(comp, def) {
         this._comp = comp;
+        this._def = def;
         return this;
     }
     deps(...args) {
@@ -8080,7 +8089,7 @@ class FixtureBuilder {
         if (this._html === void 0) {
             throw new Error('Builder is not ready, missing template, call .html()/.html`` first');
         }
-        return createFixture(typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []), this._comp, this._args);
+        return createFixture(typeof this._html === 'string' ? this._html : brokenProcessFastTemplate(this._html, ...this._htmlArgs ?? []), this._comp, this._args, void 0, void 0, this._config, this._def);
     }
 }
 function brokenProcessFastTemplate(html, ..._args) {
@@ -8281,19 +8290,19 @@ class MockTracingExpression {
     }
     evaluate(...args) {
         this.trace('evaluate', ...args);
-        return runtimeHtml.astEvaluate(this.inner, ...args);
+        return runtime.astEvaluate(this.inner, ...args);
     }
     assign(...args) {
         this.trace('assign', ...args);
-        return runtimeHtml.astAssign(this.inner, ...args);
+        return runtime.astAssign(this.inner, ...args);
     }
     bind(...args) {
         this.trace('bind', ...args);
-        runtimeHtml.astBind(this.inner, ...args);
+        runtime.astBind(this.inner, ...args);
     }
     unbind(...args) {
         this.trace('unbind', ...args);
-        runtimeHtml.astUnbind(this.inner, ...args);
+        runtime.astUnbind(this.inner, ...args);
     }
     accept(...args) {
         this.trace('accept', ...args);
@@ -9142,8 +9151,8 @@ function createObserverLocator(containerOrLifecycle) {
 }
 function createScopeForTest(bindingContext = {}, parentBindingContext, isBoundary) {
     return parentBindingContext
-        ? runtimeHtml.Scope.fromParent(runtimeHtml.Scope.create(parentBindingContext), bindingContext)
-        : runtimeHtml.Scope.create(bindingContext, null, isBoundary);
+        ? runtime.Scope.fromParent(runtime.Scope.create(parentBindingContext), bindingContext)
+        : runtime.Scope.create(bindingContext, null, isBoundary);
 }
 // export type CustomAttribute = Writable<IViewModel> & IComponentLifecycleMock;
 // export function createCustomAttribute(nameOrDef: string | PartialCustomAttributeDefinition = 'foo') {

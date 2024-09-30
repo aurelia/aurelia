@@ -1,8 +1,8 @@
 import { DI, resolve, IEventAggregator, camelCase, toArray, registrableMetadataKey, Registration } from '../../../kernel/dist/native-modules/index.mjs';
-import { BindingMode, State, ISignaler, BindingBehavior, mixinAstEvaluator, mixingBindingLimited, astEvaluate, astUnbind, CustomElement, astBind, renderer, ValueConverter, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { BindingMode, State, ISignaler, BindingBehavior, mixinAstEvaluator, mixingBindingLimited, CustomElement, renderer, ValueConverter, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { AttributePattern, AttrSyntax, BindingCommand } from '../../../template-compiler/dist/native-modules/index.mjs';
 import { ValueConverterExpression, CustomExpression } from '../../../expression-parser/dist/native-modules/index.mjs';
-import { nowrap, connectable, AccessorType } from '../../../runtime/dist/native-modules/index.mjs';
+import { nowrap, connectable, astEvaluate, astUnbind, AccessorType, astBind } from '../../../runtime/dist/native-modules/index.mjs';
 import i18next from 'i18next';
 
 const Signals = {
@@ -465,6 +465,7 @@ class TranslationBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        this.strict = true;
         this.l = locator;
         this._controller = controller;
         this.target = target;
@@ -646,7 +647,7 @@ class TranslationBinding {
     }
 }
 connectable(TranslationBinding, null);
-mixinAstEvaluator(true)(TranslationBinding);
+mixinAstEvaluator(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 class AccessorUpdateTask {
     constructor(accessor, v, el, attr) {
@@ -668,6 +669,7 @@ class ParameterBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        this.strict = true;
         this.oL = owner.oL;
         this.l = owner.l;
     }
@@ -700,8 +702,10 @@ class ParameterBinding {
         this.obs.clearAll();
     }
 }
-connectable(ParameterBinding, null);
-mixinAstEvaluator(true)(ParameterBinding);
+(() => {
+    connectable(ParameterBinding, null);
+    mixinAstEvaluator(ParameterBinding);
+})();
 
 var _a;
 const TranslationParametersInstructionType = 'tpt';

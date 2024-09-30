@@ -40,6 +40,7 @@ import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, 
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { resolve } from '@aurelia/kernel';
+import { IObserverLocator, observable } from '@aurelia/runtime';
 describe('3-runtime-html/custom-elements.spec.ts', function () {
     it('injects right aurelia instance', function () {
         const { component: { au, au1 } } = createFixture(``, class {
@@ -163,6 +164,255 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
             }
         }, [TextToggler]);
         trigger('button', 'click');
+    });
+    it('handles recursive changes with the right order', function () {
+        let MyApp = (() => {
+            let _classDecorators = [customElement('')];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _count_decorators;
+            let _count_initializers = [];
+            let _count_extraInitializers = [];
+            var MyApp = _classThis = class {
+                constructor() {
+                    this.message = 'Hello Aurelia 2!';
+                    this.logs = [];
+                    this.count = __runInitializers(this, _count_initializers, 0);
+                    this.obsLoc = (__runInitializers(this, _count_extraInitializers), resolve(IObserverLocator));
+                }
+                created() {
+                    this.obsLoc.getObserver(this, 'count').subscribe({
+                        handleChange: (value, oldValue) => {
+                            if (value > 0 && value < 3) {
+                                this.log('S.1. handleChange()', value, oldValue);
+                                if (value > oldValue) {
+                                    this.count++;
+                                }
+                                else {
+                                    this.count--;
+                                }
+                            }
+                        }
+                    });
+                }
+                countChanged(value) {
+                    this.log('P.1. countChanged()', value);
+                }
+                incr() {
+                    if (this.count < 10) {
+                        this.count++;
+                        this.log('After incr()', this.count);
+                        // console.assert(this.count, 9);
+                    }
+                }
+                decr() {
+                    if (this.count > 0) {
+                        this.count--;
+                        this.log('After decr()', this.count);
+                        // console.assert(this.count, 1);
+                    }
+                }
+                log(...msgs) {
+                    this.logs.push(msgs);
+                }
+            };
+            __setFunctionName(_classThis, "MyApp");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _count_decorators = [bindable];
+                __esDecorate(null, null, _count_decorators, { kind: "field", name: "count", static: false, private: false, access: { has: obj => "count" in obj, get: obj => obj.count, set: (obj, value) => { obj.count = value; } }, metadata: _metadata }, _count_initializers, _count_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                MyApp = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return MyApp = _classThis;
+        })();
+        const { component, getAllBy, stop } = createFixture(`
+      <button click.trigger="incr()">Incr()</button>
+      <button click.trigger="decr()">Decr()</button>
+      <div id="logs"><div repeat.for="log of logs">\${log}</div></div>
+    `, MyApp);
+        assert.deepStrictEqual(component.logs, []);
+        const [incrButton, decrButton] = getAllBy('button');
+        // when clicking on increment, increase count all the way to 3 by 1 at a time
+        incrButton.click();
+        assert.deepStrictEqual(component.logs, [
+            ['S.1. handleChange()', 1, 0],
+            ['S.1. handleChange()', 2, 1],
+            ['P.1. countChanged()', 3],
+            ['After incr()', 3]
+        ]);
+        // when clicking on decrement, decrease count all the way to 0 by 1 at a time
+        decrButton.click();
+        assert.deepStrictEqual(component.logs, [
+            ['S.1. handleChange()', 1, 0],
+            ['S.1. handleChange()', 2, 1],
+            ['P.1. countChanged()', 3],
+            ['After incr()', 3],
+            ['S.1. handleChange()', 2, 3],
+            ['S.1. handleChange()', 1, 2],
+            ['P.1. countChanged()', 0],
+            ['After decr()', 0]
+        ]);
+        void stop(true);
+    });
+    // https://github.com/aurelia/aurelia/issues/2022
+    it('calls change handler callback after propagating changes with @bindable', function () {
+        const logs = [];
+        let OuterComponent = (() => {
+            let _classDecorators = [customElement('outer-component')];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _prop1_decorators;
+            let _prop1_initializers = [];
+            let _prop1_extraInitializers = [];
+            var OuterComponent = _classThis = class {
+                constructor() {
+                    this.prop1 = __runInitializers(this, _prop1_initializers, 1);
+                    this.prop2 = (__runInitializers(this, _prop1_extraInitializers), 1);
+                }
+                attached() {
+                    this.prop1 = 2;
+                }
+                prop1Changed() {
+                    this.prop2 = 2;
+                }
+            };
+            __setFunctionName(_classThis, "OuterComponent");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _prop1_decorators = [bindable];
+                __esDecorate(null, null, _prop1_decorators, { kind: "field", name: "prop1", static: false, private: false, access: { has: obj => "prop1" in obj, get: obj => obj.prop1, set: (obj, value) => { obj.prop1 = value; } }, metadata: _metadata }, _prop1_initializers, _prop1_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                OuterComponent = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            })();
+            _classThis.template = '<inner-component prop1.bind="prop1" prop2.bind="prop2"/>';
+            (() => {
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return OuterComponent = _classThis;
+        })();
+        let InnerComponent = (() => {
+            let _classDecorators = [customElement('inner-component')];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _prop1_decorators;
+            let _prop1_initializers = [];
+            let _prop1_extraInitializers = [];
+            let _prop2_decorators;
+            let _prop2_initializers = [];
+            let _prop2_extraInitializers = [];
+            var InnerComponent = _classThis = class {
+                prop2Changed() {
+                    logs.push(`prop1: ${this.prop1}`);
+                }
+                constructor() {
+                    this.prop1 = __runInitializers(this, _prop1_initializers, void 0);
+                    this.prop2 = (__runInitializers(this, _prop1_extraInitializers), __runInitializers(this, _prop2_initializers, void 0));
+                    __runInitializers(this, _prop2_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "InnerComponent");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _prop1_decorators = [bindable];
+                _prop2_decorators = [bindable];
+                __esDecorate(null, null, _prop1_decorators, { kind: "field", name: "prop1", static: false, private: false, access: { has: obj => "prop1" in obj, get: obj => obj.prop1, set: (obj, value) => { obj.prop1 = value; } }, metadata: _metadata }, _prop1_initializers, _prop1_extraInitializers);
+                __esDecorate(null, null, _prop2_decorators, { kind: "field", name: "prop2", static: false, private: false, access: { has: obj => "prop2" in obj, get: obj => obj.prop2, set: (obj, value) => { obj.prop2 = value; } }, metadata: _metadata }, _prop2_initializers, _prop2_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                InnerComponent = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return InnerComponent = _classThis;
+        })();
+        createFixture('<outer-component>', class {
+        }, [OuterComponent, InnerComponent]);
+        assert.deepStrictEqual(logs, ['prop1: 2']);
+    });
+    // https://github.com/aurelia/aurelia/issues/2022
+    it('calls [propertyChanged] callback after propagating changes with @bindable', function () {
+        const logs = [];
+        let OuterComponent = (() => {
+            let _classDecorators = [customElement('outer-component')];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _prop1_decorators;
+            let _prop1_initializers = [];
+            let _prop1_extraInitializers = [];
+            var OuterComponent = _classThis = class {
+                constructor() {
+                    this.prop1 = __runInitializers(this, _prop1_initializers, 1);
+                    this.prop2 = (__runInitializers(this, _prop1_extraInitializers), 1);
+                }
+                attached() {
+                    this.prop1 = 2;
+                }
+                prop1Changed() {
+                    this.prop2 = 2;
+                }
+            };
+            __setFunctionName(_classThis, "OuterComponent");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _prop1_decorators = [bindable];
+                __esDecorate(null, null, _prop1_decorators, { kind: "field", name: "prop1", static: false, private: false, access: { has: obj => "prop1" in obj, get: obj => obj.prop1, set: (obj, value) => { obj.prop1 = value; } }, metadata: _metadata }, _prop1_initializers, _prop1_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                OuterComponent = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+            })();
+            _classThis.template = '<inner-component prop1.bind="prop1" prop2.bind="prop2"/>';
+            (() => {
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return OuterComponent = _classThis;
+        })();
+        let InnerComponent = (() => {
+            let _classDecorators = [customElement('inner-component')];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _prop1_decorators;
+            let _prop1_initializers = [];
+            let _prop1_extraInitializers = [];
+            let _prop2_decorators;
+            let _prop2_initializers = [];
+            let _prop2_extraInitializers = [];
+            var InnerComponent = _classThis = class {
+                propertyChanged(name) {
+                    if (name === 'prop2') {
+                        logs.push(`prop1: ${this.prop1}`);
+                    }
+                }
+                constructor() {
+                    this.prop1 = __runInitializers(this, _prop1_initializers, void 0);
+                    this.prop2 = (__runInitializers(this, _prop1_extraInitializers), __runInitializers(this, _prop2_initializers, void 0));
+                    __runInitializers(this, _prop2_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "InnerComponent");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _prop1_decorators = [bindable];
+                _prop2_decorators = [bindable];
+                __esDecorate(null, null, _prop1_decorators, { kind: "field", name: "prop1", static: false, private: false, access: { has: obj => "prop1" in obj, get: obj => obj.prop1, set: (obj, value) => { obj.prop1 = value; } }, metadata: _metadata }, _prop1_initializers, _prop1_extraInitializers);
+                __esDecorate(null, null, _prop2_decorators, { kind: "field", name: "prop2", static: false, private: false, access: { has: obj => "prop2" in obj, get: obj => obj.prop2, set: (obj, value) => { obj.prop2 = value; } }, metadata: _metadata }, _prop2_initializers, _prop2_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                InnerComponent = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return InnerComponent = _classThis;
+        })();
+        createFixture('<outer-component>', class {
+        }, [OuterComponent, InnerComponent]);
+        assert.deepStrictEqual(logs, ['prop1: 2']);
     });
     describe('event', function () {
         it('works with multi dot event name for trigger', function () {
@@ -780,6 +1030,396 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
             })();
             const { appHost } = createFixture('<c-1 p1="c1-p1" p2="c1-p2"></c-1> <c-2 p1="c2-p1" p2="c2-p2" p3="c2-p3"></c-2>', {}, [CeOne, CeTwo]);
             assert.html.textContent(appHost, 'c1-p1 c1-p2 c2-p3 c2-p1 c2-p2');
+        });
+    });
+    describe('aggregated callback', function () {
+        it('calls aggregated callback', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+        });
+        it('calls aggregated callback only once for 2 changes', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            component.a = 3;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
+        });
+        it('does not call aggregated callback again after first call if theres no new change', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+            changes = void 0;
+            await Promise.resolve();
+            assert.strictEqual(changes, void 0);
+        });
+        it('calls aggregated callback again after first call if there are new changes', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                            if (this.a === 2) {
+                                this.a = 3;
+                            }
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+            changes = void 0;
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
+        });
+        it('does not call aggregated callback if component is unbound before next tick', async function () {
+            let changes = void 0;
+            const { component, stop } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            void stop(true);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, void 0);
+        });
+        it('does not call aggregated callback after unbind', async function () {
+            let changes = void 0;
+            const { component, stop } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+            changes = void 0;
+            void stop(true);
+            component.a = 3;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.strictEqual(changes, void 0);
+        });
+        it('does not call aggregated callback for @observable', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [observable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.strictEqual(changes, void 0);
+        });
+        it('calls both change handler and aggregated callback', async function () {
+            let changes = void 0;
+            let aChanges = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        aChanged($newValue, $oldValue) {
+                            aChanges = { newValue: $newValue, oldValue: $oldValue };
+                        }
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            assert.strictEqual(aChanges, void 0);
+            component.a = 2;
+            assert.strictEqual(changes, void 0);
+            assert.deepStrictEqual(aChanges, { newValue: 2, oldValue: 1 });
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
+        });
+        it('calls change handler, propertyChanged and aggregated callback', async function () {
+            let propertiesChanges = void 0;
+            let propertyChanges = void 0;
+            let aChanges = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                return _a = class App {
+                        aChanged($newValue, $oldValue) {
+                            aChanges = { newValue: $newValue, oldValue: $oldValue };
+                        }
+                        propertyChanged(key, newValue, oldValue) {
+                            propertyChanges = { key, newValue, oldValue };
+                        }
+                        propertiesChanged($changes) {
+                            propertiesChanges = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            __runInitializers(this, _a_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(propertiesChanges, void 0);
+            assert.strictEqual(propertyChanges, void 0);
+            assert.strictEqual(aChanges, void 0);
+            component.a = 2;
+            assert.strictEqual(propertiesChanges, void 0);
+            assert.deepStrictEqual(propertyChanges, { key: 'a', newValue: 2, oldValue: 1 });
+            assert.deepStrictEqual(aChanges, { newValue: 2, oldValue: 1 });
+            await Promise.resolve();
+            assert.deepStrictEqual(propertiesChanges, { a: { newValue: 2, oldValue: 1 } });
+            assert.deepStrictEqual(propertyChanges, { key: 'a', newValue: 2, oldValue: 1 });
+            assert.deepStrictEqual(aChanges, { newValue: 2, oldValue: 1 });
+        });
+        it('aggregates changes for multiple properties', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                let _b_decorators;
+                let _b_initializers = [];
+                let _b_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            this.b = (__runInitializers(this, _a_extraInitializers), __runInitializers(this, _b_initializers, 2));
+                            __runInitializers(this, _b_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        _b_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        __esDecorate(null, null, _b_decorators, { kind: "field", name: "b", static: false, private: false, access: { has: obj => "b" in obj, get: obj => obj.b, set: (obj, value) => { obj.b = value; } }, metadata: _metadata }, _b_initializers, _b_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 3;
+            component.b = 4;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, {
+                a: { newValue: 3, oldValue: 1 },
+                b: { newValue: 4, oldValue: 2 }
+            });
+        });
+        it('calls aggregated callback for multiple properties with the right key', async function () {
+            let changes = void 0;
+            const { component } = createFixture(``, (() => {
+                var _a;
+                let _a_decorators;
+                let _a_initializers = [];
+                let _a_extraInitializers = [];
+                let _member_decorators;
+                let _member_initializers = [];
+                let _member_extraInitializers = [];
+                return _a = class App {
+                        propertiesChanged($changes) {
+                            changes = $changes;
+                        }
+                        constructor() {
+                            this.a = __runInitializers(this, _a_initializers, 1);
+                            // symbol is not allowed so we use a number
+                            this[5] = (__runInitializers(this, _a_extraInitializers), __runInitializers(this, _member_initializers, 2));
+                            __runInitializers(this, _member_extraInitializers);
+                        }
+                    },
+                    (() => {
+                        const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                        _a_decorators = [bindable];
+                        _member_decorators = [bindable];
+                        __esDecorate(null, null, _a_decorators, { kind: "field", name: "a", static: false, private: false, access: { has: obj => "a" in obj, get: obj => obj.a, set: (obj, value) => { obj.a = value; } }, metadata: _metadata }, _a_initializers, _a_extraInitializers);
+                        __esDecorate(null, null, _member_decorators, { kind: "field", name: "5", static: false, private: false, access: { has: obj => "5" in obj, get: obj => obj["5"], set: (obj, value) => { obj["5"] = value; } }, metadata: _metadata }, _member_initializers, _member_extraInitializers);
+                        if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    })(),
+                    _a;
+            })());
+            assert.strictEqual(changes, void 0);
+            component.a = 3;
+            component[5] = 4;
+            assert.strictEqual(changes, void 0);
+            await Promise.resolve();
+            assert.deepStrictEqual(changes, {
+                a: { newValue: 3, oldValue: 1 },
+                5: { newValue: 4, oldValue: 2 }
+            });
         });
     });
 });

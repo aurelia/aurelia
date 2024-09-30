@@ -1,6 +1,6 @@
 import { I18nConfiguration, TranslationBinding, TranslationParametersAttributePattern, TranslationParametersBindingCommand, TranslationParametersBindingInstruction, TranslationParametersBindingRenderer, TranslationParametersInstructionType } from '@aurelia/i18n';
 import { DI, Registration } from '@aurelia/kernel';
-import { IExpressionParser } from '@aurelia/expression-parser';
+import { ExpressionParser, IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator, } from '@aurelia/runtime';
 import { IPlatform, BindingMode, AttrMapper, } from '@aurelia/runtime-html';
 import { BindingCommand, IAttributePattern, IAttrMapper, InstructionType, } from '@aurelia/template-compiler';
@@ -27,7 +27,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
     describe('TranslationParametersBindingCommand', function () {
         function createFixture() {
             const container = DI.createContainer();
-            container.register(TranslationParametersBindingCommand, Registration.singleton(IAttrMapper, AttrMapper));
+            container.register(ExpressionParser, TranslationParametersBindingCommand, Registration.singleton(IAttrMapper, AttrMapper));
             return {
                 sut: container.get(BindingCommand.keyFrom(`t-params.bind`)),
                 parser: container.get(IExpressionParser),
@@ -53,7 +53,7 @@ describe('i18n/t/translation-parameters-renderer.spec.ts', function () {
     describe('TranslationParametersBindingRenderer', function () {
         function createFixture() {
             const { container } = TestContext.create();
-            container.register(I18nConfiguration);
+            container.register(ExpressionParser, I18nConfiguration);
             return container;
         }
         it('instantiated with instruction type', function () {

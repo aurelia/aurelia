@@ -81,7 +81,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
   MyDialogRenderer,
   // use default dialog global settings
   DefaultDialogGlobalSettings,
-  // use  default event manager
+  // use default dialog event manager
   DefaultDialogEventManager,
 ]))
 ```

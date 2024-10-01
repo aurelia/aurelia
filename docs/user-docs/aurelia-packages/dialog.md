@@ -70,7 +70,7 @@ Aurelia.register(DialogConfiguration.customize(settings => {
 If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
 
 ```typescript
-import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings } from '@aurelia/dialog';
+import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings, DefaultDialogEventManager } from '@aurelia/dialog';
 
 Aurelia.register(DialogConfiguration.customize(settings => {
 
@@ -81,6 +81,8 @@ Aurelia.register(DialogConfiguration.customize(settings => {
   MyDialogRenderer,
   // use default dialog global settings
   DefaultDialogGlobalSettings,
+  // use  default event manager
+  DefaultDialogEventManager,
 ]))
 ```
 

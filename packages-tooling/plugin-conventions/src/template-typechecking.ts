@@ -15,6 +15,8 @@ type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTextNode = DefaultTreeAdapterMap['textNode'];
 type Location = Token.ElementLocation;
 
+const reservedPrimitiveLiterals: readonly string[] = ['true', 'false', 'null', 'undefined', ''];
+
 export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: string) {
   const accessType = viewModelClassName.length !== 0 ? `<${viewModelClassName}>`: '';
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true }) as DefaultTreeElement;
@@ -45,6 +47,7 @@ export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: s
             });
           } else {
             const value = attr.value.length === 0 ? syntax.target : attr.value;
+            if (reservedPrimitiveLiterals.includes(value))  return;
             toReplace.push({
               loc: node.sourceCodeLocation!.attrs![attr.name],
               modifiedContent: `${attr.name}="\${access${accessType}(o => o.${value}, '${value}')}"`

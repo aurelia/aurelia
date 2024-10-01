@@ -1751,6 +1751,28 @@ CustomElement.define({ name: 'foo', template: x }, Foo);
         });
       });
 
+      for (const literal of ['true', 'false', 'null', 'undefined', '']) {
+        it(`primitive literal - ${literal} - pass - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `${literal}`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertSuccess(entry, result.code);
+        });
+      }
+
       it(`nested property interpolation - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -2145,6 +2167,151 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
       });
+
+      it(`template controller - if - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<template if.bind="prop">awesome</template>';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - if - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '<template if.bind="prop">awesome</template>';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
+      });
+
+      it(`template controller - switch - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template switch.bind="prop">
+        <span case="foo">Foo</span>
+        <span case="bar">Bar</span>
+        </template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - switch - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template switch.bind="prop">
+        <span case="foo">Foo</span>
+        <span case="bar">Bar</span>
+        </template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
+      });
+
+      it(`template controller - case - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template switch.bind="true">
+        <span case.bind="prop">Foo</span>
+        <span case="bar">Bar</span>
+        </template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - case - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template switch.bind="true">
+        <span case.bind="prop">Foo</span>
+        <span case="bar">Bar</span>
+        </template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
+      });
+
     }
   });
 

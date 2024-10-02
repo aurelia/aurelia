@@ -337,6 +337,9 @@ function __typecheck_template_${classNames.join('_')}__() {
     : ''
   }
   const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
+  type CollectionPropertyKey<TCollection> = TCollection extends Array<infer TElement>
+        ? number
+        : never;
   return \`${typecheckedTemplate}\`;
 }\n\n`);
   }

@@ -2311,7 +2311,30 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
 
         assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
       });
+      // TODO: data-type of switch and cases must match
 
+      it.only(`template controller - repeat - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? 'public ' : ''}prop${isTs ? ': unknown' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        // console.log(result.code);
+        assertSuccess(entry, result.code);
+      });
     }
   });
 

@@ -375,7 +375,7 @@
       ],
       "cwd": "${workspaceRoot}",
       "internalConsoleOptions": "openOnSessionStart",
-      "preLaunchTask": "npm: build - packages-tooling/__tests__"
+      "preLaunchTask": "npm: build all"
     }
   ]
 }

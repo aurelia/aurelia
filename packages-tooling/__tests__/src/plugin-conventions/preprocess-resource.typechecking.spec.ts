@@ -2358,6 +2358,32 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
 
         assertFailure(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
       });
+
+      it(`template controller - multiple repeats - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop1">\${item.toLowerCase()}</template><template repeat.for="item of prop2">\${item.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
+
+${isTs ? '' : '/** @type {number[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
     }
   });
 

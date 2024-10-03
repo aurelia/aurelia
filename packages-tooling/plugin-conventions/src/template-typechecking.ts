@@ -17,7 +17,8 @@ type Location = Token.ElementLocation;
 
 const reservedPrimitiveLiterals: readonly string[] = ['true', 'false', 'null', 'undefined', ''];
 
-export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: string) {
+export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
+  const accessTypeParts: ((acc: string) => string)[] = [() => `(${classNames.join('|')})`];
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true }) as DefaultTreeElement;
   const container = DI.createContainer().register(
     DotSeparatedAttributePattern,
@@ -29,21 +30,36 @@ export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: s
   const attrParser = container.get(IAttributeParser);
   const exprParser = container.get(ExpressionParser);
 
-  const toReplace: { loc: Location; modifiedContent: string }[] = [];
+  const toReplace: { loc: Location; modifiedContent: () => string }[] = [];
   traverse(tree, processNode);
 
+  const accessType = accessTypeParts.reduce((acc: string, part) => part(acc), '');
+  const accessIdent = `access${isJs ? '' : `<${accessType}>`}`;
   let html = '';
   let lastIndex = 0;
   toReplace.forEach(({ loc, modifiedContent }) => {
-    html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent; // + rawHtml.slice(loc.endOffset);
+    html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent(); // + rawHtml.slice(loc.endOffset);
     lastIndex = loc.endOffset;
   });
 
-  return html;
+  const output = `function __typecheck_template_${classNames.join('_')}__() {
+  ${isJs
+      ? `
+  /**
+   * @template {${accessType}} T
+   * @param {function(T): unknown} typecheck
+   * @param {string} expr
+   * @returns {string}
+   */
+  `
+      : ''}
+  const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
+  return \`${html}\`;
+}\n\n`;
 
-  function processNode(node: DefaultTreeElement | DefaultTreeTextNode, type: string | null = null): void | false {
-    type ??= viewModelClassName.length !== 0 ? viewModelClassName : '';
-    let retVal: void | false = void 0;
+  return output;
+
+  function processNode(node: DefaultTreeElement | DefaultTreeTextNode): void {
     if ('tagName' in node) {
       node.attrs?.forEach(attr => {
         const syntax = attrParser.parse(attr.name, attr.value);
@@ -52,28 +68,25 @@ export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: s
             const expr = exprParser.parse(attr.value, 'IsIterator');
             const decIdent = Unparser.unparse(expr.declaration);
             const iterIdent = Unparser.unparse(expr.iterable);
-            const propAccExpr = `${type}['${iterIdent}']`;
-            const decType = `${type} & { ${decIdent}: ${propAccExpr}[CollectionPropertyKey<${propAccExpr}>] }`;
-            const declaration = `\${access<${decType}>(o => o.${decIdent}, '${decIdent}')}`;
-            const iterable = `\${access<${type}>(o => o.${iterIdent}, '${iterIdent}')}`;
+            const propAccExpr = (acc: string) => `${acc}['${iterIdent}']`;
+
+            accessTypeParts.push((acc) => {
+              const accExpr = propAccExpr(acc);
+              return `${acc} & { ${decIdent}: ${accExpr}[CollectionPropertyKey<${accExpr}>] }`;
+            });
+            const declaration = () => `\${${accessIdent}(o => o.${decIdent}, '${decIdent}')}`;
+            const iterable = () => `\${${accessIdent}(o => o.${iterIdent}, '${iterIdent}')}`;
 
             toReplace.push({
               loc: node.sourceCodeLocation!.attrs![attr.name],
-              modifiedContent: `${attr.name}="${declaration} of ${iterable}"`,
+              modifiedContent: () => `${attr.name}="${declaration()} of ${iterable()}"`,
             });
-
-            if (node.childNodes) traverse(node, (nd) => processNode(nd, decType));
-            // For <template> tag
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            if ((node as any).content?.childNodes) traverse((node as any).content, (nd) => processNode(nd, decType));
-
-            retVal = false;
           } else {
             const value = attr.value.length === 0 ? syntax.target : attr.value;
             if (reservedPrimitiveLiterals.includes(value)) return;
             toReplace.push({
               loc: node.sourceCodeLocation!.attrs![attr.name],
-              modifiedContent: `${attr.name}="\${access<${type}>(o => o.${value}, '${value}')}"`
+              modifiedContent: () => `${attr.name}="\${${accessIdent}(o => o.${value}, '${value}')}"`
             });
           }
         }
@@ -82,32 +95,34 @@ export function createTypeCheckedTemplate(rawHtml: string, viewModelClassName: s
       const expr = exprParser.parse(node.value, 'Interpolation');
 
       if (expr != null) {
-        let html = expr.parts[0];
-        expr.expressions.forEach((part, idx) => {
-          const originalExpr = part;
-          while (part.$kind === 'ValueConverter' || part.$kind === 'BindingBehavior') {
-            part = part.expression;
+        toReplace.push({
+          loc: node.sourceCodeLocation!, modifiedContent: () => {
+            let html = expr.parts[0];
+            expr.expressions.forEach((part, idx) => {
+              const originalExpr = part;
+              while (part.$kind === 'ValueConverter' || part.$kind === 'BindingBehavior') {
+                part = part.expression;
+              }
+              html += `\${${accessIdent}(o => o.${Unparser.unparse(part).replace(/^\(|\)$/g, '')}, '${Unparser.unparse(originalExpr).replace(/^\(|\)$/g, '')}')}`;
+              html += expr.parts[idx + 1];
+            });
+            return html;
           }
-          html += `\${access<${type}>(o => o.${Unparser.unparse(part).replace(/^\(|\)$/g, '')}, '${Unparser.unparse(originalExpr).replace(/^\(|\)$/g, '')}')}`;
-          html += expr.parts[idx + 1];
         });
-        toReplace.push({ loc: node.sourceCodeLocation!, modifiedContent: html });
       }
     }
-    return retVal;
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function traverse(tree: any, cb: (node: DefaultTreeElement | DefaultTreeTextNode) => void | false) {
+function traverse(tree: any, cb: (node: DefaultTreeElement | DefaultTreeTextNode) => void) {
   // eslint-disable-next-line
   tree.childNodes.forEach((n: any) => {
     const ne = n as DefaultTreeElement;
     // skip <template as-custom-element="..">
     if (ne.tagName === 'template' && ne.attrs.some(attr => attr.name === 'as-custom-element')) return;
 
-    const processChildren = cb(ne);
-    if (processChildren === false) return;
+    cb(ne);
 
     if (n.childNodes) traverse(n, cb);
     // For <template> tag

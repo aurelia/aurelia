@@ -220,6 +220,22 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   return m.transform();
 }
 
+function prependUtilityTypes(m: ReturnType<typeof modifyCode>, isJs: boolean) {
+  m.prepend(`// @ts-check
+${isJs
+    ?
+    `/**
+  * @template TCollection
+  * @typedef {TCollection extends Array<infer TElement> ? number : never} CollectionPropertyKey
+  */`
+    :
+    `type CollectionPropertyKey<TCollection> = TCollection extends Array<infer TElement>
+    ? number
+    : never;`}
+`
+  );
+}
+
 const jsFilePattern = /\.[m]?js$/;
 function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, options: IModifyResourceOptions) {
   const {
@@ -238,6 +254,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   const isJs = jsFilePattern.test(unit.path);
   if (!useConventions) {
     if (options.typeCheckTemplate) {
+      prependUtilityTypes(m, isJs);
       for (const templateImport of templateMetadata) {
         const classNames = templateImport.classNames;
         if (classNames.length === 0) continue;
@@ -252,6 +269,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     const viewDef = '__au2ViewDef';
 
     if (options.typeCheckTemplate) {
+      prependUtilityTypes(m, isJs);
       emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [exportedClassName!], isJs);
     }
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
@@ -319,29 +337,9 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
   function emitTypeCheckedTemplate(contentFactory: () => string | undefined, classNames: string[], isJs: boolean): void {
     const htmlContent = contentFactory();
     if (!htmlContent) return;
-    const classUnion = classNames.join('|');
-    const typecheckedTemplate = createTypeCheckedTemplate(htmlContent, isJs ? '' : classUnion);
-    // console.log(typecheckedTemplate);
-    m.prepend(`// @ts-check
-function __typecheck_template_${classNames.join('_')}__() {
-  ${
-    isJs
-    ? `
-  /**
-   * @template {${classUnion}} T
-   * @param {function(T): unknown} typecheck
-   * @param {string} expr
-   * @returns {string}
-   */
-  `
-    : ''
-  }
-  const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
-  type CollectionPropertyKey<TCollection> = TCollection extends Array<infer TElement>
-        ? number
-        : never;
-  return \`${typecheckedTemplate}\`;
-}\n\n`);
+    const typeCheckedTemplate = createTypeCheckedTemplate(htmlContent, classNames, isJs);
+    // console.log(typeCheckedTemplate);
+    m.prepend(typeCheckedTemplate);
   }
 }
 

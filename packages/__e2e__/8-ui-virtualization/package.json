@@ -34,7 +34,7 @@
     "html-webpack-plugin": "^5.5.0",
     "@aurelia/webpack-loader": "2.0.0-beta.22",
     "ts-loader": "^9.3.0",
-    "@types/node": "^14.18.14",
+    "@types/node": "^20.16.10",
     "typescript": "5.4.2"
   }
 }

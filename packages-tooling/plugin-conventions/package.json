@@ -57,9 +57,9 @@
     "typescript": "^5.4.2"
   },
   "devDependencies": {
-    "@types/node": "^14.18.14"
+    "@types/node": "^20.16.10"
   },
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=20.16.0"
   }
 }

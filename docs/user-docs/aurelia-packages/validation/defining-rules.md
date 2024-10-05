@@ -94,15 +94,14 @@ With TypeScript support, intellisense is available for both the variants.
 ## Linking a property's validation with others
 
 This functionality can be useful when a change in one property has to trigger additional validations because the values are intrinsically related.
-Linked properties must be provided as an array of strings or property accessors.
-When the main property changes, the validator will trigger all the additional rules that belong to linked fields.
+Linked properties should be supplied as parameters, which can be strings, property accessors, or arrays of either strings or property accessors.
+When a property changes, the validator triggers additional rules for all linked fields according to their priority order. If properties are grouped in arrays, it indicates they hold equal importance. The order of parameters determines the validation sequence: if validation is triggered by the nth parameter, all properties associated with the previous (nth-1) parameters will be validated. However, if the first parameter initiates validation, subsequent properties will not be checked unless they have already been edited.
 
 ```typescript
 validationRules
   .on(person)
-  .ensure('name')
-    .dependsOn(['age', 'address']);
-    .dependsOn([(p) => p.age, (p) => p.address]);
+  .ensureGroup('name', ['age', 'address'])
+  .ensureGroup([(p) => p.name, (p) => p.age, (p) => p.address]);
 ```
 
 

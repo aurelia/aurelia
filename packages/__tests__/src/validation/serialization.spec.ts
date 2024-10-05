@@ -20,7 +20,9 @@ import {
   ModelBasedRule,
   IValidator,
   ValidateInstruction,
-  IValidationExpressionHydrator
+  IValidationExpressionHydrator,
+  GroupPropertyRules,
+  LinkedProperty
 } from '@aurelia/validation';
 import { Person } from './_test-resources.js';
 
@@ -131,8 +133,21 @@ describe('validation/serialization.spec.ts', function () {
         const [name, expression] = parsePropertyName(property, parser);
         const ruleProperty = new RuleProperty(expression, name);
         const [req, regex, maxLen] = simpleRuleList;
-        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]],["prop1","prop2"]);
-        assert.strictEqual(ValidationSerializer.serialize(propertyRule), `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]],"linkedProperties":["\\"prop1\\"","\\"prop2\\""]}`);
+        const propertyRule = new PropertyRule(container, validationRules, messageProvider, ruleProperty, [[req.getRule(), maxLen.getRule()], [regex.getRule()]]);
+        assert.strictEqual(ValidationSerializer.serialize(propertyRule), `{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]],"isGroupMember":false}`);
+      });
+      it(`works for GroupPropertyRules`, function () {
+        const { parser } = setup();
+        const { property: prop1, serializedProperty: serializedProp1 } = properties[0];
+        const [name1, expression1] = parsePropertyName(prop1, parser);
+        const ruleProperty1 = new RuleProperty(expression1, name1);
+        const { property: prop2, serializedProperty: serializedProp2 } = properties[1];
+        const [name2, expression2] = parsePropertyName(prop2, parser);
+        const ruleProperty2 = new RuleProperty(expression2, name2);
+        const groupPropertyRules = new GroupPropertyRules([new LinkedProperty(ruleProperty1, 0, false), new LinkedProperty(ruleProperty2, 1, true)]);
+        const serializedLinkedProperty1 = `{"$TYPE":"LinkedProperty","prop":${serializedProp1},"depth":0,"isTouched":false}`;
+        const serializedLinkedProperty2 = `{"$TYPE":"LinkedProperty","prop":${serializedProp2},"depth":1,"isTouched":true}`;
+        assert.strictEqual(ValidationSerializer.serialize(groupPropertyRules), `{"$TYPE":"GroupPropertyRules","linkedProperties":[${serializedLinkedProperty1},${serializedLinkedProperty2}],"maxDepth":0}`);
       });
     });
     describe('deserialization', function () {
@@ -181,6 +196,21 @@ describe('validation/serialization.spec.ts', function () {
         const actual = ValidationDeserializer.deserialize(`{"$TYPE":"PropertyRule","property":${serializedProperty},"$rules":[[${req.serializedRule},${maxLen.serializedRule}],[${regex.serializedRule}]]}`, propertyRule.validationRules);
         assert.instanceOf(actual, propertyRule.constructor);
         assert.deepStrictEqual(actual, propertyRule);
+      });
+      it(`works for GroupPropertyRules`, function () {
+        const { parser, validationRules } = setup();
+        const { property: prop1, serializedProperty: serializedProp1 } = properties[0];
+        const [name1, expression1] = parsePropertyName(prop1, parser);
+        const ruleProperty1 = new RuleProperty(expression1, name1);
+        const { property: prop2, serializedProperty: serializedProp2 } = properties[1];
+        const [name2, expression2] = parsePropertyName(prop2, parser);
+        const ruleProperty2 = new RuleProperty(expression2, name2);
+        const groupPropertyRules = new GroupPropertyRules([new LinkedProperty(ruleProperty1, 0, false), new LinkedProperty(ruleProperty2, 1, true)]);
+        const serializedLinkedProperty1 = `{"$TYPE":"LinkedProperty","prop":${serializedProp1},"depth":0,"isTouched":false}`;
+        const serializedLinkedProperty2 = `{"$TYPE":"LinkedProperty","prop":${serializedProp2},"depth":1,"isTouched":true}`;
+        const actual = ValidationDeserializer.deserialize(`{"$TYPE":"GroupPropertyRules","linkedProperties":[${serializedLinkedProperty1},${serializedLinkedProperty2}],"maxDepth":0}`, validationRules);
+        assert.instanceOf(actual, groupPropertyRules.constructor);
+        assert.deepStrictEqual(actual, groupPropertyRules);
       });
     });
     describe('hydrated ruleset validation works for', function () {

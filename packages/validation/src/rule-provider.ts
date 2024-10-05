@@ -63,14 +63,16 @@ export class RuleProperty implements IRuleProperty {
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RuleCondition<TObject extends IValidateable = IValidateable, TValue = any> = (value: TValue, object?: TObject) => boolean | Promise<boolean>;
+export type RulesAndGroups = { rules: IPropertyRule[]; groups: GroupPropertyRules[] };
+export type PropertyRulesAndGroups = { rules: PropertyRule[]; groups: GroupPropertyRules[] };
 
 export const validationRulesRegistrar = Object.freeze({
   allRulesAnnotations: getAnnotationKeyFor('validation-rules-annotations'),
   name: 'validation-rules',
   defaultRuleSetName: '__default',
-  set(target: IValidateable, rules: IPropertyRule[], tag?: string): void {
+  set(target: IValidateable, ruleGroups: RulesAndGroups, tag?: string): void {
     const key = `${validationRulesRegistrar.name}:${tag ?? validationRulesRegistrar.defaultRuleSetName}`;
-    defineMetadata(rules, target, getAnnotationKeyFor(key));
+    defineMetadata(ruleGroups, target, getAnnotationKeyFor(key));
     const keys = getMetadata<string[]>(this.allRulesAnnotations, target);
     if (keys === void 0) {
       defineMetadata([key], target, this.allRulesAnnotations);
@@ -78,7 +80,7 @@ export const validationRulesRegistrar = Object.freeze({
       keys.push(key);
     }
   },
-  get(target: IValidateable, tag?: string): PropertyRule[] | undefined {
+  get(target: IValidateable, tag?: string): PropertyRulesAndGroups | undefined {
     const key = getAnnotationKeyFor(validationRulesRegistrar.name, tag ?? validationRulesRegistrar.defaultRuleSetName);
     return getMetadata(key, target) ?? getMetadata(key, target.constructor);
   },
@@ -130,7 +132,7 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     public readonly messageProvider: IValidationMessageProvider,
     public property: RuleProperty,
     public $rules: IValidationRule[][] = [[]],
-    public linkedProperties: string[] = [],
+    public isGroupMember: boolean = false
   ) {
     this.l = locator;
   }
@@ -266,17 +268,6 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
     if (latestRule === void 0) {
       throw createMappedError(ErrorNames.rule_provider_no_rule_found);
     }
-  }
-
-  /**
-   * Links the PropertyRule to other key values.
-   * @param properties - Array of properties to link (accepts strings, object keys as well as property accessor functions).
-   */
-  public dependsOn(properties: string[] | PropertyAccessor[]) {
-    properties.forEach((p) => {
-      this.linkedProperties.push(this.validationRules.convertProperty(p));
-    });
-    return this;
   }
   // #endregion
 
@@ -430,6 +421,14 @@ export class PropertyRule<TObject extends IValidateable = IValidateable, TValue 
   }
 
   /**
+   * Groups two or more PropertyRules into a linked list so that they can be validated together.
+   * @param properties - Array of properties to link (accepts strings, object keys as well as property accessor functions).
+   */
+    public ensureGroup(...properties: (string | PropertyAccessor | (string | PropertyAccessor)[])[]) {
+      return this.validationRules.ensureGroup(...properties);
+    }
+
+  /**
    * Rules that have been defined using the fluent API.
    */
   public get rules() {
@@ -454,12 +453,13 @@ export class ModelBasedRule {
   public constructor(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public ruleset: any,
-    public tag: string = validationRulesRegistrar.defaultRuleSetName
+    public tag: string = validationRulesRegistrar.defaultRuleSetName,
   ) { }
 }
 
 export interface IValidationRules<TObject extends IValidateable = IValidateable> {
   rules: PropertyRule[];
+  groups: GroupPropertyRules[];
   /**
    * Targets a object property for validation
    *
@@ -472,6 +472,14 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
    * Targets an object with validation rules.
    */
   ensureObject(): PropertyRule;
+
+  /**
+   * Creates a group of properties that will be validated together as long as one of them is modified.
+   *
+   * @param properties - Array of properties to link (accepts strings, object keys as well as property accessor functions).
+   * @returns {PropertyRule} - The last rule in the group.
+   */
+  ensureGroup(...properties: (string | PropertyAccessor | (string | PropertyAccessor)[])[]): PropertyRule;
 
   /**
    * Applies the rules to a class or object, making them discoverable by the StandardValidator.
@@ -501,6 +509,7 @@ export const IValidationRules = /*@__PURE__*/DI.createInterface<IValidationRules
 
 export class ValidationRules<TObject extends IValidateable = IValidateable> implements IValidationRules<TObject> {
   public rules: PropertyRule[] = [];
+  public groups: GroupPropertyRules[] = [];
   private readonly targets: Set<IValidateable> = new Set<IValidateable>();
 
   private readonly locator: IServiceLocator = resolve(IServiceLocator);
@@ -527,13 +536,39 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     return rule;
   }
 
+  public ensureGroup(...properties: (string | PropertyAccessor | (string | PropertyAccessor)[])[]): PropertyRule {
+    let lastRule: PropertyRule = this.rules[this.rules.length - 1];
+    const newGroup = new GroupPropertyRules();
+    const setUpLinkedProperty = (property: string | PropertyAccessor, index: number, group: GroupPropertyRules): LinkedProperty => {
+      const name = parsePropertyName(property, this.parser)[0];
+      if(group.linkedProperties.some(lp => lp.prop.name === name)) throw new Error(`Duplicate property "${name}" detected in the provided group`);
+      const rule: PropertyRule = this.ensure(property);
+      if(index === properties.length) lastRule = rule;
+      rule.isGroupMember = true;
+      const linkedProp = new LinkedProperty(
+        rule.property,
+        index,
+        false,
+      );
+      newGroup.linkedProperties.push(linkedProp);
+      return linkedProp;
+    };
+    properties.flatMap((p, i) => {
+      if(!Array.isArray(p)) return setUpLinkedProperty(p, i, newGroup);
+      return p.map((prop) => setUpLinkedProperty(prop, i, newGroup));
+    });
+    this.groups.push(newGroup);
+    return lastRule;
+  }
+
   public on(target: IValidateable, tag?: string) {
-    const rules = validationRulesRegistrar.get(target, tag);
+    const { rules = undefined, groups = undefined } = validationRulesRegistrar.get(target, tag) ?? {};
     if (Object.is(rules, this.rules)) {
       return this;
     }
     this.rules = rules ?? [];
-    validationRulesRegistrar.set(target, this.rules, tag);
+    this.groups = groups ?? [];
+    validationRulesRegistrar.set(target, {rules: this.rules, groups: this.groups}, tag);
     this.targets.add(target);
     return this;
   }
@@ -548,7 +583,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
     }
   }
 
-  public applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void {
+  public applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[], groups?: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): void {
     const tags: Set<string> = new Set<string>();
     for (const rule of rules) {
       const tag = rule.tag;
@@ -559,7 +594,9 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
         }
       }
       const ruleset = this.deserializer.hydrateRuleset(rule.ruleset, this);
-      validationRulesRegistrar.set(target, ruleset, tag);
+      let ruleGroups: GroupPropertyRules[] = [];
+      if(groups) ruleGroups = this.deserializer.hydrateGroups(groups);
+      validationRulesRegistrar.set(target, {rules: ruleset, groups: ruleGroups}, tag);
       tags.add(tag);
     }
   }
@@ -716,5 +753,45 @@ export class ValidationMessageProvider implements IValidationMessageProvider {
     const words = propertyName.toString().split(/(?=[A-Z])/).join(' ');
     // capitalize first letter.
     return words.charAt(0).toUpperCase() + words.slice(1);
+  }
+}
+
+export class LinkedProperty {
+  public static readonly $TYPE: string = 'LinkedProperty';
+
+  public constructor(
+    public prop: RuleProperty,
+    public depth: number = 0,
+    public isTouched: boolean = false,
+  ) {}
+}
+
+export class GroupPropertyRules {
+  public static readonly $TYPE: string = 'GroupPropertyRules';
+  public constructor(
+    public linkedProperties: LinkedProperty[] = [],
+    public maxDepth: number = 0
+  ) {}
+
+  public accept(visitor: IValidationVisitor): string {
+    return visitor.visitGroupPropertyRules(this);
+  }
+
+  public static calculateMaxDepth(_linkedProperties: LinkedProperty[]) {
+    return _linkedProperties.reduce((acc, lp) => { return lp.isTouched ?  Math.max(acc, lp.depth) : acc; }, 0);
+  }
+
+  public static findRules(_group: GroupPropertyRules, _property: string | number | symbol, rules: PropertyRule[]): PropertyRule[] {
+    const baseDepth = _group.linkedProperties.find((lp) => lp.prop.name === _property)?.depth ?? 0;
+    const additionalRules: PropertyRule[] = [];
+    _group.linkedProperties.forEach((lp) => {
+      if(lp.prop.name !== _property) {
+        if (lp.isTouched || lp.depth <= baseDepth) {
+            const rule = rules.find((r) => r.property.name === lp.prop.name);
+            if(rule) additionalRules.push(rule);
+        }
+      }
+    });
+    return additionalRules;
   }
 }

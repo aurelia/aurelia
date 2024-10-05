@@ -241,14 +241,13 @@ describe('validation/validator.spec.ts', function () {
         it('if given, validates linked properties', async function () {
           const { sut, validationRules } = setup();
           const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
-          const linkedProperties = ['age', 'address.line1'];
+          const linkedProperties = ['name', 'age', 'address.line1'];
 
-          const rules = validationRules
+          validationRules
             .on(defineRuleOnClass ? Person : obj)
 
             .ensure(getProperty1() as any)
             .required()
-            .dependsOn(linkedProperties)
 
             .ensure(getProperty2() as any)
             .required()
@@ -257,7 +256,7 @@ describe('validation/validator.spec.ts', function () {
             .required()
             .withMessage('Address is required.')
 
-            .rules;
+            .ensureGroup(linkedProperties);
 
           const result = await sut.validate(new ValidateInstruction(obj, 'name'));
           assert.equal(result.length, 3);
@@ -535,25 +534,32 @@ describe('validation/validator.spec.ts', function () {
         .on(flight)
         .ensure(getProperty1() as any)
         .required()
-        .dependsOn(properties)
         .ensure(getProperty2() as any).satisfies((value, obj) => {  return value < obj.returnDate; }).when((obj) => obj.direction === Direction.return).withMessage(goBackInTimeMsg)
         .satisfies((value) => value < new Date().getTime()).when((obj) => obj.direction === Direction.oneWay).withMessage(timeTravelMsg)
         .ensure(getProperty3() as any).satisfies((value, obj) =>  { return value > obj.departureDate; }).when((obj) => obj.direction === Direction.return).withMessage(goBackInTimeMsg)
-        .satisfies((value) => !value).when((obj) => obj.direction === Direction.oneWay).withMessage(noReturnMsg);
+        .satisfies((value) => !value).when((obj) => obj.direction === Direction.oneWay).withMessage(noReturnMsg)
+        .ensureGroup((f) => f.direction, properties);
 
         let result = await sut.validate(new ValidateInstruction(flight, 'direction'));
-        assert.equal(result.length, 3);
-
+        assert.equal(result.length, 1);
         assertValidationResult(result[0], true, 'direction', flight, RequiredRule);
+
+        result = await sut.validate(new ValidateInstruction(flight, 'departureDate'));
+        assert.equal(result.length, 3);
+        assertValidationResult(result[1], true, 'direction', flight, RequiredRule);
         assert.deepEqual(result[2].toString(), noReturnMsg);
 
         flight.direction = Direction.return;
         flight.departureDate = new Date(2024, 7, 26).getTime();
         result = await sut.validate(new ValidateInstruction(flight, 'direction'));
-        assert.equal(result.length, 3);
-
+        assert.equal(result.length, 2);
         assertValidationResult(result[0], true, 'direction', flight, RequiredRule);
         assert.deepEqual(result[1].toString(), goBackInTimeMsg);
+
+        result = await sut.validate(new ValidateInstruction(flight, 'returnDate'));
+        assert.equal(result.length, 3);
+        assertValidationResult(result[1], true, 'direction', flight, RequiredRule);
+        assert.deepEqual(result[0].toString(), goBackInTimeMsg);
         assert.deepEqual(result[2].toString(), goBackInTimeMsg);
 
         validationRules.off();

@@ -2,7 +2,7 @@
 import { Class, DI } from '@aurelia/kernel';
 import { type IsBindingBehavior, IExpressionParser } from '@aurelia/expression-parser';
 import { Deserializer } from './ast-serialization';
-import { IValidationRules } from './rule-provider';
+import { IValidationRules, LinkedProperty, GroupPropertyRules, PropertyAccessor } from './rule-provider';
 import { IValidationMessageProvider } from './rules';
 
 export type IValidateable<T = any> = (Class<T> | object) & { [key in PropertyKey]: any };
@@ -83,6 +83,7 @@ export interface IValidationVisitor {
   visitEqualsRule(rule: IEqualsRule): string;
   visitRuleProperty(property: IRuleProperty): string;
   visitPropertyRule(propertyRule: IPropertyRule): string;
+  visitGroupPropertyRules(group: GroupPropertyRules): string;
 }
 
 export const IValidationExpressionHydrator = /*@__PURE__*/DI.createInterface<IValidationExpressionHydrator>('IValidationExpressionHydrator');
@@ -92,4 +93,5 @@ export interface IValidationExpressionHydrator {
   readonly messageProvider: IValidationMessageProvider;
   hydrate(raw: any, validationRules: IValidationRules): any;
   hydrateRuleset(ruleset: any, validationRules: IValidationRules): IPropertyRule[];
+  hydrateGroups(groups: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): GroupPropertyRules[];
 }

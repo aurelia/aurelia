@@ -14,7 +14,7 @@ import {
   IRequiredRule,
   IRegexRule,
 } from './rule-interfaces';
-import { IValidationRules, parsePropertyName, PropertyRule, RuleProperty } from './rule-provider';
+import { GroupPropertyRules, IValidationRules, LinkedProperty, parsePropertyName, PropertyRule, RuleProperty, PropertyAccessor } from './rule-provider';
 import {
   EqualsRule,
   IValidationMessageProvider,
@@ -23,6 +23,7 @@ import {
   RegexRule,
   RequiredRule,
   SizeRule,
+  validationRule,
 } from './rules';
 import { ErrorNames, createMappedError } from './errors';
 
@@ -73,7 +74,10 @@ export class ValidationSerializer implements IValidationVisitor {
     return `{"$TYPE":"${RuleProperty.$TYPE}","name":${serializePrimitive(property.name)},"expression":${expression ? Serializer.serialize(expression) : null},"displayName":${serializePrimitive(displayName)}}`;
   }
   public visitPropertyRule(propertyRule: PropertyRule): string {
-    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)},"linkedProperties":${this.serializeLinkedProperties(propertyRule.linkedProperties)}}`;
+    return `{"$TYPE":"${PropertyRule.$TYPE}","property":${propertyRule.property.accept(this)},"$rules":${this.serializeRules(propertyRule.$rules)},"isGroupMember":${serializePrimitive(propertyRule.isGroupMember)}}`;
+  }
+  public visitGroupPropertyRules(group: GroupPropertyRules) {
+    return `{"$TYPE":"${GroupPropertyRules.$TYPE}","linkedProperties":${this.serializeLinkedProperties(group.linkedProperties)},"maxDepth":${serializePrimitive(group.maxDepth)}}`;
   }
   private serializeNumber(num: number): string {
     return num === Number.POSITIVE_INFINITY || num === Number.NEGATIVE_INFINITY ? null! : num.toString();
@@ -81,8 +85,8 @@ export class ValidationSerializer implements IValidationVisitor {
   private serializeRules(ruleset: IValidationRule[][]) {
     return `[${ruleset.map((rules) => `[${rules.map((rule) => rule.accept(this)).join(',')}]`).join(',')}]`;
   }
-  private serializeLinkedProperties(propertyList: string[]) {
-    return `[${propertyList.map((prop) => serializePrimitive(prop)).join(',')}]`;
+  private serializeLinkedProperties(linkedPropertyArray: LinkedProperty[]): string {
+    return `[${linkedPropertyArray.map((lp) => { return `{"$TYPE":"${LinkedProperty.$TYPE}","prop":${lp.prop.accept(this)},"depth":${this.serializeNumber(lp.depth)},"isTouched":${serializePrimitive(lp.isTouched)}`; }).join(',')}"]`;
   }
 }
 
@@ -174,15 +178,24 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
         return new RuleProperty(expression, name, displayName);
       }
       case PropertyRule.$TYPE: {
-        const $raw: Pick<PropertyRule, 'property' | '$rules' | 'linkedProperties'> = raw;
+        const $raw: Pick<PropertyRule, 'property' | '$rules' | 'isGroupMember'> = raw;
         return new PropertyRule(
           this.locator,
           validationRules,
           this.messageProvider,
           this.hydrate($raw.property, validationRules),
           $raw.$rules.map((rules) => rules.map((rule) => this.hydrate(rule, validationRules))),
-          $raw.linkedProperties ?? []
+          $raw.isGroupMember ?? false
         );
+      }
+      case GroupPropertyRules.$TYPE: {
+        const $raw: Pick<GroupPropertyRules, 'linkedProperties' | 'maxDepth'> = raw;
+        return new GroupPropertyRules($raw.linkedProperties.map((lp) => { return this.hydrate(lp, validationRules); }), $raw.maxDepth);
+      }
+      case LinkedProperty.$TYPE: {
+        const $raw: Pick<LinkedProperty, 'prop' | 'depth' | 'isTouched'> = raw;
+        return new LinkedProperty(this.hydrate($raw.prop, validationRules), $raw.depth, $raw.isTouched);
+
       }
     }
   }
@@ -193,11 +206,17 @@ export class ValidationDeserializer implements IValidationExpressionHydrator {
     }
     return ruleset.map(($rule) => this.hydrate($rule, validationRules) as PropertyRule);
   }
+
+  public hydrateGroups(groups: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): GroupPropertyRules[] {
+    if(groups === void 0) throw createMappedError(ErrorNames.method_not_implemented, 'hydrateGroups');
+    return [];
+  }
 }
 
 interface ModelPropertyRule<TRuleConfig extends { tag?: string; messageKey?: string } = any> {
   displayName?: string;
   rules: Record<string, TRuleConfig>[];
+  isGroupMember?: boolean;
 }
 
 export interface ModelValidationExpressionHydrator extends IAstEvaluator {}
@@ -220,7 +239,7 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
           const rules: IValidationRule[][] = value.rules.map((rule) => Object.entries(rule).map(([ruleName, ruleConfig]) => this.hydrateRule(ruleName, ruleConfig)));
           const propertyPrefix = propertyPath.join('.');
           const property = this.hydrateRuleProperty({ name: propertyPrefix !== '' ? `${propertyPrefix}.${key}` : key, displayName: value.displayName });
-          accRules.push(new PropertyRule(this.l, validationRules, this.messageProvider, property, rules));
+          accRules.push(new PropertyRule(this.l, validationRules, this.messageProvider, property, rules, value.isGroupMember ?? false));
         } else {
           iterate(Object.entries(value), [...propertyPath, key]);
         }
@@ -324,6 +343,25 @@ export class ModelValidationExpressionHydrator implements IValidationExpressionH
     }
     const [name, expression] = parsePropertyName(rawName, this.parser);
     return new RuleProperty(expression, name, raw.displayName);
+  }
+
+  public hydrateGroups(groups: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): GroupPropertyRules[] {
+    return groups.map((group) => {
+      const groupLinkedProperties: LinkedProperty[] = [];
+      group.forEach((lp, i) => {
+        if(lp instanceof LinkedProperty) groupLinkedProperties.push(lp);
+        else {
+          if(Array.isArray(lp)) lp.map((pa => groupLinkedProperties.push(this.hydrateLinkedProperty(pa, i))));
+          else groupLinkedProperties.push(this.hydrateLinkedProperty(lp, i));
+        }
+      });
+      return new GroupPropertyRules(groupLinkedProperties, GroupPropertyRules.calculateMaxDepth(groupLinkedProperties));
+    });
+  }
+
+  private hydrateLinkedProperty(prop: string | PropertyAccessor, index: number): LinkedProperty {
+    const [ name, expression ] = parsePropertyName(prop, this.parser);
+    return new LinkedProperty(new RuleProperty(expression, name), index, false);
   }
 }
 

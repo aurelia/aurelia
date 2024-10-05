@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol } from './rule-provider';
+import { ValidationResult, validationRulesRegistrar, PropertyRule, rootObjectSymbol, GroupPropertyRules } from './rule-provider';
 import { IValidateable } from './rule-interfaces';
 
 /**
@@ -53,13 +53,25 @@ export class StandardValidator implements IValidator {
     const propertyName = instruction.propertyName;
     const propertyTag = instruction.propertyTag;
 
-    const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
+    const storedRules = validationRulesRegistrar.get(object, instruction.objectTag)?.rules ?? [];
+    const rules = instruction.rules ?? storedRules;
+    const groups = validationRulesRegistrar.get(object, instruction.objectTag)?.groups ?? [];
     const scope = Scope.create({ [rootObjectSymbol]: object });
 
     if (propertyName !== void 0) {
       const propertyRule: PropertyRule | undefined = rules.find((r) => r.property.name === propertyName);
-      if (propertyRule !== void 0 && propertyRule.linkedProperties.length > 0) {
-        const additionalRules = propertyRule.linkedProperties.map(lp => rules.find(r => r.property.name === lp)).filter(Boolean) as PropertyRule[];
+      if (propertyRule?.isGroupMember) {
+        const belongingGroups = groups.filter((g) => g.linkedProperties.find((lp) => {
+          if (lp.prop.name === propertyName) {
+            if(!lp.isTouched) lp.isTouched = true;
+            g.maxDepth = Math.max(g.maxDepth, lp.depth);
+            return true;
+          }
+          return false;
+        }));
+        if (instruction.rules !== void 0 && storedRules.length > 0) validationRulesRegistrar.set(object, {rules: storedRules, groups: groups}, instruction.objectTag);
+        const additionalRules: PropertyRule[] = [];
+        belongingGroups.forEach((g) => { additionalRules.push(...GroupPropertyRules.findRules(g, propertyName, rules)); });
         return (await Promise.all([propertyRule.validate(object, propertyTag, scope), ...additionalRules.map(async (rule) => rule.validate(object, propertyTag, scope))])).flat();
       }
       return (await propertyRule?.validate(object, propertyTag, scope)) ?? [];

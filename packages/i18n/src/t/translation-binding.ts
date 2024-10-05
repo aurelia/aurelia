@@ -2,12 +2,16 @@ import { camelCase, toArray } from '@aurelia/kernel';
 import {
   AccessorType,
   connectable,
-} from '@aurelia/runtime';
-import {
   astEvaluate,
   astUnbind,
   astBind,
   IAstEvaluator,
+  type Scope,
+  type IObserverLocator,
+  type IAccessor,
+  type IObserverLocatorBasedConnectable,
+} from '@aurelia/runtime';
+import {
   CustomElement,
   IPlatform,
   type IBindingController,
@@ -16,7 +20,6 @@ import {
   type IHydratableController,
   type INode,
   IBinding,
-  type Scope,
 } from '@aurelia/runtime-html';
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
@@ -24,11 +27,6 @@ import { I18N } from '../i18n';
 import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
-import type {
-  IObserverLocator,
-  IAccessor,
-  IObserverLocatorBasedConnectable,
-} from '@aurelia/runtime';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
 import type { TranslationParametersBindingInstruction } from './translation-parameters-renderer';
 import { etInterpolation, etIsProperty, stateActivating } from '../utils';
@@ -140,6 +138,8 @@ export class TranslationBinding implements IBinding {
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
+
+  public strict = true;
 
   public constructor(
     controller: IBindingController,
@@ -355,7 +355,7 @@ export class TranslationBinding implements IBinding {
   }
 }
 connectable(TranslationBinding, null!);
-mixinAstEvaluator(true)(TranslationBinding);
+mixinAstEvaluator(TranslationBinding);
 mixingBindingLimited(TranslationBinding, () => 'updateTranslations');
 
 class AccessorUpdateTask {
@@ -374,6 +374,11 @@ class AccessorUpdateTask {
 interface ParameterBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 class ParameterBinding implements IBinding {
+  static {
+    connectable(ParameterBinding, null!);
+    mixinAstEvaluator(ParameterBinding);
+  }
+
   public isBound: boolean = false;
   public value!: i18next.TOptions;
   /**
@@ -390,6 +395,8 @@ class ParameterBinding implements IBinding {
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
+
+  public strict = true;
 
   public constructor(
     public readonly owner: TranslationBinding,
@@ -436,5 +443,3 @@ class ParameterBinding implements IBinding {
   }
 }
 
-connectable(ParameterBinding, null!);
-mixinAstEvaluator(true)(ParameterBinding);

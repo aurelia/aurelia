@@ -4,15 +4,23 @@ import { objectFreeze } from '../utilities';
 import { createInterface, singletonRegistration } from '../utilities-di';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
-import { ICollectionSubscriber, IObserverLocatorBasedConnectable, ISubscriber, } from '@aurelia/runtime';
-import { type Scope } from './scope';
-import { astBind, astEvaluate, astUnbind, IAstEvaluator } from '../ast.eval';
+import {
+  ICollectionSubscriber,
+  IObserverLocatorBasedConnectable,
+  ISubscriber,
+  type Scope,
+  astBind,
+  astEvaluate,
+  astUnbind,
+  IAstEvaluator,
+} from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
 
 export class ListenerBindingOptions {
   public constructor(
     public readonly prevent: boolean,
     public readonly capture: boolean = false,
+    public readonly onError: (event: Event, error: unknown) => void,
   ) {}
 }
 
@@ -25,7 +33,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   public static mix = createPrototypeMixer(function () {
     mixinUseScope(ListenerBinding);
     mixingBindingLimited(ListenerBinding, () => 'callSource');
-    mixinAstEvaluator(true, true)(ListenerBinding);
+    mixinAstEvaluator(ListenerBinding);
   });
 
   public isBound: boolean = false;
@@ -62,17 +70,23 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     public targetEvent: string,
     options: ListenerBindingOptions,
     modifiedEventHandler: IModifiedEventHandler | null,
+    public strict: boolean,
   ) {
     this.l = locator;
     this._options = options;
     this._modifiedEventHandler = modifiedEventHandler;
   }
 
-  public callSource(event: Event): unknown {
+  public callSource(event: Event): void {
     const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
+    // let result
     let result = astEvaluate(this.ast, this._scope!, this, null);
+    // try {
+    // } catch (ex) {
+    //   console.log(ex);
+    // }
 
     delete overrideContext.$event;
 
@@ -83,8 +97,6 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     if (result !== true && this._options.prevent) {
       event.preventDefault();
     }
-
-    return result;
   }
 
   public handleEvent(event: Event): void {
@@ -95,7 +107,11 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
       }
     }
     if (this._modifiedEventHandler?.(event) !== false) {
-      this.callSource(event);
+      try {
+        this.callSource(event);
+      } catch (ex) {
+        this._options.onError(event, ex);
+      }
     }
   }
 

@@ -1,10 +1,11 @@
+import { isString } from '@aurelia/kernel';
 import {
   type ForOfStatement,
   type Interpolation,
   type IsBindingBehavior,
 } from '@aurelia/expression-parser';
 import { IAttributeComponentDefinition, IElementComponentDefinition } from './interfaces-template-compiler';
-import { createInterface, isString, objectFreeze } from './utilities';
+import { tcCreateInterface, tcObjectFreeze } from './utilities';
 import { AttrSyntax } from './attribute-pattern';
 import { BindingMode } from './binding-mode';
 
@@ -30,7 +31,7 @@ import { BindingMode } from './binding-mode';
 /** @internal */ export const spreadElementProp = 'hp';
 /** @internal */ export const spreadValueBinding = 'svb';
 
-export const InstructionType = /*@__PURE__*/ objectFreeze({
+export const InstructionType = /*@__PURE__*/ tcObjectFreeze({
   hydrateElement,
   hydrateAttribute,
   hydrateTemplateController,
@@ -58,7 +59,7 @@ export type InstructionType = typeof InstructionType[keyof typeof InstructionTyp
 export interface IInstruction {
   readonly type: string;
 }
-export const IInstruction = /*@__PURE__*/createInterface<IInstruction>('Instruction');
+export const IInstruction = /*@__PURE__*/tcCreateInterface<IInstruction>('Instruction');
 
 export function isInstruction(value: unknown): value is IInstruction {
   const type = (value as { type?: string }).type;

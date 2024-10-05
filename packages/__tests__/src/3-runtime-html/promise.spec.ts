@@ -19,6 +19,8 @@ import {
 } from '@aurelia/kernel';
 import {
   Scope,
+} from '@aurelia/runtime';
+import {
   type BindingBehaviorInstance,
   type IBinding,
   valueConverter,

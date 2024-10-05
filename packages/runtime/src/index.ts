@@ -1,4 +1,23 @@
 export {
+  type IAstEvaluator,
+  astAssign,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from './ast.eval';
+
+export {
+  mixinNoopAstEvaluator,
+} from './ast.utilities';
+
+export {
+  Scope,
+  BindingContext,
+  type IBindingContext,
+  type IOverrideContext,
+} from './scope';
+
+export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,
@@ -33,7 +52,7 @@ export {
   IObservation,
   Observation,
   type EffectRunFunc,
-} from './effect-runner';
+} from './observation';
 export {
   type IObservableDefinition,
   observable,
@@ -47,7 +66,6 @@ export {
   ObserverLocator,
   getObserverLookup,
   type ObservableGetter,
-  // type ObservableSetter,
 } from './observer-locator';
 export {
   PrimitiveObserver,

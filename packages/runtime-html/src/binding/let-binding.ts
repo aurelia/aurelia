@@ -5,14 +5,12 @@ import {
   connectable,
   type IObservable,
   type IObserverLocator,
-} from '@aurelia/runtime';
-import { type Scope } from './scope';
-import {
+  type Scope,
   astBind,
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
@@ -30,7 +28,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinUseScope(LetBinding);
     mixingBindingLimited(LetBinding, () => 'updateTarget');
     connectable(LetBinding, null!);
-    mixinAstEvaluator(true)(LetBinding);
+    mixinAstEvaluator(LetBinding);
   });
 
   public isBound: boolean = false;
@@ -59,15 +57,19 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   /** @internal */
   public readonly boundFn = false;
 
+  public strict: boolean;
+
   public constructor(
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
     public ast: IsExpression,
     public targetProperty: string,
-    toBindingContext: boolean = false,
+    toBindingContext: boolean,
+    strict: boolean,
   ) {
     this.l = locator;
     this.oL = observerLocator;
+    this.strict = strict;
     this._toBindingContext = toBindingContext;
   }
 

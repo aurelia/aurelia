@@ -1,13 +1,11 @@
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
-} from '@aurelia/runtime';
-import {
   astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
@@ -20,8 +18,8 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
+  Scope,
 } from '@aurelia/runtime';
-import { type Scope } from './scope';
 import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
@@ -72,7 +70,8 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
-    public mode: BindingMode
+    public mode: BindingMode,
+    public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = observerLocator;
@@ -83,7 +82,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     const ii = expressions.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, this);
+      partBindings[i] = new InterpolationPartBinding(expressions[i], target, targetProperty, locator, observerLocator, strict, this);
     }
   }
 
@@ -185,7 +184,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     mixinUseScope(InterpolationPartBinding);
     mixingBindingLimited(InterpolationPartBinding, () => 'updateTarget');
     connectable(InterpolationPartBinding, null!);
-    mixinAstEvaluator(true)(InterpolationPartBinding);
+    mixinAstEvaluator(InterpolationPartBinding);
   });
 
   // at runtime, mode may be overriden by binding behavior
@@ -216,6 +215,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     public readonly targetProperty: string,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
+    public strict: boolean,
     public readonly owner: InterpolationBinding,
   ) {
     this.l = locator;

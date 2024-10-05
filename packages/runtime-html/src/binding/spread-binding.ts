@@ -1,9 +1,17 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
 import { TaskQueue } from '@aurelia/platform';
-import { IObserverLocator, IObserverLocatorBasedConnectable, connectable } from '@aurelia/runtime';
+import {
+  type IObserverLocator,
+  type IObserverLocatorBasedConnectable,
+  connectable,
+  Scope,
+  type IAstEvaluator,
+  astBind,
+  astEvaluate,
+  astUnbind,
+} from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
-import { IAstEvaluator, astBind, astEvaluate, astUnbind } from '../ast.eval';
 import { ErrorNames, createMappedError } from '../errors';
 import { IPlatform } from '../platform';
 import { IHasController, } from '../renderer';
@@ -13,7 +21,6 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { Scope } from './scope';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -161,7 +168,7 @@ export class SpreadValueBinding implements IBinding {
     mixinUseScope(SpreadValueBinding);
     mixingBindingLimited(SpreadValueBinding, () => 'updateTarget');
     connectable(SpreadValueBinding, null!);
-    mixinAstEvaluator(true, false)(SpreadValueBinding);
+    mixinAstEvaluator(SpreadValueBinding);
   });
 
   /** @internal */
@@ -207,6 +214,7 @@ export class SpreadValueBinding implements IBinding {
     ol: IObserverLocator,
     l: IServiceLocator,
     taskQueue: TaskQueue,
+    public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = ol;
@@ -320,7 +328,8 @@ export class SpreadValueBinding implements IBinding {
             SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,
-            BindingMode.toView
+            BindingMode.toView,
+            this.strict,
           );
         }
         binding.bind(scope);

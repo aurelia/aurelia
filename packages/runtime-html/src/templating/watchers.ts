@@ -1,14 +1,12 @@
 import { areEqual, type IServiceLocator } from '@aurelia/kernel';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
   ConnectableSwitcher,
   ProxyObservable,
-} from '@aurelia/runtime';
-import {
   astEvaluate,
-} from '../ast.eval';
+} from '@aurelia/runtime';
 import { mixinAstEvaluator } from '../binding/binding-utils';
-import { type Scope } from '../binding/scope';
 
 import type {
   ICollectionSubscriber,
@@ -17,9 +15,9 @@ import type {
   IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
+  Scope,
 } from '@aurelia/runtime';
 import type { IWatcherCallback } from '../watch';
-import { IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from '../binding/interfaces-bindings';
 
 const { enter, exit } = ConnectableSwitcher;
@@ -123,7 +121,7 @@ export interface ExpressionWatcher extends IObserverLocatorBasedConnectable, /* 
 export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnectable {
   static {
     connectable(ExpressionWatcher, null!);
-    mixinAstEvaluator(true)(ExpressionWatcher);
+    mixinAstEvaluator(ExpressionWatcher);
   }
 
   public isBound: boolean = false;

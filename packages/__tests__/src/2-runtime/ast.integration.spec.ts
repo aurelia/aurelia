@@ -39,6 +39,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           target,
           'name',
           BindingMode.toView,
+          false,
         );
 
         binding.bind(createScopeForTest(source));
@@ -72,6 +73,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           target,
           'value',
           BindingMode.toView,
+          false,
         );
 
         let handleChangeCallCount = 0;
@@ -131,7 +133,8 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           observerLocator,
           accessScopeExpr,
           'value',
-          true
+          true,
+          false,
         );
 
         binding.bind(scope);
@@ -162,6 +165,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           conditionalExpr,
           'value',
           true,
+          false,
         );
 
         let handleChangeCallCount = 0;

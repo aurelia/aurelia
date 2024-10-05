@@ -36,7 +36,7 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
-} from '@aurelia/runtime-html';
+} from '@aurelia/runtime';
 
 let defined = false;
 export function defineAstMethods() {
@@ -96,6 +96,6 @@ export function defineAstMethods() {
     });
   });
   console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".'
-    + ' Or import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.'
+    + ' Import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.'
   );
 }

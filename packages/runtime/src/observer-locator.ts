@@ -20,7 +20,7 @@ import type {
 } from './interfaces';
 import { ErrorNames, createMappedError } from './errors';
 
-export const propertyAccessor = new PropertyAccessor();
+const propertyAccessor = new PropertyAccessor();
 
 export interface IObjectObservationAdapter {
   getObserver(object: unknown, key: PropertyKey, descriptor: PropertyDescriptor, requestor: IObserverLocator): IObserver | null;

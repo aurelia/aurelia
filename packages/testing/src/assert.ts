@@ -38,7 +38,6 @@ import { getVisibleText } from './specialized-assertions';
 import {
   isError,
   isFunction,
-  isNullOrUndefined,
   isObject,
   isPrimitive,
   isRegExp,
@@ -105,9 +104,7 @@ class Comparison {
       if (key in obj) {
         if (
           !isUndefined(actual)
-          && isString(actual[key])
-          && isRegExp(obj[key])
-          && (obj[key] as RegExp).test(actual[key] as string)
+          && (isString(actual[key]) && isRegExp(obj[key]) && (obj[key] as RegExp).test(actual[key] as string))
         ) {
           this[key] = actual[key];
         } else {
@@ -320,7 +317,7 @@ export async function doesNotReject(
 }
 
 export function ifError(err?: Error): void {
-  if (!isNullOrUndefined(err)) {
+  if (err != null) {
     let message = 'ifError got unwanted exception: ';
     if (isObject(err) && isString(err.message)) {
       if (err.message.length === 0 && err.constructor) {

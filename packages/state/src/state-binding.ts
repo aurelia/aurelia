@@ -1,32 +1,32 @@
 
-import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
+import { IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
   type IAccessor,
   type IObserverLocator,
   AccessorType,
   type IObserverLocatorBasedConnectable,
-  ISubscriber
+  ISubscriber,
+  type IAstEvaluator,
+  type Scope,
+  astEvaluate,
+  type IOverrideContext,
 } from '@aurelia/runtime';
 import {
   BindingMode,
-  type Scope,
-  type IOverrideContext,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,
   State,
-  astEvaluate,
-  IAstEvaluator,
-  IBinding,
+  type IBinding,
 } from '@aurelia/runtime-html';
 import {
   IStore,
   type IStoreSubscriber
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
-import { IsBindingBehavior } from '@aurelia/expression-parser';
 
 const atLayout = AccessorType.Layout;
 const stateActivating = State.activating;
@@ -35,6 +35,12 @@ const stateActivating = State.activating;
  */
 export interface StateBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<object> {
+  static {
+    connectable(StateBinding, null!);
+    mixinAstEvaluator(StateBinding);
+    mixingBindingLimited(StateBinding, () => 'updateTarget');
+  }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -64,6 +70,8 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   /** @internal */
   public readonly boundFn = false;
 
+  public strict: boolean;
+
   public mode: BindingMode = BindingMode.toView;
 
   public constructor(
@@ -75,6 +83,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     target: object,
     prop: PropertyKey,
     store: IStore<object>,
+    strict: boolean,
   ) {
     this._controller = controller;
     this.l = locator;
@@ -84,6 +93,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     this.ast = ast;
     this.target = target;
     this.targetProperty = prop;
+    this.strict = strict;
   }
 
   public updateTarget(value: unknown) {
@@ -235,7 +245,3 @@ type Unsubscribable = {
 const updateTaskOpts: QueueTaskOptions = {
   preempt: true,
 };
-
-connectable(StateBinding, null!);
-mixinAstEvaluator(true)(StateBinding);
-mixingBindingLimited(StateBinding, () => 'updateTarget');

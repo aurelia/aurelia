@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-import { isObject } from '@aurelia/metadata';
 import {
   IContainer,
   InterfaceSymbol,
@@ -32,7 +31,7 @@ import { isNativeFunction } from './functions';
 import { type Class, type Constructable } from './interfaces';
 import { emptyArray } from './platform';
 import { ResourceDefinition, StaticResourceType, resourceBaseName, type ResourceType } from './resource';
-import { getMetadata, isFunction, isString } from './utilities';
+import { getMetadata, isFunction, isObjectOrFunction, isString } from './utilities';
 
 export const registrableMetadataKey = Symbol.for('au:registrable');
 export const DefaultResolver = {
@@ -166,7 +165,7 @@ export class Container implements IContainer {
 
     for (; i < ii; ++i) {
       current = params[i];
-      if (!isObject(current)) {
+      if (!isObjectOrFunction(current)) {
         continue;
       }
       if (isRegistry(current)) {
@@ -214,7 +213,7 @@ export class Container implements IContainer {
         jj = keys.length;
         for (; j < jj; ++j) {
           value = current[keys[j]];
-          if (!isObject(value)) {
+          if (!isObjectOrFunction(value)) {
             continue;
           }
           // note: we could remove this if-branch and call this.register directly

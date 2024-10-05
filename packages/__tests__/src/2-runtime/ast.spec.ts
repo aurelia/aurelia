@@ -1,6 +1,5 @@
 import { IServiceLocator, Writable, IIndexable } from '@aurelia/kernel';
 import {
-  eachCartesianJoin,
   eachCartesianJoinFactory,
   createScopeForTest,
   MockTracingExpression,
@@ -39,8 +38,15 @@ import {
   Unparser,
   AccessBoundaryExpression,
 } from '@aurelia/expression-parser';
-import { IObserverLocatorBasedConnectable } from '@aurelia/runtime';
-import { type IAstEvaluator, astAssign, astEvaluate, astBind, IBinding, Scope } from '@aurelia/runtime-html';
+import {
+  IObserverLocatorBasedConnectable,
+  type IAstEvaluator,
+  astAssign,
+  astEvaluate,
+  astBind,
+  Scope
+} from '@aurelia/runtime';
+import { IBinding } from '@aurelia/runtime-html';
 
 const $false = PrimitiveLiteralExpression.$false;
 const $true = PrimitiveLiteralExpression.$true;
@@ -63,11 +69,11 @@ const dummyLocatorThatReturnsNull = {
 const dummyBinding = {
   observe: () => { return; },
   locator: dummyLocator
-} as unknown as IBinding & IObserverLocatorBasedConnectable;
+} as unknown as IBinding & IObserverLocatorBasedConnectable & IAstEvaluator;
 const dummyBindingWithLocatorThatReturnsNull = {
   observe: () => { return; },
   locator: dummyLocatorThatReturnsNull,
-} as unknown as IBinding & IObserverLocatorBasedConnectable;
+} as unknown as IBinding & IObserverLocatorBasedConnectable & IAstEvaluator;
 const dummyScope = Scope.create({});
 
 function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
@@ -78,22 +84,6 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
       });
     }
   });
-}
-
-function throwsOn<
-  TMethod extends typeof astEvaluate | typeof astAssign | typeof astBind,
->(method: TMethod, msg: string, ...args: Parameters<TMethod>): void {
-  let err = null;
-  try {
-    // (expr as any)[method](...args);
-    (method as any)(...args);
-  } catch (e) {
-    err = e;
-  }
-  assert.notStrictEqual(err, null, 'err');
-  if (msg?.length) {
-    assert.includes(err.message, msg, 'err.message.includes(msg)');
-  }
 }
 
 describe('2-runtime/ast.spec.ts', function () {
@@ -393,19 +383,19 @@ describe('2-runtime/ast.spec.ts', function () {
     // });
 
     describe('ValueConverterExpression', function () {
-      describe('evaluate() throws when returned converter is null', function () {
+      describe('evaluate() does not throw when returned converter is null', function () {
         for (const [text, expr] of SimpleValueConverterList) {
           it(`${text}, undefined`, function () {
-            throwsOn(astEvaluate, `AUR0103:b`, expr, dummyScope, dummyLocatorThatReturnsNull, null);
+            assert.doesNotThrow(() => astEvaluate(expr, dummyScope, dummyLocatorThatReturnsNull, null));
             // throwsOn(expr, 'evaluate', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
           });
         }
       });
 
-      describe('assign() throws when returned converter is null', function () {
+      describe('assign() does not throw when returned converter is null', function () {
         for (const [text, expr] of SimpleValueConverterList) {
           it(`${text}, null`, function () {
-            throwsOn(astAssign, `AUR0103:b`, expr, dummyScope, dummyLocatorThatReturnsNull, null);
+            assert.doesNotThrow(() => astAssign(expr, dummyScope, dummyLocatorThatReturnsNull, null));
             // throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
           });
         }
@@ -413,10 +403,10 @@ describe('2-runtime/ast.spec.ts', function () {
     });
 
     describe('BindingBehaviorExpression', function () {
-      describe('bind() throws when returned behavior is null', function () {
+      describe('bind() does not throws when evaluator does not implement bindBehavior', function () {
         for (const [text, expr] of SimpleBindingBehaviorList) {
           it(`${text}, undefined`, function () {
-            throwsOn(astBind, `AUR0101:b`, expr, dummyScope, dummyBindingWithLocatorThatReturnsNull);
+            assert.doesNotThrow(() => astBind(expr, dummyScope, dummyBindingWithLocatorThatReturnsNull));
             // throwsOn(expr, 'bind', `BindingBehavior named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyBindingWithLocatorThatReturnsNull);
           });
         }
@@ -518,33 +508,33 @@ describe('2-runtime/ast.spec.ts', function () {
       });
     });
 
-    describe('does not attempt to observe property when object is primitive', function () {
-      const objects: [string, any][] = [
-        [`     null`, null],
-        [`undefined`, undefined],
-        [`       ''`, ''],
-        [`1`, 1],
-        [`     true`, true],
-        [`    false`, false],
-        [` Symbol()`, Symbol()]
-      ];
-      const keys: [string, any][] = [
-        [`[0]  `, new PrimitiveLiteralExpression(0)],
-        [`['a']`, new PrimitiveLiteralExpression('a')]
-      ];
-      const inputs: [typeof objects, typeof keys] = [objects, keys];
+    // describe('does not attempt to observe property when object is primitive', function () {
+    //   const objects: [string, any][] = [
+    //     [`     null`, null],
+    //     [`undefined`, undefined],
+    //     [`       ''`, ''],
+    //     [`1`, 1],
+    //     [`     true`, true],
+    //     [`    false`, false],
+    //     [` Symbol()`, Symbol()]
+    //   ];
+    //   const keys: [string, any][] = [
+    //     [`[0]  `, new PrimitiveLiteralExpression(0)],
+    //     [`['a']`, new PrimitiveLiteralExpression('a')]
+    //   ];
+    //   const inputs: [typeof objects, typeof keys] = [objects, keys];
 
-      eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
-          const binding = new MockBinding();
-          astEvaluate(sut, scope, dummyLocator, binding);
-          assert.strictEqual(binding.calls.length, 1);
-          assert.strictEqual(binding.calls[0][0], 'observe');
-        });
-      }));
-    });
+    //   eachCartesianJoin(inputs, (([t1, obj], [t2, key]) => {
+    //     it(`${t1}${t2}`, function () {
+    //       const scope = createScopeForTest({ foo: obj });
+    //       const sut = new AccessKeyedExpression(new AccessScopeExpression('foo', 0), key);
+    //       const binding = new MockBinding();
+    //       astEvaluate(sut, scope, dummyLocator, binding);
+    //       assert.strictEqual(binding.calls.length, 1);
+    //       assert.strictEqual(binding.calls[0][0], 'observe');
+    //     });
+    //   }));
+    // });
   });
 
   describe('AccessMemberExpression', function () {
@@ -645,7 +635,19 @@ describe('2-runtime/ast.spec.ts', function () {
         const scope = createScopeForTest({ foo: obj });
         const evaluator = { strict: true } as unknown as IAstEvaluator;
         const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-        const actual = astEvaluate(sut, scope, evaluator , null);
+        let thrown = false;
+        const actual = (() => {
+          try {
+            return astEvaluate(sut, scope, evaluator , null);
+          } catch {
+            thrown = true;
+            return undefined;
+          }
+        })();
+        if (obj == null) {
+          assert.strictEqual(thrown, true, `thrown`);
+          return;
+        }
         if (canHaveProperty) {
           assert.strictEqual(actual, value, `actual`);
         } else {
@@ -653,17 +655,17 @@ describe('2-runtime/ast.spec.ts', function () {
         }
         const binding = new MockBinding();
         astEvaluate(sut, scope, dummyLocator, binding);
-        if (canHaveProperty) {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 2, `binding.calls.filter(c => c[0] === 'observe').length`);
-        } else {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
-        }
+        assert.strictEqual(
+          binding.calls.filter(c => c[0] === 'observe').length,
+          2,
+          `binding.calls.filter(c => c[0] === 'observe').length`
+        );
 
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          astAssign(sut, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          astAssign(sut, scope, null, 42);// }
+          assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+          assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
         }
       });
 
@@ -672,35 +674,32 @@ describe('2-runtime/ast.spec.ts', function () {
         const evaluator = { strict: false } as unknown as IAstEvaluator;
         const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
         const actual = astEvaluate(sut, scope, evaluator, null);
-        if (canHaveProperty) {
-          if (obj == null) {
-            assert.strictEqual(actual, '', `actual`);
-          } else {
-            assert.strictEqual(actual, value, `actual`);
-          }
-        } else {
-          if (obj == null) {
-            assert.strictEqual(actual, '', `actual`);
-          }
+        if (obj == null) {
+          assert.strictEqual(actual, undefined, `actual`);
+        } else if (canHaveProperty) {
+          assert.strictEqual(actual, value, `actual`);
         }
         const binding = new MockBinding();
         astEvaluate(sut, scope, dummyLocator, binding);
-        if (canHaveProperty) {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 2, `binding.calls.filter(c => c[0] === 'observe').length`);
-        } else {
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
-        }
+        assert.strictEqual(
+          binding.calls.filter(c => c[0] === 'observe').length,
+          obj == null ? 1 : 2,
+          `binding.calls.filter(c => c[0] === 'observe').length`
+        );
 
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
           astAssign(sut, scope, null, 42);
-          assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          if (obj == null) {
+            assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          } else {
+            assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
+            assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
+          }
         }
       });
-
-    })
-    );
+    }));
 
     it('evaluates member on bindingContext', function () {
       const scope = createScopeForTest({ foo: { bar: 'baz' } });
@@ -731,54 +730,54 @@ describe('2-runtime/ast.spec.ts', function () {
       assert.strictEqual(astAssign(expression, scope, null, 'bang'), 'bang', `astAssign(expression, scope, null, 'bang')`);
     });
 
-    describe('does not attempt to observe property when object is falsey', function () {
-      const objects2: [string, any][] = [
-        [`     null`, null],
-        [`undefined`, undefined],
-        [`       ''`, ''],
-        [`    false`, false]
-      ];
-      const props2: [string, any][] = [
-        [`.0`, 0],
-        [`.a`, 'a']
-      ];
-      const inputs2: [typeof objects2, typeof props2, boolean[]] = [objects2, props2, [true, false]];
+    // describe('does not attempt to observe property when object is falsey', function () {
+    //   const objects2: [string, any][] = [
+    //     [`     null`, null],
+    //     [`undefined`, undefined],
+    //     [`       ''`, ''],
+    //     [`    false`, false]
+    //   ];
+    //   const props2: [string, any][] = [
+    //     [`.0`, 0],
+    //     [`.a`, 'a']
+    //   ];
+    //   const inputs2: [typeof objects2, typeof props2, boolean[]] = [objects2, props2, [true, false]];
 
-      eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          astEvaluate(sut, scope, dummyLocator, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
-        });
-      }));
-    });
+    //   eachCartesianJoin(inputs2, (([t1, obj], [t2, prop]) => {
+    //     it(`${t1}${t2}`, function () {
+    //       const scope = createScopeForTest({ foo: obj });
+    //       const sut = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+    //       const binding = new MockBinding();
+    //       astEvaluate(sut, scope, dummyLocator, binding);
+    //       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
+    //     });
+    //   }));
+    // });
 
-    describe('does not observe if object does not / cannot have the property', function () {
-      const objects3: [string, any][] = [
-        [`        1`, 1],
-        [`     true`, true],
-        [` Symbol()`, Symbol()]
-      ];
+    // describe('does not observe if object does not / cannot have the property', function () {
+    //   const objects3: [string, any][] = [
+    //     [`        1`, 1],
+    //     [`     true`, true],
+    //     [` Symbol()`, Symbol()]
+    //   ];
 
-      const props3: [string, any][] = [
-        [`.0`, 0],
-        [`.a`, 'a']
-      ];
+    //   const props3: [string, any][] = [
+    //     [`.0`, 0],
+    //     [`.a`, 'a']
+    //   ];
 
-      const inputs3: [typeof objects3, typeof props3, boolean[]] = [objects3, props3, [true, false]];
+    //   const inputs3: [typeof objects3, typeof props3, boolean[]] = [objects3, props3, [true, false]];
 
-      eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
-        it(`${t1}${t2}`, function () {
-          const scope = createScopeForTest({ foo: obj });
-          const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
-          const binding = new MockBinding();
-          astEvaluate(expression2, scope, dummyLocator, binding);
-          assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
-        });
-      }));
-    });
+    //   eachCartesianJoin(inputs3, (([t1, obj], [t2, prop]) => {
+    //     it(`${t1}${t2}`, function () {
+    //       const scope = createScopeForTest({ foo: obj });
+    //       const expression2 = new AccessMemberExpression(new AccessScopeExpression('foo', 0), prop);
+    //       const binding = new MockBinding();
+    //       astEvaluate(expression2, scope, dummyLocator, binding);
+    //       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 1, `binding.calls.filter(c => c[0] === 'observe').length`);
+    //     });
+    //   }));
+    // });
   });
 
   describe('AccessScopeExpression', function () {
@@ -1022,19 +1021,19 @@ describe('2-runtime/ast.spec.ts', function () {
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $null);
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'a', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'anull', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $null, new PrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'b', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'nullb', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression('a'), $undefined);
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'a', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'aundefined', `astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression('b'));
       scope = createScopeForTest({});
-      assert.strictEqual(astEvaluate(expression, scope, null, null), 'b', `astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(astEvaluate(expression, scope, null, null), 'undefinedb', `astEvaluate(expression, scope, null, null)`);
     });
 
     it(`adds numbers`, function () {
@@ -1052,11 +1051,11 @@ describe('2-runtime/ast.spec.ts', function () {
 
       expression = new BinaryExpression('+', new PrimitiveLiteralExpression(1), $undefined);
       scope = createScopeForTest({});
-      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), false, `isNaN(astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
 
       expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
       scope = createScopeForTest({});
-      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), false, `isNaN(astEvaluate(expression, scope, null, null)`);
+      assert.strictEqual(isNaN(astEvaluate(expression, scope, null, null) as number), true, `isNaN(astEvaluate(expression, scope, null, null)`);
     });
 
     it(`concats strings - STRICT`, function () {
@@ -1302,10 +1301,10 @@ describe('2-runtime/ast.spec.ts', function () {
       const s2 = createScopeForTest({ foo: {} });
       const s3 = createScopeForTest({ foo: { bar: undefined } });
       const s4 = createScopeForTest({ foo: { bar: null } });
-      assert.throws(() => astEvaluate(expression, s1, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s2, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s3, { strictFnCall: true }, null));
-      assert.throws(() => astEvaluate(expression, s4, { strictFnCall: true }, null));
+      assert.throws(() => astEvaluate(expression, s1, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s2, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s3, { strict: true }, null));
+      assert.throws(() => astEvaluate(expression, s4, { strict: true }, null));
     });
   });
 
@@ -1339,8 +1338,7 @@ describe('2-runtime/ast.spec.ts', function () {
       astEvaluate(foo, scope, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 0, `binding.calls.filter(c => c[0] === 'observe').length`);
       astEvaluate(hello, scope, dummyLocator, binding);
-      assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observe', scope.bindingContext, 'arg'], 'binding.calls[0]');
+      assert.strictEqual(binding.calls.length, 0, 'binding.calls.length');
     });
 
     it(`connects defined property on overrideContext`, function () {
@@ -1363,8 +1361,8 @@ describe('2-runtime/ast.spec.ts', function () {
       astEvaluate(foo, scope, dummyLocator, binding);
       assert.strictEqual(binding.calls.filter(c => c[0] === 'observe').length, 0, `binding.calls.filter(c => c[0] === 'observe').length`);
       astEvaluate(hello, scope, dummyLocator, binding);
-      assert.strictEqual(binding.calls.length, 1, 'binding.calls.length');
-      assert.deepStrictEqual(binding.calls[0], ['observe', scope.bindingContext, 'arg'], 'binding.calls[0]');
+      // no args length = 0
+      assert.strictEqual(binding.calls.length, 0, 'binding.calls.length');
     });
 
     it(`evaluates defined property on first ancestor bindingContext`, function () {
@@ -1538,7 +1536,7 @@ describe('2-runtime/ast.spec.ts', function () {
         { expr: new UnaryExpression('typeof', $obj), expected: 'object' },
         { expr: new UnaryExpression('typeof', $this), expected: 'object' },
         { expr: new UnaryExpression('typeof', $parent), expected: 'undefined' },
-        { expr: new UnaryExpression('typeof', new AccessScopeExpression('foo', 0)), expected: 'string' }
+        { expr: new UnaryExpression('typeof', new AccessScopeExpression('foo', 0)), expected: 'undefined' }
       ];
       const scope: Scope = createScopeForTest({});
 

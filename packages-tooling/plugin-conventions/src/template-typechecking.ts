@@ -48,6 +48,7 @@ export function createTypeCheckedTemplate(rawHtml: string, classNames: string[],
     html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent(); // + rawHtml.slice(loc.endOffset);
     lastIndex = loc.endOffset;
   });
+  html += rawHtml.slice(lastIndex);
 
   const output = `
 ${isJs ? '' : `type ${accessTypeIdentifier} = ${accessType};`}

@@ -2313,7 +2313,7 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
       });
       // TODO: data-type of switch and cases must match
 
-      it(`template controller - repeat string[] - pass - language: ${lang}`, function () {
+      it(`template controller - repeat primitive array - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = `<template repeat.for="item of prop">\${item.toLowerCase()}</template>`;
@@ -2336,7 +2336,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
         assertSuccess(entry, result.code);
       });
 
-      it(`template controller - repeat string[] - fail - language: ${lang}`, function () {
+      it(`template controller - repeat primitive array - fail - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = `<template repeat.for="item of prop">\${item.tolowercase()}</template>`;
@@ -2359,7 +2359,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
         assertFailure(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
       });
 
-      it(`template controller - multiple repeats - pass - language: ${lang}`, function () {
+      it(`template controller - multiple repeats - primitive arrays - same declaration - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = `<template repeat.for="item of prop1">\${item.toLowerCase()}</template><template repeat.for="item of prop2">\${item.toExponential(2)}</template>`;
@@ -2383,6 +2383,212 @@ ${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
           }, options);
 
         assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - multiple repeats - primitive arrays - different declarations - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item1 of prop1">\${item1.toLowerCase()}</template><template repeat.for="item2 of prop2">\${item2.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
+
+${isTs ? '' : '/** @type {number[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - multiple repeats - primitive arrays - fail - incorrect declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item1 of prop1">\${item1.toLowerCase()}</template><template repeat.for="item2 of prop2">\${item.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
+
+${isTs ? '' : '/** @type {number[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'item' does not exist on type '.*Foo.*'/]);
+      });
+
+      it(`template controller - multiple repeats - primitive arrays - fail - incorrect usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item1 of prop1">\${item1.toLowerCase()}</template><template repeat.for="item2 of prop2">\${item2.toexponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
+
+${isTs ? '' : '/** @type {number[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
+      });
+
+      it(`template controller - repeat object[] - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.x.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Bar[]} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat object[] - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.x.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Bar[]} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'x' does not exist on type 'Bar'/]);
+      });
+
+      it(`template controller - multiple repeats - object arrays - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop1">\${item.x.toLowerCase()}</template><template repeat.for="item of prop2">\${item.y.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Bar[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
+
+${isTs ? '' : '/** @type {Baz[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+}
+
+class Baz {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - multiple repeats - object arrays - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop1">\${item.x.toLowerCase()}</template><template repeat.for="item of prop2">\${item.y.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Bar[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
+
+${isTs ? '' : '/** @type {Baz[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+}
+
+class Baz {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Baz'/]);
       });
     }
   });

@@ -10,6 +10,7 @@ import {
 } from '@aurelia/template-compiler';
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
+import { modifyCode } from './modify-code';
 
 type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTextNode = DefaultTreeAdapterMap['textNode'];
@@ -17,6 +18,24 @@ type Template = DefaultTreeAdapterMap['template'];
 type Location = Token.ElementLocation;
 
 const reservedPrimitiveLiterals: readonly string[] = ['true', 'false', 'null', 'undefined', ''];
+
+export function prependUtilityTypes(m: ReturnType<typeof modifyCode>, isJs: boolean) {
+  m.prepend(`// @ts-check
+${isJs
+    ?
+    `/**
+  * @template TCollection
+  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : never} CollectionElement
+  */`
+    :
+    `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
+      ? TElement
+      : TCollection extends Set<infer TElement>
+        ? TElement
+        : never;`}
+`
+  );
+}
 
 export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
   const classUnion = `(${classNames.join('|')})`;
@@ -45,7 +64,7 @@ export function createTypeCheckedTemplate(rawHtml: string, classNames: string[],
   let html = '';
   let lastIndex = 0;
   toReplace.forEach(({ loc, modifiedContent }) => {
-    html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent(); // + rawHtml.slice(loc.endOffset);
+    html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent();
     lastIndex = loc.endOffset;
   });
   html += rawHtml.slice(lastIndex);
@@ -87,7 +106,7 @@ function __typecheck_template_${classNames.join('_')}__() {
 
             accessTypeParts.push((acc) => {
               const accExpr = propAccExpr();
-              return `${acc} & { ${decIdent}: ${accExpr}[CollectionPropertyKey<${accExpr}>] }`;
+              return `${acc} & { ${decIdent}: CollectionElement<${accExpr}> }`;
             });
             const declaration = () => `\${${accessIdent}(o => o.${decIdent}, '${rawDecIdent}')}`;
             const iterable = () => `\${${accessIdent}(o => o.${iterIdent}, '${iterIdent}')}`;

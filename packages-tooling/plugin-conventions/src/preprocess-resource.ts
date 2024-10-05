@@ -15,7 +15,7 @@ import { modifyCode } from './modify-code';
 import { nameConvention } from './name-convention';
 import { IFileUnit, IPreprocessOptions, ResourceType } from './options';
 import { resourceName } from './resource-name';
-import { createTypeCheckedTemplate } from './template-typechecking';
+import { createTypeCheckedTemplate, prependUtilityTypes } from './template-typechecking';
 
 const {
   ModifierFlags,
@@ -218,22 +218,6 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
   }
 
   return m.transform();
-}
-
-function prependUtilityTypes(m: ReturnType<typeof modifyCode>, isJs: boolean) {
-  m.prepend(`// @ts-check
-${isJs
-    ?
-    `/**
-  * @template TCollection
-  * @typedef {TCollection extends Array<infer TElement> ? number : never} CollectionPropertyKey
-  */`
-    :
-    `type CollectionPropertyKey<TCollection> = TCollection extends Array<infer TElement>
-    ? number
-    : never;`}
-`
-  );
 }
 
 const jsFilePattern = /\.[m]?js$/;

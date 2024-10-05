@@ -1831,6 +1831,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
       });
 
+      // #region custom-element bindable
       it(`custom-element bindable - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -2041,7 +2042,9 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
       });
+      // #endregion
 
+      // #region custom-attribute bindable
       it(`custom-attribute bindable - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -2167,7 +2170,9 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
       });
+      // #endregion
 
+      // #region template-controller
       it(`template controller - if - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -2313,6 +2318,7 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
       });
       // TODO: data-type of switch and cases must match
 
+      // #region repeat array
       it(`template controller - repeat primitive array - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -2590,6 +2596,113 @@ ${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Baz'/]);
       });
+      // #endregion
+
+      // #region repeat set
+      it(`template controller - repeat primitive set - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Set<string>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat primitive set - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.tolowercase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Set<string>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
+      });
+
+      it(`template controller - repeat Set<object> - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.x.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Set<Bar>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat Set<object> - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.x.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Set<Bar>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+}
+
+class Bar {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'x' does not exist on type 'Bar'/]);
+      });
+      // #endregion
+
+      // #endregion
     }
   });
 

@@ -70,8 +70,13 @@ export class StandardValidator implements IValidator {
           return false;
         }));
         if (instruction.rules !== void 0 && storedRules.length > 0) validationRulesRegistrar.set(object, {rules: storedRules, groups: groups}, instruction.objectTag);
-        const additionalRules: PropertyRule[] = [];
+        let additionalRules: PropertyRule[] = [];
         belongingGroups.forEach((g) => { additionalRules.push(...GroupPropertyRules.findRules(g, propertyName, rules)); });
+        /** Remove duplicates if one property belongs to different groups */
+        additionalRules = additionalRules.reduce((acc: PropertyRule[], rule) => {
+          if (!acc.find((r) => r.property.name === rule.property.name)) acc.push(rule);
+          return acc;
+        }, []);
         return (await Promise.all([propertyRule.validate(object, propertyTag, scope), ...additionalRules.map(async (rule) => rule.validate(object, propertyTag, scope))])).flat();
       }
       return (await propertyRule?.validate(object, propertyTag, scope)) ?? [];

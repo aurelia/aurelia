@@ -2702,6 +2702,31 @@ ${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
       });
       // #endregion
 
+      // #region map
+      it(`template controller - repeat primitive map - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">\${key.toLowerCase()} - \${value}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+      // #endregion
+
       // #endregion
     }
   });

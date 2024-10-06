@@ -1,5 +1,5 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { AccessScopeExpression, ExpressionParser, IsLeftHandSide, Unparser } from '@aurelia/expression-parser';
+import { AccessScopeExpression, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, ExpressionParser, IsLeftHandSide, Unparser } from '@aurelia/expression-parser';
 import {
   DotSeparatedAttributePattern,
   EventAttributePattern,
@@ -22,25 +22,79 @@ const reservedPrimitiveLiterals: readonly string[] = ['true', 'false', 'null', '
 export function prependUtilityTypes(m: ReturnType<typeof modifyCode>, isJs: boolean) {
   m.prepend(`// @ts-check
 ${isJs
-    ?
-    `/**
+      ?
+      `/**
   * @template TCollection
-  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : never} CollectionElement
+  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : never} CollectionElement
   */`
-    :
-    `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
+      :
+      `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
       ? TElement
       : TCollection extends Set<infer TElement>
         ? TElement
-        : never;`}
+        : TCollection extends Map<infer TKey, infer TValue>
+          ? [TKey, TValue]
+          : never;`}
 `
   );
 }
 
-export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
-  const classUnion = `(${classNames.join('|')})`;
-  const accessTypeParts: ((acc: string) => string)[] = [() => classUnion];
+class TypeCheckingContext {
+  public readonly overriddenIdentMap: Map<string, string> = new Map();
+  public readonly decIdentMap: Map<string, number> = new Map();
+  public readonly toReplace: { loc: Location; modifiedContent: () => string }[] = [];
+  public readonly classUnion: string;
+  public readonly accessTypeParts: ((acc: string) => string)[];
+  public readonly accessTypeIdentifier: string;
+  public readonly accessIdent: string;
 
+  private _accessType: string | undefined = void 0;
+  public get accessType(): string { return this._accessType ??= this.accessTypeParts.reduce((acc: string, part) => part(acc), ''); }
+
+  public constructor(
+    public readonly attrParser: IAttributeParser,
+    public readonly exprParser: ExpressionParser,
+    public readonly classNames: string[],
+    public readonly isJs: boolean,
+  ) {
+    this.classUnion = `(${classNames.join('|')})`;
+    this.accessTypeParts = [() => this.classUnion];
+    this.accessTypeIdentifier = `__Access_Type_${classNames.join('_')}__`;
+    this.accessIdent = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
+  }
+
+  public produceTypeCheckedTemplate(rawHtml: string): string {
+    const { accessType, isJs, accessTypeIdentifier, classNames } = this;
+    let html = '';
+    let lastIndex = 0;
+    this.toReplace.forEach(({ loc, modifiedContent }) => {
+      html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent();
+      lastIndex = loc.endOffset;
+    });
+    html += rawHtml.slice(lastIndex);
+
+    const output = `
+${isJs ? '' : `type ${accessTypeIdentifier} = ${accessType};`}
+function __typecheck_template_${classNames.join('_')}__() {
+  ${isJs
+        ? `
+  /**
+   * @template {${accessType}} T
+   * @param {function(T): unknown} typecheck
+   * @param {string} expr
+   * @returns {string}
+   */
+  `
+        : ''}
+  const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
+  return \`${html}\`;
+}\n\n`;
+
+    return output;
+  }
+}
+
+export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true }) as DefaultTreeElement;
   const container = DI.createContainer().register(
     DotSeparatedAttributePattern,
@@ -52,139 +106,147 @@ export function createTypeCheckedTemplate(rawHtml: string, classNames: string[],
   const attrParser = container.get(IAttributeParser);
   const exprParser = container.get(ExpressionParser);
 
-  const overriddenIdentMap: Map<string, string> = new Map();
-  const decIdentMap: Map<string, number> = new Map();
+  const ctx = new TypeCheckingContext(attrParser, exprParser, classNames, isJs);
 
-  const toReplace: { loc: Location; modifiedContent: () => string }[] = [];
-  traverse(tree, processNode);
+  traverse(tree, (node) => processNode(node, ctx));
+  return ctx.produceTypeCheckedTemplate(rawHtml);
+}
 
-  const accessType = accessTypeParts.reduce((acc: string, part) => part(acc), '');
-  const accessTypeIdentifier = `__Access_Type_${classNames.join('_')}__`;
-  const accessIdent = `access${isJs ? '' : `<${accessTypeIdentifier}>`}`;
-  let html = '';
-  let lastIndex = 0;
-  toReplace.forEach(({ loc, modifiedContent }) => {
-    html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent();
-    lastIndex = loc.endOffset;
-  });
-  html += rawHtml.slice(lastIndex);
+function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCheckingContext): void | false {
+  let retVal: void | false = void 0;
+  if ('tagName' in node) {
+    node.attrs?.forEach(attr => {
+      const syntax = ctx.attrParser.parse(attr.name, attr.value);
+      if (syntax.command) {
+        if (syntax.command === 'for') {
+          const expr = ctx.exprParser.parse(attr.value, 'IsIterator');
 
-  const output = `
-${isJs ? '' : `type ${accessTypeIdentifier} = ${accessType};`}
-function __typecheck_template_${classNames.join('_')}__() {
-  ${isJs
-      ? `
-  /**
-   * @template {${accessType}} T
-   * @param {function(T): unknown} typecheck
-   * @param {string} expr
-   * @returns {string}
-   */
-  `
-      : ''}
-  const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
-  return \`${html}\`;
-}\n\n`;
+          const iterIdent = Unparser.unparse(expr.iterable);
+          const propAccExpr = `${ctx.classUnion}['${iterIdent}']`;
 
-  return output;
+          let declaration: () => string;
+          const overriddenIdents: string[] = [];
 
-  function processNode(node: DefaultTreeElement | DefaultTreeTextNode): void | false {
-    let retVal: void | false = void 0;
-    if ('tagName' in node) {
-      node.attrs?.forEach(attr => {
-        const syntax = attrParser.parse(attr.name, attr.value);
-        if (syntax.command) {
-          if (syntax.command === 'for') {
-            const expr = exprParser.parse(attr.value, 'IsIterator');
+          switch (expr.declaration.$kind) {
+            // if this is an array destructuring, it only means that it is a map, as that is the only collection type supported for repeat.for
+            case 'ArrayDestructuring': {
+              const [keyAssignLeaf, valueAssignLeaf] = expr.declaration.list;
+              const [rawKeyIdent, keyIdent] = getArrDestIdent(keyAssignLeaf);
+              const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
 
-            const rawDecIdent = Unparser.unparse(expr.declaration);
-            const decIdent = getIdentifier(rawDecIdent);
-            overriddenIdentMap.set(rawDecIdent, decIdent);
+              ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
+              declaration = () => `\${${ctx.accessIdent}(o => (o.${keyIdent},o.${valueIdent}), '[${rawKeyIdent},${rawValueIdent}]')}`;
+              break;
 
-            const iterIdent = Unparser.unparse(expr.iterable);
-            const propAccExpr = () => `${classUnion}['${iterIdent}']`;
+              // eslint-disable-next-line no-inner-declarations
+              function getArrDestIdent(leafExpr: DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression): [raw: string, ident: string] {
+                switch (leafExpr.$kind) {
+                  case 'DestructuringAssignmentLeaf': {
+                    const rawIdent = leafExpr.target.name;
+                    const ident = getIdentifier(rawIdent, ctx);
+                    ctx.overriddenIdentMap.set(rawIdent, ident);
+                    overriddenIdents.push(rawIdent);
+                    return [rawIdent, ident];
+                  }
+                  default: throw new Error(`Unsupported declaration kind: ${keyAssignLeaf.$kind}`);
+                }
+              }
+            }
+            default: {
+              const rawDecIdent = Unparser.unparse(expr.declaration);
+              const decIdent = getIdentifier(rawDecIdent, ctx);
+              ctx.overriddenIdentMap.set(rawDecIdent, decIdent);
 
-            accessTypeParts.push((acc) => {
-              const accExpr = propAccExpr();
-              return `${acc} & { ${decIdent}: CollectionElement<${accExpr}> }`;
-            });
-            const declaration = () => `\${${accessIdent}(o => o.${decIdent}, '${rawDecIdent}')}`;
-            const iterable = () => `\${${accessIdent}(o => o.${iterIdent}, '${iterIdent}')}`;
+              ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdent}: CollectionElement<${propAccExpr}> }`);
+              declaration = () => `\${${ctx.accessIdent}(o => o.${decIdent}, '${rawDecIdent}')}`;
 
-            toReplace.push({
-              loc: node.sourceCodeLocation!.attrs![attr.name],
-              modifiedContent: () => `${attr.name}="${declaration()} of ${iterable()}"`,
-            });
-
-            // drill down
-            if (node.childNodes) traverse(node, processNode);
-            // For <template> tag
-            if ((node as Template).content?.childNodes) traverse((node as Template).content, processNode);
-
-            overriddenIdentMap.delete(rawDecIdent);
-            retVal = false;
-          } else {
-            // TODO: same stuff as in the #text node??
-            const value = attr.value.length === 0 ? syntax.target : attr.value;
-            if (reservedPrimitiveLiterals.includes(value)) return;
-            toReplace.push({
-              loc: node.sourceCodeLocation!.attrs![attr.name],
-              modifiedContent: () => `${attr.name}="\${${accessIdent}(o => o.${value}, '${value}')}"`
-            });
+              overriddenIdents.push(rawDecIdent);
+              break;
+            }
           }
+
+          const iterable = () => `\${${ctx.accessIdent}(o => o.${iterIdent}, '${iterIdent}')}`;
+
+          ctx.toReplace.push({
+            loc: node.sourceCodeLocation!.attrs![attr.name],
+            modifiedContent: () => `${attr.name}="${declaration()} of ${iterable()}"`,
+          });
+
+          // drill down
+          if (node.childNodes) traverse(node, n => processNode(n, ctx));
+          // For <template> tag
+          if ((node as Template).content?.childNodes) traverse((node as Template).content, n => processNode(n, ctx));
+
+          for (const key of overriddenIdents) {
+            ctx.overriddenIdentMap.delete(key);
+          }
+          retVal = false;
+        } else {
+          // TODO: same stuff as in the #text node??
+          const value = attr.value.length === 0 ? syntax.target : attr.value;
+          if (reservedPrimitiveLiterals.includes(value)) return;
+          ctx.toReplace.push({
+            loc: node.sourceCodeLocation!.attrs![attr.name],
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdent}(o => o.${value}, '${value}')}"`
+          });
         }
-      });
-    } else if (node.nodeName === '#text') {
-      const expr = exprParser.parse(node.value, 'Interpolation');
+      }
+    });
+  } else if (node.nodeName === '#text') {
+    const expr = ctx.exprParser.parse(node.value, 'Interpolation');
 
-      if (expr != null) {
-        const htmlFactories: (() => string)[] = [() => expr.parts[0]];
+    if (expr != null) {
+      const htmlFactories: (() => string)[] = [() => expr.parts[0]];
 
-        expr.expressions.forEach((part, idx) => {
-          const originalExpr = part;
-          while (part.$kind === 'ValueConverter' || part.$kind === 'BindingBehavior') {
-            part = part.expression;
-          }
+      expr.expressions.forEach((part, idx) => {
+        const originalExpr = part;
+        while (part.$kind === 'ValueConverter' || part.$kind === 'BindingBehavior') {
+          part = part.expression;
+        }
 
-          // traverse to the root vm property and rename if required
-          part = structuredClone(part);
-          let object: IsLeftHandSide = part as IsLeftHandSide;
+        // traverse to the root vm property and rename if required
+        part = structuredClone(part);
+        let object: IsLeftHandSide = part as IsLeftHandSide;
+        if (object.$kind === 'AccessScope' && object.ancestor === 0) {
+          const member = object.name;
+          (object as Writable<AccessScopeExpression>).name = ctx.overriddenIdentMap.get(member) ?? member;
+        } else {
           while (!isAccessGlobal(object) && (object.$kind === 'CallMember' || object.$kind === 'AccessMember' || object.$kind === 'AccessKeyed')) {
             object = object.object;
             if (object.$kind === 'AccessScope' && object.ancestor === 0) {
               const member = object.name;
-              (object as Writable<AccessScopeExpression>).name = overriddenIdentMap.get(member) ?? member;
+              (object as Writable<AccessScopeExpression>).name = ctx.overriddenIdentMap.get(member) ?? member;
               break;
             }
           }
-          htmlFactories.push(
-            () => `\${${accessIdent}(o => o.${Unparser.unparse(part).replace(/^\(|\)$/g, '')}, '${Unparser.unparse(originalExpr).replace(/^\(|\)$/g, '')}')}`,
-            () => expr.parts[idx + 1]
-          );
-        });
+        }
+        htmlFactories.push(
+          () => `\${${ctx.accessIdent}(o => o.${Unparser.unparse(part).replace(/^\(|\)$/g, '')}, '${Unparser.unparse(originalExpr).replace(/^\(|\)$/g, '')}')}`,
+          () => expr.parts[idx + 1]
+        );
+      });
 
-        toReplace.push({
-          loc: node.sourceCodeLocation!,
-          modifiedContent: () => htmlFactories.map(factory => factory()).join('')
-        });
-      }
+      ctx.toReplace.push({
+        loc: node.sourceCodeLocation!,
+        modifiedContent: () => htmlFactories.map(factory => factory()).join('')
+      });
     }
-    return retVal;
   }
+  return retVal;
+}
 
-  function getIdentifier(ident: string): string {
-    let count = decIdentMap.get(ident) ?? 0;
-    decIdentMap.set(ident, ++count);
-    return `${ident}${count}`;
-  }
+function getIdentifier(ident: string, ctx: TypeCheckingContext): string {
+  let count = ctx.decIdentMap.get(ident) ?? 0;
+  ctx.decIdentMap.set(ident, ++count);
+  return `${ident}${count}`;
+}
 
-  function isAccessGlobal(ast: IsLeftHandSide): boolean {
-    return ast.$kind === 'AccessGlobal' ||
-      (
-        ast.$kind === 'AccessMember' ||
-        ast.$kind === 'AccessKeyed'
-      ) && ast.accessGlobal;
-  }
+function isAccessGlobal(ast: IsLeftHandSide): boolean {
+  return ast.$kind === 'AccessGlobal' ||
+    (
+      ast.$kind === 'AccessMember' ||
+      ast.$kind === 'AccessKeyed'
+    ) && ast.accessGlobal;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -22,7 +22,7 @@ import {
   RangeRule,
   RegexRule,
   RequiredRule,
-  SizeRule,
+  SizeRule
 } from './rules';
 import { ErrorNames, createMappedError } from './errors';
 

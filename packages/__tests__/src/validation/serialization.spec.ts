@@ -423,6 +423,53 @@ describe('validation/serialization.spec.ts', function () {
 
       assert.deepStrictEqual(actual, expected);
     });
+    it(`works with linked properties`, async function () {
+      const { validationRules, container } = setup();
+      const requiredModelRule = simpleRuleList.find((r) => r.name.includes('required')).modelRule;
+      const regexModelRule = simpleRuleList.find((r) => r.name.includes('regex')).modelRule;
+      const rules = [
+        new ModelBasedRule(
+          {
+            prop1: { displayName: 'prop1', rules: [{ ...requiredModelRule, ...regexModelRule, }], isGroupMember: true },
+            prop2: {
+              subProp1: { displayName: 'prop2 subProp1', rules: [{ ...requiredModelRule, ...regexModelRule, }], isGroupMember: true },
+              subProp2: { displayName: 'prop2 subProp2', rules: [{ ...requiredModelRule }, { ...regexModelRule, }], isGroupMember: true },
+            },
+            prop3: {
+              subProp1: {
+                subSubProp1: { displayName: 'prop3 subProp1 subSubProp1', rules: [{ ...requiredModelRule }], isGroupMember: true }
+              }
+            }
+          }),
+      ];
+      const target = {
+        prop1: void 0,
+        prop2: {
+          subProp1: void 0,
+          subProp2: 'test'
+        },
+        prop3: {
+          subProp1: { subSubProp1: void 0 },
+          subProp2: { subSubProp2: void 0 },
+        }
+      };
+      validationRules.applyModelBasedRules(target, rules, [['prop1', 'prop2.subProp1', ['prop2.subProp2', 'prop3.subProp1.subSubProp1']]]);
+
+      const validator = container.get(IValidator);
+
+      assert.deepStrictEqual(
+        (await validator.validate(new ValidateInstruction(target, 'prop1'))).filter((r) => !r.valid).map((r) => r.toString()),
+        ['prop1 is required.']
+      );
+      assert.deepStrictEqual(
+        (await validator.validate(new ValidateInstruction(target, 'prop3.subProp1.subSubProp1'))).filter((r) => !r.valid).map((r) => r.toString()),
+        ['prop3 subProp1 subSubProp1 is required.', 'prop1 is required.', 'prop2 subProp1 is required.', 'prop2 subProp2 is not correctly formatted.']
+      );
+      assert.deepStrictEqual(
+        (await validator.validate(new ValidateInstruction(target, 'prop2.subProp1'))).filter((r) => !r.valid).map((r) => r.toString()),
+        ['prop2 subProp1 is required.', 'prop1 is required.' , 'prop3 subProp1 subSubProp1 is required.']
+      );
+    });
     it(`works with validationRules`, async function () {
       const { validationRules, container } = setup();
       const requiredModelRule = simpleRuleList.find((r) => r.name.includes('required')).modelRule;

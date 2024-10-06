@@ -95,7 +95,7 @@ With TypeScript support, intellisense is available for both the variants.
 
 This functionality can be useful when a change in one property has to trigger additional validations because the values are intrinsically related.
 Linked properties should be supplied as parameters, which can be strings, property accessors, or arrays of either strings or property accessors.
-When a property changes, the validator triggers additional rules for all linked fields according to their priority order. If properties are grouped in arrays, it indicates they hold equal importance. The order of parameters determines the validation sequence: if validation is triggered by the nth parameter, all properties associated with the previous (nth-1) parameters will be validated. However, if the first parameter initiates validation, subsequent properties will not be checked unless they have already been edited.
+When a property changes, the validator triggers additional rules for all linked fields according to their priority order. If properties are grouped in arrays, it means they are treated as equally important. The order of parameters dictates the validation sequence: when validation is triggered for the nth parameter, all properties linked to the previous (n-1) parameters, as well as any properties within an array parameter, will also be validated. However, when the first parameter initiates validation, subsequent properties will not be checked unless they have already been edited.
 
 ```typescript
 validationRules

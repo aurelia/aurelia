@@ -496,7 +496,7 @@ export interface IValidationRules<TObject extends IValidateable = IValidateable>
    * @param {string} [tag] - Use this tag to remove a specific ruleset. If omitted all rulesets of the object are removed.
    */
   off<TAnotherObject extends IValidateable = IValidateable>(target?: Class<TAnotherObject> | TAnotherObject, tag?: string): void;
-  applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[]): void;
+  applyModelBasedRules(target: IValidateable, rules: ModelBasedRule[], groups?: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): void;
 }
 export const IValidationRules = /*@__PURE__*/DI.createInterface<IValidationRules>('IValidationRules');
 

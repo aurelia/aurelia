@@ -40,6 +40,7 @@ ${isJs
 }
 
 class TypeCheckingContext {
+  // TODO: this is a bit of mess and should a part of the repeat stack frame; keeping it like it is for now to avoid premature optimization
   public readonly overriddenIdentMap: Map<string, string> = new Map();
   public readonly decIdentMap: Map<string, number> = new Map();
   public readonly toReplace: { loc: Location; modifiedContent: () => string }[] = [];
@@ -92,6 +93,13 @@ function __typecheck_template_${classNames.join('_')}__() {
 
     return output;
   }
+
+  public getIdentifier(ident: string): string {
+    const lookup = this.decIdentMap;
+    let count = lookup.get(ident) ?? 0;
+    lookup.set(ident, ++count);
+    return `${ident}${count}`;
+  }
 }
 
 export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
@@ -121,12 +129,13 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         if (syntax.command === 'for') {
           const expr = ctx.exprParser.parse(attr.value, 'IsIterator');
 
-          const iterIdent = Unparser.unparse(expr.iterable);
-          const propAccExpr = `${ctx.classUnion}['${iterIdent}']`;
-
-          let declaration: () => string;
           const overriddenIdents: string[] = [];
 
+          // TODO: determine if this identifier is directly from the view-model or if this from the overriding context
+          const iterIdent = Unparser.unparse(expr.iterable);
+          const propAccExpr = `${ctx.accessTypeIdentifier}['${iterIdent}']`;
+
+          let declaration: () => string;
           switch (expr.declaration.$kind) {
             // if this is an array destructuring, it only means that it is a map, as that is the only collection type supported for repeat.for
             case 'ArrayDestructuring': {
@@ -143,7 +152,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
                 switch (leafExpr.$kind) {
                   case 'DestructuringAssignmentLeaf': {
                     const rawIdent = leafExpr.target.name;
-                    const ident = getIdentifier(rawIdent, ctx);
+                    const ident = ctx.getIdentifier(rawIdent);
                     ctx.overriddenIdentMap.set(rawIdent, ident);
                     overriddenIdents.push(rawIdent);
                     return [rawIdent, ident];
@@ -154,7 +163,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
             }
             default: {
               const rawDecIdent = Unparser.unparse(expr.declaration);
-              const decIdent = getIdentifier(rawDecIdent, ctx);
+              const decIdent = ctx.getIdentifier(rawDecIdent);
               ctx.overriddenIdentMap.set(rawDecIdent, decIdent);
 
               ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdent}: CollectionElement<${propAccExpr}> }`);
@@ -233,12 +242,6 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
     }
   }
   return retVal;
-}
-
-function getIdentifier(ident: string, ctx: TypeCheckingContext): string {
-  let count = ctx.decIdentMap.get(ident) ?? 0;
-  ctx.decIdentMap.set(ident, ++count);
-  return `${ident}${count}`;
 }
 
 function isAccessGlobal(ast: IsLeftHandSide): boolean {

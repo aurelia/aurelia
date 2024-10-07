@@ -2596,6 +2596,8 @@ ${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Baz'/]);
       });
+
+      // TODO: nested repeat
       // #endregion
 
       // #region repeat set
@@ -2724,6 +2726,212 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
           }, options);
 
         assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat primitive map - fail - incorrect key declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">\${k.toLowerCase()} - \${value}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'k' does not exist on type '.*Foo.*'/]);
+      });
+
+      it(`template controller - repeat primitive map - fail - incorrect value declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">\${key.toLowerCase()} - \${v}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'v' does not exist on type '.*Foo.*'/]);
+      });
+
+      it(`template controller - repeat primitive map - fail - incorrect key usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">\${key.tolowercase()} - \${value}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
+      });
+
+      it(`template controller - repeat primitive map - fail - incorrect value usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">\${key.toLowerCase()} - \${value.toexponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
+      });
+
+      it(`template controller - repeat object map - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">(\${key.x},\${key.y}) - (\${value.a},\${value.b})</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<Key, Value>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+}
+
+class Key {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Value {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat object map - fail - incorrect key usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">(\${key.x},\${key.z}) - (\${value.a},\${value.b})</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<Key, Value>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+}
+
+class Key {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Value {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'z' does not exist on type 'Key'/]);
+      });
+
+      it(`template controller - repeat object map - fail - incorrect value usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop">(\${key.x},\${key.y}) - (\${value.a},\${value.c})</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<Key, Value>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+}
+
+class Key {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Value {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'c' does not exist on type 'Value'/]);
       });
       // #endregion
 

@@ -43,7 +43,7 @@ The first argument to the method can be a class or an object instance. The secon
 ```typescript
 export const group = ['name', 'age', 'address'] // the three properties will be validated sequentially
 export const group = ['name', ['age', 'address']] // age and address have the same priority
-export const group = [['name', 'age', 'address']] // no priority assigned, grouped properties will be always checked together
+export const group = [['name', 'age', 'address']] // no priority assigned, grouped properties will always be checked together
 ```
 
 The `ModelBasedRule` is a simple class that describes the ruleset definition or the JSON data that describes the validation rules.

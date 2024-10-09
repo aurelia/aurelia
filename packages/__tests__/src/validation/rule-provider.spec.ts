@@ -425,11 +425,11 @@ describe('validation/rule-provider.spec.ts', function () {
         .ensure((o) => o.age)
         .required();
 
-      const rules1 = validationRulesRegistrar.get(obj1);
-      const rules2 = validationRulesRegistrar.get(obj2);
+      const rules1 = validationRulesRegistrar.get(obj1).rules;
+      const rules2 = validationRulesRegistrar.get(obj2).rules;
 
-      assert.equal(rules1.rules.length, 3, 'error1');
-      const [name1Rule, line1Rule, age1Rule] = rules1.rules;
+      assert.equal(rules1.length, 3, 'error1');
+      const [name1Rule, line1Rule, age1Rule] = rules1;
       assert.equal(name1Rule.property.name, 'name', 'error3');
       assert.instanceOf(name1Rule.$rules[0][0], RequiredRule);
       assert.equal(line1Rule.property.name, 'address.line1', 'error4');
@@ -437,8 +437,8 @@ describe('validation/rule-provider.spec.ts', function () {
       assert.equal(age1Rule.property.name, 'age', 'error5');
       assert.instanceOf(age1Rule.$rules[0][0], RequiredRule);
 
-      assert.equal(rules2.rules.length, 2, 'error2');
-      const [name2Rule, age2Rule] = rules2.rules;
+      assert.equal(rules2.length, 2, 'error2');
+      const [name2Rule, age2Rule] = rules2;
       assert.equal(name2Rule.property.name, 'name', 'error6');
       assert.instanceOf(name2Rule.$rules[0][0], RequiredRule);
       assert.equal(age2Rule.property.name, 'age', 'error7');

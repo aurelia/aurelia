@@ -530,13 +530,12 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
   }
 
   public ensureGroup(...properties: (string | PropertyAccessor | (string | PropertyAccessor)[])[]): PropertyRule {
-    let lastRule: PropertyRule = this.rules[this.rules.length - 1];
+    const latestRule: PropertyRule = this.rules[this.rules.length - 1];
     const newGroup = new GroupPropertyRules();
     const setUpLinkedProperty = (property: string | PropertyAccessor, index: number, group: GroupPropertyRules): LinkedProperty => {
       const name = parsePropertyName(property, this.parser)[0];
       if(group.linkedProperties.some(lp => lp.prop.name === name)) throw new Error(`Duplicate property "${name}" detected in the provided group`);
       const rule: PropertyRule = this.ensure(property);
-      if(index === properties.length) lastRule = rule;
       rule.isGroupMember = true;
       const linkedProp = new LinkedProperty(
         rule.property,
@@ -551,7 +550,7 @@ export class ValidationRules<TObject extends IValidateable = IValidateable> impl
       return p.map((prop) => setUpLinkedProperty(prop, i, newGroup));
     });
     this.groups.push(newGroup);
-    return lastRule;
+    return latestRule;
   }
 
   public on(target: IValidateable, tag?: string) {

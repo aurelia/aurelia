@@ -56,13 +56,18 @@ interface ICapturedImport {
   end: number;
 }
 
+export interface ClassMetadata {
+  name: string;
+  members: string[]; // keeping it simple for now; we can probably do more with this
+}
+
 interface ITemplateMetadata {
   /** Identifier for the HTML import. */
   name?: string;
   /** Path to the module. */
   modulePath?: string;
   inlineTemplate?: string;
-  classNames: string[];
+  classes: ClassMetadata[];
   // TODO(Sayan): we probably don't need the following; remove.
   start?: number;
   end?: number;
@@ -240,11 +245,11 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     if (options.typeCheckTemplate) {
       prependUtilityTypes(m, isJs);
       for (const templateImport of templateMetadata) {
-        const classNames = templateImport.classNames;
+        const classNames = templateImport.classes;
         if (classNames.length === 0) continue;
         emitTypeCheckedTemplate(
           () => templateImport.inlineTemplate ?? unit.readFile?.(templateImport.modulePath!),
-          templateImport.classNames,
+          templateImport.classes,
           isJs
         );
       }
@@ -254,7 +259,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
 
     if (options.typeCheckTemplate) {
       prependUtilityTypes(m, isJs);
-      emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [exportedClassName!], isJs);
+      emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [{ name: exportedClassName!, members: [ /* TODO */] }], isJs);
     }
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
 
@@ -318,10 +323,10 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
 
   return m;
 
-  function emitTypeCheckedTemplate(contentFactory: () => string | undefined, classNames: string[], isJs: boolean): void {
+  function emitTypeCheckedTemplate(contentFactory: () => string | undefined, classes: ClassMetadata[], isJs: boolean): void {
     const htmlContent = contentFactory();
     if (!htmlContent) return;
-    const typeCheckedTemplate = createTypeCheckedTemplate(htmlContent, classNames, isJs);
+    const typeCheckedTemplate = createTypeCheckedTemplate(htmlContent, classes, isJs);
     // console.log(typeCheckedTemplate);
     m.prepend(typeCheckedTemplate);
   }
@@ -351,7 +356,7 @@ function captureTemplateImport(s: Statement, code: string): ITemplateMetadata | 
   ) return {
     name: s.importClause.name.text,
     modulePath: s.moduleSpecifier.text,
-    classNames: [],
+    classes: [],
     start: ensureTokenStart(s.pos, code),
     end: s.end
   };
@@ -371,7 +376,10 @@ function tryCaptureCustomElementDefine(s: Statement, code: string, templateMetad
   ) return false;
 
   const [defn, className] = s.expression.arguments;
-  return isIdentifier(className) && tryCollectTemplateMetadataFromDefinition(defn, className.escapedText.toString(), templateMetadata);
+  if (!isIdentifier(className)) return false;
+
+  const $class: ClassMetadata = { name: className.escapedText.toString(), members: [/* TODO */] };
+  return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 
 // This method mutates runtimeExports.
@@ -418,7 +426,7 @@ function is$auProperty(member: ClassElement): member is PropertyDeclaration {
  * Adds the className to the templateMetadata as per the definition expression.
  * @returns {boolean} `true` if the templateMetadata is updated; else `false`.
  */
-function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefined, className: string, templateMetadata: ITemplateMetadata[]): boolean {
+function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefined, $class: ClassMetadata, templateMetadata: ITemplateMetadata[]): boolean {
   // TODO(typechecking/phase2): support non-object literal.
   if (defnExpr == null || !isObjectLiteralExpression(defnExpr)) return false;
 
@@ -427,7 +435,7 @@ function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefin
     switch (p.kind) {
       case SyntaxKind.ShorthandPropertyAssignment:
         if (p.name.text === 'template') {
-          templateMetadataUpdated = templateMetadata.find(ti => ti.name === 'template')?.classNames.push(className) != null;
+          templateMetadataUpdated = templateMetadata.find(ti => ti.name === 'template')?.classes.push($class) != null;
         }
         break;
       case SyntaxKind.PropertyAssignment: {
@@ -435,11 +443,11 @@ function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefin
         if (isIdentifier(l) && l.text === 'template') {
           const value = p.initializer;
           if (isIdentifier(value)) {
-            templateMetadataUpdated = templateMetadata.find(ti => ti.name === value.text)?.classNames.push(className) != null;
+            templateMetadataUpdated = templateMetadata.find(ti => ti.name === value.text)?.classes.push($class) != null;
           } else if (isStringLiteral(value)) {
             templateMetadata.push({
               inlineTemplate: value.text,
-              classNames: [className],
+              classes: [$class],
             });
             templateMetadataUpdated = true;
           }
@@ -454,7 +462,7 @@ function tryCollectTemplateMetadataFromDefinition(defnExpr: Expression | undefin
   return templateMetadataUpdated;
 }
 
-function tryCollectTemplateMetadataFromStaticTemplate(member: ClassElement, className: string, templateMetadata: ITemplateMetadata[]): boolean {
+function tryCollectTemplateMetadataFromStaticTemplate(member: ClassElement, $class: ClassMetadata, templateMetadata: ITemplateMetadata[]): boolean {
   if (!isStaticPropertyDeclaration(member, 'template')) return false;
   const initializer = member.initializer;
   if (!initializer) return false;
@@ -462,13 +470,13 @@ function tryCollectTemplateMetadataFromStaticTemplate(member: ClassElement, clas
   if (isStringLiteral(initializer)) {
     templateMetadata.push({
       inlineTemplate: initializer.text,
-      classNames: [className],
+      classes: [$class],
     });
     return true;
   }
   // case 2: static template = importedTemplate
   if (isIdentifier(initializer)) {
-    return templateMetadata.find(ti => ti.name === initializer.text)?.classNames.push(className) != null;
+    return templateMetadata.find(ti => ti.name === initializer.text)?.classes.push($class) != null;
   }
   return false;
 }
@@ -523,6 +531,7 @@ function findResource(
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
+  const $class = { name: className, members: [ /* TODO */] };
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
@@ -535,10 +544,10 @@ function findResource(
 
     // map the classes to the template imports to classes - @customElement decorator
     if (resourceType.type === 'customElement') {
-      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(dArgs[0], className, templateMetadata);
+      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(dArgs[0], $class, templateMetadata);
       for (const m of node.members) {
         // static template property
-        tryCollectTemplateMetadataFromStaticTemplate(m, className, templateMetadata);
+        tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
       }
     }
 
@@ -576,9 +585,9 @@ function findResource(
       for (const m of node.members) {
         // static $au property and/or static template property
         if (is$auProperty(m)) {
-          tryCollectTemplateMetadataFromDefinition(m.initializer, className, templateMetadata);
+          tryCollectTemplateMetadataFromDefinition(m.initializer, $class, templateMetadata);
         }
-        tryCollectTemplateMetadataFromStaticTemplate(m, className, templateMetadata);
+        tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
       }
 
       if (!isImplicitResource || !filePair) return;

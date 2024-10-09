@@ -11,6 +11,7 @@ import {
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 import { modifyCode } from './modify-code';
+import { ClassMetadata } from './preprocess-resource';
 
 type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTextNode = DefaultTreeAdapterMap['textNode'];
@@ -55,9 +56,10 @@ class TypeCheckingContext {
   public constructor(
     public readonly attrParser: IAttributeParser,
     public readonly exprParser: ExpressionParser,
-    public readonly classNames: string[],
+    public readonly classes: ClassMetadata[],
     public readonly isJs: boolean,
   ) {
+    const classNames = classes.map(c => c.name);
     this.classUnion = `(${classNames.join('|')})`;
     this.accessTypeParts = [() => this.classUnion];
     this.accessTypeIdentifier = `__Access_Type_${classNames.join('_')}__`;
@@ -65,7 +67,7 @@ class TypeCheckingContext {
   }
 
   public produceTypeCheckedTemplate(rawHtml: string): string {
-    const { accessType, isJs, accessTypeIdentifier, classNames } = this;
+    const { accessType, isJs, accessTypeIdentifier, classes } = this;
     let html = '';
     let lastIndex = 0;
     this.toReplace.forEach(({ loc, modifiedContent }) => {
@@ -76,7 +78,7 @@ class TypeCheckingContext {
 
     const output = `
 ${isJs ? '' : `type ${accessTypeIdentifier} = ${accessType};`}
-function __typecheck_template_${classNames.join('_')}__() {
+function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
   ${isJs
         ? `
   /**
@@ -102,7 +104,7 @@ function __typecheck_template_${classNames.join('_')}__() {
   }
 }
 
-export function createTypeCheckedTemplate(rawHtml: string, classNames: string[], isJs: boolean): string {
+export function createTypeCheckedTemplate(rawHtml: string, classes: ClassMetadata[], isJs: boolean): string {
   const tree = parseFragment(rawHtml, { sourceCodeLocationInfo: true }) as DefaultTreeElement;
   const container = DI.createContainer().register(
     DotSeparatedAttributePattern,
@@ -114,7 +116,7 @@ export function createTypeCheckedTemplate(rawHtml: string, classNames: string[],
   const attrParser = container.get(IAttributeParser);
   const exprParser = container.get(ExpressionParser);
 
-  const ctx = new TypeCheckingContext(attrParser, exprParser, classNames, isJs);
+  const ctx = new TypeCheckingContext(attrParser, exprParser, classes, isJs);
 
   traverse(tree, (node) => processNode(node, ctx));
   return ctx.produceTypeCheckedTemplate(rawHtml);

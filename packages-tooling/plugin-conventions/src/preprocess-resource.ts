@@ -95,7 +95,7 @@ type Modification = {
 
 interface IFoundResource {
   type?: ResourceType;
-  className?: string;
+  classMetadata?: ClassMetadata;
   localDep?: string;
   modification?: Modification;
   implicitStatement?: IPos;
@@ -116,7 +116,7 @@ interface IModifyResourceOptions {
   customElementDecorator?: CustomElementDecorator;
   transformHtmlImportSpecifier?: (path: string) => string;
   defineElementInformation?: DefineElementInformation;
-  exportedClassName?: string;
+  exportedClassMetadata?: ClassMetadata;
   typeCheckTemplate: boolean;
   useConventions: boolean;
   templateMetadata: ITemplateMetadata[];
@@ -125,7 +125,7 @@ interface IModifyResourceOptions {
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
   const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
-  let exportedClassName: string | undefined;
+  let exportedClassMetadata: ClassMetadata | undefined;
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
 
@@ -161,7 +161,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
       templateMetadata.push(templateImport);
       return;
     }
-    if (tryCaptureCustomElementDefine(s, unit.contents, templateMetadata)) return;
+    if (tryCaptureCustomElementDefine(s, sf, templateMetadata)) return;
 
     // Only care about export class Foo {...}.
     // Note this convention simply doesn't work for
@@ -170,7 +170,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata);
     if (!resource) return;
     const {
-      className,
+      classMetadata,
       localDep,
       modification,
       implicitStatement,
@@ -185,15 +185,15 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
       ensureTypeIsExported(runtimeImport.names, runtimeImportName);
     }
-    if (className) {
-      exportedClassName = className;
+    if (classMetadata) {
+      exportedClassMetadata = classMetadata;
     }
     if (customName) customElementDecorator = customName;
     if ($defineElementInformation) defineElementInformation = $defineElementInformation;
   });
 
   let m = modifyCode(unit.contents, unit.path);
-  const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
+  const hmrEnabled = options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production';
 
   if (options.enableConventions || hmrEnabled) {
     if (runtimeImport.names.length) {
@@ -210,15 +210,15 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     customElementDecorator,
     transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
     defineElementInformation,
-    exportedClassName,
+    exportedClassMetadata,
     typeCheckTemplate: options.typeCheckTemplate,
     useConventions: options.enableConventions ?? false,
     templateMetadata: templateMetadata
   });
 
-  if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
+  if (options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production') {
     if (options.getHmrCode) {
-      m.append(options.getHmrCode(exportedClassName, unit.path));
+      m.append(options.getHmrCode(exportedClassMetadata.name, unit.path));
     }
   }
 
@@ -234,7 +234,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     customElementDecorator,
     transformHtmlImportSpecifier = s => s,
     defineElementInformation,
-    exportedClassName,
+    exportedClassMetadata,
     useConventions,
     templateMetadata,
   } = options;
@@ -259,7 +259,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
 
     if (options.typeCheckTemplate) {
       prependUtilityTypes(m, isJs);
-      emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [{ name: exportedClassName!, members: [ /* TODO */] }], isJs);
+      emitTypeCheckedTemplate(() => unit.readFile?.(`./${unit.filePair}`), [exportedClassMetadata!], isJs);
     }
     m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
 
@@ -362,7 +362,14 @@ function captureTemplateImport(s: Statement, code: string): ITemplateMetadata | 
   };
 }
 
-function tryCaptureCustomElementDefine(s: Statement, code: string, templateMetadata: ITemplateMetadata[]): boolean {
+function getClassMembers(node: ClassDeclaration): string[] {
+  return node.members.reduce((acc: string[], m: ClassElement) => {
+    if (isIdentifier(m.name!)) acc.push(m.name.escapedText.toString());
+    return acc;
+  }, []);
+}
+
+function tryCaptureCustomElementDefine(s: Statement, sf: SourceFile, templateMetadata: ITemplateMetadata[]): boolean {
   if (!isExpressionStatement(s) || !isCallExpression(s.expression)) return false;
 
   // TODO(typechecking/phase2): support other kind of expressions
@@ -378,7 +385,10 @@ function tryCaptureCustomElementDefine(s: Statement, code: string, templateMetad
   const [defn, className] = s.expression.arguments;
   if (!isIdentifier(className)) return false;
 
-  const $class: ClassMetadata = { name: className.escapedText.toString(), members: [/* TODO */] };
+  const name = className.escapedText.toString();
+  // This is a second pass of the source file; this needs to be optimized. Waiting for feature-completion first.
+  const classDeclaration = sf.statements.find(s => isClassDeclaration(s) && s.name != null && s.name.text === name) as ClassDeclaration;
+  const $class: ClassMetadata = { name, members: getClassMembers(classDeclaration) };
   return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 
@@ -531,7 +541,7 @@ function findResource(
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
-  const $class = { name: className, members: [ /* TODO */] };
+  const $class = { name: className, members: getClassMembers(node) };
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 
@@ -571,7 +581,7 @@ function findResource(
       const customName = dArgs[0];
       return {
         type: resourceType.type,
-        className,
+        classMetadata: $class,
         implicitStatement: { pos: pos, end: node.end },
         customElementDecorator: {
           position: getPosition(decorator, code),
@@ -593,7 +603,7 @@ function findResource(
       if (!isImplicitResource || !filePair) return;
       return {
         type,
-        className,
+        classMetadata: $class,
         implicitStatement: { pos: pos, end: node.end },
         runtimeImportName: type,
       };

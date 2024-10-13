@@ -83,10 +83,12 @@ declare module '*.css'
     assert.deepStrictEqual(errors, [], `Errors: ${errors.join(EOL)}${EOL}Code: ${code}`);
   }
 
-  function assertFailure(entry: string, code: string, expectedErrors: RegExp[], additionalModules: $Module = {}) {
+  function assertFailure(entry: string, code: string, expectedErrors: RegExp[], additionalModules: $Module = {}, isPartial: boolean = false) {
     const errors = compileProcessedCode(entry, { [entry]: code, ...additionalModules });
     const len = expectedErrors.length;
-    assert.strictEqual(errors.length, len, `Mismatch in number of errors.${EOL}Errors: ${errors.join(EOL)}${EOL}Code: ${code}`);
+    if (!isPartial) {
+      assert.strictEqual(errors.length, len, `Mismatch in number of errors.${EOL}Errors: ${errors.join(EOL)}${EOL}Code: ${code}`);
+    }
     for (let i = 0; i < len; i++) {
       const pattern = expectedErrors[i];
       assert.strictEqual(errors.some(e => pattern.test(e)), true, `Expected error not found: ${pattern}${EOL}Errors: ${errors.join(EOL)}${EOL}Code: ${code}`);
@@ -2934,7 +2936,7 @@ ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
         assertFailure(entry, result.code, [/Property 'c' does not exist on type 'Value'/]);
       });
 
-      it.only(`template controller - nested repeat object map - pass - language: ${lang}`, function () {
+      it(`template controller - nested repeat object map - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
@@ -2979,6 +2981,100 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
           }, options);
 
         assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - nested repeat object map - fail - incorrect declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v1">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+}
+
+class Salt {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Lime {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}
+
+class Shot {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+      });
+
+      it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.aa},\${lm.b})</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+}
+
+class Salt {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Lime {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}
+
+class Shot {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
       });
       // #endregion
 
@@ -3080,6 +3176,144 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
           }, options);
 
         assertFailure(entry, result.code, [/Property 'prop1' does not exist on type 'Entry'\./]);
+      });
+
+      it(`template controller - nested repeat object map - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+
+export class Entry {
+${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+}
+
+class Salt {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Lime {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}
+
+class Shot {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+            filePair: markupFile,
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - nested repeat object map - fail - incorrect declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v1">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+
+export class Entry {
+${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+}
+
+class Salt {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Lime {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}
+
+class Shot {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+            filePair: markupFile,
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Entry.*'/], undefined, true);
+      });
+
+      it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.aa},\${lm.b})</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+
+export class Entry {
+${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+}
+
+class Salt {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+}
+
+class Lime {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+}
+
+class Shot {
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+${isTs ? '' : '/** @type {string} */'}
+${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+            filePair: markupFile,
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
       });
     }
   });

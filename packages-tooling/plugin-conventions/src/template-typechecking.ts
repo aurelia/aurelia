@@ -62,7 +62,7 @@ class TypeCheckingContext {
     const classNames = classes.map(c => c.name);
     this.classUnion = `(${classNames.join('|')})`;
     this.accessTypeParts = [() => this.classUnion];
-    this.accessTypeIdentifier = `__Access_Type_${classNames.join('_')}__`;
+    this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
     this.accessIdent = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
   }
 
@@ -82,7 +82,10 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
   ${isJs
         ? `
   /**
-   * @template {${accessType}} T
+   * @typedef {${accessType}} ${accessTypeIdentifier}
+   */
+  /**
+   * @template {${accessTypeIdentifier}} T
    * @param {function(T): unknown} typecheck
    * @param {string} expr
    * @returns {string}
@@ -97,6 +100,9 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
   }
 
   public getIdentifier(ident: string): string {
+    if (this.classes.some(c => c.members.includes(ident))) return ident;
+    if (this.overriddenIdentMap.has(ident)) return this.overriddenIdentMap.get(ident)!;
+
     const lookup = this.decIdentMap;
     let count = lookup.get(ident) ?? 0;
     lookup.set(ident, ++count);
@@ -131,10 +137,13 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         if (syntax.command === 'for') {
           const expr = ctx.exprParser.parse(attr.value, 'IsIterator');
 
+          // TODO: move this to the context class; the cleanup should be something like the frame push and pop
           const overriddenIdents: string[] = [];
 
-          // TODO: determine if this identifier is directly from the view-model or if this from the overriding context
-          const iterIdent = Unparser.unparse(expr.iterable);
+          const rawIterIdent = Unparser.unparse(expr.iterable);
+          const iterIdent = ctx.getIdentifier(rawIterIdent);
+          ctx.overriddenIdentMap.set(rawIterIdent, iterIdent);
+          overriddenIdents.push(rawIterIdent);
           const propAccExpr = `${ctx.accessTypeIdentifier}['${iterIdent}']`;
 
           let declaration: () => string;
@@ -176,7 +185,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
             }
           }
 
-          const iterable = () => `\${${ctx.accessIdent}(o => o.${iterIdent}, '${iterIdent}')}`;
+          const iterable = () => `\${${ctx.accessIdent}(o => o.${iterIdent}, '${rawIterIdent}')}`;
 
           ctx.toReplace.push({
             loc: node.sourceCodeLocation!.attrs![attr.name],

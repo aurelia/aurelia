@@ -2893,7 +2893,36 @@ ${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Baz'/]);
       });
 
-      // TODO: nested repeat
+      it(`template controller - nested repeats - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="node of nodes">\${node.x} <template repeat.for="child of node.children">\${child.x}</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+}
+
+class Node {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
       // #endregion
 
       // #region repeat set

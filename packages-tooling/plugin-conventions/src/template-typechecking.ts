@@ -1,5 +1,15 @@
 import { DI, Writable } from '@aurelia/kernel';
-import { AccessScopeExpression, DestructuringAssignmentExpression, DestructuringAssignmentRestExpression, DestructuringAssignmentSingleExpression, ExpressionParser, IsLeftHandSide, Unparser } from '@aurelia/expression-parser';
+import {
+  AccessScopeExpression,
+  DestructuringAssignmentExpression,
+  DestructuringAssignmentRestExpression,
+  DestructuringAssignmentSingleExpression,
+  ExpressionParser,
+  IsAssign,
+  IsBindingBehavior,
+  IsLeftHandSide,
+  Unparser,
+} from '@aurelia/expression-parser';
 import {
   DotSeparatedAttributePattern,
   EventAttributePattern,
@@ -141,10 +151,13 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
           const overriddenIdents: string[] = [];
 
           const rawIterIdent = Unparser.unparse(expr.iterable);
-          const iterIdent = ctx.getIdentifier(rawIterIdent);
-          ctx.overriddenIdentMap.set(rawIterIdent, iterIdent);
-          overriddenIdents.push(rawIterIdent);
-          const propAccExpr = `${ctx.accessTypeIdentifier}['${iterIdent}']`;
+          const [iterIdent, path] = mutateAccessScope(expr.iterable, member => {
+            const newName = ctx.getIdentifier(member);
+            ctx.overriddenIdentMap.set(member, newName);
+            overriddenIdents.push(member);
+            return newName;
+          });
+          const propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
 
           let declaration: () => string;
           switch (expr.declaration.$kind) {
@@ -185,7 +198,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
             }
           }
 
-          const iterable = () => `\${${ctx.accessIdent}(o => o.${iterIdent}, '${rawIterIdent}')}`;
+          const iterable = () => `\${${ctx.accessIdent}(o => o.${unparse(iterIdent)}, '${rawIterIdent}')}`;
 
           ctx.toReplace.push({
             loc: node.sourceCodeLocation!.attrs![attr.name],
@@ -220,28 +233,9 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
       expr.expressions.forEach((part, idx) => {
         const originalExpr = part;
-        while (part.$kind === 'ValueConverter' || part.$kind === 'BindingBehavior') {
-          part = part.expression;
-        }
-
-        // traverse to the root vm property and rename if required
-        part = structuredClone(part);
-        let object: IsLeftHandSide = part as IsLeftHandSide;
-        if (object.$kind === 'AccessScope' && object.ancestor === 0) {
-          const member = object.name;
-          (object as Writable<AccessScopeExpression>).name = ctx.overriddenIdentMap.get(member) ?? member;
-        } else {
-          while (!isAccessGlobal(object) && (object.$kind === 'CallMember' || object.$kind === 'AccessMember' || object.$kind === 'AccessKeyed')) {
-            object = object.object;
-            if (object.$kind === 'AccessScope' && object.ancestor === 0) {
-              const member = object.name;
-              (object as Writable<AccessScopeExpression>).name = ctx.overriddenIdentMap.get(member) ?? member;
-              break;
-            }
-          }
-        }
+        [part] = mutateAccessScope(part, member => ctx.overriddenIdentMap.get(member) ?? member);
         htmlFactories.push(
-          () => `\${${ctx.accessIdent}(o => o.${Unparser.unparse(part).replace(/^\(|\)$/g, '')}, '${Unparser.unparse(originalExpr).replace(/^\(|\)$/g, '')}')}`,
+          () => `\${${ctx.accessIdent}(o => o.${unparse(part)}, '${unparse(originalExpr)}')}`,
           () => expr.parts[idx + 1]
         );
       });
@@ -253,6 +247,41 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
     }
   }
   return retVal;
+}
+
+function unparse(expr: IsBindingBehavior): string {
+  return Unparser.unparse(expr).replace(/^\(|\)$/g, '');
+}
+
+function mutateAccessScope(expr: IsBindingBehavior, memberNameResolver: (member: string) => string): [expr: IsAssign, path: string[]] {
+  while (expr.$kind === 'ValueConverter' || expr.$kind === 'BindingBehavior') {
+    expr = expr.expression;
+  }
+
+  // traverse to the root vm property and rename if required
+  expr = structuredClone(expr);
+  let object: IsLeftHandSide = expr as IsLeftHandSide;
+  const path: string[] = [];
+  if (object.$kind === 'AccessScope' && object.ancestor === 0) {
+    const member = object.name;
+    const prop = (object as Writable<AccessScopeExpression>).name = memberNameResolver(member);
+    path.push(prop);
+  } else {
+    while (!isAccessGlobal(object) && (object.$kind === 'CallMember' || object.$kind === 'AccessMember' || object.$kind === 'AccessKeyed')) {
+      switch (object.$kind) {
+        case 'AccessMember': path.push(object.name); break;
+        default: break; // TODO(Sayan): implement other kinds
+      }
+      object = object.object;
+      if (object.$kind === 'AccessScope' && object.ancestor === 0) {
+        const member = object.name;
+        const prop = (object as Writable<AccessScopeExpression>).name = memberNameResolver(member);
+        path.push(prop);
+        break;
+      }
+    }
+  }
+  return [expr, path.reverse()];
 }
 
 function isAccessGlobal(ast: IsLeftHandSide): boolean {

@@ -1237,6 +1237,159 @@ export class Foo {
             });
           });
         });
+
+        it(`template controller - nested repeat object map - pass - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  ${isTs ? `import type { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';` : ''}
+  import template from './${markupFile}';
+
+  export class Foo {
+    ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' : ''} = {
+      type: 'custom-element',
+      name: 'foo',
+      template,
+    };
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it(`template controller - nested repeat object map - fail - incorrect declaration - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v1">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  ${isTs ? `import type { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';` : ''}
+  import template from './${markupFile}';
+
+  export class Foo {
+    ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' : ''} = {
+      type: 'custom-element',
+      name: 'foo',
+      template,
+    };
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+        });
+
+        it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.aa},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  ${isTs ? `import type { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';` : ''}
+  import template from './${markupFile}';
+
+  export class Foo {
+    ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' : ''} = {
+      type: 'custom-element',
+      name: 'foo',
+      template,
+    };
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
+        });
       });
 
       describe(`CustomElement.define - language: ${lang}`, function () {
@@ -1751,6 +1904,147 @@ CustomElement.define({ name: 'foo', template: x }, Foo);
             });
           });
         });
+
+        it(`template controller - nested repeat object map - pass - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  import { CustomElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  export class Foo {
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+  CustomElement.define({ name: 'foo', template }, Foo);
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it(`template controller - nested repeat object map - fail - incorrect declaration - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v1">(\${sh.m},\${sh.n}) - (\${lm.a},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  import { CustomElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  export class Foo {
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+  CustomElement.define({ name: 'foo', template }, Foo);
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+        });
+
+        it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = `<template repeat.for="[sl, v] of prop">(\${sl.x},\${sl.y}) <template repeat.for="[sh, lm] of v">(\${sh.m},\${sh.n}) - (\${lm.aa},\${lm.b})</template></template>`;
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+  import { CustomElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  export class Foo {
+  ${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
+  ${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  }
+  CustomElement.define({ name: 'foo', template }, Foo);
+
+  class Salt {
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+  ${isTs ? '' : '/** @type {number} */'}
+  ${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+  }
+
+  class Lime {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+  }
+
+  class Shot {
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+
+  ${isTs ? '' : '/** @type {string} */'}
+  ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+  }
+  `,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+
+          assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
+        });
       });
 
       for (const literal of ['true', 'false', 'null', 'undefined', '']) {
@@ -1890,7 +2184,7 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
         assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
       });
 
-      // TODO: make this work; probably need to use something like webpack plugin to access to the complete TS project
+      // TODO(phase2): make this work; probably need to use something like webpack plugin to access to the complete TS project
       it.skip(`custom-element bindable - fail - incorrect CE bindable - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';

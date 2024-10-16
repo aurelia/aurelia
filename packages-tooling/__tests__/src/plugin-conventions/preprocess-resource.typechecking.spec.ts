@@ -2642,6 +2642,53 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
         assertSuccess(entry, result.code);
       });
 
+      it(`template controller - repeat primitive array - pass - with value-converter - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop | identity">\${item}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      // TODO(phase2): make this work; we need the type information of the value-converter. This is currently not possible with the loader approach as we don't have access to the complete TS project.
+      it.skip(`template controller - repeat primitive array - pass - value-converter with different type - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop | toNumber">\${item.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
       it(`template controller - repeat primitive array - fail - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -3093,6 +3140,29 @@ ${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
 
         assertFailure(entry, result.code, [/Property 'x' does not exist on type 'Bar'/]);
       });
+
+      it(`template controller - repeat primitive set - pass - with value converter - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop | identity">\${item.toLowerCase()}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Set<string>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
       // #endregion
 
       // #region map
@@ -3209,6 +3279,29 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
           }, options);
 
         assertFailure(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
+      });
+
+      it(`template controller - repeat primitive map - pass - with value-converter - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="[key, value] of prop | identity">\${key.toLowerCase()} - \${value}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Map<string, number>} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
       });
 
       it(`template controller - repeat object map - pass - language: ${lang}`, function () {

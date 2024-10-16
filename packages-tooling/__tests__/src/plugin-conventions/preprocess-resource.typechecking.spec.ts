@@ -3165,7 +3165,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
       });
       // #endregion
 
-      // #region map
+      // #region repeat map
       it(`template controller - repeat primitive map - pass - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -3557,6 +3557,140 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
           }, options);
 
         assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
+      });
+      // #endregion
+
+      // #region range
+      it(`template controller - repeat range - pass - numeric property - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${item.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat range - pass - numeric literal - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of 10">\${item.toExponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat range - fail - numeric property - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of 10">\${item.toexponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
+      });
+
+      it(`template controller - repeat range - fail - numeric literal - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of 10">\${item.toexponential(2)}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
+      });
+
+      it(`template controller - nested repeat range - pass - numeric property - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop"><template repeat.for="i of item">\${i.toExponential(2)}</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - nested repeat range - pass - numeric literal - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of 10"><template repeat.for="i of item">\${i.toExponential(2)}</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
       });
       // #endregion
 

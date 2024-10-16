@@ -1,13 +1,16 @@
 import { DI, Writable } from '@aurelia/kernel';
-import {
+import type {
   AccessScopeExpression,
   DestructuringAssignmentExpression,
   DestructuringAssignmentRestExpression,
   DestructuringAssignmentSingleExpression,
-  ExpressionParser,
   IsAssign,
   IsBindingBehavior,
   IsLeftHandSide,
+  PrimitiveLiteralExpression,
+} from '@aurelia/expression-parser';
+import {
+  ExpressionParser,
   Unparser,
 } from '@aurelia/expression-parser';
 import {
@@ -36,7 +39,7 @@ ${isJs
       ?
       `/**
   * @template TCollection
-  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : never} CollectionElement
+  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : never} CollectionElement
   */`
       :
       `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
@@ -45,7 +48,9 @@ ${isJs
         ? TElement
         : TCollection extends Map<infer TKey, infer TValue>
           ? [TKey, TValue]
-          : never;`}
+          : TCollection extends number
+           ? number
+           : never;`}
 `
   );
 }
@@ -138,6 +143,7 @@ export function createTypeCheckedTemplate(rawHtml: string, classes: ClassMetadat
   return ctx.produceTypeCheckedTemplate(rawHtml);
 }
 
+const rangeIterableIdentifier = '__TypeCheck_RangeIterable__';
 function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCheckingContext): void | false {
   let retVal: void | false = void 0;
   if ('tagName' in node) {
@@ -150,15 +156,26 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
           // TODO: move this to the context class; the cleanup should be something like the frame push and pop
           const overriddenIdents: string[] = [];
 
-          const rawIterIdent = Unparser.unparse(expr.iterable);
-          const [iterIdent, path] = mutateAccessScope(expr.iterable, member => {
-            const newName = ctx.getIdentifier(member);
-            ctx.overriddenIdentMap.set(member, newName);
-            overriddenIdents.push(member);
-            return newName;
-          });
-          const propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
-
+          let iterable: () => string;
+          let propAccExpr: string;
+          if (expr.iterable.$kind === 'PrimitiveLiteral') {
+            // generate a new identifier
+            const identifier = ctx.getIdentifier(rangeIterableIdentifier);
+            const primitiveValue = (expr.iterable as PrimitiveLiteralExpression).value;
+            iterable = () => `\${${ctx.accessIdent}(o => o.${identifier}, '${primitiveValue}')}`;
+            ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
+            propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
+          } else {
+            const rawIterIdent = Unparser.unparse(expr.iterable);
+            const [iterIdent, path] = mutateAccessScope(expr.iterable, member => {
+              const newName = ctx.getIdentifier(member);
+              ctx.overriddenIdentMap.set(member, newName);
+              overriddenIdents.push(member);
+              return newName;
+            });
+            propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
+            iterable = () => `\${${ctx.accessIdent}(o => o.${unparse(iterIdent)}, '${rawIterIdent}')}`;
+          }
           let declaration: () => string;
           switch (expr.declaration.$kind) {
             // if this is an array destructuring, it only means that it is a map, as that is the only collection type supported for repeat.for
@@ -197,8 +214,6 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
               break;
             }
           }
-
-          const iterable = () => `\${${ctx.accessIdent}(o => o.${unparse(iterIdent)}, '${rawIterIdent}')}`;
 
           ctx.toReplace.push({
             loc: node.sourceCodeLocation!.attrs![attr.name],

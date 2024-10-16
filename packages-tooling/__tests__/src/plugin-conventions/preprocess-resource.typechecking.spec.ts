@@ -2612,7 +2612,11 @@ ${isTs ? 'public ' : ''}prop1${isTs ? ': unknown' : ''};
 
         assertFailure(entry, result.code, [/Property 'prop' does not exist on type 'Foo'/]);
       });
-      // TODO: data-type of switch and cases must match
+
+      it.skip(`template controller - switch and cases - fail - different data types for switch and cases - language: ${lang}`, function () {
+        /* placeholder */
+        // TODO: data-type of switch and and all cases should be the same or compatible
+      });
 
       // #region repeat array
       it(`template controller - repeat primitive array - pass - language: ${lang}`, function () {
@@ -2922,6 +2926,68 @@ ${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
           }, options);
 
         assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - nested repeats - fail - incorrect declaration - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="node of nodes">\${node.x} <template repeat.for="child of node1.children">\${child.x}</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+}
+
+class Node {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'node1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+      });
+
+      it(`template controller - nested repeats - fail - incorrect usage - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="node of nodes">\${node.x} <template repeat.for="child of node.children">\${child.y}</template></template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+}
+
+class Node {
+${isTs ? '' : '/** @type {number} */'}
+${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+
+${isTs ? '' : '/** @type {Node[]} */'}
+${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Node'/]);
       });
       // #endregion
 

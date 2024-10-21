@@ -1337,7 +1337,7 @@ export class Foo {
               readFile: createMarkupReader(markupFile, markup),
             }, options);
 
-          assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+          assertFailure(entry, result.code, [/Property '.*v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
         });
 
         it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
@@ -1996,7 +1996,7 @@ CustomElement.define({ name: 'foo', template: x }, Foo);
               readFile: createMarkupReader(markupFile, markup),
             }, options);
 
-          assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+          assertFailure(entry, result.code, [/Property '.*v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
         });
 
         it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
@@ -2045,6 +2045,26 @@ CustomElement.define({ name: 'foo', template: x }, Foo);
 
           assertFailure(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
         });
+      });
+
+      it(`interpolation - fail - reserved identifier prefix - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `\${__Template_TypeCheck_Synthetic_Foo1}`;
+        assert.throws(() => {
+          preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, options);
+        }, /Identifier '__Template_TypeCheck_Synthetic_Foo1' uses reserved prefix '__Template_TypeCheck_Synthetic_'; consider renaming it./);
       });
 
       for (const literal of ['true', 'false', 'null', 'undefined', '']) {
@@ -3003,7 +3023,7 @@ ${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
             readFile: createMarkupReader(markupFile, markup),
           }, options);
 
-        assertFailure(entry, result.code, [/Property 'node1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+        assertFailure(entry, result.code, [/Property '.*node1\d+' does not exist on type '.*Foo.*'/], undefined, true);
       });
 
       it(`template controller - nested repeats - fail - incorrect usage - language: ${lang}`, function () {
@@ -3509,7 +3529,7 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
             readFile: createMarkupReader(markupFile, markup),
           }, options);
 
-        assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
+        assertFailure(entry, result.code, [/Property '.*v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
       });
 
       it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {
@@ -3694,8 +3714,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
       });
       // #endregion
 
-      // #region repeat object
-      // Note that as the VCs are not type-checked, the following tests are more-or-less hypothetical at this point.
+      // #region repeat object - Note that as the VCs are not type-checked, the following tests are more-or-less hypothetical at this point.
       it(`template controller - repeat object - pass - keys - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -3718,6 +3737,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
 
         assertSuccess(entry, result.code);
       });
+
       it(`template controller - repeat object - pass - values - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -3740,6 +3760,54 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
 
         assertSuccess(entry, result.code);
       });
+
+      it(`template controller - repeat object - fail - keys - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="key of prop | keys">\${prop[key1]}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property '.*key1\d*' does not exist on type '.*Foo.*'/]);
+      });
+
+      it(`template controller - repeat object - fail - values - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="value of prop | values">\${value1}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertFailure(entry, result.code, [/Property '.*value1\d*' does not exist on type '.*Foo.*'/]);
+      });
+
+      // #endregion
 
       // #endregion
     }
@@ -3930,7 +3998,7 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
             filePair: markupFile,
           }, options);
 
-        assertFailure(entry, result.code, [/Property 'v1\d+' does not exist on type '.*Entry.*'/], undefined, true);
+        assertFailure(entry, result.code, [/Property '.*v1\d+' does not exist on type '.*Entry.*'/], undefined, true);
       });
 
       it(`template controller - nested repeat object map - fail - incorrect usage - language: ${lang}`, function () {

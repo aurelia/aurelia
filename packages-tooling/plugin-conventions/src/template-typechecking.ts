@@ -59,6 +59,7 @@ ${isJs
   );
 }
 
+const identifierPrefix = '__Template_TypeCheck_Synthetic_';
 class TypeCheckingContext {
   // TODO: this is a bit of mess and should a part of the repeat stack frame; keeping it like it is for now to avoid premature optimization
   public readonly overriddenIdentMap: Map<string, string> = new Map();
@@ -118,14 +119,18 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
     return output;
   }
 
-  public getIdentifier(ident: string): string {
+  public getIdentifier(ident: string): string;
+  public getIdentifier(ident: string, skipGeneration: true): string | null;
+  public getIdentifier(ident: string, skipGeneration: boolean = false): string | null {
+    if (ident.startsWith(identifierPrefix)) throw new Error(`Identifier '${ident}' uses reserved prefix '${identifierPrefix}'; consider renaming it.`);
     if (this.classes.some(c => c.members.includes(ident))) return ident;
     if (this.overriddenIdentMap.has(ident)) return this.overriddenIdentMap.get(ident)!;
 
+    if (skipGeneration) return null;
     const lookup = this.decIdentMap;
     let count = lookup.get(ident) ?? 0;
     lookup.set(ident, ++count);
-    return `${ident}${count}`;
+    return `${identifierPrefix}${ident}${count}`;
   }
 }
 
@@ -174,7 +179,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
           } else {
             const rawIterIdent = Unparser.unparse(expr.iterable);
             const [iterIdent, path] = mutateAccessScope(expr.iterable, member => {
-              const newName = ctx.getIdentifier(member);
+              const newName = ctx.getIdentifier(member)!;
               ctx.overriddenIdentMap.set(member, newName);
               overriddenIdents.push(member);
               return newName;
@@ -254,7 +259,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
       expr.expressions.forEach((part, idx) => {
         const originalExpr = part;
-        [part] = mutateAccessScope(part, member => ctx.overriddenIdentMap.get(member) ?? member);
+        [part] = mutateAccessScope(part, member => ctx.getIdentifier(member, true) ?? member);
         htmlFactories.push(
           () => `\${${ctx.accessIdent}(o => o.${unparse(part)}, '${unparse(originalExpr)}')}`,
           () => expr.parts[idx + 1]

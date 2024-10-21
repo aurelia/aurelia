@@ -1,6 +1,6 @@
 import { DI, Writable } from '@aurelia/kernel';
 import type {
-  AccessScopeExpression,
+  AccessKeyedExpression,
   DestructuringAssignmentExpression,
   DestructuringAssignmentRestExpression,
   DestructuringAssignmentSingleExpression,
@@ -10,6 +10,8 @@ import type {
   PrimitiveLiteralExpression,
 } from '@aurelia/expression-parser';
 import {
+  AccessMemberExpression,
+  AccessScopeExpression,
   ExpressionParser,
   Unparser,
 } from '@aurelia/expression-parser';
@@ -39,7 +41,7 @@ ${isJs
       ?
       `/**
   * @template TCollection
-  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : never} CollectionElement
+  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
   */`
       :
       `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
@@ -50,7 +52,9 @@ ${isJs
           ? [TKey, TValue]
           : TCollection extends number
            ? number
-           : never;`}
+           : TCollection extends object
+             ? any
+             : never;`}
 `
   );
 }
@@ -151,6 +155,8 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
       const syntax = ctx.attrParser.parse(attr.name, attr.value);
       if (syntax.command) {
         if (syntax.command === 'for') {
+          // TODO: handle contextual properties: $index, $first, $last, $middle, $even, $odd
+
           const expr = ctx.exprParser.parse(attr.value, 'IsIterator');
 
           // TODO: move this to the context class; the cleanup should be something like the frame push and pop
@@ -285,6 +291,14 @@ function mutateAccessScope(expr: IsBindingBehavior, memberNameResolver: (member:
     while (!isAccessGlobal(object) && (object.$kind === 'CallMember' || object.$kind === 'AccessMember' || object.$kind === 'AccessKeyed')) {
       switch (object.$kind) {
         case 'AccessMember': path.push(object.name); break;
+        case 'AccessKeyed': {
+          if (object.key.$kind === 'AccessScope' && object.key.ancestor === 0) {
+            const member = object.key.name;
+            const overriddenMember = memberNameResolver(member);
+            (object as Writable<AccessKeyedExpression>).key = new AccessMemberExpression(new AccessScopeExpression('o', 0),overriddenMember); // TODO: Clean up the root access scope is 'o'
+          }
+          break;
+        }
         default: break; // TODO(Sayan): implement other kinds
       }
       object = object.object;

@@ -3560,7 +3560,7 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
       });
       // #endregion
 
-      // #region range
+      // #region repeat range
       it(`template controller - repeat range - pass - numeric property - language: ${lang}`, function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
@@ -3693,6 +3693,53 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
         assertSuccess(entry, result.code);
       });
       // #endregion
+
+      // #region repeat object
+      // Note that as the VCs are not type-checked, the following tests are more-or-less hypothetical at this point.
+      it(`template controller - repeat object - pass - keys - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="key of prop | keys">\${prop[key]}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+      it(`template controller - repeat object - pass - values - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="value of prop | values">\${value}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
 
       // #endregion
     }

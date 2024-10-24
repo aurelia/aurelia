@@ -73,6 +73,14 @@ class TypeCheckingContext {
   private _accessType: string | undefined = void 0;
   public get accessType(): string { return this._accessType ??= this.accessTypeParts.reduce((acc: string, part) => part(acc), ''); }
 
+  private _hasRepeatContextualProperties = false;
+  public get hasRepeatContextualProperties(): boolean { return this._hasRepeatContextualProperties; }
+  public set hasRepeatContextualProperties(value: boolean) {
+    if (this._hasRepeatContextualProperties || !value) return;
+    this._hasRepeatContextualProperties = value;
+    this.accessTypeParts.push((acc) => `${acc} & { $index: number, $first: boolean, $last: boolean, $even: boolean, $odd: boolean, $length: number }`);
+  }
+
   public constructor(
     public readonly attrParser: IAttributeParser,
     public readonly exprParser: ExpressionParser,
@@ -178,7 +186,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
             propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
           } else {
             const rawIterIdent = Unparser.unparse(expr.iterable);
-            const [iterIdent, path] = mutateAccessScope(expr.iterable, member => {
+            const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => {
               const newName = ctx.getIdentifier(member)!;
               ctx.overriddenIdentMap.set(member, newName);
               overriddenIdents.push(member);
@@ -259,7 +267,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
       expr.expressions.forEach((part, idx) => {
         const originalExpr = part;
-        [part] = mutateAccessScope(part, member => ctx.getIdentifier(member, true) ?? member);
+        [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, true) ?? member);
         htmlFactories.push(
           () => `\${${ctx.accessIdent}(o => o.${unparse(part)}, '${unparse(originalExpr)}')}`,
           () => expr.parts[idx + 1]
@@ -279,11 +287,16 @@ function unparse(expr: IsBindingBehavior): string {
   return Unparser.unparse(expr).replace(/^\(|\)$/g, '');
 }
 
-function mutateAccessScope(expr: IsBindingBehavior, memberNameResolver: (member: string) => string): [expr: IsAssign, path: string[]] {
+const contextualRepeatProperties = ['$index', '$first', '$last', '$even', '$odd', '$length'] as readonly string[];
+function mutateAccessScope(expr: IsBindingBehavior, ctx: TypeCheckingContext, memberNameResolver: (member: string) => string): [expr: IsAssign, path: string[]] {
   while (expr.$kind === 'ValueConverter' || expr.$kind === 'BindingBehavior') {
     expr = expr.expression;
   }
 
+  if ((expr.$kind === 'AccessScope' || expr.$kind === 'AccessMember') && contextualRepeatProperties.includes(expr.name)) {
+    ctx.hasRepeatContextualProperties = true;
+    return [new AccessScopeExpression(expr.name, 0), [expr.name] /* TODO: fix this later */];
+  }
   // traverse to the root vm property and rename if required
   expr = structuredClone(expr);
   let object: IsLeftHandSide = expr as IsLeftHandSide;
@@ -300,7 +313,7 @@ function mutateAccessScope(expr: IsBindingBehavior, memberNameResolver: (member:
           if (object.key.$kind === 'AccessScope' && object.key.ancestor === 0) {
             const member = object.key.name;
             const overriddenMember = memberNameResolver(member);
-            (object as Writable<AccessKeyedExpression>).key = new AccessMemberExpression(new AccessScopeExpression('o', 0),overriddenMember); // TODO: Clean up the root access scope is 'o'
+            (object as Writable<AccessKeyedExpression>).key = new AccessMemberExpression(new AccessScopeExpression('o', 0), overriddenMember); // TODO: Clean up the root access scope is 'o'
           }
           break;
         }

@@ -3056,6 +3056,61 @@ ${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
 
         assertFailure(entry, result.code, [/Property 'y' does not exist on type 'Node'/]);
       });
+
+      it(`template controller - repeat - contextual properties - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${$index} - \${item.toLowerCase()} - \${$first} - \${$last} - \${$even} - \${$odd} - \${$length}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - nested repeat - contextual properties - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `
+        <template repeat.for="item1 of prop1">
+          <template repeat.for="item2 of prop2">
+            \${$parent.$index} - \${item1.toLowerCase()} - \${$parent.$first} - \${$parent.$last} - \${$parent.$even} - \${$parent.$odd} - \${$parent.$length}
+            \${$index} - \${item2.toLowerCase()} - \${$first} - \${$last} - \${$even} - \${$odd} - \${$length}
+          </template>
+        </template>
+        `;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
+${isTs ? '' : '/** @type {string[]} */'}
+${isTs ? 'public ' : ''}prop2${isTs ? ': string[]' : ''};
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, options);
+
+        assertSuccess(entry, result.code);
+      });
       // #endregion
 
       // #region repeat set

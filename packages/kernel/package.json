@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/kernel",
-  "version": "2.0.1-dev.202409300916",
+  "version": "2.0.1-dev.202411141142",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -54,8 +54,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "2.0.1-dev.202409300916",
-    "@aurelia/platform": "2.0.1-dev.202409300916"
+    "@aurelia/metadata": "2.0.1-dev.202411141142",
+    "@aurelia/platform": "2.0.1-dev.202411141142"
   },
   "devDependencies": {
     "typescript": "5.4.2"

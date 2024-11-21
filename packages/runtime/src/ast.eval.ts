@@ -154,9 +154,6 @@ export const {
         if (isFunction(func)) {
           return new (func as Constructable)(...ast.args.map(a => astEvaluate(a, s, e, c)));
         }
-        if (!e?.strict && func == null) {
-          return void 0;
-        }
         throw createMappedError(ErrorNames.ast_not_a_function);
       }
       case ekTemplate: {

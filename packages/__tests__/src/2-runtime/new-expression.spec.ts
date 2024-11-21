@@ -82,7 +82,7 @@ describe('2-runtime/new-expression.spec.ts', function () {
     assert.instanceOf(component.a, RegExp);
   });
 
-  it('new Foo', function () {
+  it('new Foo()', function () {
     class Foo {}
 
     const { component } = createFixture(
@@ -93,12 +93,25 @@ describe('2-runtime/new-expression.spec.ts', function () {
     assert.instanceOf(component.a, Foo);
   });
 
-  it('new non-existing class', function () {
+  it('new Foo', function () {
+    class Foo {}
+
     const { component } = createFixture(
-      '${a = new Foo()}',
-      class { a = null; }
+      '${a = new Foo}',
+      class { a = null; Foo = Foo; }
     );
 
-    assert.strictEqual(component.a, void 0);
+    assert.instanceOf(component.a, Foo);
+  });
+
+  it('new non-existing class', function () {
+    const { start } = createFixture(
+      '${a = new Foo()}',
+      class { a = null; },
+      [],
+      false,
+    );
+
+    assert.throws(() => start(), /AUR0107/);
   });
 });

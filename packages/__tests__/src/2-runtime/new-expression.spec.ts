@@ -104,7 +104,7 @@ describe('2-runtime/new-expression.spec.ts', function () {
     assert.instanceOf(component.a, Foo);
   });
 
-  it('new non-existing class', function () {
+  it('throws on new non-existing class', function () {
     const { start } = createFixture(
       '${a = new Foo()}',
       class { a = null; },

@@ -221,6 +221,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     // todo: this line adds 3.904 tests, 1.278 of which fail due to specific early errors and restriction in complex variadic expressions, nested tagged templates, etc.
     // Most of the work in correcting this is to put the correct test cases from "passing" to "failing" and vice versa, that is, the parser itself works correctly but the tests are too generic.
     // We will need a fairly significant review of the tests to make all edge cases pass.
+    // Examples include things like this: new new a()`${a}`&a:new new a()`${a}`:new new a()`${a}`
     // ...SimpleNewList
   ];
   // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]

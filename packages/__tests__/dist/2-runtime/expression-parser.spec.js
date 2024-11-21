@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-loss-of-precision */
-import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, parseExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, ArrowFunction, AccessBoundaryExpression, } from '@aurelia/expression-parser';
+import { AccessKeyedExpression, AccessMemberExpression, AccessScopeExpression, AccessThisExpression, ArrayLiteralExpression, AssignExpression, BinaryExpression, BindingBehaviorExpression, BindingIdentifier, CallFunctionExpression, CallMemberExpression, CallScopeExpression, ConditionalExpression, ForOfStatement, Interpolation, ObjectLiteralExpression, PrimitiveLiteralExpression, TaggedTemplateExpression, TemplateExpression, UnaryExpression, ValueConverterExpression, parseExpression, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, ArrowFunction, AccessBoundaryExpression, NewExpression, } from '@aurelia/expression-parser';
 import { assert, } from '@aurelia/testing';
 import { latin1IdentifierPartChars, latin1IdentifierStartChars, otherBMPIdentifierPartChars } from './unicode.js';
 function createTaggedTemplate(cooked, func, expressions) {
@@ -152,13 +152,29 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         [`({})`, new ObjectLiteralExpression([], [])],
         [`({a})`, new ObjectLiteralExpression(['a'], [$a])],
     ];
-    // concatenation of 1 through 7 (all Primary expressions)
+    // 8. parsePrimaryExpression.NewExpression
+    const SimpleNewList = [
+        [`new a()`, new NewExpression($a, [])],
+        [`new a`, new NewExpression($a, [])],
+        [`new a(b)`, new NewExpression($a, [$b])],
+        [`new (a)()`, new NewExpression($a, [])],
+        [`new a.b()`, new NewExpression(new AccessMemberExpression($a, 'b'), [])],
+        [`new a.b`, new NewExpression(new AccessMemberExpression($a, 'b'), [])],
+        [`new new a()`, new NewExpression(new NewExpression($a, []), [])],
+        [`new a(new a())`, new NewExpression($a, [new NewExpression($a, [])])],
+    ];
+    // concatenation of 1 through 8 (all Primary expressions)
     // This forms the group Precedence.Primary
     const SimplePrimaryList = [
         ...AccessThisList,
         ...AccessScopeList,
         ...SimpleLiteralList,
-        ...SimpleParenthesizedList
+        ...SimpleParenthesizedList,
+        // todo: this line adds 3.904 tests, 1.278 of which fail due to specific early errors and restriction in complex variadic expressions, nested tagged templates, etc.
+        // Most of the work in correcting this is to put the correct test cases from "passing" to "failing" and vice versa, that is, the parser itself works correctly but the tests are too generic.
+        // We will need a fairly significant review of the tests to make all edge cases pass.
+        // Examples include things like this: new new a()`${a}`&a:new new a()`${a}`:new new a()`${a}`
+        // ...SimpleNewList
     ];
     // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
     const SimpleAccessKeyedList = [
@@ -252,6 +268,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
         ...AccessBoundaryList,
         ...SimpleLiteralList,
         ...SimpleParenthesizedList,
+        ...SimpleNewList,
         ...SimpleLeftHandSideList
     ];
     // parseUnaryExpression (this is actually at the top in the parser due to the order in which expressions must be parsed)
@@ -458,6 +475,13 @@ describe('2-runtime/expression-parser.spec.ts', function () {
             });
             describe('parse SimpleParenthesizedList', function () {
                 for (const [input, expected] of SimpleParenthesizedList) {
+                    it(input, function () {
+                        verifyResultOrError(input, expected, null, exprType, name);
+                    });
+                }
+            });
+            describe('parse SimpleNewList', function () {
+                for (const [input, expected] of SimpleNewList) {
                     it(input, function () {
                         verifyResultOrError(input, expected, null, exprType, name);
                     });

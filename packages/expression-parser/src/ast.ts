@@ -9,6 +9,7 @@ import type { IVisitor } from './ast.visitor';
 /** @internal */ export const ekArrayLiteral = 'ArrayLiteral';
 /** @internal */ export const ekObjectLiteral = 'ObjectLiteral';
 /** @internal */ export const ekPrimitiveLiteral = 'PrimitiveLiteral';
+/** @internal */ export const ekNew = 'New';
 /** @internal */ export const ekTemplate = 'Template';
 /** @internal */ export const ekUnary = 'Unary';
 /** @internal */ export const ekCallScope = 'CallScope';
@@ -42,6 +43,7 @@ export type ExpressionKind =
   | 'ArrayLiteral'
   | 'ObjectLiteral'
   | 'PrimitiveLiteral'
+  | 'New'
   | 'Template'
   | 'Unary'
   | 'CallScope'
@@ -71,7 +73,7 @@ export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+' | '++' | '--';
 
 export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
 export type AssignmentOperator = '=' | '/=' | '*=' | '+=' | '-=';
-export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
+export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression | NewExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
@@ -216,6 +218,14 @@ export class AccessKeyedExpression {
   ) {
     this.accessGlobal = isAccessGlobal(object);
   }
+}
+
+export class NewExpression {
+  public readonly $kind = ekNew;
+  public constructor(
+    public readonly func: IsLeftHandSide,
+    public readonly args: readonly IsAssign[],
+  ) {}
 }
 
 export class CallScopeExpression {

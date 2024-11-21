@@ -32,6 +32,7 @@ import {
   IsBindingBehavior,
   ArrowFunction,
   AccessBoundaryExpression,
+  NewExpression,
 } from '@aurelia/expression-parser';
 import {
   assert,
@@ -199,13 +200,29 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     [`({})`,              new ObjectLiteralExpression([], [])],
     [`({a})`,             new ObjectLiteralExpression(['a'], [$a])],
   ];
-  // concatenation of 1 through 7 (all Primary expressions)
+  // 8. parsePrimaryExpression.NewExpression
+  const SimpleNewList: [string, any][] = [
+    [`new a()`,           new NewExpression($a, [])],
+    [`new a`,             new NewExpression($a, [])],
+    [`new a(b)`,          new NewExpression($a, [$b])],
+    [`new (a)()`,         new NewExpression($a, [])],
+    [`new a.b()`,         new NewExpression(new AccessMemberExpression($a, 'b'), [])],
+    [`new a.b`,           new NewExpression(new AccessMemberExpression($a, 'b'), [])],
+    [`new new a()`,       new NewExpression(new NewExpression($a, []), [])],
+    [`new a(new a())`,    new NewExpression($a, [new NewExpression($a, [])])],
+  ];
+  // concatenation of 1 through 8 (all Primary expressions)
   // This forms the group Precedence.Primary
   const SimplePrimaryList: [string, any][] = [
     ...AccessThisList,
     ...AccessScopeList,
     ...SimpleLiteralList,
-    ...SimpleParenthesizedList
+    ...SimpleParenthesizedList,
+    // todo: this line adds 3.904 tests, 1.278 of which fail due to specific early errors and restriction in complex variadic expressions, nested tagged templates, etc.
+    // Most of the work in correcting this is to put the correct test cases from "passing" to "failing" and vice versa, that is, the parser itself works correctly but the tests are too generic.
+    // We will need a fairly significant review of the tests to make all edge cases pass.
+    // Examples include things like this: new new a()`${a}`&a:new new a()`${a}`:new new a()`${a}`
+    // ...SimpleNewList
   ];
   // 1. parseMemberExpression.MemberExpression [ AssignmentExpression ]
   const SimpleAccessKeyedList: [string, any][] = [
@@ -302,6 +319,7 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ...AccessBoundaryList,
     ...SimpleLiteralList,
     ...SimpleParenthesizedList,
+    ...SimpleNewList,
     ...SimpleLeftHandSideList
   ];
 
@@ -531,6 +549,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
       describe('parse SimpleParenthesizedList', function () {
         for (const [input, expected] of SimpleParenthesizedList) {
+          it(input, function () {
+            verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+      });
+
+      describe('parse SimpleNewList', function () {
+        for (const [input, expected] of SimpleNewList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
           });

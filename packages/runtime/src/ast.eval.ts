@@ -6,7 +6,7 @@ import {
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction } from '@aurelia/kernel';
+import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction, Constructable } from '@aurelia/kernel';
 import { type IConnectable, type IObservable } from './interfaces';
 import { Scope, type IBindingContext, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
@@ -152,7 +152,10 @@ export const {
       case ekNew: {
         const func = astEvaluate(ast.func, s, e, c);
         if (isFunction(func)) {
-          return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+          return new (func as Constructable)(...ast.args.map(a => astEvaluate(a, s, e, c)));
+        }
+        if (!e?.strict && func == null) {
+          return void 0;
         }
         throw createMappedError(ErrorNames.ast_not_a_function);
       }

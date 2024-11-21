@@ -6,7 +6,7 @@ import {
   type DestructuringAssignmentRestExpression,
   type IsExpressionOrStatement,
 } from '@aurelia/expression-parser';
-import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction } from '@aurelia/kernel';
+import { type AnyFunction, type IIndexable, isArrayIndex, isArray, isFunction, isObjectOrFunction, Constructable } from '@aurelia/kernel';
 import { type IConnectable, type IObservable } from './interfaces';
 import { Scope, type IBindingContext, type IOverrideContext } from './scope';
 import { ErrorNames, createMappedError } from './errors';
@@ -58,6 +58,7 @@ export const {
   const ekArrayLiteral = 'ArrayLiteral';
   const ekObjectLiteral = 'ObjectLiteral';
   const ekPrimitiveLiteral = 'PrimitiveLiteral';
+  const ekNew = 'New';
   const ekTemplate = 'Template';
   const ekUnary = 'Unary';
   const ekCallScope = 'CallScope';
@@ -148,6 +149,13 @@ export const {
       }
       case ekPrimitiveLiteral:
         return ast.value;
+      case ekNew: {
+        const func = astEvaluate(ast.func, s, e, c);
+        if (isFunction(func)) {
+          return new (func as Constructable)(...ast.args.map(a => astEvaluate(a, s, e, c)));
+        }
+        throw createMappedError(ErrorNames.ast_not_a_function);
+      }
       case ekTemplate: {
         let result = ast.cooked[0];
         for (let i = 0; i < ast.expressions.length; ++i) {

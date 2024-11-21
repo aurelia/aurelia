@@ -58,6 +58,7 @@ export const {
   const ekArrayLiteral = 'ArrayLiteral';
   const ekObjectLiteral = 'ObjectLiteral';
   const ekPrimitiveLiteral = 'PrimitiveLiteral';
+  const ekNew = 'New';
   const ekTemplate = 'Template';
   const ekUnary = 'Unary';
   const ekCallScope = 'CallScope';
@@ -148,6 +149,13 @@ export const {
       }
       case ekPrimitiveLiteral:
         return ast.value;
+      case ekNew: {
+        const func = astEvaluate(ast.func, s, e, c);
+        if (isFunction(func)) {
+          return func(...ast.args.map(a => astEvaluate(a, s, e, c)));
+        }
+        throw createMappedError(ErrorNames.ast_not_a_function);
+      }
       case ekTemplate: {
         let result = ast.cooked[0];
         for (let i = 0; i < ast.expressions.length; ++i) {

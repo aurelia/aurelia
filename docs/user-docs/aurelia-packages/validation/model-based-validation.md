@@ -35,10 +35,16 @@ export const personRules = [
 In the next step, these rules need to be associated with targets. The method that applies the model-based rules is the following (refer `my-app.ts`).
 
 ```typescript
-validationRules.applyModelBasedRules(Person, personRules);
+validationRules.applyModelBasedRules(Person, personRules, groups?);
 ```
 
-The first argument to the method can be a class or an object instance. The second argument must be an array of `ModelBasedRule` instances. This registers the rules for the target class or object instance. After this, the normal validation works as expected without any further changes.
+The first argument to the method can be a class or an object instance. The second argument must be an array of `ModelBasedRule` instances. This registers the rules for the target class or object instance. In case of grouped properties, it is necessary to provide a third parameter in the form of an array of groups - a group consist of an array of strings or property accessors that, in turn, can be gathered into arrays according to their validation priority (refer to [Linking a property's validation with others](defining-rules.md)). After this, the normal validation works as expected without any further changes.
+
+```typescript
+export const group = ['name', 'age', 'address'] // the three properties will be validated sequentially
+export const group = ['name', ['age', 'address']] // age and address have the same priority
+export const group = [['name', 'age', 'address']] // no priority assigned, grouped properties will always be checked together
+```
 
 The `ModelBasedRule` is a simple class that describes the ruleset definition or the JSON data that describes the validation rules.
 
@@ -84,7 +90,8 @@ The out-of-the-box implementation of `IValidationHydrator` supports plain javasc
         "ruleKey11" : { /*... */ },
         "ruleKey22" : { /*... */ },
       }
-    ]
+    ],
+    "isGroupMember": "true" // optional property
   },
   "navigationProperty": {
     "subProperty": {
@@ -136,6 +143,7 @@ export interface IValidationHydrator {
   readonly messageProvider: IValidationMessageProvider;
   hydrate(raw: any, validationRules: IValidationRules): any;
   hydrateRuleset(ruleset: any, validationRules: IValidationRules): IPropertyRule[];
+  hydrateGroups(groups: (string | PropertyAccessor | (string | PropertyAccessor)[] | LinkedProperty)[][]): GroupPropertyRules[];
 }
 ```
 

@@ -345,18 +345,19 @@ const enum Token {
   Asterisk                = 0b1100100000000_1000_101100,
   Percent                 = 0b1100100000000_1000_101101,
   Slash                   = 0b1100100000000_1000_101110,
-  Equals                  = 0b1000000000000_0000_101111,
-  Exclamation             = 0b0000010000000_0000_110000,
-  TemplateTail            = 0b0100001000001_0000_110001,
-  TemplateContinuation    = 0b0100001000001_0000_110010,
-  OfKeyword               = 0b1000000001010_0000_110011,
-  Arrow                   = 0b0000000000000_0000_110100,
-  PlusEquals              = 0b1000000000000_0000_110101,
-  MinusEquals             = 0b1000000000000_0000_110110,
-  AsteriskEquals          = 0b1000000000000_0000_110111,
-  SlashEquals             = 0b1000000000000_0000_111000,
-  PlusPlus                = 0b0100010000000_0000_111001,
-  MinusMinus              = 0b0100010000000_0000_111010,
+  AsteriskAsterisk        = 0b1100100000000_1001_101111,
+  Equals                  = 0b1000000000000_0000_110000,
+  Exclamation             = 0b0000010000000_0000_110001,
+  TemplateTail            = 0b0100001000001_0000_110010,
+  TemplateContinuation    = 0b0100001000001_0000_110011,
+  OfKeyword               = 0b1000000001010_0000_110100,
+  Arrow                   = 0b0000000000000_0000_110101,
+  PlusEquals              = 0b1000000000000_0000_110110,
+  MinusEquals             = 0b1000000000000_0000_110111,
+  AsteriskEquals          = 0b1000000000000_0000_111000,
+  SlashEquals             = 0b1000000000000_0000_111001,
+  PlusPlus                = 0b0100010000000_0000_111010,
+  MinusMinus              = 0b0100010000000_0000_111011,
 }
 _END_CONST_ENUM();
 
@@ -1754,7 +1755,7 @@ const TokenValues = [
   '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', ';', '?', '\'', '"',
 
   '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
-  '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
+  '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '**', '=', '!',
   Token.TemplateTail, Token.TemplateContinuation,
   'of', '=>', '+=', '-=', '*=', '/=', '++', '--'
 ];
@@ -1962,13 +1963,17 @@ const {
   CharScanners[Char.OpenParen]    = returnToken(Token.OpenParen);
   CharScanners[Char.CloseParen]   = returnToken(Token.CloseParen);
 
-  // *, *=
+  // *, *=, **
   CharScanners[Char.Asterisk] =  () => {
-    if (nextChar() !== Char.Equals) {
-      return Token.Asterisk;
+    if (nextChar() === Char.Equals) {
+      nextChar();
+      return Token.AsteriskEquals;
     }
-    nextChar();
-    return Token.AsteriskEquals;
+    if ($currentChar === Char.Asterisk) {
+      nextChar();
+      return Token.AsteriskAsterisk;
+    }
+    return Token.Asterisk;
   };
 
   // +, +=, ++

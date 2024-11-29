@@ -75,6 +75,7 @@ const boundary = new AccessBoundaryExpression();
 const $a = new AccessScopeExpression('a');
 const $b = new AccessScopeExpression('b');
 const $c = new AccessScopeExpression('c');
+const $d = new AccessScopeExpression('d');
 const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 
@@ -343,13 +344,22 @@ describe('2-runtime/expression-parser.spec.ts', function () {
   ];
 
   // This forms the group Precedence.Multiplicative
+  const SimpleExponentiationList: [string, any][] = [
+    [`$4**$5`, new BinaryExpression('**', new AccessScopeExpression('$4'), new AccessScopeExpression('$5'))]
+  ];
+  const SimpleIsExponentiationList: [string, any][] = [
+    ...SimpleIsUnaryList,
+    ...SimpleExponentiationList
+  ];
+
+  // This forms the group Precedence.Multiplicative
   const SimpleMultiplicativeList: [string, any][] = [
     [`$6*$7`, new BinaryExpression('*', new AccessScopeExpression('$6'), new AccessScopeExpression('$7'))],
     [`$8%$9`, new BinaryExpression('%', new AccessScopeExpression('$8'), new AccessScopeExpression('$9'))],
     [`$10/$11`, new BinaryExpression('/', new AccessScopeExpression('$10'), new AccessScopeExpression('$11'))]
   ];
   const SimpleIsMultiplicativeList: [string, any][] = [
-    ...SimpleIsUnaryList,
+    ...SimpleIsExponentiationList,
     ...SimpleMultiplicativeList
   ];
 
@@ -468,6 +478,32 @@ describe('2-runtime/expression-parser.spec.ts', function () {
     ...SimpleIsValueConverterList,
     ...SimpleBindingBehaviorList
   ];
+
+  describe.only('smoke tests', function() {
+    it('parses additive', function() {
+      assert.deepStrictEqual(parseExpression('a+b'), new BinaryExpression('+', $a, $b), 'a+b');
+    });
+
+    it('parses multiplicative', function() {
+      assert.deepStrictEqual(parseExpression('a*b'), new BinaryExpression('*', $a, $b), 'a*b');
+    });
+
+    it('parses simple exponentiation operator', function() {
+      assert.deepStrictEqual(parseExpression('a**b'), new BinaryExpression('**', $a, $b), 'a**b');
+    });
+
+    it('parses exponentiation before multiplicative', function() {
+      assert.deepStrictEqual(parseExpression('a**b*c'), new BinaryExpression('*', new BinaryExpression('**', $a, $b), $c), 'a**b*c');
+    });
+
+    it('parses multiplicative before exponentiation', function() {
+      assert.deepStrictEqual(parseExpression('a*b**c'), new BinaryExpression('*', $a, new BinaryExpression('**', $b, $c)), 'a*b**c');
+    });
+
+    it('parses exponentiation sandwiched between multiplicatives', function() {
+      assert.deepStrictEqual(parseExpression('a*b**c*d'), new BinaryExpression('*', new BinaryExpression('*', $a, new BinaryExpression('**', $b, $c)), $d), 'a*b**c*d');
+    });
+  });
 
   for (const [exprType, name] of [
     [undefined, 'undefined'],
@@ -613,6 +649,14 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
       describe('parse SimpleUnaryList', function () {
         for (const [input, expected] of SimpleUnaryList) {
+          it(input, function () {
+            verifyResultOrError(input, expected, null, exprType, name);
+          });
+        }
+      });
+
+      describe('parse SimpleExponentiationList', function () {
+        for (const [input, expected] of SimpleExponentiationList) {
           it(input, function () {
             verifyResultOrError(input, expected, null, exprType, name);
           });
@@ -1055,6 +1099,29 @@ describe('2-runtime/expression-parser.spec.ts', function () {
 
   // Combine a precedence group with all precedence groups below it, the precedence group on the same
   // level, and a precedence group above it, and verify that the precedence/associativity is correctly enforced
+  const ComplexExponentiationList: [string, any][] = [
+    ...binaryMultiplicative.map(op => [
+      ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),
+      ...SimpleIsUnaryList.map(([i1, e1]) => [`a${op}${i1}`, new BinaryExpression(op, $a, e1)]),
+      ...SimpleUnaryList
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i2}${op}${i1}`, new BinaryExpression(op, e2, e1)]))
+        .reduce((a, b) => a.concat(b)),
+      ...SimpleMultiplicativeList
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e2.operation, new BinaryExpression(op, new BinaryExpression(e1.operation, e1.left, e1.right), e2.left), e2.right)]))
+        .reduce((a, b) => a.concat(b)),
+      ...SimpleAdditiveList
+        .map(([i1, e1]) => SimpleMultiplicativeList.map(([i2, e2]) => [`${i1}${op}${i2}`, new BinaryExpression(e1.operation, e1.left, new BinaryExpression(e2.operation, new BinaryExpression(op, e1.right, e2.left), e2.right))]))
+        .reduce((a, b) => a.concat(b))
+    ] as [string, any][]).reduce((a, b) => a.concat(b))
+  ];
+  describe('parse ComplexExponentiationList', function () {
+    for (const [input, expected] of ComplexExponentiationList) {
+      it(input, function () {
+        assert.deepStrictEqual(parseExpression(input), expected, input);
+      });
+    }
+  });
+
   const ComplexMultiplicativeList: [string, any][] = [
     ...binaryMultiplicative.map(op => [
       ...SimpleIsMultiplicativeList.map(([i1, e1]) => [`${i1}${op}a`, new BinaryExpression(op, e1, $a)]),

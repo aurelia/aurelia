@@ -272,11 +272,12 @@ const enum Precedence {
   Relational              = 0b0110_000000,
   Additive                = 0b0111_000000,
   Multiplicative          = 0b1000_000000,
-  Binary                  = 0b1000_000001,
-  Member                  = 0b1000_000010,
-  LeftHandSide            = 0b1000_000011,
-  Primary                 = 0b1000_000100,
-  Unary                   = 0b1000_000101,
+  Exponentiation          = 0b1001_000000,
+  Binary                  = 0b1001_000001,
+  Member                  = 0b1001_000010,
+  LeftHandSide            = 0b1001_000011,
+  Primary                 = 0b1001_000100,
+  Unary                   = 0b1001_000101,
 }
 _END_CONST_ENUM();
 

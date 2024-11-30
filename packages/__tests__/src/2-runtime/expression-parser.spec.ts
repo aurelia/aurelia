@@ -75,7 +75,6 @@ const boundary = new AccessBoundaryExpression();
 const $a = new AccessScopeExpression('a');
 const $b = new AccessScopeExpression('b');
 const $c = new AccessScopeExpression('c');
-const $d = new AccessScopeExpression('d');
 const $num0 = new PrimitiveLiteralExpression(0);
 const $num1 = new PrimitiveLiteralExpression(1);
 

@@ -71,7 +71,7 @@ export type ExpressionKind =
 
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+' | '++' | '--';
 
-export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
+export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '**' | '<' | '>' | '<=' | '>=';
 export type AssignmentOperator = '=' | '/=' | '*=' | '+=' | '-=';
 export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression | NewExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;

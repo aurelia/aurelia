@@ -18,6 +18,12 @@ export {
 } from './scope';
 
 export {
+  nextTick,
+  queueTask,
+  Task,
+} from './queue';
+
+export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,

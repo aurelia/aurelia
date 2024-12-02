@@ -23,3 +23,8 @@ export function fileExists(unit: IFileUnit, relativeOrAbsolutePath: string): boo
     return false;
   }
 }
+
+export function readFile(unit: IFileUnit, relativeOrAbsolutePath: string): string {
+  const p = resolveFilePath(unit, relativeOrAbsolutePath);
+  return fs.readFileSync(p, 'utf-8');
+}

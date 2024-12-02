@@ -250,22 +250,18 @@ export class Unparser implements IVisitor<void> {
   }
 
   public visitCallMember(expr: CallMemberExpression): void {
-    this.text += '(';
     astVisit(expr.object, this);
     this.text += `${expr.optionalMember ? '?.' : ''}.${expr.name}${expr.optionalCall ? '?.' : ''}`;
     this.writeArgs(expr.args);
-    this.text += ')';
   }
 
   public visitCallScope(expr: CallScopeExpression): void {
-    this.text += '(';
     let i = expr.ancestor;
     while (i--) {
       this.text += '$parent.';
     }
     this.text += `${expr.name}${expr.optional ? '?.' : ''}`;
     this.writeArgs(expr.args);
-    this.text += ')';
   }
 
   public visitTemplate(expr: TemplateExpression): void {

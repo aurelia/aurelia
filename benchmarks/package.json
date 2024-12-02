@@ -17,7 +17,7 @@
     "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json"
   },
   "dependencies": {
-    "tachometer": "0.7.0"
+    "tachometer": "0.7.1"
   },
   "version": "2.0.0-beta.22"
 }

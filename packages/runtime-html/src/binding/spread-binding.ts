@@ -324,7 +324,6 @@ export class SpreadValueBinding implements IBinding {
             this._controller,
             this.l,
             this.oL,
-            this._taskQueue,
             SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,

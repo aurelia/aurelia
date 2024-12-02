@@ -12,16 +12,14 @@ import {
   type IObserver,
   type IObserverLocator,
   type IObserverLocatorBasedConnectable,
+  queueTask,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { BindingTargetSubscriber, IFlushQueue, createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
-import { atLayout } from '../utilities';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -44,7 +42,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   private _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   /** @internal */
   private _targetSubscriber: ISubscriber | null = null;
@@ -62,9 +60,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   /** @internal */
   private readonly _controller: IBindingController;
 
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -73,7 +68,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     public ast: IsBindingBehavior | ForOfStatement,
     public target: object,
     public targetProperty: string,
@@ -82,7 +76,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   ) {
     this.l = locator;
     this._controller = controller;
-    this._taskQueue = taskQueue;
     this.oL = observerLocator;
   }
 
@@ -110,18 +103,14 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     );
     this.obs.clear();
 
-    const shouldQueueFlush = this._controller.state !== activating && (this._targetObserver!.type & atLayout) > 0;
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this._task;
-      this._task = this._taskQueue.queueTask(() => {
-        this.updateTarget(newValue);
-        this._task = null;
-      }, updateTaskOpts);
-      task?.cancel();
-      task = null;
-    } else {
-      this.updateTarget(newValue);
+    if (!this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        if (this._isQueued) {
+          this._isQueued = false;
+          this.updateTarget(newValue);
+        }
+      });
     }
   }
 
@@ -187,8 +176,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
       (this._targetObserver as IObserver).unsubscribe(this._targetSubscriber);
       this._targetSubscriber = null;
     }
-    this._task?.cancel();
-    this._task = null;
+    this._isQueued = false;
     this.obs.clearAll();
   }
 
@@ -213,9 +201,3 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     this._targetSubscriber = subscriber;
   }
 }
-
-let task: ITask | null = null;
-
-const updateTaskOpts: QueueTaskOptions = {
-  preempt: true,
-};

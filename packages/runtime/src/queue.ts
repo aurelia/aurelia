@@ -32,8 +32,6 @@ function flush() {
   } finally {
     flushIndex = -1;
     currPromise = null;
-    if (queue.length) {
-      flush();
-    }
+    queue.length = 0;
   }
 }

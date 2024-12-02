@@ -5,12 +5,11 @@ import {
   astEvaluate,
   astUnbind,
   IAstEvaluator,
+  queueTask,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   AccessorOrObserver,
   IAccessor,
@@ -20,13 +19,8 @@ import type {
   ISubscriber,
   Scope,
 } from '@aurelia/runtime';
-import { atLayout } from '../utilities';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -47,7 +41,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   private _targetObserver: AccessorOrObserver;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -57,16 +51,12 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
-  /** @internal */
   private readonly _controller: IBindingController;
 
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     public ast: Interpolation,
     public target: object,
     public targetProperty: string,
@@ -75,7 +65,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   ) {
     this._controller = controller;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
     this._targetObserver = observerLocator.getAccessor(target, targetProperty);
     const expressions = ast.expressions;
     const partBindings = this.partBindings = Array(expressions.length);
@@ -109,23 +98,15 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     }
 
     const targetObserver = this._targetObserver;
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
-    let task: ITask | null;
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this._task;
-      this._task = this._taskQueue.queueTask(() => {
-        this._task = null;
-        targetObserver.setValue(result, this.target, this.targetProperty);
-      }, queueTaskOptions);
-      task?.cancel();
-      task = null;
-    } else {
-      targetObserver.setValue(result, this.target, this.targetProperty);
+
+    if (!this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        if (this._isQueued) {
+          this._isQueued = false;
+          targetObserver.setValue(result, this.target, this.targetProperty);
+        }
+      });
     }
   }
 
@@ -162,8 +143,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     for (; ii > i; ++i) {
       partBindings[i].unbind();
     }
-    this._task?.cancel();
-    this._task = null;
+    this._isQueued = false;
   }
 
   /**
@@ -191,7 +171,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = toView;
   public _scope?: Scope;
-  public task: ITask | null = null;
   public isBound: boolean = false;
 
   /** @internal */
@@ -208,6 +187,9 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
+
+  /** @internal */
+  private _isQueued: boolean = false;
 
   public constructor(
     public readonly ast: IsExpression,
@@ -247,7 +229,15 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
       if (isArray(newValue)) {
         this.observeCollection(newValue);
       }
-      this.updateTarget();
+      if (!this._isQueued) {
+        this._isQueued = true;
+        queueTask(() => {
+          if (this._isQueued) {
+            this._isQueued = false;
+            this.updateTarget();
+          }
+        });
+      }
     }
   }
 
@@ -291,5 +281,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
 
     this._scope = void 0;
     this.obs.clearAll();
+    this._isQueued = false;
   }
 }

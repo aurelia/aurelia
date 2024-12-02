@@ -4,11 +4,10 @@ import {
   astBind,
   astEvaluate,
   astUnbind,
+  queueTask,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { toView } from './interfaces-bindings';
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type {
   ICollectionSubscriber,
   IObserverLocator,
@@ -21,10 +20,6 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-
-const queueTaskOptions: QueueTaskOptions = {
-  preempt: true,
-};
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -51,7 +46,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public _scope?: Scope;
 
   /** @internal */
-  public _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -59,8 +54,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
    * @internal
    */
   public readonly oL: IObserverLocator;
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -79,7 +72,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
@@ -88,7 +80,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     this.l = locator;
     this._controller = controller;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
@@ -126,15 +117,18 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
       // in a frequent update, e.g collection mutation in a loop
       // value could be changing frequently and previous update task may be stale at this point
       // cancel if any task going on because the latest value is already the same
-      this._task?.cancel();
-      this._task = null;
+      this._isQueued = false;
       return;
     }
-    const shouldQueueFlush = this._controller.state !== activating;
-    if (shouldQueueFlush) {
-      this._queueUpdate(newValue);
-    } else {
-      this.updateTarget(newValue);
+
+    if (!this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        if (this._isQueued) {
+          this._isQueued = false;
+          this.updateTarget(newValue);
+        }
+      });
     }
   }
 
@@ -154,11 +148,15 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     if (isArray(v)) {
       this.observeCollection(v);
     }
-    const shouldQueueFlush = this._controller.state !== activating;
-    if (shouldQueueFlush) {
-      this._queueUpdate(v);
-    } else {
-      this.updateTarget(v);
+
+    if (!this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        if (this._isQueued) {
+          this._isQueued = false;
+          this.updateTarget(v);
+        }
+      });
     }
   }
 
@@ -205,18 +203,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     // this.updateTarget('');
     this._scope = void 0;
     this.obs.clearAll();
-    this._task?.cancel();
-    this._task = null;
-  }
-
-  // queue a force update
-  /** @internal */
-  private _queueUpdate(newValue: unknown): void {
-    const task = this._task;
-    this._task = this._taskQueue.queueTask(() => {
-      this._task = null;
-      this.updateTarget(newValue);
-    }, queueTaskOptions);
-    task?.cancel();
+    this._isQueued = false;
   }
 }

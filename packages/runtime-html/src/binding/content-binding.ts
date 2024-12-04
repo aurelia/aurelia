@@ -2,7 +2,6 @@ import {
   connectable,
   IAstEvaluator,
   astEvaluate,
-  astUnbind,
   queueTask,
 } from '@aurelia/runtime';
 import { toView } from './interfaces-bindings';
@@ -19,7 +18,7 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -48,7 +47,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public _scope?: Scope;
 
   /** @internal */
-  private _isQueued: boolean = false;
+  public _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -65,7 +64,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   private readonly _controller: IBindingController;
   /** @internal */
-  private _needsRemoveNode: boolean = false;
+  public _needsRemoveNode: boolean = false;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -167,22 +166,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-    if (this._needsRemoveNode) {
-      (this._value as Node).parentNode?.removeChild(this._value as Node);
-    }
-
-    // TODO: should existing value (either connected node, or a string)
-    // be removed when this binding is unbound?
-    // this.updateTarget('');
-    this._scope = void 0;
-    this.obs.clearAll();
-    this._isQueued = false;
+    unbind(this);
   }
 }

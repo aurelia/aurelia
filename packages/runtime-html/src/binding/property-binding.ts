@@ -3,7 +3,6 @@ import {
   ISubscriber,
   astAssign,
   astEvaluate,
-  astUnbind,
   IAstEvaluator,
   type Scope,
   type AccessorOrObserver,
@@ -20,7 +19,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -44,7 +43,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   public _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
-  private _isQueued: boolean = false;
+  public _isQueued: boolean = false;
 
   /** @internal */
   public _targetSubscriber: ISubscriber | null = null;
@@ -133,22 +132,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-
-    if (this._targetSubscriber) {
-      (this._targetObserver as IObserver).unsubscribe(this._targetSubscriber);
-      this._targetSubscriber = null;
-    }
-    this._isQueued = false;
-    this.obs.clearAll();
+    unbind(this);
   }
 
   /**

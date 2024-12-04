@@ -2,7 +2,6 @@ import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
   astEvaluate,
-  astUnbind,
   IAstEvaluator,
   queueTask,
 } from '@aurelia/runtime';
@@ -20,7 +19,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -43,7 +42,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   private _targetObserver: AccessorOrObserver;
 
   /** @internal */
-  private _isQueued: boolean = false;
+  public _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -177,7 +176,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   public readonly boundFn = false;
 
   /** @internal */
-  private _isQueued: boolean = false;
+  public _isQueued: boolean = false;
 
   public constructor(
     public readonly ast: IsExpression,
@@ -238,16 +237,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this.obs.clearAll();
-    this._isQueued = false;
+    unbind(this);
   }
 }

@@ -4,15 +4,12 @@ import {
   type IObserverLocatorBasedConnectable,
   type ISubscriber,
   type Scope,
-  astAssign,
-  astEvaluate,
-  astUnbind,
   type IAstEvaluator,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -44,18 +41,6 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    if (astEvaluate(this.ast, this._scope!, this, null) === this.target) {
-      astAssign(this.ast, this._scope!, this, null);
-    }
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
+    unbind(this);
   }
 }

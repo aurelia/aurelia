@@ -10,11 +10,10 @@ import {
   ISubscriber,
   type Scope,
   astEvaluate,
-  astUnbind,
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -122,16 +121,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this.target.removeEventListener(this.targetEvent, this, this._options);
+    unbind(this);
   }
 }
 

@@ -7,7 +7,6 @@ import {
   type IObserverLocator,
   type Scope,
   astEvaluate,
-  astUnbind,
   type IAstEvaluator,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
@@ -15,7 +14,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -99,15 +98,6 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this.obs.clearAll();
+    unbind(this);
   }
 }

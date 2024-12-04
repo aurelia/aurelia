@@ -8,7 +8,6 @@ import {
   Scope,
   type IAstEvaluator,
   astEvaluate,
-  astUnbind,
 } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
@@ -20,7 +19,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -136,8 +135,7 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   public unbind(): void {
-    this._innerBindings.forEach(b => b.unbind());
-    this.isBound = false;
+    unbind(this);
   }
 
   public addBinding(binding: IBinding) {
@@ -193,7 +191,7 @@ export class SpreadValueBinding implements IBinding {
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
+  public readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
   // not a static weakmap because we want to clear the cache when the binding is disposed
   // also different binding at different logic with the same object shouldn't be sharing the same override context
   /** @internal */
@@ -251,21 +249,7 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public unbind(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = false;
-    astUnbind(this.ast, this._scope!, this);
-    this._scope = void 0;
-    let key: string;
-    // can also try to keep track of what the active bindings are
-    // but we know in our impl, all unbind are idempotent
-    // so just be simple and unbind all
-    for (key in this._bindingCache) {
-      this._bindingCache[key].unbind();
-    }
+    unbind(this);
   }
 
   /**

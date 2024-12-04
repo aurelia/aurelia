@@ -6,7 +6,6 @@ import {
   ISubscriber,
   ICollectionSubscriber,
   astEvaluate,
-  astUnbind,
   type IAstEvaluator,
   type Scope,
 } from '@aurelia/runtime';
@@ -23,7 +22,7 @@ import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-import { bind } from './_lifecycle';
+import { bind, unbind } from './_lifecycle';
 
 const taskOptions: QueueTaskOptions = {
   preempt: true,
@@ -51,7 +50,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public _scope?: Scope = void 0;
 
   /** @internal */
-  private _task: ITask | null = null;
+  public _task: ITask | null = null;
 
   public target: HTMLElement;
 
@@ -179,19 +178,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this._value = void 0;
-
-    this._task?.cancel();
-    this._task = null;
-    this.obs.clearAll();
+    unbind(this);
   }
 }

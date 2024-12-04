@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { astAssign, astBind, astEvaluate, IObserver, type Scope } from '@aurelia/runtime';
+import { astAssign, astBind, astEvaluate, astUnbind, IObserver, type Scope } from '@aurelia/runtime';
 import type { AttributeBinding } from './attribute-binding';
 import type { ContentBinding } from './content-binding';
 import type { InterpolationBinding, InterpolationPartBinding } from './interpolation-binding';
@@ -16,6 +16,7 @@ import { fromView, oneTime, toView } from './interfaces-bindings';
 type BindingBase = {
   $kind: void;
   bind(scope: Scope): void;
+  unbind(): void;
 };
 
 type $Binding = (
@@ -154,4 +155,108 @@ export const bind = (b: $Binding | BindingBase, scope: Scope): void => {
     default:
       throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
   }
+};
+
+export const unbind = (b: $Binding | BindingBase): void => {
+  if (b.$kind === void 0) {
+    return b.unbind();
+  }
+
+  if (!b.isBound) {
+    return;
+  }
+  b.isBound = false;
+
+  switch (b.$kind) {
+    case 'Attribute': {
+      astUnbind(b.ast, b._scope!, b);
+
+      b._value = void 0;
+
+      b._task?.cancel();
+      b._task = null;
+      b.obs.clearAll();
+      break;
+    }
+    case 'Content': {
+      astUnbind(b.ast, b._scope!, b);
+      if (b._needsRemoveNode) {
+        (b._value as Node).parentNode?.removeChild(b._value as Node);
+      }
+
+      // TODO: should existing value (either connected node, or a string)
+      // be removed when b binding is unbound?
+      // b.updateTarget('');
+      b.obs.clearAll();
+      b._isQueued = false;
+      break;
+    }
+    case 'Interpolation': {
+      const partBindings = b.partBindings;
+      const ii = partBindings.length;
+      let i = 0;
+      for (; ii > i; ++i) {
+        partBindings[i].unbind();
+      }
+      b._isQueued = false;
+      break;
+    }
+    case 'InterpolationPart': {
+      astUnbind(b.ast, b._scope!, b);
+
+      b.obs.clearAll();
+      b._isQueued = false;
+      break;
+    }
+    case 'Let': {
+      astUnbind(b.ast, b._scope!, b);
+
+      b.obs.clearAll();
+      break;
+    }
+    case 'Listener': {
+      astUnbind(b.ast, b._scope!, b);
+
+      b.target.removeEventListener(b.targetEvent, b, b._options);
+      break;
+    }
+    case 'Property': {
+      astUnbind(b.ast, b._scope!, b);
+
+      if (b._targetSubscriber) {
+        (b._targetObserver as IObserver).unsubscribe(b._targetSubscriber);
+        b._targetSubscriber = null;
+      }
+      b._isQueued = false;
+      b.obs.clearAll();
+      break;
+    }
+    case 'Ref': {
+      if (astEvaluate(b.ast, b._scope!, b, null) === b.target) {
+        astAssign(b.ast, b._scope!, b, null);
+      }
+
+      astUnbind(b.ast, b._scope!, b);
+      break;
+    }
+    case 'Spread': {
+      b._innerBindings.forEach(b => b.unbind());
+      break;
+    }
+    case 'SpreadValue': {
+      astUnbind(b.ast, b._scope!, b);
+      let key: string;
+      // can also try to keep track of what the active bindings are
+      // but we know in our impl, all unbind are idempotent
+      // so just be simple and unbind all
+      for (key in b._bindingCache) {
+        b._bindingCache[key].unbind();
+      }
+      break;
+    }
+    default:
+      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
+  }
+
+  b._scope = void 0;
 };

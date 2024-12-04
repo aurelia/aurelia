@@ -748,7 +748,6 @@ export const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBi
       renderingCtrl,
       container,
       observerLocator,
-      platform.domQueue,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       target,
       instruction.attr/* targetAttribute */,
@@ -812,7 +811,6 @@ export const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRende
         exprParser.parse(instruction.from, etIsProperty),
         observerLocator,
         renderingCtrl.container,
-        platform.domQueue,
         renderingCtrl.strict ?? false,
       ));
     } else {

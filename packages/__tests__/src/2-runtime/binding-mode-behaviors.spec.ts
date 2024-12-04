@@ -38,7 +38,6 @@ describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
           binding = new PropertyBinding(
             { state: 0 },
             container as any,
-            {} as any,
             undefined,
             undefined,
             undefined,

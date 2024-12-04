@@ -4,7 +4,6 @@ import {
 } from '@aurelia/expression-parser';
 import {
   BindingMode,
-  IPlatform,
   LetBinding,
   PropertyBinding,
 } from '@aurelia/runtime-html';
@@ -34,7 +33,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           { state: 0 },
           container,
           observerLocator,
-          {} as any,
           accessScopeExpr,
           target,
           'name',
@@ -68,7 +66,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           { state: 0 },
           container,
           observerLocator,
-          container.get(IPlatform).domQueue,
           conditionalExpr,
           target,
           'value',

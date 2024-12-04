@@ -276,22 +276,15 @@ export const handleChange = (b: $Binding | BindingBase): void => {
     return b.handleChange();
   }
 
+  if (!b.isBound) {
+    return;
+  }
+
   switch (b.$kind) {
     case 'Attribute': {
-      if (!b.isBound) {
-        /* istanbul-ignore-next */
-        return;
-      }
-
       let task: ITask | null;
       b.obs.version++;
-      const newValue = astEvaluate(
-        b.ast,
-        b._scope!,
-        b,
-        // should observe?
-        (b.mode & toView) > 0 ? b : null
-      );
+      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
 
       if (newValue !== b._value) {
@@ -312,18 +305,8 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Content': {
-      if (!b.isBound) {
-        /* istanbul ignore next */
-        return;
-      }
       b.obs.version++;
-      const newValue = astEvaluate(
-        b.ast,
-        b._scope!,
-        b,
-        // should observe?
-        (b.mode & toView) > 0 ? b : null
-      );
+      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
       if (newValue === b._value) {
         // in a frequent update, e.g collection mutation in a loop
@@ -348,18 +331,8 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'InterpolationPart': {
-      if (!b.isBound) {
-          /* istanbul-ignore-next */
-        return;
-      }
       b.obs.version++;
-      const newValue = astEvaluate(
-        b.ast,
-        b._scope!,
-        b,
-        // should observe?
-        (b.mode & toView) > 0 ? b : null
-      );
+      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
       // todo(!=): maybe should do strict comparison?
       // eslint-disable-next-line eqeqeq
@@ -381,10 +354,6 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Let': {
-      if (!b.isBound) {
-        /* istanbul-ignore-next */
-        return;
-      }
       b.obs.version++;
       b._value = astEvaluate(b.ast, b._scope!, b, b);
       b.obs.clear();
@@ -392,15 +361,9 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Listener': {
-
       break;
     }
     case 'Property': {
-      if (!b.isBound) {
-        /* istanbul-ignore-next */
-        return;
-      }
-
       if (!b._isQueued) {
         b._isQueued = true;
         queueTask(() => {
@@ -410,19 +373,12 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Ref': {
-
       break;
     }
     case 'Spread': {
-
       break;
     }
     case 'SpreadValue': {
-      /* istanbul ignore if */
-      if (!b.isBound) {
-        /* istanbul ignore next */
-        return;
-      }
       b.updateTarget();
       break;
     }
@@ -436,23 +392,18 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
     return b.handleCollectionChange();
   }
 
+  if (!b.isBound) {
+    return;
+  }
+
   switch (b.$kind) {
     case 'Attribute': {
       b.handleChange();
       break;
     }
     case 'Content': {
-      if (!b.isBound) {
-        /* istanbul-ignore-next */
-        return;
-      }
       b.obs.version++;
-      const v = b._value = astEvaluate(
-        b.ast,
-        b._scope!,
-        b,
-        (b.mode & toView) > 0 ? b : null
-      );
+      const v = b._value = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
       if (isArray(v)) {
         b.observeCollection(v);
@@ -470,7 +421,6 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Interpolation': {
-
       break;
     }
     case 'InterpolationPart': {
@@ -482,7 +432,6 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Listener': {
-
       break;
     }
     case 'Property': {
@@ -490,20 +439,13 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Ref': {
-
       break;
     }
     case 'Spread': {
-
       break;
     }
     case 'SpreadValue': {
-      /* istanbul ignore if */
-    if (!b.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    b.updateTarget();
+      b.updateTarget();
       break;
     }
     default:
@@ -514,6 +456,10 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
 export const updateTarget = (b: $Binding | BindingBase, value: unknown): void => {
   if (b.$kind === void 0) {
     return b.updateTarget(value);
+  }
+
+  if (!b.isBound) {
+    return;
   }
 
   switch (b.$kind) {
@@ -603,7 +549,6 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
       break;
     }
     case 'Listener': {
-
       break;
     }
     case 'Property': {
@@ -611,21 +556,14 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
       break;
     }
     case 'Ref': {
-
       break;
     }
     case 'Spread': {
-
       break;
     }
     case 'SpreadValue': {
       b.obs.version++;
-      const newValue = astEvaluate(
-        b.ast,
-        b._scope!,
-        b,
-        b
-      );
+      const newValue = astEvaluate(b.ast, b._scope!, b, b);
       b.obs.clear();
 
       b._createBindings(newValue as Record<PropertyKey, unknown> | null, true);

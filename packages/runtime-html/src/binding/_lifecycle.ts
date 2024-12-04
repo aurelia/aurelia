@@ -299,76 +299,42 @@ export const flushChanges = (b: $Binding): void => {
   (b.flags as Flags) &= ~Flags.isQueued;
 
   switch (b.$kind) {
-    case 'Attribute': {
-      b.obs.version++;
-      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
-      b.obs.clear();
-
-      if (newValue !== b._value) {
-        b._value = newValue;
-        b.updateTarget(newValue);
-      }
-      break;
-    }
-    case 'Content': {
-      b.obs.version++;
-      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
-      b.obs.clear();
-
-      if (newValue === b._value) {
-        // in a frequent update, e.g collection mutation in a loop
-        // value could be changing frequently and previous update task may be stale at b point
-        // cancel if any task going on because the latest value is already the same
-        return;
-      }
-
-      b.updateTarget(newValue);
-      break;
-    }
-    case 'Interpolation': {
-      break;
-    }
-    case 'InterpolationPart': {
-      b.obs.version++;
-      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
-      b.obs.clear();
-
-      // todo(!=): maybe should do strict comparison?
-      // eslint-disable-next-line eqeqeq
-      if (newValue != b._value) {
-        b._value = newValue;
-        if (isArray(newValue)) {
-          b.observeCollection(newValue);
-        }
-        b.updateTarget();
-      }
-      break;
-    }
-    case 'Let': {
-      break;
-    }
-    case 'Listener': {
-      break;
-    }
+    case 'Attribute':
+    case 'Content':
+    case 'InterpolationPart':
     case 'Property': {
       b.obs.version++;
       const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
 
-      b.updateTarget(newValue);
+      switch (b.$kind) {
+        case 'Attribute':
+        case 'Content': {
+          if (newValue !== b._value) {
+            b._value = newValue;
+            b.updateTarget(newValue);
+          }
+          break;
+        }
+        case 'InterpolationPart': {
+          // todo(!=): maybe should do strict comparison?
+          // eslint-disable-next-line eqeqeq
+          if (newValue != b._value) {
+            b._value = newValue;
+            if (isArray(newValue)) {
+              b.observeCollection(newValue);
+            }
+            b.updateTarget();
+          }
+          break;
+        }
+        case 'Property': {
+          b.updateTarget(newValue);
+          break;
+        }
+      }
       break;
     }
-    case 'Ref': {
-      break;
-    }
-    case 'Spread': {
-      break;
-    }
-    case 'SpreadValue': {
-      break;
-    }
-    default:
-      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
   }
 };
 
@@ -463,14 +429,10 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
 
   switch (b.$kind) {
     case 'Attribute': {
-      const target = b.target;
-      const targetAttribute = b.targetAttribute;
-      const targetProperty = b.targetProperty;
-
-      switch (targetAttribute) {
+      switch (b.targetAttribute) {
         case 'class':
           // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          target.classList.toggle(targetProperty, !!value);
+          b.target.classList.toggle(b.targetProperty, !!value);
           break;
         case 'style': {
           let priority = '';
@@ -479,21 +441,20 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
             priority = 'important';
             newValue = newValue.replace('!important', '');
           }
-          target.style.setProperty(targetProperty, newValue, priority);
+          b.target.style.setProperty(b.targetProperty, newValue, priority);
           break;
         }
         default: {
           if (value == null) {
-            target.removeAttribute(targetAttribute);
+            b.target.removeAttribute(b.targetAttribute);
           } else {
-            target.setAttribute(targetAttribute, safeString(value));
+            b.target.setAttribute(b.targetAttribute, safeString(value));
           }
         }
       }
       break;
     }
     case 'Content': {
-      const target = b.target;
       const oldValue = b._value;
       b._value = value;
       if (b._needsRemoveNode) {
@@ -501,33 +462,31 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
         b._needsRemoveNode = false;
       }
       if (value instanceof b.p.Node) {
-        target.parentNode?.insertBefore(value, target);
+        b.target.parentNode?.insertBefore(value, b.target);
         value = '';
         b._needsRemoveNode = true;
       }
       // console.log({ value, type: typeof value });
-      target.textContent = safeString(value ?? '');
+      b.target.textContent = safeString(value ?? '');
       break;
     }
     case 'Interpolation': {
-      const partBindings = b.partBindings;
       const staticParts = b.ast.parts;
-      const ii = partBindings.length;
+      const ii = b.partBindings.length;
       let result = '';
       let i = 0;
       if (ii === 1) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        result = staticParts[0] + partBindings[0]._value + staticParts[1];
+        result = staticParts[0] + b.partBindings[0]._value + staticParts[1];
       } else {
         result = staticParts[0];
         for (; ii > i; ++i) {
           // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-          result += partBindings[i]._value + staticParts[i + 1];
+          result += b.partBindings[i]._value + staticParts[i + 1];
         }
       }
 
-      const targetObserver = b._targetObserver;
-      targetObserver.setValue(result, b.target, b.targetProperty);
+      b._targetObserver.setValue(result, b.target, b.targetProperty);
       break;
     }
     case 'InterpolationPart': {

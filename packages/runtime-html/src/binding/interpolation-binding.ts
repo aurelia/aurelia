@@ -1,9 +1,7 @@
-import { type IServiceLocator, isArray } from '@aurelia/kernel';
+import { type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
-  astEvaluate,
   IAstEvaluator,
-  queueTask,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { toView } from './interfaces-bindings';
@@ -19,7 +17,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import { bind, unbind } from './_lifecycle';
+import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -39,7 +37,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   public partBindings: InterpolationPartBinding[];
 
   /** @internal */
-  private _targetObserver: AccessorOrObserver;
+  public _targetObserver: AccessorOrObserver;
 
   /** @internal */
   public _isQueued: boolean = false;
@@ -82,33 +80,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public updateTarget(): void {
-    const partBindings = this.partBindings;
-    const staticParts = this.ast.parts;
-    const ii = partBindings.length;
-    let result = '';
-    let i = 0;
-    if (ii === 1) {
-      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      result = staticParts[0] + partBindings[0]._value + staticParts[1];
-    } else {
-      result = staticParts[0];
-      for (; ii > i; ++i) {
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        result += partBindings[i]._value + staticParts[i + 1];
-      }
-    }
-
-    const targetObserver = this._targetObserver;
-
-    if (!this._isQueued) {
-      this._isQueued = true;
-      queueTask(() => {
-        if (this._isQueued) {
-          this._isQueued = false;
-          targetObserver.setValue(result, this.target, this.targetProperty);
-        }
-      });
-    }
+    updateTarget(this, void 0);
   }
 
   public bind(scope: Scope): void {
@@ -192,44 +164,15 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public updateTarget() {
-    this.owner._handlePartChange();
+    updateTarget(this, void 0);
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-    // todo(!=): maybe should do strict comparison?
-    // eslint-disable-next-line eqeqeq
-    if (newValue != this._value) {
-      this._value = newValue;
-      if (isArray(newValue)) {
-        this.observeCollection(newValue);
-      }
-      if (!this._isQueued) {
-        this._isQueued = true;
-        queueTask(() => {
-          if (this._isQueued) {
-            this._isQueued = false;
-            this.updateTarget();
-          }
-        });
-      }
-    }
+    handleChange(this);
   }
 
   public handleCollectionChange(): void {
-    this.updateTarget();
+    handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {

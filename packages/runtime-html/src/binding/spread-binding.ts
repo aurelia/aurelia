@@ -7,7 +7,6 @@ import {
   connectable,
   Scope,
   type IAstEvaluator,
-  astEvaluate,
 } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
@@ -19,7 +18,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { bind, unbind } from './_lifecycle';
+import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -214,34 +213,15 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public updateTarget(): void {
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      this
-    );
-    this.obs.clear();
-
-    this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
+    updateTarget(this, void 0);
   }
 
   public handleChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.updateTarget();
+    handleChange(this);
   }
 
   public handleCollectionChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.updateTarget();
+    handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {

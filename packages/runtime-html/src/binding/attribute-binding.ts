@@ -1,32 +1,23 @@
-import { type IServiceLocator, isString } from '@aurelia/kernel';
+import { type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   type IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber,
-  astEvaluate,
   type IAstEvaluator,
   type Scope,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { toView } from './interfaces-bindings';
 
 import type {
   ITask,
-  QueueTaskOptions,
   TaskQueue
 } from '@aurelia/platform';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
-import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-import { bind, unbind } from './_lifecycle';
-
-const taskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -65,10 +56,10 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
+  public readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  public readonly _taskQueue: TaskQueue;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -105,72 +96,16 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
-    const target = this.target;
-    const targetAttribute = this.targetAttribute;
-    const targetProperty = this.targetProperty;
-
-    switch (targetAttribute) {
-      case 'class':
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        target.classList.toggle(targetProperty, !!value);
-        break;
-      case 'style': {
-        let priority = '';
-        let newValue = safeString(value);
-        if (isString(newValue) && newValue.includes('!important')) {
-          priority = 'important';
-          newValue = newValue.replace('!important', '');
-        }
-        target.style.setProperty(targetProperty, newValue, priority);
-        break;
-      }
-      default: {
-        if (value == null) {
-          target.removeAttribute(targetAttribute);
-        } else {
-          target.setAttribute(targetAttribute, safeString(value));
-        }
-      }
-    }
+    updateTarget(this, value);
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-
-    let task: ITask | null;
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-
-    if (newValue !== this._value) {
-      this._value = newValue;
-      const shouldQueueFlush = this._controller.state !== activating;
-      if (shouldQueueFlush) {
-        // Queue the new one before canceling the old one, to prevent early yield
-        task = this._task;
-        this._task = this._taskQueue.queueTask(() => {
-          this._task = null;
-          this.updateTarget(newValue);
-        }, taskOptions);
-        task?.cancel();
-      } else {
-        this.updateTarget(newValue);
-      }
-    }
+    handleChange(this);
   }
 
   // todo: based off collection and handle update accordingly instead off always start
   public handleCollectionChange(): void {
-    this.handleChange();
+    handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {

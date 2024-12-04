@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import { astAssign, astBind, astEvaluate, astUnbind, IObserver, type Scope } from '@aurelia/runtime';
+import { astAssign, astBind, astEvaluate, astUnbind, IObserver, queueTask, type Scope } from '@aurelia/runtime';
 import type { AttributeBinding } from './attribute-binding';
 import type { ContentBinding } from './content-binding';
 import type { InterpolationBinding, InterpolationPartBinding } from './interpolation-binding';
@@ -10,13 +10,23 @@ import type { RefBinding } from './ref-binding';
 import type { SpreadBinding, SpreadValueBinding } from './spread-binding';
 import { createMappedError, ErrorNames } from '../errors';
 import { BindingTargetSubscriber, IFlushQueue } from './binding-utils';
-import { IIndexable, isArray } from '@aurelia/kernel';
+import { IIndexable, isArray, isString } from '@aurelia/kernel';
 import { fromView, oneTime, toView } from './interfaces-bindings';
+import { ITask, QueueTaskOptions } from '@aurelia/platform';
+import { activating } from '../templating/controller';
+import { safeString } from '../utilities';
+
+const taskOptions: QueueTaskOptions = {
+  preempt: true,
+};
 
 type BindingBase = {
-  $kind: void;
+  $kind?: void;
   bind(scope: Scope): void;
   unbind(): void;
+  handleChange(): void;
+  handleCollectionChange(): void;
+  updateTarget(value: unknown): void;
 };
 
 type $Binding = (
@@ -259,4 +269,369 @@ export const unbind = (b: $Binding | BindingBase): void => {
   }
 
   b._scope = void 0;
+};
+
+export const handleChange = (b: $Binding | BindingBase): void => {
+  if (b.$kind === void 0) {
+    return b.handleChange();
+  }
+
+  switch (b.$kind) {
+    case 'Attribute': {
+      if (!b.isBound) {
+        /* istanbul-ignore-next */
+        return;
+      }
+
+      let task: ITask | null;
+      b.obs.version++;
+      const newValue = astEvaluate(
+        b.ast,
+        b._scope!,
+        b,
+        // should observe?
+        (b.mode & toView) > 0 ? b : null
+      );
+      b.obs.clear();
+
+      if (newValue !== b._value) {
+        b._value = newValue;
+        const shouldQueueFlush = b._controller.state !== activating;
+        if (shouldQueueFlush) {
+          // Queue the new one before canceling the old one, to prevent early yield
+          task = b._task;
+          b._task = b._taskQueue.queueTask(() => {
+            b._task = null;
+            b.updateTarget(newValue);
+          }, taskOptions);
+          task?.cancel();
+        } else {
+          b.updateTarget(newValue);
+        }
+      }
+      break;
+    }
+    case 'Content': {
+      if (!b.isBound) {
+        /* istanbul ignore next */
+        return;
+      }
+      b.obs.version++;
+      const newValue = astEvaluate(
+        b.ast,
+        b._scope!,
+        b,
+        // should observe?
+        (b.mode & toView) > 0 ? b : null
+      );
+      b.obs.clear();
+      if (newValue === b._value) {
+        // in a frequent update, e.g collection mutation in a loop
+        // value could be changing frequently and previous update task may be stale at b point
+        // cancel if any task going on because the latest value is already the same
+        b._isQueued = false;
+        return;
+      }
+
+      if (!b._isQueued) {
+        b._isQueued = true;
+        queueTask(() => {
+          if (b._isQueued) {
+            b._isQueued = false;
+            b.updateTarget(newValue);
+          }
+        });
+      }
+      break;
+    }
+    case 'Interpolation': {
+      break;
+    }
+    case 'InterpolationPart': {
+      if (!b.isBound) {
+          /* istanbul-ignore-next */
+        return;
+      }
+      b.obs.version++;
+      const newValue = astEvaluate(
+        b.ast,
+        b._scope!,
+        b,
+        // should observe?
+        (b.mode & toView) > 0 ? b : null
+      );
+      b.obs.clear();
+      // todo(!=): maybe should do strict comparison?
+      // eslint-disable-next-line eqeqeq
+      if (newValue != b._value) {
+        b._value = newValue;
+        if (isArray(newValue)) {
+          b.observeCollection(newValue);
+        }
+        if (!b._isQueued) {
+          b._isQueued = true;
+          queueTask(() => {
+            if (b._isQueued) {
+              b._isQueued = false;
+              b.updateTarget();
+            }
+          });
+        }
+      }
+      break;
+    }
+    case 'Let': {
+      if (!b.isBound) {
+        /* istanbul-ignore-next */
+        return;
+      }
+      b.obs.version++;
+      b._value = astEvaluate(b.ast, b._scope!, b, b);
+      b.obs.clear();
+      b.updateTarget();
+      break;
+    }
+    case 'Listener': {
+
+      break;
+    }
+    case 'Property': {
+      if (!b.isBound) {
+        /* istanbul-ignore-next */
+        return;
+      }
+
+      if (!b._isQueued) {
+        b._isQueued = true;
+        queueTask(() => {
+          b._flush();
+        });
+      }
+      break;
+    }
+    case 'Ref': {
+
+      break;
+    }
+    case 'Spread': {
+
+      break;
+    }
+    case 'SpreadValue': {
+      /* istanbul ignore if */
+      if (!b.isBound) {
+        /* istanbul ignore next */
+        return;
+      }
+      b.updateTarget();
+      break;
+    }
+    default:
+      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
+  }
+};
+
+export const handleCollectionChange = (b: $Binding | BindingBase): void => {
+  if (b.$kind === void 0) {
+    return b.handleCollectionChange();
+  }
+
+  switch (b.$kind) {
+    case 'Attribute': {
+      b.handleChange();
+      break;
+    }
+    case 'Content': {
+      if (!b.isBound) {
+        /* istanbul-ignore-next */
+        return;
+      }
+      b.obs.version++;
+      const v = b._value = astEvaluate(
+        b.ast,
+        b._scope!,
+        b,
+        (b.mode & toView) > 0 ? b : null
+      );
+      b.obs.clear();
+      if (isArray(v)) {
+        b.observeCollection(v);
+      }
+
+      if (!b._isQueued) {
+        b._isQueued = true;
+        queueTask(() => {
+          if (b._isQueued) {
+            b._isQueued = false;
+            b.updateTarget(v);
+          }
+        });
+      }
+      break;
+    }
+    case 'Interpolation': {
+
+      break;
+    }
+    case 'InterpolationPart': {
+      b.updateTarget();
+      break;
+    }
+    case 'Let': {
+      b.handleChange();
+      break;
+    }
+    case 'Listener': {
+
+      break;
+    }
+    case 'Property': {
+      b.handleChange();
+      break;
+    }
+    case 'Ref': {
+
+      break;
+    }
+    case 'Spread': {
+
+      break;
+    }
+    case 'SpreadValue': {
+      /* istanbul ignore if */
+    if (!b.isBound) {
+      /* istanbul ignore next */
+      return;
+    }
+    b.updateTarget();
+      break;
+    }
+    default:
+      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
+  }
+};
+
+export const updateTarget = (b: $Binding | BindingBase, value: unknown): void => {
+  if (b.$kind === void 0) {
+    return b.updateTarget(value);
+  }
+
+  switch (b.$kind) {
+    case 'Attribute': {
+      const target = b.target;
+      const targetAttribute = b.targetAttribute;
+      const targetProperty = b.targetProperty;
+
+      switch (targetAttribute) {
+        case 'class':
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          target.classList.toggle(targetProperty, !!value);
+          break;
+        case 'style': {
+          let priority = '';
+          let newValue = safeString(value);
+          if (isString(newValue) && newValue.includes('!important')) {
+            priority = 'important';
+            newValue = newValue.replace('!important', '');
+          }
+          target.style.setProperty(targetProperty, newValue, priority);
+          break;
+        }
+        default: {
+          if (value == null) {
+            target.removeAttribute(targetAttribute);
+          } else {
+            target.setAttribute(targetAttribute, safeString(value));
+          }
+        }
+      }
+      break;
+    }
+    case 'Content': {
+      const target = b.target;
+      const oldValue = b._value;
+      b._value = value;
+      if (b._needsRemoveNode) {
+        (oldValue as Node).parentNode?.removeChild(oldValue as Node);
+        b._needsRemoveNode = false;
+      }
+      if (value instanceof b.p.Node) {
+        target.parentNode?.insertBefore(value, target);
+        value = '';
+        b._needsRemoveNode = true;
+      }
+      // console.log({ value, type: typeof value });
+      target.textContent = safeString(value ?? '');
+      break;
+    }
+    case 'Interpolation': {
+      const partBindings = b.partBindings;
+      const staticParts = b.ast.parts;
+      const ii = partBindings.length;
+      let result = '';
+      let i = 0;
+      if (ii === 1) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        result = staticParts[0] + partBindings[0]._value + staticParts[1];
+      } else {
+        result = staticParts[0];
+        for (; ii > i; ++i) {
+          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+          result += partBindings[i]._value + staticParts[i + 1];
+        }
+      }
+
+      const targetObserver = b._targetObserver;
+
+      if (!b._isQueued) {
+        b._isQueued = true;
+        queueTask(() => {
+          if (b._isQueued) {
+            b._isQueued = false;
+            targetObserver.setValue(result, b.target, b.targetProperty);
+          }
+        });
+      }
+      break;
+    }
+    case 'InterpolationPart': {
+      b.owner._handlePartChange();
+      break;
+    }
+    case 'Let': {
+      b.target![b.targetProperty] = b._value;
+      break;
+    }
+    case 'Listener': {
+
+      break;
+    }
+    case 'Property': {
+      b._targetObserver!.setValue(value, b.target, b.targetProperty);
+      break;
+    }
+    case 'Ref': {
+
+      break;
+    }
+    case 'Spread': {
+
+      break;
+    }
+    case 'SpreadValue': {
+      b.obs.version++;
+      const newValue = astEvaluate(
+        b.ast,
+        b._scope!,
+        b,
+        b
+      );
+      b.obs.clear();
+
+      b._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
+      break;
+    }
+    default:
+      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
+  }
 };

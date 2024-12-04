@@ -6,7 +6,6 @@ import {
   type IObservable,
   type IObserverLocator,
   type Scope,
-  astEvaluate,
   type IAstEvaluator,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
@@ -14,7 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
-import { bind, unbind } from './_lifecycle';
+import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -75,22 +74,15 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public updateTarget() {
-    this.target![this.targetProperty] = this._value;
+    updateTarget(this, void 0);
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.obs.version++;
-    this._value = astEvaluate(this.ast, this._scope!, this, this);
-    this.obs.clear();
-    this.updateTarget();
+    handleChange(this);
   }
 
   public handleCollectionChange(): void {
-    this.handleChange();
+    handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {

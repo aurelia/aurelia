@@ -2,7 +2,6 @@ import {
   connectable,
   ISubscriber,
   astAssign,
-  astEvaluate,
   IAstEvaluator,
   type Scope,
   type AccessorOrObserver,
@@ -12,7 +11,7 @@ import {
   type IObserverLocatorBasedConnectable,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { IBinding, fromView, toView } from './interfaces-bindings';
+import { IBinding, fromView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
@@ -40,9 +39,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   /** @internal */
   public _targetObserver?: AccessorOrObserver = void 0;
-
-  /** @internal */
-  public _isQueued: boolean = false;
 
   /** @internal */
   public _targetSubscriber: ISubscriber | null = null;
@@ -89,26 +85,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   public handleChange(): void {
     handleChange(this);
-  }
-
-  public _flush() {
-    if (!this._isQueued) {
-      return;
-    }
-
-    this._isQueued = false;
-
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-
-    this.updateTarget(newValue);
   }
 
   // todo: based off collection and handle update accordingly instead off always start

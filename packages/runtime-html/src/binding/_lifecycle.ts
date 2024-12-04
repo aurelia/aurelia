@@ -12,13 +12,7 @@ import { createMappedError, ErrorNames } from '../errors';
 import { BindingTargetSubscriber, IFlushQueue } from './binding-utils';
 import { IIndexable, isArray, isString } from '@aurelia/kernel';
 import { fromView, oneTime, toView } from './interfaces-bindings';
-import { ITask, QueueTaskOptions } from '@aurelia/platform';
-import { activating } from '../templating/controller';
 import { safeString } from '../utilities';
-
-const taskOptions: QueueTaskOptions = {
-  preempt: true,
-};
 
 type BindingBase = {
   $kind?: void;
@@ -27,6 +21,7 @@ type BindingBase = {
   handleChange(): void;
   handleCollectionChange(): void;
   updateTarget(value: unknown): void;
+  flags?: Flags;
 };
 
 type $Binding = (
@@ -40,8 +35,14 @@ type $Binding = (
   | RefBinding
   | SpreadBinding
   | SpreadValueBinding
-  | BindingBase
-);
+) & {
+  flags?: Flags;
+};
+
+const enum Flags {
+  none     = 0b00,
+  isQueued = 0b01,
+}
 
 export const bind = (b: $Binding | BindingBase, scope: Scope): void => {
   if (b.$kind === void 0) {
@@ -56,6 +57,7 @@ export const bind = (b: $Binding | BindingBase, scope: Scope): void => {
   }
   b.isBound = true;
   b._scope = scope;
+  b.flags = Flags.none;
 
   switch (b.$kind) {
     case 'Attribute': {
@@ -182,9 +184,6 @@ export const unbind = (b: $Binding | BindingBase): void => {
       astUnbind(b.ast, b._scope!, b);
 
       b._value = void 0;
-
-      b._task?.cancel();
-      b._task = null;
       b.obs.clearAll();
       break;
     }
@@ -198,7 +197,6 @@ export const unbind = (b: $Binding | BindingBase): void => {
       // be removed when b binding is unbound?
       // b.updateTarget('');
       b.obs.clearAll();
-      b._isQueued = false;
       break;
     }
     case 'Interpolation': {
@@ -208,14 +206,12 @@ export const unbind = (b: $Binding | BindingBase): void => {
       for (; ii > i; ++i) {
         partBindings[i].unbind();
       }
-      b._isQueued = false;
       break;
     }
     case 'InterpolationPart': {
       astUnbind(b.ast, b._scope!, b);
 
       b.obs.clearAll();
-      b._isQueued = false;
       break;
     }
     case 'Let': {
@@ -237,7 +233,6 @@ export const unbind = (b: $Binding | BindingBase): void => {
         (b._targetObserver as IObserver).unsubscribe(b._targetSubscriber);
         b._targetSubscriber = null;
       }
-      b._isQueued = false;
       b.obs.clearAll();
       break;
     }
@@ -269,6 +264,7 @@ export const unbind = (b: $Binding | BindingBase): void => {
   }
 
   b._scope = void 0;
+  (b.flags as Flags) &= ~Flags.isQueued;
 };
 
 export const handleChange = (b: $Binding | BindingBase): void => {
@@ -280,27 +276,37 @@ export const handleChange = (b: $Binding | BindingBase): void => {
     return;
   }
 
+  if ((b.flags as Flags) & Flags.isQueued) {
+    return;
+  }
+
+  (b.flags as Flags) |= Flags.isQueued;
+
+  queueTask(() => {
+    flushChanges(b);
+  });
+};
+
+export const flushChanges = (b: $Binding): void => {
+  if (!b.isBound) {
+    return;
+  }
+
+  if (((b.flags as Flags) & Flags.isQueued) === 0) {
+    return;
+  }
+
+  (b.flags as Flags) &= ~Flags.isQueued;
+
   switch (b.$kind) {
     case 'Attribute': {
-      let task: ITask | null;
       b.obs.version++;
       const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
 
       if (newValue !== b._value) {
         b._value = newValue;
-        const shouldQueueFlush = b._controller.state !== activating;
-        if (shouldQueueFlush) {
-          // Queue the new one before canceling the old one, to prevent early yield
-          task = b._task;
-          b._task = b._taskQueue.queueTask(() => {
-            b._task = null;
-            b.updateTarget(newValue);
-          }, taskOptions);
-          task?.cancel();
-        } else {
-          b.updateTarget(newValue);
-        }
+        b.updateTarget(newValue);
       }
       break;
     }
@@ -308,23 +314,15 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       b.obs.version++;
       const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
+
       if (newValue === b._value) {
         // in a frequent update, e.g collection mutation in a loop
         // value could be changing frequently and previous update task may be stale at b point
         // cancel if any task going on because the latest value is already the same
-        b._isQueued = false;
         return;
       }
 
-      if (!b._isQueued) {
-        b._isQueued = true;
-        queueTask(() => {
-          if (b._isQueued) {
-            b._isQueued = false;
-            b.updateTarget(newValue);
-          }
-        });
-      }
+      b.updateTarget(newValue);
       break;
     }
     case 'Interpolation': {
@@ -334,6 +332,7 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       b.obs.version++;
       const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
       b.obs.clear();
+
       // todo(!=): maybe should do strict comparison?
       // eslint-disable-next-line eqeqeq
       if (newValue != b._value) {
@@ -341,35 +340,22 @@ export const handleChange = (b: $Binding | BindingBase): void => {
         if (isArray(newValue)) {
           b.observeCollection(newValue);
         }
-        if (!b._isQueued) {
-          b._isQueued = true;
-          queueTask(() => {
-            if (b._isQueued) {
-              b._isQueued = false;
-              b.updateTarget();
-            }
-          });
-        }
+        b.updateTarget();
       }
       break;
     }
     case 'Let': {
-      b.obs.version++;
-      b._value = astEvaluate(b.ast, b._scope!, b, b);
-      b.obs.clear();
-      b.updateTarget();
       break;
     }
     case 'Listener': {
       break;
     }
     case 'Property': {
-      if (!b._isQueued) {
-        b._isQueued = true;
-        queueTask(() => {
-          b._flush();
-        });
-      }
+      b.obs.version++;
+      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
+      b.obs.clear();
+
+      b.updateTarget(newValue);
       break;
     }
     case 'Ref': {
@@ -379,7 +365,6 @@ export const handleChange = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'SpreadValue': {
-      b.updateTarget();
       break;
     }
     default:
@@ -396,6 +381,28 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
     return;
   }
 
+  if ((b.flags as Flags) & Flags.isQueued) {
+    return;
+  }
+
+  (b.flags as Flags) |= Flags.isQueued;
+
+  queueTask(() => {
+    flushCollectionChanges(b);
+  });
+};
+
+export const flushCollectionChanges = (b: $Binding): void => {
+  if (!b.isBound) {
+    return;
+  }
+
+  if (((b.flags as Flags) & Flags.isQueued) === 0) {
+    return;
+  }
+
+  (b.flags as Flags) &= ~Flags.isQueued;
+
   switch (b.$kind) {
     case 'Attribute': {
       b.handleChange();
@@ -409,15 +416,7 @@ export const handleCollectionChange = (b: $Binding | BindingBase): void => {
         b.observeCollection(v);
       }
 
-      if (!b._isQueued) {
-        b._isQueued = true;
-        queueTask(() => {
-          if (b._isQueued) {
-            b._isQueued = false;
-            b.updateTarget(v);
-          }
-        });
-      }
+      b.updateTarget(v);
       break;
     }
     case 'Interpolation': {
@@ -528,16 +527,7 @@ export const updateTarget = (b: $Binding | BindingBase, value: unknown): void =>
       }
 
       const targetObserver = b._targetObserver;
-
-      if (!b._isQueued) {
-        b._isQueued = true;
-        queueTask(() => {
-          if (b._isQueued) {
-            b._isQueued = false;
-            targetObserver.setValue(result, b.target, b.targetProperty);
-          }
-        });
-      }
+      targetObserver.setValue(result, b.target, b.targetProperty);
       break;
     }
     case 'InterpolationPart': {

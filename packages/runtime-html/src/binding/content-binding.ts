@@ -43,9 +43,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   /** @internal */
   public _scope?: Scope;
 
-  /** @internal */
-  public _isQueued: boolean = false;
-
   /**
    * A semi-private property used by connectable mixin
    *

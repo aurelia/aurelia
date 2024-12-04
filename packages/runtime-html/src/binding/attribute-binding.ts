@@ -10,10 +10,6 @@ import {
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
-import type {
-  ITask,
-  TaskQueue
-} from '@aurelia/platform';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
@@ -40,9 +36,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   /** @internal */
   public _scope?: Scope = void 0;
 
-  /** @internal */
-  public _task: ITask | null = null;
-
   public target: HTMLElement;
 
   /** @internal */
@@ -59,9 +52,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly _controller: IBindingController;
 
   /** @internal */
-  public readonly _taskQueue: TaskQueue;
-
-  /** @internal */
   public readonly l: IServiceLocator;
 
   // see Listener binding for explanation
@@ -74,7 +64,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -92,7 +81,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this._controller = controller;
     this.target = target as HTMLElement;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {

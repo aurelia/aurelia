@@ -1,6 +1,5 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
-import { TaskQueue } from '@aurelia/platform';
 import {
   type IObserverLocator,
   type IObserverLocatorBasedConnectable,
@@ -179,9 +178,6 @@ export class SpreadValueBinding implements IBinding {
   /** @internal */
   public l: IServiceLocator;
 
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -203,13 +199,11 @@ export class SpreadValueBinding implements IBinding {
     public ast: IsBindingBehavior,
     ol: IObserverLocator,
     l: IServiceLocator,
-    taskQueue: TaskQueue,
     public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = ol;
     this.l = l;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(): void {

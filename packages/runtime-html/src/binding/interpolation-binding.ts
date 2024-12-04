@@ -39,9 +39,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   /** @internal */
   public _targetObserver: AccessorOrObserver;
 
-  /** @internal */
-  public _isQueued: boolean = false;
-
   /**
    * A semi-private property used by connectable mixin
    *
@@ -88,19 +85,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-        /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-    this._scope = void 0;
-    const partBindings = this.partBindings;
-    const ii = partBindings.length;
-    let i = 0;
-    for (; ii > i; ++i) {
-      partBindings[i].unbind();
-    }
-    this._isQueued = false;
+    unbind(this);
   }
 
   /**
@@ -146,9 +131,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
-
-  /** @internal */
-  public _isQueued: boolean = false;
 
   public constructor(
     public readonly ast: IsExpression,

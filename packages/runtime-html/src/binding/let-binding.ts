@@ -6,7 +6,6 @@ import {
   type IObservable,
   type IObserverLocator,
   type Scope,
-  astBind,
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
@@ -16,6 +15,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
+import { bind } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -31,6 +31,8 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinAstEvaluator(LetBinding);
   });
 
+  public get $kind() { return 'Let' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -38,7 +40,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
-  private readonly _toBindingContext: boolean;
+  public readonly _toBindingContext: boolean;
 
   /**
    * A semi-private property used by connectable mixin
@@ -51,7 +53,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   public l: IServiceLocator;
 
   /** @internal */
-  private _value: unknown;
+  public _value: unknown;
 
   // see Listener binding for explanation
   /** @internal */
@@ -92,23 +94,8 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this.handleChange();
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-    this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext) as IIndexable;
-
-    astBind(this.ast, _scope, this);
-
-    this._value = astEvaluate(this.ast, this._scope, this, this);
-    this.updateTarget();
-
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {

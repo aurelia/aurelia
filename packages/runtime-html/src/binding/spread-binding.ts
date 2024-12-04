@@ -7,7 +7,6 @@ import {
   connectable,
   Scope,
   type IAstEvaluator,
-  astBind,
   astEvaluate,
   astUnbind,
 } from '@aurelia/runtime';
@@ -21,6 +20,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
+import { bind } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -98,7 +98,9 @@ export class SpreadBinding implements IBinding, IHasController {
     return bindings;
   }
 
-  public scope?: Scope | undefined;
+  public get $kind() { return 'Spread' as const; }
+
+  public _scope?: Scope | undefined;
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
 
@@ -116,8 +118,8 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.$controller.state;
   }
 
-  /** @internal */ private readonly _innerBindings: IBinding[] = [];
-  /** @internal */ private readonly _hydrationContext: IHydrationContext<object>;
+  /** @internal */ public readonly _innerBindings: IBinding[] = [];
+  /** @internal */ public readonly _hydrationContext: IHydrationContext<object>;
 
   public constructor(
     hydrationContext: IHydrationContext<object>,
@@ -129,19 +131,8 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.locator.get(key);
   }
 
-  public bind(_scope: Scope): void {
-    /* istanbul ignore if */
-    if (this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = true;
-    const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
-    if (innerScope == null) {
-      throw createMappedError(ErrorNames.no_spread_scope_context_found);
-    }
-
-    this._innerBindings.forEach(b => b.bind(innerScope));
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {
@@ -173,6 +164,8 @@ export class SpreadValueBinding implements IBinding {
 
   /** @internal */
   private static readonly _astCache: Record<string, AccessScopeExpression> = {};
+
+  public get $kind() { return 'SpreadValue' as const; }
 
   public isBound = false;
 
@@ -253,25 +246,8 @@ export class SpreadValueBinding implements IBinding {
     this.updateTarget();
   }
 
-  public bind(scope: Scope) {
-      /* istanbul ignore if */
-    if (this.isBound) {
-      /* istanbul ignore if */
-      if (scope === this._scope) {
-      /* istanbul ignore next */
-        return;
-      }
-      /* istanbul ignore next */
-      this.unbind();
-    }
-    this.isBound = true;
-    this._scope = scope;
-
-    astBind(this.ast, scope, this);
-
-    const value = astEvaluate(this.ast, scope, this, this);
-
-    this._createBindings(value as Record<string, unknown> | null, false);
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {
@@ -295,7 +271,7 @@ export class SpreadValueBinding implements IBinding {
   /**
    * @internal
    */
-  private _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
+  public _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
     let key: string;
     if (!isObject(value)) {
       /* istanbul ignore if */

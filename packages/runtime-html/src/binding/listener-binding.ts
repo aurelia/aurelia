@@ -9,12 +9,12 @@ import {
   IObserverLocatorBasedConnectable,
   ISubscriber,
   type Scope,
-  astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
+import { bind } from './_lifecycle';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -36,13 +36,15 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     mixinAstEvaluator(ListenerBinding);
   });
 
+  public get $kind() { return 'Listener' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
   public _scope?: Scope;
 
   /** @internal */
-  private readonly _options: ListenerBindingOptions;
+  public readonly _options: ListenerBindingOptions;
 
   /** @internal */
   public l: IServiceLocator;
@@ -116,20 +118,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public bind(scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === scope) {
-      /* istanbul ignore next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = scope;
-
-    astBind(this.ast, scope, this);
-
-    this.target.addEventListener(this.targetEvent, this, this._options);
-
-    this.isBound = true;
+    bind(this, scope);
   }
 
   public unbind(): void {

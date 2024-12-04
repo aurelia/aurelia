@@ -5,7 +5,6 @@ import {
   IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber,
-  astBind,
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
@@ -13,7 +12,7 @@ import {
 } from '@aurelia/runtime';
 import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { oneTime, toView } from './interfaces-bindings';
+import { toView } from './interfaces-bindings';
 
 import type {
   ITask,
@@ -24,6 +23,7 @@ import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
+import { bind } from './_lifecycle';
 
 const taskOptions: QueueTaskOptions = {
   preempt: true,
@@ -44,6 +44,8 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       mixinAstEvaluator(AttributeBinding);
   });
 
+  public get $kind() { return 'Attribute' as const; }
+
   public isBound: boolean = false;
   /** @internal */
   public _scope?: Scope = void 0;
@@ -54,7 +56,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public target: HTMLElement;
 
   /** @internal */
-  private _value: unknown = void 0;
+  public _value: unknown = void 0;
 
   /**
    * A semi-private property used by connectable mixin
@@ -172,25 +174,8 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this.handleChange();
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    astBind(this.ast, _scope, this);
-
-    if (this.mode & (toView | oneTime)) {
-      this.updateTarget(
-        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & toView) > 0 ? this : null)
-      );
-    }
-
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {

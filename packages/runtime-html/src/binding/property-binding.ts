@@ -2,7 +2,6 @@ import {
   connectable,
   ISubscriber,
   astAssign,
-  astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
@@ -14,13 +13,14 @@ import {
   type IObserverLocatorBasedConnectable,
   queueTask,
 } from '@aurelia/runtime';
-import { BindingTargetSubscriber, IFlushQueue, createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';
+import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { IBinding, fromView, toView } from './interfaces-bindings';
 
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
+import { bind } from './_lifecycle';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -33,19 +33,21 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     mixinAstEvaluator(PropertyBinding);
   });
 
+  public get $kind() { return 'Property' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
   public _scope?: Scope = void 0;
 
   /** @internal */
-  private _targetObserver?: AccessorOrObserver = void 0;
+  public _targetObserver?: AccessorOrObserver = void 0;
 
   /** @internal */
   private _isQueued: boolean = false;
 
   /** @internal */
-  private _targetSubscriber: ISubscriber | null = null;
+  public _targetSubscriber: ISubscriber | null = null;
 
   /**
    * A semi-private property used by connectable mixin
@@ -93,6 +95,21 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
       return;
     }
 
+    if (!this._isQueued) {
+      this._isQueued = true;
+      queueTask(() => {
+        this._flush();
+      });
+    }
+  }
+
+  private _flush() {
+    if (!this._isQueued) {
+      return;
+    }
+
+    this._isQueued = false;
+
     this.obs.version++;
     const newValue = astEvaluate(
       this.ast,
@@ -103,15 +120,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     );
     this.obs.clear();
 
-    if (!this._isQueued) {
-      this._isQueued = true;
-      queueTask(() => {
-        if (this._isQueued) {
-          this._isQueued = false;
-          this.updateTarget(newValue);
-        }
-      });
-    }
+    this.updateTarget(newValue);
   }
 
   // todo: based off collection and handle update accordingly instead off always start
@@ -120,45 +129,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public bind(scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = scope;
-
-    astBind(this.ast, scope, this);
-
-    const observerLocator = this.oL;
-    const $mode = this.mode;
-    let targetObserver = this._targetObserver;
-    if (!targetObserver) {
-      if ($mode & fromView) {
-        targetObserver = observerLocator.getObserver(this.target, this.targetProperty);
-      } else {
-        targetObserver = observerLocator.getAccessor(this.target, this.targetProperty);
-      }
-      this._targetObserver = targetObserver;
-    }
-
-    const shouldConnect = ($mode & toView) > 0;
-
-    if ($mode & (toView | oneTime)) {
-      this.updateTarget(
-        astEvaluate(this.ast, this._scope, this, shouldConnect ? this : null),
-      );
-    }
-
-    if ($mode & fromView) {
-      (targetObserver as IObserver).subscribe(this._targetSubscriber ??= new BindingTargetSubscriber(this, this.l.get(IFlushQueue)));
-      if (!shouldConnect) {
-        this.updateSource(targetObserver.getValue(this.target, this.targetProperty));
-      }
-    }
-
-    this.isBound = true;
+    bind(this, scope);
   }
 
   public unbind(): void {

@@ -5,7 +5,6 @@ import {
   type ISubscriber,
   type Scope,
   astAssign,
-  astBind,
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
@@ -13,12 +12,15 @@ import {
 import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
+import { bind } from './_lifecycle';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
     mixinAstEvaluator(RefBinding);
   });
+
+  public get $kind() { return 'Ref' as const; }
 
   public isBound: boolean = false;
 
@@ -37,23 +39,8 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this.l = locator;
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    astBind(this.ast, _scope, this);
-
-    astAssign(this.ast, this._scope, this, this.target);
-
-    // add isBound flag and remove isBinding flag
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {

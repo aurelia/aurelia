@@ -1,7 +1,6 @@
 import {
   connectable,
   IAstEvaluator,
-  astBind,
   astEvaluate,
   astUnbind,
   queueTask,
@@ -20,6 +19,7 @@ import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
+import { bind } from './_lifecycle';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -35,6 +35,8 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     connectable(ContentBinding, null!);
     mixinAstEvaluator(ContentBinding);
   });
+
+  public get $kind() { return 'Content' as const; }
 
   public isBound: boolean = false;
 
@@ -59,7 +61,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public readonly l: IServiceLocator;
 
   /** @internal */
-  private _value: unknown = '';
+  public _value: unknown = '';
   /** @internal */
   private readonly _controller: IBindingController;
   /** @internal */
@@ -160,30 +162,8 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     }
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    astBind(this.ast, _scope, this);
-
-    const v = this._value = astEvaluate(
-      this.ast,
-      this._scope,
-      this,
-      (this.mode & toView) > 0 ? this : null
-    );
-    if (isArray(v)) {
-      this.observeCollection(v);
-    }
-    this.updateTarget(v);
-
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {

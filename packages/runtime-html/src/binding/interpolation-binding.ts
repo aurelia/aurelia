@@ -1,7 +1,6 @@
 import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import {
   connectable,
-  astBind,
   astEvaluate,
   astUnbind,
   IAstEvaluator,
@@ -21,6 +20,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
+import { bind } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -30,6 +30,8 @@ import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
 
 export interface InterpolationBinding extends IObserverLocatorBasedConnectable, IAstEvaluator, IServiceLocator {}
 export class InterpolationBinding implements IBinding, ISubscriber, ICollectionSubscriber {
+  public get $kind() { return 'Interpolation' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -110,24 +112,8 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     }
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-        /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    const partBindings = this.partBindings;
-    const ii = partBindings.length;
-    let i = 0;
-    for (; ii > i; ++i) {
-      partBindings[i].bind(_scope);
-    }
-    this.updateTarget();
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {
@@ -166,6 +152,8 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     connectable(InterpolationPartBinding, null!);
     mixinAstEvaluator(InterpolationPartBinding);
   });
+
+  public get $kind() { return 'InterpolationPart' as const; }
 
   // at runtime, mode may be overriden by binding behavior
   // but it wouldn't matter here, just start with something for later check
@@ -245,29 +233,8 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     this.updateTarget();
   }
 
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-        /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    astBind(this.ast, _scope, this);
-
-    this._value = astEvaluate(
-      this.ast,
-      this._scope,
-      this,
-      (this.mode & toView) > 0 ?  this : null,
-    );
-    if (isArray(this._value)) {
-      this.observeCollection(this._value);
-    }
-
-    this.isBound = true;
+  public bind(scope: Scope): void {
+    bind(this, scope);
   }
 
   public unbind(): void {

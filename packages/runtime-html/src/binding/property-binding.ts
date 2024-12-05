@@ -17,7 +17,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
-import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
+import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -76,7 +76,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public updateTarget(value: unknown): void {
-    updateTarget(this, value);
+    $updateTarget(this, value);
   }
 
   public updateSource(value: unknown): void {
@@ -84,20 +84,20 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public handleChange(): void {
-    handleChange(this);
+    $handleChange(this);
   }
 
   // todo: based off collection and handle update accordingly instead off always start
   public handleCollectionChange(): void {
-    handleCollectionChange(this);
+    $handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 
   /**

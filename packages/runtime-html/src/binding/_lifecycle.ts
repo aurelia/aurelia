@@ -44,7 +44,7 @@ const enum Flags {
   isQueued = 0b01,
 }
 
-export const bind = (b: $Binding | BindingBase, scope: Scope): void => {
+export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
   if (b.$kind === void 0) {
     return b.bind(scope);
   }
@@ -169,7 +169,7 @@ export const bind = (b: $Binding | BindingBase, scope: Scope): void => {
   }
 };
 
-export const unbind = (b: $Binding | BindingBase): void => {
+export const $unbind = (b: $Binding | BindingBase): void => {
   if (b.$kind === void 0) {
     return b.unbind();
   }
@@ -267,7 +267,7 @@ export const unbind = (b: $Binding | BindingBase): void => {
   (b.flags as Flags) &= ~Flags.isQueued;
 };
 
-export const handleChange = (b: $Binding | BindingBase): void => {
+export const $handleChange = (b: $Binding | BindingBase): void => {
   if (b.$kind === void 0) {
     return b.handleChange();
   }
@@ -342,7 +342,7 @@ export const flushChanges = (b: $Binding): void => {
   }
 };
 
-export const handleCollectionChange = (b: $Binding | BindingBase): void => {
+export const $handleCollectionChange = (b: $Binding | BindingBase): void => {
   if (b.$kind === void 0) {
     return b.handleCollectionChange();
   }
@@ -399,7 +399,7 @@ export const flushCollectionChanges = (b: $Binding): void => {
   }
 };
 
-export const updateTarget = (b: $Binding | BindingBase, value: unknown): void => {
+export const $updateTarget = (b: $Binding | BindingBase, value: unknown): void => {
   if (b.$kind === void 0) {
     return b.updateTarget(value);
   }

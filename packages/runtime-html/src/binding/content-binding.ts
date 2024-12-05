@@ -15,7 +15,7 @@ import type { IPlatform } from '../platform';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
+import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -78,22 +78,22 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public updateTarget(value: unknown): void {
-    updateTarget(this, value);
+    $updateTarget(this, value);
   }
 
   public handleChange(): void {
-    handleChange(this);
+    $handleChange(this);
   }
 
   public handleCollectionChange(): void {
-    handleCollectionChange(this);
+    $handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 }

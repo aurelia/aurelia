@@ -17,7 +17,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
+import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -77,15 +77,15 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public updateTarget(): void {
-    updateTarget(this, void 0);
+    $updateTarget(this, void 0);
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 
   /**
@@ -146,22 +146,22 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public updateTarget() {
-    updateTarget(this, void 0);
+    $updateTarget(this, void 0);
   }
 
   public handleChange(): void {
-    handleChange(this);
+    $handleChange(this);
   }
 
   public handleCollectionChange(): void {
-    handleCollectionChange(this);
+    $handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 }

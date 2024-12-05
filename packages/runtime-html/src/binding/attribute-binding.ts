@@ -13,7 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
+import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -84,23 +84,23 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
-    updateTarget(this, value);
+    $updateTarget(this, value);
   }
 
   public handleChange(): void {
-    handleChange(this);
+    $handleChange(this);
   }
 
   // todo: based off collection and handle update accordingly instead off always start
   public handleCollectionChange(): void {
-    handleCollectionChange(this);
+    $handleCollectionChange(this);
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 }

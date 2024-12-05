@@ -13,7 +13,7 @@ import {
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
-import { bind, unbind } from './_lifecycle';
+import { $bind, $unbind } from './_lifecycle';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -117,11 +117,11 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public bind(scope: Scope): void {
-    bind(this, scope);
+    $bind(this, scope);
   }
 
   public unbind(): void {
-    unbind(this);
+    $unbind(this);
   }
 }
 

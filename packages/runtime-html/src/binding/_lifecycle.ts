@@ -377,7 +377,8 @@ export const flushCollectionChanges = (b: $Binding): void => {
     case 'Attribute':
     case 'Let':
     case 'Property':  {
-      b.handleChange();
+      (b.flags as Flags) |= Flags.isQueued;
+      flushChanges(b);
       break;
     }
     case 'Content': {

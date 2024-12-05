@@ -12,7 +12,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
-import { IBinding } from './interfaces-bindings';
+import { BindingMode, IBinding } from './interfaces-bindings';
 import { bind, handleChange, handleCollectionChange, unbind, updateTarget } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
@@ -32,6 +32,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   public get $kind() { return 'Let' as const; }
 
   public isBound: boolean = false;
+  public mode: BindingMode = BindingMode.toView;
 
   /** @internal */
   public _scope?: Scope = void 0;

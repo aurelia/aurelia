@@ -164,6 +164,7 @@ export class SpreadValueBinding implements IBinding {
   public get $kind() { return 'SpreadValue' as const; }
 
   public isBound = false;
+  public mode: BindingMode = BindingMode.toView;
 
   /** @internal */
   public _scope?: Scope = void 0;

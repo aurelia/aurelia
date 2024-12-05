@@ -302,6 +302,8 @@ export const flushChanges = (b: $Binding): void => {
     case 'Attribute':
     case 'Content':
     case 'InterpolationPart':
+    case 'SpreadValue':
+    case 'Let':
     case 'Property': {
       b.obs.version++;
       const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
@@ -328,6 +330,8 @@ export const flushChanges = (b: $Binding): void => {
           }
           break;
         }
+        case 'SpreadValue':
+        case 'Let':
         case 'Property': {
           b.updateTarget(newValue);
           break;

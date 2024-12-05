@@ -374,7 +374,9 @@ export const flushCollectionChanges = (b: $Binding): void => {
   (b.flags as Flags) &= ~Flags.isQueued;
 
   switch (b.$kind) {
-    case 'Attribute': {
+    case 'Attribute':
+    case 'Let':
+    case 'Property':  {
       b.handleChange();
       break;
     }
@@ -389,36 +391,11 @@ export const flushCollectionChanges = (b: $Binding): void => {
       b.updateTarget(v);
       break;
     }
-    case 'Interpolation': {
-      break;
-    }
-    case 'InterpolationPart': {
-      b.updateTarget();
-      break;
-    }
-    case 'Let': {
-      b.handleChange();
-      break;
-    }
-    case 'Listener': {
-      break;
-    }
-    case 'Property': {
-      b.handleChange();
-      break;
-    }
-    case 'Ref': {
-      break;
-    }
-    case 'Spread': {
-      break;
-    }
+    case 'InterpolationPart':
     case 'SpreadValue': {
       b.updateTarget();
       break;
     }
-    default:
-      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
   }
 };
 

@@ -107,10 +107,6 @@ const connectableDecorator = /*@__PURE__*/ (() => {
     this.obs.add(observer);
   }
 
-  function subscribeTo(this: IObserverLocatorBasedConnectable, subscribable: ISubscribable | ICollectionSubscribable): void {
-    this.obs.add(subscribable);
-  }
-
   function noopHandleChange() {
     throw createMappedError(ErrorNames.method_not_implemented, 'handleChange');
   }
@@ -123,7 +119,6 @@ const connectableDecorator = /*@__PURE__*/ (() => {
     const proto = target.prototype;
     ensureProto(proto, 'observe', observe);
     ensureProto(proto, 'observeCollection', observeCollection);
-    ensureProto(proto, 'subscribeTo', subscribeTo);
     rtDef(proto, 'obs', { get: getObserverRecord });
     // optionally add these two methods to normalize a connectable impl
     // though don't override if it already exists

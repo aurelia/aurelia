@@ -46,7 +46,6 @@ describe('2-runtime/connectable-switcher.spec.ts', function () {
         logs.push([obj, key]);
       },
       observeCollection(_collection) {/* empty */},
-      subscribeTo(_subscribable) {/* empty */},
     };
 
     ConnectableSwitcher.enter(loggingWatcher);
@@ -76,7 +75,6 @@ describe('2-runtime/connectable-switcher.spec.ts', function () {
         logs.push([obj, key]);
       },
       observeCollection(_collection) {/* empty */},
-      subscribeTo(_subscribable) {/* empty */},
     };
 
     ConnectableSwitcher.enter(loggingWatcher);

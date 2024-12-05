@@ -69,10 +69,6 @@ export class MockBinding implements IBinding, IObserverLocatorBasedConnectable {
     this.trace('observeCollection', col);
   }
 
-  public subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void {
-    this.trace('subscribeTo', subscribable);
-  }
-
   public bind(scope: Scope): void {
     this.trace('bind', scope);
   }

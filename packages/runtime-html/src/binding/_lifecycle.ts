@@ -64,7 +64,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       astBind(b.ast, scope, b);
 
       if (b.mode & (toView | oneTime)) {
-        b.updateTarget(b._value = astEvaluate(b.ast, scope, b, (b.mode & toView) > 0 ? b : null));
+        $updateTarget(b, b._value = astEvaluate(b.ast, scope, b, (b.mode & toView) > 0 ? b : null));
       }
       break;
     }
@@ -75,7 +75,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       if (isArray(v)) {
         b.observeCollection(v);
       }
-      b.updateTarget(v);
+      $updateTarget(b, v);
       break;
     }
     case 'Interpolation': {
@@ -85,7 +85,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       for (; ii > i; ++i) {
         partBindings[i].bind(scope);
       }
-      b.updateTarget();
+      $updateTarget(b);
       break;
     }
     case 'InterpolationPart': {
@@ -103,7 +103,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       astBind(b.ast, scope, b);
 
       b._value = astEvaluate(b.ast, b._scope, b, b);
-      b.updateTarget();
+      $updateTarget(b);
       break;
     }
     case 'Listener': {
@@ -130,7 +130,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       const shouldConnect = ($mode & toView) > 0;
 
       if ($mode & (toView | oneTime)) {
-        b.updateTarget(astEvaluate(b.ast, b._scope, b, shouldConnect ? b : null));
+        $updateTarget(b, astEvaluate(b.ast, b._scope, b, shouldConnect ? b : null));
       }
 
       if ($mode & fromView) {
@@ -195,7 +195,7 @@ export const $unbind = (b: $Binding | BindingBase): void => {
 
       // TODO: should existing value (either connected node, or a string)
       // be removed when b binding is unbound?
-      // b.updateTarget('');
+      // $updateTarget(b, '');
       b.obs.clearAll();
       break;
     }
@@ -314,7 +314,7 @@ export const flushChanges = (b: $Binding): void => {
         case 'Content': {
           if (newValue !== b._value) {
             b._value = newValue;
-            b.updateTarget(newValue);
+            $updateTarget(b, newValue);
           }
           break;
         }
@@ -326,14 +326,14 @@ export const flushChanges = (b: $Binding): void => {
             if (isArray(newValue)) {
               b.observeCollection(newValue);
             }
-            b.updateTarget();
+            $updateTarget(b);
           }
           break;
         }
         case 'SpreadValue':
         case 'Let':
         case 'Property': {
-          b.updateTarget(newValue);
+          $updateTarget(b, newValue);
           break;
         }
       }
@@ -388,18 +388,18 @@ export const flushCollectionChanges = (b: $Binding): void => {
         b.observeCollection(v);
       }
 
-      b.updateTarget(v);
+      $updateTarget(b, v);
       break;
     }
     case 'InterpolationPart':
     case 'SpreadValue': {
-      b.updateTarget();
+      $updateTarget(b);
       break;
     }
   }
 };
 
-export const $updateTarget = (b: $Binding | BindingBase, value: unknown): void => {
+export const $updateTarget = (b: $Binding | BindingBase, value?: unknown): void => {
   if (b.$kind === void 0) {
     return b.updateTarget(value);
   }

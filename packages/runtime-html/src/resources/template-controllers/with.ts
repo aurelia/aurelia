@@ -4,6 +4,7 @@ import { IRenderLocation } from '../../dom';
 import { IViewFactory } from '../../templating/view';
 import { CustomAttributeStaticAuDefinition, attrTypeName } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor } from '../../templating/controller';
+import { $bind } from '../../binding/_lifecycle';
 
 export class With implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -30,7 +31,7 @@ export class With implements ICustomAttributeViewModel {
     if ($controller.isActive && bindings != null) {
       scope = Scope.fromParent($controller.scope, newValue === void 0 ? {} : newValue as object);
       for (ii = bindings.length; ii > i; ++i) {
-        bindings[i].bind(scope);
+        $bind(bindings[i], scope);
       }
     }
   }

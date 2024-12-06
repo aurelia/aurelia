@@ -11,7 +11,7 @@ import type { SpreadBinding, SpreadValueBinding } from './spread-binding';
 import { createMappedError, ErrorNames } from '../errors';
 import { BindingTargetSubscriber, IFlushQueue } from './binding-utils';
 import { IIndexable, isArray, isString } from '@aurelia/kernel';
-import { fromView, oneTime, toView } from './interfaces-bindings';
+import { fromView, IBinding, oneTime, toView } from './interfaces-bindings';
 import { safeString } from '../utilities';
 
 type BindingBase = {
@@ -44,7 +44,11 @@ const enum Flags {
   isQueued = 0b01,
 }
 
-export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
+export const $bind: {
+  (b: $Binding | BindingBase, scope: Scope): void;
+  (b: IBinding, scope: Scope): void;
+} = (_b: $Binding | BindingBase | IBinding, scope: Scope): void => {
+  const b = _b as $Binding | BindingBase;
   if (b.$kind === void 0) {
     return b.bind(scope);
   }
@@ -53,7 +57,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
     if (scope === b._scope) {
       return;
     }
-    b.unbind();
+    $unbind(b);
   }
   b.isBound = true;
   b._scope = scope;
@@ -83,7 +87,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
       const ii = partBindings.length;
       let i = 0;
       for (; ii > i; ++i) {
-        partBindings[i].bind(scope);
+        $bind(partBindings[i], scope);
       }
       $updateTarget(b);
       break;
@@ -153,7 +157,7 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
         throw createMappedError(ErrorNames.no_spread_scope_context_found);
       }
 
-      b._innerBindings.forEach(b => b.bind(innerScope));
+      b._innerBindings.forEach(b => $bind(b, innerScope));
       break;
     }
     case 'SpreadValue': {
@@ -169,7 +173,11 @@ export const $bind = (b: $Binding | BindingBase, scope: Scope): void => {
   }
 };
 
-export const $unbind = (b: $Binding | BindingBase): void => {
+export const $unbind: {
+  (b: $Binding | BindingBase): void;
+  (b: IBinding): void;
+} = (_b: $Binding | BindingBase | IBinding): void => {
+  const b = _b as $Binding | BindingBase;
   if (b.$kind === void 0) {
     return b.unbind();
   }
@@ -204,7 +212,7 @@ export const $unbind = (b: $Binding | BindingBase): void => {
       const ii = partBindings.length;
       let i = 0;
       for (; ii > i; ++i) {
-        partBindings[i].unbind();
+        $unbind(partBindings[i]);
       }
       break;
     }
@@ -245,7 +253,7 @@ export const $unbind = (b: $Binding | BindingBase): void => {
       break;
     }
     case 'Spread': {
-      b._innerBindings.forEach(b => b.unbind());
+      b._innerBindings.forEach($unbind);
       break;
     }
     case 'SpreadValue': {
@@ -255,7 +263,7 @@ export const $unbind = (b: $Binding | BindingBase): void => {
       // but we know in our impl, all unbind are idempotent
       // so just be simple and unbind all
       for (key in b._bindingCache) {
-        b._bindingCache[key].unbind();
+        $unbind(b._bindingCache[key]);
       }
       break;
     }

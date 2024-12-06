@@ -232,6 +232,7 @@ export class SpreadValueBinding implements IBinding {
    */
   public _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
     let key: string;
+    let binding: PropertyBinding;
     if (!isObject(value)) {
       /* istanbul ignore if */
       if (__DEV__) {
@@ -239,12 +240,13 @@ export class SpreadValueBinding implements IBinding {
         console.warn(`[DEV:aurelia] $bindable spread is given a non object for properties: "${this.targetKeys.join(', ')}" of ${this.target.constructor.name}`);
       }
       for (key in this._bindingCache) {
-        this._bindingCache[key]?.unbind();
+        if ((binding = this._bindingCache[key]) != null) {
+          $unbind(binding);
+        }
       }
       return;
     }
 
-    let binding: PropertyBinding;
     // use a cache as we don't wanna cause bindings to "move" (bind/unbind)
     // whenever there's a new evaluation
     let scope = this._scopeCache.get(value);
@@ -266,9 +268,9 @@ export class SpreadValueBinding implements IBinding {
             this.strict,
           );
         }
-        binding.bind(scope);
-      } else if (unbind) {
-        binding?.unbind();
+        $bind(binding, scope);
+      } else if (unbind && binding != null) {
+        $unbind(binding);
       }
     }
   }

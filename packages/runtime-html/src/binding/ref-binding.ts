@@ -9,7 +9,6 @@ import {
 import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
-import { $bind, $unbind } from './_lifecycle';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -34,13 +33,5 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     public strict: boolean,
   ) {
     this.l = locator;
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
   }
 }

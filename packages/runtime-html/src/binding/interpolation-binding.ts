@@ -17,7 +17,6 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
-import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -71,21 +70,24 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     }
   }
 
-  /** @internal */
-  public _handlePartChange() {
-    this.updateTarget();
-  }
-
   public updateTarget(): void {
-    $updateTarget(this, void 0);
-  }
+    const { partBindings, ast, target, targetProperty } = this;
+    const staticParts = ast.parts;
+    const ii = partBindings.length;
+    let result = '';
+    let i = 0;
+    if (ii === 1) {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+      result = staticParts[0] + partBindings[0]._value + staticParts[1];
+    } else {
+      result = staticParts[0];
+      for (; ii > i; ++i) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        result += partBindings[i]._value + staticParts[i + 1];
+      }
+    }
 
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    this._targetObserver.setValue(result, target, targetProperty);
   }
 
   /**
@@ -146,22 +148,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public updateTarget() {
-    $updateTarget(this, void 0);
-  }
-
-  public handleChange(): void {
-    $handleChange(this);
-  }
-
-  public handleCollectionChange(): void {
-    $handleCollectionChange(this);
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    this.owner.updateTarget();
   }
 }

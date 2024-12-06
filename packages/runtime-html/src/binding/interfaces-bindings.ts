@@ -13,8 +13,8 @@ export interface IBindingController {
 
 export interface IBinding {
   readonly isBound: boolean;
-  bind(scope: Scope): void;
-  unbind(): void;
+  bind?(scope: Scope): void;
+  unbind?(): void;
   get: IServiceLocator['get'];
   useScope?(scope: Scope): void;
   limit?(opts: IRateLimitOptions): IDisposable;

@@ -15,7 +15,7 @@ import type { IPlatform } from '../platform';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
+import { safeString } from '../utilities';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -78,22 +78,19 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public updateTarget(value: unknown): void {
-    $updateTarget(this, value);
-  }
-
-  public handleChange(): void {
-    $handleChange(this);
-  }
-
-  public handleCollectionChange(): void {
-    $handleCollectionChange(this);
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    const { target } = this;
+    const oldValue = this._value;
+    this._value = value;
+    if (this._needsRemoveNode) {
+      (oldValue as Node).parentNode?.removeChild(oldValue as Node);
+      this._needsRemoveNode = false;
+    }
+    if (value instanceof this.p.Node) {
+      target.parentNode?.insertBefore(value, target);
+      value = '';
+      this._needsRemoveNode = true;
+    }
+    // console.log({ value, type: typeof value });
+    target.textContent = safeString(value ?? '');
   }
 }

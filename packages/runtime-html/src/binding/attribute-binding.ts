@@ -1,4 +1,4 @@
-import { type IServiceLocator } from '@aurelia/kernel';
+import { isString, type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   type IObserverLocator,
@@ -13,7 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
+import { safeString } from '../utilities';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -84,23 +84,29 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
-    $updateTarget(this, value);
-  }
-
-  public handleChange(): void {
-    $handleChange(this);
-  }
-
-  // todo: based off collection and handle update accordingly instead off always start
-  public handleCollectionChange(): void {
-    $handleCollectionChange(this);
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    const { target, targetAttribute, targetProperty } = this;
+    switch (targetAttribute) {
+      case 'class':
+        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        target.classList.toggle(targetProperty, !!value);
+        break;
+      case 'style': {
+        let priority = '';
+        let newValue = safeString(value);
+        if (isString(newValue) && newValue.includes('!important')) {
+          priority = 'important';
+          newValue = newValue.replace('!important', '');
+        }
+        target.style.setProperty(targetProperty, newValue, priority);
+        break;
+      }
+      default: {
+        if (value == null) {
+          target.removeAttribute(targetAttribute);
+        } else {
+          target.setAttribute(targetAttribute, safeString(value));
+        }
+      }
+    }
   }
 }

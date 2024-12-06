@@ -10,16 +10,15 @@ import type { RefBinding } from './ref-binding';
 import type { SpreadBinding, SpreadValueBinding } from './spread-binding';
 import { createMappedError, ErrorNames } from '../errors';
 import { BindingTargetSubscriber, IFlushQueue } from './binding-utils';
-import { IIndexable, isArray, isString } from '@aurelia/kernel';
+import { IIndexable, isArray } from '@aurelia/kernel';
 import { fromView, IBinding, oneTime, toView } from './interfaces-bindings';
-import { safeString } from '../utilities';
 
 type BindingBase = {
   $kind?: void;
-  bind(scope: Scope): void;
-  unbind(): void;
-  handleChange(): void;
-  handleCollectionChange(): void;
+  bind?(scope: Scope): void;
+  unbind?(): void;
+  handleChange?(): void;
+  handleCollectionChange?(): void;
   updateTarget(value: unknown): void;
   flags?: Flags;
 };
@@ -44,20 +43,20 @@ const enum Flags {
   isQueued = 0b01,
 }
 
-export const $bind: {
+export const bindingBind: {
   (b: $Binding | BindingBase, scope: Scope): void;
   (b: IBinding, scope: Scope): void;
 } = (_b: $Binding | BindingBase | IBinding, scope: Scope): void => {
   const b = _b as $Binding | BindingBase;
   if (b.$kind === void 0) {
-    return b.bind(scope);
+    return b.bind?.(scope);
   }
 
   if (b.isBound) {
     if (scope === b._scope) {
       return;
     }
-    $unbind(b);
+    bindingUnbind(b);
   }
   b.isBound = true;
   b._scope = scope;
@@ -68,7 +67,7 @@ export const $bind: {
       astBind(b.ast, scope, b);
 
       if (b.mode & (toView | oneTime)) {
-        $updateTarget(b, b._value = astEvaluate(b.ast, scope, b, (b.mode & toView) > 0 ? b : null));
+        b.updateTarget(b._value = astEvaluate(b.ast, scope, b, (b.mode & toView) > 0 ? b : null));
       }
       break;
     }
@@ -79,7 +78,7 @@ export const $bind: {
       if (isArray(v)) {
         b.observeCollection(v);
       }
-      $updateTarget(b, v);
+      b.updateTarget(v);
       break;
     }
     case 'Interpolation': {
@@ -87,9 +86,9 @@ export const $bind: {
       const ii = partBindings.length;
       let i = 0;
       for (; ii > i; ++i) {
-        $bind(partBindings[i], scope);
+        bindingBind(partBindings[i], scope);
       }
-      $updateTarget(b);
+      b.updateTarget();
       break;
     }
     case 'InterpolationPart': {
@@ -107,7 +106,7 @@ export const $bind: {
       astBind(b.ast, scope, b);
 
       b._value = astEvaluate(b.ast, b._scope, b, b);
-      $updateTarget(b);
+      b.updateTarget();
       break;
     }
     case 'Listener': {
@@ -134,7 +133,7 @@ export const $bind: {
       const shouldConnect = ($mode & toView) > 0;
 
       if ($mode & (toView | oneTime)) {
-        $updateTarget(b, astEvaluate(b.ast, b._scope, b, shouldConnect ? b : null));
+        b.updateTarget(astEvaluate(b.ast, b._scope, b, shouldConnect ? b : null));
       }
 
       if ($mode & fromView) {
@@ -157,7 +156,7 @@ export const $bind: {
         throw createMappedError(ErrorNames.no_spread_scope_context_found);
       }
 
-      b._innerBindings.forEach(b => $bind(b, innerScope));
+      b._innerBindings.forEach(b => bindingBind(b, innerScope));
       break;
     }
     case 'SpreadValue': {
@@ -173,13 +172,13 @@ export const $bind: {
   }
 };
 
-export const $unbind: {
+export const bindingUnbind: {
   (b: $Binding | BindingBase): void;
   (b: IBinding): void;
 } = (_b: $Binding | BindingBase | IBinding): void => {
   const b = _b as $Binding | BindingBase;
   if (b.$kind === void 0) {
-    return b.unbind();
+    return b.unbind?.();
   }
 
   if (!b.isBound) {
@@ -203,7 +202,7 @@ export const $unbind: {
 
       // TODO: should existing value (either connected node, or a string)
       // be removed when b binding is unbound?
-      // $updateTarget(b, '');
+      // b.updateTarget('');
       b.obs.clearAll();
       break;
     }
@@ -212,7 +211,7 @@ export const $unbind: {
       const ii = partBindings.length;
       let i = 0;
       for (; ii > i; ++i) {
-        $unbind(partBindings[i]);
+        bindingUnbind(partBindings[i]);
       }
       break;
     }
@@ -253,7 +252,7 @@ export const $unbind: {
       break;
     }
     case 'Spread': {
-      b._innerBindings.forEach($unbind);
+      b._innerBindings.forEach(bindingUnbind);
       break;
     }
     case 'SpreadValue': {
@@ -263,7 +262,7 @@ export const $unbind: {
       // but we know in our impl, all unbind are idempotent
       // so just be simple and unbind all
       for (key in b._bindingCache) {
-        $unbind(b._bindingCache[key]);
+        bindingUnbind(b._bindingCache[key]);
       }
       break;
     }
@@ -275,9 +274,9 @@ export const $unbind: {
   (b.flags as Flags) &= ~Flags.isQueued;
 };
 
-export const $handleChange = (b: $Binding | BindingBase): void => {
+export const bindingHandleChange = (b: $Binding | BindingBase): void => {
   if (b.$kind === void 0) {
-    return b.handleChange();
+    return b.handleChange?.();
   }
 
   if (!b.isBound) {
@@ -322,7 +321,7 @@ export const flushChanges = (b: $Binding): void => {
         case 'Content': {
           if (newValue !== b._value) {
             b._value = newValue;
-            $updateTarget(b, newValue);
+            b.updateTarget(newValue);
           }
           break;
         }
@@ -334,14 +333,14 @@ export const flushChanges = (b: $Binding): void => {
             if (isArray(newValue)) {
               b.observeCollection(newValue);
             }
-            $updateTarget(b);
+            b.updateTarget();
           }
           break;
         }
         case 'SpreadValue':
         case 'Let':
         case 'Property': {
-          $updateTarget(b, newValue);
+          b.updateTarget(newValue);
           break;
         }
       }
@@ -350,9 +349,9 @@ export const flushChanges = (b: $Binding): void => {
   }
 };
 
-export const $handleCollectionChange = (b: $Binding | BindingBase): void => {
+export const bindingHandleCollectionChange = (b: $Binding | BindingBase): void => {
   if (b.$kind === void 0) {
-    return b.handleCollectionChange();
+    return b.handleCollectionChange?.();
   }
 
   if (!b.isBound) {
@@ -397,118 +396,13 @@ export const flushCollectionChanges = (b: $Binding): void => {
         b.observeCollection(v);
       }
 
-      $updateTarget(b, v);
+      b.updateTarget(v);
       break;
     }
     case 'InterpolationPart':
     case 'SpreadValue': {
-      $updateTarget(b);
+      b.updateTarget();
       break;
     }
-  }
-};
-
-export const $updateTarget = (b: $Binding | BindingBase, value?: unknown): void => {
-  if (b.$kind === void 0) {
-    return b.updateTarget(value);
-  }
-
-  if (!b.isBound) {
-    return;
-  }
-
-  switch (b.$kind) {
-    case 'Attribute': {
-      switch (b.targetAttribute) {
-        case 'class':
-          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-          b.target.classList.toggle(b.targetProperty, !!value);
-          break;
-        case 'style': {
-          let priority = '';
-          let newValue = safeString(value);
-          if (isString(newValue) && newValue.includes('!important')) {
-            priority = 'important';
-            newValue = newValue.replace('!important', '');
-          }
-          b.target.style.setProperty(b.targetProperty, newValue, priority);
-          break;
-        }
-        default: {
-          if (value == null) {
-            b.target.removeAttribute(b.targetAttribute);
-          } else {
-            b.target.setAttribute(b.targetAttribute, safeString(value));
-          }
-        }
-      }
-      break;
-    }
-    case 'Content': {
-      const oldValue = b._value;
-      b._value = value;
-      if (b._needsRemoveNode) {
-        (oldValue as Node).parentNode?.removeChild(oldValue as Node);
-        b._needsRemoveNode = false;
-      }
-      if (value instanceof b.p.Node) {
-        b.target.parentNode?.insertBefore(value, b.target);
-        value = '';
-        b._needsRemoveNode = true;
-      }
-      // console.log({ value, type: typeof value });
-      b.target.textContent = safeString(value ?? '');
-      break;
-    }
-    case 'Interpolation': {
-      const staticParts = b.ast.parts;
-      const ii = b.partBindings.length;
-      let result = '';
-      let i = 0;
-      if (ii === 1) {
-        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        result = staticParts[0] + b.partBindings[0]._value + staticParts[1];
-      } else {
-        result = staticParts[0];
-        for (; ii > i; ++i) {
-          // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-          result += b.partBindings[i]._value + staticParts[i + 1];
-        }
-      }
-
-      b._targetObserver.setValue(result, b.target, b.targetProperty);
-      break;
-    }
-    case 'InterpolationPart': {
-      b.owner._handlePartChange();
-      break;
-    }
-    case 'Let': {
-      b.target![b.targetProperty] = b._value;
-      break;
-    }
-    case 'Listener': {
-      break;
-    }
-    case 'Property': {
-      b._targetObserver!.setValue(value, b.target, b.targetProperty);
-      break;
-    }
-    case 'Ref': {
-      break;
-    }
-    case 'Spread': {
-      break;
-    }
-    case 'SpreadValue': {
-      b.obs.version++;
-      const newValue = astEvaluate(b.ast, b._scope!, b, b);
-      b.obs.clear();
-
-      b._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
-      break;
-    }
-    default:
-      throw new Error(`Invalid binding type: ${(b as $Binding).$kind}`);
   }
 };

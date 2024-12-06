@@ -6,6 +6,7 @@ import {
   connectable,
   Scope,
   type IAstEvaluator,
+  astEvaluate,
 } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
@@ -17,7 +18,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
+import { bindingBind, bindingUnbind } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -128,14 +129,6 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.locator.get(key);
   }
 
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
-  }
-
   public addBinding(binding: IBinding) {
     this._innerBindings.push(binding);
   }
@@ -208,23 +201,12 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public updateTarget(): void {
-    $updateTarget(this, void 0);
-  }
+    const { obs } = this;
+    obs.version++;
+    const newValue = astEvaluate(this.ast, this._scope!, this, this);
+    obs.clear();
 
-  public handleChange(): void {
-    $handleChange(this);
-  }
-
-  public handleCollectionChange(): void {
-    $handleCollectionChange(this);
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
   }
 
   /**
@@ -241,7 +223,7 @@ export class SpreadValueBinding implements IBinding {
       }
       for (key in this._bindingCache) {
         if ((binding = this._bindingCache[key]) != null) {
-          $unbind(binding);
+          bindingUnbind(binding);
         }
       }
       return;
@@ -268,9 +250,9 @@ export class SpreadValueBinding implements IBinding {
             this.strict,
           );
         }
-        $bind(binding, scope);
+        bindingBind(binding, scope);
       } else if (unbind && binding != null) {
-        $unbind(binding);
+        bindingUnbind(binding);
       }
     }
   }

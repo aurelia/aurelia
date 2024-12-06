@@ -13,7 +13,6 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { BindingMode, IBinding } from './interfaces-bindings';
-import { $bind, $handleChange, $handleCollectionChange, $unbind, $updateTarget } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -75,22 +74,6 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public updateTarget() {
-    $updateTarget(this, void 0);
-  }
-
-  public handleChange(): void {
-    $handleChange(this);
-  }
-
-  public handleCollectionChange(): void {
-    $handleCollectionChange(this);
-  }
-
-  public bind(scope: Scope): void {
-    $bind(this, scope);
-  }
-
-  public unbind(): void {
-    $unbind(this);
+    this.target![this.targetProperty] = this._value;
   }
 }

@@ -218,6 +218,18 @@ export function createFixture<T extends object>(
     const el = strictQueryBy(selector, `to assert className contains "${classes}"`);
     classes.forEach(c => assert.contains(el.classList, c));
   }
+  function assertClassStrict(selector: string, ...classes: string[]) {
+    const el = strictQueryBy(selector, `to assert className contains only "${classes}"`);
+    const existingClasses = Array.from(el.classList);
+    if (classes.length === 0 && existingClasses.length > 0) {
+      assert.fail(`expected element to have no classes, but found [${existingClasses.join(', ')}]`);
+    }
+    classes.forEach(c => assert.contains(el.classList, c));
+    const extraClasses = existingClasses.filter(c => !classes.includes(c));
+    if (extraClasses.length > 0) {
+      assert.fail(`expected element to only have classes [${classes.join(', ')}] but found [${extraClasses.join(', ')}]`);
+    }
+  }
   function assertAttr(selector: string, name: string, value: string | null) {
     const el = strictQueryBy(selector, `to compare attribute "${name}" against "${value}"`);
     assert.strictEqual(el.getAttribute(name), value);
@@ -371,6 +383,7 @@ export function createFixture<T extends object>(
     public assertTextContain = assertTextContain;
     public assertHtml = assertHtml;
     public assertClass = assertClass;
+    public assertClassStrict = assertClassStrict;
     public assertAttr = assertAttr;
     public assertAttrNS = assertAttrNS;
     public assertStyles = assertStyles;
@@ -485,6 +498,10 @@ export interface IFixture<T> {
    * Assert an element based on the given selector has the given css classes
    */
   assertClass(selector: string, ...classes: string[]): void;
+  /**
+   * Assert an element based on the given selector has only the given css classes and no others
+   */
+  assertClassStrict(selector: string, ...classes: string[]): void;
   /**
    * Assert the attribute value of an element matching the given selector inside the application host equals to a given string.
    *

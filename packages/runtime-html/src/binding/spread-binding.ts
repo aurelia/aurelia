@@ -18,7 +18,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
-import { bindingBind, bindingUnbind } from './_lifecycle';
+import { bindingBind, bindingHandleChange, bindingHandleCollectionChange, bindingUnbind } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -139,6 +139,15 @@ export class SpreadBinding implements IBinding, IHasController {
     }
     this.$controller.addChild(controller);
   }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
+  }
 }
 
 export interface SpreadValueBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -201,12 +210,22 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public updateTarget(): void {
+    console.log('SpreadValueBinding#updateTarget');
     const { obs } = this;
     obs.version++;
     const newValue = astEvaluate(this.ast, this._scope!, this, this);
     obs.clear();
 
     this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 
   /**

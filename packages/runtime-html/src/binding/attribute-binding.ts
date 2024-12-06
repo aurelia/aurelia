@@ -14,6 +14,7 @@ import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 import { safeString } from '../utilities';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -84,6 +85,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
+    console.log('AttributeBinding#updateTarget');
     const { target, targetAttribute, targetProperty } = this;
     switch (targetAttribute) {
       case 'class':
@@ -108,5 +110,14 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
         }
       }
     }
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }

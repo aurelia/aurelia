@@ -13,6 +13,7 @@ import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLi
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
 import { BindingMode, IBinding } from './interfaces-bindings';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -74,6 +75,16 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public updateTarget() {
+    console.log('LetBinding#updateTarget');
     this.target![this.targetProperty] = this._value;
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }

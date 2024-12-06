@@ -13,6 +13,7 @@ import {
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -78,6 +79,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public callSource(event: Event): void {
+    console.log('ListenerBinding#callSource');
     const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
@@ -113,6 +115,15 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
         this._options.onError(event, ex);
       }
     }
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }
 

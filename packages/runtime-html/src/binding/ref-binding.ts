@@ -9,6 +9,7 @@ import {
 import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -33,5 +34,14 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     public strict: boolean,
   ) {
     this.l = locator;
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }

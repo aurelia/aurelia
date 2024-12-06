@@ -24,6 +24,7 @@ function queueFlush() {
 }
 
 function flush() {
+  console.log('flush');
   try {
     for (flushIndex = 0; flushIndex < queue.length; flushIndex++) {
       const task = queue[flushIndex];

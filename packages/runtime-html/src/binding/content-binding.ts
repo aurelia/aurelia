@@ -16,6 +16,7 @@ import type { BindingMode, IBinding, IBindingController } from './interfaces-bin
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
 import { safeString } from '../utilities';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -78,6 +79,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public updateTarget(value: unknown): void {
+    console.log('ContentBinding#updateTarget');
     const { target } = this;
     const oldValue = this._value;
     this._value = value;
@@ -92,5 +94,14 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     }
     // console.log({ value, type: typeof value });
     target.textContent = safeString(value ?? '');
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }

@@ -17,6 +17,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -75,11 +76,22 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public updateTarget(value: unknown): void {
+    console.log('PropertyBinding#updateTarget');
     this._targetObserver!.setValue(value, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown): void {
+    console.log('PropertyBinding#updateSource');
     astAssign(this.ast, this._scope!, this, value);
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 
   /**

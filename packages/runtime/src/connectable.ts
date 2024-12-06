@@ -107,11 +107,11 @@ const connectableDecorator = /*@__PURE__*/ (() => {
     this.obs.add(observer);
   }
 
-  function noopHandleChange() {
+  function noopHandleChange(this: IObserverLocatorBasedConnectable) {
     throw createMappedError(ErrorNames.method_not_implemented, 'handleChange');
   }
 
-  function noopHandleCollectionChange() {
+  function noopHandleCollectionChange(this: IObserverLocatorBasedConnectable) {
     throw createMappedError(ErrorNames.method_not_implemented, 'handleCollectionChange');
   }
 

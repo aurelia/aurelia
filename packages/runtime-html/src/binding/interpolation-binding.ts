@@ -17,6 +17,7 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -71,6 +72,7 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public updateTarget(): void {
+    console.log('InterpolationBinding#updateTarget');
     const { partBindings, ast, target, targetProperty } = this;
     const staticParts = ast.parts;
     const ii = partBindings.length;
@@ -88,6 +90,15 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     }
 
     this._targetObserver.setValue(result, target, targetProperty);
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 
   /**
@@ -148,6 +159,16 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public updateTarget() {
+    console.log('InterpolationPartBinding#updateTarget');
     this.owner.updateTarget();
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }

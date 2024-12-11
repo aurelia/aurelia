@@ -4,6 +4,12 @@ import { Product } from '../domain';
 @customElement({
   name: 'product-item-view',
   template: `
+    <label ref="nameLabel">\${name}</label>
+    <label ref="priceLabel">\${price}</label>
+    <label ref="currentInventoryLabel">\${currentInventory}</label>
+    <label ref="computedSalesTrendLabel">\${computedSalesTrend}</label>
+    <label ref="recommendedRestockLevelLabel">\${recommendedRestockLevel}</label>
+    <label ref="lowInventoryAlertLabel">\${lowInventoryAlert ? 'Low inventory' : ''}</label>
   `
 })
 export class ProductItemView {

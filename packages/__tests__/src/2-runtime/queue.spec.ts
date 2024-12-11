@@ -2,29 +2,85 @@ import { assert, createFixture } from '@aurelia/testing';
 import { nextTick } from '@aurelia/runtime';
 import { bindable, CustomElement, customElement } from '@aurelia/runtime-html';
 
+@customElement({
+  name: 'form-component',
+  template: `
+    <input ref="input" type="text" value.bind="value">
+    <let text.bind="[\${value}]"></let>\${text}
+  `
+})
+class FormComponent {
+  input: HTMLInputElement;
+}
+
+@customElement({
+  name: 'main-page',
+  template: `
+    <form-component></form-component>
+  `,
+  dependencies: [FormComponent]
+})
+class MainPage {
+
+}
+
+@customElement({
+  name: 'app-root',
+  template: `
+    <main-page active.class="active"></main-page>
+  `,
+  dependencies: [MainPage]
+})
+class AppRoot {
+
+}
+
 describe('2-runtime/queue.spec.ts', function () {
   describe('AttributeBinding', function () {
-    it('should work', async function () {
-      const { component, assertClassStrict } = createFixture(
+    it('class binding should work', async function () {
+      const { component, assertAttr } = createFixture(
         '<div active.class="active"></div>',
         class {
           active = false;
         }
       );
 
-      assertClassStrict('div');
+      assertAttr('div', 'class', null);
 
       component.active = true;
 
-      assertClassStrict('div');
+      assertAttr('div', 'class', null);
       await nextTick();
-      assertClassStrict('div', 'active');
+      assertAttr('div', 'class', 'active');
 
       component.active = false;
 
-      assertClassStrict('div', 'active');
+      assertAttr('div', 'class', 'active');
       await nextTick();
-      assertClassStrict('div');
+      assertAttr('div', 'class', null);
+    });
+
+    it('attr binding should work', async function () {
+      const { component, assertAttr } = createFixture(
+        '<div tag.attr="tag"></div>',
+        class {
+          tag = null;
+        }
+      );
+
+      assertAttr('div', 'tag', null);
+
+      component.tag = 'foo';
+
+      assertAttr('div', 'tag', null);
+      await nextTick();
+      assertAttr('div', 'tag', 'foo');
+
+      component.tag = 'foo';
+
+      assertAttr('div', 'tag', 'foo');
+      await nextTick();
+      assertAttr('div', 'tag', null);
     });
   });
 

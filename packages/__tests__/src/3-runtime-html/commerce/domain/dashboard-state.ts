@@ -41,6 +41,14 @@ export class DashboardState {
     });
   }
 
+  dismissInventoryAlert(id: string) {
+    this.inventoryAlerts.splice(this.inventoryAlerts.findIndex(alert => alert.id === id), 1);
+  }
+
+  dismissTrendAlert(id: string) {
+    this.trendAlerts.splice(this.trendAlerts.findIndex(alert => alert.id === id), 1);
+  }
+
   private findProductById(productId: string): Product | undefined {
     for (const category of this.categories) {
       const product = category.products.find(p => p.id === productId);

@@ -1,4 +1,4 @@
-import { bindable, customElement } from '@aurelia/runtime-html';
+import { bindable, children, customElement } from '@aurelia/runtime-html';
 import { DashboardState, InventoryAlert, TrendAlert } from '../domain';
 
 @customElement({

@@ -5,6 +5,7 @@ import { ProductListView } from './product-list-view';
 @customElement({
   name: 'category-item-view',
   template: `
+    <label ref="nameLabel">\${name}</label>
     <product-list-view products.bind="category.products"></product-list-view>
   `,
   dependencies: [
@@ -13,6 +14,8 @@ import { ProductListView } from './product-list-view';
 })
 export class CategoryItemView {
   @bindable category: Category;
+
+  nameLabel: HTMLLabelElement;
 
   get name(): string {
     return this.category.name;

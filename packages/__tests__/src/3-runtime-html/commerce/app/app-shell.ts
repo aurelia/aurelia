@@ -7,9 +7,9 @@ import { customElement } from '@aurelia/runtime-html';
 @customElement({
   name: 'app-shell',
   template: `
-    <global-filters-panel state.bind="state"></global-filters-panel>
-    <category-overview state.bind="state"></category-overview>
-    <alerts-panel state.bind="state"></alerts-panel>
+    <global-filters-panel ref="globalFiltersPanel" state.bind="state"></global-filters-panel>
+    <category-overview ref="categoryOverview" state.bind="state"></category-overview>
+    <alerts-panel ref="alertsPanel" state.bind="state"></alerts-panel>
   `,
   dependencies: [
     GlobalFiltersPanel,
@@ -19,4 +19,8 @@ import { customElement } from '@aurelia/runtime-html';
 })
 export class AppShell {
   state = new DashboardState();
+
+  globalFiltersPanel: GlobalFiltersPanel;
+  categoryOverview: CategoryOverview;
+  alertsPanel: AlertsPanel;
 }

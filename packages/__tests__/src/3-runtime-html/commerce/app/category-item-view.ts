@@ -14,7 +14,7 @@ import { Category } from '../domain/index.js';
   ]
 })
 export class CategoryItemView {
-  private readonly log = resolve(ILogger).scopeTo('CategoryItemView');
+  private readonly log = resolve(ILogger).scopeTo('> > CategoryItemView');
 
   @bindable category: Category;
 
@@ -35,6 +35,46 @@ export class CategoryItemView {
 
   get lowStockAlertCount(): number {
     return this.category.lowStockAlertCount;
+  }
+
+  hydrating() {
+    this.log.debug('hydrating');
+  }
+
+  hydrated() {
+    this.log.debug('hydrated');
+  }
+
+  created() {
+    this.log.debug('created');
+  }
+
+  binding() {
+    this.log.debug('binding');
+  }
+
+  bound() {
+    this.log.debug('bound');
+  }
+
+  attaching() {
+    this.log.debug('attaching');
+  }
+
+  attached() {
+    this.log.debug('attached');
+  }
+
+  detaching() {
+    this.log.debug('detaching');
+  }
+
+  unbinding() {
+    this.log.debug('unbinding');
+  }
+
+  dispose() {
+    this.log.debug('dispose');
   }
 }
 export interface CategoryItemView extends ICustomElementViewModel {}

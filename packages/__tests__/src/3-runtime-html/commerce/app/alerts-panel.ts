@@ -11,7 +11,7 @@ import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
   `
 })
 export class InventoryAlertView {
-  private readonly log = resolve(ILogger).scopeTo('InventoryAlertView');
+  private readonly log = resolve(ILogger).scopeTo('> > InventoryAlertView');
 
   @bindable alert: InventoryAlert;
   @bindable state: DashboardState;
@@ -22,6 +22,46 @@ export class InventoryAlertView {
 
   dismiss() {
     this.state.dismissInventoryAlert(this.alert.id);
+  }
+
+  hydrating() {
+    this.log.debug('hydrating');
+  }
+
+  hydrated() {
+    this.log.debug('hydrated');
+  }
+
+  created() {
+    this.log.debug('created');
+  }
+
+  binding() {
+    this.log.debug('binding');
+  }
+
+  bound() {
+    this.log.debug('bound');
+  }
+
+  attaching() {
+    this.log.debug('attaching');
+  }
+
+  attached() {
+    this.log.debug('attached');
+  }
+
+  detaching() {
+    this.log.debug('detaching');
+  }
+
+  unbinding() {
+    this.log.debug('unbinding');
+  }
+
+  dispose() {
+    this.log.debug('dispose');
   }
 }
 export interface InventoryAlertView extends ICustomElementViewModel {}
@@ -36,7 +76,7 @@ export interface InventoryAlertView extends ICustomElementViewModel {}
   `
 })
 export class TrendAlertView {
-  private readonly log = resolve(ILogger).scopeTo('TrendAlertView');
+  private readonly log = resolve(ILogger).scopeTo('> > TrendAlertView');
 
   @bindable alert: TrendAlert;
   @bindable state: DashboardState;
@@ -48,6 +88,46 @@ export class TrendAlertView {
 
   dismiss() {
     this.state.dismissInventoryAlert(this.alert.id);
+  }
+
+  hydrating() {
+    this.log.debug('hydrating');
+  }
+
+  hydrated() {
+    this.log.debug('hydrated');
+  }
+
+  created() {
+    this.log.debug('created');
+  }
+
+  binding() {
+    this.log.debug('binding');
+  }
+
+  bound() {
+    this.log.debug('bound');
+  }
+
+  attaching() {
+    this.log.debug('attaching');
+  }
+
+  attached() {
+    this.log.debug('attached');
+  }
+
+  detaching() {
+    this.log.debug('detaching');
+  }
+
+  unbinding() {
+    this.log.debug('unbinding');
+  }
+
+  dispose() {
+    this.log.debug('dispose');
   }
 }
 export interface TrendAlertView extends ICustomElementViewModel {}
@@ -67,7 +147,7 @@ export interface TrendAlertView extends ICustomElementViewModel {}
   ]
 })
 export class AlertsPanel {
-  private readonly log = resolve(ILogger).scopeTo('AlertsPanel');
+  private readonly log = resolve(ILogger).scopeTo('> AlertsPanel');
 
   @bindable state: DashboardState;
 
@@ -77,6 +157,46 @@ export class AlertsPanel {
 
   get trendAlerts(): TrendAlert[] {
     return this.state.activeTrendAlerts;
+  }
+
+  hydrating() {
+    this.log.debug('hydrating');
+  }
+
+  hydrated() {
+    this.log.debug('hydrated');
+  }
+
+  created() {
+    this.log.debug('created');
+  }
+
+  binding() {
+    this.log.debug('binding');
+  }
+
+  bound() {
+    this.log.debug('bound');
+  }
+
+  attaching() {
+    this.log.debug('attaching');
+  }
+
+  attached() {
+    this.log.debug('attached');
+  }
+
+  detaching() {
+    this.log.debug('detaching');
+  }
+
+  unbinding() {
+    this.log.debug('unbinding');
+  }
+
+  dispose() {
+    this.log.debug('dispose');
   }
 }
 export interface AlertsPanel extends ICustomElementViewModel {}

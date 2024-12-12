@@ -15,12 +15,52 @@ import { DashboardState, GlobalFilters } from '../domain/index.js';
   `
 })
 export class GlobalFiltersPanel {
-  private readonly log = resolve(ILogger).scopeTo('GlobalFiltersPanel');
+  private readonly log = resolve(ILogger).scopeTo('> GlobalFiltersPanel');
 
   @bindable state: DashboardState;
 
   get filters(): GlobalFilters {
     return this.state.globalFilters;
+  }
+
+  hydrating() {
+    this.log.debug('hydrating');
+  }
+
+  hydrated() {
+    this.log.debug('hydrated');
+  }
+
+  created() {
+    this.log.debug('created');
+  }
+
+  binding() {
+    this.log.debug('binding');
+  }
+
+  bound() {
+    this.log.debug('bound');
+  }
+
+  attaching() {
+    this.log.debug('attaching');
+  }
+
+  attached() {
+    this.log.debug('attached');
+  }
+
+  detaching() {
+    this.log.debug('detaching');
+  }
+
+  unbinding() {
+    this.log.debug('unbinding');
+  }
+
+  dispose() {
+    this.log.debug('dispose');
   }
 }
 export interface GlobalFiltersPanel extends ICustomElementViewModel {}

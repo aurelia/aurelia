@@ -1,4 +1,5 @@
-import { bindable, customElement } from '@aurelia/runtime-html';
+import { ILogger, resolve } from '@aurelia/kernel';
+import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
 
 @customElement({
@@ -10,6 +11,8 @@ import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
   `
 })
 export class InventoryAlertView {
+  private readonly log = resolve(ILogger).scopeTo('InventoryAlertView');
+
   @bindable alert: InventoryAlert;
   @bindable state: DashboardState;
 
@@ -21,6 +24,7 @@ export class InventoryAlertView {
     this.state.dismissInventoryAlert(this.alert.id);
   }
 }
+export interface InventoryAlertView extends ICustomElementViewModel {}
 
 @customElement({
   name: 'trend-alert',
@@ -32,6 +36,8 @@ export class InventoryAlertView {
   `
 })
 export class TrendAlertView {
+  private readonly log = resolve(ILogger).scopeTo('TrendAlertView');
+
   @bindable alert: TrendAlert;
   @bindable state: DashboardState;
 
@@ -44,6 +50,7 @@ export class TrendAlertView {
     this.state.dismissInventoryAlert(this.alert.id);
   }
 }
+export interface TrendAlertView extends ICustomElementViewModel {}
 
 @customElement({
   name: 'alerts-panel',
@@ -60,6 +67,8 @@ export class TrendAlertView {
   ]
 })
 export class AlertsPanel {
+  private readonly log = resolve(ILogger).scopeTo('AlertsPanel');
+
   @bindable state: DashboardState;
 
   get inventoryAlerts(): InventoryAlert[] {
@@ -70,3 +79,4 @@ export class AlertsPanel {
     return this.state.activeTrendAlerts;
   }
 }
+export interface AlertsPanel extends ICustomElementViewModel {}

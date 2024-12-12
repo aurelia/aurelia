@@ -1,4 +1,5 @@
-import { bindable, customElement } from '@aurelia/runtime-html';
+import { ILogger, resolve } from '@aurelia/kernel';
+import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { ProductItemView } from './product-item-view.js';
 import { Product } from '../domain/index.js';
 
@@ -12,5 +13,8 @@ import { Product } from '../domain/index.js';
   ]
 })
 export class ProductListView {
+  private readonly log = resolve(ILogger).scopeTo('ProductListView');
+
   @bindable products: Product[];
 }
+export interface ProductListView extends ICustomElementViewModel {}

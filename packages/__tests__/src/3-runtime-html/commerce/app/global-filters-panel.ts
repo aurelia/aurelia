@@ -1,4 +1,5 @@
-import { bindable, customElement } from '@aurelia/runtime-html';
+import { ILogger, resolve } from '@aurelia/kernel';
+import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { DashboardState, GlobalFilters } from '../domain/index.js';
 
 @customElement({
@@ -14,9 +15,12 @@ import { DashboardState, GlobalFilters } from '../domain/index.js';
   `
 })
 export class GlobalFiltersPanel {
+  private readonly log = resolve(ILogger).scopeTo('GlobalFiltersPanel');
+
   @bindable state: DashboardState;
 
   get filters(): GlobalFilters {
     return this.state.globalFilters;
   }
 }
+export interface GlobalFiltersPanel extends ICustomElementViewModel {}

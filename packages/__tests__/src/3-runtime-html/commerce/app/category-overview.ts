@@ -1,6 +1,6 @@
 import { bindable, customElement } from '@aurelia/runtime-html';
-import { DashboardState } from '../domain';
-import { CategoryItemView } from './category-item-view';
+import { CategoryItemView } from './category-item-view.js';
+import { DashboardState } from '../domain/index.js';
 
 @customElement({
   name: 'category-overview',

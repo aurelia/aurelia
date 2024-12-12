@@ -1,5 +1,5 @@
-import { bindable, children, customElement } from '@aurelia/runtime-html';
-import { DashboardState, InventoryAlert, TrendAlert } from '../domain';
+import { bindable, customElement } from '@aurelia/runtime-html';
+import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
 
 @customElement({
   name: 'inventory-alert',

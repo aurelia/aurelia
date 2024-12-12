@@ -1,5 +1,5 @@
 import { bindable, customElement } from '@aurelia/runtime-html';
-import { Product } from '../domain';
+import { Product } from '../domain/index.js';
 
 @customElement({
   name: 'product-item-view',

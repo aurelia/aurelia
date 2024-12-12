@@ -1,8 +1,8 @@
-import { DashboardState } from '../domain';
-import { GlobalFiltersPanel } from './global-filters-panel';
-import { CategoryOverview } from './category-overview';
-import { AlertsPanel } from './alerts-panel';
 import { customElement } from '@aurelia/runtime-html';
+import { GlobalFiltersPanel } from './global-filters-panel.js';
+import { CategoryOverview } from './category-overview.js';
+import { AlertsPanel } from './alerts-panel.js';
+import { DashboardState } from '../domain/index.js';
 
 @customElement({
   name: 'app-shell',

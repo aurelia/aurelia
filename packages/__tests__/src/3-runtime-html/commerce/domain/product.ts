@@ -1,5 +1,5 @@
-import { globalFilters } from './filters';
-import { SaleRecord, ForecastRecord } from './records';
+import { globalFilters } from './filters.js';
+import { SaleRecord, ForecastRecord } from './records.js';
 
 export class Product {
   id: string = '';

@@ -1,5 +1,5 @@
 import { bindable, customElement } from '@aurelia/runtime-html';
-import { GlobalFilters, DashboardState } from '../domain';
+import { DashboardState, GlobalFilters } from '../domain/index.js';
 
 @customElement({
   name: 'global-filters-panel',

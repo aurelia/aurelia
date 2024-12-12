@@ -1,7 +1,7 @@
-import { GlobalFilters } from './filters';
-import { Category } from './category';
-import { TrendAlert, InventoryAlert } from './alerts';
-import { Product } from './product';
+import { GlobalFilters } from './filters.js';
+import { Category } from './category.js';
+import { TrendAlert, InventoryAlert } from './alerts.js';
+import { Product } from './product.js';
 
 export class DashboardState {
   globalFilters: GlobalFilters = new GlobalFilters();

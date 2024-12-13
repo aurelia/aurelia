@@ -4,7 +4,7 @@ import { TrendAlert, InventoryAlert } from './alerts.js';
 import { Product } from './product.js';
 
 export class DashboardState {
-  globalFilters: GlobalFilters = new GlobalFilters();
+  globalFilters: GlobalFilters;
   categories: Category[] = [];
   inventoryAlerts: InventoryAlert[] = [];
   trendAlerts: TrendAlert[] = [];
@@ -41,12 +41,33 @@ export class DashboardState {
     });
   }
 
+  constructor(
+    globalFilters: GlobalFilters,
+  ) {
+    this.globalFilters = globalFilters;
+  }
+
   dismissInventoryAlert(id: string) {
     this.inventoryAlerts.splice(this.inventoryAlerts.findIndex(alert => alert.id === id), 1);
   }
 
   dismissTrendAlert(id: string) {
     this.trendAlerts.splice(this.trendAlerts.findIndex(alert => alert.id === id), 1);
+  }
+
+  addCategory(category: Category) {
+    this.categories.push(category);
+    return category;
+  }
+
+  addInventoryAlert(alert: InventoryAlert) {
+    this.inventoryAlerts.push(alert);
+    return alert;
+  }
+
+  addTrendAlert(alert: TrendAlert) {
+    this.trendAlerts.push(alert);
+    return alert;
   }
 
   private findProductById(productId: string): Product | undefined {

@@ -4,6 +4,18 @@ export class GlobalFilters {
   selectedCategoryIds: Set<string> = new Set();
   showProjectedTrends: boolean = false;
   enableAutoRestock: boolean = false;
-}
 
-export const globalFilters = new GlobalFilters();
+  constructor(
+    startDate: Date,
+    endDate: Date,
+    selectedCategoryIds: Set<string>,
+    showProjectedTrends: boolean,
+    enableAutoRestock: boolean,
+  ) {
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.selectedCategoryIds = selectedCategoryIds;
+    this.showProjectedTrends = showProjectedTrends;
+    this.enableAutoRestock = enableAutoRestock;
+  }
+}

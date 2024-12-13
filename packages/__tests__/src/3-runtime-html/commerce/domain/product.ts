@@ -1,24 +1,26 @@
-import { globalFilters } from './filters.js';
+import { type DashboardState } from './dashboard-state.js';
 import { SaleRecord, ForecastRecord } from './records.js';
 
 export class Product {
-  id: string = '';
-  name: string = '';
-  categoryId: string = '';
-  price: number = 0;
-  currentInventory: number = 0;
-  reorderThreshold: number = 0;
+  private readonly state: DashboardState;
+
+  id: string;
+  name: string;
+  categoryId: string;
+  price: number;
+  currentInventory: number;
+  reorderThreshold: number;
   historicalSalesData: SaleRecord[] = [];
   forecastedSalesData: ForecastRecord[] = [];
-  pendingPurchaseOrderQty: number = 0;
+  pendingPurchaseOrderQty: number;
 
   get filteredHistoricalSales(): SaleRecord[] {
-    const { startDate, endDate } = globalFilters;
+    const { startDate, endDate } = this.state.globalFilters;
     return this.historicalSalesData.filter(s => s.date >= startDate && s.date <= endDate);
   }
 
   get computedSalesTrend(): number {
-    const { showProjectedTrends, startDate, endDate } = globalFilters;
+    const { showProjectedTrends, startDate, endDate } = this.state.globalFilters;
     const filteredSales = this.filteredHistoricalSales;
 
     // Compute historical average daily sales
@@ -64,7 +66,7 @@ export class Product {
   }
 
   get recommendedRestockLevel(): number {
-    const { enableAutoRestock } = globalFilters;
+    const { enableAutoRestock } = this.state.globalFilters;
     // Assume computedSalesTrend represents an approximate daily sales rate
     const dailySales = this.computedSalesTrend;
     // For example, we restock for the next 30 days: (dailySales * 30)
@@ -81,5 +83,25 @@ export class Product {
   get lowInventoryAlert(): boolean {
     // Trigger if inventory plus pending is below threshold and there's a positive trend
     return (this.currentInventory + this.pendingPurchaseOrderQty < this.reorderThreshold) && (this.computedSalesTrend > 0);
+  }
+
+  constructor(
+    state: DashboardState,
+    id: string,
+    name: string,
+    categoryId: string,
+    price: number,
+    currentInventory: number,
+    reorderThreshold: number,
+    pendingPurchaseOrderQty: number
+  ) {
+    this.state = state;
+    this.id = id;
+    this.name = name;
+    this.categoryId = categoryId;
+    this.price = price;
+    this.currentInventory = currentInventory;
+    this.reorderThreshold = reorderThreshold;
+    this.pendingPurchaseOrderQty = pendingPurchaseOrderQty;
   }
 }

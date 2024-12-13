@@ -1,9 +1,19 @@
 export class SaleRecord {
-  date: Date = new Date();
-  unitsSold: number = 0;
+  date: Date;
+  unitsSold: number;
+
+  constructor(date: Date, unitsSold: number) {
+    this.date = date;
+    this.unitsSold = unitsSold;
+  }
 }
 
 export class ForecastRecord {
-  date: Date = new Date();
-  projectedUnitsSold: number = 0;
+  date: Date;
+  projectedUnitsSold: number;
+
+  constructor(date: Date, projectedUnitsSold: number) {
+    this.date = date;
+    this.projectedUnitsSold = projectedUnitsSold;
+  }
 }

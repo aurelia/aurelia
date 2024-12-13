@@ -1,8 +1,8 @@
 import { Product } from './product.js';
 
 export class Category {
-  id: string = '';
-  name: string = '';
+  id: string;
+  name: string;
   products: Product[] = [];
 
   get aggregatedSalesTrend(): number {
@@ -20,5 +20,15 @@ export class Category {
   get lowStockAlertCount(): number {
     // Count how many products currently have a low inventory alert
     return this.products.filter(p => p.lowInventoryAlert).length;
+  }
+
+  constructor(id: string, name: string) {
+    this.id = id;
+    this.name = name;
+  }
+
+  addProduct(product: Product) {
+    this.products.push(product);
+    return product;
   }
 }

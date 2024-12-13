@@ -2,17 +2,19 @@ import { type DashboardState } from './dashboard-state.js';
 import { SaleRecord, ForecastRecord } from './records.js';
 
 export class Product {
-  private readonly state: DashboardState;
-
-  id: string;
-  name: string;
-  categoryId: string;
-  price: number;
-  currentInventory: number;
-  reorderThreshold: number;
   historicalSalesData: SaleRecord[] = [];
   forecastedSalesData: ForecastRecord[] = [];
-  pendingPurchaseOrderQty: number;
+
+  constructor(
+    private readonly state: DashboardState,
+    public id: string,
+    public name: string,
+    public categoryId: string,
+    public price: number,
+    public currentInventory: number,
+    public reorderThreshold: number,
+    public pendingPurchaseOrderQty: number
+  ) {}
 
   get filteredHistoricalSales(): SaleRecord[] {
     const { startDate, endDate } = this.state.globalFilters;
@@ -83,25 +85,5 @@ export class Product {
   get lowInventoryAlert(): boolean {
     // Trigger if inventory plus pending is below threshold and there's a positive trend
     return (this.currentInventory + this.pendingPurchaseOrderQty < this.reorderThreshold) && (this.computedSalesTrend > 0);
-  }
-
-  constructor(
-    state: DashboardState,
-    id: string,
-    name: string,
-    categoryId: string,
-    price: number,
-    currentInventory: number,
-    reorderThreshold: number,
-    pendingPurchaseOrderQty: number
-  ) {
-    this.state = state;
-    this.id = id;
-    this.name = name;
-    this.categoryId = categoryId;
-    this.price = price;
-    this.currentInventory = currentInventory;
-    this.reorderThreshold = reorderThreshold;
-    this.pendingPurchaseOrderQty = pendingPurchaseOrderQty;
   }
 }

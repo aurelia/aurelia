@@ -2,11 +2,13 @@ import { type DashboardState } from './dashboard-state.js';
 import { Product } from './product.js';
 
 export class Category {
-  private readonly state: DashboardState;
-
-  id: string;
-  name: string;
   products: Product[] = [];
+
+  constructor(
+    private readonly state: DashboardState,
+    public id: string,
+    public name: string
+  ) {}
 
   get aggregatedSalesTrend(): number {
     if (this.products.length === 0) return 0;
@@ -23,16 +25,6 @@ export class Category {
   get lowStockAlertCount(): number {
     // Count how many products currently have a low inventory alert
     return this.products.filter(p => p.lowInventoryAlert).length;
-  }
-
-  constructor(
-    state: DashboardState,
-    id: string,
-    name: string,
-  ) {
-    this.state = state;
-    this.id = id;
-    this.name = name;
   }
 
   addProduct({

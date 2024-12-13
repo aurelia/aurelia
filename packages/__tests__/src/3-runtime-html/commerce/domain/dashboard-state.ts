@@ -4,10 +4,13 @@ import { TrendAlert, InventoryAlert } from './alerts.js';
 import { Product } from './product.js';
 
 export class DashboardState {
-  globalFilters: GlobalFilters;
   categories: Category[] = [];
   inventoryAlerts: InventoryAlert[] = [];
   trendAlerts: TrendAlert[] = [];
+
+  constructor(
+    public globalFilters: GlobalFilters,
+  ) {}
 
   get activeInventoryAlerts(): InventoryAlert[] {
     // For an inventory alert to be active, we assume:
@@ -39,12 +42,6 @@ export class DashboardState {
       }
       return true;
     });
-  }
-
-  constructor(
-    globalFilters: GlobalFilters,
-  ) {
-    this.globalFilters = globalFilters;
   }
 
   dismissInventoryAlert(id: string) {

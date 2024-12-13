@@ -68,7 +68,17 @@ export class DashboardState {
     return alert;
   }
 
-  private findProductById(productId: string): Product | undefined {
+  generateInventoryAlert(product: Product, date: Date) {
+    const alert = new InventoryAlert(
+      `inv-alert-${Date.now()}`,
+      `Low inventory on ${product.name}`,
+      date,
+      product.id
+    );
+    this.inventoryAlerts.push(alert);
+  }
+
+  private findProductById(productId: string) {
     for (const category of this.categories) {
       const product = category.products.find(p => p.id === productId);
       if (product) return product;

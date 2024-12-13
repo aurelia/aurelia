@@ -8,15 +8,15 @@ import {
 } from './domain/index.js';
 
 export const initDashboardState = () => {
-  const globalFilters = new GlobalFilters(
-    new Date('2024-01-02'),
-    new Date('2024-01-04'),
-    new Set(['cat-electronics', 'cat-home-appliances']),
-    true,
-    true,
+  const state = new DashboardState(
+    new GlobalFilters(
+      new Date('2024-01-02'),
+      new Date('2024-01-04'),
+      new Set(['cat-electronics', 'cat-home-appliances']),
+      true,
+      true
+    )
   );
-
-  const state = new DashboardState(globalFilters);
 
   const electronics = state.addCategory({
     id: 'cat-electronics',
@@ -31,13 +31,12 @@ export const initDashboardState = () => {
     reorderThreshold: 5,
     pendingPurchaseOrderQty: 0
   });
-  laptopX.historicalSalesData.push(
-    new SaleRecord(new Date('2024-01-01'), 5),
-    new SaleRecord(new Date('2024-01-02'), 3),
-    new SaleRecord(new Date('2024-01-03'), 2),
-    new SaleRecord(new Date('2024-01-04'), 4),
-    new SaleRecord(new Date('2024-01-10'), 6)
-  );
+  laptopX.recordSale(new Date('2024-01-01'), 5);
+  laptopX.recordSale(new Date('2024-01-02'), 3);
+  laptopX.recordSale(new Date('2024-01-03'), 2);
+  laptopX.recordSale(new Date('2024-01-04'), 4);
+  laptopX.recordSale(new Date('2024-01-10'), 6);
+
   laptopX.forecastedSalesData.push(
     new ForecastRecord(new Date('2024-02-01'), 4),
     new ForecastRecord(new Date('2024-02-02'), 5)
@@ -52,12 +51,10 @@ export const initDashboardState = () => {
     reorderThreshold: 10,
     pendingPurchaseOrderQty: 20
   });
-  smartphoneY.historicalSalesData.push(
-    new SaleRecord(new Date('2024-01-02'), 10),
-    new SaleRecord(new Date('2024-01-03'), 9),
-    new SaleRecord(new Date('2024-01-04'), 8),
-    new SaleRecord(new Date('2024-01-05'), 2)
-  );
+  smartphoneY.recordSale(new Date('2024-01-02'), 10);
+  smartphoneY.recordSale(new Date('2024-01-03'), 9);
+  smartphoneY.recordSale(new Date('2024-01-04'), 8);
+  smartphoneY.recordSale(new Date('2024-01-05'), 2);
 
   const homeAppliances = state.addCategory({
     id: 'cat-home-appliances',
@@ -73,13 +70,12 @@ export const initDashboardState = () => {
     reorderThreshold: 3,
     pendingPurchaseOrderQty: 5
   });
-  microwaveZ.historicalSalesData.push(
-    new SaleRecord(new Date('2024-01-01'), 2),
-    new SaleRecord(new Date('2024-01-02'), 1),
-    new SaleRecord(new Date('2024-01-03'), 2),
-    new SaleRecord(new Date('2024-01-04'), 3),
-    new SaleRecord(new Date('2024-01-05'), 1)
-  );
+  microwaveZ.recordSale(new Date('2024-01-01'), 2);
+  microwaveZ.recordSale(new Date('2024-01-02'), 1);
+  microwaveZ.recordSale(new Date('2024-01-03'), 2);
+  microwaveZ.recordSale(new Date('2024-01-04'), 3);
+  microwaveZ.recordSale(new Date('2024-01-05'), 1);
+
   microwaveZ.forecastedSalesData.push(
     new ForecastRecord(new Date('2024-02-01'), 2),
     new ForecastRecord(new Date('2024-02-02'), 3)
@@ -94,12 +90,10 @@ export const initDashboardState = () => {
     reorderThreshold: 2,
     pendingPurchaseOrderQty: 0
   });
-  blenderA1.historicalSalesData.push(
-    new SaleRecord(new Date('2024-01-02'), 1),
-    new SaleRecord(new Date('2024-01-03'), 2),
-    new SaleRecord(new Date('2024-01-04'), 2),
-    new SaleRecord(new Date('2024-01-05'), 1)
-  );
+  blenderA1.recordSale(new Date('2024-01-02'), 1);
+  blenderA1.recordSale(new Date('2024-01-03'), 2);
+  blenderA1.recordSale(new Date('2024-01-04'), 2);
+  blenderA1.recordSale(new Date('2024-01-05'), 1);
   blenderA1.forecastedSalesData.push(
     new ForecastRecord(new Date('2024-02-01'), 2),
     new ForecastRecord(new Date('2024-02-02'), 2)
@@ -119,10 +113,8 @@ export const initDashboardState = () => {
     reorderThreshold: 5,
     pendingPurchaseOrderQty: 0
   });
-  headphonesW.historicalSalesData.push(
-    new SaleRecord(new Date('2024-01-02'), 1),
-    new SaleRecord(new Date('2024-01-03'), 1)
-  );
+  headphonesW.recordSale(new Date('2024-01-02'), 1);
+  headphonesW.recordSale(new Date('2024-01-03'), 1);
   headphonesW.forecastedSalesData.push(
     new ForecastRecord(new Date('2024-02-01'), 3)
   );

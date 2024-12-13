@@ -86,4 +86,21 @@ export class Product {
     // Trigger if inventory plus pending is below threshold and there's a positive trend
     return (this.currentInventory + this.pendingPurchaseOrderQty < this.reorderThreshold) && (this.computedSalesTrend > 0);
   }
+
+  recordSale(date: Date, unitsSold: number) {
+    const { enableAutoRestock } = this.state.globalFilters;
+    this.historicalSalesData.push(new SaleRecord(date, unitsSold));
+    this.currentInventory -= unitsSold;
+
+    if (this.lowInventoryAlert) {
+      if (enableAutoRestock) {
+        this.restock();
+      }
+      this.state.generateInventoryAlert(this, date);
+    }
+  }
+
+  restock() {
+    this.pendingPurchaseOrderQty += this.recommendedRestockLevel;
+  }
 }

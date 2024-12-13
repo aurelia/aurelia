@@ -1,4 +1,11 @@
-import { Category, DashboardState, ForecastRecord, GlobalFilters, InventoryAlert, Product, SaleRecord, TrendAlert } from './domain/index.js';
+import {
+  DashboardState,
+  ForecastRecord,
+  GlobalFilters,
+  InventoryAlert,
+  SaleRecord,
+  TrendAlert
+} from './domain/index.js';
 
 export const initDashboardState = () => {
   const globalFilters = new GlobalFilters(
@@ -11,21 +18,19 @@ export const initDashboardState = () => {
 
   const state = new DashboardState(globalFilters);
 
-  const electronics = state.addCategory(new Category(
-    'cat-electronics',
-    'Electronics'
-  ));
-
-  const laptopX = electronics.addProduct(new Product(
-    state,
-    'prod-laptop-1',
-    'Laptop X',
-    'cat-electronics',
-    1499.99,
-    20,
-    5,
-    0
-  ));
+  const electronics = state.addCategory({
+    id: 'cat-electronics',
+    name: 'Electronics'
+  });
+  const laptopX = electronics.addProduct({
+    id: 'prod-laptop-1',
+    name: 'Laptop X',
+    categoryId: 'cat-electronics',
+    price: 1499.99,
+    currentInventory: 20,
+    reorderThreshold: 5,
+    pendingPurchaseOrderQty: 0
+  });
   laptopX.historicalSalesData.push(
     new SaleRecord(new Date('2024-01-01'), 5),
     new SaleRecord(new Date('2024-01-02'), 3),
@@ -38,16 +43,15 @@ export const initDashboardState = () => {
     new ForecastRecord(new Date('2024-02-02'), 5)
   );
 
-  const smartphoneY = electronics.addProduct(new Product(
-    state,
-    'prod-smartphone-1',
-    'Smartphone Y',
-    'cat-electronics',
-    799.99,
-    50,
-    10,
-    20
-  ));
+  const smartphoneY = electronics.addProduct({
+    id: 'prod-smartphone-1',
+    name: 'Smartphone Y',
+    categoryId: 'cat-electronics',
+    price: 799.99,
+    currentInventory: 50,
+    reorderThreshold: 10,
+    pendingPurchaseOrderQty: 20
+  });
   smartphoneY.historicalSalesData.push(
     new SaleRecord(new Date('2024-01-02'), 10),
     new SaleRecord(new Date('2024-01-03'), 9),
@@ -55,21 +59,20 @@ export const initDashboardState = () => {
     new SaleRecord(new Date('2024-01-05'), 2)
   );
 
-  const homeAppliances = state.addCategory(new Category(
-    'cat-home-appliances',
-    'Home Appliances'
-  ));
+  const homeAppliances = state.addCategory({
+    id: 'cat-home-appliances',
+    name: 'Home Appliances'
+  });
 
-  const microwaveZ = homeAppliances.addProduct(new Product(
-    state,
-    'prod-microwave-1',
-    'Microwave Z',
-    'cat-home-appliances',
-    199.99,
-    10,
-    3,
-    5
-  ));
+  const microwaveZ = homeAppliances.addProduct({
+    id: 'prod-microwave-1',
+    name: 'Microwave Z',
+    categoryId: 'cat-home-appliances',
+    price: 199.99,
+    currentInventory: 10,
+    reorderThreshold: 3,
+    pendingPurchaseOrderQty: 5
+  });
   microwaveZ.historicalSalesData.push(
     new SaleRecord(new Date('2024-01-01'), 2),
     new SaleRecord(new Date('2024-01-02'), 1),
@@ -82,16 +85,15 @@ export const initDashboardState = () => {
     new ForecastRecord(new Date('2024-02-02'), 3)
   );
 
-  const blenderA1 = homeAppliances.addProduct(new Product(
-    state,
-    'prod-blender-1',
-    'Blender A1',
-    'cat-home-appliances',
-    99.99,
-    5,
-    2,
-    0
-  ));
+  const blenderA1 = homeAppliances.addProduct({
+    id: 'prod-blender-1',
+    name: 'Blender A1',
+    categoryId: 'cat-home-appliances',
+    price: 99.99,
+    currentInventory: 5,
+    reorderThreshold: 2,
+    pendingPurchaseOrderQty: 0
+  });
   blenderA1.historicalSalesData.push(
     new SaleRecord(new Date('2024-01-02'), 1),
     new SaleRecord(new Date('2024-01-03'), 2),
@@ -103,21 +105,20 @@ export const initDashboardState = () => {
     new ForecastRecord(new Date('2024-02-02'), 2)
   );
 
-  const accessories = state.addCategory(new Category(
-    'cat-accessories',
-    'Accessories'
-  ));
+  const accessories = state.addCategory({
+    id: 'cat-accessories',
+    name: 'Accessories'
+  });
 
-  const headphonesW = accessories.addProduct(new Product(
-    state,
-    'prod-headphones-1',
-    'Wireless Headphones W',
-    'cat-accessories',
-    199.99,
-    2,
-    5,
-    0
-  ));
+  const headphonesW = accessories.addProduct({
+    id: 'prod-headphones-1',
+    name: 'Wireless Headphones W',
+    categoryId: 'cat-accessories',
+    price: 199.99,
+    currentInventory: 2,
+    reorderThreshold: 5,
+    pendingPurchaseOrderQty: 0
+  });
   headphonesW.historicalSalesData.push(
     new SaleRecord(new Date('2024-01-02'), 1),
     new SaleRecord(new Date('2024-01-03'), 1)

@@ -1,6 +1,9 @@
+import { type DashboardState } from './dashboard-state.js';
 import { Product } from './product.js';
 
 export class Category {
+  private readonly state: DashboardState;
+
   id: string;
   name: string;
   products: Product[] = [];
@@ -22,12 +25,44 @@ export class Category {
     return this.products.filter(p => p.lowInventoryAlert).length;
   }
 
-  constructor(id: string, name: string) {
+  constructor(
+    state: DashboardState,
+    id: string,
+    name: string,
+  ) {
+    this.state = state;
     this.id = id;
     this.name = name;
   }
 
-  addProduct(product: Product) {
+  addProduct({
+    id,
+    name,
+    categoryId,
+    price,
+    currentInventory,
+    reorderThreshold,
+    pendingPurchaseOrderQty
+  }: Pick<Product,
+    | 'id'
+    | 'name'
+    | 'categoryId'
+    | 'price'
+    | 'currentInventory'
+    | 'reorderThreshold'
+    | 'pendingPurchaseOrderQty'
+    >
+  ) {
+    const product = new Product(
+      this.state,
+      id,
+      name,
+      categoryId,
+      price,
+      currentInventory,
+      reorderThreshold,
+      pendingPurchaseOrderQty
+    );
     this.products.push(product);
     return product;
   }

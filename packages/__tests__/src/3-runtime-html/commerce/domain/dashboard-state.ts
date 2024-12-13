@@ -55,7 +55,8 @@ export class DashboardState {
     this.trendAlerts.splice(this.trendAlerts.findIndex(alert => alert.id === id), 1);
   }
 
-  addCategory(category: Category) {
+  addCategory({ id, name }: Pick<Category, 'id' | 'name'>) {
+    const category = new Category(this, id, name);
     this.categories.push(category);
     return category;
   }

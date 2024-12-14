@@ -6,7 +6,7 @@ import { DashboardState } from '../domain/index.js';
 @customElement({
   name: 'category-overview',
   template: `
-    <category-item-view repeat.for="category of categories" category.bind="category"></category-item-view>
+    <category-item-view repeat.for="category of state.categories" category.bind="category"></category-item-view>
   `,
   dependencies: [
     CategoryItemView,

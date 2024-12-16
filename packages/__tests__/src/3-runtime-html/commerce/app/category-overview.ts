@@ -1,7 +1,8 @@
 import { ILogger, resolve } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { bindable, customElement, ICustomElementViewModel, Repeat } from '@aurelia/runtime-html';
 import { CategoryItemView } from './category-item-view.js';
 import { DashboardState } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'category-overview',
@@ -17,16 +18,10 @@ export class CategoryOverview {
 
   @bindable state: DashboardState;
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
+  get itemViews() {
+    return (
+      this.$controller!.children.find(x => x.viewModel instanceof Repeat)!.viewModel as Repeat
+    ).views.map(x => x.viewModel as CategoryItemView);
   }
 
   binding() {
@@ -39,10 +34,13 @@ export class CategoryOverview {
 
   attaching() {
     this.log.debug('attaching');
+    assert.strictEqual(this.itemViews.length, 0);
   }
 
   attached() {
     this.log.debug('attached');
+    assert.strictEqual(this.itemViews.length, this.state.categories.length);
+    this.log.debug(`verified ${this.state.categories.length} categories`);
   }
 
   detaching() {
@@ -51,6 +49,7 @@ export class CategoryOverview {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.strictEqual(this.itemViews.length, this.state.categories.length);
   }
 
   dispose() {

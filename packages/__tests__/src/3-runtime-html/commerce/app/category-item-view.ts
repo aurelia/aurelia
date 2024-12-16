@@ -38,18 +38,6 @@ export class CategoryItemView {
     return this.category.lowStockAlertCount;
   }
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
-  }
-
   binding() {
     this.log.debug('binding');
     assert.strictEqual(this.nameLabel, undefined);

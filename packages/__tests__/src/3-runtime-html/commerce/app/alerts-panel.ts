@@ -1,5 +1,5 @@
 import { ILogger, resolve } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { bindable, customElement, ICustomElementViewModel, Repeat } from '@aurelia/runtime-html';
 import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
 import { assert } from '@aurelia/testing';
 
@@ -23,18 +23,6 @@ export class InventoryAlertView {
 
   dismiss() {
     this.state.dismissInventoryAlert(this.alert.id);
-  }
-
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
   }
 
   binding() {
@@ -100,18 +88,6 @@ export class TrendAlertView {
     this.state.dismissInventoryAlert(this.alert.id);
   }
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
-  }
-
   binding() {
     this.log.debug('binding');
   }
@@ -169,16 +145,15 @@ export class AlertsPanel {
     return this.state.activeTrendAlerts;
   }
 
-  hydrating() {
-    this.log.debug('hydrating');
+  get inventoryAlertViews() {
+    return (
+      this.$controller!.children.filter(x => x.viewModel instanceof Repeat)![0].viewModel as Repeat
+    ).views.map(x => x.viewModel as InventoryAlertView);
   }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
+  get trendAlertViews() {
+    return (
+      this.$controller!.children.filter(x => x.viewModel instanceof Repeat)![1].viewModel as Repeat
+    ).views.map(x => x.viewModel as TrendAlertView);
   }
 
   binding() {
@@ -191,10 +166,16 @@ export class AlertsPanel {
 
   attaching() {
     this.log.debug('attaching');
+    assert.strictEqual(this.inventoryAlertViews.length, 0);
+    assert.strictEqual(this.trendAlertViews.length, 0);
   }
 
   attached() {
     this.log.debug('attached');
+    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
+    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
+    this.log.debug(`verified ${this.inventoryAlerts.length} inventory alerts`);
+    this.log.debug(`verified ${this.trendAlerts.length} trend alerts`);
   }
 
   detaching() {
@@ -203,6 +184,8 @@ export class AlertsPanel {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
+    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
   }
 
   dispose() {

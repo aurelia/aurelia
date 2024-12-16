@@ -1,7 +1,8 @@
 import { ILogger, resolve } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
+import { bindable, customElement, ICustomElementViewModel, Repeat } from '@aurelia/runtime-html';
 import { ProductItemView } from './product-item-view.js';
 import { Product } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'product-list-view',
@@ -17,16 +18,10 @@ export class ProductListView {
 
   @bindable products: Product[];
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
+  get itemViews() {
+    return (
+      this.$controller!.children.find(x => x.viewModel instanceof Repeat)!.viewModel as Repeat
+    ).views.map(x => x.viewModel as ProductItemView);
   }
 
   binding() {
@@ -39,10 +34,13 @@ export class ProductListView {
 
   attaching() {
     this.log.debug('attaching');
+    assert.strictEqual(this.itemViews.length, 0);
   }
 
   attached() {
     this.log.debug('attached');
+    assert.strictEqual(this.itemViews.length, this.products.length);
+    this.log.debug(`verified ${this.products.length} products`);
   }
 
   detaching() {
@@ -51,6 +49,7 @@ export class ProductListView {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.strictEqual(this.itemViews.length, this.products.length);
   }
 
   dispose() {

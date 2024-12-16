@@ -28,18 +28,6 @@ export class AppShell {
   categoryOverview: CategoryOverview;
   alertsPanel: AlertsPanel;
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
-  }
-
   binding() {
     this.log.debug('binding');
     assert.strictEqual(this.globalFiltersPanel, undefined);

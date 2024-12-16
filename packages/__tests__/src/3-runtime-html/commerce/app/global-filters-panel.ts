@@ -30,18 +30,6 @@ export class GlobalFiltersPanel {
     return this.state.globalFilters;
   }
 
-  hydrating() {
-    this.log.debug('hydrating');
-  }
-
-  hydrated() {
-    this.log.debug('hydrated');
-  }
-
-  created() {
-    this.log.debug('created');
-  }
-
   binding() {
     this.log.debug('binding');
     assert.strictEqual(this.startDateInput, undefined);

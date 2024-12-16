@@ -54,11 +54,11 @@
     "@parcel/source-map": "^2.1.1"
   },
   "devDependencies": {
-    "@types/node": "^14.18.14",
+    "@types/node": "^20.16.10",
     "typescript": "5.4.2"
   },
   "engines": {
-    "node": ">=14.17.0",
+    "node": ">=20.16.0",
     "parcel": "2.x"
   }
 }

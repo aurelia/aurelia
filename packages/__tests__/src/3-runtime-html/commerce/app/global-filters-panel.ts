@@ -1,6 +1,7 @@
 import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { DashboardState, GlobalFilters } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'global-filters-panel',
@@ -18,6 +19,12 @@ export class GlobalFiltersPanel {
   private readonly log = resolve(ILogger).scopeTo('> GlobalFiltersPanel');
 
   @bindable state: DashboardState;
+
+  startDateInput: HTMLInputElement;
+  endDateInput: HTMLInputElement;
+  selectedCategoryIdsDiv: HTMLDivElement;
+  showProjectedTrendsCheckbox: HTMLInputElement;
+  enableAutoRestockCheckbox: HTMLInputElement;
 
   get filters(): GlobalFilters {
     return this.state.globalFilters;
@@ -37,10 +44,20 @@ export class GlobalFiltersPanel {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.startDateInput, undefined);
+    assert.strictEqual(this.endDateInput, undefined);
+    assert.strictEqual(this.selectedCategoryIdsDiv, undefined);
+    assert.strictEqual(this.showProjectedTrendsCheckbox, undefined);
+    assert.strictEqual(this.enableAutoRestockCheckbox, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.instanceOf(this.startDateInput, HTMLInputElement);
+    assert.instanceOf(this.endDateInput, HTMLInputElement);
+    assert.instanceOf(this.selectedCategoryIdsDiv, HTMLDivElement);
+    assert.instanceOf(this.showProjectedTrendsCheckbox, HTMLInputElement);
+    assert.instanceOf(this.enableAutoRestockCheckbox, HTMLInputElement);
   }
 
   attaching() {
@@ -57,6 +74,11 @@ export class GlobalFiltersPanel {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.instanceOf(this.startDateInput, HTMLInputElement);
+    assert.instanceOf(this.endDateInput, HTMLInputElement);
+    assert.instanceOf(this.selectedCategoryIdsDiv, HTMLDivElement);
+    assert.instanceOf(this.showProjectedTrendsCheckbox, HTMLInputElement);
+    assert.instanceOf(this.enableAutoRestockCheckbox, HTMLInputElement);
   }
 
   dispose() {

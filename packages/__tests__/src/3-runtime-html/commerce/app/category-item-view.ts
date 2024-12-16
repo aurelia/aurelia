@@ -2,6 +2,7 @@ import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { ProductListView } from './product-list-view.js';
 import { Category } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'category-item-view',
@@ -51,10 +52,14 @@ export class CategoryItemView {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.nameLabel, undefined);
+    assert.strictEqual(this.productListView, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.instanceOf(this.nameLabel, HTMLLabelElement);
+    assert.instanceOf(this.productListView, ProductListView);
   }
 
   attaching() {
@@ -71,6 +76,8 @@ export class CategoryItemView {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.instanceOf(this.nameLabel, HTMLLabelElement);
+    assert.instanceOf(this.productListView, ProductListView);
   }
 
   dispose() {

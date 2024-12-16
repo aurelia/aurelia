@@ -1,6 +1,7 @@
 import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { Product } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'product-item-view',
@@ -17,6 +18,13 @@ export class ProductItemView {
   private readonly log = resolve(ILogger).scopeTo('> > > > ProductItemView');
 
   @bindable product: Product;
+
+  nameLabel: HTMLLabelElement;
+  priceLabel: HTMLLabelElement;
+  currentInventoryLabel: HTMLLabelElement;
+  computedSalesTrendLabel: HTMLLabelElement;
+  recommendedRestockLevelLabel: HTMLLabelElement;
+  lowInventoryAlertLabel: HTMLLabelElement;
 
   get name(): string {
     return this.product.name;
@@ -56,10 +64,22 @@ export class ProductItemView {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.nameLabel, undefined);
+    assert.strictEqual(this.priceLabel, undefined);
+    assert.strictEqual(this.currentInventoryLabel, undefined);
+    assert.strictEqual(this.computedSalesTrendLabel, undefined);
+    assert.strictEqual(this.recommendedRestockLevelLabel, undefined);
+    assert.strictEqual(this.lowInventoryAlertLabel, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.instanceOf(this.nameLabel, HTMLLabelElement);
+    assert.instanceOf(this.priceLabel, HTMLLabelElement);
+    assert.instanceOf(this.currentInventoryLabel, HTMLLabelElement);
+    assert.instanceOf(this.computedSalesTrendLabel, HTMLLabelElement);
+    assert.instanceOf(this.recommendedRestockLevelLabel, HTMLLabelElement);
+    assert.instanceOf(this.lowInventoryAlertLabel, HTMLLabelElement);
   }
 
   attaching() {
@@ -76,6 +96,12 @@ export class ProductItemView {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.instanceOf(this.nameLabel, HTMLLabelElement);
+    assert.instanceOf(this.priceLabel, HTMLLabelElement);
+    assert.instanceOf(this.currentInventoryLabel, HTMLLabelElement);
+    assert.instanceOf(this.computedSalesTrendLabel, HTMLLabelElement);
+    assert.instanceOf(this.recommendedRestockLevelLabel, HTMLLabelElement);
+    assert.instanceOf(this.lowInventoryAlertLabel, HTMLLabelElement);
   }
 
   dispose() {

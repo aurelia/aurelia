@@ -1,6 +1,7 @@
 import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'inventory-alert',
@@ -38,10 +39,16 @@ export class InventoryAlertView {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.dismissBtn, undefined);
+    assert.strictEqual(this.messageLabel, undefined);
+    assert.strictEqual(this.dateGeneratedLabel, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.strictEqual(this.dismissBtn, HTMLButtonElement);
+    assert.strictEqual(this.messageLabel, HTMLLabelElement);
+    assert.strictEqual(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   attaching() {
@@ -58,6 +65,9 @@ export class InventoryAlertView {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.strictEqual(this.dismissBtn, HTMLButtonElement);
+    assert.strictEqual(this.messageLabel, HTMLLabelElement);
+    assert.strictEqual(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   dispose() {

@@ -4,6 +4,7 @@ import { GlobalFiltersPanel } from './global-filters-panel.js';
 import { CategoryOverview } from './category-overview.js';
 import { AlertsPanel } from './alerts-panel.js';
 import { initDashboardState } from '../data.js';
+import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'app-shell',
@@ -41,10 +42,16 @@ export class AppShell {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.globalFiltersPanel, undefined);
+    assert.strictEqual(this.categoryOverview, undefined);
+    assert.strictEqual(this.alertsPanel, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
+    assert.instanceOf(this.categoryOverview, CategoryOverview);
+    assert.instanceOf(this.alertsPanel, AlertsPanel);
   }
 
   attaching() {
@@ -61,6 +68,9 @@ export class AppShell {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
+    assert.instanceOf(this.categoryOverview, CategoryOverview);
+    assert.instanceOf(this.alertsPanel, AlertsPanel);
   }
 
   dispose() {

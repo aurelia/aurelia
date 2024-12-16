@@ -34,9 +34,9 @@ export class InventoryAlertView {
 
   bound() {
     this.log.debug('bound');
-    assert.strictEqual(this.dismissBtn, HTMLButtonElement);
-    assert.strictEqual(this.messageLabel, HTMLLabelElement);
-    assert.strictEqual(this.dateGeneratedLabel, HTMLLabelElement);
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   attaching() {
@@ -53,9 +53,9 @@ export class InventoryAlertView {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.strictEqual(this.dismissBtn, HTMLButtonElement);
-    assert.strictEqual(this.messageLabel, HTMLLabelElement);
-    assert.strictEqual(this.dateGeneratedLabel, HTMLLabelElement);
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   dispose() {
@@ -90,10 +90,18 @@ export class TrendAlertView {
 
   binding() {
     this.log.debug('binding');
+    assert.strictEqual(this.dismissBtn, undefined);
+    assert.strictEqual(this.messageLabel, undefined);
+    assert.strictEqual(this.severityLabel, undefined);
+    assert.strictEqual(this.dateGeneratedLabel, undefined);
   }
 
   bound() {
     this.log.debug('bound');
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.severityLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   attaching() {
@@ -110,6 +118,10 @@ export class TrendAlertView {
 
   unbinding() {
     this.log.debug('unbinding');
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.severityLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 
   dispose() {

@@ -168,6 +168,10 @@ describe('2-runtime/ast.spec.ts', function () {
         //   ...SimpleIsLeftHandSideList,
         //   ...SimpleUnaryList
         // ];
+        // This forms the group Precedence.Exponentiation
+        const SimpleExponentiationList = [
+            [`$4**$5`, new BinaryExpression('**', new AccessScopeExpression('$4'), new AccessScopeExpression('$5'))]
+        ];
         // This forms the group Precedence.Multiplicative
         const SimpleMultiplicativeList = [
             [`$6*$7`, new BinaryExpression('*', new AccessScopeExpression('$6'), new AccessScopeExpression('$7'))],
@@ -295,6 +299,7 @@ describe('2-runtime/ast.spec.ts', function () {
         });
         describe('BinaryExpression', function () {
             const SimplyBinaryList = [
+                ...SimpleExponentiationList,
                 ...SimpleMultiplicativeList,
                 ...SimpleAdditiveList,
                 ...SimpleRelationalList,
@@ -916,6 +921,11 @@ describe('2-runtime/ast.spec.ts', function () {
             expression = new BinaryExpression('+', $undefined, new PrimitiveLiteralExpression(2));
             scope = createScopeForTest({});
             assert.strictEqual(isNaN(astEvaluate(expression, scope, { strict: true }, null)), true, `isNaN(astEvaluate(expression, scope, { strict: true }, null)`);
+        });
+        it('handles 10 ** 2', function () {
+            const expression = new BinaryExpression('**', new PrimitiveLiteralExpression(10), new PrimitiveLiteralExpression(2));
+            const scope = createScopeForTest({});
+            assert.strictEqual(astEvaluate(expression, scope, null, null), 100);
         });
         it('handles 1 >= 1', function () {
             const expression = new BinaryExpression('>=', new PrimitiveLiteralExpression(1), new PrimitiveLiteralExpression(1));

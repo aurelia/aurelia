@@ -461,21 +461,17 @@ class Unparser {
         this.text += ')';
     }
     visitCallMember(expr) {
-        this.text += '(';
         astVisit(expr.object, this);
         this.text += `${expr.optionalMember ? '?.' : ''}.${expr.name}${expr.optionalCall ? '?.' : ''}`;
         this.writeArgs(expr.args);
-        this.text += ')';
     }
     visitCallScope(expr) {
-        this.text += '(';
         let i = expr.ancestor;
         while (i--) {
             this.text += '$parent.';
         }
         this.text += `${expr.name}${expr.optional ? '?.' : ''}`;
         this.writeArgs(expr.args);
-        this.text += ')';
     }
     visitTemplate(expr) {
         const { cooked, expressions } = expr;
@@ -883,9 +879,9 @@ function parse(minPrecedence, expressionType) {
             throw invalidStartOfExpression();
         }
     }
-    $assignable = 513 /* Precedence.Binary */ > minPrecedence;
+    $assignable = 577 /* Precedence.Binary */ > minPrecedence;
     $optional = false;
-    $accessGlobal = 515 /* Precedence.LeftHandSide */ > minPrecedence;
+    $accessGlobal = 579 /* Precedence.LeftHandSide */ > minPrecedence;
     let optionalThisTail = false;
     let result = void 0;
     let ancestor = 0;
@@ -913,7 +909,7 @@ function parse(minPrecedence, expressionType) {
          */
         const op = TokenValues[$currentToken & 63 /* Token.Type */];
         nextToken();
-        result = new UnaryExpression(op, parse(515 /* Precedence.LeftHandSide */, expressionType));
+        result = new UnaryExpression(op, parse(579 /* Precedence.LeftHandSide */, expressionType));
         $assignable = false;
     }
     else {
@@ -996,7 +992,7 @@ function parse(minPrecedence, expressionType) {
                 }
                 $assignable = !$optional;
                 nextToken();
-                if (consumeOpt(52 /* Token.Arrow */)) {
+                if (consumeOpt(53 /* Token.Arrow */)) {
                     if ($currentToken === 524298 /* Token.OpenBrace */) {
                         throw functionBodyInArrowFn();
                     }
@@ -1044,12 +1040,12 @@ function parse(minPrecedence, expressionType) {
             case 524298 /* Token.OpenBrace */:
                 result = parseObjectLiteralExpression(expressionType);
                 break;
-            case 2163761 /* Token.TemplateTail */:
+            case 2163762 /* Token.TemplateTail */:
                 result = new TemplateExpression([$tokenValue]);
                 $assignable = false;
                 nextToken();
                 break;
-            case 2163762 /* Token.TemplateContinuation */:
+            case 2163763 /* Token.TemplateContinuation */:
                 result = parseTemplate(expressionType, result, false);
                 break;
             case 16384 /* Token.StringLiteral */:
@@ -1068,7 +1064,7 @@ function parse(minPrecedence, expressionType) {
                 break;
             case 8196 /* Token.NewKeyword */: {
                 nextToken();
-                const callee = parse(514 /* Precedence.Member */, expressionType);
+                const callee = parse(578 /* Precedence.Member */, expressionType);
                 let args;
                 if ($currentToken === 2688009 /* Token.OpenParen */) {
                     args = parseArguments();
@@ -1093,14 +1089,14 @@ function parse(minPrecedence, expressionType) {
             return parseForOfStatement(result);
         }
         switch ($currentToken) {
-            case 2228281 /* Token.PlusPlus */:
-            case 2228282 /* Token.MinusMinus */:
+            case 2228282 /* Token.PlusPlus */:
+            case 2228283 /* Token.MinusMinus */:
                 result = new UnaryExpression(TokenValues[$currentToken & 63 /* Token.Type */], result, 1);
                 nextToken();
                 $assignable = false;
                 break;
         }
-        if (515 /* Precedence.LeftHandSide */ < minPrecedence) {
+        if (579 /* Precedence.LeftHandSide */ < minPrecedence) {
             return result;
         }
         if ($currentToken === 12 /* Token.DotDot */ || $currentToken === 13 /* Token.DotDotDot */) {
@@ -1147,10 +1143,10 @@ function parse(minPrecedence, expressionType) {
                 case 2688020 /* Token.OpenBracket */:
                     result = parseKeyedExpression(result, optionalThisTail);
                     break;
-                case 2163761 /* Token.TemplateTail */:
+                case 2163762 /* Token.TemplateTail */:
                     result = createTemplateTail(result);
                     break;
-                case 2163762 /* Token.TemplateContinuation */:
+                case 2163763 /* Token.TemplateContinuation */:
                     result = parseTemplate(expressionType, result, true);
                     break;
             }
@@ -1197,7 +1193,7 @@ function parse(minPrecedence, expressionType) {
                 case 13 /* Token.DotDotDot */:
                     throw expectedIdentifier();
                 case 2688009 /* Token.OpenParen */:
-                    if (514 /* Precedence.Member */ === minPrecedence) {
+                    if (578 /* Precedence.Member */ === minPrecedence) {
                         return result;
                     }
                     if (result.$kind === ekAccessScope) {
@@ -1216,13 +1212,13 @@ function parse(minPrecedence, expressionType) {
                 case 2688020 /* Token.OpenBracket */:
                     result = parseKeyedExpression(result, false);
                     break;
-                case 2163761 /* Token.TemplateTail */:
+                case 2163762 /* Token.TemplateTail */:
                     if ($optional) {
                         throw invalidTaggedTemplateOnOptionalChain();
                     }
                     result = createTemplateTail(result);
                     break;
-                case 2163762 /* Token.TemplateContinuation */:
+                case 2163763 /* Token.TemplateContinuation */:
                     if ($optional) {
                         throw invalidTaggedTemplateOnOptionalChain();
                     }
@@ -1234,7 +1230,7 @@ function parse(minPrecedence, expressionType) {
     if ($currentToken === 12 /* Token.DotDot */ || $currentToken === 13 /* Token.DotDotDot */) {
         throw expectedIdentifier();
     }
-    if (513 /* Precedence.Binary */ < minPrecedence) {
+    if (577 /* Precedence.Binary */ < minPrecedence) {
         return result;
     }
     /**
@@ -1324,11 +1320,11 @@ function parse(minPrecedence, expressionType) {
      * 1,2 = false
      */
     switch ($currentToken) {
-        case 4194351 /* Token.Equals */:
-        case 4194357 /* Token.PlusEquals */:
-        case 4194358 /* Token.MinusEquals */:
-        case 4194359 /* Token.AsteriskEquals */:
-        case 4194360 /* Token.SlashEquals */: {
+        case 4194352 /* Token.Equals */:
+        case 4194358 /* Token.PlusEquals */:
+        case 4194359 /* Token.MinusEquals */:
+        case 4194360 /* Token.AsteriskEquals */:
+        case 4194361 /* Token.SlashEquals */: {
             if (!$assignable) {
                 throw lhsNotAssignable();
             }
@@ -1556,7 +1552,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType) 
                 throw invalidSpreadOp();
             }
             nextToken();
-            if ($currentToken !== 52 /* Token.Arrow */) {
+            if ($currentToken !== 53 /* Token.Arrow */) {
                 throw invalidSpreadOp();
             }
             nextToken();
@@ -1615,13 +1611,13 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType) 
             case 7340048 /* Token.CloseParen */:
                 nextToken();
                 break loop;
-            case 4194351 /* Token.Equals */:
+            case 4194352 /* Token.Equals */:
                 // (a=a     - may be a valid parenthesized expression
                 if (paramsState === 1 /* ArrowFnParams.Valid */) {
                     paramsState = 3 /* ArrowFnParams.Default */;
                 }
                 break loop;
-            case 52 /* Token.Arrow */:
+            case 53 /* Token.Arrow */:
                 // (a,a=>  - never valid
                 if (isParamList) {
                     throw invalidArrowParameterList();
@@ -1637,7 +1633,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType) 
                 break loop;
         }
     }
-    if ($currentToken === 52 /* Token.Arrow */) {
+    if ($currentToken === 53 /* Token.Arrow */) {
         if (paramsState === 1 /* ArrowFnParams.Valid */) {
             nextToken();
             if ($currentToken === 524298 /* Token.OpenBrace */) {
@@ -1656,7 +1652,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType) 
     }
     else if (paramsState === 1 /* ArrowFnParams.Valid */ && arrowParams.length === 0) {
         // ()    - never valid as a standalone expression
-        throw missingExpectedToken(52 /* Token.Arrow */);
+        throw missingExpectedToken(53 /* Token.Arrow */);
     }
     if (isParamList) {
         // ([something invalid],   - treat as arrow fn / invalid arrow params
@@ -1679,7 +1675,7 @@ function parseCoverParenthesizedExpressionAndArrowParameterList(expressionType) 
     const expr = parse(62 /* Precedence.Assign */, expressionType);
     $optional = _optional;
     consume(7340048 /* Token.CloseParen */);
-    if ($currentToken === 52 /* Token.Arrow */) {
+    if ($currentToken === 53 /* Token.Arrow */) {
         // we only get here if there was a valid parenthesized expression which was not valid as arrow fn params
         switch (paramsState) {
             case 2 /* ArrowFnParams.Invalid */:
@@ -1747,7 +1743,7 @@ function parseForOfStatement(result) {
     if (!allowedForExprKinds.includes(result.$kind)) {
         throw invalidLHSBindingIdentifierInForOf(result.$kind);
     }
-    if ($currentToken !== 4204595 /* Token.OfKeyword */) {
+    if ($currentToken !== 4204596 /* Token.OfKeyword */) {
         throw invalidLHSBindingIdentifierInForOf(result.$kind);
     }
     nextToken();
@@ -1803,7 +1799,7 @@ function parseObjectLiteralExpression(expressionType) {
                 $currentChar = currentChar;
                 $currentToken = currentToken;
                 $index = index;
-                values.push(parse(516 /* Precedence.Primary */, expressionType === etIsIterator ? etNone : expressionType));
+                values.push(parse(580 /* Precedence.Primary */, expressionType === etIsIterator ? etNone : expressionType));
             }
         }
         else {
@@ -1895,11 +1891,11 @@ function parseTemplate(expressionType, result, tagged) {
     const _optional = $optional;
     const cooked = [$tokenValue];
     // TODO: properly implement raw parts / decide whether we want this
-    consume(2163762 /* Token.TemplateContinuation */);
+    consume(2163763 /* Token.TemplateContinuation */);
     const expressions = [parse(62 /* Precedence.Assign */, expressionType)];
-    while (($currentToken = scanTemplateTail()) !== 2163761 /* Token.TemplateTail */) {
+    while (($currentToken = scanTemplateTail()) !== 2163762 /* Token.TemplateTail */) {
         cooked.push($tokenValue);
-        consume(2163762 /* Token.TemplateContinuation */);
+        consume(2163763 /* Token.TemplateContinuation */);
         expressions.push(parse(62 /* Precedence.Assign */, expressionType));
     }
     cooked.push($tokenValue);
@@ -2027,9 +2023,9 @@ function scanTemplate() {
     nextChar();
     $tokenValue = result;
     if (tail) {
-        return 2163761 /* Token.TemplateTail */;
+        return 2163762 /* Token.TemplateTail */;
     }
-    return 2163762 /* Token.TemplateContinuation */;
+    return 2163763 /* Token.TemplateContinuation */;
 }
 const scanTemplateTail = () => {
     if ($index >= $length) {
@@ -2096,8 +2092,8 @@ const TokenValues = [
     $false, $true, $null, $undefined, 'new', 'this', '$this', null /* '$host' */, '$parent',
     '(', '{', '.', '..', '...', '?.', '}', ')', ',', '[', ']', ':', ';', '?', '\'', '"',
     '&', '|', '??', '||', '&&', '==', '!=', '===', '!==', '<', '>',
-    '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '=', '!',
-    2163761 /* Token.TemplateTail */, 2163762 /* Token.TemplateContinuation */,
+    '<=', '>=', 'in', 'instanceof', '+', '-', 'typeof', 'void', '*', '%', '/', '**', '=', '!',
+    2163762 /* Token.TemplateTail */, 2163763 /* Token.TemplateContinuation */,
     'of', '=>', '+=', '-=', '*=', '/=', '++', '--'
 ];
 const KeywordLookup = /*@__PURE__*/ Object.assign(createLookup(), {
@@ -2113,7 +2109,7 @@ const KeywordLookup = /*@__PURE__*/ Object.assign(createLookup(), {
     instanceof: 6562215 /* Token.InstanceOfKeyword */,
     typeof: 139306 /* Token.TypeofKeyword */,
     void: 139307 /* Token.VoidKeyword */,
-    of: 4204595 /* Token.OfKeyword */,
+    of: 4204596 /* Token.OfKeyword */,
 });
 // Character scanning function lookup
 const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
@@ -2190,7 +2186,7 @@ const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
     // !, !=, !==
     CharScanners[33 /* Char.Exclamation */] = () => {
         if (nextChar() !== 61 /* Char.Equals */) {
-            return 131120 /* Token.Exclamation */;
+            return 131121 /* Token.Exclamation */;
         }
         if (nextChar() !== 61 /* Char.Equals */) {
             return 6553951 /* Token.ExclamationEquals */;
@@ -2202,10 +2198,10 @@ const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
     CharScanners[61 /* Char.Equals */] = () => {
         if (nextChar() === 62 /* Char.GreaterThan */) {
             nextChar();
-            return 52 /* Token.Arrow */;
+            return 53 /* Token.Arrow */;
         }
         if ($currentChar !== 61 /* Char.Equals */) {
-            return 4194351 /* Token.Equals */;
+            return 4194352 /* Token.Equals */;
         }
         if (nextChar() !== 61 /* Char.Equals */) {
             return 6553950 /* Token.EqualsEquals */;
@@ -2278,38 +2274,42 @@ const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
     CharScanners[37 /* Char.Percent */] = returnToken(6554157 /* Token.Percent */);
     CharScanners[40 /* Char.OpenParen */] = returnToken(2688009 /* Token.OpenParen */);
     CharScanners[41 /* Char.CloseParen */] = returnToken(7340048 /* Token.CloseParen */);
-    // *, *=
+    // *, *=, **
     CharScanners[42 /* Char.Asterisk */] = () => {
-        if (nextChar() !== 61 /* Char.Equals */) {
-            return 6554156 /* Token.Asterisk */;
+        if (nextChar() === 61 /* Char.Equals */) {
+            nextChar();
+            return 4194360 /* Token.AsteriskEquals */;
         }
-        nextChar();
-        return 4194359 /* Token.AsteriskEquals */;
+        if ($currentChar === 42 /* Char.Asterisk */) {
+            nextChar();
+            return 6554223 /* Token.AsteriskAsterisk */;
+        }
+        return 6554156 /* Token.Asterisk */;
     };
     // +, +=, ++
     CharScanners[43 /* Char.Plus */] = () => {
         if (nextChar() === 43 /* Char.Plus */) {
             nextChar();
-            return 2228281 /* Token.PlusPlus */;
+            return 2228282 /* Token.PlusPlus */;
         }
         if ($currentChar !== 61 /* Char.Equals */) {
             return 2490856 /* Token.Plus */;
         }
         nextChar();
-        return 4194357 /* Token.PlusEquals */;
+        return 4194358 /* Token.PlusEquals */;
     };
     CharScanners[44 /* Char.Comma */] = returnToken(6291475 /* Token.Comma */);
     // -, -=, --
     CharScanners[45 /* Char.Minus */] = () => {
         if (nextChar() === 45 /* Char.Minus */) {
             nextChar();
-            return 2228282 /* Token.MinusMinus */;
+            return 2228283 /* Token.MinusMinus */;
         }
         if ($currentChar !== 61 /* Char.Equals */) {
             return 2490857 /* Token.Minus */;
         }
         nextChar();
-        return 4194358 /* Token.MinusEquals */;
+        return 4194359 /* Token.MinusEquals */;
     };
     // /, /=
     CharScanners[47 /* Char.Slash */] = () => {
@@ -2317,7 +2317,7 @@ const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
             return 6554158 /* Token.Slash */;
         }
         nextChar();
-        return 4194360 /* Token.SlashEquals */;
+        return 4194361 /* Token.SlashEquals */;
     };
     CharScanners[58 /* Char.Colon */] = returnToken(6291478 /* Token.Colon */);
     CharScanners[59 /* Char.Semicolon */] = returnToken(6291479 /* Token.Semicolon */);

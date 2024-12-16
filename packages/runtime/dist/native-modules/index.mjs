@@ -432,6 +432,9 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                   case "%":
                     return astEvaluate(e, a, H, $) % astEvaluate(r, a, H, $);
 
+                  case "**":
+                    return astEvaluate(e, a, H, $) ** astEvaluate(r, a, H, $);
+
                   case "<":
                     return astEvaluate(e, a, H, $) < astEvaluate(r, a, H, $);
 

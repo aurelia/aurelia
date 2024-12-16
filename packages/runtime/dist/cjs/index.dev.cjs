@@ -520,6 +520,8 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                         return astEvaluate(left, s, e, c) / astEvaluate(right, s, e, c);
                     case '%':
                         return astEvaluate(left, s, e, c) % astEvaluate(right, s, e, c);
+                    case '**':
+                        return astEvaluate(left, s, e, c) ** astEvaluate(right, s, e, c);
                     case '<':
                         return astEvaluate(left, s, e, c) < astEvaluate(right, s, e, c);
                     case '>':

@@ -110,8 +110,8 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
     const f = "Unary";
     const d = "CallScope";
     const p = "CallMember";
-    const b = "CallFunction";
-    const v = "CallGlobal";
+    const v = "CallFunction";
+    const b = "CallGlobal";
     const w = "AccessMember";
     const g = "AccessKeyed";
     const y = "TaggedTemplate";
@@ -173,7 +173,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
           case n:
             return globalThis[t.name];
 
-          case v:
+          case b:
             {
                 const r = globalThis[t.name];
                 if (e.isFunction(r)) {
@@ -298,7 +298,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 return n;
             }
 
-          case b:
+          case v:
             {
                 const r = astEvaluate(t.func, B, j, F);
                 if (e.isFunction(r)) {
@@ -433,6 +433,9 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
 
                   case "%":
                     return astEvaluate(r, B, j, F) % astEvaluate(s, B, j, F);
+
+                  case "**":
+                    return astEvaluate(r, B, j, F) ** astEvaluate(s, B, j, F);
 
                   case "<":
                     return astEvaluate(r, B, j, F) < astEvaluate(s, B, j, F);
@@ -746,7 +749,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
     };
 })();
 
-const b = (() => t => {
+const v = (() => t => {
     const e = t.prototype;
     [ "bindBehavior", "unbindBehavior", "bindConverter", "unbindConverter", "useConverter" ].forEach((t => {
         rtDefineHiddenProp(e, t, (() => {
@@ -755,7 +758,7 @@ const b = (() => t => {
     }));
 })();
 
-const v = /*@__PURE__*/ e.DI.createInterface("ICoercionConfiguration");
+const b = /*@__PURE__*/ e.DI.createInterface("ICoercionConfiguration");
 
 const w = 0;
 
@@ -1117,8 +1120,8 @@ const S = /*@__PURE__*/ (() => {
         let i = 0, o = 0;
         let a, c, u;
         let l, h, f;
-        let d, p, b;
-        let v, w;
+        let d, p, v;
+        let b, w;
         let g, y, C, O;
         let A, E, x, S;
         while (true) {
@@ -1135,31 +1138,31 @@ const S = /*@__PURE__*/ (() => {
             f = e[i];
             d = n(a, c);
             if (d > 0) {
-                v = a;
+                b = a;
                 w = l;
                 a = c;
                 l = h;
-                c = v;
+                c = b;
                 h = w;
             }
             p = n(a, u);
             if (p >= 0) {
-                v = a;
+                b = a;
                 w = l;
                 a = u;
                 l = f;
                 u = c;
                 f = h;
-                c = v;
+                c = b;
                 h = w;
             } else {
-                b = n(c, u);
-                if (b > 0) {
-                    v = c;
+                v = n(c, u);
+                if (v > 0) {
+                    b = c;
                     w = h;
                     c = u;
                     h = f;
-                    u = v;
+                    u = b;
                     f = w;
                 }
             }
@@ -3060,7 +3063,7 @@ class ExpressionObserver {
 
 (() => {
     connectable(ExpressionObserver, null);
-    b(ExpressionObserver);
+    v(ExpressionObserver);
 })();
 
 const Z = /*@__PURE__*/ (() => {
@@ -3232,7 +3235,7 @@ exports.DirtyCheckSettings = T;
 
 exports.DirtyChecker = DirtyChecker;
 
-exports.ICoercionConfiguration = v;
+exports.ICoercionConfiguration = b;
 
 exports.IComputedObserverLocator = J;
 
@@ -3282,7 +3285,7 @@ exports.getObserverLookup = getObserverLookup;
 
 exports.isIndexMap = isIndexMap;
 
-exports.mixinNoopAstEvaluator = b;
+exports.mixinNoopAstEvaluator = v;
 
 exports.nowrap = nowrap;
 

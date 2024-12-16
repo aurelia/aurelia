@@ -350,6 +350,8 @@ export const {
             return (astEvaluate(left, s, e, c) as number) / (astEvaluate(right, s, e, c) as number);
           case '%':
             return (astEvaluate(left, s, e, c) as number) % (astEvaluate(right, s, e, c) as number);
+          case '**':
+            return (astEvaluate(left, s, e, c) as number) ** (astEvaluate(right, s, e, c) as number);
           case '<':
             return (astEvaluate(left, s, e, c) as number) < (astEvaluate(right, s, e, c) as number);
           case '>':

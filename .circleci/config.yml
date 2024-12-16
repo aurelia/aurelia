@@ -364,7 +364,7 @@ jobs:
           command: |
             cd packages/__tests__
             npm run << parameters.npm_command >>
-          no_output_timeout: "3m"
+          no_output_timeout: "5m"
 
       - when:
           condition: << parameters.coverage >>
@@ -413,17 +413,16 @@ jobs:
 
   unit_test_cjs:
     parameters:
-      npm_command:
-        type: string
-        default: "test"
       submodules:
         type: boolean
         default: false
     executor: docker_circleci
+    parallelism: 10
     steps:
       - checkout_install:
           install_chrome: false
           install_firefox: false
+          install: false
       - restore_cache:
           name: "Restore dependencies"
           key: cache-{{ checksum "package-lock.json" }}-install
@@ -444,11 +443,17 @@ jobs:
                   git submodule init
                   git submodule update --remote
       - run:
+          name: "Split test glob"
+          command: |
+            cd packages-tooling/__tests__
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=testname)
+            echo $(circleci tests glob "dist/**/*.spec.js" | circleci tests split --split-by=timings --timings-type=testname) > tests.txt
+      - run:
           name: "Run unit tests"
           command: |
             cd packages-tooling/__tests__
-            npm run << parameters.npm_command >>
-          no_output_timeout: "1m"
+            npm run ::mocha -- $(cat tests.txt)
+          no_output_timeout: "10m"
 
   lint_packages:
     executor: docker_circleci
@@ -791,7 +796,6 @@ workflows:
       - unit_test_cjs:
           <<: *filter_ignore_develop_release
           name: test_toolings
-          npm_command: "test-node"
           requires:
             - build_release
 
@@ -867,6 +871,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_validation_issue_2025
           path: "packages/__e2e__/11-validation"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_type_check
+          path: "packages/__e2e__/12-type-check"
           requires:
             - build_release
       - e2e_test:
@@ -1017,7 +1027,6 @@ workflows:
       - unit_test_cjs:
           <<: *filter_only_tag
           name: test_toolings
-          npm_command: "test-node"
           requires:
             - build_release
 
@@ -1073,6 +1082,12 @@ workflows:
           <<: *filter_ignore_develop_release
           name: e2e_validation_issue_2025
           path: "packages/__e2e__/11-validation"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_type_check
+          path: "packages/__e2e__/12-type-check"
           requires:
             - build_release
       - e2e_test:

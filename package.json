@@ -50,6 +50,7 @@
     "packages/__e2e__/9-vite-wo-convention",
     "packages/__e2e__/10-router-lite-none-history-with-hash",
     "packages/__e2e__/11-validation",
+    "packages/__e2e__/12-type-check",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",
@@ -65,7 +66,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=14.17.0",
+    "node": ">=20.16.0",
     "npm": ">=7.0.0"
   },
   "scripts": {
@@ -136,7 +137,7 @@
     "rimraf": "3.0.2",
     "rollup": "4.15.0",
     "rollup-plugin-esbuild": "6.1.1",
-    "tachometer": "0.7.0",
+    "tachometer": "0.7.1",
     "ts-node": "10.9.1",
     "turbo": "2.0.9",
     "typescript": "5.5.3",

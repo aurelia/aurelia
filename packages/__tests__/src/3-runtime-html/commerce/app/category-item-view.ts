@@ -40,14 +40,12 @@ export class CategoryItemView {
 
   binding() {
     this.log.debug('binding');
-    assert.strictEqual(this.nameLabel, undefined);
-    assert.strictEqual(this.productListView, undefined);
+    this._assertRefsUnbound();
   }
 
   bound() {
     this.log.debug('bound');
-    assert.instanceOf(this.nameLabel, HTMLLabelElement);
-    assert.instanceOf(this.productListView, ProductListView);
+    this._assertRefsBound();
   }
 
   attaching() {
@@ -64,12 +62,21 @@ export class CategoryItemView {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.instanceOf(this.nameLabel, HTMLLabelElement);
-    assert.instanceOf(this.productListView, ProductListView);
+    this._assertRefsBound();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRefsUnbound() {
+    assert.strictEqual(this.nameLabel, undefined);
+    assert.strictEqual(this.productListView, undefined);
+  }
+
+  _assertRefsBound() {
+    assert.instanceOf(this.nameLabel, HTMLLabelElement);
+    assert.instanceOf(this.productListView, ProductListView);
   }
 }
 export interface CategoryItemView extends ICustomElementViewModel {}

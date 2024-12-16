@@ -52,22 +52,12 @@ export class ProductItemView {
 
   binding() {
     this.log.debug('binding');
-    assert.strictEqual(this.nameLabel, undefined);
-    assert.strictEqual(this.priceLabel, undefined);
-    assert.strictEqual(this.currentInventoryLabel, undefined);
-    assert.strictEqual(this.computedSalesTrendLabel, undefined);
-    assert.strictEqual(this.recommendedRestockLevelLabel, undefined);
-    assert.strictEqual(this.lowInventoryAlertLabel, undefined);
+    this._assertRefsUnbound();
   }
 
   bound() {
     this.log.debug('bound');
-    assert.instanceOf(this.nameLabel, HTMLLabelElement);
-    assert.instanceOf(this.priceLabel, HTMLLabelElement);
-    assert.instanceOf(this.currentInventoryLabel, HTMLLabelElement);
-    assert.instanceOf(this.computedSalesTrendLabel, HTMLLabelElement);
-    assert.instanceOf(this.recommendedRestockLevelLabel, HTMLLabelElement);
-    assert.instanceOf(this.lowInventoryAlertLabel, HTMLLabelElement);
+    this._assertRefsBound();
   }
 
   attaching() {
@@ -84,16 +74,29 @@ export class ProductItemView {
 
   unbinding() {
     this.log.debug('unbinding');
+    this._assertRefsBound();
+  }
+
+  dispose() {
+    this.log.debug('dispose');
+  }
+
+  _assertRefsUnbound() {
+    assert.strictEqual(this.nameLabel, undefined);
+    assert.strictEqual(this.priceLabel, undefined);
+    assert.strictEqual(this.currentInventoryLabel, undefined);
+    assert.strictEqual(this.computedSalesTrendLabel, undefined);
+    assert.strictEqual(this.recommendedRestockLevelLabel, undefined);
+    assert.strictEqual(this.lowInventoryAlertLabel, undefined);
+  }
+
+  _assertRefsBound() {
     assert.instanceOf(this.nameLabel, HTMLLabelElement);
     assert.instanceOf(this.priceLabel, HTMLLabelElement);
     assert.instanceOf(this.currentInventoryLabel, HTMLLabelElement);
     assert.instanceOf(this.computedSalesTrendLabel, HTMLLabelElement);
     assert.instanceOf(this.recommendedRestockLevelLabel, HTMLLabelElement);
     assert.instanceOf(this.lowInventoryAlertLabel, HTMLLabelElement);
-  }
-
-  dispose() {
-    this.log.debug('dispose');
   }
 }
 export interface ProductItemView extends ICustomElementViewModel {}

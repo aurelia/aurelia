@@ -34,13 +34,12 @@ export class CategoryOverview {
 
   attaching() {
     this.log.debug('attaching');
-    assert.strictEqual(this.itemViews.length, 0);
+    this._assertRepeatedViewsEmpty();
   }
 
   attached() {
     this.log.debug('attached');
-    assert.strictEqual(this.itemViews.length, this.state.categories.length);
-    this.log.debug(`verified ${this.state.categories.length} categories`);
+    this._assertRepeatedViewsMatchState();
   }
 
   detaching() {
@@ -49,11 +48,20 @@ export class CategoryOverview {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.strictEqual(this.itemViews.length, this.state.categories.length);
+    this._assertRepeatedViewsMatchState();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRepeatedViewsEmpty() {
+    assert.strictEqual(this.itemViews.length, 0);
+  }
+
+  _assertRepeatedViewsMatchState() {
+    assert.strictEqual(this.itemViews.length, this.state.categories.length);
+    this.log.debug(`assertRepeatedViewsMatchState: ${this.state.categories.length} categories`);
   }
 }
 export interface CategoryOverview extends ICustomElementViewModel {}

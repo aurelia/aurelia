@@ -27,16 +27,12 @@ export class InventoryAlertView {
 
   binding() {
     this.log.debug('binding');
-    assert.strictEqual(this.dismissBtn, undefined);
-    assert.strictEqual(this.messageLabel, undefined);
-    assert.strictEqual(this.dateGeneratedLabel, undefined);
+    this._assertRefsUnbound();
   }
 
   bound() {
     this.log.debug('bound');
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    this._assertRefsBound();
   }
 
   attaching() {
@@ -53,13 +49,23 @@ export class InventoryAlertView {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    this._assertRefsBound();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRefsUnbound() {
+    assert.strictEqual(this.dismissBtn, undefined);
+    assert.strictEqual(this.messageLabel, undefined);
+    assert.strictEqual(this.dateGeneratedLabel, undefined);
+  }
+
+  _assertRefsBound() {
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 }
 export interface InventoryAlertView extends ICustomElementViewModel {}
@@ -90,18 +96,12 @@ export class TrendAlertView {
 
   binding() {
     this.log.debug('binding');
-    assert.strictEqual(this.dismissBtn, undefined);
-    assert.strictEqual(this.messageLabel, undefined);
-    assert.strictEqual(this.severityLabel, undefined);
-    assert.strictEqual(this.dateGeneratedLabel, undefined);
+    this._assertRefsUnbound();
   }
 
   bound() {
     this.log.debug('bound');
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.severityLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    this._assertRefsBound();
   }
 
   attaching() {
@@ -118,14 +118,25 @@ export class TrendAlertView {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.severityLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    this._assertRefsBound();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRefsUnbound() {
+    assert.strictEqual(this.dismissBtn, undefined);
+    assert.strictEqual(this.messageLabel, undefined);
+    assert.strictEqual(this.severityLabel, undefined);
+    assert.strictEqual(this.dateGeneratedLabel, undefined);
+  }
+
+  _assertRefsBound() {
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
+    assert.instanceOf(this.messageLabel, HTMLLabelElement);
+    assert.instanceOf(this.severityLabel, HTMLLabelElement);
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
   }
 }
 export interface TrendAlertView extends ICustomElementViewModel {}
@@ -178,16 +189,12 @@ export class AlertsPanel {
 
   attaching() {
     this.log.debug('attaching');
-    assert.strictEqual(this.inventoryAlertViews.length, 0);
-    assert.strictEqual(this.trendAlertViews.length, 0);
+    this._assertRepeatedViewsEmpty();
   }
 
   attached() {
     this.log.debug('attached');
-    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
-    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
-    this.log.debug(`verified ${this.inventoryAlerts.length} inventory alerts`);
-    this.log.debug(`verified ${this.trendAlerts.length} trend alerts`);
+    this._assertRepeatedViewsMatchState();
   }
 
   detaching() {
@@ -196,12 +203,23 @@ export class AlertsPanel {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
-    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
+    this._assertRepeatedViewsMatchState();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRepeatedViewsEmpty() {
+    assert.strictEqual(this.inventoryAlertViews.length, 0);
+    assert.strictEqual(this.trendAlertViews.length, 0);
+  }
+
+  _assertRepeatedViewsMatchState() {
+    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
+    this.log.debug(`verified ${this.inventoryAlerts.length} inventory alerts`);
+    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
+    this.log.debug(`verified ${this.trendAlerts.length} trend alerts`);
   }
 }
 export interface AlertsPanel extends ICustomElementViewModel {}

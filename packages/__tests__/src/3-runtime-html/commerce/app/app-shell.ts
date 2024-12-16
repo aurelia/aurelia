@@ -30,16 +30,12 @@ export class AppShell {
 
   binding() {
     this.log.debug('binding');
-    assert.strictEqual(this.globalFiltersPanel, undefined);
-    assert.strictEqual(this.categoryOverview, undefined);
-    assert.strictEqual(this.alertsPanel, undefined);
+    this._assertRefsUnbound();
   }
 
   bound() {
     this.log.debug('bound');
-    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
-    assert.instanceOf(this.categoryOverview, CategoryOverview);
-    assert.instanceOf(this.alertsPanel, AlertsPanel);
+    this._assertRefsBound();
   }
 
   attaching() {
@@ -56,13 +52,23 @@ export class AppShell {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
-    assert.instanceOf(this.categoryOverview, CategoryOverview);
-    assert.instanceOf(this.alertsPanel, AlertsPanel);
+    this._assertRefsBound();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRefsUnbound() {
+    assert.strictEqual(this.globalFiltersPanel, undefined);
+    assert.strictEqual(this.categoryOverview, undefined);
+    assert.strictEqual(this.alertsPanel, undefined);
+  }
+
+  _assertRefsBound() {
+    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
+    assert.instanceOf(this.categoryOverview, CategoryOverview);
+    assert.instanceOf(this.alertsPanel, AlertsPanel);
   }
 }
 export interface AppShell extends ICustomElementViewModel {}

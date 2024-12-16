@@ -34,13 +34,12 @@ export class ProductListView {
 
   attaching() {
     this.log.debug('attaching');
-    assert.strictEqual(this.itemViews.length, 0);
+    this._assertRepeatedViewsEmpty();
   }
 
   attached() {
     this.log.debug('attached');
-    assert.strictEqual(this.itemViews.length, this.products.length);
-    this.log.debug(`verified ${this.products.length} products`);
+    this._assertRepeatedViewsMatchState();
   }
 
   detaching() {
@@ -49,11 +48,20 @@ export class ProductListView {
 
   unbinding() {
     this.log.debug('unbinding');
-    assert.strictEqual(this.itemViews.length, this.products.length);
+    this._assertRepeatedViewsMatchState();
   }
 
   dispose() {
     this.log.debug('dispose');
+  }
+
+  _assertRepeatedViewsEmpty() {
+    assert.strictEqual(this.itemViews.length, 0);
+  }
+
+  _assertRepeatedViewsMatchState() {
+    assert.strictEqual(this.itemViews.length, this.products.length);
+    this.log.debug(`assertRepeatedViewsMatchState: ${this.products.length} products`);
   }
 }
 export interface ProductListView extends ICustomElementViewModel {}

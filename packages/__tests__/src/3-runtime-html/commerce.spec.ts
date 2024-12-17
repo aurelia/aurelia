@@ -28,8 +28,10 @@ describe('3-runtime-html/commerce.spec.ts', function () {
     productItemView.priceInput.value = newPrice.toString();
     productItemView.priceInput.dispatchEvent(new Event('change'));
 
-    assert.strictEqual(productItemView.name, originalName, 'expected originalName in state');
-    assert.strictEqual(productItemView.price, originalPrice, 'expected originalPrice in state');
+    // note: the event handler does `callSource` synchronously which is why state is immediately updated
+    // but the contentBinding is asynchronous which is why that one is only updated after awaiting nextTick
+    assert.strictEqual(productItemView.name, newName, 'expected newName in state');
+    assert.strictEqual(productItemView.price, newPrice, 'expected newPrice in state');
     assert.strictEqual(productItemView.nameLabel.textContent, originalName, 'expected originalName in ui');
     assert.strictEqual(productItemView.priceLabel.textContent, originalPrice.toString(), 'expected originalPrice in ui');
 

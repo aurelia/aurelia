@@ -1,5 +1,5 @@
 import { ILogger, resolve } from '@aurelia/kernel';
-import { bindable, customElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
+import { bindable, customElement, ICustomElementViewModel, INode, ValueConverter } from '@aurelia/runtime-html';
 import { Product } from '../domain/index.js';
 import { assert } from '@aurelia/testing';
 
@@ -14,7 +14,7 @@ import { assert } from '@aurelia/testing';
     <!-- Editable Fields (Two-Way Bindings) -->
     <div>
       <input ref="nameInput" value.two-way="product.name" placeholder="Edit product name" />
-      <input ref="priceInput" type="number" value.two-way="product.price" placeholder="Edit product price" />
+      <input ref="priceInput" type="number" value.two-way="product.price | number" placeholder="Edit product price" />
       <input ref="reorderThresholdInput" type="number" value.two-way="product.reorderThreshold" placeholder="Set reorder threshold" />
     </div>
 
@@ -70,7 +70,14 @@ import { assert } from '@aurelia/testing';
     <div if.bind="recommendedRestockLevel > 0" ref="recommendedRestockContainer">
       Recommended Restock: \${recommendedRestockLevel}
     </div>
-  `
+  `,
+  dependencies: [
+    ValueConverter.define('number', class {
+      fromView(value: string) {
+        return Number(value);
+      }
+    })
+  ]
 })
 export class ProductItemView {
   private readonly log = resolve(ILogger).scopeTo('> > > > ProductItemView');

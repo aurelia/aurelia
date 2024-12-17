@@ -62,19 +62,19 @@ export class GlobalFiltersPanel {
   }
 
   _assertRefsUnbound() {
-    assert.strictEqual(this.startDateInput, undefined);
-    assert.strictEqual(this.endDateInput, undefined);
-    assert.strictEqual(this.selectedCategoryIdsDiv, undefined);
-    assert.strictEqual(this.showProjectedTrendsCheckbox, undefined);
-    assert.strictEqual(this.enableAutoRestockCheckbox, undefined);
+    assert.strictEqual(this.startDateInput, undefined, 'startDateInput');
+    assert.strictEqual(this.endDateInput, undefined, 'endDateInput');
+    assert.strictEqual(this.selectedCategoryIdsDiv, undefined, 'selectedCategoryIdsDiv');
+    assert.strictEqual(this.showProjectedTrendsCheckbox, undefined, 'showProjectedTrendsCheckbox');
+    assert.strictEqual(this.enableAutoRestockCheckbox, undefined, 'enableAutoRestockCheckbox');
   }
 
   _assertRefsBound() {
-    assert.instanceOf(this.startDateInput, HTMLInputElement);
-    assert.instanceOf(this.endDateInput, HTMLInputElement);
-    assert.instanceOf(this.selectedCategoryIdsDiv, HTMLDivElement);
-    assert.instanceOf(this.showProjectedTrendsCheckbox, HTMLInputElement);
-    assert.instanceOf(this.enableAutoRestockCheckbox, HTMLInputElement);
+    assert.instanceOf(this.startDateInput, HTMLInputElement, 'startDateInput');
+    assert.instanceOf(this.endDateInput, HTMLInputElement, 'endDateInput');
+    assert.instanceOf(this.selectedCategoryIdsDiv, HTMLDivElement, 'selectedCategoryIdsDiv');
+    assert.instanceOf(this.showProjectedTrendsCheckbox, HTMLInputElement, 'showProjectedTrendsCheckbox');
+    assert.instanceOf(this.enableAutoRestockCheckbox, HTMLInputElement, 'enableAutoRestockCheckbox');
   }
 }
 export interface GlobalFiltersPanel extends ICustomElementViewModel {}

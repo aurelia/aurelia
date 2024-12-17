@@ -9,9 +9,19 @@ import { assert } from '@aurelia/testing';
 @customElement({
   name: 'app-shell',
   template: `
-    <global-filters-panel component.ref="globalFiltersPanel" state.bind="state"></global-filters-panel>
-    <category-overview component.ref="categoryOverview" state.bind="state"></category-overview>
-    <alerts-panel component.ref="alertsPanel" state.bind="state"></alerts-panel>
+    <global-filters-panel component.ref="globalFiltersPanel" state.bind="state">
+    </global-filters-panel>
+
+    <category-overview
+      component.ref="categoryOverview"
+      categories.bind="state.categories"
+      show-projected-trends.bind="state.globalFilters.showProjectedTrends"
+      enable-auto-restock.bind="state.globalFilters.enableAutoRestock"
+    >
+    </category-overview>
+
+    <alerts-panel component.ref="alertsPanel" state.bind="state">
+    </alerts-panel>
   `,
   dependencies: [
     GlobalFiltersPanel,
@@ -60,15 +70,15 @@ export class AppShell {
   }
 
   _assertRefsUnbound() {
-    assert.strictEqual(this.globalFiltersPanel, undefined);
-    assert.strictEqual(this.categoryOverview, undefined);
-    assert.strictEqual(this.alertsPanel, undefined);
+    assert.strictEqual(this.globalFiltersPanel, undefined, 'globalFiltersPanel');
+    assert.strictEqual(this.categoryOverview, undefined, 'categoryOverview');
+    assert.strictEqual(this.alertsPanel, undefined, 'alertsPanel');
   }
 
   _assertRefsBound() {
-    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel);
-    assert.instanceOf(this.categoryOverview, CategoryOverview);
-    assert.instanceOf(this.alertsPanel, AlertsPanel);
+    assert.instanceOf(this.globalFiltersPanel, GlobalFiltersPanel, 'globalFiltersPanel');
+    assert.instanceOf(this.categoryOverview, CategoryOverview, 'categoryOverview');
+    assert.instanceOf(this.alertsPanel, AlertsPanel, 'alertsPanel');
   }
 }
 export interface AppShell extends ICustomElementViewModel {}

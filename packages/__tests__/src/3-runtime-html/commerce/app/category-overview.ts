@@ -1,13 +1,13 @@
 import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel, Repeat } from '@aurelia/runtime-html';
 import { CategoryItemView } from './category-item-view.js';
-import { DashboardState } from '../domain/index.js';
+import { Category } from '../domain/index.js';
 import { assert } from '@aurelia/testing';
 
 @customElement({
   name: 'category-overview',
   template: `
-    <category-item-view repeat.for="category of state.categories" category.bind="category"></category-item-view>
+    <category-item-view repeat.for="category of categories" category.bind="category"></category-item-view>
   `,
   dependencies: [
     CategoryItemView,
@@ -16,7 +16,11 @@ import { assert } from '@aurelia/testing';
 export class CategoryOverview {
   private readonly log = resolve(ILogger).scopeTo('> CategoryOverview');
 
-  @bindable state: DashboardState;
+  @bindable categories: Category[];
+  // Note: these twoWay bindings are a bit contrived but the point is to test data passing
+  // through multiple layers of bindings
+  @bindable({ mode: 'twoWay' }) showProjectedTrends: boolean;
+  @bindable({ mode: 'twoWay' }) enableAutoRestock: boolean;
 
   get itemViews() {
     return (
@@ -60,8 +64,8 @@ export class CategoryOverview {
   }
 
   _assertRepeatedViewsMatchState() {
-    assert.strictEqual(this.itemViews.length, this.state.categories.length);
-    this.log.debug(`assertRepeatedViewsMatchState: ${this.state.categories.length} categories`);
+    assert.strictEqual(this.itemViews.length, this.categories.length);
+    this.log.debug(`assertRepeatedViewsMatchState: ${this.categories.length} categories`);
   }
 }
 export interface CategoryOverview extends ICustomElementViewModel {}

@@ -57,15 +57,15 @@ export class InventoryAlertView {
   }
 
   _assertRefsUnbound() {
-    assert.strictEqual(this.dismissBtn, undefined);
-    assert.strictEqual(this.messageLabel, undefined);
-    assert.strictEqual(this.dateGeneratedLabel, undefined);
+    assert.strictEqual(this.dismissBtn, undefined, 'dismissBtn');
+    assert.strictEqual(this.messageLabel, undefined, 'messageLabel');
+    assert.strictEqual(this.dateGeneratedLabel, undefined, 'dateGeneratedLabel');
   }
 
   _assertRefsBound() {
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement, 'dismissBtn');
+    assert.instanceOf(this.messageLabel, HTMLLabelElement, 'messageLabel');
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement, 'dateGeneratedLabel');
   }
 }
 export interface InventoryAlertView extends ICustomElementViewModel {}
@@ -126,17 +126,17 @@ export class TrendAlertView {
   }
 
   _assertRefsUnbound() {
-    assert.strictEqual(this.dismissBtn, undefined);
-    assert.strictEqual(this.messageLabel, undefined);
-    assert.strictEqual(this.severityLabel, undefined);
-    assert.strictEqual(this.dateGeneratedLabel, undefined);
+    assert.strictEqual(this.dismissBtn, undefined, 'dismissBtn');
+    assert.strictEqual(this.messageLabel, undefined, 'messageLabel');
+    assert.strictEqual(this.severityLabel, undefined, 'severityLabel');
+    assert.strictEqual(this.dateGeneratedLabel, undefined, 'dateGeneratedLabel');
   }
 
   _assertRefsBound() {
-    assert.instanceOf(this.dismissBtn, HTMLButtonElement);
-    assert.instanceOf(this.messageLabel, HTMLLabelElement);
-    assert.instanceOf(this.severityLabel, HTMLLabelElement);
-    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement);
+    assert.instanceOf(this.dismissBtn, HTMLButtonElement, 'dismissBtn');
+    assert.instanceOf(this.messageLabel, HTMLLabelElement, 'messageLabel');
+    assert.instanceOf(this.severityLabel, HTMLLabelElement, 'severityLabel');
+    assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement, 'dateGeneratedLabel');
   }
 }
 export interface TrendAlertView extends ICustomElementViewModel {}

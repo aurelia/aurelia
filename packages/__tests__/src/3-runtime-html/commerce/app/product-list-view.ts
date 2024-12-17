@@ -17,6 +17,10 @@ export class ProductListView {
   private readonly log = resolve(ILogger).scopeTo('> > > ProductListView');
 
   @bindable products: Product[];
+  // Note: these twoWay bindings are a bit contrived but the point is to test data passing
+  // through multiple layers of bindings
+  @bindable({ mode: 'twoWay' }) showProjectedTrends: boolean;
+  @bindable({ mode: 'twoWay' }) enableAutoRestock: boolean;
 
   get itemViews() {
     return (

@@ -18,6 +18,10 @@ export class CategoryItemView {
   private readonly log = resolve(ILogger).scopeTo('> > CategoryItemView');
 
   @bindable category: Category;
+  // Note: these twoWay bindings are a bit contrived but the point is to test data passing
+  // through multiple layers of bindings
+  @bindable({ mode: 'twoWay' }) showProjectedTrends: boolean;
+  @bindable({ mode: 'twoWay' }) enableAutoRestock: boolean;
 
   nameLabel: HTMLLabelElement;
   productListView: ProductListView;
@@ -70,13 +74,13 @@ export class CategoryItemView {
   }
 
   _assertRefsUnbound() {
-    assert.strictEqual(this.nameLabel, undefined);
-    assert.strictEqual(this.productListView, undefined);
+    assert.strictEqual(this.nameLabel, undefined, 'nameLabel');
+    assert.strictEqual(this.productListView, undefined, 'productListView');
   }
 
   _assertRefsBound() {
-    assert.instanceOf(this.nameLabel, HTMLLabelElement);
-    assert.instanceOf(this.productListView, ProductListView);
+    assert.instanceOf(this.nameLabel, HTMLLabelElement, 'nameLabel');
+    assert.instanceOf(this.productListView, ProductListView, 'productListView');
   }
 }
 export interface CategoryItemView extends ICustomElementViewModel {}

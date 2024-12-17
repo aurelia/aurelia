@@ -31,16 +31,16 @@ export const initDashboardState = () => {
     reorderThreshold: 5,
     pendingPurchaseOrderQty: 0
   });
-  laptopX.recordSale(new Date('2024-01-01'), 5);
-  laptopX.recordSale(new Date('2024-01-02'), 3);
-  laptopX.recordSale(new Date('2024-01-03'), 2);
-  laptopX.recordSale(new Date('2024-01-04'), 4);
-  laptopX.recordSale(new Date('2024-01-10'), 6);
+  // laptopX.recordSale(new Date('2024-01-01'), 5);
+  // laptopX.recordSale(new Date('2024-01-02'), 3);
+  // laptopX.recordSale(new Date('2024-01-03'), 2);
+  // laptopX.recordSale(new Date('2024-01-04'), 4);
+  // laptopX.recordSale(new Date('2024-01-10'), 6);
 
-  laptopX.forecastedSalesData.push(
-    new ForecastRecord(new Date('2024-02-01'), 4),
-    new ForecastRecord(new Date('2024-02-02'), 5)
-  );
+  // laptopX.forecastedSalesData.push(
+  //   new ForecastRecord(new Date('2024-02-01'), 4),
+  //   new ForecastRecord(new Date('2024-02-02'), 5)
+  // );
 
   const smartphoneY = electronics.addProduct({
     id: 'prod-smartphone-1',
@@ -51,10 +51,10 @@ export const initDashboardState = () => {
     reorderThreshold: 10,
     pendingPurchaseOrderQty: 20
   });
-  smartphoneY.recordSale(new Date('2024-01-02'), 10);
-  smartphoneY.recordSale(new Date('2024-01-03'), 9);
-  smartphoneY.recordSale(new Date('2024-01-04'), 8);
-  smartphoneY.recordSale(new Date('2024-01-05'), 2);
+  // smartphoneY.recordSale(new Date('2024-01-02'), 10);
+  // smartphoneY.recordSale(new Date('2024-01-03'), 9);
+  // smartphoneY.recordSale(new Date('2024-01-04'), 8);
+  // smartphoneY.recordSale(new Date('2024-01-05'), 2);
 
   const homeAppliances = state.addCategory({
     id: 'cat-home-appliances',
@@ -70,16 +70,16 @@ export const initDashboardState = () => {
     reorderThreshold: 3,
     pendingPurchaseOrderQty: 5
   });
-  microwaveZ.recordSale(new Date('2024-01-01'), 2);
-  microwaveZ.recordSale(new Date('2024-01-02'), 1);
-  microwaveZ.recordSale(new Date('2024-01-03'), 2);
-  microwaveZ.recordSale(new Date('2024-01-04'), 3);
-  microwaveZ.recordSale(new Date('2024-01-05'), 1);
+  // microwaveZ.recordSale(new Date('2024-01-01'), 2);
+  // microwaveZ.recordSale(new Date('2024-01-02'), 1);
+  // microwaveZ.recordSale(new Date('2024-01-03'), 2);
+  // microwaveZ.recordSale(new Date('2024-01-04'), 3);
+  // microwaveZ.recordSale(new Date('2024-01-05'), 1);
 
-  microwaveZ.forecastedSalesData.push(
-    new ForecastRecord(new Date('2024-02-01'), 2),
-    new ForecastRecord(new Date('2024-02-02'), 3)
-  );
+  // microwaveZ.forecastedSalesData.push(
+  //   new ForecastRecord(new Date('2024-02-01'), 2),
+  //   new ForecastRecord(new Date('2024-02-02'), 3)
+  // );
 
   const blenderA1 = homeAppliances.addProduct({
     id: 'prod-blender-1',
@@ -90,14 +90,14 @@ export const initDashboardState = () => {
     reorderThreshold: 2,
     pendingPurchaseOrderQty: 0
   });
-  blenderA1.recordSale(new Date('2024-01-02'), 1);
-  blenderA1.recordSale(new Date('2024-01-03'), 2);
-  blenderA1.recordSale(new Date('2024-01-04'), 2);
-  blenderA1.recordSale(new Date('2024-01-05'), 1);
-  blenderA1.forecastedSalesData.push(
-    new ForecastRecord(new Date('2024-02-01'), 2),
-    new ForecastRecord(new Date('2024-02-02'), 2)
-  );
+  // blenderA1.recordSale(new Date('2024-01-02'), 1);
+  // blenderA1.recordSale(new Date('2024-01-03'), 2);
+  // blenderA1.recordSale(new Date('2024-01-04'), 2);
+  // blenderA1.recordSale(new Date('2024-01-05'), 1);
+  // blenderA1.forecastedSalesData.push(
+  //   new ForecastRecord(new Date('2024-02-01'), 2),
+  //   new ForecastRecord(new Date('2024-02-02'), 2)
+  // );
 
   const accessories = state.addCategory({
     id: 'cat-accessories',
@@ -113,43 +113,43 @@ export const initDashboardState = () => {
     reorderThreshold: 5,
     pendingPurchaseOrderQty: 0
   });
-  headphonesW.recordSale(new Date('2024-01-02'), 1);
-  headphonesW.recordSale(new Date('2024-01-03'), 1);
-  headphonesW.forecastedSalesData.push(
-    new ForecastRecord(new Date('2024-02-01'), 3)
-  );
+  // headphonesW.recordSale(new Date('2024-01-02'), 1);
+  // headphonesW.recordSale(new Date('2024-01-03'), 1);
+  // headphonesW.forecastedSalesData.push(
+  //   new ForecastRecord(new Date('2024-02-01'), 3)
+  // );
 
-  state.inventoryAlerts.push(
-    new InventoryAlert(
-      'inv-alert-1',
-      'Low inventory on Laptop X',
-      new Date('2024-01-06'),
-      'prod-laptop-1'
-    ),
-    new InventoryAlert(
-      'inv-alert-2',
-      'Low inventory on Wireless Headphones W (not in selected categories)',
-      new Date('2024-01-06'),
-      'prod-headphones-1'
-    )
-  );
+  // state.inventoryAlerts.push(
+  //   new InventoryAlert(
+  //     'inv-alert-1',
+  //     'Low inventory on Laptop X',
+  //     new Date('2024-01-06'),
+  //     'prod-laptop-1'
+  //   ),
+  //   new InventoryAlert(
+  //     'inv-alert-2',
+  //     'Low inventory on Wireless Headphones W (not in selected categories)',
+  //     new Date('2024-01-06'),
+  //     'prod-headphones-1'
+  //   )
+  // );
 
-  state.trendAlerts.push(
-    new TrendAlert(
-      'trend-alert-1',
-      'Sales decline in Electronics category',
-      'high',
-      ['cat-electronics'],
-      new Date('2024-01-07')
-    ),
-    new TrendAlert(
-      'trend-alert-2',
-      'Potential growth in Accessories category (not filtered)',
-      'medium',
-      ['cat-accessories'],
-      new Date('2024-01-08')
-    )
-  );
+  // state.trendAlerts.push(
+  //   new TrendAlert(
+  //     'trend-alert-1',
+  //     'Sales decline in Electronics category',
+  //     'high',
+  //     ['cat-electronics'],
+  //     new Date('2024-01-07')
+  //   ),
+  //   new TrendAlert(
+  //     'trend-alert-2',
+  //     'Potential growth in Accessories category (not filtered)',
+  //     'medium',
+  //     ['cat-accessories'],
+  //     new Date('2024-01-08')
+  //   )
+  // );
 
   return state;
 };

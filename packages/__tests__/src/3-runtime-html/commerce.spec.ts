@@ -47,8 +47,31 @@ describe('3-runtime-html/commerce.spec.ts', function () {
     await stop();
   });
 
-  it('toggles low-inventory visual indicators through attribute bindings when product.lowInventoryAlert switches from false to true', function () {
-    // A CSS class or icon attribute bound to lowInventoryAlert should update automatically as inventory decreases
+  it('toggles low-inventory visual indicators through attribute bindings when product.lowInventoryAlert switches from false to true', async function () {
+    const { start, stop, appShell } = createCommerceFixture();
+    await start();
+
+    const state = appShell.state;
+    state.globalFilters.enableAutoRestock = false;
+    const now = new Date();
+    state.globalFilters.endDate = now;
+    const productItemView = appShell.categoryOverview.itemViews[0].productListView.itemViews[0];
+    const product = productItemView.product;
+
+    assert.strictEqual(productItemView.lowInventoryAlert, false, 'lowInventoryAlert pre-sale');
+    product.recordSale(now, product.currentInventory);
+    assert.strictEqual(productItemView.lowInventoryAlert, true, 'lowInventoryAlert post-sale');
+
+    assert.strictEqual(productItemView.lowInventoryAlertDiv, undefined, 'lowInventoryAlertDiv');
+
+    await nextTick();
+
+    // TODO: this is just a domain model test. Use attribute class binding in the view with green/red marker instead
+    assert.instanceOf(productItemView.lowInventoryAlertDiv, HTMLDivElement, 'lowInventoryAlertDiv');
+
+    appShell._assertViewsMatchState();
+
+    await stop();
   });
 
   it('recomputes and displays recommended restock levels in the UI after enabling auto restock (enableAutoRestock) and updating product inventory', function () {

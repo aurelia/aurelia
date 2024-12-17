@@ -1,6 +1,6 @@
 import { ILogger, resolve } from '@aurelia/kernel';
 import { bindable, customElement, ICustomElementViewModel, INode } from '@aurelia/runtime-html';
-import { GlobalFilters, Product } from '../domain/index.js';
+import { Product } from '../domain/index.js';
 import { assert } from '@aurelia/testing';
 
 @customElement({
@@ -223,6 +223,13 @@ export class ProductItemView {
     } else {
       assert.strictEqual(this.recommendedRestockContainer, undefined, 'recommendedRestockContainer');
     }
+  }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.nameLabel.textContent, this.name, 'name');
+    assert.strictEqual(this.priceLabel.textContent, this.price.toString(), 'price');
+    assert.strictEqual(this.currentInventoryLabel.textContent, this.currentInventory.toString(), 'currentInventory');
   }
 }
 export interface ProductItemView extends ICustomElementViewModel {}

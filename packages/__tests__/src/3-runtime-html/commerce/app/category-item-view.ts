@@ -82,5 +82,11 @@ export class CategoryItemView {
     assert.instanceOf(this.nameLabel, HTMLLabelElement, 'nameLabel');
     assert.instanceOf(this.productListView, ProductListView, 'productListView');
   }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.nameLabel.textContent, this.category.name, 'name');
+    this.productListView._assertViewsMatchState();
+  }
 }
 export interface CategoryItemView extends ICustomElementViewModel {}

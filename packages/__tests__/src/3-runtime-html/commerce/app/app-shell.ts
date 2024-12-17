@@ -80,5 +80,12 @@ export class AppShell {
     assert.instanceOf(this.categoryOverview, CategoryOverview, 'categoryOverview');
     assert.instanceOf(this.alertsPanel, AlertsPanel, 'alertsPanel');
   }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    this.globalFiltersPanel._assertViewsMatchState();
+    this.categoryOverview._assertViewsMatchState();
+    this.alertsPanel._assertViewsMatchState();
+  }
 }
 export interface AppShell extends ICustomElementViewModel {}

@@ -4,11 +4,11 @@ import { InventoryAlert, TrendAlert, DashboardState } from '../domain/index.js';
 import { assert } from '@aurelia/testing';
 
 @customElement({
-  name: 'inventory-alert',
+  name: 'inventory-alert-view',
   template: `
     <button ref="dismissBtn" @click="dismiss()">Dismiss</button>
-    <label ref="messageLabel">\${message}</label>
-    <label ref="dateGeneratedLabel">\${dateGenerated}</label>
+    <label ref="messageLabel">\${alert.message}</label>
+    <label ref="dateGeneratedLabel">\${alert.dateGenerated}</label>
   `
 })
 export class InventoryAlertView {
@@ -67,16 +67,22 @@ export class InventoryAlertView {
     assert.instanceOf(this.messageLabel, HTMLLabelElement, 'messageLabel');
     assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement, 'dateGeneratedLabel');
   }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.messageLabel.textContent, this.alert.message, 'message');
+    assert.strictEqual(this.dateGeneratedLabel.textContent, this.alert.dateGenerated.toString(), 'dateGenerated');
+  }
 }
 export interface InventoryAlertView extends ICustomElementViewModel {}
 
 @customElement({
-  name: 'trend-alert',
+  name: 'trend-alert-view',
   template: `
     <button ref="dismissBtn" @click="dismiss()">Dismiss</button>
-    <label ref="messageLabel">\${message}</label>
-    <label ref="severityLabel">\${severity}</label>
-    <label ref="dateGeneratedLabel">\${dateGenerated}</label>
+    <label ref="messageLabel">\${alert.message}</label>
+    <label ref="severityLabel">\${alert.severity}</label>
+    <label ref="dateGeneratedLabel">\${alert.dateGenerated}</label>
   `
 })
 export class TrendAlertView {
@@ -138,6 +144,13 @@ export class TrendAlertView {
     assert.instanceOf(this.severityLabel, HTMLLabelElement, 'severityLabel');
     assert.instanceOf(this.dateGeneratedLabel, HTMLLabelElement, 'dateGeneratedLabel');
   }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.messageLabel.textContent, this.alert.message, 'message');
+    assert.strictEqual(this.severityLabel.textContent, this.alert.severity.toString(), 'severity');
+    assert.strictEqual(this.dateGeneratedLabel.textContent, this.alert.dateGenerated.toString(), 'dateGenerated');
+  }
 }
 export interface TrendAlertView extends ICustomElementViewModel {}
 
@@ -171,12 +184,12 @@ export class AlertsPanel {
   get inventoryAlertViews() {
     return (
       this.$controller!.children.filter(x => x.viewModel instanceof Repeat)![0].viewModel as Repeat
-    ).views.map(x => x.viewModel as InventoryAlertView);
+    ).views.map(x => x.children[0].viewModel as InventoryAlertView);
   }
   get trendAlertViews() {
     return (
       this.$controller!.children.filter(x => x.viewModel instanceof Repeat)![1].viewModel as Repeat
-    ).views.map(x => x.viewModel as TrendAlertView);
+    ).views.map(x => x.children[0].viewModel as TrendAlertView);
   }
 
   binding() {
@@ -216,10 +229,21 @@ export class AlertsPanel {
   }
 
   _assertRepeatedViewsMatchState() {
-    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length);
-    this.log.debug(`verified ${this.inventoryAlerts.length} inventory alerts`);
-    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length);
-    this.log.debug(`verified ${this.trendAlerts.length} trend alerts`);
+    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length, 'inventoryAlertViews');
+    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length, 'trendAlertViews');
+  }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.inventoryAlertViews.length, this.inventoryAlerts.length, 'inventoryAlertViews');
+    for (const view of this.inventoryAlertViews) {
+      view._assertViewsMatchState();
+    }
+
+    assert.strictEqual(this.trendAlertViews.length, this.trendAlerts.length, 'trendAlertViews');
+    for (const view of this.trendAlertViews) {
+      view._assertViewsMatchState();
+    }
   }
 }
 export interface AlertsPanel extends ICustomElementViewModel {}

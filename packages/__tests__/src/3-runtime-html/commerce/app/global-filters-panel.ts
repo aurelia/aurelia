@@ -76,5 +76,10 @@ export class GlobalFiltersPanel {
     assert.instanceOf(this.showProjectedTrendsCheckbox, HTMLInputElement, 'showProjectedTrendsCheckbox');
     assert.instanceOf(this.enableAutoRestockCheckbox, HTMLInputElement, 'enableAutoRestockCheckbox');
   }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+
+  }
 }
 export interface GlobalFiltersPanel extends ICustomElementViewModel {}

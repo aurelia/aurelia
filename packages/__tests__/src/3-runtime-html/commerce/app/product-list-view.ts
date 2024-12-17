@@ -25,7 +25,7 @@ export class ProductListView {
   get itemViews() {
     return (
       this.$controller!.children.find(x => x.viewModel instanceof Repeat)!.viewModel as Repeat
-    ).views.map(x => x.viewModel as ProductItemView);
+    ).views.map(x => x.children[0].viewModel as ProductItemView);
   }
 
   binding() {
@@ -64,8 +64,15 @@ export class ProductListView {
   }
 
   _assertRepeatedViewsMatchState() {
-    assert.strictEqual(this.itemViews.length, this.products.length);
-    this.log.debug(`assertRepeatedViewsMatchState: ${this.products.length} products`);
+    assert.strictEqual(this.itemViews.length, this.products.length, 'productItemViews');
+  }
+
+  _assertViewsMatchState() {
+    this.log.debug('_assertViewsMatchState');
+    assert.strictEqual(this.itemViews.length, this.products.length, 'productItemViews');
+    for (const view of this.itemViews) {
+      view._assertViewsMatchState();
+    }
   }
 }
 export interface ProductListView extends ICustomElementViewModel {}

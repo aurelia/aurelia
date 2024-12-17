@@ -13,9 +13,9 @@ import { assert } from '@aurelia/testing';
 
     <!-- Editable Fields (Two-Way Bindings) -->
     <div>
-      <input ref="nameInput" value.two-way="name" placeholder="Edit product name" />
-      <input ref="priceInput" type="number" value.two-way="price" placeholder="Edit product price" />
-      <input ref="reorderThresholdInput" type="number" value.two-way="reorderThreshold" placeholder="Set reorder threshold" />
+      <input ref="nameInput" value.two-way="product.name" placeholder="Edit product name" />
+      <input ref="priceInput" type="number" value.two-way="product.price" placeholder="Edit product price" />
+      <input ref="reorderThresholdInput" type="number" value.two-way="product.reorderThreshold" placeholder="Set reorder threshold" />
     </div>
 
     <!-- Conditional UI (if.bind) for Inventory Alerts -->

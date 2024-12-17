@@ -1,4 +1,6 @@
+import { nextTick } from '@aurelia/runtime';
 import { createCommerceFixture } from './commerce/fixture.js';
+import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/commerce.spec.ts', function () {
   it('works', async function () {
@@ -10,8 +12,37 @@ describe('3-runtime-html/commerce.spec.ts', function () {
     await stop();
   });
 
-  it('updates displayed product names and prices when product properties change via property bindings', function () {
-    // Changing product.name or product.price should reflect immediately in the corresponding UI text nodes
+  it('updates displayed product names and prices when product properties change via property bindings', async function () {
+    const { start, stop, appShell } = createCommerceFixture();
+    await start();
+
+    const productItemView = appShell.categoryOverview.itemViews[0].productListView.itemViews[0];
+
+    const originalName = productItemView.name;
+    const newName = `${originalName} updated`;
+    productItemView.nameInput.value = newName;
+    productItemView.nameInput.dispatchEvent(new Event('change'));
+
+    const originalPrice = productItemView.price;
+    const newPrice = originalPrice + 1;
+    productItemView.priceInput.value = newPrice.toString();
+    productItemView.priceInput.dispatchEvent(new Event('change'));
+
+    assert.strictEqual(productItemView.name, originalName, 'expected originalName in state');
+    assert.strictEqual(productItemView.price, originalPrice, 'expected originalPrice in state');
+    assert.strictEqual(productItemView.nameLabel.textContent, originalName, 'expected originalName in ui');
+    assert.strictEqual(productItemView.priceLabel.textContent, originalPrice.toString(), 'expected originalPrice in ui');
+
+    await nextTick();
+
+    assert.strictEqual(productItemView.name, newName, 'expected newName in state');
+    assert.strictEqual(productItemView.price, newPrice, 'expected newPrice in state');
+    assert.strictEqual(productItemView.nameLabel.textContent, newName, 'expected newName in ui');
+    assert.strictEqual(productItemView.priceLabel.textContent, newPrice.toString(), 'expected newPrice in ui');
+
+    appShell._assertViewsMatchState();
+
+    await stop();
   });
 
   it('toggles low-inventory visual indicators through attribute bindings when product.lowInventoryAlert switches from false to true', function () {

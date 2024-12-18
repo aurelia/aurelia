@@ -78,6 +78,12 @@ export class DashboardState {
     this.inventoryAlerts.push(alert);
   }
 
+  searchProducts(query: string) {
+    return this.categories
+      .flatMap(c => c.products)
+      .filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  }
+
   private findProductById(productId: string) {
     for (const category of this.categories) {
       const product = category.products.find(p => p.id === productId);

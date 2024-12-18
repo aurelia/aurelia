@@ -10,11 +10,11 @@ import {
 export const initDashboardState = () => {
   const state = new DashboardState(
     new GlobalFilters(
-      new Date('2024-01-02'),
-      new Date('2024-01-04'),
+      new Date('2024-01-01'),
+      new Date('2024-01-03'),
       new Set(['cat-electronics', 'cat-home-appliances']),
-      true,
-      true
+      false,
+      false
     )
   );
 

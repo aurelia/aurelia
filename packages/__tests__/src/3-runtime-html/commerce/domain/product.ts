@@ -1,3 +1,4 @@
+import { type Category } from './category.js';
 import { type DashboardState } from './dashboard-state.js';
 import { SaleRecord, ForecastRecord } from './records.js';
 
@@ -87,7 +88,14 @@ export class Product {
     return (this.currentInventory + this.pendingPurchaseOrderQty < this.reorderThreshold) && (this.computedSalesTrend > 0);
   }
 
+  get category(): Category {
+    return this.state.categories.find(c => c.id === this.categoryId);
+  }
+
   recordSale(date: Date, unitsSold: number) {
+    if (unitsSold > this.currentInventory) {
+      throw new Error(`Insufficient inventory for sale of ${unitsSold} units of ${this.name}`);
+    }
     const { enableAutoRestock } = this.state.globalFilters;
     this.historicalSalesData.push(new SaleRecord(date, unitsSold));
     this.currentInventory -= unitsSold;
@@ -102,5 +110,10 @@ export class Product {
 
   restock() {
     this.pendingPurchaseOrderQty += this.recommendedRestockLevel;
+  }
+
+  commitRestock() {
+    this.currentInventory += this.pendingPurchaseOrderQty;
+    this.pendingPurchaseOrderQty = 0;
   }
 }

@@ -1,6 +1,9 @@
 import { nextTick } from '@aurelia/runtime';
 import { createCommerceFixture } from './commerce/fixture.js';
 import { assert } from '@aurelia/testing';
+import { initDashboardState } from './commerce/data.js';
+import { DashboardState } from './commerce/domain/dashboard-state.js';
+import { Product } from './commerce/domain/product.js';
 
 describe('3-runtime-html/commerce.spec.ts', function () {
   it('works', async function () {
@@ -137,4 +140,37 @@ describe('3-runtime-html/commerce.spec.ts', function () {
   it('correctly handles revert actions in the edit screen (bound to a "Cancel" button) that restore previous product values and reverts computed fields in the main view without stale references', function () {
     // Clicking a "Cancel" button bound to revert changes should restore original product attributes and ensure all computed fields and the dashboard’s UI immediately reflect the old data set
   });
+
+  it.only('domain model works', function () {
+    const state = initDashboardState();
+    const laptop = state.searchProducts('laptop')[0];
+
+    laptop.recordSale(new Date('2024-01-01'), 5);
+    log(state, laptop);
+
+    laptop.recordSale(new Date('2024-01-02'), 5);
+    log(state, laptop);
+
+    laptop.recordSale(new Date('2024-01-03'), 5);
+    log(state, laptop);
+
+    // laptop.recordSale(new Date('2024-01-03'), 2);
+    // log(state, laptop);
+
+    // laptop.recordSale(new Date('2024-01-04'), 4);
+    // laptop.recordSale(new Date('2024-01-10'), 6);
+  });
 });
+
+const log = (state: DashboardState, product: Product) => {
+  const category = product.category;
+
+  console.log('---');
+  console.log(`filteredHistoricalSales: ${product.filteredHistoricalSales.length}`);
+  console.log(`computedSalesTrend: ${product.computedSalesTrend}`);
+  console.log(`recommendedRestockLevel: ${product.recommendedRestockLevel}`);
+  console.log(`lowInventoryAlert: ${product.lowInventoryAlert}`);
+  console.log(`currentInventory: ${product.currentInventory}`);
+  console.log(`reorderThreshold: ${product.reorderThreshold}`);
+  console.log(`pendingPurchaseOrderQty: ${product.pendingPurchaseOrderQty}`);
+};

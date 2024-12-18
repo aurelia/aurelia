@@ -20,6 +20,7 @@ import type {
 import type { IObserverLocatorBasedConnectable } from './connectable';
 import type { IObserverLocator } from './observer-locator';
 import { ErrorNames, createMappedError } from './errors';
+import { queueTask } from './queue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ComputedGetterFn<T = any, R = any> = (this: T, obj: T, observer: IConnectable) => R;
@@ -45,7 +46,7 @@ export class ComputedObserver<T extends object> implements
 
   // todo: maybe use a counter allow recursive call to a certain level
   /** @internal */
-  private _isRunning: boolean = false;
+  private _isQueued: boolean = false;
 
   /** @internal */
   private _isDirty: boolean = false;
@@ -117,11 +118,7 @@ export class ComputedObserver<T extends object> implements
         v = this._coercer.call(null, v, this._coercionConfig);
       }
       if (!areEqual(v, this._value)) {
-        // setting running true as a form of batching
-        this._isRunning = true;
         this.$set.call(this._obj, v);
-        this._isRunning = false;
-
         this.run();
       }
     } else {
@@ -179,31 +176,33 @@ export class ComputedObserver<T extends object> implements
   }
 
   private run(): void {
-    if (this._isRunning) {
+    if (this._isQueued) {
       return;
     }
-    const oldValue = this._value;
-    const newValue = this.compute();
+    this._isQueued = true;
+    queueTask(() => {
+      this._isQueued = false;
+      const oldValue = this._value;
+      const newValue = this.compute();
 
-    this._isDirty = false;
+      this._isDirty = false;
 
-    if (!areEqual(newValue, oldValue)) {
-      // todo: probably should set is running here too
-      // to prevent depth first notification
-      this._callback?.(newValue, oldValue);
-      this.subs.notify(this._value, oldValue);
-    }
+      if (!areEqual(newValue, oldValue)) {
+        // todo: probably should set is running here too
+        // to prevent depth first notification
+        this._callback?.(newValue, oldValue);
+        this.subs.notify(this._value, oldValue);
+      }
+    });
   }
 
   private compute(): unknown {
-    this._isRunning = true;
     this.obs.version++;
     try {
       enterConnectable(this);
       return this._value = unwrap(this.$get.call(this._wrapped, this._wrapped, this));
     } finally {
       this.obs.clear();
-      this._isRunning = false;
       exitConnectable(this);
     }
   }

@@ -44,6 +44,16 @@ export class DashboardState {
     });
   }
 
+  generateInventoryAlert(product: Product, date: Date) {
+    const alert = new InventoryAlert(
+      `inv-alert-${Date.now()}`,
+      `Low inventory on ${product.name}`,
+      date,
+      product.id
+    );
+    this.inventoryAlerts.push(alert);
+  }
+
   dismissInventoryAlert(id: string) {
     this.inventoryAlerts.splice(this.inventoryAlerts.findIndex(alert => alert.id === id), 1);
   }
@@ -66,16 +76,6 @@ export class DashboardState {
   addTrendAlert(alert: TrendAlert) {
     this.trendAlerts.push(alert);
     return alert;
-  }
-
-  generateInventoryAlert(product: Product, date: Date) {
-    const alert = new InventoryAlert(
-      `inv-alert-${Date.now()}`,
-      `Low inventory on ${product.name}`,
-      date,
-      product.id
-    );
-    this.inventoryAlerts.push(alert);
   }
 
   searchProducts(query: string) {

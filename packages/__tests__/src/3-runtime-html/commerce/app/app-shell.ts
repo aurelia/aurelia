@@ -3,8 +3,8 @@ import { customElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { GlobalFiltersPanel } from './global-filters-panel.js';
 import { CategoryOverview } from './category-overview.js';
 import { AlertsPanel } from './alerts-panel.js';
-import { initDashboardState } from '../data.js';
 import { assert } from '@aurelia/testing';
+import { DashboardState } from '../domain/dashboard-state.js';
 
 @customElement({
   name: 'app-shell',
@@ -32,7 +32,7 @@ import { assert } from '@aurelia/testing';
 export class AppShell {
   private readonly log = resolve(ILogger).scopeTo('AppShell');
 
-  state = initDashboardState();
+  state: DashboardState | null = null;
 
   globalFiltersPanel: GlobalFiltersPanel;
   categoryOverview: CategoryOverview;

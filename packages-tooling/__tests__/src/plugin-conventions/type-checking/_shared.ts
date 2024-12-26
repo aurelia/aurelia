@@ -90,3 +90,13 @@ export function assertFailure(entry: string, code: string, expectedErrors: RegEx
     assert.strictEqual(errors.some(e => pattern.test(e)), true, `Expected error not found: ${pattern}${EOL}Errors: ${errors.join(EOL)}${EOL}Code: ${code}`);
   }
 }
+
+export function prop(
+  name: string,
+  type: string,
+  isTs: boolean,
+  accessModifier: 'public' | 'protected' | 'private' = 'public',
+) {
+  return `${isTs ? '' : `/** @type {${type}} */`}
+${isTs ? `${accessModifier} ` : ''}${name}${isTs ? `: ${type}` : ''};`;
+}

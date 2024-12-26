@@ -1,6 +1,6 @@
 import { preprocessResource } from '@aurelia/plugin-conventions';
 import { generateCartesianProduct } from '@aurelia/testing';
-import { assertFailure, assertSuccess, createMarkupReader } from './_shared';
+import { assertFailure, assertSuccess, createMarkupReader, prop } from './_shared';
 import { nonConventionalOptions } from './without-convention.basic';
 
 describe('type-checking/without-convention.template-controller.promise', function () {
@@ -32,8 +32,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Promise<string>' : ''};
+${prop('prop', 'Promise<string>', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -59,8 +58,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Promise<string>' : ''};
+${prop('prop', 'Promise<string>', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -86,8 +84,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${prop('prop', 'string', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -113,8 +110,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${prop('prop', 'string', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -146,11 +142,9 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${prop('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${prop('prop2', 'Promise<number>', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -182,11 +176,9 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${prop('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${prop('prop2', 'Promise<number>', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -218,11 +210,9 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${prop('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${prop('prop2', 'Promise<number>', isTs)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),

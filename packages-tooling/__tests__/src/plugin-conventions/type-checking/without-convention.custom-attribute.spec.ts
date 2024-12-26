@@ -1,5 +1,5 @@
 import { preprocessResource } from '@aurelia/plugin-conventions';
-import { createMarkupReader, assertSuccess, assertFailure } from './_shared';
+import { createMarkupReader, assertSuccess, assertFailure, prop } from './_shared';
 import { nonConventionalOptions } from './without-convention.basic';
 
 describe('type-checking/without-convention.custom-attribute', function () {
@@ -19,12 +19,12 @@ import template from './${markupFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${prop('prop', 'string', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -47,12 +47,12 @@ import template from './${markupFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${prop('prop1', 'string', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -81,13 +81,12 @@ import { Dep } from './${depFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${prop('prop', 'Dep', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -116,13 +115,12 @@ import { Dep } from './${depFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${prop('prop', 'Dep', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -145,12 +143,12 @@ import template from './${markupFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${prop('prop', 'string', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -173,12 +171,12 @@ import template from './${markupFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${prop('prop', 'string', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -201,7 +199,7 @@ import template from './${markupFile}';
 @customAttribute('ca-one')
 export class CaOne {
 @bindable
-${isTs ? 'public ' : ''}value${isTs ? ': string' : ''};
+${prop('value', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })

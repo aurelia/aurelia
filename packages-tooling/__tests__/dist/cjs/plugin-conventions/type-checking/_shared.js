@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.assertFailure = exports.assertSuccess = exports.createMarkupReader = exports.compileProcessedCode = exports.$basename = exports.options = exports.assetTypes = exports.assetsTypeFile = void 0;
+exports.prop = exports.assertFailure = exports.assertSuccess = exports.createMarkupReader = exports.compileProcessedCode = exports.$basename = exports.options = exports.assetTypes = exports.assetsTypeFile = void 0;
 const testing_1 = require("@aurelia/testing");
 const os_1 = require("os");
 const path_1 = require("path");
@@ -84,4 +84,9 @@ function assertFailure(entry, code, expectedErrors, additionalModules = {}, isPa
     }
 }
 exports.assertFailure = assertFailure;
+function prop(name, type, isTs, accessModifier = 'public') {
+    return `${isTs ? '' : `/** @type {${type}} */`}
+${isTs ? `${accessModifier} ` : ''}${name}${isTs ? `: ${type}` : ''};`;
+}
+exports.prop = prop;
 //# sourceMappingURL=_shared.js.map

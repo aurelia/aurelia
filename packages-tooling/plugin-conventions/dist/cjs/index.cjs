@@ -165,7 +165,7 @@ class TypeCheckingContext {
         this.classUnion = `(${classNames.join('|')})`;
         this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
         this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
-        this.accessIdent = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
+        this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
         this.scope = new IdentifierScope('none', classes);
     }
     produceTypeCheckedTemplate(rawHtml) {
@@ -257,18 +257,18 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
     if (expr.iterable.$kind === 'PrimitiveLiteral') {
         const identifier = ctx.getIdentifier(rangeIterableIdentifier);
         const primitiveValue = expr.iterable.value;
-        iterable = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
         ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
         propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
     }
     else {
-        const rawIterIdent = expressionParser.Unparser.unparse(expr.iterable);
+        const rawIterIdentifier = expressionParser.Unparser.unparse(expr.iterable);
         const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => {
             const newName = ctx.getIdentifier(member, 2);
             return newName;
         }, true);
         propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
-        iterable = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdent}')}`;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdentifier}')}`;
     }
     let declaration;
     switch (expr.declaration.$kind) {
@@ -277,24 +277,24 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
             const [rawKeyIdent, keyIdent] = getArrDestIdent(keyAssignLeaf);
             const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
             ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
-            declaration = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
             break;
             function getArrDestIdent(leafExpr) {
                 switch (leafExpr.$kind) {
                     case 'DestructuringAssignmentLeaf': {
-                        const rawIdent = leafExpr.target.name;
-                        const ident = ctx.getIdentifier(rawIdent, 2);
-                        return [rawIdent, ident];
+                        const rawIdentifier = leafExpr.target.name;
+                        const identifier = ctx.getIdentifier(rawIdentifier, 2);
+                        return [rawIdentifier, identifier];
                     }
                     default: throw new Error(`Unsupported declaration kind: ${keyAssignLeaf.$kind}`);
                 }
             }
         }
         default: {
-            const rawDecIdent = expressionParser.Unparser.unparse(expr.declaration);
-            const decIdent = ctx.getIdentifier(rawDecIdent, 2);
-            ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdent}: CollectionElement<${propAccExpr}> }`);
-            declaration = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(decIdent)}, '${rawDecIdent}')}`;
+            const rawDecIdentifier = expressionParser.Unparser.unparse(expr.declaration);
+            const decIdentifier = ctx.getIdentifier(rawDecIdentifier, 2);
+            ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdentifier}: CollectionElement<${propAccExpr}> }`);
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(decIdentifier)}, '${rawDecIdentifier}')}`;
             break;
         }
     }
@@ -354,7 +354,7 @@ function tryProcessPromise(syntax, attr, node, ctx) {
     function addReplaceParts(_expr, value) {
         ctx.toReplace.push({
             loc: node.sourceCodeLocation.attrs[attr.name],
-            modifiedContent: () => `${attr.name}="\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
         });
     }
 }
@@ -380,7 +380,7 @@ function processNode(node, ctx) {
                         return;
                     ctx.toReplace.push({
                         loc: node.sourceCodeLocation.attrs[attr.name],
-                        modifiedContent: () => `${attr.name}="\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+                        modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
                     });
                 }
             }
@@ -393,7 +393,7 @@ function processNode(node, ctx) {
             expr.expressions.forEach((part, idx) => {
                 const originalExpr = part;
                 [part] = mutateAccessScope(part, ctx, member => { var _b; return (_b = ctx.getIdentifier(member, 1)) !== null && _b !== void 0 ? _b : member; });
-                htmlFactories.push(() => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`, () => expr.parts[idx + 1]);
+                htmlFactories.push(() => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`, () => expr.parts[idx + 1]);
             });
             ctx.toReplace.push({
                 loc: node.sourceCodeLocation,
@@ -728,7 +728,7 @@ function isStaticPropertyDeclaration(node, name) {
         && node.name.escapedText === name
         && (getCombinedModifierFlags(node) & ModifierFlags.Static) !== 0;
 }
-function is$auProperty(member) {
+function isStatic$auProperty(member) {
     return isStaticPropertyDeclaration(member, '$au');
 }
 function tryCollectTemplateMetadataFromDefinition(defnExpr, $class, templateMetadata) {
@@ -794,7 +794,7 @@ function createAuResourceTransformer() {
     };
     function visitClass(node) {
         const newMembers = node.members.map(member => {
-            if (!is$auProperty(member))
+            if (!isStatic$auProperty(member))
                 return member;
             const initializer = member.initializer;
             if (initializer == null || !isObjectLiteralExpression(initializer))
@@ -807,9 +807,7 @@ function createAuResourceTransformer() {
     }
 }
 function findResource(node, expectedResourceName, filePair, code, useConvention, templateMetadata) {
-    if (!isClassDeclaration(node)
-        || !node.name
-        || !isExported(node) && !useConvention)
+    if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention)
         return;
     const pos = ensureTokenStart(node.pos, code);
     const className = node.name.text;
@@ -819,13 +817,13 @@ function findResource(node, expectedResourceName, filePair, code, useConvention,
     const resourceType = collectClassDecorators(node);
     if (resourceType) {
         const decorator = resourceType.expression;
-        const dArgs = decorator.arguments;
-        const numArguments = dArgs.length;
+        const decoratorArgs = decorator.arguments;
+        const numArguments = decoratorArgs.length;
         if (resourceType.type === 'customElement') {
             if (numArguments === 1)
-                tryCollectTemplateMetadataFromDefinition(dArgs[0], $class, templateMetadata);
-            for (const m of node.members) {
-                tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
+                tryCollectTemplateMetadataFromDefinition(decoratorArgs[0], $class, templateMetadata);
+            for (const member of node.members) {
+                tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata);
             }
         }
         if (!isImplicitResource &&
@@ -837,8 +835,8 @@ function findResource(node, expectedResourceName, filePair, code, useConvention,
         if (isImplicitResource &&
             resourceType.type === 'customElement' &&
             numArguments === 1 &&
-            isStringLiteral(dArgs[0])) {
-            const customName = dArgs[0];
+            isStringLiteral(decoratorArgs[0])) {
+            const customName = decoratorArgs[0];
             return {
                 type: resourceType.type,
                 classMetadata: $class,
@@ -854,7 +852,7 @@ function findResource(node, expectedResourceName, filePair, code, useConvention,
     else {
         if (type === 'customElement') {
             for (const m of node.members) {
-                if (is$auProperty(m)) {
+                if (isStatic$auProperty(m)) {
                     tryCollectTemplateMetadataFromDefinition(m.initializer, $class, templateMetadata);
                 }
                 tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);

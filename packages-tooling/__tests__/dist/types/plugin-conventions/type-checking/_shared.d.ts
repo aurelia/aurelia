@@ -8,4 +8,5 @@ export declare function compileProcessedCode(entryPoint: string, modules?: $Modu
 export declare function createMarkupReader(fileName: string, content: string): (path: string) => string;
 export declare function assertSuccess(entry: string, code: string, additionalModules?: $Module): void;
 export declare function assertFailure(entry: string, code: string, expectedErrors: RegExp[], additionalModules?: $Module, isPartial?: boolean): void;
+export declare function prop(name: string, type: string, isTs: boolean, accessModifier?: 'public' | 'protected' | 'private'): string;
 //# sourceMappingURL=_shared.d.ts.map

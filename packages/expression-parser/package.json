@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/expression-parser",
-  "version": "2.1.0-dev.202412161127",
+  "version": "2.1.0-dev.202412271957",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -53,7 +53,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202412161127"
+    "@aurelia/kernel": "2.1.0-dev.202412271957"
   },
   "devDependencies": {
     "typescript": "5.4.2"

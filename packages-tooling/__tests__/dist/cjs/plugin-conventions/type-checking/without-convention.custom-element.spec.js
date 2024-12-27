@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const plugin_conventions_1 = require("@aurelia/plugin-conventions");
 const _shared_1 = require("./_shared");
-const without_convention_basic_1 = require("./without-convention.basic");
+const without_convention_basic_spec_1 = require("./without-convention.basic.spec");
 describe('type-checking/without-convention.custom-element', function () {
     for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']]) {
         const isTs = lang === 'TypeScript';
@@ -19,16 +19,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
         it(`custom-element bindable - fail - incorrect host property - language: ${lang}`, function () {
@@ -44,16 +44,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertFailure)(entry, result.code, [/Property 'prop' does not exist on type '.*Foo.*'/]);
         });
         // TODO(phase2): make this work; probably need to use something like webpack plugin to access to the complete TS project
@@ -70,16 +70,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop1}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertFailure)(entry, result.code, [/Property 'prop' does not exist on type 'CeOne'/]);
         });
         it(`custom-element bindable - short-hand - pass - language: ${lang}`, function () {
@@ -95,16 +95,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
         it(`custom-element bindable - short-hand - fail - language: ${lang}`, function () {
@@ -120,16 +120,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertFailure)(entry, result.code, [/Property 'prop' does not exist on type '.*Foo.*'/]);
         });
         it(`custom-element bindable - nested property - pass - language: ${lang}`, function () {
@@ -152,17 +152,16 @@ import { Dep } from './${depFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${(0, _shared_1.prop)('prop', 'Dep', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code, additionalModules);
         });
         it(`custom-element bindable - nested property - fail - language: ${lang}`, function () {
@@ -185,17 +184,16 @@ import { Dep } from './${depFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${(0, _shared_1.prop)('prop', 'Dep', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertFailure)(entry, result.code, [/Property 'y' does not exist on type 'Dep'/], additionalModules);
         });
         it(`custom-element bindable - value-converter - pass - language: ${lang}`, function () {
@@ -211,16 +209,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
         it(`custom-element bindable - binding behavior - pass - language: ${lang}`, function () {
@@ -236,16 +234,16 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
         it(`custom-element bindable $parent - pass - language: ${lang}`, function () {
@@ -261,14 +259,14 @@ import template from './${markupFile}';
 @customElement({ name: 'ce-one', template: '\${prop}' })
 export class CeOne {
 @bindable
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'foo', template })
 export class Foo {}
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
     }

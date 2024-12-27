@@ -20,7 +20,7 @@ describe('type-checking/with-convention.basic', function () {
 import { customElement } from '@aurelia/runtime-html';
 
 export class Entry {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -38,7 +38,7 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
 import { customElement } from '@aurelia/runtime-html';
 
 export class Entry {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -58,7 +58,7 @@ import template from './${markupFile}';
 
 @customElement('ent-ry')
 export class Entry {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -78,7 +78,7 @@ import template from './${markupFile}';
 
 @customElement('ent-ry')
 export class Entry {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -96,32 +96,25 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
 import { customElement } from '@aurelia/runtime-html';
 
 export class Entry {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -139,32 +132,25 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
 import { customElement } from '@aurelia/runtime-html';
 
 export class Entry {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -182,32 +168,25 @@ ${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
 import { customElement } from '@aurelia/runtime-html';
 
 export class Entry {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const plugin_conventions_1 = require("@aurelia/plugin-conventions");
 const testing_1 = require("@aurelia/testing");
 const _shared_1 = require("./_shared");
-const without_convention_basic_1 = require("./without-convention.basic");
+const without_convention_basic_spec_1 = require("./without-convention.basic.spec");
 describe('type-checking/without-convention.template-controller.promise', function () {
     for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']]) {
         const isTs = lang === 'TypeScript';
@@ -29,12 +29,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Promise<string>' : ''};
+${(0, _shared_1.prop)('prop', 'Promise<string>', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertSuccess)(entry, result.code);
                 });
                 it(`fail - ${syntaxes}`, function () {
@@ -53,12 +52,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Promise<string>' : ''};
+${(0, _shared_1.prop)('prop', 'Promise<string>', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertFailure)(entry, result.code, [/Property 'touppercase' does not exist on type 'string'/]);
                 });
                 it(`non-promise - pass - ${syntaxes}`, function () {
@@ -77,12 +75,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertSuccess)(entry, result.code);
                 });
                 it(`non-promise - fail - ${syntaxes}`, function () {
@@ -101,12 +98,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertFailure)(entry, result.code, [/Property 'touppercase' does not exist on type 'string'/]);
                 });
                 it(`multiple promises - same then/catch declaration - pass - ${syntaxes}`, function () {
@@ -131,15 +127,13 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${(0, _shared_1.prop)('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${(0, _shared_1.prop)('prop2', 'Promise<number>', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertSuccess)(entry, result.code);
                 });
                 it(`multiple promises - different then/catch declaration - pass - ${syntaxes}`, function () {
@@ -164,15 +158,13 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${(0, _shared_1.prop)('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${(0, _shared_1.prop)('prop2', 'Promise<number>', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertSuccess)(entry, result.code);
                 });
                 it(`multiple promises - fail - ${syntaxes}`, function () {
@@ -197,15 +189,13 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Promise<string>} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Promise<string>' : ''};
+${(0, _shared_1.prop)('prop1', 'Promise<string>', isTs)}
 
-${isTs ? '' : '/** @type {Promise<number>} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Promise<number>' : ''};
+${(0, _shared_1.prop)('prop2', 'Promise<number>', isTs)}
 }
 `,
                         readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                    }, without_convention_basic_1.nonConventionalOptions);
+                    }, without_convention_basic_spec_1.nonConventionalOptions);
                     (0, _shared_1.assertFailure)(entry, result.code, [/Property 'toUpperCase' does not exist on type 'number'/]);
                 });
             }

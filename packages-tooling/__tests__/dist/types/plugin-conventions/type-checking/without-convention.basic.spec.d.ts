@@ -1,2 +1,2 @@
 export declare const nonConventionalOptions: import("@aurelia/plugin-conventions").IPreprocessOptions;
-//# sourceMappingURL=without-convention.basic.d.ts.map
+//# sourceMappingURL=without-convention.basic.spec.d.ts.map

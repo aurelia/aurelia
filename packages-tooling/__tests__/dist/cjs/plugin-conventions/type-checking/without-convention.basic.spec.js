@@ -27,7 +27,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -46,7 +46,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -65,12 +65,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -89,12 +89,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -115,7 +115,7 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: x })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -134,7 +134,7 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: x })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -153,12 +153,12 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: x })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template: x })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -177,12 +177,12 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: x })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template: x })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -203,7 +203,7 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: '${markup}' })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -222,7 +222,7 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: '${markup}' })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -241,12 +241,12 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: '${markup}' })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template: '${markup}' })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -265,12 +265,12 @@ import x from './${markupFile}';
 
 @customElement({ name: 'foo', template: '${markup}' })
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar', template: '${markup}' })
 export class Bar {
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -293,7 +293,7 @@ import template from './${markupFile}';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -313,7 +313,7 @@ import template from './${markupFile}';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -333,13 +333,13 @@ import template from './${markupFile}';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar' })
 export class Bar {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -359,13 +359,13 @@ import template from './${markupFile}';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar' })
 export class Bar {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -386,7 +386,7 @@ import { customElement } from '@aurelia/runtime-html';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -405,7 +405,7 @@ import { customElement } from '@aurelia/runtime-html';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -424,13 +424,13 @@ import { customElement } from '@aurelia/runtime-html';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar' })
 export class Bar {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -449,13 +449,13 @@ import { customElement } from '@aurelia/runtime-html';
 @customElement({ name: 'foo' })
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 @customElement({ name: 'bar' })
 export class Bar {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -485,7 +485,7 @@ export class Foo {
     name: 'foo',
     template,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -508,7 +508,7 @@ export class Foo {
     name: 'foo',
     template,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -531,7 +531,7 @@ export class Foo {
     name: 'foo',
     template,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -540,7 +540,7 @@ export class Bar {
     name: 'bar',
     template,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -563,7 +563,7 @@ export class Foo {
     name: 'foo',
     template,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -572,7 +572,7 @@ export class Bar {
     name: 'bar',
     template,
   };
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -597,7 +597,7 @@ ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' :
   name: 'foo',
   template: x,
 };
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -620,7 +620,7 @@ ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' :
   name: 'foo',
   template: x,
 };
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -643,7 +643,7 @@ export class Foo {
     name: 'foo',
     template: x,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -652,7 +652,7 @@ export class Bar {
     name: 'bar',
     template: x,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -675,7 +675,7 @@ export class Foo {
     name: 'foo',
     template: x,
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -684,7 +684,7 @@ export class Bar {
     name: 'bar',
     template: x,
   };
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -709,7 +709,7 @@ ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' :
   name: 'foo',
   template: '${markup}',
 };
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -732,7 +732,7 @@ ${isTs ? 'public ' : ''}static $au${isTs ? ': CustomElementStaticAuDefinition' :
   name: 'foo',
   template: '${markup}',
 };
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -755,7 +755,7 @@ export class Foo {
     name: 'foo',
     template: '${markup}',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -764,7 +764,7 @@ export class Bar {
     name: 'bar',
     template: '${markup}',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -787,7 +787,7 @@ export class Foo {
     name: 'foo',
     template: '${markup}',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -796,7 +796,7 @@ export class Bar {
     name: 'bar',
     template: '${markup}',
   };
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                             readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -822,7 +822,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -845,7 +845,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -868,7 +868,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -877,7 +877,7 @@ export class Bar {
     type: 'custom-element',
     name: 'bar',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -900,7 +900,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -909,7 +909,7 @@ export class Bar {
     type: 'custom-element',
     name: 'bar',
   };
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -955,7 +955,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -977,7 +977,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -986,7 +986,7 @@ export class Bar {
     type: 'custom-element',
     name: 'bar',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1008,7 +1008,7 @@ export class Foo {
     type: 'custom-element',
     name: 'foo',
   };
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 
 export class Bar {
@@ -1017,7 +1017,7 @@ export class Bar {
     type: 'custom-element',
     name: 'bar',
   };
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 `,
                                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1043,32 +1043,25 @@ export class Foo {
     name: 'foo',
     template,
   };
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1091,32 +1084,25 @@ export class Foo {
     name: 'foo',
     template,
   };
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  ${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1139,32 +1125,25 @@ export class Foo {
     name: 'foo',
     template,
   };
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+  ${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1186,7 +1165,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 `,
@@ -1205,7 +1184,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 `,
@@ -1224,12 +1203,12 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 
 export class Bar {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar', template }, Bar);
 `,
@@ -1248,12 +1227,12 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 
 export class Bar {
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar', template }, Bar);
 `,
@@ -1274,7 +1253,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: x }, Foo);
 `,
@@ -1293,7 +1272,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: x }, Foo);
 `,
@@ -1312,12 +1291,12 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: x }, Foo);
 
 export class Bar {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar', template: x }, Bar);
 `,
@@ -1336,12 +1315,12 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: x }, Foo);
 
 export class Bar {
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar', template: x }, Bar);
 `,
@@ -1362,7 +1341,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
 `,
@@ -1381,7 +1360,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 import x from './${markupFile}';
 
 export class Foo {
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
 `,
@@ -1400,12 +1379,12 @@ CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
   import x from './${markupFile}';
 
   export class Foo {
-    ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
   }
   CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
 
   export class Bar {
-    ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
   }
   CustomElement.define({ name: 'bar', template: '${markup}' }, Bar);
   `,
@@ -1424,12 +1403,12 @@ CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
   import x from './${markupFile}';
 
   export class Foo {
-    ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
   }
   CustomElement.define({ name: 'foo', template: '${markup}' }, Foo);
 
   export class Bar {
-    ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
   }
   CustomElement.define({ name: 'bar', template: '${markup}' }, Bar);
   `,
@@ -1452,7 +1431,7 @@ import template from './${markupFile}';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 `,
@@ -1472,7 +1451,7 @@ import template from './${markupFile}';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 `,
@@ -1492,13 +1471,13 @@ import template from './${markupFile}';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 
 export class Bar {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar' }, Bar);
 `,
@@ -1518,13 +1497,13 @@ import template from './${markupFile}';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 
 export class Bar {
   ${isTs ? 'public ' : ''}static template = template;
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar' }, Bar);
 `,
@@ -1545,7 +1524,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 `,
@@ -1564,7 +1543,7 @@ import { CustomElement } from '@aurelia/runtime-html';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 `,
@@ -1583,13 +1562,13 @@ import { CustomElement } from '@aurelia/runtime-html';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 
 export class Bar {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar' }, Bar);
 `,
@@ -1608,13 +1587,13 @@ import { CustomElement } from '@aurelia/runtime-html';
 
 export class Foo {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 CustomElement.define({ name: 'foo' }, Foo);
 
 export class Bar {
   ${isTs ? 'public ' : ''}static template = '${markup}';
-  ${isTs ? 'public ' : ''}prop1${isTs ? ': string' : ''};
+  ${(0, _shared_1.prop)('prop1', 'string', isTs)}
 }
 CustomElement.define({ name: 'bar' }, Bar);
 `,
@@ -1636,33 +1615,26 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1680,33 +1652,26 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1724,33 +1689,26 @@ import { CustomElement } from '@aurelia/runtime-html';
 import template from './${markupFile}';
 
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 CustomElement.define({ name: 'foo', template }, Foo);
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('n', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1814,8 +1772,7 @@ import { Dep } from './${depFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${(0, _shared_1.prop)('prop', 'Dep', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1841,8 +1798,7 @@ import { Dep } from './${depFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${(0, _shared_1.prop)('prop', 'Dep', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1889,8 +1845,7 @@ import { Dep } from './${depFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Dep} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Dep' : ''};
+${(0, _shared_1.prop)('prop', 'Dep', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1926,7 +1881,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('prop', 'string', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
@@ -1935,4 +1890,4 @@ ${isTs ? 'public ' : ''}prop${isTs ? ': string' : ''};
         });
     }
 });
-//# sourceMappingURL=without-convention.basic.js.map
+//# sourceMappingURL=without-convention.basic.spec.js.map

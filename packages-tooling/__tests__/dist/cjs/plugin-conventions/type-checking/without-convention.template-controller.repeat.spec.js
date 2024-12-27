@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const plugin_conventions_1 = require("@aurelia/plugin-conventions");
 const _shared_1 = require("./_shared");
-const without_convention_basic_1 = require("./without-convention.basic");
+const without_convention_basic_spec_1 = require("./without-convention.basic.spec");
 describe('type-checking/without-convention.template-controller.repeat', function () {
     for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']]) {
         const isTs = lang === 'TypeScript';
@@ -19,12 +19,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat primitive array - pass - with value-converter`, function () {
@@ -39,12 +38,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             // TODO(phase2): make this work; we need the type information of the value-converter. This is currently not possible with the loader approach as we don't have access to the complete TS project.
@@ -60,12 +58,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat primitive array - fail`, function () {
@@ -80,12 +77,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
             });
             it(`template controller - repeat from method call - pass`, function () {
@@ -105,7 +101,7 @@ ${isTs ? 'public ' : ''}getItems()${isTs ? ': string[]' : ''} { return []; };
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - multiple repeats - primitive arrays - same declaration - pass`, function () {
@@ -120,15 +116,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${(0, _shared_1.prop)('prop1', 'string[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'number[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - multiple repeats - primitive arrays - different declarations - pass`, function () {
@@ -143,15 +136,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${(0, _shared_1.prop)('prop1', 'string[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'number[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - multiple repeats - primitive arrays - fail - incorrect declaration`, function () {
@@ -166,15 +156,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${(0, _shared_1.prop)('prop1', 'string[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'number[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'item' does not exist on type '.*Foo.*'/]);
             });
             it(`template controller - multiple repeats - primitive arrays - fail - incorrect usage`, function () {
@@ -189,15 +176,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${(0, _shared_1.prop)('prop1', 'string[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'number[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
             });
             it(`template controller - repeat object[] - pass`, function () {
@@ -212,17 +196,15 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+${(0, _shared_1.prop)('prop', 'Bar[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat object[] - fail`, function () {
@@ -237,17 +219,15 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+${(0, _shared_1.prop)('prop', 'Bar[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x1', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'x' does not exist on type '.*Bar.*'/]);
             });
             it(`template controller - multiple repeats - object arrays - pass`, function () {
@@ -262,25 +242,20 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
-
-${isTs ? '' : '/** @type {Baz[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+${(0, _shared_1.prop)('prop1', 'Bar[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'Baz[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x', 'string', isTs)}
 }
 
 class Baz {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - multiple repeats - object arrays - fail`, function () {
@@ -295,25 +270,20 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
-
-${isTs ? '' : '/** @type {Baz[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+${(0, _shared_1.prop)('prop1', 'Bar[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'Baz[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x', 'string', isTs)}
 }
 
 class Baz {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y1', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'y' does not exist on type 'Baz'/]);
             });
             it(`template controller - nested repeats - pass`, function () {
@@ -328,20 +298,16 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('children', 'Node[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - nested repeats - fail - incorrect declaration`, function () {
@@ -356,20 +322,16 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('children', 'Node[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property '.*node1\d+' does not exist on type '.*Foo.*'/], undefined, true);
             });
             it(`template controller - nested repeats - fail - incorrect usage`, function () {
@@ -384,20 +346,16 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('children', 'Node[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'y' does not exist on type 'Node'/]);
             });
             it(`template controller - repeat - contextual properties - pass`, function () {
@@ -412,12 +370,30 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
+                (0, _shared_1.assertSuccess)(entry, result.code);
+            });
+            it(`template controller - repeat - contextual properties - $this - pass`, function () {
+                const entry = `entry.${extn}`;
+                const markupFile = 'entry.html';
+                const markup = `<template repeat.for="item of prop">\${$this.$index} - \${item.toLowerCase()} - \${$this.$first} - \${$this.$last} - \${$this.$even} - \${$this.$odd} - \${$this.$length}</template>`;
+                const result = (0, plugin_conventions_1.preprocessResource)({
+                    path: entry,
+                    contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${(0, _shared_1.prop)('prop', 'string[]', isTs)}
+}
+`,
+                    readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - nested repeat - contextual properties - pass`, function () {
@@ -439,14 +415,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': string[]' : ''};
+${(0, _shared_1.prop)('prop1', 'string[]', isTs)}
+${(0, _shared_1.prop)('prop2', 'string[]', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
         });
@@ -463,12 +437,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${(0, _shared_1.prop)('prop', 'Set<string>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat primitive set - fail`, function () {
@@ -483,12 +456,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${(0, _shared_1.prop)('prop', 'Set<string>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
             });
             it(`template controller - repeat Set<object> - pass`, function () {
@@ -503,17 +475,15 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<Bar>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+${(0, _shared_1.prop)('prop', 'Set<Bar>', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat Set<object> - fail`, function () {
@@ -528,17 +498,15 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<Bar>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+${(0, _shared_1.prop)('prop', 'Set<Bar>', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('x1', 'string', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'x' does not exist on type '.*Bar.*'/]);
             });
             it(`template controller - repeat primitive set - pass - with value converter`, function () {
@@ -553,12 +521,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${(0, _shared_1.prop)('prop', 'Set<string>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
         });
@@ -575,12 +542,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat primitive map - fail - incorrect key declaration`, function () {
@@ -595,12 +561,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'k' does not exist on type '.*Foo.*'/]);
             });
             it(`template controller - repeat primitive map - fail - incorrect value declaration`, function () {
@@ -615,12 +580,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'v' does not exist on type '.*Foo.*'/]);
             });
             it(`template controller - repeat primitive map - fail - incorrect key usage`, function () {
@@ -635,12 +599,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'tolowercase' does not exist on type 'string'/]);
             });
             it(`template controller - repeat primitive map - fail - incorrect value usage`, function () {
@@ -655,12 +618,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
             });
             it(`template controller - repeat primitive map - pass - with value-converter`, function () {
@@ -675,12 +637,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, number>', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat object map - pass`, function () {
@@ -695,27 +656,20 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat object map - fail - incorrect key usage`, function () {
@@ -730,27 +684,20 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'z' does not exist on type 'Key'/]);
             });
             it(`template controller - repeat object map - fail - incorrect value usage`, function () {
@@ -765,27 +712,20 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'c' does not exist on type 'Value'/]);
             });
             it(`template controller - nested repeat object map - pass`, function () {
@@ -800,36 +740,28 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${(0, _shared_1.prop)('n', 'string', isTs)}
+}`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - nested repeat object map - fail - incorrect declaration`, function () {
@@ -844,36 +776,28 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${(0, _shared_1.prop)('n', 'string', isTs)}
+}`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property '.*v1\d+' does not exist on type '.*Foo.*'/], undefined, true);
             });
             it(`template controller - nested repeat object map - fail - incorrect usage`, function () {
@@ -888,36 +812,28 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${(0, _shared_1.prop)('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${(0, _shared_1.prop)('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${(0, _shared_1.prop)('n', 'string', isTs)}
+}`,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'aa' does not exist on type 'Lime'/]);
             });
         });
@@ -934,12 +850,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('prop', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat range - pass - numeric literal`, function () {
@@ -956,7 +871,7 @@ import template from './${markupFile}';
 export class Foo {}
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat range - fail - numeric property`, function () {
@@ -971,12 +886,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('prop', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
             });
             it(`template controller - repeat range - fail - numeric literal`, function () {
@@ -993,7 +907,7 @@ import template from './${markupFile}';
 export class Foo {}
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property 'toexponential' does not exist on type 'number'/]);
             });
             it(`template controller - nested repeat range - pass - numeric property`, function () {
@@ -1008,12 +922,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('prop', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - nested repeat range - pass - numeric literal`, function () {
@@ -1028,12 +941,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${(0, _shared_1.prop)('prop', 'number', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
         });
@@ -1051,12 +963,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${(0, _shared_1.prop)('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat object - pass - values`, function () {
@@ -1071,12 +982,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${(0, _shared_1.prop)('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertSuccess)(entry, result.code);
             });
             it(`template controller - repeat object - fail - keys`, function () {
@@ -1091,12 +1001,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${(0, _shared_1.prop)('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property '.*key1\d*' does not exist on type '.*Foo.*'/]);
             });
             it(`template controller - repeat object - fail - values`, function () {
@@ -1111,12 +1020,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${(0, _shared_1.prop)('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
                     readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-                }, without_convention_basic_1.nonConventionalOptions);
+                }, without_convention_basic_spec_1.nonConventionalOptions);
                 (0, _shared_1.assertFailure)(entry, result.code, [/Property '.*value1\d*' does not exist on type '.*Foo.*'/]);
             });
         });
@@ -1132,12 +1040,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {FileList} */'}
-${isTs ? 'public ' : ''}files${isTs ? ': FileList' : ''};
+${(0, _shared_1.prop)('files', 'FileList', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
         it(`template controller - repeat - kitchen sink - pass`, function () {
@@ -1159,12 +1066,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, Set<number>>[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, Set<number>>[]' : ''};
+${(0, _shared_1.prop)('prop', 'Map<string, Set<number>>[]', isTs)}
 }
 `,
                 readFile: (0, _shared_1.createMarkupReader)(markupFile, markup),
-            }, without_convention_basic_1.nonConventionalOptions);
+            }, without_convention_basic_spec_1.nonConventionalOptions);
             (0, _shared_1.assertSuccess)(entry, result.code);
         });
     }

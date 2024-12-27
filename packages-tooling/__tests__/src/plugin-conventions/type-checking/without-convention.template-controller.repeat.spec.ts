@@ -1,6 +1,6 @@
 import { preprocessResource } from '@aurelia/plugin-conventions';
 import { createMarkupReader, assertSuccess, assertFailure, prop } from './_shared';
-import { nonConventionalOptions } from './without-convention.basic';
+import { nonConventionalOptions } from './without-convention.basic.spec';
 
 describe('type-checking/without-convention.template-controller.repeat', function () {
   for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']] as const) {
@@ -409,6 +409,28 @@ ${prop('children', 'Node[]', isTs)}
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = `<template repeat.for="item of prop">\${$index} - \${item.toLowerCase()} - \${$first} - \${$last} - \${$even} - \${$odd} - \${$length}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${prop('prop', 'string[]', isTs)}
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat - contextual properties - $this - pass`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${$this.$index} - \${item.toLowerCase()} - \${$this.$first} - \${$this.$last} - \${$this.$even} - \${$this.$odd} - \${$this.$length}</template>`;
         const result = preprocessResource(
           {
             path: entry,

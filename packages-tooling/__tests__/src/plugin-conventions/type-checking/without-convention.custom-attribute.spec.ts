@@ -1,6 +1,6 @@
 import { preprocessResource } from '@aurelia/plugin-conventions';
 import { createMarkupReader, assertSuccess, assertFailure, prop } from './_shared';
-import { nonConventionalOptions } from './without-convention.basic';
+import { nonConventionalOptions } from './without-convention.basic.spec';
 
 describe('type-checking/without-convention.custom-attribute', function () {
   for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']] as const) {

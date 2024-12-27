@@ -430,7 +430,7 @@ function isStaticPropertyDeclaration(node: ClassElement, name: string): node is 
     && node.name.escapedText === name
     && (getCombinedModifierFlags(node) & ModifierFlags.Static) !== 0;
 }
-function is$auProperty(member: ClassElement): member is PropertyDeclaration {
+function isStatic$auProperty(member: ClassElement): member is PropertyDeclaration {
   return isStaticPropertyDeclaration(member, '$au');
 }
 
@@ -507,7 +507,7 @@ function createAuResourceTransformer(): TransformerFactory<SourceFile> {
 
   function visitClass(node: ClassDeclaration): Node {
     const newMembers = node.members.map(member => {
-      if (!is$auProperty(member)) return member;
+      if (!isStatic$auProperty(member)) return member;
 
       const initializer = member.initializer;
       if (initializer == null || !isObjectLiteralExpression(initializer)) return member;
@@ -535,11 +535,8 @@ function findResource(
   templateMetadata: ITemplateMetadata[],
 ): IFoundResource | void {
 
-  if (
-    !isClassDeclaration(node)           // Only care about class declaration
-    || !node.name                          // Ignore anonymous class.
-    || !isExported(node) && !useConvention // Convention dictates that the class must be exported.
-  ) return;
+  // Ignore non-class declarations, anonymous classes, and non-exported classes (in case convention is used).
+  if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention) return;
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
@@ -551,15 +548,15 @@ function findResource(
 
   if (resourceType) {
     const decorator = resourceType.expression;
-    const dArgs = decorator.arguments;
-    const numArguments = dArgs.length;
+    const decoratorArgs = decorator.arguments;
+    const numArguments = decoratorArgs.length;
 
     // map the classes to the template imports to classes - @customElement decorator
     if (resourceType.type === 'customElement') {
-      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(dArgs[0], $class, templateMetadata);
-      for (const m of node.members) {
+      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(decoratorArgs[0], $class, templateMetadata);
+      for (const member of node.members) {
         // static template property
-        tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
+        tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata);
       }
     }
 
@@ -577,10 +574,10 @@ function findResource(
       isImplicitResource &&
       resourceType.type === 'customElement' &&
       numArguments === 1 &&
-      isStringLiteral(dArgs[0])
+      isStringLiteral(decoratorArgs[0])
     ) {
       // @customElement('custom-name')
-      const customName = dArgs[0];
+      const customName = decoratorArgs[0];
       return {
         type: resourceType.type,
         classMetadata: $class,
@@ -596,7 +593,7 @@ function findResource(
     if (type === 'customElement') {
       for (const m of node.members) {
         // static $au property and/or static template property
-        if (is$auProperty(m)) {
+        if (isStatic$auProperty(m)) {
           tryCollectTemplateMetadataFromDefinition(m.initializer, $class, templateMetadata);
         }
         tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);

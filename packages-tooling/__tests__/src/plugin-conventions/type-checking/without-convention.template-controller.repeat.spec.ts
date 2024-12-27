@@ -1,6 +1,6 @@
 import { preprocessResource } from '@aurelia/plugin-conventions';
-import { createMarkupReader, assertSuccess, assertFailure } from './_shared';
-import { nonConventionalOptions } from './without-convention.basic';
+import { createMarkupReader, assertSuccess, assertFailure, prop } from './_shared';
+import { nonConventionalOptions } from './without-convention.basic.spec';
 
 describe('type-checking/without-convention.template-controller.repeat', function () {
   for (const [lang, extn] of [['TypeScript', 'ts'], ['JavaScript', 'js'], ['ESM', 'mjs']] as const) {
@@ -19,8 +19,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${prop('prop', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -42,8 +41,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${prop('prop', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -66,8 +64,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${prop('prop', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -89,8 +86,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${prop('prop', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -135,11 +131,8 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${prop('prop1', 'string[]', isTs)}
+${prop('prop2', 'number[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -161,11 +154,8 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${prop('prop1', 'string[]', isTs)}
+${prop('prop2', 'number[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -187,11 +177,8 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${prop('prop1', 'string[]', isTs)}
+${prop('prop2', 'number[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -213,11 +200,8 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-
-${isTs ? '' : '/** @type {number[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': number[]' : ''};
+${prop('prop1', 'string[]', isTs)}
+${prop('prop2', 'number[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -239,13 +223,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+${prop('prop', 'Bar[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${prop('x', 'string', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -267,13 +249,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Bar[]' : ''};
+${prop('prop', 'Bar[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+${prop('x1', 'string', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -295,21 +275,16 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
-
-${isTs ? '' : '/** @type {Baz[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+${prop('prop1', 'Bar[]', isTs)}
+${prop('prop2', 'Baz[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${prop('x', 'string', isTs)}
 }
 
 class Baz {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('y', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -331,21 +306,16 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Bar[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': Bar[]' : ''};
-
-${isTs ? '' : '/** @type {Baz[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': Baz[]' : ''};
+${prop('prop1', 'Bar[]', isTs)}
+${prop('prop2', 'Baz[]', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${prop('x', 'string', isTs)}
 }
 
 class Baz {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y1${isTs ? ': number' : ''};
+${prop('y1', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -367,16 +337,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${prop('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${prop('x', 'number', isTs)}
+${prop('children', 'Node[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -398,16 +364,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${prop('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${prop('x', 'number', isTs)}
+${prop('children', 'Node[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -429,16 +391,12 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}nodes${isTs ? ': Node[]' : ''};
+${prop('nodes', 'Node[]', isTs)}
 }
 
 class Node {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {Node[]} */'}
-${isTs ? 'public ' : ''}children${isTs ? ': Node[]' : ''};
+${prop('x', 'number', isTs)}
+${prop('children', 'Node[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -460,8 +418,29 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': string[]' : ''};
+${prop('prop', 'string[]', isTs)}
+}
+`,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`template controller - repeat - contextual properties - $this - pass`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = `<template repeat.for="item of prop">\${$this.$index} - \${item.toLowerCase()} - \${$this.$first} - \${$this.$last} - \${$this.$even} - \${$this.$odd} - \${$this.$length}</template>`;
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${prop('prop', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -490,10 +469,8 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop1${isTs ? ': string[]' : ''};
-${isTs ? '' : '/** @type {string[]} */'}
-${isTs ? 'public ' : ''}prop2${isTs ? ': string[]' : ''};
+${prop('prop1', 'string[]', isTs)}
+${prop('prop2', 'string[]', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -517,8 +494,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${prop('prop', 'Set<string>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -540,8 +516,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${prop('prop', 'Set<string>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -563,13 +538,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<Bar>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+${prop('prop', 'Set<Bar>', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': string' : ''};
+${prop('x', 'string', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -591,13 +564,11 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<Bar>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<Bar>' : ''};
+${prop('prop', 'Set<Bar>', isTs)}
 }
 
 class Bar {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}x1${isTs ? ': string' : ''};
+${prop('x1', 'string', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -619,8 +590,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Set<string>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Set<string>' : ''};
+${prop('prop', 'Set<string>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -644,8 +614,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -667,8 +636,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -690,8 +658,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -713,8 +680,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -736,8 +702,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -759,8 +724,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, number>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, number>' : ''};
+${prop('prop', 'Map<string, number>', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -782,24 +746,17 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${prop('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
+${prop('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
+${prop('b', 'string', isTs)}
 }`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
@@ -820,24 +777,17 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${prop('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
+${prop('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
+${prop('b', 'string', isTs)}
 }`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
@@ -858,24 +808,17 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Key, Value>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Key, Value>' : ''};
+${prop('prop', 'Map<Key, Value>', isTs)}
 }
 
 class Key {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
-
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
+${prop('y', 'number', isTs)}
 }
 
 class Value {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
-
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
+${prop('b', 'string', isTs)}
 }`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
@@ -896,34 +839,26 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${prop('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${prop('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${prop('n', 'string', isTs)}
+}`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
 
@@ -943,34 +878,26 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${prop('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${prop('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${prop('n', 'string', isTs)}
+}`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
 
@@ -990,34 +917,26 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<Salt, Map<Shot, Lime>>} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<Salt, Map<Shot, Lime>>' : ''};
+${prop('prop', 'Map<Salt, Map<Shot, Lime>>', isTs)}
 }
 
 class Salt {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}x${isTs ? ': number' : ''};
+${prop('x', 'number', isTs)}
 
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}y${isTs ? ': number' : ''};
+${prop('y', 'number', isTs)}
 }
 
 class Lime {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}a${isTs ? ': string' : ''};
+${prop('a', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}b${isTs ? ': string' : ''};
+${prop('b', 'string', isTs)}
 }
 
 class Shot {
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}m${isTs ? ': string' : ''};
+${prop('m', 'string', isTs)}
 
-${isTs ? '' : '/** @type {string} */'}
-${isTs ? 'public ' : ''}n${isTs ? ': string' : ''};
-}
-`,
+${prop('n', 'string', isTs)}
+}`,
             readFile: createMarkupReader(markupFile, markup),
           }, nonConventionalOptions);
 
@@ -1039,8 +958,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${prop('prop', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1082,8 +1000,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${prop('prop', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1125,8 +1042,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${prop('prop', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1148,8 +1064,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {number} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': number' : ''};
+${prop('prop', 'number', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1174,8 +1089,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${prop('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1197,8 +1111,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${prop('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1220,8 +1133,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${prop('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1243,8 +1155,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {{foo: string, bar: number}} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': {foo: string, bar: number}' : ''};
+${prop('prop', '{foo: string, bar: number}', isTs)}
 }
 `,
             readFile: createMarkupReader(markupFile, markup),
@@ -1267,8 +1178,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {FileList} */'}
-${isTs ? 'public ' : ''}files${isTs ? ': FileList' : ''};
+${prop('files', 'FileList', isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),
@@ -1297,8 +1207,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${isTs ? '' : '/** @type {Map<string, Set<number>>[]} */'}
-${isTs ? 'public ' : ''}prop${isTs ? ': Map<string, Set<number>>[]' : ''};
+${prop('prop', 'Map<string, Set<number>>[]' , isTs)}
 }
 `,
           readFile: createMarkupReader(markupFile, markup),

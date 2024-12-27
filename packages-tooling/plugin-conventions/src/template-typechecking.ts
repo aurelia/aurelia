@@ -140,7 +140,7 @@ class TypeCheckingContext {
   public readonly classUnion: string;
   public readonly accessTypeParts: ((acc: string) => string)[];
   public readonly accessTypeIdentifier: string;
-  public readonly accessIdent: string;
+  public readonly accessIdentifier: string;
 
   private _accessType: string | undefined = void 0;
   public get accessType(): string { return this._accessType ??= this.accessTypeParts.reduce((acc: string, part) => part(acc), ''); }
@@ -163,7 +163,7 @@ class TypeCheckingContext {
     this.classUnion = `(${classNames.join('|')})`;
     this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
     this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
-    this.accessIdent = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
+    this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
     this.scope = new IdentifierScope('none', classes);
   }
 
@@ -272,17 +272,17 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
     // generate a new identifier
     const identifier = ctx.getIdentifier(rangeIterableIdentifier)!;
     const primitiveValue = (expr.iterable as PrimitiveLiteralExpression).value;
-    iterable = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
+    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
     ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
     propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
   } else {
-    const rawIterIdent = Unparser.unparse(expr.iterable);
+    const rawIterIdentifier = Unparser.unparse(expr.iterable);
     const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => {
       const newName = ctx.getIdentifier(member, IdentifierInstruction.AddToOverrides)!;
       return newName;
     }, true);
     propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
-    iterable = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdent}')}`;
+    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdentifier}')}`;
   }
   let declaration: () => string;
   switch (expr.declaration.$kind) {
@@ -293,27 +293,27 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
       const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
 
       ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
-      declaration = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
+      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
       break;
 
       // eslint-disable-next-line no-inner-declarations
       function getArrDestIdent(leafExpr: DestructuringAssignmentExpression | DestructuringAssignmentSingleExpression | DestructuringAssignmentRestExpression): [raw: string, ident: string] {
         switch (leafExpr.$kind) {
           case 'DestructuringAssignmentLeaf': {
-            const rawIdent = leafExpr.target.name;
-            const ident = ctx.getIdentifier(rawIdent, IdentifierInstruction.AddToOverrides)!;
-            return [rawIdent, ident];
+            const rawIdentifier = leafExpr.target.name;
+            const identifier = ctx.getIdentifier(rawIdentifier, IdentifierInstruction.AddToOverrides)!;
+            return [rawIdentifier, identifier];
           }
           default: throw new Error(`Unsupported declaration kind: ${keyAssignLeaf.$kind}`);
         }
       }
     }
     default: {
-      const rawDecIdent = Unparser.unparse(expr.declaration);
-      const decIdent = ctx.getIdentifier(rawDecIdent, IdentifierInstruction.AddToOverrides)!;
+      const rawDecIdentifier = Unparser.unparse(expr.declaration);
+      const decIdentifier = ctx.getIdentifier(rawDecIdentifier, IdentifierInstruction.AddToOverrides)!;
 
-      ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdent}: CollectionElement<${propAccExpr}> }`);
-      declaration = () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(decIdent)}, '${rawDecIdent}')}`;
+      ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdentifier}: CollectionElement<${propAccExpr}> }`);
+      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(decIdentifier)}, '${rawDecIdentifier}')}`;
 
       break;
     }
@@ -380,7 +380,7 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
   function addReplaceParts(_expr: IsAssign, value: string): void {
     ctx.toReplace.push({
       loc: node.sourceCodeLocation!.attrs![attr.name],
-      modifiedContent: () => `${attr.name}="\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+      modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
     });
   }
 }
@@ -406,7 +406,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
           ctx.toReplace.push({
             loc: node.sourceCodeLocation!.attrs![attr.name],
-            modifiedContent: () => `${attr.name}="\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
           });
         }
       }
@@ -421,7 +421,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         const originalExpr = part;
         [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
         htmlFactories.push(
-          () => `\${${ctx.accessIdent}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`,
+          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`,
           () => expr.parts[idx + 1]
         );
       });

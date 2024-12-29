@@ -440,7 +440,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         const originalExpr = part;
         [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
         htmlFactories.push(
-          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`,
+          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${escape(unparse(originalExpr))}')}`,
           () => expr.parts[idx + 1]
         );
       });
@@ -454,6 +454,9 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
   return retVal;
 }
 
+function escape(s: string): string {
+  return s.replace(/'/g, '\\\'');
+}
 function unparse(expr: IsBindingBehavior): string {
   return Unparser.unparse(expr);
 }

@@ -394,6 +394,7 @@ function getClassMembers(node: ClassDeclaration, sf: SourceFile): ClassMember[] 
     if (memberType === null) return acc;
     if (isIdentifier(name)) {
       const flags = getCombinedModifierFlags(m);
+      // TODO(Sayan): extract access modifiers from JSDOC
       const accessModifier = flags & ModifierFlags.Private
         ? 'private'
         : flags & ModifierFlags.Protected
@@ -403,6 +404,7 @@ function getClassMembers(node: ClassDeclaration, sf: SourceFile): ClassMember[] 
         name: name.escapedText.toString(),
         accessModifier,
         memberType,
+        // TODO(Sayan): extract types from JSDOC
         dataType: (m as PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration).type?.getText(sf) ?? 'any',
       });
     }

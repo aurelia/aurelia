@@ -9,6 +9,8 @@ import type {
   SourceFile,
   Statement,
   TransformerFactory,
+  MethodDeclaration,
+  GetAccessorDeclaration,
 } from 'typescript';
 import pkg from 'typescript';
 import { modifyCode } from './modify-code';
@@ -56,9 +58,20 @@ interface ICapturedImport {
   end: number;
 }
 
+type AccessModifier = 'public' | 'protected' | 'private';
+type MemberType = 'property' | 'method' | 'accessor';
+
+interface ClassMember {
+  accessModifier: AccessModifier;
+  memberType: MemberType;
+  name: string;
+  dataType: string;
+  // TODO(Sayan): handle argument types for methods.
+}
+
 export interface ClassMetadata {
   name: string;
-  members: string[]; // keeping it simple for now; we can probably do more with this
+  members: ClassMember[];
 }
 
 interface ITemplateMetadata {
@@ -167,7 +180,7 @@ export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions)
     // Note this convention simply doesn't work for
     //   class Foo {}
     //   export {Foo};
-    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata);
+    const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata, sf);
     if (!resource) return;
     const {
       classMetadata,
@@ -362,13 +375,39 @@ function captureTemplateImport(s: Statement, code: string): ITemplateMetadata | 
   };
 }
 
-function getClassMembers(node: ClassDeclaration): string[] {
-  return node.members.reduce((acc: string[], m: ClassElement) => {
+function getClassMembers(node: ClassDeclaration, sf: SourceFile): ClassMember[] {
+  return node.members.reduce((acc: ClassMember[], m: ClassElement) => {
     const name = m.name;
     if (name == null) return acc;
-    if (isIdentifier(name)) acc.push(name.escapedText.toString());
+    let memberType: MemberType | null = null;
+    switch (m.kind) {
+      case SyntaxKind.PropertyDeclaration:
+        memberType = 'property';
+        break;
+      case SyntaxKind.MethodDeclaration:
+        memberType = 'method';
+        break;
+      case SyntaxKind.GetAccessor:
+        memberType = 'accessor';
+        break;
+    }
+    if (memberType === null) return acc;
+    if (isIdentifier(name)) {
+      const flags = getCombinedModifierFlags(m);
+      const accessModifier = flags & ModifierFlags.Private
+        ? 'private'
+        : flags & ModifierFlags.Protected
+          ? 'protected'
+          : 'public';
+      acc.push({
+        name: name.escapedText.toString(),
+        accessModifier,
+        memberType,
+        dataType: (m as PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration).type?.getText(sf) ?? 'any',
+      });
+    }
     return acc;
-  }, []);
+  }, [] as ClassMember[]);
 }
 
 function tryCaptureCustomElementDefine(s: Statement, sf: SourceFile, templateMetadata: ITemplateMetadata[]): boolean {
@@ -390,7 +429,7 @@ function tryCaptureCustomElementDefine(s: Statement, sf: SourceFile, templateMet
   const name = className.escapedText.toString();
   // This is a second pass of the source file; this needs to be optimized. Waiting for feature-completion first.
   const classDeclaration = sf.statements.find(s => isClassDeclaration(s) && s.name != null && s.name.text === name) as ClassDeclaration;
-  const $class: ClassMetadata = { name, members: getClassMembers(classDeclaration) };
+  const $class: ClassMetadata = { name, members: getClassMembers(classDeclaration, sf) };
   return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 
@@ -533,6 +572,7 @@ function findResource(
   code: string,
   useConvention: boolean | undefined,
   templateMetadata: ITemplateMetadata[],
+  sf: SourceFile,
 ): IFoundResource | void {
 
   // Ignore non-class declarations, anonymous classes, and non-exported classes (in case convention is used).
@@ -540,7 +580,7 @@ function findResource(
   const pos = ensureTokenStart(node.pos, code);
 
   const className = node.name.text;
-  const $class = { name: className, members: getClassMembers(node) };
+  const $class = { name: className, members: getClassMembers(node, sf) };
   const { name, type } = nameConvention(className);
   const isImplicitResource = isKindOfSame(name, expectedResourceName);
 

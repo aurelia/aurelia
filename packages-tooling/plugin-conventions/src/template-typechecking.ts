@@ -99,7 +99,7 @@ class IdentifierScope {
     if (isPromise) {
       if (this.type !== 'promise') throw new Error(`Identifier '${ident}' is used for promise template controller, but scope is not marked as a promise scope.`);
     }
-    if (this.classes.some(c => c.members.includes(ident))) return returnIdentifier(ident);
+    if (this.classes.some(c => c.members.some(x => x.name === ident))) return returnIdentifier(ident);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
@@ -160,7 +160,26 @@ class TypeCheckingContext {
     public readonly isJs: boolean,
   ) {
     const classNames = classes.map(c => c.name);
-    this.classUnion = `(${classNames.join('|')})`;
+
+    // create a class union
+    // - Omit the private and protected members
+    // - Add them back to the union type
+    // - Then create union
+    const classUnion = [];
+    for (const $class of classes) {
+      // Omit<CLASS, 'private' | 'protected'> & { PRIVATE: TYPE, PROTECTED: TYPE }
+      const nonPublicMembers = $class.members.filter(x => x.accessModifier !== 'public');
+      if (nonPublicMembers.length === 0) {
+        classUnion.push($class.name);
+        continue;
+      }
+      classUnion.push(
+        // TODO(Sayan): handle method arguments (and overloads?)
+        `Omit<${$class.name}, ${nonPublicMembers.map(x => `'${x.name}'`).join(' | ')}> & { ${nonPublicMembers.map(x => `${x.name}${x.memberType === 'method' ? '()' : ''}: ${x.dataType}`).join(', ')} }`
+      );
+    }
+    this.classUnion = classUnion.join(' | ');
+
     this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
     this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
     this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;

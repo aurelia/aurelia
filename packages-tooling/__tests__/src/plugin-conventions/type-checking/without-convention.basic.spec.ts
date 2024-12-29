@@ -1994,6 +1994,78 @@ ${prop('prop', 'Dep', isTs)}
       assertSuccess(entry, result.code, additionalModules);
     });
 
+    describe('access modifier', function () {
+      for (const am of ['protected', 'private'] as const) {
+        it(`${am} property - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${prop('prop', 'string', isTs, am)}
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it(`${am} accessor - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `/** @type {string} */`}
+${isTs ? `${am} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it.only(`${am} method - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop()}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `/** @returns {string} */`}
+${isTs ? `${am} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+      }
+    });
+
     it(`nested property interpolation - fail - language: ${lang}`, function () {
       const entry = `entry.${extn}`;
       const markupFile = 'entry.html';

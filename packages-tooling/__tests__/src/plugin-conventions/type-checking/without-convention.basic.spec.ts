@@ -2041,7 +2041,7 @@ ${isTs ? `${am} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
           assertSuccess(entry, result.code);
         });
 
-        it.only(`${am} method - language: ${lang}`, function () {
+        it(`${am} method - language: ${lang}`, function () {
           const entry = `entry.${extn}`;
           const markupFile = 'entry.html';
           const markup = '${prop()}';

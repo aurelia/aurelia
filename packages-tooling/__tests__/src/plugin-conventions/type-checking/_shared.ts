@@ -97,6 +97,10 @@ export function prop(
   isTs: boolean,
   accessModifier: 'public' | 'protected' | 'private' = 'public',
 ) {
-  return `${isTs ? '' : `/** @type {${type}} */`}
+  return `${isTs ? '' : `
+/**
+ * @${accessModifier}
+ * @type {${type}}
+ */`}
 ${isTs ? `${accessModifier} ` : ''}${name}${isTs ? `: ${type}` : ''};`;
 }

@@ -29,7 +29,7 @@ import type {
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 import { modifyCode } from './modify-code';
-import { ClassMetadata } from './preprocess-resource';
+import { ClassMember, ClassMetadata } from './preprocess-resource';
 
 type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTextNode = DefaultTreeAdapterMap['textNode'];
@@ -174,8 +174,8 @@ class TypeCheckingContext {
         continue;
       }
       classUnion.push(
-        // TODO(Sayan): handle method arguments (and overloads?)
-        `Omit<${$class.name}, ${nonPublicMembers.map(x => `'${x.name}'`).join(' | ')}> & { ${nonPublicMembers.map(x => `${x.name}${x.memberType === 'method' ? '()' : ''}: ${x.dataType}`).join(', ')} }`
+        // TODO(Sayan): handle method overloads?
+        `Omit<${$class.name}, ${nonPublicMembers.map(x => `'${x.name}'`).join(' | ')}> & ${renderNonPublicMembers(nonPublicMembers)}`
       );
     }
     this.classUnion = classUnion.join(' | ');
@@ -184,6 +184,14 @@ class TypeCheckingContext {
     this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
     this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
     this.scope = new IdentifierScope('none', classes);
+
+    function renderNonPublicMembers(nonPublicMembers: ClassMember[]): string {
+      return `{ ${nonPublicMembers.map(x => `${x.name}${renderMethodArguments(x)}: ${x.dataType}`).join(', ')} }`;
+    }
+    function renderMethodArguments(x: ClassMember): string {
+      if (x.memberType !== 'method') return '';
+      return `(${x.methodArguments!.map(a => `${a.isSpread ? '...' : ''}${a.name}${a.isOptional ? '?' : ''}: ${a.type}`).join(',')})`;
+    }
   }
 
   public produceTypeCheckedTemplate(rawHtml: string): string {

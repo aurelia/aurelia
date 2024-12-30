@@ -43,13 +43,14 @@ const {
   transform,
   visitEachChild,
   visitNode,
+  getJSDocType,
   factory: {
     createIdentifier,
     createObjectLiteralExpression,
     createSpreadAssignment,
     updateClassDeclaration,
     updatePropertyDeclaration,
-  }
+  },
 } = pkg;
 
 interface ICapturedImport {
@@ -61,12 +62,19 @@ interface ICapturedImport {
 type AccessModifier = 'public' | 'protected' | 'private';
 type MemberType = 'property' | 'method' | 'accessor';
 
-interface ClassMember {
+export interface MethodArgument {
+  name: string;
+  type: string;
+  isOptional: boolean;
+  isSpread: boolean;
+}
+
+export interface ClassMember {
   accessModifier: AccessModifier;
   memberType: MemberType;
   name: string;
   dataType: string;
-  // TODO(Sayan): handle argument types for methods.
+  methodArguments: MethodArgument[] | null;
 }
 
 export interface ClassMetadata {
@@ -137,7 +145,7 @@ interface IModifyResourceOptions {
 
 export function preprocessResource(unit: IFileUnit, options: IPreprocessOptions): ModifyCodeResult {
   const expectedResourceName = resourceName(unit.path);
-  const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
+  const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest, true);
   let exportedClassMetadata: ClassMetadata | undefined;
   let auImport: ICapturedImport = { names: [], start: 0, end: 0 };
   let runtimeImport: ICapturedImport = { names: [], start: 0, end: 0 };
@@ -281,7 +289,7 @@ function modifyResource(unit: IFileUnit, m: ReturnType<typeof modifyCode>, optio
     } else {
       const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
       if (elementStatement.includes('$au')) {
-        const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest);
+        const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest, true);
         const result = transform(sf, [createAuResourceTransformer()]);
         const modified = createPrinter().printFile(result.transformed[0]);
         m.replace(implicitElement.pos, implicitElement.end, modified);
@@ -394,18 +402,25 @@ function getClassMembers(node: ClassDeclaration, sf: SourceFile): ClassMember[] 
     if (memberType === null) return acc;
     if (isIdentifier(name)) {
       const flags = getCombinedModifierFlags(m);
-      // TODO(Sayan): extract access modifiers from JSDOC
-      const accessModifier = flags & ModifierFlags.Private
+      const accessModifier: AccessModifier = flags & ModifierFlags.Private
         ? 'private'
         : flags & ModifierFlags.Protected
           ? 'protected'
-          : 'public';
+          : 'public'
+        ;
       acc.push({
         name: name.escapedText.toString(),
-        accessModifier,
+        accessModifier: accessModifier!,
         memberType,
-        // TODO(Sayan): extract types from JSDOC
-        dataType: (m as PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration).type?.getText(sf) ?? 'any',
+        dataType: ((m as PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration).type ?? getJSDocType(m))?.getText(sf) ?? 'any',
+        methodArguments: memberType === 'method'
+          ? (m as MethodDeclaration).parameters.map(p => ({
+            name: p.name.getText(sf),
+            type: (p.type ?? getJSDocType(p))?.getText(sf) ?? 'any',
+            isOptional: p.questionToken != null,
+            isSpread: p.dotDotDotToken != null
+          }))
+          : null
       });
     }
     return acc;

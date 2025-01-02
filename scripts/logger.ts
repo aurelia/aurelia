@@ -1,6 +1,7 @@
-import c from 'chalk';
+import * as c from 'chalk';
 import * as l from 'fancy-log';
 
+const chalk = ((c as {default?: unknown}).default || c) as typeof import('chalk');
 const log = ((l as {default?: unknown}).default || l) as typeof import('fancy-log');
 
 export function createLogger(name: string): typeof log {
@@ -13,4 +14,4 @@ export function createLogger(name: string): typeof log {
   return logger;
 }
 
-export { c };
+export { chalk as c };

@@ -21,6 +21,6 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "now": "rimraf dist && vite build && cd dist && now && cd .."
+    "now": "rimraf --glob dist && vite build && cd dist && now && cd .."
   }
 }

@@ -9,7 +9,7 @@
   "version": "0.8.0",
   "scripts": {
     "watch": "webpack serve",
-    "build": "rimraf dist && webpack",
+    "build": "rimraf --glob dist && webpack",
     "serve": "au-http-server au.conf.js"
   },
   "dependencies": {

@@ -5,12 +5,12 @@
   "version": "1.0.0",
   "scripts": {
     "start": "webpack serve",
-    "build": "rimraf dist && webpack --mode=production",
+    "build": "rimraf --glob dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",
     "serve": "au-http-server au.conf.js",
     "dev": "webpack serve",
-    "build-serve": "rimraf dist && webpack --mode=production && au-http-server au.conf.js",
-    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+    "build-serve": "rimraf --glob dist && webpack --mode=production && au-http-server au.conf.js",
+    "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-beta.22",

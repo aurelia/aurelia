@@ -1,4 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 git reset --quiet -- packages/__tests__/tsconfig.json

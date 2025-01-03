@@ -2115,5 +2115,153 @@ ${prop('prop', 'string', isTs)}
 
       assertSuccess(entry, result.code);
     });
+
+    // TODO(Sayan): union typed property
+    // TODO(Sayan): union typed accessor
+    // TODO(Sayan): union typed method argument
+    // TODO(Sayan): overloaded method
+    describe('access modifier', function () {
+      for (const am of ['public', 'protected', 'private'] as const) {
+        it(`${am} property - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${prop('prop', 'string', isTs, am)}
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it(`${am} accessor - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `
+/**
+ * @${am}
+ * @type {string}
+ */
+`}
+${isTs ? `${am} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        describe(`${am} method - language: ${lang}`, function () {
+          it(`without argument - pass`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop()}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `
+/**
+ * @${am}
+ * @returns {string}
+ */
+`}
+${isTs ? `${am} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertSuccess(entry, result.code);
+          });
+
+          it(`with arguments - pass`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop(\'foo\', 42)}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+  import { customElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  @customElement({ name: 'foo', template })
+  export class Foo {
+  ${isTs ? '' : `
+  /**
+   * @param {string} x
+   * @param {number} y
+   * @returns {string}
+   * @${am}
+   */
+  `}
+  ${isTs ? `${am} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  }
+  `,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertSuccess(entry, result.code);
+          });
+
+          it(`with arguments - fail`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop(42, \'foo\')}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+  import { customElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  @customElement({ name: 'foo', template })
+  export class Foo {
+  ${isTs ? '' : `
+  /**
+   * @param {string} x
+   * @param {number} y
+   * @returns {string}
+   * @${am}
+   */
+  `}
+  ${isTs ? `${am} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  }
+  `,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertFailure(entry, result.code, [/Argument of type 'number' is not assignable to parameter of type 'string'/]);
+          });
+        });
+      }
+    });
   }
 });

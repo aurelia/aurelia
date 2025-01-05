@@ -177,7 +177,10 @@ class ValidationConnector implements ValidationResultsSubscriber {
     this.scope = scope;
     this.target = this._getTarget();
     const delta = this._processBindingExpressionArgs();
-    this._processDelta(delta);
+    if(!this._processDelta(delta) && this.bindingInfo != null) {
+      this.controller?.registerBinding(this.propertyBinding, this.bindingInfo);
+      this.controller?.addSubscriber(this);
+    }
   }
 
   public stop() {
@@ -190,6 +193,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
       this.target?.removeEventListener(triggerEventName, this);
     }
     this.controller?.resetBinding(this.propertyBinding);
+    this.controller.unregisterBinding(this.propertyBinding);
     this.controller?.removeSubscriber(this);
   }
 
@@ -266,7 +270,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
   }
 
   /** @internal */
-  private _processDelta(delta: ValidateArgumentsDelta) {
+  private _processDelta(delta: ValidateArgumentsDelta): boolean {
     const trigger = delta.trigger ?? this.trigger;
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
@@ -295,7 +299,9 @@ class ValidationConnector implements ValidationResultsSubscriber {
       this.controller = controller;
       controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules));
       controller.addSubscriber(this);
+      return true;
     }
+    return false;
   }
 
   /** @internal */

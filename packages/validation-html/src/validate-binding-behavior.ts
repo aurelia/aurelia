@@ -193,7 +193,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
       this.target?.removeEventListener(triggerEventName, this);
     }
     this.controller?.resetBinding(this.propertyBinding);
-    this.controller.unregisterBinding(this.propertyBinding);
+    this.controller?.unregisterBinding(this.propertyBinding);
     this.controller?.removeSubscriber(this);
   }
 

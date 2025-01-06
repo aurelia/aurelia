@@ -141,7 +141,7 @@ export function areSimilarTypedArrays(a: TypedArray | ArrayBufferView, b: TypedA
   ) === 0;
 }
 
-export function areEqualArrayBuffers(buf1: ArrayBuffer, buf2: ArrayBuffer): boolean {
+export function areEqualArrayBuffers(buf1: ArrayBuffer | SharedArrayBuffer, buf2: ArrayBuffer | SharedArrayBuffer): boolean {
   return (
     buf1.byteLength === buf2.byteLength
     && compare(

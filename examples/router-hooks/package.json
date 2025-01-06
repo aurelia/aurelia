@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "webpack serve",
-    "build": "rimraf dist && webpack --mode=production",
+    "build": "rimraf --glob dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",
     "serve": "npx http-server",
     "dev": "webpack serve"

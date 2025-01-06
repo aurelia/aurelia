@@ -20,7 +20,7 @@
     "test-node:ts-jest": "npm run ::mocha -- dist/cjs/ts-jest/**/*.spec.js",
     "test-node:parcel-transformer": "npm run ::mocha -- dist/cjs/parcel-transformer/**/*.spec.js",
     "build": "tsc --build",
-    "postbuild": "rimraf dist/**/tsconfig.tsbuildinfo",
+    "postbuild": "rimraf --glob dist/**/tsconfig.tsbuildinfo",
     "dev": "cross-env DEV_MODE=true node esbuild.dev.cjs",
     "rollup": "npm run build",
     "verify": "tsc --noEmit"

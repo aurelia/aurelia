@@ -33,7 +33,7 @@
     "start": "webpack-dev-server",
     "build:e2e": "tsc -p e2e/tsconfig.json",
     "start:e2e": "mocha --ui bdd --colors --reporter spec --timeout 30000 e2e/dist/**/*.spec.js",
-    "build": "rimraf dist && webpack"
+    "build": "rimraf --glob dist && webpack"
   },
   "engines": {
     "node": ">=14.15.0",

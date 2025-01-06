@@ -7,8 +7,8 @@
     "npm": ">=6.14.8"
   },
   "scripts": {
-    "start": "rimraf dist && webpack-dev-server",
-    "build": "rimraf dist && webpack"
+    "start": "rimraf --glob dist && webpack-dev-server",
+    "build": "rimraf --glob dist && webpack"
   },
   "dependencies": {
     "@aurelia/kernel": "2.0.0-alpha.13",

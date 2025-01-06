@@ -195,7 +195,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     this._normalizeToArray();
-    this._createScopes(indexMap);
+    this._createScopes(this.key === null ? indexMap : void 0);
     this._applyIndexMap(indexMap);
   }
 
@@ -353,8 +353,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
           scopes[i] = oldScopes[src];
         } else {
           scopes[i] = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
-          setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
         }
+        setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
       }
     }
 

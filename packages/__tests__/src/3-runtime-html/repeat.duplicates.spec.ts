@@ -100,5 +100,21 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
 
       assertText('0-a 1-b 2-c ');
     });
+
+    it('object duplication unshift (issue 2078)', function () {
+      const objA = { toString() { return 'a'; } };
+      const objB = { toString() { return 'b'; } };
+
+      const { assertText, component, flush } = createFixture(
+        `<div repeat.for="i of items">\${$index}-\${i} </div>`,
+        class { items = [objA, objB]; }
+      );
+      assertText('0-a 1-b ');
+
+      component.items.unshift(objB);
+      flush();
+
+      assertText('0-b 1-a 2-b ');
+    });
   });
 });

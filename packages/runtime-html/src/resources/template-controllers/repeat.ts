@@ -75,6 +75,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   /** @internal */ private _oldViews: ISyntheticView[] = [];
   /** @internal */ private _scopes: Scope[] = [];
   /** @internal */ private _oldScopes: Scope[] = [];
+  /** @internal */ private _scopeMap: Map<unknown, Scope | Scope[]> = new Map();
   /** @internal */ private _observer?: CollectionObserver = void 0;
   /** @internal */ private _innerItems: Items<C> | null;
   /** @internal */ private _forOfBinding!: PropertyBinding;
@@ -158,6 +159,13 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     this._refreshCollectionObserver();
 
     return this._deactivateAllViews(initiator);
+  }
+
+  public unbinding(
+    _initiator: IHydratedController,
+    _parent: IHydratedParentController,
+  ): void | Promise<void> {
+    this._scopeMap.clear();
   }
 
   // called by SetterObserver
@@ -324,6 +332,8 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const len = items.length;
     const scopes = this._scopes = Array(items.length);
 
+    const oldScopeMap = this._scopeMap;
+    const newScopeMap = new Map<unknown, Scope | Scope[]>();
     const parentScope = this.$controller.scope;
     const binding = this._forOfBinding;
     const forOf = this.forOf;
@@ -332,7 +342,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
 
     if (indexMap === void 0) {
       for (let i = 0; i < len; ++i) {
-        scopes[i] = getScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+        scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
       }
     } else {
       const oldLen = oldScopes.length;
@@ -342,10 +352,14 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
         if (src >= 0 && src < oldLen) {
           scopes[i] = oldScopes[src];
         } else {
-          scopes[i] = getScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+          scopes[i] = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+          setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
         }
       }
     }
+
+    oldScopeMap.clear();
+    this._scopeMap = newScopeMap;
   }
 
   /** @internal */
@@ -843,6 +857,8 @@ const getKeyValue = (
 };
 
 const getScope = (
+  oldScopeMap: Map<unknown, Scope | Scope[]>,
+  newScopeMap: Map<unknown, Scope | Scope[]>,
   item: unknown,
   forOf: ForOfStatement,
   parentScope: Scope,
@@ -850,8 +866,28 @@ const getScope = (
   local: string,
   hasDestructuredLocal: boolean,
 ) => {
-  const scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
+  let scope = oldScopeMap.get(item);
+  if (scope === void 0) {
+    scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
+  } else if (scope instanceof Scope) {
+    oldScopeMap.delete(item);
+  } else if (scope.length === 1) {
+    scope = scope[0];
+    oldScopeMap.delete(item);
+  } else {
+    scope = scope.shift()!;
+  }
 
+  if (newScopeMap.has(item)) {
+    const entry = newScopeMap.get(item)!;
+    if (entry instanceof Scope) {
+      newScopeMap.set(item, [entry, scope]);
+    } else {
+      entry.push(scope);
+    }
+  } else {
+    newScopeMap.set(item, scope);
+  }
   setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item);
   return scope;
 };

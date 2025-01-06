@@ -101,7 +101,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-a 1-b 2-c ');
     });
 
-    it('object duplication unshift (issue 2078)', function () {
+    it('object duplication unshift (issue #2078)', function () {
       const objA = { toString() { return 'A'; } };
       const objB = { toString() { return 'B'; } };
 

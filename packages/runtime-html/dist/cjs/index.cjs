@@ -3055,7 +3055,7 @@ function invokeAttribute(s, i, n, r, l, h, a, c) {
     registerResolver(f, e.IInstruction, new t.InstanceProvider(ee, l));
     registerResolver(f, je, a == null ? ne : new t.InstanceProvider(se, a));
     registerResolver(f, Rt, h == null ? re : new ViewFactoryProvider(h));
-    registerResolver(f, Mt, c == null ? oe : new t.InstanceProvider(ie, c));
+    registerResolver(f, Mt, oe);
     return {
         vm: f.invoke(i.Type),
         ctn: f

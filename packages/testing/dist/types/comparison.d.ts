@@ -15,7 +15,7 @@ export declare function areSimilarRegExps(a: RegExp, b: RegExp): boolean;
 export declare function areSimilarFloatArrays(a: FloatArray, b: FloatArray): boolean;
 export declare function compare(a: ArrayLike<any>, b: ArrayLike<any>): number;
 export declare function areSimilarTypedArrays(a: TypedArray | ArrayBufferView, b: TypedArray | ArrayBufferView): boolean;
-export declare function areEqualArrayBuffers(buf1: ArrayBuffer, buf2: ArrayBuffer): boolean;
+export declare function areEqualArrayBuffers(buf1: ArrayBuffer | SharedArrayBuffer, buf2: ArrayBuffer | SharedArrayBuffer): boolean;
 export declare function isEqualBoxedPrimitive(val1: unknown, val2: unknown): boolean;
 export declare function innerDeepEqual(val1: unknown, val2: unknown, strict: boolean, memos?: Memos): boolean;
 export declare function keyCheck(val1: {}, val2: {}, strict: boolean, memos: Memos | undefined, iterationType: IterationType, aKeys?: PropertyKey[]): boolean;

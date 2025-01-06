@@ -1,1 +1,1 @@
-{"version":3,"file":"index.mjs","sources":["../../src/index.ts"],"sourcesContent":[null],"names":["AddonsConfiguration","register","c"],"mappings":"AAEa,MAAAA,IAAsB;IACjC,QAAAC,CAASC;QACP,OAAOA;AACR;;;"}
+{"version":3,"file":"index.mjs","sources":["../../src/index.ts"],"sourcesContent":[null],"names":["AddonsConfiguration","register","c"],"mappings":"AAEa,MAAAA,IAAsB;IACjC,QAAAC,CAASC;QACP,OAAOA;;;;"}

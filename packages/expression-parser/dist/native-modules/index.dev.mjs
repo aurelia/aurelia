@@ -2145,11 +2145,6 @@ const { CharScanners, IdParts, } = /*@__PURE__*/ (() => {
             if (lookup) {
                 lookup.fill(value, start, end);
             }
-            if ($set) {
-                for (let ch = start; ch < end; ch++) {
-                    $set.add(ch);
-                }
-            }
         }
     };
     // // ASCII IdentifierPart lookup

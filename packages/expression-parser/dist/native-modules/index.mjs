@@ -1991,17 +1991,12 @@ const {CharScanners: xe, IdParts: we} = /*@__PURE__*/ (() => {
     };
     const decompress = (e, s, t, r) => {
         const n = t.length;
-        for (let i = 0; i < n; i += 2) {
-            const n = t[i];
-            let o = t[i + 1];
-            o = o > 0 ? o : n + 1;
+        for (let s = 0; s < n; s += 2) {
+            const n = t[s];
+            let i = t[s + 1];
+            i = i > 0 ? i : n + 1;
             if (e) {
-                e.fill(r, n, o);
-            }
-            if (s) {
-                for (let e = n; e < o; e++) {
-                    s.add(e);
-                }
+                e.fill(r, n, i);
             }
         }
     };

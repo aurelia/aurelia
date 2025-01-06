@@ -5,6 +5,6 @@ export declare function getDefaultValidationConfiguration(): ValidationCustomiza
 export declare const ValidationConfiguration: {
     optionsProvider: ValidationConfigurationProvider;
     register(container: IContainer): IContainer;
-    customize(cb?: ValidationConfigurationProvider): any;
+    customize(cb?: ValidationConfigurationProvider): /*elided*/ any;
 };
 //# sourceMappingURL=configuration.d.ts.map

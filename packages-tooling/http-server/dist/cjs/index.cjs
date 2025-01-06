@@ -375,8 +375,8 @@ PERFORMANCE OF THIS SOFTWARE.
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var target = ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};

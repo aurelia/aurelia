@@ -28,8 +28,7 @@ PERFORMANCE OF THIS SOFTWARE.
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var descriptor = ({});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -49,7 +48,6 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
             else descriptor[key] = _;
         }
     }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 }
 function __runInitializers(thisArg, initializers, value) {
@@ -717,7 +715,10 @@ class ValidationConnector {
         this.scope = scope;
         this.target = this._getTarget();
         const delta = this._processBindingExpressionArgs();
-        this._processDelta(delta);
+        if (!this._processDelta(delta) && this.bindingInfo != null) {
+            this.controller?.registerBinding(this.propertyBinding, this.bindingInfo);
+            this.controller?.addSubscriber(this);
+        }
     }
     stop() {
         this.task?.cancel();
@@ -728,6 +729,7 @@ class ValidationConnector {
             this.target?.removeEventListener(triggerEventName, this);
         }
         this.controller?.resetBinding(this.propertyBinding);
+        this.controller?.unregisterBinding(this.propertyBinding);
         this.controller?.removeSubscriber(this);
     }
     handleTriggerChange(newValue, _previousValue) {
@@ -817,7 +819,9 @@ class ValidationConnector {
             this.controller = controller;
             controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules));
             controller.addSubscriber(this);
+            return true;
         }
+        return false;
     }
     /** @internal */
     _ensureTrigger(trigger) {

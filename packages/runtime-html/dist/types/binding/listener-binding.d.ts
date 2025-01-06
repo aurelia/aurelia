@@ -6,7 +6,7 @@ export declare class ListenerBindingOptions {
     readonly prevent: boolean;
     readonly capture: boolean;
     readonly onError: (event: Event, error: unknown) => void;
-    constructor(prevent: boolean, capture: boolean, onError: (event: Event, error: unknown) => void);
+    constructor(prevent: boolean, capture: boolean | undefined, onError: (event: Event, error: unknown) => void);
 }
 export interface ListenerBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {
 }

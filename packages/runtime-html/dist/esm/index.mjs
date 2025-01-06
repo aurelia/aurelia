@@ -3055,7 +3055,7 @@ function invokeAttribute(t, e, i, s, n, r, l, h) {
     registerResolver(c, K, new B(Hi, n));
     registerResolver(c, Ts, l == null ? Ni : new B(Oi, l));
     registerResolver(c, ui, r == null ? Wi : new ViewFactoryProvider(r));
-    registerResolver(c, gi, h == null ? ji : new B($i, h));
+    registerResolver(c, gi, ji);
     return {
         vm: c.invoke(e.Type),
         ctn: c

@@ -14,33 +14,31 @@ function __esDecorate(t, i, e, s, n, r) {
         return t;
     }
     var o = s.kind, a = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var l = !i && t ? s["static"] ? t : t.prototype : null;
-    var h = i || (l ? Object.getOwnPropertyDescriptor(l, s.name) : {});
-    var c, u = false;
-    for (var d = e.length - 1; d >= 0; d--) {
-        var f = {};
-        for (var v in s) f[v] = v === "access" ? {} : s[v];
-        for (var v in s.access) f.access[v] = s.access[v];
-        f.addInitializer = function(t) {
-            if (u) throw new TypeError("Cannot add initializers after decoration has completed");
+    var l = {};
+    var h, c = false;
+    for (var u = e.length - 1; u >= 0; u--) {
+        var d = {};
+        for (var f in s) d[f] = f === "access" ? {} : s[f];
+        for (var f in s.access) d.access[f] = s.access[f];
+        d.addInitializer = function(t) {
+            if (c) throw new TypeError("Cannot add initializers after decoration has completed");
             r.push(accept(t || null));
         };
-        var g = (0, e[d])(o === "accessor" ? {
-            get: h.get,
-            set: h.set
-        } : h[a], f);
+        var v = (0, e[u])(o === "accessor" ? {
+            get: l.get,
+            set: l.set
+        } : l[a], d);
         if (o === "accessor") {
-            if (g === void 0) continue;
-            if (g === null || typeof g !== "object") throw new TypeError("Object expected");
-            if (c = accept(g.get)) h.get = c;
-            if (c = accept(g.set)) h.set = c;
-            if (c = accept(g.init)) n.unshift(c);
-        } else if (c = accept(g)) {
-            if (o === "field") n.unshift(c); else h[a] = c;
+            if (v === void 0) continue;
+            if (v === null || typeof v !== "object") throw new TypeError("Object expected");
+            if (h = accept(v.get)) l.get = h;
+            if (h = accept(v.set)) l.set = h;
+            if (h = accept(v.init)) n.unshift(h);
+        } else if (h = accept(v)) {
+            if (o === "field") n.unshift(h); else l[a] = h;
         }
     }
-    if (l) Object.defineProperty(l, s.name, h);
-    u = true;
+    c = true;
 }
 
 function __runInitializers(t, i, e) {
@@ -593,7 +591,10 @@ class ValidationConnector {
         this.scope = t;
         this.target = this.V();
         const i = this.C();
-        this.B(i);
+        if (!this.B(i) && this.bindingInfo != null) {
+            this.controller?.registerBinding(this.propertyBinding, this.bindingInfo);
+            this.controller?.addSubscriber(this);
+        }
     }
     stop() {
         this.task?.cancel();
@@ -604,6 +605,7 @@ class ValidationConnector {
             this.target?.removeEventListener(t, this);
         }
         this.controller?.resetBinding(this.propertyBinding);
+        this.controller?.unregisterBinding(this.propertyBinding);
         this.controller?.removeSubscriber(this);
     }
     handleTriggerChange(t, i) {
@@ -685,7 +687,9 @@ class ValidationConnector {
             this.controller = e;
             e.registerBinding(this.propertyBinding, this.P(s));
             e.addSubscriber(this);
+            return true;
         }
+        return false;
     }
     _(t) {
         if (t === void 0 || t === null) {

@@ -3688,9 +3688,8 @@ function invokeAttribute(p, definition, $renderingCtrl, host, instruction, viewF
     registerResolver(ctn, IViewFactory, viewFactory == null
         ? noViewFactoryProvider
         : new ViewFactoryProvider(viewFactory));
-    registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
-        ? noAuSlotProvider
-        : new InstanceProvider(slotInfoProviderName, auSlotsInfo));
+    registerResolver(ctn, IAuSlotsInfo, noAuSlotProvider
+        );
     return { vm: ctn.invoke(definition.Type), ctn };
 }
 class RenderLocationProvider {

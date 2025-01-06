@@ -1324,8 +1324,8 @@ function __esDecorate(t, e, n, r, s, i) {
         return t;
     }
     var o = r.kind, l = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var c = !e && t ? r["static"] ? t : t.prototype : null;
-    var a = e || (c ? Object.getOwnPropertyDescriptor(c, r.name) : {});
+    var c = t ? r["static"] ? t : t.prototype : null;
+    var a = c ? Object.getOwnPropertyDescriptor(c, r.name) : {};
     var u, f = false;
     for (var h = n.length - 1; h >= 0; h--) {
         var d = {};

@@ -9,27 +9,93 @@ export declare namespace createFixture {
     var html: <T = Record<PropertyKey, any>>(html: string | TemplateStringsArray, ...values: TemplateValues<T>[]) => CreateBuilder<T, "component" | "deps" | "config">;
     var component: <T, K extends ObjectType<T>>(component: T) => {
         html: {
-            (html: string): CreateBuilder<K, Exclude<"html" | "deps" | "config", "html">>;
-            (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, Exclude<"html" | "deps" | "config", "html">>;
+            (html: string): CreateBuilder<K, "deps" | "config">;
+            (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, "deps" | "config">;
         };
-        deps: (...args: unknown[]) => CreateBuilder<K, Exclude<"html" | "deps" | "config", "deps">>;
-        config: (config: IFixtureConfig) => CreateBuilder<K, Exclude<"html" | "deps" | "config", "config">>;
+        deps: (...args: unknown[]) => {
+            html: {
+                (html: string): CreateBuilder<K, "config">;
+                (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, "config">;
+            };
+            config: (config: IFixtureConfig) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
+        config: (config: IFixtureConfig) => {
+            html: {
+                (html: string): CreateBuilder<K, "deps">;
+                (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, "deps">;
+            };
+            deps: (...args: unknown[]) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
     };
     var deps: <T = Record<PropertyKey, any>>(...deps: unknown[]) => {
         html: {
-            (html: string): CreateBuilder<T, Exclude<"html" | "component" | "config", "html">>;
-            (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<"html" | "component" | "config", "html">>;
+            (html: string): CreateBuilder<T, "component" | "config">;
+            (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, "component" | "config">;
         };
-        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<"html" | "component" | "config", "component">>;
-        config: (config: IFixtureConfig) => CreateBuilder<T, Exclude<"html" | "component" | "config", "config">>;
+        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => {
+            html: {
+                (html: string): CreateBuilder<K, "config">;
+                (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, "config">;
+            };
+            config: (config: IFixtureConfig) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
+        config: (config: IFixtureConfig) => {
+            html: {
+                (html: string): CreateBuilder<T, "component">;
+                (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, "component">;
+            };
+            component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
     };
     var config: <T = Record<PropertyKey, any>>(config: IFixtureConfig) => {
         html: {
-            (html: string): CreateBuilder<T, Exclude<"html" | "component" | "deps", "html">>;
-            (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, Exclude<"html" | "component" | "deps", "html">>;
+            (html: string): CreateBuilder<T, "component" | "deps">;
+            (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, "component" | "deps">;
         };
-        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => CreateBuilder<K, Exclude<"html" | "component" | "deps", "component">>;
-        deps: (...args: unknown[]) => CreateBuilder<T, Exclude<"html" | "component" | "deps", "deps">>;
+        component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => {
+            html: {
+                (html: string): CreateBuilder<K, "deps">;
+                (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, "deps">;
+            };
+            deps: (...args: unknown[]) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
+        deps: (...args: unknown[]) => {
+            html: {
+                (html: string): CreateBuilder<T, "component">;
+                (html: TemplateStringsArray, ...values: TemplateValues<T>[]): CreateBuilder<T, "component">;
+            };
+            component: <K>(comp: K | Constructable<K>, def?: Partial<PartialCustomElementDefinition>) => {
+                html: {
+                    (html: string): CreateBuilder<K, never>;
+                    (html: TemplateStringsArray, ...values: TemplateValues<K>[]): CreateBuilder<K, never>;
+                };
+            };
+        };
     };
 }
 export interface ITextAssertOptions {

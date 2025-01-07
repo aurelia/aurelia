@@ -357,6 +357,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
             // `repeat.for="i of items; key.bind: i.key" - inefficient
             // `repeat.for="i of items; key: key" - efficient
             const scope = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+            setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, items[i]);
             keys[i] = astEvaluate(key, scope, binding, null);
           }
         }

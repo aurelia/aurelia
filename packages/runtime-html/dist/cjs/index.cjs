@@ -6657,7 +6657,7 @@ class Repeat {
     }
     attaching(e, s) {
         this.Bs();
-        this.Ss();
+        this.Ss(void 0);
         return this.As(e, this.xs ?? t.emptyArray);
     }
     detaching(t, e) {
@@ -6673,7 +6673,7 @@ class Repeat {
         }
         this.Cs();
         this.Bs();
-        this.Ss();
+        this.Ss(void 0);
         this.Ts(void 0);
     }
     handleCollectionChange(t, e) {
@@ -6691,7 +6691,7 @@ class Repeat {
             return;
         }
         this.Bs();
-        this.Ss();
+        this.Ss(this.key === null ? e : void 0);
         this.Ts(e);
     }
     Ts(e) {
@@ -6790,24 +6790,37 @@ class Repeat {
             this.us = undefined;
         }
     }
-    Ss() {
-        const t = this.os;
-        this.ls = t.slice();
-        const e = this.xs;
-        const s = e.length;
-        const i = this.os = Array(e.length);
-        const n = this.cs;
-        const r = new Map;
-        const l = this.$controller.scope;
-        const h = this.ks;
-        const a = this.forOf;
-        const c = this.local;
-        const u = this.ys;
-        for (let t = 0; t < s; ++t) {
-            i[t] = getScope(n, r, e[t], a, l, h, c, u);
+    Ss(t) {
+        const e = this.os;
+        this.ls = e.slice();
+        const s = this.xs;
+        const i = s.length;
+        const n = this.os = Array(s.length);
+        const r = this.cs;
+        const l = new Map;
+        const h = this.$controller.scope;
+        const a = this.ks;
+        const c = this.forOf;
+        const u = this.local;
+        const f = this.ys;
+        if (t === void 0) {
+            for (let t = 0; t < i; ++t) {
+                n[t] = getScope(r, l, s[t], c, h, a, u, f);
+            }
+        } else {
+            const r = e.length;
+            for (let l = 0; l < i; ++l) {
+                const i = t[l];
+                if (i >= 0 && i < r) {
+                    n[l] = e[i];
+                } else {
+                    n[l] = createScope(s[l], c, h, a, u, f);
+                }
+                setItem(f, c.declaration, n[l], a, u, s[l]);
+            }
         }
-        n.clear();
-        this.cs = r;
+        r.clear();
+        this.cs = l;
     }
     Bs() {
         const e = this.items;

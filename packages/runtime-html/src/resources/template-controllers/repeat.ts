@@ -147,7 +147,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     _parent: IHydratedParentController,
   ): void | Promise<void> {
     this._normalizeToArray();
-    this._createScopes();
+    this._createScopes(void 0);
 
     return this._activateAllViews(initiator, this._normalizedItems ?? emptyArray);
   }
@@ -175,7 +175,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
     this._refreshCollectionObserver();
     this._normalizeToArray();
-    this._createScopes();
+    this._createScopes(void 0);
     this._applyIndexMap(void 0);
   }
 
@@ -195,7 +195,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     }
 
     this._normalizeToArray();
-    this._createScopes();
+    this._createScopes(this.key === null ? indexMap : void 0);
     this._applyIndexMap(indexMap);
   }
 
@@ -324,7 +324,7 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
   }
 
   /** @internal */
-  private _createScopes(): void {
+  private _createScopes(indexMap: IndexMap | undefined): void {
     const oldScopes = this._scopes;
     this._oldScopes = oldScopes.slice();
 
@@ -340,8 +340,22 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const local = this.local;
     const hasDestructuredLocal = this._hasDestructuredLocal;
 
-    for (let i = 0; i < len; ++i) {
-      scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+    if (indexMap === void 0) {
+      for (let i = 0; i < len; ++i) {
+        scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+      }
+    } else {
+      const oldLen = oldScopes.length;
+      for (let i = 0; i < len; ++i) {
+        const src = indexMap[i];
+
+        if (src >= 0 && src < oldLen) {
+          scopes[i] = oldScopes[src];
+        } else {
+          scopes[i] = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+        }
+        setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
+      }
     }
 
     oldScopeMap.clear();
@@ -852,7 +866,6 @@ const getScope = (
   local: string,
   hasDestructuredLocal: boolean,
 ) => {
-  // let scope = void 0 as Scope | Scope[] | undefined;
   let scope = oldScopeMap.get(item);
   if (scope === void 0) {
     scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);

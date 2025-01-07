@@ -341,8 +341,32 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
     const hasDestructuredLocal = this._hasDestructuredLocal;
 
     if (indexMap === void 0) {
-      for (let i = 0; i < len; ++i) {
-        scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+      const key = this.key;
+      const hasKey = key !== null;
+      if (hasKey) {
+        const keys = Array<unknown>(len);
+        if (typeof key === 'string') {
+          for (let i = 0; i < len; ++i) {
+            keys[i] = (items[i] as IIndexable)[key];
+          }
+        } else {
+          for (let i = 0; i < len; ++i) {
+            // This method of creating a throwaway scope just for key evaluation is inefficient but requires a lot less code this way.
+            // It seems acceptable for what should be a niche use case and this way it's guaranteed to work correctly in all cases.
+            // When performance matters, it is advised to use normal string-based keys instead of expressions:
+            // `repeat.for="i of items; key.bind: i.key" - inefficient
+            // `repeat.for="i of items; key: key" - efficient
+            const scope = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+            keys[i] = astEvaluate(key, scope, binding, null);
+          }
+        }
+        for (let i = 0; i < len; ++i) {
+          scopes[i] = getScope(oldScopeMap, newScopeMap, keys[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+        }
+      } else {
+        for (let i = 0; i < len; ++i) {
+          scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+        }
       }
     } else {
       const oldLen = oldScopes.length;
@@ -859,6 +883,7 @@ const getKeyValue = (
 const getScope = (
   oldScopeMap: Map<unknown, Scope | Scope[]>,
   newScopeMap: Map<unknown, Scope | Scope[]>,
+  key: unknown,
   item: unknown,
   forOf: ForOfStatement,
   parentScope: Scope,
@@ -866,27 +891,27 @@ const getScope = (
   local: string,
   hasDestructuredLocal: boolean,
 ) => {
-  let scope = oldScopeMap.get(item);
+  let scope = oldScopeMap.get(key);
   if (scope === void 0) {
     scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
   } else if (scope instanceof Scope) {
-    oldScopeMap.delete(item);
+    oldScopeMap.delete(key);
   } else if (scope.length === 1) {
     scope = scope[0];
-    oldScopeMap.delete(item);
+    oldScopeMap.delete(key);
   } else {
     scope = scope.shift()!;
   }
 
-  if (newScopeMap.has(item)) {
-    const entry = newScopeMap.get(item)!;
+  if (newScopeMap.has(key)) {
+    const entry = newScopeMap.get(key)!;
     if (entry instanceof Scope) {
-      newScopeMap.set(item, [entry, scope]);
+      newScopeMap.set(key, [entry, scope]);
     } else {
       entry.push(scope);
     }
   } else {
-    newScopeMap.set(item, scope);
+    newScopeMap.set(key, scope);
   }
   setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item);
   return scope;

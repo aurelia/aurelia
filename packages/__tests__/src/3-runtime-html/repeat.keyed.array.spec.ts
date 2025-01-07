@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { batch } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
-import { TestContext, assert } from "@aurelia/testing";
+import { TestContext, assert, createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
   function $(k: number) {
@@ -1117,6 +1117,136 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         });
       });
     }
+  });
+
+  describe('keyed mode with in-place updates', function () {
+    it('replace array instance with updated items with same key', function () {
+      const firstList = [
+        { key: '1', data: 'a' },
+        { key: '2', data: 'b' },
+      ];
+      const secondList = [
+        { key: '1', data: 'aa' },
+        { key: '2', data: 'bb' },
+      ];
+
+      const { assertText, component, flush } = createFixture(
+        `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
+        class { items = firstList; }
+      );
+      assertText('1-a 2-b ');
+
+      component.items = secondList;
+      flush();
+
+      assertText('1-aa 2-bb ');
+    });
+
+    it('replaces array with one removed item, one updated item', function () {
+      const initialList = [
+        { key: '1', data: 'a' },
+        { key: '2', data: 'b' },
+        { key: '3', data: 'c' },
+      ];
+
+      const updatedList = [
+        { key: '2', data: 'bb' },
+        { key: '3', data: 'c' },
+      ];
+
+      const { assertText, component, flush } = createFixture(
+        `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
+        class { items = initialList; }
+      );
+
+      assertText('1-a 2-b 3-c ');
+
+      component.items = updatedList;
+      flush();
+
+      assertText('2-bb 3-c ');
+    });
+
+    it('inserts new item in between existing items with stable keys', function () {
+      const initialList = [
+        { key: '1', data: 'a' },
+        { key: '2', data: 'b' },
+      ];
+
+      const updatedList = [
+        { key: '1', data: 'a' },
+        { key: '1.5', data: 'new' },
+        { key: '2', data: 'b' },
+      ];
+
+      const { assertText, component, flush } = createFixture(
+        `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
+        class { items = initialList; }
+      );
+
+      assertText('1-a 2-b ');
+
+      component.items = updatedList;
+      flush();
+
+      assertText('1-a 1.5-new 2-b ');
+    });
+
+    it('retains focus when items are reordered and updated', function () {
+      const initialList = [
+        { key: 'a', data: 'X' },
+        { key: 'b', data: 'Y' },
+        { key: 'c', data: 'Z' },
+      ];
+
+      const reorderedList = [
+        { key: 'c', data: 'ZZ' },
+        { key: 'a', data: 'XX' },
+        { key: 'b', data: 'YY' },
+      ];
+
+      const { getAllBy, component, flush } = createFixture(
+        `<div repeat.for="i of items; key: key"><input value.bind="i.data"></div>`,
+        class { items = initialList; }
+      );
+
+      let focusInput = getAllBy('input')[1];
+      focusInput.focus();
+      assert.strictEqual(document.activeElement, focusInput);
+      assert.strictEqual(focusInput.value, 'Y');
+
+      component.items = reorderedList;
+      flush();
+
+      focusInput = getAllBy('input')[2];
+      assert.strictEqual(document.activeElement, focusInput);
+      assert.strictEqual(focusInput.value, 'YY');
+    });
+
+    it('works with expression-based keys', function () {
+      const { assertText, component, flush } = createFixture(
+        `<div repeat.for="i of items; key.bind: computeKey(i)">\${i.data} </div>`,
+        class {
+          items = [
+            { partId: 1, data: 'Item1' },
+            { partId: 2, data: 'Item2' },
+          ];
+          computeKey(i) { return `k-${i.partId}`; }
+        }
+      );
+
+      assertText('Item1 Item2 ');
+
+      component.items = [
+        { partId: 1, data: 'Item1-updated' },
+        { partId: 2, data: 'Item2' },
+        { partId: 3, data: 'Item3-new' },
+      ];
+      flush();
+
+      assertText('Item1-updated Item2 Item3-new ');
+    });
+
   });
 });
 

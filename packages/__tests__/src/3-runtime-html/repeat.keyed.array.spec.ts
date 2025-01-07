@@ -1205,21 +1205,22 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: 'b', data: 'YY' },
       ];
 
-      const { getAllBy, component, flush } = createFixture(
+      const { getAllBy, component, flush, appHost } = createFixture(
         `<div repeat.for="i of items; key: key"><input value.bind="i.data"></div>`,
         class { items = initialList; }
       );
 
+      const doc = appHost.ownerDocument;
       let focusInput = getAllBy('input')[1];
       focusInput.focus();
-      assert.strictEqual(document.activeElement, focusInput);
+      assert.strictEqual(doc.activeElement, focusInput);
       assert.strictEqual(focusInput.value, 'Y');
 
       component.items = reorderedList;
       flush();
 
       focusInput = getAllBy('input')[2];
-      assert.strictEqual(document.activeElement, focusInput);
+      assert.strictEqual(doc.activeElement, focusInput);
       assert.strictEqual(focusInput.value, 'YY');
     });
 

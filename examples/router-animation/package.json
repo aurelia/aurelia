@@ -5,12 +5,12 @@
   "version": "1.0.0",
   "scripts": {
     "start": "webpack serve",
-    "build": "rimraf dist && webpack --mode=production",
+    "build": "rimraf --glob dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",
     "serve": "au-http-server au.conf.js",
     "dev": "webpack serve",
-    "build-serve": "rimraf dist && webpack --mode=production && au-http-server au.conf.js",
-    "now": "rimraf dist && webpack --config webpack.config.js && cd dist && now && cd .."
+    "build-serve": "rimraf --glob dist && webpack --mode=production && au-http-server au.conf.js",
+    "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
     "@aurelia/fetch-client": "2.0.0-beta.22",
@@ -27,7 +27,7 @@
     "@aurelia/http-server": "2.0.0-beta.22",
     "@aurelia/ts-jest": "2.0.0-beta.22",
     "@aurelia/webpack-loader": "2.0.0-beta.22",
-    "@types/node": "^14.18.14",
+    "@types/node": "^20.16.10",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",

@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "webpack serve",
-    "build": "rimraf dist && webpack --mode=production",
+    "build": "rimraf --glob dist && webpack --mode=production",
     "watch": "webpack serve --no-inline",
     "serve": "npx http-server",
     "dev": "webpack serve"
@@ -24,7 +24,7 @@
   "devDependencies": {
     "@aurelia/ts-jest": "2.0.0-beta.22",
     "@aurelia/webpack-loader": "2.0.0-beta.22",
-    "@types/node": "^14.18.14",
+    "@types/node": "^20.16.10",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",
     "file-loader": "^6.2.0",

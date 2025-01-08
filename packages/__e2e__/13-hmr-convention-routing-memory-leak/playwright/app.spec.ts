@@ -49,7 +49,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
         const node = Object.create(null);
         for (const [key, value] of Object.entries(nodeFieldIndexes)) {
-          node[key] = nodes[i + value];
+          node[key] = strings[nodes[i + value]];
         }
         result.nodes.push(node);
       }

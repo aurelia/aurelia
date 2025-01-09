@@ -684,6 +684,8 @@ jobs:
             - benchmarks/local/dist/app.local.js
             - benchmarks/local/dist/app-repeat-ce.local.js
             - benchmarks/local/dist/app-big-template.local.js
+            - benchmarks/app-repeat-keyed-string/dist
+            - benchmarks/app-repeat-keyed-expr/dist
 
   tacho_benchmark:
     executor: docker_circleci_bench
@@ -929,6 +931,18 @@ workflows:
           <<: *filter_ignore_develop_release
           name: benchmark_update
           command: npm run bench:update1k
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_repeat_keyed_expression
+          command: npm run bench:repeat-expr
+          requires:
+            - tacho_benchmark_prep
+      - tacho_benchmark:
+          <<: *filter_ignore_develop_release
+          name: benchmark_repeat_keyed_string
+          command: npm run bench:repeat-string
           requires:
             - tacho_benchmark_prep
 

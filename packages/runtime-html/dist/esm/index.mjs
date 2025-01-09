@@ -6804,8 +6804,28 @@ class Repeat {
         const u = this.local;
         const f = this.fi;
         if (t === void 0) {
-            for (let t = 0; t < s; ++t) {
-                n[t] = getScope(r, l, i[t], c, h, a, u, f);
+            const t = this.key;
+            const e = t !== null;
+            if (e) {
+                const e = Array(s);
+                if (typeof t === "string") {
+                    for (let n = 0; n < s; ++n) {
+                        e[n] = i[n][t];
+                    }
+                } else {
+                    for (let n = 0; n < s; ++n) {
+                        const s = createScope(i[n], c, h, a, u, f);
+                        setItem(f, c.declaration, s, a, u, i[n]);
+                        e[n] = wt(t, s, a, null);
+                    }
+                }
+                for (let t = 0; t < s; ++t) {
+                    n[t] = getScope(r, l, e[t], i[t], c, h, a, u, f);
+                }
+            } else {
+                for (let t = 0; t < s; ++t) {
+                    n[t] = getScope(r, l, i[t], i[t], c, h, a, u, f);
+                }
             }
         } else {
             const r = e.length;
@@ -7186,30 +7206,30 @@ const getKeyValue = (t, e, i, s, n, r) => {
     return wt(e, s, n, null);
 };
 
-const getScope = (t, e, i, s, n, r, l, h) => {
-    let a = t.get(i);
-    if (a === void 0) {
-        a = createScope(i, s, n, r, l, h);
-    } else if (a instanceof Rt) {
+const getScope = (t, e, i, s, n, r, l, h, a) => {
+    let c = t.get(i);
+    if (c === void 0) {
+        c = createScope(s, n, r, l, h, a);
+    } else if (c instanceof Rt) {
         t.delete(i);
-    } else if (a.length === 1) {
-        a = a[0];
+    } else if (c.length === 1) {
+        c = c[0];
         t.delete(i);
     } else {
-        a = a.shift();
+        c = c.shift();
     }
     if (e.has(i)) {
         const t = e.get(i);
         if (t instanceof Rt) {
-            e.set(i, [ t, a ]);
+            e.set(i, [ t, c ]);
         } else {
-            t.push(a);
+            t.push(c);
         }
     } else {
-        e.set(i, a);
+        e.set(i, c);
     }
-    setItem(h, s.declaration, a, r, l, i);
-    return a;
+    setItem(a, n.declaration, c, l, h, s);
+    return c;
 };
 
 const createScope = (t, e, i, s, n, r) => {

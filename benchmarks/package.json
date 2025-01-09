@@ -14,7 +14,9 @@
     "bench:rerender10k-ce": "tach --config rerender-10k-ce.json --json-file results/rerender-10k-ce.json",
     "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",
     "bench:startup10k-ce": "tach --config startup-10k-ce.json --json-file results/startup-10k-ce.json",
-    "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json"
+    "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json",
+    "bench:repeat-expr": "tach --config app-repeat-keyed-expr/bench.json --json-file results/startup-app-repeat-keyed-expr.json",
+    "bench:repeat-string": "tach --config app-repeat-keyed-string/bench.json --json-file results/startup-app-repeat-keyed-string.json"
   },
   "dependencies": {
     "tachometer": "0.7.1"

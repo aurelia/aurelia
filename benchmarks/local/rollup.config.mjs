@@ -22,37 +22,26 @@ const aliases = [
 }));
 
 export default defineConfig([{
-  input: '../app',
-  output: {
-    file: 'dist/app.local.js',
-    sourcemap: true
-  },
+  input: '../app-startup/',
+  output: '../app-startup/dist/app.local.js',
 }, {
   input: '../app-repeat-ce',
-  output: {
-    file: 'dist/app-repeat-ce.local.js',
-    sourcemap: true
-  },
+  output: 'dist/app-repeat-ce.local.js',
 }, {
   input: '../app-big-template',
-  output: {
-    file: 'dist/app-big-template.local.js',
-    sourcemap: true
-  },
+  output: 'dist/app-big-template.local.js',
 }, {
   input: '../app-repeat-keyed-string/startup.index',
-  output: {
-    file: '../app-repeat-keyed-string/dist/startup.local.js',
-    sourcemap: true
-  },
+  output: '../app-repeat-keyed-string/dist/startup.local.js',
 }, {
   input: '../app-repeat-keyed-expr/startup.index',
-  output: {
-    file: '../app-repeat-keyed-expr/dist/startup.local.js',
-    sourcemap: true
-  },
+  output: '../app-repeat-keyed-expr/dist/startup.local.js',
 }].map(input => ({
   ...input,
+  output: {
+    file: input.output,
+    sourcemap: true,
+  },
   plugins: [
     alias({
       entries: aliases

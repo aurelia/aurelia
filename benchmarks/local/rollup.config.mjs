@@ -27,32 +27,32 @@ export default defineConfig([{
     file: 'dist/app.local.js',
     sourcemap: true
   },
-  plugins: [
-    alias({
-      entries: aliases
-    }),
-    nodeResolve(),
-    terser()
-  ]
 }, {
   input: '../app-repeat-ce',
   output: {
     file: 'dist/app-repeat-ce.local.js',
     sourcemap: true
   },
-  plugins: [
-    alias({
-      entries: aliases
-    }),
-    nodeResolve(),
-    terser()
-  ]
 }, {
   input: '../app-big-template',
   output: {
     file: 'dist/app-big-template.local.js',
     sourcemap: true
   },
+}, {
+  input: '../app-repeat-keyed-string/startup.index',
+  output: {
+    file: '../app-repeat-keyed-string/dist/startup.local.js',
+    sourcemap: true
+  },
+}, {
+  input: '../app-repeat-keyed-expr/startup.index',
+  output: {
+    file: '../app-repeat-keyed-expr/dist/startup.local.js',
+    sourcemap: true
+  },
+}].map(input => ({
+  ...input,
   plugins: [
     alias({
       entries: aliases
@@ -60,4 +60,4 @@ export default defineConfig([{
     nodeResolve(),
     terser()
   ]
-}]);
+})));

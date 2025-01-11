@@ -10,17 +10,16 @@
         "addArguments": ["--js-flags=--expose-gc", "--enable-precise-memory-info"]
       },
       "measurement": [
-        { "name": "perf", "mode": "performance", "entryName": "startup-10k" },
-        { "name": "memory", "mode": "expression", "expression": "jsHeapSize" }
+        { "name": "perf", "mode": "performance", "entryName": "rerender1k-big-template" }
       ],
       "expand": [
         {
-          "name": "startup 10k npm",
-          "url": "startup10k-latest.html"
+          "name": "rerender 1k latest (big template)",
+          "url": "rerender1k-latest-big-template.html"
         },
         {
-          "name": "startup 10k local",
-          "url": "startup10k-local.html"
+          "name": "rerender 1k local (big template)",
+          "url": "rerender1k-local-big-template.html"
         }
       ]
     }

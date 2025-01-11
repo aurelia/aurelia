@@ -1,12 +1,17 @@
 import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
-import { createItems } from './utils/data.js';
+import { createItems } from '../utils/data.js';
 
 let $count = 0;
 
 const App = CustomElement.define({
     name: 'app',
-    template: '<div repeat.for="i of items">hello ${i.message} item</div>'
-}, class {
+    template: '<hello repeat.for="i of items" message.bind="i.message">',
+    dependencies: [CustomElement.define({
+        name: 'hello',
+        template: 'hello ${message} item',
+        bindables: ['message']
+    }, class Hello {})]
+}, class App {
     constructor() {
         this.newItems($count);
     }

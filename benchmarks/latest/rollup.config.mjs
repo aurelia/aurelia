@@ -22,20 +22,20 @@ const aliases = [
 }));
 
 export default defineConfig([{
-  input: '../app-startup',
-  output: '../app-startup/dist/app.latest.js',
+  input: '../app-repeat-view',
+  output: '../app-repeat-view/dist/app.latest.js',
 }, {
   input: '../app-repeat-ce',
-  output: 'dist/app-repeat-ce.latest.js',
+  output: '../app-repeat-ce/dist/app.latest.js',
 }, {
-  input: '../app-big-template',
-  output: 'dist/app-big-template.latest.js',
+  input: '../app-repeat-view-big-template',
+  output: '../app-repeat-view-big-template/dist/app.latest.js',
 }, {
-  input: '../app-repeat-keyed-string/startup.index',
-  output: '../app-repeat-keyed-string/dist/startup.latest.js',
+  input: '../app-repeat-view-keyed-string',
+  output: '../app-repeat-view-keyed-string/dist/app.latest.js',
 }, {
-  input: '../app-repeat-keyed-expr/startup.index',
-  output: '../app-repeat-keyed-expr/dist/startup.latest.js',
+  input: '../app-repeat-view-keyed-expr',
+  output: '../app-repeat-view-keyed-expr/dist/app.latest.js',
 }].map(input => ({
   ...input,
   output: {

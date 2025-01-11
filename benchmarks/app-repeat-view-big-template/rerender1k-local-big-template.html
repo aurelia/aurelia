@@ -1,5 +1,5 @@
 <script type="module">
-import { start } from './latest/dist/app-big-template.latest.js';
+import { start } from './dist/app.local.js';
 
 const host = document.body.appendChild(document.createElement('div'));
 const au = start(host);
@@ -13,5 +13,4 @@ performance.mark('1k-end');
 window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
 
 performance.measure('rerender1k-big-template', '1k-start', '1k-end');
-
 </script>

@@ -1,5 +1,5 @@
 import { Aurelia, CustomElement, StandardConfiguration } from '@aurelia/runtime-html';
-import { createItems } from './utils/data.js';
+import { createItems } from '../utils/data.js';
 
 let $count = 0;
 

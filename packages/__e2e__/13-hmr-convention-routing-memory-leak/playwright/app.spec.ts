@@ -38,7 +38,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     }
 
     function findInSnapshot(snapshot: any, componentName: string): any {
-      const result = { nodes: [] }
+      const result = { nodes: [] };
       const { nodes, edges, strings, snapshot: { meta: { node_fields, edge_fields } } } = snapshot;
       const nodeFieldIndexes = getFieldIndexes(node_fields);
 

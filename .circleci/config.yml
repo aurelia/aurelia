@@ -678,7 +678,11 @@ jobs:
       - save_cache:
           key: cache-{{ .Revision }}-benchmark-app
           paths:
-            - benchmarks/**/dist
+            - benchmarks/app-repeat-ce/dist
+            - benchmarks/app-repeat-view/dist
+            - benchmarks/app-repeat-view-big-template/dist
+            - benchmarks/app-repeat-view-keyed-expr/dist
+            - benchmarks/app-repeat-view-keyed-string/dist
 
   tacho_benchmark:
     executor: docker_circleci_bench

@@ -5,7 +5,7 @@ import { parseSnapshot } from 'v8-heapsnapshot';
 
 test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
 
-  test.only('hmr does not cause memory leak', async function ({ page, baseURL }) {
+  test('hmr does not cause memory leak', async function ({ page, baseURL }) {
     test.setTimeout(1_000_000_000);
 
     const client = await page.context().newCDPSession(page);

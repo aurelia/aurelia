@@ -80,21 +80,21 @@ const getHmrCode = (className: string): string => {
     const proto = ${className}.prototype
 
     // @ts-ignore
-    const ogCreated = proto ? proto.created : undefined;
+    const $created = proto?.created;
     // @ts-ignore
-    const ogDispose = proto ? proto.dispose : undefined;
+    const $dispose = proto?.dispose;
 
     if (proto) {
       // @ts-ignore
       proto.created = function(controller) {
         // @ts-ignore
-        ogCreated?.call(this, controller);
+        $created?.call(this, controller);
         controllers.push(controller);
       }
       // @ts-ignore
       proto.dispose = function() {
         // @ts-ignore
-        ogDispose?.call(this);
+        $dispose?.call(this);
         controllers.length = 0;
       }
     }

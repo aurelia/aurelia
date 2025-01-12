@@ -10,6 +10,7 @@
   "port": 9013,
   "scripts": {
     "dev": "cross-env APP_PORT=9013 webpack serve",
+    "dev:vite": "cross-env APP_PORT=9013 vite",
     "test:e2e": "cross-env APP_PORT=9013 concurrently \"npm run dev\" \"playwright test\" --kill-others --success first",
     "test:e2e:watch": "cross-env APP_PORT=9013 concurrently \"npm run dev\" \"playwright-watch test\"",
     "test:e2e:debugger": "cross-env APP_PORT=9013 PWDEBUG=1 concurrently \"npm run dev\" \"playwright-watch test\"",

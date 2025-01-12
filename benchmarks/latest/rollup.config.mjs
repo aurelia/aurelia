@@ -22,37 +22,26 @@ const aliases = [
 }));
 
 export default defineConfig([{
-  input: '../app',
-  output: {
-    file: 'dist/app.latest.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view',
+  output: '../app-repeat-view/dist/app.latest.js',
 }, {
   input: '../app-repeat-ce',
-  output: {
-    file: 'dist/app-repeat-ce.latest.js',
-    sourcemap: true
-  },
+  output: '../app-repeat-ce/dist/app.latest.js',
 }, {
-  input: '../app-big-template',
-  output: {
-    file: 'dist/app-big-template.latest.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-big-template',
+  output: '../app-repeat-view-big-template/dist/app.latest.js',
 }, {
-  input: '../app-repeat-keyed-string/startup.index',
-  output: {
-    file: '../app-repeat-keyed-string/dist/startup.latest.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-keyed-string',
+  output: '../app-repeat-view-keyed-string/dist/app.latest.js',
 }, {
-  input: '../app-repeat-keyed-expr/startup.index',
-  output: {
-    file: '../app-repeat-keyed-expr/dist/startup.latest.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-keyed-expr',
+  output: '../app-repeat-view-keyed-expr/dist/app.latest.js',
 }].map(input => ({
   ...input,
+  output: {
+    file: input.output,
+    sourcemap: true
+  },
   plugins: [
     alias({
       entries: aliases

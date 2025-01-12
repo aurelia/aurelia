@@ -1,0 +1,13 @@
+<script type="module">
+import { start } from './dist/app.local.js';
+
+const host = document.body.appendChild(document.createElement('div'));
+performance.mark('start');
+const au = start(host, 10000);
+
+performance.mark('end');
+performance.measure('keyed-string', 'start', 'end');
+
+// measure memory in MBs
+window.jsHeapSize = performance.memory.usedJSHeapSize / 1e6;
+</script>

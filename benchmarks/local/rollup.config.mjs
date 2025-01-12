@@ -1,9 +1,9 @@
+import { defineConfig } from 'rollup';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import alias from '@rollup/plugin-alias';
 import path from 'path';
 import url from 'url';
-import { defineConfig } from 'rollup';
 
 // const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
@@ -22,37 +22,26 @@ const aliases = [
 }));
 
 export default defineConfig([{
-  input: '../app',
-  output: {
-    file: 'dist/app.local.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view',
+  output: '../app-repeat-view/dist/app.local.js',
 }, {
   input: '../app-repeat-ce',
-  output: {
-    file: 'dist/app-repeat-ce.local.js',
-    sourcemap: true
-  },
+  output: '../app-repeat-ce/dist/app.local.js',
 }, {
-  input: '../app-big-template',
-  output: {
-    file: 'dist/app-big-template.local.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-big-template',
+  output: '../app-repeat-view-big-template/dist/app.local.js',
 }, {
-  input: '../app-repeat-keyed-string/startup.index',
-  output: {
-    file: '../app-repeat-keyed-string/dist/startup.local.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-keyed-string',
+  output: '../app-repeat-view-keyed-string/dist/app.local.js',
 }, {
-  input: '../app-repeat-keyed-expr/startup.index',
-  output: {
-    file: '../app-repeat-keyed-expr/dist/startup.local.js',
-    sourcemap: true
-  },
+  input: '../app-repeat-view-keyed-expr',
+  output: '../app-repeat-view-keyed-expr/dist/app.local.js',
 }].map(input => ({
   ...input,
+  output: {
+    file: input.output,
+    sourcemap: true,
+  },
   plugins: [
     alias({
       entries: aliases

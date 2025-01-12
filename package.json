@@ -51,6 +51,7 @@
     "packages/__e2e__/10-router-lite-none-history-with-hash",
     "packages/__e2e__/11-validation",
     "packages/__e2e__/12-type-check",
+    "packages/__e2e__/13-hmr-convention-routing-memory-leak",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",

@@ -9,6 +9,6 @@ import { P2 } from './p-2';
     { path: 'p-2', component: P2/* import('./p-2') */ },
   ],
 })
-export class MyApp {
+export class RouterLiteApp {
   public message = 'Hello World!';
 }

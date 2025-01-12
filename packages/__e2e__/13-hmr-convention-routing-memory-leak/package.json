@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "aurelia": "2.0.0-beta.22",
-    "@aurelia/router-lite": "2.0.0-beta.22"
+    "@aurelia/router-lite": "2.0.0-beta.22",
+    "@aurelia/router": "2.0.0-beta.22"
   },
   "devDependencies": {
     "@aurelia/webpack-loader": "2.0.0-beta.22",

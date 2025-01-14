@@ -384,6 +384,8 @@ export {
   // IElementProjector,
   // IProjectorLocator,
   useShadowDOM,
+  noView,
+  inlineView,
 
   // ISanitizer,
   // SanitizeValueConverter,

@@ -244,6 +244,8 @@ export {
   type CustomElementStaticAuDefinition,
   useShadowDOM,
   processContent,
+  noView,
+  inlineView,
 } from './resources/custom-element';
 
 export {

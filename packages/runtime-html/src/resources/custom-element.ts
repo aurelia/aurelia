@@ -201,6 +201,49 @@ function markContainerless(target: Constructable) {
   (def as Writable<CustomElementDefinition>).containerless = true;
 }
 
+/**
+ * Decorator: Indicates that the custom element does not have a view.
+ */
+export function noView(target: Constructable, context: ClassDecoratorContext): void;
+/**
+ * Decorator: Indicates that the custom element does not have a view.
+ */
+export function noView(): (target: Constructable, context: ClassDecoratorContext) => void;
+export function noView(target?: Constructable, context?: ClassDecoratorContext): void | ((target: Constructable, context: ClassDecoratorContext) => void) {
+  if (target === void 0) {
+    return function ($target: Constructable, $context: ClassDecoratorContext) {
+      $context.addInitializer(function (this) {
+        setTemplate($target, null);
+      });
+    };
+  }
+
+  context!.addInitializer(function (this) {
+    setTemplate(target, null);
+  });
+}
+
+/**
+ * Decorator: Indicates that the custom element has a markup defined inline in this decorator.
+ */
+export function inlineView(template: string | null): (target: Constructable, context: ClassDecoratorContext) => void {
+  return function ($target: Constructable, context: ClassDecoratorContext) {
+    context.addInitializer(function (this) {
+      setTemplate($target, template);
+    });
+  };
+}
+
+/** Manipulates the `template` property of the custom element definition for the type, when present else it annotates the type. */
+function setTemplate(target: Constructable, template: string | null) {
+  const def = getMetadata<CustomElementDefinition>(elementBaseName, target);
+  if(def === void 0) {
+    annotateElementMetadata(target, 'template', template);
+    return;
+  }
+  (def as Writable<CustomElementDefinition>).template = template;
+}
+
 const definitionLookup = new WeakMap<PartialCustomElementDefinition, CustomElementDefinition>();
 
 export class CustomElementDefinition<C extends Constructable = Constructable> implements ResourceDefinition<C, ICustomElementViewModel, PartialCustomElementDefinition> {
@@ -272,7 +315,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => getElementKeyFrom(name)),
         fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse),
-        fromDefinitionOrDefault('template', def, returnNull),
+        fromAnnotationOrDefinitionOrTypeOrDefault('template', def, Type, returnNull),
         mergeArrays(def.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies),
         fromDefinitionOrDefault('injectable', def, returnNull),

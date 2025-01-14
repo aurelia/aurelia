@@ -144,7 +144,7 @@ It is possible to use the `@inlineView` decorator to define the template inline:
 ```typescript
 import { customElement, inlineView } from 'aurelia';
 
-@inlineView('foo-bar)
+@inlineView('foo-bar')
 @customElement('app-loader')
 export class AppLoader {
   //...

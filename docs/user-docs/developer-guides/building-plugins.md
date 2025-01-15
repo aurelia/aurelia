@@ -46,7 +46,7 @@ Aurelia
 You often want to add custom components to make your plugin more useful.
 
 {% tabs %}
-{% tab title=hello-world.ts" %}
+{% tab title="hello-world.ts" %}
 ```typescript
 import { customElement } from '@aurelia/runtime-html';
 
@@ -95,7 +95,7 @@ const defaultOptions: MyPluginOptions = {
 ### Implement Configuration in Plugin
 
 {% tabs %}
-{% tab title=plugin-configuration.ts" %}
+{% tab title="plugin-configuration.ts" %}
 ```typescript
 export interface MyPluginOptions {
   greeting?: string;

@@ -1,8 +1,9 @@
 import { resolve } from '@aurelia/kernel';
-import { customElement, ICustomElementViewModel, IHydratedController, INode, noView } from '@aurelia/runtime-html';
+import { noView } from '@aurelia/compat-v1';
+import { customElement, ICustomElementViewModel, IHydratedController, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/noView.spec.ts', function () {
+describe('compat-v1/noView.spec.ts', function () {
 
   it('@noView before @customElement(NAME)', async function () {
     let attached = false;

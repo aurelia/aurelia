@@ -1,7 +1,8 @@
-import { customElement, inlineView } from '@aurelia/runtime-html';
+import { inlineView } from '@aurelia/compat-v1';
+import { customElement } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
-describe('3-runtime-html/inlineView.spec.ts', function () {
+describe('compat-v1/inlineView.spec.ts', function () {
 
   it('@inlineView before @customElement(NAME)', async function () {
     @inlineView('fizz-buzz')

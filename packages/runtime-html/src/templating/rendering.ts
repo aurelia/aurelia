@@ -165,6 +165,18 @@ export class Rendering implements IRendering {
       throw createMappedError(ErrorNames.rendering_mismatch_length, ii, jj);
     }
 
+    if (host != null) {
+      row = definition.surrogates;
+      if ((jj = row.length) > 0) {
+        j = 0;
+        while (jj > j) {
+          instruction = row[j];
+          renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
+          ++j;
+        }
+      }
+    }
+
     if (ii > 0) {
       while (ii > i) {
         row = rows[i];
@@ -177,18 +189,6 @@ export class Rendering implements IRendering {
           ++j;
         }
         ++i;
-      }
-    }
-
-    if (host != null) {
-      row = definition.surrogates;
-      if ((jj = row.length) > 0) {
-        j = 0;
-        while (jj > j) {
-          instruction = row[j];
-          renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
-          ++j;
-        }
       }
     }
   }

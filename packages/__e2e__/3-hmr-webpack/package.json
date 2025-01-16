@@ -17,6 +17,7 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
+    "@aurelia/compat-v1": "2.0.0-beta.22",
     "@aurelia/fetch-client": "2.0.0-beta.22",
     "@aurelia/kernel": "2.0.0-beta.22",
     "@aurelia/metadata": "2.0.0-beta.22",

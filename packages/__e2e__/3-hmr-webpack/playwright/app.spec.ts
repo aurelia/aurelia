@@ -15,6 +15,14 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
       await expect(page.locator('text=42')).toBeVisible();
       await expect(page.locator('text=a - b')).toBeVisible(); // injects works correctly
     });
+
+    test('noView', async function ({ page }) {
+      await expect(page.locator('no-view:has-text("Nothing to see here")')).toBeVisible();
+    });
+
+    test.only('inlineView', async function ({ page }) {
+      await expect(page.locator('inline-view:has-text("Hey! I\'m already in line!")')).toBeVisible();
+    });
   });
 
   test.describe('with hmr', function () {

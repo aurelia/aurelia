@@ -1,9 +1,10 @@
-import { createFixture } from "@aurelia/testing";
+import { createFixture } from '@aurelia/testing';
+import { flush } from '@aurelia/runtime';
 
 describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
   describe('yield correct $index', function () {
     it('duplicate primitive string', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['a', 'b', 'a']; }
       );
@@ -16,7 +17,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     });
 
     it('duplicate primitive string + push + sort', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['a', 'b', 'a']; }
       );
@@ -29,7 +30,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     });
 
     it('duplicate primitive number', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [0, 1, 0]; }
       );
@@ -42,7 +43,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     });
 
     it('duplicate primitive number + sort', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [0, 1, 0]; }
       );
@@ -58,7 +59,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const obj0 = { toString() { return '0'; } };
       const obj1 = { toString() { return '1'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [obj0, obj1, obj0]; }
       );
@@ -74,7 +75,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const obj0 = { toString() { return '0'; } };
       const obj1 = { toString() { return '1'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [obj0, obj1, obj0]; }
       );
@@ -89,7 +90,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     // TODO: fix contextual props $index when sorting
     // it('primitive string + sort (move to contextual props tests)', function () {
     it('primitive string + sort (move to contextual props tests)', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = ['c', 'b', 'a']; }
       );
@@ -105,7 +106,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const objA = { toString() { return 'A'; } };
       const objB = { toString() { return 'B'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [objA, objB]; }
       );
@@ -121,7 +122,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const objA = { toString() { return 'A'; } };
       const objB = { toString() { return 'B'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [objA, objB]; }
       );
@@ -138,7 +139,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const objB = { toString() { return 'B'; } };
       const objC = { toString() { return 'C'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [objA, objB, objC]; }
       );
@@ -156,7 +157,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       const obj3 = { id: 2, toString() { return `X${this.id}`; } };
       const obj2Dup = obj2;
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [obj1, obj2, obj3, obj2Dup]; }
       );
@@ -176,7 +177,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
     it('unshift multiple duplicates', function () {
       const objA = { toString() { return 'A'; } };
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${$index}-\${i} </div>`,
         class { items = [objA, objA]; }
       );

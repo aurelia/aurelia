@@ -10,6 +10,7 @@ import {
   type IObserverLocator,
   type IAccessor,
   type IObserverLocatorBasedConnectable,
+  queueTask,
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -24,7 +25,6 @@ import {
 import type * as i18next from 'i18next';
 import { I18N } from '../i18n';
 
-import type { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
 import type { IContainer, IServiceLocator } from '@aurelia/kernel';
 import { IExpressionParser, IsExpression, CustomExpression } from '@aurelia/expression-parser';
 import type { TranslationBindBindingInstruction, TranslationBindingInstruction } from './translation-renderer';
@@ -56,9 +56,6 @@ const attributeAliases = new Map([['text', 'textContent'], ['html', 'innerHTML']
 export interface TranslationBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 
 const forOpts = { optional: true } as const;
-const taskQueueOpts: QueueTaskOptions = {
-  preempt: true,
-};
 
 export class TranslationBinding implements IBinding {
 
@@ -113,7 +110,7 @@ export class TranslationBinding implements IBinding {
   public _scope!: Scope;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   /** @internal */
   private readonly _targetAccessors: Set<IAccessor>;
@@ -123,7 +120,6 @@ export class TranslationBinding implements IBinding {
   private readonly _platform: IPlatform;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
   private parameter: ParameterBinding | null = null;
 
   /** @internal */
@@ -155,7 +151,6 @@ export class TranslationBinding implements IBinding {
     this._platform = platform;
     this._targetAccessors = new Set<IAccessor>();
     this.oL = observerLocator;
-    this._taskQueue = platform.domQueue;
   }
 
   public bind(_scope: Scope): void {
@@ -185,10 +180,7 @@ export class TranslationBinding implements IBinding {
 
     this.parameter?.unbind();
     this._targetAccessors.clear();
-    if (this._task !== null) {
-      this._task.cancel();
-      this._task = null;
-    }
+    this._isQueued = false;
 
     this._scope = (void 0)!;
     this.obs.clearAll();
@@ -220,7 +212,6 @@ export class TranslationBinding implements IBinding {
     const results = this.i18n.evaluate(this._keyExpression!, this.parameter?.value);
     const content: ContentValue = Object.create(null);
     const accessorUpdateTasks: AccessorUpdateTask[] = [];
-    const task = this._task;
     this._targetAccessors.clear();
 
     for (const item of results) {
@@ -254,17 +245,18 @@ export class TranslationBinding implements IBinding {
     }
 
     if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
-      this._task = this._taskQueue.queueTask(() => {
-        this._task = null;
+      this._isQueued = true;
+      queueTask(() => {
+        this._isQueued = false;
         for (const updateTask of accessorUpdateTasks) {
           updateTask.run();
         }
         if (shouldQueueContent) {
           this._updateContent(content);
         }
-      }, taskQueueOpts);
+      });
     }
-    task?.cancel();
+    this._isQueued = false;
   }
 
   /** @internal */

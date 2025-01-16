@@ -23,7 +23,7 @@ function queueFlush() {
   }
 }
 
-function flush() {
+export function flush() {
   console.log('flush');
   try {
     for (flushIndex = 0; flushIndex < queue.length; flushIndex++) {

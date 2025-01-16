@@ -5,10 +5,10 @@ import {
   ValueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import {
   assert,
   createFixture,
-  TestContext
 } from '@aurelia/testing';
 
 describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
@@ -371,14 +371,13 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
       let au: Aurelia;
       let component: Root;
-      let ctx: TestContext;
       // let body: HTMLElement;
       let host: HTMLElement;
 
       try {
         // au.app({ host, component: App });
         // await au.start();
-        ({ component, au, ctx, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
+        ({ component, au, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
         assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
       } catch (ex) {
         if (testWillThrow) {
@@ -398,7 +397,7 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
       try {
         mutate(component.items, component);
-        ctx.platform.domQueue.flush();
+        flush();
 
         assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 

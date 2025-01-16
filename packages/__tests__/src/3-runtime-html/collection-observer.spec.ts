@@ -1,9 +1,10 @@
 import { createFixture } from '@aurelia/testing';
+import { flush } from '@aurelia/runtime';
 
 describe('3-runtime-html/collection-observer.spec.ts', function () {
   describe('map', function () {
     it('observes map.size', function () {
-      const { assertText, component, flush } = createFixture('Size: ${map.size}', { map: new Map() });
+      const { assertText, component } = createFixture('Size: ${map.size}', { map: new Map() });
 
       assertText('Size: 0');
 
@@ -25,7 +26,7 @@ describe('3-runtime-html/collection-observer.spec.ts', function () {
 
   describe('set', function () {
     it('observes set.size', function () {
-      const { assertText, component, flush } = createFixture('Size: ${set.size}', { set: new Set() });
+      const { assertText, component } = createFixture('Size: ${set.size}', { set: new Set() });
 
       assertText('Size: 0');
 

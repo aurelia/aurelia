@@ -1,4 +1,5 @@
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
@@ -500,7 +501,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
@@ -527,7 +528,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         '<el><div repeat.for="_ of i">',
         class App { i = 0; },
         [El,]
@@ -560,7 +561,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input') inputs;
       }
 
-      const { assertText, trigger, flush } = createFixture(
+      const { assertText, trigger } = createFixture(
         '<parent>',
         class App {},
         [Parent, El]
@@ -587,7 +588,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { batch } from '@aurelia/runtime';
+import { batch, flush } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from "@aurelia/testing";
 
@@ -1130,7 +1130,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '2', data: 'bb' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = firstList; }
       );
@@ -1154,7 +1154,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '3', data: 'c' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = initialList; }
       );
@@ -1179,7 +1179,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '2', data: 'b' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = initialList; }
       );
@@ -1205,7 +1205,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: 'b', data: 'YY' },
       ];
 
-      const { getAllBy, component, flush, appHost } = createFixture(
+      const { getAllBy, component, appHost } = createFixture(
         `<div repeat.for="i of items; key: key"><input value.bind="i.data"></div>`,
         class { items = initialList; }
       );
@@ -1225,7 +1225,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
     });
 
     it('works with expression-based keys', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key.bind: computeKey(i)">\${i.data} </div>`,
         class {
           items = [

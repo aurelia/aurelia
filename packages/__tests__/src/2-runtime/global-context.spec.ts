@@ -1,5 +1,6 @@
 import { AccessGlobalExpression, ExpressionParser } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 const globalNames = [
@@ -112,7 +113,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
   describe('evaluation of global expressions - ensure parameters are reactive but the globals+properties are not observed', function () {
     it('Math.max', function () {
-      const { ctx, component, assertText, flush, stop } = createFixture(
+      const { ctx, component, assertText, stop } = createFixture(
         '${num1},${num2},${Math.max(num1, num2)}',
         class { num1 = 1; num2 = 2; }
       );
@@ -133,7 +134,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     });
 
     it('Object.prototype.toString.call', function () {
-      const { ctx, component, assertText, flush, stop } = createFixture(
+      const { ctx, component, assertText, stop } = createFixture(
         '${Object.prototype.toString.call(value)}',
         class { value: any = 0; }
       );
@@ -148,7 +149,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     });
 
     it('instanceof Object', function () {
-      const { ctx, component, assertText, flush, stop } = createFixture(
+      const { ctx, component, assertText, stop } = createFixture(
         '${value instanceof Object ? "object" : "something else"}',
         class { value: any = {}; }
       );
@@ -163,7 +164,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     });
 
     it('isNaN', function () {
-      const { ctx, component, assertText, flush, stop } = createFixture(
+      const { ctx, component, assertText, stop } = createFixture(
         '${isNaN(value === 0 ? NaN : value) ? "its NaN" : value',
         class { value: any = 0; }
       );
@@ -178,7 +179,7 @@ describe('2-runtime/global-context.spec.ts', function () {
     });
 
     it('isFinite', async function () {
-      const { ctx, component, assertText, flush, stop } = createFixture(
+      const { ctx, component, assertText, stop } = createFixture(
         '${isFinite(value === 0 ? Infinity : value) ? "finite" : "infinite"',
         class { value: any = 0; }
       );

@@ -1,4 +1,5 @@
 import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/arrow-fn.spec.ts', function () {
@@ -217,7 +218,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
 
   describe('array obervation', function () {
     it('observes on .map()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.map(i => i + 1)}`
         .build();
@@ -233,7 +234,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on repeat + .map()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`<div repeat.for='i of items.map(i => i + 1)'>\${i}`
         .build();
@@ -249,7 +250,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on <let> + .map()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`<let i.bind='items.map(i => i + 1)'></let>\${i}`
         .build();
@@ -265,7 +266,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .filter()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.filter(i => i > 1)}`
         .build();
@@ -289,7 +290,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .at()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.at(-1)}`
         .build();
@@ -305,7 +306,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .includes()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.includes(2)}`
         .build();
@@ -321,7 +322,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .indexOf()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.indexOf(2)}`
         .build();
@@ -337,7 +338,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .lastIndexOf()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.lastIndexOf(2)}`
         .build();
@@ -353,7 +354,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .findIndex()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.findIndex(x => x === 2)}`
         .build();
@@ -369,7 +370,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .find()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.find(x => x === 2)}`
         .build();
@@ -385,7 +386,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .flat()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [[1]] })
         .html`\${items.flat()}`
         .build();
@@ -401,7 +402,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .flatMap()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.flatMap(i => [i + 1])}`
         .build();
@@ -417,7 +418,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .join()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.join(', ')}`
         .build();
@@ -433,7 +434,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .reduce()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.reduce((acc, i) => acc + i, 0)}`
         .build();
@@ -449,7 +450,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .reduceRight()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.reduceRight((acc, i) => acc + i)}`
         .build();
@@ -465,7 +466,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .slice()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.slice(0)}`
         .build();
@@ -481,7 +482,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .every()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.every(i => i < 2)}`
         .build();
@@ -497,7 +498,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on .some()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.some(i => i > 1)}`
         .build();
@@ -513,7 +514,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     });
 
     it('observes on text + .sort()', function () {
-      const { component, flush, assertText } = createFixture
+      const { component, assertText } = createFixture
         .component({ items: [1, 4, 3] })
         // this'll result in double evaluation as
         // text binding auto observes array

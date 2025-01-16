@@ -1,4 +1,5 @@
 import { Aurelia, customElement, ICustomElementViewModel, ICustomElementController } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 function createFixture() {
@@ -12,7 +13,7 @@ function createFixture() {
 describe('3-runtime-html/show.integration.spec.ts', function () {
   describe('show/hide alias works properly', function () {
     it('show + hide', async function () {
-      const { au, host, p } = createFixture();
+      const { au, host } = createFixture();
 
       @customElement({ name: 'app', template: '<div show.bind="show"></div><div hide.bind="hide"></div>' })
       class App implements ICustomElementViewModel {
@@ -58,7 +59,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
       component.hide = true;
       component.assert(`started after mutating`);
 
-      p.domQueue.flush();
+      flush();
       component.appliedShow = false;
       component.appliedHide = true;
       component.assert(`started after flushing dom writes`);
@@ -67,7 +68,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
     });
 
     it('hide + show', async function () {
-      const { au, host, p } = createFixture();
+      const { au, host } = createFixture();
 
       @customElement({ name: 'app', template: '<div hide.bind="hide"></div><div show.bind="show"></div>' })
       class App implements ICustomElementViewModel {
@@ -113,7 +114,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
       component.hide = true;
       component.assert(`started after mutating`);
 
-      p.domQueue.flush();
+      flush();
       component.appliedShow = false;
       component.appliedHide = true;
       component.assert(`started after flushing dom writes`);
@@ -144,7 +145,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
               // Initial value
               for (const show of [true ,false]) {
                 it(`display:'${style.display}',show:${show},attaching:${attaching},attached:${attached},detaching:${detaching},unbinding:${unbinding}`, async function () {
-                  const { au, host, p } = createFixture();
+                  const { au, host } = createFixture();
 
                   let run = 1;
 
@@ -188,7 +189,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      p.domQueue.flush();
+                      flush();
                       this.appliedShow = this.show;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }
@@ -230,7 +231,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.show = !component.show;
                   component.assert(`started after mutating (run ${run})`);
 
-                  p.domQueue.flush();
+                  flush();
                   component.appliedShow = component.show;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -243,7 +244,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.show = !component.show;
                   component.assert(`started after mutating (run ${run})`);
 
-                  p.domQueue.flush();
+                  flush();
                   component.appliedShow = component.show;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -255,7 +256,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
             describe('hide', function () {
               for (const hide of [true ,false]) {
                 it(`display:'${style.display}',hide:${hide},attaching:${attaching},attached:${attached},detaching:${detaching},unbinding:${unbinding}`, async function () {
-                  const { au, host, p } = createFixture();
+                  const { au, host } = createFixture();
 
                   let run = 1;
 
@@ -299,7 +300,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      p.domQueue.flush();
+                      flush();
                       this.appliedHide = this.hide;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }
@@ -341,7 +342,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.hide = !component.hide;
                   component.assert(`started after mutating (run ${run})`);
 
-                  p.domQueue.flush();
+                  flush();
                   component.appliedHide = component.hide;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -354,7 +355,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.hide = !component.hide;
                   component.assert(`started after mutating (run ${run})`);
 
-                  p.domQueue.flush();
+                  flush();
                   component.appliedHide = component.hide;
                   component.assert(`started after flushing dom writes (run ${run})`);
 

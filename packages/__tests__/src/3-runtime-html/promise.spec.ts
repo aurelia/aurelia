@@ -18,6 +18,7 @@ import {
   resolve,
 } from '@aurelia/kernel';
 import {
+  nextTick,
   Scope,
 } from '@aurelia/runtime';
 import {
@@ -327,10 +328,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
       this.promise = this.container.get(seedPromise);
     }
 
-    private updateError(err: Error) {
-      err.message += '1';
-      return err;
-    }
   }
 
   function getActivationSequenceFor(name: string | string[], withCtor: boolean = false) {
@@ -493,11 +490,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domQueue.yield();
+                await nextTick();
                 // on the next tick wait the queued task
-                await p.domQueue.yield();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
@@ -516,9 +512,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const p = ctx.platform;
-                await p.domQueue.yield();
-                await p.domQueue.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
@@ -537,11 +532,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domQueue.yield();
+                await nextTick();
                 // on the next tick wait the queued task
-                await p.domQueue.yield();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               },
@@ -560,9 +554,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const p = ctx.platform;
-                await p.domQueue.yield();
-                await p.domQueue.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
@@ -596,9 +589,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.resolve(24);
-              await p.domQueue.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('resolved with 24', 'f'));
               ctx.assertCallSet([]);
             }
@@ -613,9 +605,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
-              await p.domQueue.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(rhost)]);
             }
@@ -638,20 +629,19 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let resolve: (value: unknown) => void;
               const promise: PromiseWithId = new Promise((r) => resolve = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost, true)]);
               ctx.clear();
 
               resolve(84);
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -666,20 +656,19 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let reject: (value: unknown) => void;
               const promise: PromiseWithId = new Promise((_, r) => reject = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -694,9 +683,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('fizz-bazz'));
-              await p.domQueue.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('rejected with fizz-bazz', 'r'));
               ctx.assertCallSet([]);
             }
@@ -711,9 +699,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.resolve(42);
-              await p.domQueue.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(fhost)]);
             }
@@ -728,20 +715,19 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let resolve: (value: unknown) => void;
               const promise: PromiseWithId = new Promise((r) => resolve = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               resolve(84);
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -756,20 +742,19 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let reject: (value: unknown) => void;
               const promise: PromiseWithId = new Promise((_, r) => reject = r);
               promise.id = 0;
               ctx.app.promise = promise;
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet([...getDeactivationSequenceFor(rhost), ...getActivationSequenceFor(phost)]);
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -784,9 +769,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(phost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Object.assign(new Promise(() => {/* noop */ }), { id: 1 });
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
@@ -802,9 +786,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.resolve(42);
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
@@ -820,9 +803,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -838,17 +820,16 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let resolve: (value: unknown) => void;
               ctx.app.promise = Object.assign(new Promise((r) => resolve = r), { id: 1 });
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
 
               resolve(42);
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -863,17 +844,16 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const p = ctx.platform;
               let reject: (value: unknown) => void;
               ctx.app.promise = Object.assign(new Promise((_, r) => reject = r), { id: 1 });
-              await p.domQueue.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'));
               ctx.assertCallSet([]);
 
               reject(new Error('foo-bar'));
-              await p.domQueue.yield();
-              await p.domQueue.yield();
+              await nextTick();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
             }
@@ -906,9 +886,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -927,9 +906,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -955,9 +933,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
@@ -976,9 +953,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -1004,9 +980,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -1025,9 +1000,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
               }
@@ -1052,9 +1026,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
@@ -1073,9 +1046,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet([]);
               }
@@ -1100,9 +1072,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet([]);
               }
@@ -1121,9 +1092,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet(getActivationSequenceFor(rhost));
               }
@@ -1149,9 +1119,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
@@ -1170,9 +1139,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                const q = ctx.platform.domQueue;
-                await q.yield();
-                await q.yield();
+                await nextTick();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet(getActivationSequenceFor(rhost));
               }
@@ -1222,11 +1190,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domQueue.yield();
+                await nextTick();
                 // on the next tick wait the queued task
-                await p.domQueue.yield();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '<fulfilled-host1>resolved</fulfilled-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('fulfilled-host1')]);
               }
@@ -1251,11 +1218,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error());
-                const p = ctx.platform;
                 // one tick to call back the fulfill delegate, and queue task
-                await p.domQueue.yield();
+                await nextTick();
                 // on the next tick wait the queued task
-                await p.domQueue.yield();
+                await nextTick();
                 assert.html.innerEqual(ctx.host, '<rejected-host1>rejected</rejected-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('rejected-host1')]);
               }
@@ -1383,15 +1349,14 @@ describe('3-runtime-html/promise.spec.ts', function () {
               null,
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
-                const q = ctx.platform.domQueue;
-                await q.yield();
+                await nextTick();
                 const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 try {
                   await tc.value;
                 } catch {
                   // ignore rejection
                 }
-                await q.yield();
+                await nextTick();
 
                 if ($resolve) {
                   assert.html.innerEqual(ctx.host, wrap('resolved with 42 42', 'f'), 'fulfilled');
@@ -1443,14 +1408,13 @@ describe('3-runtime-html/promise.spec.ts', function () {
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
-                const q = ctx.platform.domQueue;
                 const tc = (ctx.app as ICustomElementViewModel).$controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
                 try {
                   await tc.value;
                 } catch {
                   // ignore rejection
                 }
-                await q.yield();
+                await nextTick();
 
                 if ($resolve) {
                   assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
@@ -1492,11 +1456,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
                   } else {
                     reject(new Error('foo-bar'));
                   }
-                  const p = ctx.platform;
                   // one tick to call back the fulfill delegate, and queue task
-                  await p.domQueue.yield();
+                  await nextTick();
                   // on the next tick wait the queued task
-                  await p.domQueue.yield();
+                  await nextTick();
                   assert.html.innerEqual(ctx.host, `${staticPart} ${$resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r')}`);
                   ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);
                 }
@@ -1682,7 +1645,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getActivationSequenceFor(`${rhost}-2`),
             getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const $if = controller.children.find((c) => c.viewModel instanceof If).viewModel as If;
@@ -1696,7 +1658,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-2`), ...getActivationSequenceFor(`${fhost}-1`)]);
@@ -1721,14 +1683,13 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(phost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
               await ((tc['pending']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
-              await q.yield();
+              await nextTick();
 
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'));
               ctx.assertCallSet(getActivationSequenceFor(phost));
@@ -1784,10 +1745,9 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(fhost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               await (app.promise = Promise.resolve(42));
-              await q.yield();
+              await nextTick();
 
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -1849,14 +1809,13 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(rhost),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               try {
                 await (app.promise = Promise.reject(new Error('foo-bar')));
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
 
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -1900,7 +1859,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
                 ctx.clear();
-                const q = ctx.platform.domQueue;
                 const app = ctx.app;
                 const controller = (app as ICustomElementViewModel).$controller;
                 controller.scope.overrideContext.status = 'processing';
@@ -1911,7 +1869,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 } catch {
                   // ignore rejection
                 }
-                await q.yield();
+                await nextTick();
 
                 assert.html.innerEqual(ctx.host, $resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet(getActivationSequenceFor($resolve ? fhost : rhost));
@@ -1941,14 +1899,13 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(`${fhost}-1`),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               const $switch = tc['fulfilled'].view.children.find((c) => c.viewModel instanceof Switch).viewModel as Switch;
 
               await (app.promise = Promise.resolve('processing'));
-              await q.yield();
+              await nextTick();
               await waitSwitch($switch);
 
               assert.html.innerEqual(ctx.host, '<fulfilled-host>resolved with processing</fulfilled-host>');
@@ -2010,7 +1967,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
             getDeactivationSequenceFor(`${rhost}-1`),
             async (ctx) => {
               ctx.clear();
-              const q = ctx.platform.domQueue;
               const app = ctx.app;
               const controller = (app as ICustomElementViewModel).$controller;
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
@@ -2021,7 +1977,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
               await waitSwitch($switch);
 
               assert.html.innerEqual(
@@ -2117,15 +2073,14 @@ describe('3-runtime-html/promise.spec.ts', function () {
             null,
             getDeactivationSequenceFor($resolve ? fhost : rhost),
             async (ctx) => {
-              const q = ctx.platform.domQueue;
 
-              await q.yield();
+              await nextTick();
               try {
                 await ctx.app.promise;
               } catch (e) {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
 
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
@@ -2168,8 +2123,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               null,
               getDeactivationSequenceFor($resolve ? fhost : rhost),
               async (ctx) => {
-                const q = ctx.platform.domQueue;
-                await q.yield();
+                await nextTick();
 
                 const app = ctx.app;
                 // Note: If the ticks are close to each other, we cannot avoid a race condition for the purpose of deterministic tests.
@@ -2186,7 +2140,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                   // ignore rejection
                 }
 
-                await q.yield();
+                await nextTick();
                 if ($resolve) {
                   assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'), 'fulfilled');
                 } else {
@@ -2219,8 +2173,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const app = ctx.app;
               app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
-              const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2232,7 +2185,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 // ignore rejection
               }
               // wait for the next tick
-              await q.yield();
+              await nextTick();
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled');
               } else {
@@ -2265,7 +2218,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               app.promise = Object.assign(new Promise(() => { /* unsettled */ }), { id: 0 });
 
               const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2288,7 +2241,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 // ignore rejection
               }
               // wait for the next tick
-              await q.yield();
+              await nextTick();
 
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled');
@@ -2323,8 +2276,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject: (value: unknown) => void;
               let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2346,7 +2298,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 { id: 1 }
               );
 
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
               ctx.assertCallSet([], `calls mismatch3`);
               ctx.clear();
@@ -2356,7 +2308,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
 
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled 2');
@@ -2393,7 +2345,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 0 });
 
               const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2413,7 +2365,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               q.flush();
               promise = app.promise = Object.assign(new Promise((rs, rj) => [resolve, reject] = [rs, rj]), { id: 1 });
 
-              await q.yield();
+              await nextTick();
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
               } else {
@@ -2422,7 +2374,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)], `calls mismatch2`);
               ctx.clear();
 
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
               ctx.assertCallSet([...getDeactivationSequenceFor($resolve ? fhost : rhost), ...getActivationSequenceFor(phost)], `calls mismatch3`);
               ctx.clear();
@@ -2437,7 +2389,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
 
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 4242', 'f'), 'fulfilled 2');
@@ -2473,8 +2425,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               let reject1: (value: unknown) => void;
               const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
 
-              const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2496,7 +2447,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 // ignore rejection
               }
 
-              await q.yield();
+              await nextTick();
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
               } else {
@@ -2532,7 +2483,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const promise1 = app.promise = Object.assign(new Promise((rs, rj) => [resolve1, reject1] = [rs, rj]), { id: 0 });
 
               const q = ctx.platform.domQueue;
-              await q.yield();
+              await nextTick();
               assert.html.innerEqual(ctx.host, wrap('pending0', 'p'), 'pending0');
               ctx.assertCallSet([...getDeactivationSequenceFor(fhost), ...getActivationSequenceFor(phost)], `calls mismatch1`);
               ctx.clear();
@@ -2543,7 +2494,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 // ignore rejection
               }
 
-              await q.yield();
+              await nextTick();
               if ($resolve) {
                 assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'), 'fulfilled 1');
               } else {
@@ -2566,7 +2517,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               } catch {
                 // ignore rejection
               }
-              await q.yield();
+              await nextTick();
               assert.strictEqual(tc['postSettledTask'], postSettleTask);
               ({ pending, processing, delayed } = reportTaskQueue(q));
               assert.deepStrictEqual([pending.length, processing.length, delayed.length], taskNums);
@@ -2721,7 +2672,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
         assert.strictEqual(ctx.error, null);
         const expectedContent = data.expectedInnerHtml;
         if (expectedContent !== null) {
-          await ctx.platform.domQueue.yield();
+          await nextTick();
           assert.html.innerEqual(ctx.host, expectedContent, 'innerHTML');
         }
 

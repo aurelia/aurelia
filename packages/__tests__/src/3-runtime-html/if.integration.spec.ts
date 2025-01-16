@@ -5,6 +5,7 @@ import {
   IPlatform,
   customElement,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import {
   assert, createFixture
 } from '@aurelia/testing';
@@ -196,7 +197,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation as only child of <template>', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">${name}</template>',
         { on: false, name: 'a' }
       );
@@ -213,7 +214,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation + leading + trailing text inside template', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">hey ${name}</template>',
         { on: false, name: 'a' }
       );
@@ -230,7 +231,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation as only child of <template> + else', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<template if.bind="on">${name}</template><template else>${name + 1}</template>',
         { on: false, name: 'a' }
       );

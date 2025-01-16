@@ -1,4 +1,5 @@
 import { ConsoleSink, LoggerConfiguration, LogLevel, resolve } from '@aurelia/kernel';
+import { flush } from '@aurelia/runtime';
 import { ISignaler, customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
@@ -155,7 +156,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
   it('takes signal from multiple value converters', function () {
     let addCount = 0;
     let minusCount = 0;
-    const { assertText, flush, container } = createFixture
+    const { assertText, container } = createFixture
       .component({ value: 0 })
       .html`\${value | add | minus}`
       .deps(

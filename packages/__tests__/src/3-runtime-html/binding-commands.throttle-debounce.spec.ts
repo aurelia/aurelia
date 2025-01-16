@@ -1,5 +1,6 @@
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { BindingMode, customElement, bindable, Aurelia, ISignaler } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { delegateSyntax } from '@aurelia/compat-v1';
 
 async function wait(ms: number): Promise<void> {
@@ -133,13 +134,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = '1';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #1');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.value, '0', 'target value #1');
 
       component.value = '2';
 
       assert.strictEqual(receiver.value, '0', 'target value pre #2');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.value, '0', 'target value #2');
 
       await ctx.platform.taskQueue.yield();
@@ -148,13 +149,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = '3';
 
       assert.strictEqual(receiver.value, '2', 'target value pre #3');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.value, '2', 'target value #3');
 
       await wait(50);
 
       assert.strictEqual(receiver.value, '3', 'target value pre #4');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.value, '3', 'target value #4');
 
       await au.stop();
@@ -182,22 +183,22 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       component.value = 1;
 
       assert.strictEqual(receiver.className, '', 'target value pre #1');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, '', 'target value #1');
 
       component.value = false;
 
       assert.strictEqual(receiver.className, '', 'target value pre #2');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, '', 'target value #2');
 
       component.value = true;
 
       assert.strictEqual(receiver.className, '', 'target value pre #3');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, '', 'target value #3');
 
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, '', 'target value #4');
 
       await ctx.platform.taskQueue.yield();
@@ -205,13 +206,13 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       component.value = false;
       assert.strictEqual(receiver.className, 'selected', 'target value pre #5');
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, 'selected', 'target value #5');
 
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(receiver.className, 'selected', 'target value #6');
 
-      ctx.platform.domQueue.flush();
+      flush();
       await ctx.platform.taskQueue.yield();
       assert.strictEqual(receiver.className, '', 'target value #6');
 
@@ -509,7 +510,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25">', App);
+      const { component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25">', App);
 
       const receiver = component.receiver;
       component.value = '1';
@@ -628,7 +629,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { ctx, component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:`hurry`">', App);
+      const { ctx, component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:`hurry`">', App);
       const receiver = component.receiver;
       const signaler = ctx.container.get(ISignaler);
 
@@ -653,7 +654,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
         public receiver: HTMLInputElement;
       }
 
-      const { ctx, component, flush } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:[`now`, `hurry`]">', App);
+      const { ctx, component } = createFixture('<input ref="receiver" value.to-view="value & throttle:25:[`now`, `hurry`]">', App);
       const receiver = component.receiver;
       const signaler = ctx.container.get(ISignaler);
 

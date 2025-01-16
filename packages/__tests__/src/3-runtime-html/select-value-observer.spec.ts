@@ -1,4 +1,5 @@
 import { SelectValueObserver } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
 type Anything = any;
@@ -293,7 +294,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
 
     component.clear();
     assert.strictEqual(component.selectEl.selectedIndex, 2);
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(component.selectEl.selectedIndex, 0);
 
     await tearDown();

@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router';
+import { flush } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -193,15 +194,15 @@ describe('router/router.fast-switch.spec.ts', function () {
   });
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  flush();
 };
 
 const $goBack = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.back();
   if (platform) {
-    platform.domQueue.flush();
+    flush();
     await platform.domQueue.yield();
   }
 };
@@ -209,7 +210,7 @@ const $goBack = async (router: IRouter, platform?: IPlatform) => {
 const $goForward = async (router: IRouter, platform?: IPlatform) => {
   await router.viewer.history.forward();
   if (platform) {
-    platform.domQueue.flush();
+    flush();
     await platform.domQueue.yield();
   }
 };

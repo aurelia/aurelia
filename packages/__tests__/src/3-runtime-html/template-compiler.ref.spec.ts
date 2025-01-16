@@ -9,6 +9,7 @@ import {
   INode,
   Aurelia,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import {
   assert,
   TestContext,
@@ -328,7 +329,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },

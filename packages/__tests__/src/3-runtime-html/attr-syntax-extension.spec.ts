@@ -1,6 +1,7 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IContainer, IPlatform } from '@aurelia/kernel';
 import { AppTask, CustomElement, NodeObserverLocator } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { IAttrMapper } from '@aurelia/template-compiler';
@@ -11,7 +12,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
   }
   it('understands how to transform .bind on web component custom elements', async function () {
     const elName = CustomElement.generateName();
-    const { ctx, component, appHost, startPromise, tearDown } = createFixture(
+    const { component, appHost, startPromise, tearDown } = createFixture(
       `<${elName} value.bind="option"></${elName}>`,
       class App {
         public option = '1';
@@ -67,7 +68,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
 
     component.option = '3';
     assert.strictEqual(selectEl.value, '2');
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(selectEl.value, '3');
 
     await tearDown();

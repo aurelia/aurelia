@@ -1,3 +1,4 @@
+import { flush } from '@aurelia/runtime';
 import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
@@ -175,7 +176,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       class El {
         @children('div') nodes: any[];
       }
-      const { flush, assertText } = createFixture(
+      const { assertText } = createFixture(
         '<e-l ref=el><div repeat.for="i of items">',
         class App {
           items = 3;

@@ -1,4 +1,5 @@
 import { CustomElement, INode } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { IWcElementRegistry } from '@aurelia/web-components';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -103,7 +104,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('observes attribute on normal custom element', async function () {
-      const { platform, container, appHost, component, startPromise, tearDown } = createFixture(
+      const { container, appHost, component, startPromise, tearDown } = createFixture(
         `<my-element-3 message.attr="message">`,
         class App {
           public message = 'hello world';
@@ -126,14 +127,14 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.textContent(appHost, 'hello world');
 
-      platform.domQueue.flush();
+      flush();
       assert.html.textContent(appHost, 'hello');
 
       await tearDown();
     });
 
     it('observes attribute on extended built-in custom element', async function () {
-      const { platform, container, appHost, component, startPromise, tearDown } = createFixture(
+      const { container, appHost, component, startPromise, tearDown } = createFixture(
         `<p is="my-element-4" message.attr="message">`,
         class App {
           public message = 'hello world';
@@ -158,14 +159,14 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.innerEqual(p, '<div>hello world</div>');
 
-      platform.domQueue.flush();
+      flush();
       assert.html.innerEqual(p, '<div>hello</div>');
 
       await tearDown();
     });
 
     it('works with bindable-as-property on normal custom element', async function () {
-      const { platform, container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, startPromise, tearDown } = createFixture(
         `<my-element-5 message.attr="message">`,
         class App {
           public message = 'hello world';
@@ -188,7 +189,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       el5.message = 'hello';
 
-      platform.domQueue.flush();
+      flush();
       assert.html.innerEqual(el5, '<div>hello</div>');
 
       await tearDown();
@@ -243,7 +244,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       myEl7.message = 'hello world';
       assert.html.textContent(myEl7, '');
-      platform.domQueue.flush();
+      flush();
       assert.html.textContent(myEl7, 'hello world');
       await tearDown();
     });

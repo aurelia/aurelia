@@ -1,4 +1,5 @@
 import type { Subscription } from 'rxjs';
+import { flush } from '@aurelia/runtime';
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store-v1";
@@ -141,7 +142,7 @@ describe("store-v1/integration.spec.ts", function () {
     const sut = ctx.container.get(App);
     await sut.changeFoo();
 
-    ctx.platform.domQueue.flush();
+    flush();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
     assert.equal(store['_state'].getValue().foo, "foobar");

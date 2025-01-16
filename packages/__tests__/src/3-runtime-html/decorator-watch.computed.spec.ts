@@ -1,4 +1,4 @@
-import { ProxyObservable } from '@aurelia/runtime';
+import { ProxyObservable, flush } from '@aurelia/runtime';
 import {
   bindable,
   ComputedWatcher,
@@ -87,18 +87,18 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         this.name = phoneValue;
       }
     }
-    const { ctx, component, appHost, tearDown } = createFixture(`\${name}`, App);
+    const { component, appHost, tearDown } = createFixture(`\${name}`, App);
 
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(appHost.textContent, '0413');
 
     void tearDown();
@@ -134,7 +134,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         this.name = strName;
       }
     }
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${name}</div>`, App);
+    const { component, appHost, tearDown } = createFixture(`<div>\${name}</div>`, App);
 
     const textNode = appHost.querySelector('div');
 
@@ -145,14 +145,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '');
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '3cp');
 
     void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '3cp');
   });
 
@@ -445,7 +445,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       }
     }
 
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+    const { component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
 
     const textNode = appHost.querySelector('div');
     assert.strictEqual(callCount, 0);
@@ -453,13 +453,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -479,7 +479,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -530,7 +530,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       }
     }
 
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+    const { component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
 
     const textNode = appHost.querySelector('div');
     assert.strictEqual(callCount, 0);
@@ -538,13 +538,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 0);
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '0');
 
     component.delivered(1);
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '0');
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '1');
 
     void tearDown();
@@ -553,10 +553,10 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '1');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(textNode.textContent, '1');
   });
 

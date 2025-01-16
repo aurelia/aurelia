@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRoute, IRouter, IRouterOptions, RouterConfiguration } from '@aurelia/router';
+import { flush } from '@aurelia/runtime';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
@@ -164,7 +165,7 @@ describe('router/router.link-click-defaults.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  flush();
 };

@@ -8,6 +8,7 @@ import {
   PropertyBinding,
   bindingBind,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import {
   assert,
   createContainer,
@@ -213,7 +214,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
   describe('[[AccessMember]]', function () {
     it('notifies when binding with .length', function () {
-      const { trigger, assertText, flush } = createFixture
+      const { trigger, assertText } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items.length = 0">item count: \${items.length}</button>
@@ -227,7 +228,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
   describe('[[AccessKey]]', function () {
     it('notifies when assigning to array index', function () {
-      const { trigger, assertText, flush } = createFixture
+      const { trigger, assertText } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
@@ -239,7 +240,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
     });
 
     it('notifies when binding two way with array index', function () {
-      const { getAllBy, type, flush } = createFixture
+      const { getAllBy, type } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>

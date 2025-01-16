@@ -303,10 +303,6 @@ export function createFixture<T extends object>(
     el.dispatchEvent(new platform.window.Event('scroll'));
   };
 
-  const flush = (time?: number) => {
-    ctx.platform.domQueue.flush(time);
-  };
-
   const stop = (dispose: boolean = false): void | Promise<void> => {
     let ret: void | Promise<void> = void 0;
     try {
@@ -393,7 +389,6 @@ export function createFixture<T extends object>(
     public trigger = trigger as ITrigger;
     public type = type;
     public scrollBy = scrollBy;
-    public flush = flush;
   }();
 
   fixtureHooks.publish('fixture:created', fixture);
@@ -550,8 +545,6 @@ export interface IFixture<T> {
    * A helper to scroll and trigger a scroll even on an element matching the given selector
    */
   scrollBy(selector: string, options: number | ScrollToOptions): void;
-
-  flush(): void;
 }
 
 export type ITrigger = {

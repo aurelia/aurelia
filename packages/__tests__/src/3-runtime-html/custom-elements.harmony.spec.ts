@@ -5,6 +5,7 @@ import {
   INode,
   Aurelia,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import {
   assert,
   createFixture,
@@ -69,7 +70,7 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         assert.equal(comp.blur, 1);
 
         comp.hasFocus = true;
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(ctx.doc.activeElement, host);
         assert.equal(comp.focus, 2);
         const div = host.querySelector('div');

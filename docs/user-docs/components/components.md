@@ -139,18 +139,6 @@ export class AppLoader {
 
 Omitting the `template` property means Aurelia won't use conventions to locate the template.
 
-It is possible to use the `@inlineView` decorator to define the template inline:
-
-```typescript
-import { customElement, inlineView } from 'aurelia';
-
-@inlineView('foo-bar')
-@customElement('app-loader')
-export class AppLoader {
-  //...
-}
-```
-
 #### dependencies
 
 You can declare explicit dependencies within the `@customElement` decorator, which can be an explicit way to manage dependencies without using the `<import>` tag in your templates:
@@ -287,18 +275,6 @@ export class LoadingIndicator {
 ```
 
 In this example, nprogress manages the DOM manipulation, so a template isn't necessary.
-
-The same can be achieved by using the `@noView` decorator.
-
-```typescript
-import { customElement, noView } from 'aurelia';
-
-@noView
-@customElement('loading-indicator')
-export class LoadingIndicator {
-  // ...
-}
-```
 
 ## Registering Your Components
 

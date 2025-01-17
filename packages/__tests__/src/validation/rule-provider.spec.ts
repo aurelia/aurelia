@@ -36,9 +36,9 @@ import {
   parsePropertyName,
   ValidationRuleAliasMessage,
   validationRulesRegistrar,
-  rootObjectSymbol,
+  rootObjectSymbol
 } from '@aurelia/validation';
-import { Person } from './_test-resources.js';
+import { Person, Flight, Direction } from './_test-resources.js';
 
 describe('validation/rule-provider.spec.ts', function () {
   describe('ValidationRules', function () {
@@ -308,7 +308,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
         .rules;
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
+      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj)["rules"], rules);
 
       sut.off();
     });
@@ -327,7 +327,7 @@ describe('validation/rule-provider.spec.ts', function () {
         .rules;
       const person = new Person(void 0!, void 0!);
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
+      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person)['rules'], rules);
 
       const [rules1, rules2] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -335,7 +335,7 @@ describe('validation/rule-provider.spec.ts', function () {
       assert.equal(rules2.property.name, 'age');
       assert.instanceOf(rules2.$rules[0][0], RangeRule);
 
-      assert.equal(validationRulesRegistrar.get(person), rules);
+      assert.equal(validationRulesRegistrar.get(person).rules, rules);
 
       sut.off();
     });
@@ -357,7 +357,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
         .rules;
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj), rules);
+      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), obj)['rules'], rules);
 
       const [rules1, rules2, rules3] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -388,7 +388,7 @@ describe('validation/rule-provider.spec.ts', function () {
         .rules;
       const person = new Person(void 0!, void 0!);
 
-      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person), rules);
+      assert.equal(Metadata.get(Protocol.annotation.keyFor('validation-rules', validationRulesRegistrar.defaultRuleSetName), Person)['rules'], rules);
 
       const [rules1, rules2, rules3] = rules;
       assert.equal(rules1.property.name, 'name');
@@ -398,7 +398,7 @@ describe('validation/rule-provider.spec.ts', function () {
       assert.equal(rules3.property.name, 'address.line1');
       assert.instanceOf(rules3.$rules[0][0], RequiredRule);
 
-      assert.equal(validationRulesRegistrar.get(person), rules);
+      assert.equal(validationRulesRegistrar.get(person).rules, rules);
 
       sut.off();
     });
@@ -425,8 +425,8 @@ describe('validation/rule-provider.spec.ts', function () {
         .ensure((o) => o.age)
         .required();
 
-      const rules1 = validationRulesRegistrar.get(obj1);
-      const rules2 = validationRulesRegistrar.get(obj2);
+      const rules1 = validationRulesRegistrar.get(obj1).rules;
+      const rules2 = validationRulesRegistrar.get(obj2).rules;
 
       assert.equal(rules1.length, 3, 'error1');
       const [name1Rule, line1Rule, age1Rule] = rules1;
@@ -468,8 +468,8 @@ describe('validation/rule-provider.spec.ts', function () {
         .ensure('age')
         .required();
 
-      const ruleset1 = validationRulesRegistrar.get(obj, tag1);
-      const ruleset2 = validationRulesRegistrar.get(obj, tag2);
+      const ruleset1 = validationRulesRegistrar.get(obj, tag1).rules;
+      const ruleset2 = validationRulesRegistrar.get(obj, tag2).rules;
 
       assert.equal(ruleset1.length, 1, 'error1');
       assert.equal(ruleset1[0].property.name, 'name', 'error2');
@@ -491,7 +491,7 @@ describe('validation/rule-provider.spec.ts', function () {
 
       const rules1 = validationRulesRegistrar.get(obj);
 
-      assert.equal(rules1.length, 1, 'error1');
+      assert.equal(rules1.rules.length, 1, 'error1');
 
       sut.off(obj);
 
@@ -1176,6 +1176,50 @@ describe('validation/rule-provider.spec.ts', function () {
       const results = await rule.validate(obj, tag);
       assert.equal(results.length, 1);
       assert.deepEqual(results[0].message, msg);
+
+      validationRules.off();
+    });
+
+    it('can be linked to other properties', async function () {
+      const { validationRules } = $createFixture();
+      const obj: Person = new Person((void 0)!, (void 0)!, (void 0)!);
+      const properties: string[] = ['age', 'address'];
+      validationRules
+        .on(obj)
+        .ensure('name')
+        .required()
+        .satisfies((value) => value === 'foobar')
+        .ensureGroup(properties)
+        .ensure('age').min(18)
+        .ensure('address').required();
+
+      assert.equal(validationRules.groups.length, 1);
+      assert.deepEqual(validationRules.groups[0].linkedProperties[0].prop.name, 'age');
+      assert.deepEqual(validationRules.groups[0].linkedProperties[0].depth, 0);
+      assert.deepEqual(validationRules.groups[0].linkedProperties[1].prop.name, 'address');
+      assert.deepEqual(validationRules.groups[0].linkedProperties[1].depth, 0);
+
+      validationRules.off();
+    });
+
+    it('can be linked to other properties by means of PropertyAccessors', async function () {
+      const { validationRules } = $createFixture();
+      const flight: Flight = new Flight(Direction.oneWay, new Date(2024, 7, 23).getTime(), new Date(2024, 7, 24).getTime());
+      validationRules
+        .on(flight)
+        .ensure('direction')
+        .required()
+        .ensure('departureDate').satisfies((value, obj) => {  return value < obj.returnDate; }).when((obj) => obj.direction === Direction.return)
+        .satisfies((value) => value > Date.now()).when((obj) => obj.direction === Direction.return)
+        .ensure('returnDate').satisfies((value, obj) =>  { return value > obj.departureDate; }).when((obj) => obj.direction === Direction.return)
+        .satisfies((value) => !value).when((obj) => obj.direction === Direction.oneWay)
+        .ensureGroup((f) => f.departureDate, (f) => f.returnDate);
+
+      assert.equal(validationRules.groups.length, 1);
+      assert.deepEqual(validationRules.groups[0].linkedProperties[0].prop.name, 'departureDate');
+      assert.deepEqual(validationRules.groups[0].linkedProperties[0].depth, 0);
+      assert.deepEqual(validationRules.groups[0].linkedProperties[1].prop.name, 'returnDate');
+      assert.deepEqual(validationRules.groups[0].linkedProperties[1].depth, 1);
 
       validationRules.off();
     });

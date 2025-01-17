@@ -91,6 +91,30 @@ validationRules
 
 With TypeScript support, intellisense is available for both the variants.
 
+## Linking a property's validation with others
+
+This functionality can be useful when a change in one property has to trigger additional validations because the values are intrinsically related.
+Linked properties should be supplied as parameters, which can be strings, property accessors, or arrays of either strings or property accessors.
+When a property changes, the validator triggers additional rules for all linked fields according to their priority order. If properties are grouped in arrays, it means they are treated as equally important. The order of parameters dictates the validation sequence: when validation is triggered for the nth parameter, all properties linked to the previous (n-1) parameters, as well as any properties within an array parameter, will also be validated. However, when the first parameter initiates validation, subsequent properties will not be checked unless they have already been edited.
+
+```typescript
+validationRules
+  .on(person)
+  .ensureGroup("name", "age", "address") // the three properties will be validated sequentially
+```
+
+```typescript
+validationRules
+  .on(person)
+  .ensureGroup([(p) => p.name, (p) => p.age, (p) => p.address]); // no priority assigned, grouped properties will always be checked together
+```
+
+```typescript
+validationRules
+  .on(person)
+  .ensureGroup((p) => p.name, ["age", "address"]); // age and address have the same priority
+```
+
 ## Associating validation rules with property
 
 After selecting a property with `.ensure` the next step is to associate rules. The rules can be built-in or custom. Irrespective of what kind of rule it is, at the low-level it is nothing but an instance of the rule class. For example, the "required" validation is implemented by the `RequiredRule` class. This will be more clear when you will define custom validation rules. However, let us take a look at the built-in rules first.

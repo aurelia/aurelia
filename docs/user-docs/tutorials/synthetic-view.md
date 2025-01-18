@@ -30,10 +30,11 @@ A synthetic view in Aurelia 2 consists of several key components:
 
 Before working with synthetic views, you should be familiar with:
 
-- Basic Aurelia 2 concepts and templating
-- JavaScript DOM APIs (particularly `createElement` and `appendChild`)
-- Aurelia's dependency injection system
-- Basic understanding of scopes and binding contexts
+* Creating a new Aurelia app. This tutorial won't cover this; you can look at the other tutorials.
+* You have familiarized yourself with the [Aurelia template syntax](../templates/template-syntax.md).
+* You have familiarized yourself with [components in Aurelia](../components/components.md).
+* You are familiar with [Dependency Injection](../getting-to-know-aurelia/dependency-injection-di/). You don't need to master it; you need to be familiar with its existence and why it matters in Aurelia.
+* Native Web APIs, such as [`createElement`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement).
 
 ## Getting Started
 

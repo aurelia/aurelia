@@ -106,7 +106,8 @@ interface IFoundResource {
 
 interface IResourceDecorator {
   type: ResourceType;
-  expression: CallExpression;
+  expression?: CallExpression;
+  originalDecorator: string;
 }
 
 interface IModifyResourceOptions {
@@ -418,7 +419,7 @@ function isExported(node: Node): boolean {
   return false;
 }
 
-const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
+const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController', 'noView', 'inlineView'];
 
 function isKindOfSame(name1: string, name2: string): boolean {
   return name1.replace(/-/g, '') === name2.replace(/-/g, '');
@@ -548,12 +549,12 @@ function findResource(
 
   if (resourceType) {
     const decorator = resourceType.expression;
-    const decoratorArgs = decorator.arguments;
-    const numArguments = decoratorArgs.length;
+    const decoratorArgs = decorator?.arguments;
+    const numArguments = decoratorArgs?.length ?? 0;
 
     // map the classes to the template imports to classes - @customElement decorator
     if (resourceType.type === 'customElement') {
-      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(decoratorArgs[0], $class, templateMetadata);
+      if (numArguments === 1) tryCollectTemplateMetadataFromDefinition(decoratorArgs?.[0], $class, templateMetadata);
       for (const member of node.members) {
         // static template property
         tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata);
@@ -571,24 +572,40 @@ function findResource(
     }
 
     if (
+         isImplicitResource
+      && (resourceType.originalDecorator === 'noView' || resourceType.originalDecorator === 'inlineView')
+      && !filePair
+    ) {
+      return {
+        type: resourceType.type,
+        modification: {
+          insert: [[getPosition(node, code).pos, `@customElement('${name}')\n`]]
+        },
+        classMetadata: $class,
+        runtimeImportName: 'customElement',
+      };
+    }
+
+    if (
       isImplicitResource &&
       resourceType.type === 'customElement' &&
       numArguments === 1 &&
-      isStringLiteral(decoratorArgs[0])
+      isStringLiteral(decoratorArgs![0])
     ) {
       // @customElement('custom-name')
-      const customName = decoratorArgs[0];
+      const customName = decoratorArgs![0];
       return {
         type: resourceType.type,
         classMetadata: $class,
         implicitStatement: { pos: pos, end: node.end },
         customElementDecorator: {
-          position: getPosition(decorator, code),
+          position: getPosition(decorator!, code),
           namePosition: getPosition(customName, code)
         },
         runtimeImportName: filePair ? type : undefined,
       };
     }
+
   } else {
     if (type === 'customElement') {
       for (const m of node.members) {
@@ -637,15 +654,18 @@ function collectClassDecorators(node: ClassDeclaration): IResourceDecorator | un
     } else if (isIdentifier(d.expression)) {
       name = d.expression.text;
     }
+
+    const isViewCe = name === 'noView' || name === 'inlineView';
     if (
       name == null
       || !KNOWN_RESOURCE_DECORATORS.includes(name)
-      || resourceExpression == null
+      || (name !== 'noView' && resourceExpression == null)
     ) continue;
 
     return {
-      type: name as ResourceType,
-      expression: resourceExpression
+      type: (isViewCe ? 'customElement' : name) as ResourceType,
+      expression: resourceExpression,
+      originalDecorator: name,
     };
   }
 }

@@ -1,5 +1,6 @@
 import { IExpressionParser, type ExpressionType } from '@aurelia/expression-parser';
-import { isString } from '@aurelia/kernel';
+import { isString, Protocol } from '@aurelia/kernel';
+import { Metadata } from '@aurelia/metadata';
 
 /** @internal */ export const defineProp = Object.defineProperty;
 // /** @internal */ export const rethrow = (err: unknown) => { throw err; };
@@ -28,3 +29,10 @@ export const ensureExpression = <TFrom>(parser: IExpressionParser, srcOrExpr: TF
 };
 
 /** @internal */ export const etIsFunction = 'IsFunction' as const;
+
+/** @internal */ export const getMetadata = Metadata.get;
+/** @internal */ export const hasMetadata = Metadata.has;
+/** @internal */ export const defineMetadata = Metadata.define;
+
+const { annotation } = Protocol;
+/** @internal */ export const getAnnotationKeyFor = annotation.keyFor;

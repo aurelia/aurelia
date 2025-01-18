@@ -473,6 +473,62 @@ export class FooBar {
     assert.equal(result.code, expected);
   });
 
+  for (const nvDeco of ['noView', 'noView()']) {
+    it(nvDeco, function () {
+      const code = `
+import { noView } from '@aurelia/compat-v1';
+
+@${nvDeco}
+export class FooBar {
+}
+`;
+      const expected = `import { customElement } from '@aurelia/runtime-html';
+
+import { noView } from '@aurelia/compat-v1';
+
+@customElement('foo-bar')
+@${nvDeco}
+export class FooBar {
+}
+`;
+      const result = preprocessResource(
+        {
+          path: path.join('foo-bar.js'),
+          contents: code,
+        },
+        preprocessOptions({ hmr: false })
+      );
+      assert.equal(result.code, expected);
+    });
+  }
+
+  it('inlineView', function () {
+    const code = `
+import { inlineView } from '@aurelia/compat-v1';
+
+@inlineView('fizz-buzz')
+export class FooBar {
+}
+`;
+    const expected = `import { customElement } from '@aurelia/runtime-html';
+
+import { inlineView } from '@aurelia/compat-v1';
+
+@customElement('foo-bar')
+@inlineView('fizz-buzz')
+export class FooBar {
+}
+`;
+    const result = preprocessResource(
+      {
+        path: path.join('foo-bar.js'),
+        contents: code,
+      },
+      preprocessOptions({ hmr: false })
+    );
+    assert.equal(result.code, expected);
+  });
+
 });
 
 describe('preprocessResource for complex resource', function () {

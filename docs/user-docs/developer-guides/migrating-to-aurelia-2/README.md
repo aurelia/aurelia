@@ -143,6 +143,37 @@ Read more about dynamic composition in v2 in this [dynamic composition doc](../.
 If you are using `replaceable`/`part`/`repaceable-part` combo in your v1 applications, you'll need to replace them with `<au-slot>` elements and `au-slot` attributes.
 Refer to the [au slot doc](../../components/shadow-dom-and-slots.md#au-slot) for more information.
 
+## View decorators
+
+When migrating from v1, it is possible to encounter the `@noView` and `@inlineView` decorators. These decorators are no longer available from the core packages in v2. Instead, use the [`template` property](../../components/components.md) of the custom element decorator.
+
+For the ease of migration, the `@noView` and `@inlineView` decorators are made available from the `@aurelia/compat-v1` package. FOllowing are some example usages.
+
+- Use the `@inlineView` decorator to define the template of a custom element.
+
+  ```typescript
+  import { customElement } from 'aurelia';
+  import { inlineView } from '@aurelia/compat-v1';
+
+  @inlineView('foo-bar')
+  @customElement('app-loader')
+  export class AppLoader {
+    //...
+  }
+  ```
+- Use the `@noView` decorator to define a custom element without a view.
+
+  ```typescript
+  import { customElement } from 'aurelia';
+  import { noView } from '@aurelia/compat-v1';
+
+  @noView
+  @customElement('loading-indicator')
+  export class LoadingIndicator {
+    // ...
+  }
+  ```
+
 ## General changes
 
 * Custom attributes are no longer considered to have a binding to the primary bindable when their template usage is with an empty string, like the following examples:

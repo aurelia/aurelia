@@ -17,7 +17,7 @@ test.describe.serial('examples/hmr-webpack-e2e/app.spec.ts', function () {
     });
 
     test('noView', async function ({ page }) {
-      await expect(page.locator('no-view:has-text("Nothing to see here")')).toBeVisible();
+      await expect(page.locator('no-view')).toHaveText('');
     });
 
     test('inlineView', async function ({ page }) {

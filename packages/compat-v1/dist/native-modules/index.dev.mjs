@@ -1,7 +1,8 @@
 import { BindingBehaviorExpression, ValueConverterExpression, AssignExpression, ConditionalExpression, AccessThisExpression, AccessScopeExpression, AccessMemberExpression, AccessKeyedExpression, CallScopeExpression, CallMemberExpression, CallFunctionExpression, BinaryExpression, UnaryExpression, PrimitiveLiteralExpression, ArrayLiteralExpression, ObjectLiteralExpression, TemplateExpression, TaggedTemplateExpression, ArrayBindingPattern, ObjectBindingPattern, BindingIdentifier, ForOfStatement, Interpolation, DestructuringAssignmentExpression, DestructuringAssignmentSingleExpression, DestructuringAssignmentRestExpression, ArrowFunction, astVisit, Unparser, IExpressionParser } from '../../../expression-parser/dist/native-modules/index.mjs';
 import { astEvaluate, astAssign, astBind, astUnbind, IObserverLocator, getCollectionObserver, Scope } from '../../../runtime/dist/native-modules/index.mjs';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, renderer, IListenerBindingOptions, IEventTarget, AppTask, PropertyBinding, AttributeBinding, ListenerBinding, LetBinding, InterpolationPartBinding, ContentBinding, RefBinding, AuCompose, CustomElement, BindableDefinition, ExpressionWatcher } from '../../../runtime-html/dist/native-modules/index.mjs';
-import { isString, camelCase, resolve, isFunction, DI, createLookup } from '../../../kernel/dist/native-modules/index.mjs';
+import { Protocol, isString, camelCase, resolve, isFunction, DI, createLookup, getResourceKeyFor } from '../../../kernel/dist/native-modules/index.mjs';
+import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 
 let defined$1 = false;
 function defineAstMethods() {
@@ -81,6 +82,11 @@ const ensureExpression = (parser, srcOrExpr, expressionType) => {
     return srcOrExpr;
 };
 /** @internal */ const etIsFunction = 'IsFunction';
+/** @internal */ const getMetadata = Metadata.get;
+/** @internal */ Metadata.has;
+/** @internal */ const defineMetadata = Metadata.define;
+const { annotation } = Protocol;
+/** @internal */ const getAnnotationKeyFor = annotation.keyFor;
 
 const callRegisteredContainer = new WeakSet();
 const callSyntax = {
@@ -567,6 +573,43 @@ class BindingEngine {
     }
 }
 
+function noView(target, context) {
+    if (target === void 0) {
+        return function ($target, $context) {
+            $context.addInitializer(function () {
+                setTemplate($target, null);
+            });
+        };
+    }
+    context.addInitializer(function () {
+        setTemplate(target, null);
+    });
+}
+/**
+ * Decorator: Indicates that the custom element has a markup defined inline in this decorator.
+ */
+function inlineView(template) {
+    return function ($target, context) {
+        context.addInitializer(function () {
+            setTemplate($target, template);
+        });
+    };
+}
+const elementTypeName = 'custom-element';
+const elementBaseName = /*@__PURE__*/ getResourceKeyFor(elementTypeName);
+const annotateElementMetadata = (Type, prop, value) => {
+    defineMetadata(value, Type, getAnnotationKeyFor(prop));
+};
+/** Manipulates the `template` property of the custom element definition for the type, when present else it annotates the type. */
+function setTemplate(target, template) {
+    const def = getMetadata(elementBaseName, target);
+    if (def === void 0) {
+        annotateElementMetadata(target, 'template', template);
+        return;
+    }
+    def.template = template;
+}
+
 /**
  * Register all services/functionalities necessary for a v1 app to work with Aurelia v2.
  *
@@ -581,5 +624,5 @@ const compatRegistration = {
     }
 };
 
-export { BindingEngine, CallBinding, CallBindingCommand, CallBindingInstruction, CallBindingRenderer, DelegateBindingCommand, DelegateBindingInstruction, DelegateListenerBinding, DelegateListenerOptions, EventDelegator, IEventDelegator, ListenerBindingRenderer, callSyntax, compatRegistration, delegateSyntax, disableComposeCompat, enableComposeCompat, eventPreventDefaultBehavior };
+export { BindingEngine, CallBinding, CallBindingCommand, CallBindingInstruction, CallBindingRenderer, DelegateBindingCommand, DelegateBindingInstruction, DelegateListenerBinding, DelegateListenerOptions, EventDelegator, IEventDelegator, ListenerBindingRenderer, callSyntax, compatRegistration, delegateSyntax, disableComposeCompat, enableComposeCompat, eventPreventDefaultBehavior, inlineView, noView };
 //# sourceMappingURL=index.dev.mjs.map

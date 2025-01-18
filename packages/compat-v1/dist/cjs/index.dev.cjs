@@ -6,6 +6,7 @@ var expressionParser = require('@aurelia/expression-parser');
 var runtime = require('@aurelia/runtime');
 var runtimeHtml = require('@aurelia/runtime-html');
 var kernel = require('@aurelia/kernel');
+var metadata = require('@aurelia/metadata');
 
 let defined$1 = false;
 function defineAstMethods() {
@@ -85,6 +86,11 @@ const ensureExpression = (parser, srcOrExpr, expressionType) => {
     return srcOrExpr;
 };
 /** @internal */ const etIsFunction = 'IsFunction';
+/** @internal */ const getMetadata = metadata.Metadata.get;
+/** @internal */ metadata.Metadata.has;
+/** @internal */ const defineMetadata = metadata.Metadata.define;
+const { annotation } = kernel.Protocol;
+/** @internal */ const getAnnotationKeyFor = annotation.keyFor;
 
 const callRegisteredContainer = new WeakSet();
 const callSyntax = {
@@ -571,6 +577,43 @@ class BindingEngine {
     }
 }
 
+function noView(target, context) {
+    if (target === void 0) {
+        return function ($target, $context) {
+            $context.addInitializer(function () {
+                setTemplate($target, null);
+            });
+        };
+    }
+    context.addInitializer(function () {
+        setTemplate(target, null);
+    });
+}
+/**
+ * Decorator: Indicates that the custom element has a markup defined inline in this decorator.
+ */
+function inlineView(template) {
+    return function ($target, context) {
+        context.addInitializer(function () {
+            setTemplate($target, template);
+        });
+    };
+}
+const elementTypeName = 'custom-element';
+const elementBaseName = /*@__PURE__*/ kernel.getResourceKeyFor(elementTypeName);
+const annotateElementMetadata = (Type, prop, value) => {
+    defineMetadata(value, Type, getAnnotationKeyFor(prop));
+};
+/** Manipulates the `template` property of the custom element definition for the type, when present else it annotates the type. */
+function setTemplate(target, template) {
+    const def = getMetadata(elementBaseName, target);
+    if (def === void 0) {
+        annotateElementMetadata(target, 'template', template);
+        return;
+    }
+    def.template = template;
+}
+
 /**
  * Register all services/functionalities necessary for a v1 app to work with Aurelia v2.
  *
@@ -603,4 +646,6 @@ exports.delegateSyntax = delegateSyntax;
 exports.disableComposeCompat = disableComposeCompat;
 exports.enableComposeCompat = enableComposeCompat;
 exports.eventPreventDefaultBehavior = eventPreventDefaultBehavior;
+exports.inlineView = inlineView;
+exports.noView = noView;
 //# sourceMappingURL=index.dev.cjs.map

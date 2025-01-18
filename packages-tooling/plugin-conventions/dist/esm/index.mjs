@@ -702,7 +702,7 @@ function isExported(node) {
     }
     return false;
 }
-const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
+const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController', 'noView', 'inlineView'];
 function isKindOfSame(name1, name2) {
     return name1.replace(/-/g, '') === name2.replace(/-/g, '');
 }
@@ -791,6 +791,7 @@ function createAuResourceTransformer() {
     }
 }
 function findResource(node, expectedResourceName, filePair, code, useConvention, templateMetadata) {
+    var _a;
     if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention)
         return;
     const pos = ensureTokenStart(node.pos, code);
@@ -801,11 +802,11 @@ function findResource(node, expectedResourceName, filePair, code, useConvention,
     const resourceType = collectClassDecorators(node);
     if (resourceType) {
         const decorator = resourceType.expression;
-        const decoratorArgs = decorator.arguments;
-        const numArguments = decoratorArgs.length;
+        const decoratorArgs = decorator === null || decorator === void 0 ? void 0 : decorator.arguments;
+        const numArguments = (_a = decoratorArgs === null || decoratorArgs === void 0 ? void 0 : decoratorArgs.length) !== null && _a !== void 0 ? _a : 0;
         if (resourceType.type === 'customElement') {
             if (numArguments === 1)
-                tryCollectTemplateMetadataFromDefinition(decoratorArgs[0], $class, templateMetadata);
+                tryCollectTemplateMetadataFromDefinition(decoratorArgs === null || decoratorArgs === void 0 ? void 0 : decoratorArgs[0], $class, templateMetadata);
             for (const member of node.members) {
                 tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata);
             }
@@ -814,6 +815,18 @@ function findResource(node, expectedResourceName, filePair, code, useConvention,
             resourceType.type !== 'customElement') {
             return {
                 localDep: className
+            };
+        }
+        if (isImplicitResource
+            && (resourceType.originalDecorator === 'noView' || resourceType.originalDecorator === 'inlineView')
+            && !filePair) {
+            return {
+                type: resourceType.type,
+                modification: {
+                    insert: [[getPosition(node, code).pos, `@customElement('${name}')\n`]]
+                },
+                classMetadata: $class,
+                runtimeImportName: 'customElement',
             };
         }
         if (isImplicitResource &&
@@ -880,13 +893,15 @@ function collectClassDecorators(node) {
         else if (isIdentifier(d.expression)) {
             name = d.expression.text;
         }
+        const isViewCe = name === 'noView' || name === 'inlineView';
         if (name == null
             || !KNOWN_RESOURCE_DECORATORS.includes(name)
-            || resourceExpression == null)
+            || (name !== 'noView' && resourceExpression == null))
             continue;
         return {
-            type: name,
-            expression: resourceExpression
+            type: (isViewCe ? 'customElement' : name),
+            expression: resourceExpression,
+            originalDecorator: name,
         };
     }
 }

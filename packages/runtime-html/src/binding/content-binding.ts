@@ -79,7 +79,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public updateTarget(value: unknown): void {
-    console.log('ContentBinding#updateTarget');
     const { target } = this;
     const oldValue = this._value;
     this._value = value;
@@ -92,7 +91,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
       value = '';
       this._needsRemoveNode = true;
     }
-    // console.log({ value, type: typeof value });
     target.textContent = safeString(value ?? '');
   }
 

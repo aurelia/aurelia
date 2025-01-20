@@ -85,7 +85,6 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
           assert.strictEqual(inputEl.checked, false);
 
           component.itemNames.splice(0, 1, true as any);
-          flush();
           assert.strictEqual(inputEl.checked, true, 'should have been checked');
 
           inputEl.checked = false;
@@ -113,9 +112,8 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
           selectEl.dispatchEvent(new ctx.CustomEvent('change'));
           assert.strictEqual(component.itemNames[0], 'i-1');
 
-          component.itemNames.splice(0, 1, 'i-2');
           assert.strictEqual(selectEl.value, 'i-1');
-          flush();
+          component.itemNames.splice(0, 1, 'i-2');
           assert.strictEqual(selectEl.value, 'i-2');
         }
       },

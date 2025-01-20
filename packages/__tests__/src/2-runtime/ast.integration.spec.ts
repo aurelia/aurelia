@@ -46,7 +46,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(target.name, 'hello');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           source.name = `${idx}`;
           assert.strictEqual(target.name, `${idx}`);
         });
@@ -86,7 +86,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(target.value, 'no');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           const $count = handleChangeCallCount;
           source.checked = !source.checked;
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
@@ -140,7 +140,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(source.value, 'hello');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           oc.name = `${idx}`;
           assert.strictEqual(source.value, `${idx}`);
         });

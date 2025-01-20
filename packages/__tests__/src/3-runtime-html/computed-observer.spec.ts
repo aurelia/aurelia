@@ -215,7 +215,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       assertFn: (ctx, host, component) => {
         assert.strictEqual(host.textContent, '2.4.6.8.10.');
         component.items[1].isDone = true;
-        // todo: why so eagerly?
+        flush();
         assert.strictEqual(host.textContent, '4.6.8.10.');
       },
     },

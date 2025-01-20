@@ -76,12 +76,10 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public updateTarget(value: unknown): void {
-    console.log('PropertyBinding#updateTarget');
     this._targetObserver!.setValue(value, this.target, this.targetProperty);
   }
 
   public updateSource(value: unknown): void {
-    console.log('PropertyBinding#updateSource');
     astAssign(this.ast, this._scope!, this, value);
   }
 

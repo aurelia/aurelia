@@ -541,9 +541,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1,3,4,5,');
 
       component.items.push({ id: 2 });
+      flush();
       assertText('1,2,3,4,5,');
 
       component.items.splice(2);
+      flush();
       assertText('4,5,');
     });
 

@@ -43,13 +43,14 @@ const enum Flags {
   isQueued = 0b01,
 }
 
+const knownBindableBindings = new Set(['Attribute', 'Content', 'Interpolation', 'InterpolationPart', 'Let', 'Listener', 'Property', 'Ref', 'Spread', 'SpreadValue']);
 export const bindingBind: {
   (b: $Binding | BindingBase, scope: Scope): void;
   (b: IBinding, scope: Scope): void;
 } = (_b: $Binding | BindingBase | IBinding, scope: Scope): void => {
   const b = _b as $Binding | BindingBase;
-  if (b.$kind === void 0) {
-    return b.bind?.(scope);
+  if (!b.$kind || !knownBindableBindings.has(b.$kind)) {
+    return (b as BindingBase).bind?.(scope);
   }
 
   if (b.isBound) {
@@ -105,8 +106,8 @@ export const bindingBind: {
 
       astBind(b.ast, scope, b);
 
-      b._value = astEvaluate(b.ast, b._scope, b, b);
-      b.updateTarget();
+      const value = astEvaluate(b.ast, b._scope, b, b);
+      b.updateTarget(value);
       break;
     }
     case 'Listener': {
@@ -177,8 +178,8 @@ export const bindingUnbind: {
   (b: IBinding): void;
 } = (_b: $Binding | BindingBase | IBinding): void => {
   const b = _b as $Binding | BindingBase;
-  if (b.$kind === void 0) {
-    return b.unbind?.();
+  if (!b.$kind || !knownBindableBindings.has(b.$kind)) {
+    return (b as BindingBase).unbind?.();
   }
 
   if (!b.isBound) {
@@ -289,9 +290,19 @@ export const bindingHandleChange = (b: $Binding | BindingBase): void => {
 
   (b.flags as Flags) |= Flags.isQueued;
 
-  queueTask(() => {
-    flushChanges(b);
-  });
+  switch (b.$kind) {
+    case 'Let':
+    case 'Property': {
+      flushChanges(b);
+      break;
+    }
+    default: {
+      queueTask(() => {
+        flushChanges(b);
+      });
+      break;
+    }
+  }
 };
 
 export const flushChanges = (b: $Binding): void => {
@@ -399,9 +410,15 @@ export const flushCollectionChanges = (b: $Binding): void => {
       b.updateTarget(v);
       break;
     }
-    case 'InterpolationPart':
-    case 'SpreadValue': {
+    case 'InterpolationPart': {
       b.updateTarget();
+      break;
+    }
+    case 'SpreadValue': {
+      b.obs.version++;
+      const newValue = astEvaluate(b.ast, b._scope!, b, (b.mode & toView) > 0 ? b : null);
+      b.obs.clear();
+      b.updateTarget(newValue);
       break;
     }
   }

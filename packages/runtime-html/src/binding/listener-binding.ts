@@ -79,16 +79,10 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public callSource(event: Event): void {
-    console.log('ListenerBinding#callSource');
     const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
-    // let result
     let result = astEvaluate(this.ast, this._scope!, this, null);
-    // try {
-    // } catch (ex) {
-    //   console.log(ex);
-    // }
 
     delete overrideContext.$event;
 

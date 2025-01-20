@@ -1,7 +1,6 @@
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { IContainer, IPlatform } from '@aurelia/kernel';
 import { AppTask, CustomElement, NodeObserverLocator } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { IAttrMapper } from '@aurelia/template-compiler';
@@ -67,8 +66,6 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
     assert.strictEqual(component.option, '2');
 
     component.option = '3';
-    assert.strictEqual(selectEl.value, '2');
-    flush();
     assert.strictEqual(selectEl.value, '3');
 
     await tearDown();

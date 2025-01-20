@@ -39,6 +39,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -58,6 +59,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -81,6 +83,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 1);
     });
 
@@ -106,6 +109,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 1);
     });
 
@@ -129,6 +133,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
 
@@ -152,6 +157,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
 
@@ -171,6 +177,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(divs.length, 1);
       assert.strictEqual(divs2.length, 1);
     });
@@ -191,6 +198,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 1 2');
     });
 
@@ -219,6 +227,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.deepStrictEqual([call1, call2], [1, 1]);
     });
 
@@ -238,6 +247,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 3 6');
     });
 
@@ -257,6 +267,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       // comments are filtered out by projection slot change notifier
+      flush();
       assertText('Count: 3 text');
     });
 
@@ -275,6 +286,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 2 text');
     });
 
@@ -294,6 +306,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 3');
     });
 
@@ -312,6 +325,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -336,6 +350,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -360,6 +375,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -384,6 +400,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 2');
     });
 
@@ -402,6 +419,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -425,6 +443,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -446,6 +465,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 1');
     });
 
@@ -464,6 +484,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 3');
     });
 
@@ -487,6 +508,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
   });
@@ -507,6 +529,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 1');
       component.show = true;
       await Promise.resolve(); // for mutation observer to tick
@@ -534,6 +557,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 0');
       component.i = 3;
       await Promise.resolve(); // for mutation observer to tick
@@ -567,6 +591,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
       trigger.click('button');
       await Promise.resolve();

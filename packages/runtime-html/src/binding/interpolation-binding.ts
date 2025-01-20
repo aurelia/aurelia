@@ -72,7 +72,6 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public updateTarget(): void {
-    console.log('InterpolationBinding#updateTarget');
     const { partBindings, ast, target, targetProperty } = this;
     const staticParts = ast.parts;
     const ii = partBindings.length;
@@ -159,7 +158,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public updateTarget() {
-    console.log('InterpolationPartBinding#updateTarget');
     this.owner.updateTarget();
   }
 

@@ -1,4 +1,4 @@
-import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient } from '@aurelia/kernel';
+import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider, type MaybePromise, emptyArray, onResolve, resolve, transient, Writable } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
@@ -82,17 +82,8 @@ export class AuCompose {
    */
   public scopeBehavior: 'auto' | 'scoped' = 'auto';
 
-  /** @internal */
-  private _composing?: Promise<void> | void;
-  public get composing(): Promise<void> | void {
-    return this._composing;
-  }
-
-  /** @internal */
-  private _composition: ICompositionController | undefined = void 0;
-  public get composition(): ICompositionController | undefined {
-    return this._composition;
-  }
+  public readonly composing!: Promise<void> | void;
+  public readonly composition!: ICompositionController | undefined;
 
   /**
    * The tag name of the element to be created for non custom element composition.
@@ -116,45 +107,45 @@ export class AuCompose {
   /** @internal */ private readonly _observerLocator = resolve(IObserverLocator);
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
-    return this._composing = onResolve(
+    return (this as Writable<AuCompose>).composing = onResolve(
       this.queue(new ChangeInfo(this.template, this.component, this.model, void 0), initiator),
       (context) => {
         if (this._contextFactory._isCurrent(context)) {
-          this._composing = void 0;
+          (this as Writable<AuCompose>).composing = void 0;
         }
       }
     );
   }
 
   public detaching(initiator: IHydratedController): void | Promise<void> {
-    const cmpstn = this._composition;
-    const pending = this._composing;
+    const cmpstn = this.composition;
+    const pending = this.composing;
     this._contextFactory.invalidate();
-    this._composition = this._composing = void 0;
+    (this as Writable<AuCompose>).composition = (this as Writable<AuCompose>).composing = void 0;
     return onResolve(pending, () => cmpstn?.deactivate(initiator));
   }
 
   /** @internal */
   public propertyChanged(name: ChangeSource): void {
     if (name === 'composing' || name === 'composition') return;
-    if (name === 'model' && this._composition != null) {
-      this._composition.update(this.model);
+    if (name === 'model' && this.composition != null) {
+      this.composition.update(this.model);
       return;
     }
     // tag change does not affect existing custom element composition
-    if (name === 'tag' && this._composition?.controller.vmKind === vmkCe) {
+    if (name === 'tag' && this.composition?.controller.vmKind === vmkCe) {
       if (__DEV__) {
         console.warn('[DEV:aurelia] Changing tag name of a custom element composition is ignored.'); // eslint-disable-line
       }
       return;
     }
 
-    this._composing = onResolve(this._composing, () =>
+    (this as Writable<AuCompose>).composing = onResolve(this.composing, () =>
       onResolve(
         this.queue(new ChangeInfo(this.template, this.component, this.model, name), void 0),
         (context) => {
           if (this._contextFactory._isCurrent(context)) {
-            this._composing = void 0;
+            (this as Writable<AuCompose>).composing = void 0;
           }
         }
       )
@@ -164,7 +155,7 @@ export class AuCompose {
   /** @internal */
   private queue(change: ChangeInfo, initiator: IHydratedController | undefined): CompositionContext | Promise<CompositionContext> {
     const factory = this._contextFactory;
-    const prevCompositionCtrl = this._composition;
+    const prevCompositionCtrl = this.composition;
     // todo: handle consequitive changes that create multiple queues
     return onResolve(
       factory.create(change),
@@ -182,7 +173,7 @@ export class AuCompose {
                 if (factory._isCurrent(context)) {
                   // after activation, if the composition context is still the most recent one
                   // then the job is done
-                  this._composition = result;
+                  (this as Writable<AuCompose>).composition = result;
                   return onResolve(prevCompositionCtrl?.deactivate(initiator), () => context);
                 } else {
                   // the stale controller should be deactivated

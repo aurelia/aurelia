@@ -319,17 +319,17 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     for (const foo of [child1, child2, parent]) {
       foo.array1.push(i);
       flush();
-      verifyCalled(1 * 2 /* 1 call from push, 1 call from length notification after push */, ++i);
+      verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.map1.set(i, i);
       flush();
-      verifyCalled(1 * 2 /* 1 call from push, 1 call from length notification after push */, ++i);
+      verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.set1.add(i);
       flush();
-      verifyCalled(1 * 2 /* 1 call from push, 1 call from length notification after push */, ++i);
+      verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.obj1['prop'] = 5;

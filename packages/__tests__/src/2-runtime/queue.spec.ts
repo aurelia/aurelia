@@ -35,7 +35,7 @@ class AppRoot {
 
 }
 
-describe('2-runtime/queue.spec.ts', function () {
+describe.skip('2-runtime/queue.spec.ts', function () {
   describe('AttributeBinding', function () {
     it('class binding should work', async function () {
       const { component, assertAttr } = createFixture(

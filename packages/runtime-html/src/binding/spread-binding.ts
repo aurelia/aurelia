@@ -209,13 +209,7 @@ export class SpreadValueBinding implements IBinding {
     this.l = l;
   }
 
-  public updateTarget(): void {
-    console.log('SpreadValueBinding#updateTarget');
-    const { obs } = this;
-    obs.version++;
-    const newValue = astEvaluate(this.ast, this._scope!, this, this);
-    obs.clear();
-
+  public updateTarget(newValue: unknown): void {
     this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
   }
 

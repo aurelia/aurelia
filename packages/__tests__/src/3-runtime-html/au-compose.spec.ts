@@ -46,7 +46,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       component.message = 'hello';
 
-      assert.strictEqual(appHost.textContent, 'hello');
+      assert.strictEqual(appHost.textContent, 'hello world');
       flush();
       assert.strictEqual(appHost.textContent, 'hello');
 
@@ -169,6 +169,8 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
+      assert.strictEqual(appHost.textContent, 'hello world');
+      flush();
       assert.strictEqual(appHost.textContent, 'Aurelia!!');
 
       await tearDown();
@@ -1223,6 +1225,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         msg = 'hello world';
       });
 
+      flush();
       assertText('hello world');
       assertHtml('<!--au-start--><el>hello world</el><!--au-end-->');
     });
@@ -1241,6 +1244,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         msg = 'hello world';
       });
 
+      flush();
       assertText('hello world');
       // .bind on id.bind causes the value to be set during .bind
       // which is after class attr, which is during rendering (composition)
@@ -1275,10 +1279,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         msg = 'hello world';
       });
 
+      flush();
       assertText('hello world');
       assert.strictEqual(el1MessageCount, 0);
 
       component.comp = El2;
+      flush();
       assertText('1 hey there hello world');
       assertHtml('<!--au-start--><el-2 class="el">1 hey there hello world</el-2><!--au-end-->');
       // all bindings to old vm were unbound

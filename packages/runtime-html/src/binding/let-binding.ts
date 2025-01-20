@@ -51,9 +51,6 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   /** @internal */
   public l: IServiceLocator;
 
-  /** @internal */
-  public _value: unknown;
-
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -74,9 +71,8 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this._toBindingContext = toBindingContext;
   }
 
-  public updateTarget() {
-    console.log('LetBinding#updateTarget');
-    this.target![this.targetProperty] = this._value;
+  public updateTarget(newValue: unknown): void {
+    this.target![this.targetProperty] = newValue;
   }
 
   public handleChange(): void {

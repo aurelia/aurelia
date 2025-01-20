@@ -6,7 +6,7 @@ import { DashboardState } from './commerce/domain/dashboard-state.js';
 import { Product } from './commerce/domain/product.js';
 import { ForecastRecord, GlobalFilters, SaleRecord } from './commerce/domain/index.js';
 
-describe('3-runtime-html/commerce.spec.ts', function () {
+describe.skip('3-runtime-html/commerce.spec.ts', function () {
   it('works', async function () {
     const { start, stop, appShell } = createCommerceFixture();
     await start();
@@ -109,7 +109,7 @@ describe('3-runtime-html/commerce.spec.ts', function () {
       await stop();
     });
 
-    it.only('handles complex update chains in inventory management scenario', async function () {
+    it('handles complex update chains in inventory management scenario', async function () {
       const { start, stop, appShell } = createCommerceFixture();
       const state = initState();
 

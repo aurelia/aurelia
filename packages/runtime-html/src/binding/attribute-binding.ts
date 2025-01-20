@@ -85,7 +85,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
-    console.log('AttributeBinding#updateTarget');
     const { target, targetAttribute, targetProperty } = this;
     switch (targetAttribute) {
       case 'class':

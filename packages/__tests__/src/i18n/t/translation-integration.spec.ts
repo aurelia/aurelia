@@ -1659,7 +1659,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public show: boolean = false;
       }
-      $it.only('with projection - if.bind on host', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on host', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         app.show = true;
@@ -1676,6 +1676,55 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.show = false;
         domQueue.flush();
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
+
+        // toggle visibility
+        app.show = true;
+        domQueue.flush();
+        assert.html.textContent(host, 'Inhalt', 'round #3');
+
+        // change locale
+        await i18n.setLocale('en');
+        domQueue.flush();
+        assert.html.textContent(host, 'content', 'round #4');
+      }, { component: App });
+    }
+    {
+
+      @customElement({ name: 'ce-1', template: '<au-slot></au-slot>' })
+      class Ce1 { }
+
+      @customElement({ name: 'ce-2', template: '${value}' })
+      class Ce2 {
+        @bindable value: string;
+      }
+
+      @customElement({
+        name: 'app',
+        template: `<ce-1>
+        <ce-2 au-slot if.bind="show" value="foo" t="[value]projectedContent"></ce-2>
+      </ce-1>`,
+        dependencies: [Ce1, Ce2]
+      })
+      class App {
+        public show: boolean = false;
+      }
+      $it('with projection - if.bind on content', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+        assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
+
+        app.show = true;
+        domQueue.flush();
+
+        assert.html.textContent(host, 'content', 'round #1');
+
+        // change locale
+        await i18n.setLocale('de');
+        domQueue.flush();
+        assert.html.textContent(host, 'Inhalt', 'round #2');
+
+        // toggle visibility
+        app.show = false;
+        domQueue.flush();
+        assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         // toggle visibility
         app.show = true;

@@ -272,7 +272,7 @@ export class CustomElementDefinition<C extends Constructable = Constructable> im
         mergeArrays(def.aliases),
         fromDefinitionOrDefault('key', def as CustomElementDefinition, () => getElementKeyFrom(name)),
         fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse),
-        fromDefinitionOrDefault('template', def, returnNull),
+        fromAnnotationOrDefinitionOrTypeOrDefault('template', def, Type, returnNull),
         mergeArrays(def.instructions),
         mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies),
         fromDefinitionOrDefault('injectable', def, returnNull),

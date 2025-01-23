@@ -45,8 +45,9 @@ Aurelia
 
 You often want to add custom components to make your plugin more useful.
 
+{% tabs %}
+{% tab title="hello-world.ts" %}
 ```typescript
-// hello-world.ts
 import { customElement } from '@aurelia/runtime-html';
 
 @customElement({
@@ -56,7 +57,11 @@ import { customElement } from '@aurelia/runtime-html';
 export class HelloWorld {
   name = 'World';
 }
+```
+{% endtab %}
 
+{% tab title="my-component-plugin.ts" %}
+```typescript
 // my-component-plugin.ts
 import { IContainer } from '@aurelia/kernel';
 import { HelloWorld } from './hello-world';
@@ -67,6 +72,8 @@ export const MyComponentPlugin = {
   }
 };
 ```
+{% endtab %}
+{% endtabs %}
 
 ## Creating a Configurable Plugin
 
@@ -87,6 +94,22 @@ const defaultOptions: MyPluginOptions = {
 
 ### Implement Configuration in Plugin
 
+{% tabs %}
+{% tab title="plugin-configuration.ts" %}
+```typescript
+export interface MyPluginOptions {
+  greeting?: string;
+  debug?: boolean;
+}
+
+const defaultOptions: MyPluginOptions = {
+  greeting: 'Hello', // default greeting
+  debug: false       // default debug setting
+};
+```
+{% endtab %}
+
+{% tab title="my-configurable-plugin.ts" %}
 ```typescript
 // my-configurable-plugin.ts
 import { DI, IContainer, Registration } from '@aurelia/kernel';
@@ -95,18 +118,20 @@ export const IMyPluginOptions = DI.createInterface<MyPluginOptions>('IMyPluginOp
 
 export const MyConfigurablePlugin = {
   configure(options: Partial<MyPluginOptions> = {}) {
-    const finalOptions = { ...defaultOptions, ...options };
+    const finalOptions = { ...defaultOptions, ...options }; // Merge with defaults
 
     return {
       register(container: IContainer): void {
         container.register(
-          Registration.instance(IMyPluginOptions, finalOptions)
+          Registration.instance(IMyPluginOptions, finalOptions) // Register configuration
         );
       }
     };
   }
 };
 ```
+{% endtab %}
+{% endtabs %}
 
 ### Using the Configurable Plugin
 
@@ -130,7 +155,8 @@ Aurelia
 
 ```typescript
 // greeting.ts
-import { customElement, inject } from '@aurelia/runtime-html';
+import { customElement } from '@aurelia/runtime-html';
+import { resolve } from 'aurelia';
 import { IMyPluginOptions } from './my-configurable-plugin';
 
 @customElement({
@@ -139,8 +165,8 @@ import { IMyPluginOptions } from './my-configurable-plugin';
 })
 export class Greeting {
   name = 'World';
-  
-  constructor(@inject(IMyPluginOptions) private options: MyPluginOptions) {}
+
+  private options = resolve(IMyPluginOptions); // Resolve the dependency
 }
 ```
 
@@ -229,7 +255,7 @@ This approach is beneficial when your plugin needs to load data, configure servi
 
 ### Mono-Repository Structure
 
-For larger projects with multiple interrelated plugins, maintaining individual repositories may become cumbersome. A mono-repository can simplify this by organizing multiple packages in a single repository.
+Maintaining individual repositories may become cumbersome for larger projects with multiple interrelated plugins. A mono-repository can simplify this by organizing multiple packages in a single repository.
 
 #### Setting Up a Mono-Repository
 

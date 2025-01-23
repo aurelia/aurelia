@@ -8,6 +8,7 @@ import {
   eachCartesianJoin,
   TestContext,
 } from '@aurelia/testing';
+import { bindable, BindingMode, customElement } from '@aurelia/runtime-html';
 
 describe('3-runtime-html/computed-observer.spec.ts', function () {
   interface IComputedObserverTestCase<T extends IApp = IApp> {
@@ -440,6 +441,101 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     component.message = '1';
     flush();
     assertText('1 two');
+  });
+
+  it('notifies all bindings when multiple bindings use the same getter #2093', async function () {
+    // issue summary:
+    // with surrogate binding subscribings after content bindings
+    // we have the sequence as below:
+    //
+    // 1. [if] subscribes first, before [class] on <template>
+    // 2. when vm state changes,
+    //    2.1 [if] gets notified before [class] on <template>
+    //      because [if] subscribes to `hasNotifications`, it "short-circuit"
+    //      `hasErrors` handleChange()
+    //      - [if] retrieves value `hasErrors` observer, without `hasErros`.run()
+    //      - `_value` property inside `hasErrors` computed observer is updated
+    //    2.2 [class] gets <template> is notified
+    //      because `_value` was updated previously in 2.1,
+    //      `.run()` doesn't notify any subscribers
+    // ---
+    // This is because we try to reuse the same property "_value" in computed observer
+    // for both new value and old value
+    @customElement({
+      name: 'notification-wrapper',
+      template: `
+        <template class="wrapper \${hasErrors ? 'has-errors' : ''}">
+          <au-slot name="content"></au-slot>
+          <div
+            id="d2"
+            if.bind="state.hasNotifications"
+            class="notifications \${hasErrors ? 'red' : ''}"
+          >
+            hey
+          </div>
+        </template>
+      `
+    })
+    class NotificationWrapper {
+      constructor() {
+        this.updateState();
+      }
+
+      @bindable({ attribute: 'errors', mode: BindingMode.toView })
+      public errorsInput: string[] = [];
+
+      public state: { hasErrors: boolean; hasNotifications: boolean };
+
+      public get hasErrors() {
+        return this.state.hasErrors;
+      }
+
+      // PRIVATE
+      private updateState() {
+        const hasErrors = this.errorsInput?.length > 0;
+        const hasNotifications = hasErrors;
+
+        this.state = {
+          hasErrors,
+          hasNotifications,
+        };
+      }
+
+      // EVENT HANDLERS - OBSERVABLES
+      protected propertiesChanged(
+        properties: Partial<Pick<NotificationWrapper, 'errorsInput'>>
+      ) {
+        if (properties.errorsInput) {
+          this.updateState();
+        }
+      }
+    }
+
+    const { trigger, queryBy, flush } = createFixture(
+      `<style>.red { background-color: pink } .has-errors { color: red }</style>
+      <notification-wrapper id="d1" errors.bind="errors">
+        <button au-slot="content" click.trigger="toggle()">Set error</button>
+      </notification-wrapper>
+      `,
+      class {
+        errors = [];
+
+        toggle() {
+          this.errors = ['error'];
+        }
+      },
+      [NotificationWrapper]
+    );
+
+    assert.strictEqual(queryBy('.has-errors'), null);
+    assert.strictEqual(queryBy('.red'), null);
+
+    trigger.click('button');
+    await Promise.resolve();
+    flush();
+
+    assert.notStrictEqual(queryBy('.red'), null);
+    assert.notStrictEqual(queryBy('.has-errors'), null);
   });
 
   class Property {

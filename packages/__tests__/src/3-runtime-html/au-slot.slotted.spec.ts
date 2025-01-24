@@ -603,6 +603,65 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       flush(); // for text update
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
+
+    it('calls slotchange without having to have @slotted gh #2071', async function () {
+      const calls: [string, number][] = [];
+      @customElement({
+        name: 'el',
+        template: '<au-slot slotchange.bind="log">'
+      })
+      class El {
+        log(name: string, nodes: Node[]) {
+          calls.push([name, nodes.length]);
+        }
+      }
+
+      const { component, flush } = createFixture(
+        '<el><div if.bind="show"></div><p>',
+        class App { show = false; },
+        [El,]
+      );
+
+      component.show = true;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2]]);
+
+      component.show = false;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
+    });
+
+    it('[containerless] calls slotchange without having to have @slotted gh #2071', async function () {
+      const calls: [string, number][] = [];
+      @customElement({
+        name: 'el',
+        containerless: true,
+        template: '<au-slot slotchange.bind="log">'
+      })
+      class El {
+        log(name: string, nodes: Node[]) {
+          calls.push([name, nodes.length]);
+        }
+      }
+
+      const { component, flush } = createFixture(
+        '<el><div if.bind="show"></div><p>',
+        class App { show = false; },
+        [El,]
+      );
+
+      component.show = true;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2]]);
+
+      component.show = false;
+      await Promise.resolve(); // for mutation observer to tick
+      flush(); // for text update
+      assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
+    });
   });
 
   describe('with shadow dom', function () {

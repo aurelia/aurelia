@@ -1,4 +1,4 @@
-import { IContainer, InstanceProvider, Writable, emptyArray, onResolve, resolve } from '@aurelia/kernel';
+import { IContainer, InstanceProvider, Writable, emptyArray, isFunction, onResolve, resolve } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
 import { IInstruction, type HydrateElementInstruction } from '@aurelia/template-compiler';
 import { IRenderLocation } from '../../dom';
@@ -213,7 +213,7 @@ export class AuSlot implements ICustomElementViewModel, IAuSlot {
       this.$controller,
       this._hasProjection ? this._outerScope! : this._parentScope!,
     ), () => {
-      if (this._hasSlotWatcher) {
+      if (this._hasSlotWatcher || isFunction(this.slotchange)) {
         this._slotwatchers.forEach(w => w.watch(this));
         this._observe();
         this._notifySlotChange();

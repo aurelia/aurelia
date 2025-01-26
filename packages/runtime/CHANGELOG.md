@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.23"></a>
+# 2.0.0-beta.23 (2025-01-26)
+
+### Features:
+
+* **tooling:** type-checking for templates - Phase1 (#2066) ([ebc1d0c](https://github.com/aurelia/aurelia/commit/ebc1d0c))
+* **templating:** support exponentiation operator (#2070) ([373a656](https://github.com/aurelia/aurelia/commit/373a656))
+* **expression-parser:** NewExpression (#2068) ([ae15ed8](https://github.com/aurelia/aurelia/commit/ae15ed8))
+* **expression-parser:** impl NewExpression ([ae15ed8](https://github.com/aurelia/aurelia/commit/ae15ed8))
+
+
+### Bug Fixes:
+
+* **computed-observer:** ensure notifying changes (#2103) ([b87cc11](https://github.com/aurelia/aurelia/commit/b87cc11))
+
+
+### Refactorings:
+
+* **ast.eval:** remove loose mode ([ae15ed8](https://github.com/aurelia/aurelia/commit/ae15ed8))
+
 <a name="2.0.0-beta.22"></a>
 # 2.0.0-beta.22 (2024-09-30)
 

@@ -192,6 +192,7 @@ export class TranslationBinding implements IBinding {
 
     this._scope = (void 0)!;
     this.obs.clearAll();
+    this.isBound = false;
   }
 
   public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {

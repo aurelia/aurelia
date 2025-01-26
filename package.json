@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.1.0-dev.202501181907",
+  "version": "2.0.0-beta.23",
   "packageManager": "npm@8.19.2",
   "workspaces": [
     "packages/kernel",
@@ -218,7 +218,7 @@
     }
   },
   "volta": {
-    "node": "18.19.0",
+    "node": "20.16.0",
     "npm": "8.19.2"
   }
 }

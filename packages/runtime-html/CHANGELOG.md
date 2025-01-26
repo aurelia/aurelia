@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.23"></a>
+# 2.0.0-beta.23 (2025-01-26)
+
+### Features:
+
+* ***:** ported noView and inlineView decorators (#2094) ([bdd1284](https://github.com/aurelia/aurelia/commit/bdd1284))
+* ***:** ported noView and inlineView decorators ([bdd1284](https://github.com/aurelia/aurelia/commit/bdd1284))
+* **tooling:** type-checking for templates - Phase1 (#2066) ([ebc1d0c](https://github.com/aurelia/aurelia/commit/ebc1d0c))
+
+
+### Bug Fixes:
+
+* **au-slot:** slotchange callback does not rely on deco (#2105) ([4cbef73](https://github.com/aurelia/aurelia/commit/4cbef73))
+* **rendering:** render surrogate bindings before content bindings (#2104) ([5df4a6c](https://github.com/aurelia/aurelia/commit/5df4a6c))
+* **computed-observer:** ensure notifying changes (#2103) ([b87cc11](https://github.com/aurelia/aurelia/commit/b87cc11))
+* **repeat:** change to key-based scope caching in keyed mode (#2088) ([c24eaaa](https://github.com/aurelia/aurelia/commit/c24eaaa))
+* **repeat:** fix scope reuse issue with keyless unordered duplicate objects ([8f2999e](https://github.com/aurelia/aurelia/commit/8f2999e))
+
+
+### Refactorings:
+
+* **repeat:** cleanup scopeMap stuff ([8f2999e](https://github.com/aurelia/aurelia/commit/8f2999e))
+* **repeat:** still need to use caching for assignment ([8f2999e](https://github.com/aurelia/aurelia/commit/8f2999e))
+* **repeat:** force scope caching in keyed mode ([8f2999e](https://github.com/aurelia/aurelia/commit/8f2999e))
+
 <a name="2.0.0-beta.22"></a>
 # 2.0.0-beta.22 (2024-09-30)
 

@@ -367,7 +367,7 @@ const appendAnnotation = (t, e) => {
     }
 };
 
-const w = /*@__PURE__*/ n({
+const m = /*@__PURE__*/ n({
     name: "au:annotation",
     appendTo: appendAnnotation,
     set(t, e, n) {
@@ -385,20 +385,20 @@ const w = /*@__PURE__*/ n({
     keyFor: getAnnotationKeyFor
 });
 
-const m = "au:resource";
+const w = "au:resource";
 
 const getResourceKeyFor = (t, e, n) => {
     if (e == null) {
-        return `${m}:${t}`;
+        return `${w}:${t}`;
     }
     if (n == null) {
-        return `${m}:${t}:${e}`;
+        return `${w}:${t}:${e}`;
     }
-    return `${m}:${t}:${e}:${n}`;
+    return `${w}:${t}:${e}:${n}`;
 };
 
 const R = {
-    annotation: w
+    annotation: m
 };
 
 const b = Object.prototype.hasOwnProperty;
@@ -520,7 +520,7 @@ class Container {
             }
             if (isRegistry(e)) {
                 e.register(this);
-            } else if ((a = i(m, e)) != null) {
+            } else if ((a = i(w, e)) != null) {
                 a.register(this);
             } else if (isClass(e)) {
                 const t = e[Symbol.metadata]?.[$];
@@ -529,7 +529,7 @@ class Container {
                 } else if (isString(e.$au?.type)) {
                     const t = e.$au;
                     const n = (e.aliases ?? _).concat(t.aliases ?? _);
-                    let r = `${m}:${t.type}:${t.name}`;
+                    let r = `${w}:${t.type}:${t.name}`;
                     if (this.has(r, false)) {
                         continue;
                     }
@@ -540,7 +540,7 @@ class Container {
                     s = 0;
                     o = n.length;
                     for (;s < o; ++s) {
-                        r = `${m}:${t.type}:${n[s]}`;
+                        r = `${w}:${t.type}:${n[s]}`;
                         if (this.has(r, false)) {
                             continue;
                         }
@@ -773,7 +773,7 @@ class Container {
         }
     }
     find(t, e) {
-        const n = isString(e) ? `${m}:${t}:${e}` : t;
+        const n = isString(e) ? `${w}:${t}:${e}` : t;
         let r = this;
         let s = r.res[n];
         if (s == null) {
@@ -1854,7 +1854,7 @@ class ModuleTransformer {
               case "function":
                 n = isFunction(e.register);
                 r = e.prototype !== void 0;
-                s = i(m, e) ?? null;
+                s = i(w, e) ?? null;
                 break;
 
               default:
@@ -1948,16 +1948,16 @@ class EventAggregator {
             let n = this.eventLookup[t];
             if (n !== void 0) {
                 n = n.slice();
-                let r = n.length;
-                while (r-- > 0) {
-                    n[r](e, t);
+                const r = n.length;
+                for (let s = 0; s < r; s++) {
+                    n[s](e, t);
                 }
             }
         } else {
             const e = this.messageHandlers.slice();
-            let n = e.length;
-            while (n-- > 0) {
-                e[n].handle(t);
+            const n = e.length;
+            for (let r = 0; r < n; r++) {
+                e[r].handle(t);
             }
         }
     }
@@ -1996,5 +1996,5 @@ class EventAggregator {
     }
 }
 
-export { AnalyzedModule, ConsoleSink, ContainerConfiguration, F as DI, DefaultLogEvent, DefaultLogEventFactory, ut as DefaultLogger, C as DefaultResolver, EventAggregator, I as IContainer, dt as IEventAggregator, nt as ILogConfig, st as ILogEventFactory, it as ILogger, ht as IModuleLoader, T as IPlatform, A as IServiceLocator, rt as ISink, InstanceProvider, LogConfig, et as LogLevel, ft as LoggerConfiguration, ModuleItem, R as Protocol, y as Registration, aliasedResourcesRegistry, all, Q as allResources, l as areEqual, bound, u as camelCase, createImplementationRegister, createLookup, createResolver, _ as emptyArray, M as emptyObject, z as factory, firstDefined, ct as format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, d as getPrototypeChain, getResourceKeyFor, N as ignore, inject, isArray, c as isArrayIndex, isFunction, isMap, v as isNativeFunction, isNumber, isObject, isObjectOrFunction, isPromise, isSet, isString, isSymbol, h as kebabCase, last, P as lazy, mergeArrays, U as newInstanceForScope, x as newInstanceOf, noop, onResolve, onResolveAll, K as optional, B as optionalResource, G as own, f as pascalCase, $ as registrableMetadataKey, resolve, W as resource, m as resourceBaseName, singleton, sink, toArray, transient };
+export { AnalyzedModule, ConsoleSink, ContainerConfiguration, F as DI, DefaultLogEvent, DefaultLogEventFactory, ut as DefaultLogger, C as DefaultResolver, EventAggregator, I as IContainer, dt as IEventAggregator, nt as ILogConfig, st as ILogEventFactory, it as ILogger, ht as IModuleLoader, T as IPlatform, A as IServiceLocator, rt as ISink, InstanceProvider, LogConfig, et as LogLevel, ft as LoggerConfiguration, ModuleItem, R as Protocol, y as Registration, aliasedResourcesRegistry, all, Q as allResources, l as areEqual, bound, u as camelCase, createImplementationRegister, createLookup, createResolver, _ as emptyArray, M as emptyObject, z as factory, firstDefined, ct as format, fromAnnotationOrDefinitionOrTypeOrDefault, fromAnnotationOrTypeOrDefault, fromDefinitionOrDefault, d as getPrototypeChain, getResourceKeyFor, N as ignore, inject, isArray, c as isArrayIndex, isFunction, isMap, v as isNativeFunction, isNumber, isObject, isObjectOrFunction, isPromise, isSet, isString, isSymbol, h as kebabCase, last, P as lazy, mergeArrays, U as newInstanceForScope, x as newInstanceOf, noop, onResolve, onResolveAll, K as optional, B as optionalResource, G as own, f as pascalCase, $ as registrableMetadataKey, resolve, W as resource, w as resourceBaseName, singleton, sink, toArray, transient };
 //# sourceMappingURL=index.mjs.map

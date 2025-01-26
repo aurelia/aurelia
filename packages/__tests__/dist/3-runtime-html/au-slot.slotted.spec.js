@@ -1163,6 +1163,85 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
             flush(); // for text update
             assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
         });
+        it('calls slotchange without having to have @slotted gh #2071', async function () {
+            const calls = [];
+            let El = (() => {
+                let _classDecorators = [customElement({
+                        name: 'el',
+                        template: '<au-slot slotchange.bind="log">'
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var El = _classThis = class {
+                    log(name, nodes) {
+                        calls.push([name, nodes.length]);
+                    }
+                };
+                __setFunctionName(_classThis, "El");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    El = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return El = _classThis;
+            })();
+            const { component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+                constructor() {
+                    this.show = false;
+                }
+            }, [El,]);
+            component.show = true;
+            await Promise.resolve(); // for mutation observer to tick
+            flush(); // for text update
+            assert.deepStrictEqual(calls, [['default', 2]]);
+            component.show = false;
+            await Promise.resolve(); // for mutation observer to tick
+            flush(); // for text update
+            assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
+        });
+        it('[containerless] calls slotchange without having to have @slotted gh #2071', async function () {
+            const calls = [];
+            let El = (() => {
+                let _classDecorators = [customElement({
+                        name: 'el',
+                        containerless: true,
+                        template: '<au-slot slotchange.bind="log">'
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var El = _classThis = class {
+                    log(name, nodes) {
+                        calls.push([name, nodes.length]);
+                    }
+                };
+                __setFunctionName(_classThis, "El");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    El = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return El = _classThis;
+            })();
+            const { component, flush } = createFixture('<el><div if.bind="show"></div><p>', class App {
+                constructor() {
+                    this.show = false;
+                }
+            }, [El,]);
+            component.show = true;
+            await Promise.resolve(); // for mutation observer to tick
+            flush(); // for text update
+            assert.deepStrictEqual(calls, [['default', 2]]);
+            component.show = false;
+            await Promise.resolve(); // for mutation observer to tick
+            flush(); // for text update
+            assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
+        });
     });
     describe('with shadow dom', function () {
         it('works with shadow dom on', function () {

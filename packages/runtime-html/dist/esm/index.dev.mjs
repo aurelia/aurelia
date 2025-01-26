@@ -1842,16 +1842,16 @@ class InterpolationPartBinding {
     handleCollectionChange() {
         this.updateTarget();
     }
-    bind(_scope) {
+    bind(scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
+            if (this._scope === scope) {
                 /* istanbul-ignore-next */
                 return;
             }
             this.unbind();
         }
-        this._scope = _scope;
-        astBind(this.ast, _scope, this);
+        this._scope = scope;
+        astBind(this.ast, scope, this);
         this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         if (isArray(this._value)) {
             this.observeCollection(this._value);
@@ -3803,6 +3803,19 @@ class Rendering {
         if (ii !== jj) {
             throw createMappedError(757 /* ErrorNames.rendering_mismatch_length */, ii, jj);
         }
+        // host is only null when rendering a synthetic view
+        // but we have a check here so that we dont need to read surrogates unnecessarily
+        if (host != null) {
+            row = definition.surrogates;
+            if ((jj = row.length) > 0) {
+                j = 0;
+                while (jj > j) {
+                    instruction = row[j];
+                    renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
+                    ++j;
+                }
+            }
+        }
         if (ii > 0) {
             while (ii > i) {
                 row = rows[i];
@@ -3815,17 +3828,6 @@ class Rendering {
                     ++j;
                 }
                 ++i;
-            }
-        }
-        if (host != null) {
-            row = definition.surrogates;
-            if ((jj = row.length) > 0) {
-                j = 0;
-                while (jj > j) {
-                    instruction = row[j];
-                    renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
-                    ++j;
-                }
             }
         }
     }
@@ -9665,7 +9667,7 @@ class AuSlot {
     }
     attaching(initiator, _parent) {
         return onResolve(this.view.activate(initiator, this.$controller, this._hasProjection ? this._outerScope : this._parentScope), () => {
-            if (this._hasSlotWatcher) {
+            if (this._hasSlotWatcher || isFunction(this.slotchange)) {
                 this._slotwatchers.forEach(w => w.watch(this));
                 this._observe();
                 this._notifySlotChange();

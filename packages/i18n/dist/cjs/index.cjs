@@ -467,6 +467,7 @@ class TranslationBinding {
         }
         this.s = void 0;
         this.obs.clearAll();
+        this.isBound = false;
     }
     handleChange(t, n) {
         this.obs.version++;

@@ -39,7 +39,7 @@ export declare class InterpolationPartBinding implements IBinding, ICollectionSu
     updateTarget(): void;
     handleChange(): void;
     handleCollectionChange(): void;
-    bind(_scope: Scope): void;
+    bind(scope: Scope): void;
     unbind(): void;
 }
 //# sourceMappingURL=interpolation-binding.d.ts.map

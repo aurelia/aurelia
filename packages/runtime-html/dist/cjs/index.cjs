@@ -3163,6 +3163,17 @@ class Rendering {
         if (l !== c) {
             throw createMappedError(757, l, c);
         }
+        if (i != null) {
+            u = s.surrogates;
+            if ((c = u.length) > 0) {
+                a = 0;
+                while (c > a) {
+                    f = u[a];
+                    r[f.type].render(t, i, f, this.p, this.ep, this.oL);
+                    ++a;
+                }
+            }
+        }
         if (l > 0) {
             while (l > h) {
                 u = n[h];
@@ -3175,17 +3186,6 @@ class Rendering {
                     ++a;
                 }
                 ++h;
-            }
-        }
-        if (i != null) {
-            u = s.surrogates;
-            if ((c = u.length) > 0) {
-                a = 0;
-                while (c > a) {
-                    f = u[a];
-                    r[f.type].render(t, i, f, this.p, this.ep, this.oL);
-                    ++a;
-                }
             }
         }
     }
@@ -8168,7 +8168,7 @@ class AuSlot {
     }
     attaching(e, s) {
         return t.onResolve(this.view.activate(e, this.$controller, this.ei ? this.Js : this.Zs), (() => {
-            if (this.ii) {
+            if (this.ii || t.isFunction(this.slotchange)) {
                 this.si.forEach((t => t.watch(this)));
                 this.Qe();
                 this.oi();

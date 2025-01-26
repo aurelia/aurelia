@@ -2720,16 +2720,16 @@ class EventAggregator {
             let subscribers = this.eventLookup[channelOrInstance];
             if (subscribers !== void 0) {
                 subscribers = subscribers.slice();
-                let i = subscribers.length;
-                while (i-- > 0) {
+                const numSubscribers = subscribers.length;
+                for (let i = 0; i < numSubscribers; i++) {
                     subscribers[i](message, channelOrInstance);
                 }
             }
         }
         else {
             const subscribers = this.messageHandlers.slice();
-            let i = subscribers.length;
-            while (i-- > 0) {
+            const numSubscribers = subscribers.length;
+            for (let i = 0; i < numSubscribers; i++) {
                 subscribers[i].handle(channelOrInstance);
             }
         }

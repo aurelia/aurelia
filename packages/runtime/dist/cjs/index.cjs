@@ -2386,14 +2386,16 @@ const z = /*@__PURE__*/ o({
 class ComputedObserver {
     constructor(t, e, r, s, n) {
         this.type = g;
+        this.ov = void 0;
         this.v = void 0;
+        this.h = false;
         this.ir = false;
         this.D = false;
         this.cb = void 0;
-        this.h = void 0;
         this.C = void 0;
+        this.O = void 0;
         this.o = t;
-        this.O = n ? wrap(t) : t;
+        this.A = n ? wrap(t) : t;
         this.$get = e;
         this.$set = r;
         this.oL = s;
@@ -2409,13 +2411,14 @@ class ComputedObserver {
         if (this.D) {
             this.compute();
             this.D = false;
+            this.h = false;
         }
         return this.v;
     }
     setValue(t) {
         if (e.isFunction(this.$set)) {
-            if (this.h !== void 0) {
-                t = this.h.call(null, t, this.C);
+            if (this.C !== void 0) {
+                t = this.C.call(null, t, this.O);
             }
             if (!e.areEqual(t, this.v)) {
                 this.ir = true;
@@ -2428,8 +2431,8 @@ class ComputedObserver {
         }
     }
     useCoercer(t, e) {
-        this.h = t;
-        this.C = e;
+        this.C = t;
+        this.O = e;
         return true;
     }
     useCallback(t) {
@@ -2456,14 +2459,17 @@ class ComputedObserver {
     }
     subscribe(t) {
         if (this.subs.add(t) && this.subs.count === 1) {
-            this.compute();
+            this.ov = this.compute();
             this.D = false;
+            this.h = false;
         }
     }
     unsubscribe(t) {
         if (this.subs.remove(t) && this.subs.count === 0) {
             this.D = true;
             this.obs.clearAll();
+            this.ov = void 0;
+            this.h = true;
         }
     }
     run() {
@@ -2471,11 +2477,14 @@ class ComputedObserver {
             return;
         }
         const t = this.v;
-        const r = this.compute();
+        const r = this.ov;
+        const s = this.compute();
         this.D = false;
-        if (!e.areEqual(r, t)) {
-            this.cb?.(r, t);
-            this.subs.notify(this.v, t);
+        if (!this.h || !e.areEqual(s, t)) {
+            this.cb?.(s, r);
+            this.subs.notify(s, r);
+            this.ov = this.v = s;
+            this.h = true;
         }
     }
     compute() {
@@ -2483,7 +2492,7 @@ class ComputedObserver {
         this.obs.version++;
         try {
             enterConnectable(this);
-            return this.v = unwrap(this.$get.call(this.O, this.O, this));
+            return this.v = unwrap(this.$get.call(this.A, this.A, this));
         } finally {
             this.obs.clear();
             this.ir = false;
@@ -2516,17 +2525,17 @@ class DirtyChecker {
     }
     constructor() {
         this.tracked = [];
-        this.A = null;
-        this.R = 0;
+        this.R = null;
+        this.P = 0;
         this.p = e.resolve(e.IPlatform);
         this.check = () => {
             if (T.disabled) {
                 return;
             }
-            if (++this.R < T.timeoutsPerCheck) {
+            if (++this.P < T.timeoutsPerCheck) {
                 return;
             }
-            this.R = 0;
+            this.P = 0;
             const t = this.tracked;
             const e = t.length;
             let r;
@@ -2549,7 +2558,7 @@ class DirtyChecker {
     addProperty(t) {
         this.tracked.push(t);
         if (this.tracked.length === 1) {
-            this.A = this.p.taskQueue.queueTask(this.check, {
+            this.R = this.p.taskQueue.queueTask(this.check, {
                 persistent: true
             });
         }
@@ -2557,8 +2566,8 @@ class DirtyChecker {
     removeProperty(t) {
         this.tracked.splice(this.tracked.indexOf(t), 1);
         if (this.tracked.length === 0) {
-            this.A.cancel();
-            this.A = null;
+            this.R.cancel();
+            this.R = null;
         }
     }
 }
@@ -2569,7 +2578,7 @@ class DirtyCheckProperty {
         this.key = r;
         this.type = w;
         this.ov = void 0;
-        this.P = t;
+        this.I = t;
     }
     getValue() {
         return this.obj[this.key];
@@ -2589,12 +2598,12 @@ class DirtyCheckProperty {
     subscribe(t) {
         if (this.subs.add(t) && this.subs.count === 1) {
             this.ov = this.obj[this.key];
-            this.P.addProperty(this);
+            this.I.addProperty(this);
         }
     }
     unsubscribe(t) {
         if (this.subs.remove(t) && this.subs.count === 0) {
-            this.P.removeProperty(this);
+            this.I.removeProperty(this);
         }
     }
 }
@@ -2634,8 +2643,8 @@ class SetterObserver {
         this.v = void 0;
         this.iO = false;
         this.cb = void 0;
-        this.h = void 0;
         this.C = void 0;
+        this.O = void 0;
         this.o = t;
         this.k = e;
     }
@@ -2643,8 +2652,8 @@ class SetterObserver {
         return this.v;
     }
     setValue(t) {
-        if (this.h !== void 0) {
-            t = this.h.call(void 0, t, this.C);
+        if (this.C !== void 0) {
+            t = this.C.call(void 0, t, this.O);
         }
         if (this.iO) {
             if (e.areEqual(t, this.v)) {
@@ -2668,8 +2677,8 @@ class SetterObserver {
         return true;
     }
     useCoercer(t, e) {
-        this.h = t;
-        this.C = e;
+        this.C = t;
+        this.O = e;
         this.start();
         return true;
     }
@@ -2753,13 +2762,13 @@ const J = /*@__PURE__*/ c("IComputedObserverLocator", (t => t.singleton(class De
 
 class ObserverLocator {
     constructor() {
-        this.I = [];
-        this.P = e.resolve(U);
-        this._ = e.resolve(G);
-        this.M = e.resolve(J);
+        this._ = [];
+        this.I = e.resolve(U);
+        this.M = e.resolve(G);
+        this.L = e.resolve(J);
     }
     addAdapter(t) {
-        this.I.push(t);
+        this._.push(t);
     }
     getObserver(t, r) {
         if (t == null) {
@@ -2786,8 +2795,8 @@ class ObserverLocator {
         if (r !== void 0) {
             return r;
         }
-        if (this._.handles(t, e, this)) {
-            return this._.getAccessor(t, e, this);
+        if (this.M.handles(t, e, this)) {
+            return this.M.getAccessor(t, e, this);
         }
         return W;
     }
@@ -2801,8 +2810,8 @@ class ObserverLocator {
         return m(t);
     }
     createObserver(t, r) {
-        if (this._.handles(t, r, this)) {
-            return this._.getObserver(t, r, this);
+        if (this.M.handles(t, r, this)) {
+            return this.M.getObserver(t, r, this);
         }
         switch (r) {
           case "length":
@@ -2838,17 +2847,17 @@ class ObserverLocator {
             }
         }
         if (n !== void 0 && !s.call(n, "value")) {
-            let e = this.L(t, r, n);
+            let e = this.N(t, r, n);
             if (e == null) {
                 e = (n.get?.getObserver)?.(t);
             }
-            return e == null ? n.configurable ? this.M.getObserver(t, r, n, this) : this.P.createProperty(t, r) : e;
+            return e == null ? n.configurable ? this.L.getObserver(t, r, n, this) : this.I.createProperty(t, r) : e;
         }
         return new SetterObserver(t, r);
     }
-    L(t, e, r) {
-        if (this.I.length > 0) {
-            for (const s of this.I) {
+    N(t, e, r) {
+        if (this._.length > 0) {
+            for (const s of this._) {
                 const n = s.getObserver(t, e, r, this);
                 if (n != null) {
                     return n;
@@ -2891,7 +2900,7 @@ const Y = /*@__PURE__*/ c("IObservation", (t => t.singleton(Observation)));
 class Observation {
     constructor() {
         this.oL = e.resolve(K);
-        this.N = e.resolve(t.IExpressionParser);
+        this.V = e.resolve(t.IExpressionParser);
     }
     run(t) {
         const e = new RunEffect(this.oL, t);
@@ -2946,7 +2955,7 @@ class Observation {
                 o = n;
             }
         };
-        const a = new ExpressionObserver(Scope.create(t), this.oL, this.N.parse(r, "IsProperty"), handleChange);
+        const a = new ExpressionObserver(Scope.create(t), this.oL, this.V.parse(r, "IsProperty"), handleChange);
         const run = () => {
             if (i) return;
             i = true;
@@ -2978,7 +2987,7 @@ class RunEffect {
         this.running = false;
         this.runCount = 0;
         this.stopped = false;
-        this.V = undefined;
+        this.B = undefined;
         this.run = () => {
             if (this.stopped) {
                 throw createMappedError(225);
@@ -2991,9 +3000,9 @@ class RunEffect {
             this.queued = false;
             ++this.obs.version;
             try {
-                this.V?.call(void 0);
+                this.B?.call(void 0);
                 enterConnectable(this);
-                this.V = this.fn(this);
+                this.B = this.fn(this);
             } finally {
                 this.obs.clear();
                 this.running = false;
@@ -3010,8 +3019,8 @@ class RunEffect {
             }
         };
         this.stop = () => {
-            this.V?.call(void 0);
-            this.V = void 0;
+            this.B?.call(void 0);
+            this.B = void 0;
             this.stopped = true;
             this.obs.clearAll();
         };

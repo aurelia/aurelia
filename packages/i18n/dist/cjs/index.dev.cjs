@@ -506,6 +506,7 @@ class TranslationBinding {
         }
         this._scope = (void 0);
         this.obs.clearAll();
+        this.isBound = false;
     }
     handleChange(_newValue, _previousValue) {
         this.obs.version++;

@@ -9,7 +9,7 @@ var fs = require('fs');
 var module$1 = require('module');
 
 var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
-const require$1 = module$1.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('cjs/index.cjs', document.baseURI).href)));
+const require$1 = module$1.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('cjs/index.cjs', document.baseURI).href)));
 function au(options = {}) {
     const { include = 'src/**/*.{ts,js,html}', exclude, pre = true, useDev, ...additionalOptions } = options;
     const filter = pluginutils.createFilter(include, exclude);
@@ -139,14 +139,22 @@ if (${moduleText}.hot) {
   const proto = ${className}.prototype;
 
   // @ts-ignore
-  const ogCreated = proto ? proto.created : undefined;
+  const $created = proto?.created;
+  // @ts-ignore
+  const $dispose = proto?.dispose;
 
   if (proto) {
     // @ts-ignore
     proto.created = function(controller) {
       // @ts-ignore
-      ogCreated && ogCreated.call(this, controller);
+      $created?.call(this, controller);
       controllers.push(controller);
+    }
+    // @ts-ignore
+    proto.dispose = function() {
+      // @ts-ignore
+      $dispose?.call(this);
+      controllers.length = 0;
     }
   }
 

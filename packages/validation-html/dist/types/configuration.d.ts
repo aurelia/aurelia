@@ -5,6 +5,6 @@ export declare function getDefaultValidationHtmlConfiguration(): ValidationHtmlC
 export declare const ValidationHtmlConfiguration: {
     optionsProvider: ValidationConfigurationProvider;
     register(container: IContainer): IContainer;
-    customize(cb?: ValidationConfigurationProvider): any;
+    customize(cb?: ValidationConfigurationProvider): /*elided*/ any;
 };
 //# sourceMappingURL=configuration.d.ts.map

@@ -1,9 +1,9 @@
 import type { IVisitor } from './ast.visitor';
-export type ExpressionKind = 'AccessThis' | 'AccessGlobal' | 'AccessBoundary' | 'AccessScope' | 'ArrayLiteral' | 'ObjectLiteral' | 'PrimitiveLiteral' | 'Template' | 'Unary' | 'CallScope' | 'CallMember' | 'CallFunction' | 'CallGlobal' | 'AccessMember' | 'AccessKeyed' | 'TaggedTemplate' | 'Binary' | 'Conditional' | 'Assign' | 'ArrowFunction' | 'ValueConverter' | 'BindingBehavior' | 'ArrayBindingPattern' | 'ObjectBindingPattern' | 'BindingIdentifier' | 'ForOfStatement' | 'Interpolation' | 'ArrayDestructuring' | 'ObjectDestructuring' | 'DestructuringAssignmentLeaf' | 'Custom';
+export type ExpressionKind = 'AccessThis' | 'AccessGlobal' | 'AccessBoundary' | 'AccessScope' | 'ArrayLiteral' | 'ObjectLiteral' | 'PrimitiveLiteral' | 'New' | 'Template' | 'Unary' | 'CallScope' | 'CallMember' | 'CallFunction' | 'CallGlobal' | 'AccessMember' | 'AccessKeyed' | 'TaggedTemplate' | 'Binary' | 'Conditional' | 'Assign' | 'ArrowFunction' | 'ValueConverter' | 'BindingBehavior' | 'ArrayBindingPattern' | 'ObjectBindingPattern' | 'BindingIdentifier' | 'ForOfStatement' | 'Interpolation' | 'ArrayDestructuring' | 'ObjectDestructuring' | 'DestructuringAssignmentLeaf' | 'Custom';
 export type UnaryOperator = 'void' | 'typeof' | '!' | '-' | '+' | '++' | '--';
-export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '<' | '>' | '<=' | '>=';
+export type BinaryOperator = '??' | '&&' | '||' | '==' | '===' | '!=' | '!==' | 'instanceof' | 'in' | '+' | '-' | '*' | '/' | '%' | '**' | '<' | '>' | '<=' | '>=';
 export type AssignmentOperator = '=' | '/=' | '*=' | '+=' | '-=';
-export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
+export type IsPrimary = AccessThisExpression | AccessBoundaryExpression | AccessScopeExpression | AccessGlobalExpression | ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression | NewExpression;
 export type IsLiteral = ArrayLiteralExpression | ObjectLiteralExpression | PrimitiveLiteralExpression | TemplateExpression;
 export type IsLeftHandSide = IsPrimary | CallGlobalExpression | CallFunctionExpression | CallMemberExpression | CallScopeExpression | AccessMemberExpression | AccessKeyedExpression | TaggedTemplateExpression;
 export type IsUnary = IsLeftHandSide | UnaryExpression;
@@ -93,6 +93,12 @@ export declare class AccessKeyedExpression {
     readonly $kind = "AccessKeyed";
     readonly accessGlobal: boolean;
     constructor(object: IsLeftHandSide, key: IsAssign, optional?: boolean);
+}
+export declare class NewExpression {
+    readonly func: IsLeftHandSide;
+    readonly args: readonly IsAssign[];
+    readonly $kind = "New";
+    constructor(func: IsLeftHandSide, args: readonly IsAssign[]);
 }
 export declare class CallScopeExpression {
     readonly name: string;

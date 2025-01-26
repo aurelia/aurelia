@@ -79,6 +79,9 @@ describe('router/router.redirect.spec.ts', function () {
     const Five = CustomElement.define({ name: 'five', template: '!five!', }, class Five {
         async canLoad() { return 'route-zero'; }
     });
+    const Six = CustomElement.define({ name: 'six', template: '!six!', }, class Six {
+        async canLoad() { return false; }
+    });
     const routeSets = [
         [
             { path: ['', 'home'], component: 'defaultpage' },
@@ -87,6 +90,7 @@ describe('router/router.redirect.spec.ts', function () {
             { path: 'route-two', component: 'two' },
             { id: 'zero-id', path: 'route-zero-id', component: 'zero' },
             { path: 'route-five', component: Promise.resolve(Five) },
+            { path: 'route-six', component: Promise.resolve(Six) },
         ],
         [
             { path: ['', 'home'], component: Promise.resolve(DefaultPage) },
@@ -95,6 +99,7 @@ describe('router/router.redirect.spec.ts', function () {
             { path: 'route-two', component: Promise.resolve(Two) },
             { id: 'zero-id', path: 'route-zero-id', component: Promise.resolve(Zero) },
             { path: 'route-five', component: Five },
+            { path: 'route-six', component: Six },
         ],
     ];
     const tests = [
@@ -131,6 +136,7 @@ describe('router/router.redirect.spec.ts', function () {
         { load: '/route-one/four/one', result: '!one!!zero!', path: '/route-one/route-zero-id', },
         { load: '/route-one/one/four/one', result: '!one!!one!!zero!', path: '/route-one/one/route-zero-id', },
         { load: '/route-five', result: '!zero!', path: '/route-zero', },
+        { load: '/route-six', result: '!root!', path: '/', },
     ];
     const routerConfigs = [
         {

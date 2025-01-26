@@ -64,33 +64,31 @@ function __esDecorate(t, n, e, r, i, s) {
         return t;
     }
     var o = r.kind, a = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var l = !n && t ? r["static"] ? t : t.prototype : null;
-    var c = n || (l ? Object.getOwnPropertyDescriptor(l, r.name) : {});
-    var h, u = false;
-    for (var f = e.length - 1; f >= 0; f--) {
-        var d = {};
-        for (var m in r) d[m] = m === "access" ? {} : r[m];
-        for (var m in r.access) d.access[m] = r.access[m];
-        d.addInitializer = function(t) {
-            if (u) throw new TypeError("Cannot add initializers after decoration has completed");
+    var l = {};
+    var c, h = false;
+    for (var u = e.length - 1; u >= 0; u--) {
+        var f = {};
+        for (var d in r) f[d] = d === "access" ? {} : r[d];
+        for (var d in r.access) f.access[d] = r.access[d];
+        f.addInitializer = function(t) {
+            if (h) throw new TypeError("Cannot add initializers after decoration has completed");
             s.push(accept(t || null));
         };
-        var p = (0, e[f])(o === "accessor" ? {
-            get: c.get,
-            set: c.set
-        } : c[a], d);
+        var m = (0, e[u])(o === "accessor" ? {
+            get: l.get,
+            set: l.set
+        } : l[a], f);
         if (o === "accessor") {
-            if (p === void 0) continue;
-            if (p === null || typeof p !== "object") throw new TypeError("Object expected");
-            if (h = accept(p.get)) c.get = h;
-            if (h = accept(p.set)) c.set = h;
-            if (h = accept(p.init)) i.unshift(h);
-        } else if (h = accept(p)) {
-            if (o === "field") i.unshift(h); else c[a] = h;
+            if (m === void 0) continue;
+            if (m === null || typeof m !== "object") throw new TypeError("Object expected");
+            if (c = accept(m.get)) l.get = c;
+            if (c = accept(m.set)) l.set = c;
+            if (c = accept(m.init)) i.unshift(c);
+        } else if (c = accept(m)) {
+            if (o === "field") i.unshift(c); else l[a] = c;
         }
     }
-    if (l) Object.defineProperty(l, r.name, c);
-    u = true;
+    h = true;
 }
 
 function __runInitializers(t, n, e) {
@@ -390,9 +388,9 @@ const createMappedError = (t, ...n) => new Error(`AUR${String(t).padStart(4, "0"
 
 const B = [ "textContent", "innerHTML", "prepend", "append" ];
 
-const b = new Map([ [ "text", "textContent" ], [ "html", "innerHTML" ] ]);
+const T = new Map([ [ "text", "textContent" ], [ "html", "innerHTML" ] ]);
 
-const T = {
+const b = {
     optional: true
 };
 
@@ -469,6 +467,7 @@ class TranslationBinding {
         }
         this.s = void 0;
         this.obs.clearAll();
+        this.isBound = false;
     }
     handleChange(t, n) {
         this.obs.version++;
@@ -499,7 +498,7 @@ class TranslationBinding {
                 if (this.N(o)) {
                     r[o] = e;
                 } else {
-                    const r = n.CustomElement.for(this.target, T);
+                    const r = n.CustomElement.for(this.target, b);
                     const a = r?.viewModel ? this.oL.getAccessor(r.viewModel, t.camelCase(o)) : this.oL.getAccessor(this.target, o);
                     const l = this.I.state !== u && (a.type & i.AccessorType.Layout) > 0;
                     if (l) {
@@ -535,7 +534,7 @@ class TranslationBinding {
         if (t.length === 0) {
             t = this.target.tagName === "IMG" ? [ "src" ] : [ "textContent" ];
         }
-        for (const [n, e] of b) {
+        for (const [n, e] of T) {
             const r = t.findIndex((t => t === n));
             if (r > -1) {
                 t.splice(r, 1, e);

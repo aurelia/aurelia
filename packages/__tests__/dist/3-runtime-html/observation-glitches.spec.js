@@ -78,7 +78,11 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
             assert.strictEqual(obj.tag, '[Banned]');
             assert.deepEqual([i1, i2, i3], [1, 2, 0]);
             obj.firstName = '';
-            assert.deepEqual([i1, i2, i3], [1, 2, 1]);
+            // first name change ->
+            // 1. tag() runs again
+            // 2. fullname() runs again
+            //  2.1 tag() runs again
+            assert.deepEqual([i1, i2, i3], [1, 2, 2]);
         });
         it('handles nested dependencies glitches', function () {
             // in this test, fullName depends on firstName, but is not directly a dependency of tag
@@ -122,7 +126,11 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
             assert.strictEqual(obj.tag, '[Banned]');
             assert.deepEqual([i1, i2, i3], [1, 2, 0]);
             obj.firstName = '';
-            assert.deepEqual([i1, i2, i3], [1, 2, 1]);
+            // first name change ->
+            // 1. tag() runs again
+            // 2. fullname() runs again
+            //  2.1 tag() runs again
+            assert.deepEqual([i1, i2, i3], [1, 2, 2]);
         });
         it('handles many layers of nested dependencies glitches', function () {
             // in this test, fullName depends on firstName, but is not directly a dependency of tag
@@ -175,7 +183,11 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
             assert.strictEqual(obj.tag, '[Banned]');
             assert.deepEqual([i1, i2, i3], [1, 2, 0]);
             obj.firstName = '';
-            assert.deepEqual([i1, i2, i3], [1, 2, 1]);
+            // first name change ->
+            // 1. tag() runs again
+            // 2. fullname() runs again
+            //  2.1 tag() runs again
+            assert.deepEqual([i1, i2, i3], [1, 2, 2]);
         });
         it('handles @observable decorator glitches', function () {
             let i1 = 0;
@@ -230,7 +242,11 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
             assert.strictEqual(obj.tag, '[Banned]');
             assert.deepEqual([i1, i2, i3], [1, 2, 0]);
             obj.firstName = '';
-            assert.deepEqual([i1, i2, i3], [1, 2, 1]);
+            // first name change ->
+            // 1. tag() runs again
+            // 2. fullname() runs again
+            //  2.1 tag() runs again
+            assert.deepEqual([i1, i2, i3], [1, 2, 2]);
         });
         it('handles array index related glitches', function () {
             class NameTag {
@@ -389,12 +405,20 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
                     obj.lastName = 'Last';
                 });
                 assert.strictEqual(obj.tag, '[Banned]');
-                assert.deepEqual([i1, i2, i3], [1, 1, 0]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 0]);
                 batch(() => {
                     obj.firstName = '';
                 });
                 // shouldn't go to 2 because fullName should no longer have 'Sync' in it
-                assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 2]);
             });
             it('handles nested dependencies glitches', function () {
                 // in this test, fullName depends on firstName, but is not directly a dependency of tag
@@ -438,11 +462,19 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
                     obj.lastName = 'Last';
                 });
                 assert.strictEqual(obj.tag, '[Banned]');
-                assert.deepEqual([i1, i2, i3], [1, 1, 0]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 0]);
                 batch(() => {
                     obj.firstName = '';
                 });
-                assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 2]);
             });
             it('handles many layers of nested dependencies glitches', function () {
                 // in this test, fullName depends on firstName, but is not directly a dependency of tag
@@ -495,11 +527,19 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
                     obj.lastName = 'Last';
                 });
                 assert.strictEqual(obj.tag, '[Banned]');
-                assert.deepEqual([i1, i2, i3], [1, 1, 0]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 0]);
                 batch(() => {
                     obj.firstName = '';
                 });
-                assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 2]);
             });
             it('handles @observable decorator glitches', function () {
                 let i1 = 0;
@@ -554,11 +594,15 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
                     obj.lastName = 'Last';
                 });
                 assert.strictEqual(obj.tag, '[Banned]');
-                assert.deepEqual([i1, i2, i3], [1, 1, 0]);
+                // first name change ->
+                // 1. tag() runs again
+                // 2. fullname() runs again
+                //  2.1 tag() runs again
+                assert.deepEqual([i1, i2, i3], [1, 2, 0]);
                 batch(() => {
                     obj.firstName = '';
                 });
-                assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+                assert.deepEqual([i1, i2, i3], [1, 2, 2]);
             });
             it('handles array index related glitches', function () {
                 class NameTag {

@@ -65,8 +65,7 @@ PERFORMANCE OF THIS SOFTWARE.
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var descriptor = ({});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -86,7 +85,6 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
             else descriptor[key] = _;
         }
     }
-    if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 }
 function __runInitializers(thisArg, initializers, value) {
@@ -504,6 +502,7 @@ class TranslationBinding {
         }
         this._scope = (void 0);
         this.obs.clearAll();
+        this.isBound = false;
     }
     handleChange(_newValue, _previousValue) {
         this.obs.version++;

@@ -1845,16 +1845,16 @@ class InterpolationPartBinding {
     handleCollectionChange() {
         this.updateTarget();
     }
-    bind(_scope) {
+    bind(scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
+            if (this._scope === scope) {
                 /* istanbul-ignore-next */
                 return;
             }
             this.unbind();
         }
-        this._scope = _scope;
-        runtime.astBind(this.ast, _scope, this);
+        this._scope = scope;
+        runtime.astBind(this.ast, scope, this);
         this._value = runtime.astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         if (kernel.isArray(this._value)) {
             this.observeCollection(this._value);
@@ -3691,9 +3691,8 @@ function invokeAttribute(p, definition, $renderingCtrl, host, instruction, viewF
     registerResolver(ctn, IViewFactory, viewFactory == null
         ? noViewFactoryProvider
         : new ViewFactoryProvider(viewFactory));
-    registerResolver(ctn, IAuSlotsInfo, auSlotsInfo == null
-        ? noAuSlotProvider
-        : new kernel.InstanceProvider(slotInfoProviderName, auSlotsInfo));
+    registerResolver(ctn, IAuSlotsInfo, noAuSlotProvider
+        );
     return { vm: ctn.invoke(definition.Type), ctn };
 }
 class RenderLocationProvider {
@@ -3807,6 +3806,19 @@ class Rendering {
         if (ii !== jj) {
             throw createMappedError(757 /* ErrorNames.rendering_mismatch_length */, ii, jj);
         }
+        // host is only null when rendering a synthetic view
+        // but we have a check here so that we dont need to read surrogates unnecessarily
+        if (host != null) {
+            row = definition.surrogates;
+            if ((jj = row.length) > 0) {
+                j = 0;
+                while (jj > j) {
+                    instruction = row[j];
+                    renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
+                    ++j;
+                }
+            }
+        }
         if (ii > 0) {
             while (ii > i) {
                 row = rows[i];
@@ -3819,17 +3831,6 @@ class Rendering {
                     ++j;
                 }
                 ++i;
-            }
-        }
-        if (host != null) {
-            row = definition.surrogates;
-            if ((jj = row.length) > 0) {
-                j = 0;
-                while (jj > j) {
-                    instruction = row[j];
-                    renderers[instruction.type].render(controller, host, instruction, this._platform, this._exprParser, this._observerLocator);
-                    ++j;
-                }
             }
         }
     }
@@ -5793,7 +5794,7 @@ class CustomElementDefinition {
             for (const bindable of Object.values(Bindable.from(def.bindables))) {
                 Bindable._add(bindable, Type);
             }
-            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => getElementKeyFrom(name)), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse), kernel.fromDefinitionOrDefault('template', def, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(getElementAnnotation(Type, 'bindables'), def.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', def, Type, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), 
+            return new CustomElementDefinition(Type, name, kernel.mergeArrays(def.aliases), kernel.fromDefinitionOrDefault('key', def, () => getElementKeyFrom(name)), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('capture', def, Type, returnFalse), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('template', def, Type, returnNull), kernel.mergeArrays(def.instructions), kernel.mergeArrays(getElementAnnotation(Type, 'dependencies'), def.dependencies), kernel.fromDefinitionOrDefault('injectable', def, returnNull), kernel.fromDefinitionOrDefault('needsCompile', def, returnTrue), kernel.mergeArrays(def.surrogates), Bindable.from(getElementAnnotation(Type, 'bindables'), def.bindables), kernel.fromAnnotationOrDefinitionOrTypeOrDefault('containerless', def, Type, returnFalse), kernel.fromDefinitionOrDefault('shadowOptions', def, returnNull), kernel.fromDefinitionOrDefault('hasSlots', def, returnFalse), kernel.fromDefinitionOrDefault('enhance', def, returnFalse), kernel.fromDefinitionOrDefault('watches', def, returnEmptyArray), 
             // casting is incorrect, but it's good enough
             kernel.fromDefinitionOrDefault('strict', def, returnUndefined), kernel.fromAnnotationOrTypeOrDefault('processContent', Type, returnNull));
         }
@@ -7959,7 +7960,7 @@ class Repeat {
     }
     attaching(initiator, _parent) {
         this._normalizeToArray();
-        this._createScopes();
+        this._createScopes(void 0);
         return this._activateAllViews(initiator, this._normalizedItems ?? kernel.emptyArray);
     }
     detaching(initiator, _parent) {
@@ -7976,7 +7977,7 @@ class Repeat {
         }
         this._refreshCollectionObserver();
         this._normalizeToArray();
-        this._createScopes();
+        this._createScopes(void 0);
         this._applyIndexMap(void 0);
     }
     handleCollectionChange(collection, indexMap) {
@@ -7994,7 +7995,7 @@ class Repeat {
             return;
         }
         this._normalizeToArray();
-        this._createScopes();
+        this._createScopes(this.key === null ? indexMap : void 0);
         this._applyIndexMap(indexMap);
     }
     /** @internal */
@@ -8112,7 +8113,7 @@ class Repeat {
         }
     }
     /** @internal */
-    _createScopes() {
+    _createScopes(indexMap) {
         const oldScopes = this._scopes;
         this._oldScopes = oldScopes.slice();
         const items = this._normalizedItems;
@@ -8125,8 +8126,50 @@ class Repeat {
         const forOf = this.forOf;
         const local = this.local;
         const hasDestructuredLocal = this._hasDestructuredLocal;
-        for (let i = 0; i < len; ++i) {
-            scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+        if (indexMap === void 0) {
+            const key = this.key;
+            const hasKey = key !== null;
+            if (hasKey) {
+                const keys = Array(len);
+                if (typeof key === 'string') {
+                    for (let i = 0; i < len; ++i) {
+                        keys[i] = items[i][key];
+                    }
+                }
+                else {
+                    for (let i = 0; i < len; ++i) {
+                        // This method of creating a throwaway scope just for key evaluation is inefficient but requires a lot less code this way.
+                        // It seems acceptable for what should be a niche use case and this way it's guaranteed to work correctly in all cases.
+                        // When performance matters, it is advised to use normal string-based keys instead of expressions:
+                        // `repeat.for="i of items; key.bind: i.key" - inefficient
+                        // `repeat.for="i of items; key: key" - efficient
+                        const scope = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+                        setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, items[i]);
+                        keys[i] = runtime.astEvaluate(key, scope, binding, null);
+                    }
+                }
+                for (let i = 0; i < len; ++i) {
+                    scopes[i] = getScope(oldScopeMap, newScopeMap, keys[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+                }
+            }
+            else {
+                for (let i = 0; i < len; ++i) {
+                    scopes[i] = getScope(oldScopeMap, newScopeMap, items[i], items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+                }
+            }
+        }
+        else {
+            const oldLen = oldScopes.length;
+            for (let i = 0; i < len; ++i) {
+                const src = indexMap[i];
+                if (src >= 0 && src < oldLen) {
+                    scopes[i] = oldScopes[src];
+                }
+                else {
+                    scopes[i] = createScope(items[i], forOf, parentScope, binding, local, hasDestructuredLocal);
+                }
+                setItem(hasDestructuredLocal, forOf.declaration, scopes[i], binding, local, items[i]);
+            }
         }
         oldScopeMap.clear();
         this._scopeMap = newScopeMap;
@@ -8521,33 +8564,32 @@ const getKeyValue = (hasDestructuredLocal, key, dec, scope, binding, local) => {
     }
     return runtime.astEvaluate(key, scope, binding, null);
 };
-const getScope = (oldScopeMap, newScopeMap, item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
-    // let scope = void 0 as Scope | Scope[] | undefined;
-    let scope = oldScopeMap.get(item);
+const getScope = (oldScopeMap, newScopeMap, key, item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
+    let scope = oldScopeMap.get(key);
     if (scope === void 0) {
         scope = createScope(item, forOf, parentScope, binding, local, hasDestructuredLocal);
     }
     else if (scope instanceof runtime.Scope) {
-        oldScopeMap.delete(item);
+        oldScopeMap.delete(key);
     }
     else if (scope.length === 1) {
         scope = scope[0];
-        oldScopeMap.delete(item);
+        oldScopeMap.delete(key);
     }
     else {
         scope = scope.shift();
     }
-    if (newScopeMap.has(item)) {
-        const entry = newScopeMap.get(item);
+    if (newScopeMap.has(key)) {
+        const entry = newScopeMap.get(key);
         if (entry instanceof runtime.Scope) {
-            newScopeMap.set(item, [entry, scope]);
+            newScopeMap.set(key, [entry, scope]);
         }
         else {
             entry.push(scope);
         }
     }
     else {
-        newScopeMap.set(item, scope);
+        newScopeMap.set(key, scope);
     }
     setItem(hasDestructuredLocal, forOf.declaration, scope, binding, local, item);
     return scope;
@@ -9628,7 +9670,7 @@ class AuSlot {
     }
     attaching(initiator, _parent) {
         return kernel.onResolve(this.view.activate(initiator, this.$controller, this._hasProjection ? this._outerScope : this._parentScope), () => {
-            if (this._hasSlotWatcher) {
+            if (this._hasSlotWatcher || kernel.isFunction(this.slotchange)) {
                 this._slotwatchers.forEach(w => w.watch(this));
                 this._observe();
                 this._notifySlotChange();

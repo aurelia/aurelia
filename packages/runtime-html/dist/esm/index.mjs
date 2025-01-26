@@ -3055,7 +3055,7 @@ function invokeAttribute(t, e, i, s, n, r, l, h) {
     registerResolver(c, K, new B(Hi, n));
     registerResolver(c, Ts, l == null ? Ni : new B(Oi, l));
     registerResolver(c, ui, r == null ? Wi : new ViewFactoryProvider(r));
-    registerResolver(c, gi, h == null ? ji : new B($i, h));
+    registerResolver(c, gi, ji);
     return {
         vm: c.invoke(e.Type),
         ctn: c
@@ -3163,6 +3163,17 @@ class Rendering {
         if (l !== c) {
             throw createMappedError(757, l, c);
         }
+        if (s != null) {
+            u = i.surrogates;
+            if ((c = u.length) > 0) {
+                a = 0;
+                while (c > a) {
+                    f = u[a];
+                    r[f.type].render(t, s, f, this.p, this.ep, this.oL);
+                    ++a;
+                }
+            }
+        }
         if (l > 0) {
             while (l > h) {
                 u = n[h];
@@ -3175,17 +3186,6 @@ class Rendering {
                     ++a;
                 }
                 ++h;
-            }
-        }
-        if (s != null) {
-            u = i.surrogates;
-            if ((c = u.length) > 0) {
-                a = 0;
-                while (c > a) {
-                    f = u[a];
-                    r[f.type].render(t, s, f, this.p, this.ep, this.oL);
-                    ++a;
-                }
             }
         }
     }
@@ -4830,7 +4830,7 @@ class CustomElementDefinition {
             for (const t of Object.values(ke.from(s.bindables))) {
                 ke.i(t, i);
             }
-            return new CustomElementDefinition(i, n, c(s.aliases), q("key", s, (() => getElementKeyFrom(n))), I("capture", s, i, returnFalse), q("template", s, returnNull), c(s.instructions), c(getElementAnnotation(i, "dependencies"), s.dependencies), q("injectable", s, returnNull), q("needsCompile", s, returnTrue), c(s.surrogates), ke.from(getElementAnnotation(i, "bindables"), s.bindables), I("containerless", s, i, returnFalse), q("shadowOptions", s, returnNull), q("hasSlots", s, returnFalse), q("enhance", s, returnFalse), q("watches", s, returnEmptyArray), q("strict", s, returnUndefined), _("processContent", i, returnNull));
+            return new CustomElementDefinition(i, n, c(s.aliases), q("key", s, (() => getElementKeyFrom(n))), I("capture", s, i, returnFalse), I("template", s, i, returnNull), c(s.instructions), c(getElementAnnotation(i, "dependencies"), s.dependencies), q("injectable", s, returnNull), q("needsCompile", s, returnTrue), c(s.surrogates), ke.from(getElementAnnotation(i, "bindables"), s.bindables), I("containerless", s, i, returnFalse), q("shadowOptions", s, returnNull), q("hasSlots", s, returnFalse), q("enhance", s, returnFalse), q("watches", s, returnEmptyArray), q("strict", s, returnUndefined), _("processContent", i, returnNull));
         }
         if (e(t)) {
             return new CustomElementDefinition(i, t, c(getElementAnnotation(i, "aliases"), i.aliases), getElementKeyFrom(t), _("capture", i, returnFalse), _("template", i, returnNull), c(getElementAnnotation(i, "instructions"), i.instructions), c(getElementAnnotation(i, "dependencies"), i.dependencies), _("injectable", i, returnNull), _("needsCompile", i, returnTrue), c(getElementAnnotation(i, "surrogates"), i.surrogates), ke.from(...ke.getAll(i), getElementAnnotation(i, "bindables"), i.bindables), _("containerless", i, returnFalse), _("shadowOptions", i, returnNull), _("hasSlots", i, returnFalse), _("enhance", i, returnFalse), c(Ne.getDefinitions(i), i.watches), _("strict", i, returnUndefined), _("processContent", i, returnNull));
@@ -6657,7 +6657,7 @@ class Repeat {
     }
     attaching(t, e) {
         this.xi();
-        this.yi();
+        this.yi(void 0);
         return this.bi(t, this.ui ?? v);
     }
     detaching(t, e) {
@@ -6673,7 +6673,7 @@ class Repeat {
         }
         this.pi();
         this.xi();
-        this.yi();
+        this.yi(void 0);
         this.ki(void 0);
     }
     handleCollectionChange(t, e) {
@@ -6691,7 +6691,7 @@ class Repeat {
             return;
         }
         this.xi();
-        this.yi();
+        this.yi(this.key === null ? e : void 0);
         this.ki(e);
     }
     ki(t) {
@@ -6790,24 +6790,57 @@ class Repeat {
             this.li = undefined;
         }
     }
-    yi() {
-        const t = this.ni;
-        this.oi = t.slice();
-        const e = this.ui;
-        const i = e.length;
-        const s = this.ni = Array(e.length);
-        const n = this.ri;
-        const r = new Map;
-        const l = this.$controller.scope;
-        const h = this.gi;
-        const a = this.forOf;
-        const c = this.local;
-        const u = this.fi;
-        for (let t = 0; t < i; ++t) {
-            s[t] = getScope(n, r, e[t], a, l, h, c, u);
+    yi(t) {
+        const e = this.ni;
+        this.oi = e.slice();
+        const i = this.ui;
+        const s = i.length;
+        const n = this.ni = Array(i.length);
+        const r = this.ri;
+        const l = new Map;
+        const h = this.$controller.scope;
+        const a = this.gi;
+        const c = this.forOf;
+        const u = this.local;
+        const f = this.fi;
+        if (t === void 0) {
+            const t = this.key;
+            const e = t !== null;
+            if (e) {
+                const e = Array(s);
+                if (typeof t === "string") {
+                    for (let n = 0; n < s; ++n) {
+                        e[n] = i[n][t];
+                    }
+                } else {
+                    for (let n = 0; n < s; ++n) {
+                        const s = createScope(i[n], c, h, a, u, f);
+                        setItem(f, c.declaration, s, a, u, i[n]);
+                        e[n] = wt(t, s, a, null);
+                    }
+                }
+                for (let t = 0; t < s; ++t) {
+                    n[t] = getScope(r, l, e[t], i[t], c, h, a, u, f);
+                }
+            } else {
+                for (let t = 0; t < s; ++t) {
+                    n[t] = getScope(r, l, i[t], i[t], c, h, a, u, f);
+                }
+            }
+        } else {
+            const r = e.length;
+            for (let l = 0; l < s; ++l) {
+                const s = t[l];
+                if (s >= 0 && s < r) {
+                    n[l] = e[s];
+                } else {
+                    n[l] = createScope(i[l], c, h, a, u, f);
+                }
+                setItem(f, c.declaration, n[l], a, u, i[l]);
+            }
         }
-        n.clear();
-        this.ri = r;
+        r.clear();
+        this.ri = l;
     }
     xi() {
         const t = this.items;
@@ -7173,30 +7206,30 @@ const getKeyValue = (t, e, i, s, n, r) => {
     return wt(e, s, n, null);
 };
 
-const getScope = (t, e, i, s, n, r, l, h) => {
-    let a = t.get(i);
-    if (a === void 0) {
-        a = createScope(i, s, n, r, l, h);
-    } else if (a instanceof Rt) {
+const getScope = (t, e, i, s, n, r, l, h, a) => {
+    let c = t.get(i);
+    if (c === void 0) {
+        c = createScope(s, n, r, l, h, a);
+    } else if (c instanceof Rt) {
         t.delete(i);
-    } else if (a.length === 1) {
-        a = a[0];
+    } else if (c.length === 1) {
+        c = c[0];
         t.delete(i);
     } else {
-        a = a.shift();
+        c = c.shift();
     }
     if (e.has(i)) {
         const t = e.get(i);
         if (t instanceof Rt) {
-            e.set(i, [ t, a ]);
+            e.set(i, [ t, c ]);
         } else {
-            t.push(a);
+            t.push(c);
         }
     } else {
-        e.set(i, a);
+        e.set(i, c);
     }
-    setItem(h, s.declaration, a, r, l, i);
-    return a;
+    setItem(a, n.declaration, c, l, h, s);
+    return c;
 };
 
 const createScope = (t, e, i, s, n, r) => {
@@ -8135,7 +8168,7 @@ class AuSlot {
     }
     attaching(t, e) {
         return D(this.view.activate(t, this.$controller, this.Xi ? this.Gi : this.Ui), (() => {
-            if (this.Yi) {
+            if (this.Yi || u(this.slotchange)) {
                 this.Qi.forEach((t => t.watch(this)));
                 this.Qe();
                 this.Ji();

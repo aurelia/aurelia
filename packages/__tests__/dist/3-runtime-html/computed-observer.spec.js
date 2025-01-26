@@ -1,5 +1,44 @@
+var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var _, done = false;
+    for (var i = decorators.length - 1; i >= 0; i--) {
+        var context = {};
+        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+        if (kind === "accessor") {
+            if (result === void 0) continue;
+            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+            if (_ = accept(result.get)) descriptor.get = _;
+            if (_ = accept(result.set)) descriptor.set = _;
+            if (_ = accept(result.init)) initializers.unshift(_);
+        }
+        else if (_ = accept(result)) {
+            if (kind === "field") initializers.unshift(_);
+            else descriptor[key] = _;
+        }
+    }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
+    done = true;
+};
+var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
+    var useValue = arguments.length > 2;
+    for (var i = 0; i < initializers.length; i++) {
+        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+    }
+    return useValue ? value : void 0;
+};
+var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
+    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+};
 import { ComputedObserver, IDirtyChecker, IObserverLocator } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin, } from '@aurelia/testing';
+import { bindable, BindingMode, customElement } from '@aurelia/runtime-html';
 describe('3-runtime-html/computed-observer.spec.ts', function () {
     const computedObserverTestCases = [
         {
@@ -384,6 +423,103 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
         component.message = '1';
         flush();
         assertText('1 two');
+    });
+    it('notifies all bindings when multiple bindings use the same getter #2093', async function () {
+        // issue summary:
+        // with surrogate binding subscribings after content bindings
+        // we have the sequence as below:
+        //
+        // 1. [if] subscribes first, before [class] on <template>
+        // 2. when vm state changes,
+        //    2.1 [if] gets notified before [class] on <template>
+        //      because [if] subscribes to `hasNotifications`, it "short-circuit"
+        //      `hasErrors` handleChange()
+        //      - [if] retrieves value `hasErrors` observer, without `hasErros`.run()
+        //      - `_value` property inside `hasErrors` computed observer is updated
+        //    2.2 [class] gets <template> is notified
+        //      because `_value` was updated previously in 2.1,
+        //      `.run()` doesn't notify any subscribers
+        // ---
+        // This is because we try to reuse the same property "_value" in computed observer
+        // for both new value and old value
+        let NotificationWrapper = (() => {
+            let _classDecorators = [customElement({
+                    name: 'notification-wrapper',
+                    template: `
+        <template class="wrapper \${hasErrors ? 'has-errors' : ''}">
+          <au-slot name="content"></au-slot>
+          <div
+            id="d2"
+            if.bind="state.hasNotifications"
+            class="notifications \${hasErrors ? 'red' : ''}"
+          >
+            hey
+          </div>
+        </template>
+      `
+                })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _errorsInput_decorators;
+            let _errorsInput_initializers = [];
+            let _errorsInput_extraInitializers = [];
+            var NotificationWrapper = _classThis = class {
+                constructor() {
+                    this.errorsInput = __runInitializers(this, _errorsInput_initializers, []);
+                    this.state = __runInitializers(this, _errorsInput_extraInitializers);
+                    this.updateState();
+                }
+                get hasErrors() {
+                    return this.state.hasErrors;
+                }
+                // PRIVATE
+                updateState() {
+                    const hasErrors = this.errorsInput?.length > 0;
+                    const hasNotifications = hasErrors;
+                    this.state = {
+                        hasErrors,
+                        hasNotifications,
+                    };
+                }
+                // EVENT HANDLERS - OBSERVABLES
+                propertiesChanged(properties) {
+                    if (properties.errorsInput) {
+                        this.updateState();
+                    }
+                }
+            };
+            __setFunctionName(_classThis, "NotificationWrapper");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _errorsInput_decorators = [bindable({ attribute: 'errors', mode: BindingMode.toView })];
+                __esDecorate(null, null, _errorsInput_decorators, { kind: "field", name: "errorsInput", static: false, private: false, access: { has: obj => "errorsInput" in obj, get: obj => obj.errorsInput, set: (obj, value) => { obj.errorsInput = value; } }, metadata: _metadata }, _errorsInput_initializers, _errorsInput_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                NotificationWrapper = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return NotificationWrapper = _classThis;
+        })();
+        const { trigger, queryBy, flush } = createFixture(`<style>.red { background-color: pink } .has-errors { color: red }</style>
+      <notification-wrapper id="d1" errors.bind="errors">
+        <button au-slot="content" click.trigger="toggle()">Set error</button>
+      </notification-wrapper>
+      `, class {
+            constructor() {
+                this.errors = [];
+            }
+            toggle() {
+                this.errors = ['error'];
+            }
+        }, [NotificationWrapper]);
+        assert.strictEqual(queryBy('.has-errors'), null);
+        assert.strictEqual(queryBy('.red'), null);
+        trigger.click('button');
+        await Promise.resolve();
+        flush();
+        assert.notStrictEqual(queryBy('.red'), null);
+        assert.notStrictEqual(queryBy('.has-errors'), null);
     });
     class Property {
         constructor(name, value) {

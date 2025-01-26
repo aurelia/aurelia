@@ -7,6 +7,7 @@ export interface ComputedObserver<T extends object> extends IObserverLocatorBase
 }
 export declare class ComputedObserver<T extends object> implements IObserver, IObserverLocatorBasedConnectable, ISubscriber, ICollectionSubscriber, ISubscriberCollection {
     type: AccessorType;
+    private _notified;
     /**
      * The getter this observer is wrapping
      */

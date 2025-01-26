@@ -176,7 +176,7 @@ export declare const StandardConfiguration: {
      * Apply this configuration to the provided container.
      */
     register(container: IContainer): IContainer;
-    customize(cb?: ConfigurationOptionsProvider): any;
+    customize(cb?: ConfigurationOptionsProvider): /*elided*/ any;
 };
 export type ConfigurationOptionsProvider = (options: IRuntimeHtmlConfigurationOptions) => void;
 interface IRuntimeHtmlConfigurationOptions {

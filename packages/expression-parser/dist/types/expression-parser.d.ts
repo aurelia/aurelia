@@ -28,10 +28,12 @@ declare const enum Precedence {
     Relational = 384,
     Additive = 448,
     Multiplicative = 512,
-    Binary = 513,
-    LeftHandSide = 514,
-    Primary = 515,
-    Unary = 516
+    Exponentiation = 576,
+    Binary = 577,
+    Member = 578,
+    LeftHandSide = 579,
+    Primary = 580,
+    Unary = 581
 }
 export type ExpressionType = 'None' | 'Interpolation' | 'IsIterator' | 'IsChainable' | 'IsFunction' | 'IsProperty' | 'IsCustom';
 export declare function parseExpression(input: string, expressionType?: ExpressionType): AnyBindingExpression;

@@ -3591,7 +3591,7 @@ class Viewport extends Endpoint$1 {
                     let canLoadResult = (step.previousValue ?? true);
                     if (typeof canLoadResult === 'boolean') { // canLoadResult: boolean | LoadInstruction | LoadInstruction[],
                         if (!canLoadResult) {
-                            step.cancel();
+                            // step.cancel();
                             coordinator.cancel();
                             const instruction = this.getNavigationContent(coordinator).instruction;
                             coordinator.removeInstructions(instruction.dynasty);

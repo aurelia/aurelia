@@ -10,8 +10,8 @@ export declare const getPrototypeOf: (o: any) => any, getOwnPropertyDescriptor: 
     [x: string]: PropertyDescriptor;
 }, getOwnPropertyNames: (o: any) => string[], getOwnPropertySymbols: (o: any) => symbol[], defineProperty: <T>(o: T, p: PropertyKey, attributes: PropertyDescriptor & ThisType<any>) => T, defineProperties: <T>(o: T, properties: PropertyDescriptorMap & ThisType<any>) => T;
 export declare const Date_getTime: (thisArg: unknown) => number;
-export declare const Set_values: (thisArg: unknown) => IterableIterator<any>;
-export declare const Map_entries: (thisArg: unknown) => IterableIterator<[any, any]>;
+export declare const Set_values: (thisArg: unknown) => SetIterator<any>;
+export declare const Map_entries: (thisArg: unknown) => MapIterator<[any, any]>;
 export declare const Boolean_valueOf: (thisArg: unknown) => boolean;
 export declare const Number_valueOf: (thisArg: unknown) => number;
 export declare const Symbol_valueOf: (thisArg: unknown) => symbol;

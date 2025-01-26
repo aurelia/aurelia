@@ -2,9 +2,9 @@ import { DI as t, resolve as n, IEventAggregator as e, camelCase as i, toArray a
 
 import { BindingMode as o, State as l, ISignaler as c, BindingBehavior as h, mixinAstEvaluator as u, mixingBindingLimited as f, CustomElement as d, renderer as m, ValueConverter as p, AppTask as g } from "../../../runtime-html/dist/native-modules/index.mjs";
 
-import { AttributePattern as v, AttrSyntax as B, BindingCommand as b } from "../../../template-compiler/dist/native-modules/index.mjs";
+import { AttributePattern as v, AttrSyntax as B, BindingCommand as T } from "../../../template-compiler/dist/native-modules/index.mjs";
 
-import { ValueConverterExpression as T, CustomExpression as C } from "../../../expression-parser/dist/native-modules/index.mjs";
+import { ValueConverterExpression as b, CustomExpression as C } from "../../../expression-parser/dist/native-modules/index.mjs";
 
 import { nowrap as w, connectable as I, astEvaluate as y, astUnbind as P, AccessorType as x, astBind as V } from "../../../runtime/dist/native-modules/index.mjs";
 
@@ -27,8 +27,8 @@ var A;
 
 function createIntlFormatValueConverterExpression(t, n) {
     const e = n.ast.expression;
-    if (!(e instanceof T)) {
-        const i = new T(e, t, n.ast.args);
+    if (!(e instanceof b)) {
+        const i = new b(e, t, n.ast.args);
         n.ast.expression = i;
     }
 }
@@ -62,33 +62,31 @@ function __esDecorate(t, n, e, i, r, s) {
         return t;
     }
     var a = i.kind, o = a === "getter" ? "get" : a === "setter" ? "set" : "value";
-    var l = !n && t ? i["static"] ? t : t.prototype : null;
-    var c = n || (l ? Object.getOwnPropertyDescriptor(l, i.name) : {});
-    var h, u = false;
-    for (var f = e.length - 1; f >= 0; f--) {
-        var d = {};
-        for (var m in i) d[m] = m === "access" ? {} : i[m];
-        for (var m in i.access) d.access[m] = i.access[m];
-        d.addInitializer = function(t) {
-            if (u) throw new TypeError("Cannot add initializers after decoration has completed");
+    var l = {};
+    var c, h = false;
+    for (var u = e.length - 1; u >= 0; u--) {
+        var f = {};
+        for (var d in i) f[d] = d === "access" ? {} : i[d];
+        for (var d in i.access) f.access[d] = i.access[d];
+        f.addInitializer = function(t) {
+            if (h) throw new TypeError("Cannot add initializers after decoration has completed");
             s.push(accept(t || null));
         };
-        var p = (0, e[f])(a === "accessor" ? {
-            get: c.get,
-            set: c.set
-        } : c[o], d);
+        var m = (0, e[u])(a === "accessor" ? {
+            get: l.get,
+            set: l.set
+        } : l[o], f);
         if (a === "accessor") {
-            if (p === void 0) continue;
-            if (p === null || typeof p !== "object") throw new TypeError("Object expected");
-            if (h = accept(p.get)) c.get = h;
-            if (h = accept(p.set)) c.set = h;
-            if (h = accept(p.init)) r.unshift(h);
-        } else if (h = accept(p)) {
-            if (a === "field") r.unshift(h); else c[o] = h;
+            if (m === void 0) continue;
+            if (m === null || typeof m !== "object") throw new TypeError("Object expected");
+            if (c = accept(m.get)) l.get = c;
+            if (c = accept(m.set)) l.set = c;
+            if (c = accept(m.init)) r.unshift(c);
+        } else if (c = accept(m)) {
+            if (a === "field") r.unshift(c); else l[o] = c;
         }
     }
-    if (l) Object.defineProperty(l, i.name, c);
-    u = true;
+    h = true;
 }
 
 function __runInitializers(t, n, e) {
@@ -375,8 +373,8 @@ RelativeTimeValueConverter.$au = {
 class TranslationBindingBehavior {
     bind(t, n) {
         const e = n.ast.expression;
-        if (!(e instanceof T)) {
-            const t = new T(e, "t", n.ast.args);
+        if (!(e instanceof b)) {
+            const t = new b(e, "t", n.ast.args);
             n.ast.expression = t;
         }
     }
@@ -467,6 +465,7 @@ class TranslationBinding {
         }
         this.s = void 0;
         this.obs.clearAll();
+        this.isBound = false;
     }
     handleChange(t, n) {
         this.obs.version++;
@@ -850,10 +849,10 @@ function coreComponents(t) {
             o.push(n);
         }
     }
-    const l = [ v.create(i, TranslationAttributePattern), b.define({
+    const l = [ v.create(i, TranslationAttributePattern), T.define({
         name: "t",
         aliases: s
-    }, TranslationBindingCommand), Q, v.create(r, TranslationBindAttributePattern), b.define({
+    }, TranslationBindingCommand), Q, v.create(r, TranslationBindAttributePattern), T.define({
         name: "t.bind",
         aliases: o
     }, TranslationBindBindingCommand), Y, TranslationParametersAttributePattern, TranslationParametersBindingCommand, q ];

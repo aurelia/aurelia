@@ -1326,8 +1326,8 @@ function __esDecorate(t, e, r, n, s, o) {
         return t;
     }
     var i = n.kind, l = i === "getter" ? "get" : i === "setter" ? "set" : "value";
-    var c = !e && t ? n["static"] ? t : t.prototype : null;
-    var a = e || (c ? Object.getOwnPropertyDescriptor(c, n.name) : {});
+    var c = t ? n["static"] ? t : t.prototype : null;
+    var a = c ? Object.getOwnPropertyDescriptor(c, n.name) : {};
     var u, f = false;
     for (var h = r.length - 1; h >= 0; h--) {
         var p = {};
@@ -1950,16 +1950,16 @@ class EventAggregator {
             let r = this.eventLookup[t];
             if (r !== void 0) {
                 r = r.slice();
-                let n = r.length;
-                while (n-- > 0) {
-                    r[n](e, t);
+                const n = r.length;
+                for (let s = 0; s < n; s++) {
+                    r[s](e, t);
                 }
             }
         } else {
             const e = this.messageHandlers.slice();
-            let r = e.length;
-            while (r-- > 0) {
-                e[r].handle(t);
+            const r = e.length;
+            for (let n = 0; n < r; n++) {
+                e[n].handle(t);
             }
         }
     }

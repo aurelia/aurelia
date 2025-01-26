@@ -2261,11 +2261,10 @@ class Viewport extends $ {
                 let s = i.previousValue ?? true;
                 if (typeof s === "boolean") {
                     if (!s) {
-                        i.cancel();
                         t.cancel();
-                        const s = this.getNavigationContent(t).instruction;
-                        t.removeInstructions(s.dynasty);
-                        s.nextScopeInstructions = null;
+                        const i = this.getNavigationContent(t).instruction;
+                        t.removeInstructions(i.dynasty);
+                        i.nextScopeInstructions = null;
                         return;
                     }
                 } else {

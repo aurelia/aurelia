@@ -8,7 +8,7 @@ export interface IFileUnit {
     base?: string;
     contents: string;
     filePair?: string;
-    isViewPair?: boolean;
+    readFile?(path: string): string;
 }
 export interface IOptionalPreprocessOptions {
     defaultShadowOptions?: {
@@ -41,6 +41,11 @@ export interface IOptionalPreprocessOptions {
      * @param moduleName - the name of the module that triggers the hot reload
      */
     getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
+    /**
+     * Enables the type checking for template.
+     * The type-checking is still a work in progress, and hence is experimental.
+     */
+    experimentalTemplateTypeCheck?: boolean;
 }
 export interface IPreprocessOptions {
     defaultShadowOptions?: {
@@ -73,6 +78,11 @@ export interface IPreprocessOptions {
      * @param moduleName - the name of the module that triggers the hot reload
      */
     getHmrCode?: (viewModelClassName: string, moduleName?: string) => string;
+    /**
+     * Enables the type checking for template.
+     * The type-checking is still a work in progress, and hence is experimental.
+     */
+    experimentalTemplateTypeCheck: boolean;
 }
 export declare const defaultCssExtensions: string[];
 export declare const defaultJsExtensions: string[];

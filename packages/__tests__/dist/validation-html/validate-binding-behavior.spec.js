@@ -1350,6 +1350,130 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
                 assert.strictEqual(result.results[0].message, 'Some Property must be between or equal to 3 and 20.', `result.results[0].message ${iteration}`);
             }
         });
+        it('bindings are removed when composed components are removed', async function () {
+            let Editor1 = (() => {
+                let _classDecorators = [customElement({
+                        name: 'edi-tor1',
+                        template: `editor1: <input type="text" value.bind="x & validate"></input>`,
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var Editor1 = _classThis = class {
+                    activate({ x }) {
+                        this.x = x;
+                    }
+                };
+                __setFunctionName(_classThis, "Editor1");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Editor1 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Editor1 = _classThis;
+            })();
+            let Editor2 = (() => {
+                let _classDecorators = [customElement({
+                        name: 'edi-tor2',
+                        template: `editor2: <input type="text" value.bind="x & validate"></input>`,
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var Editor2 = _classThis = class {
+                    activate({ x }) {
+                        this.x = x;
+                    }
+                };
+                __setFunctionName(_classThis, "Editor2");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Editor2 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Editor2 = _classThis;
+            })();
+            class MyApp {
+                constructor() {
+                    this.editorMap = new Map([
+                        ['editor1', 'edi-tor1'],
+                        ['editor2', 'edi-tor2'],
+                    ]);
+                    this.lineItems = [];
+                    this.editor = '';
+                    this.validationController = resolve(newInstanceForScope(IValidationController));
+                }
+                addItem() {
+                    this.lineItems.push({
+                        editor: this.editorMap.get(this.editor),
+                        model: { x: undefined },
+                    });
+                    this.editor = null;
+                }
+                removeItem(item) {
+                    this.lineItems.splice(this.lineItems.indexOf(item), 1);
+                }
+            }
+            const { startPromise, stop, component, platform, appHost } = createFixture(`<div repeat.for="item of lineItems" style="display: flex; flex-direction: row;">
+  \${item.editor}
+  <au-compose component.bind="item.editor" model.bind="item.model"></au-compose>
+  <button click.trigger="() => removeItem(item)">Remove</button>
+</div>`, MyApp, [ValidationHtmlConfiguration, Editor1, Editor2]);
+            await startPromise;
+            const domQueue = platform.domQueue;
+            const validationController = component.validationController;
+            assert.strictEqual(validationController.bindings.size, 0, 'validationController.bindings.size 1');
+            // round#1 - add item
+            component.editor = 'editor1';
+            component.addItem();
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 1, 'validationController.bindings.size 2');
+            // round#2 - add item
+            component.editor = 'editor2';
+            component.addItem();
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 2, 'validationController.bindings.size 3');
+            // round#3 - add item
+            component.editor = 'editor1';
+            component.addItem();
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 3, 'validationController.bindings.size 4');
+            // round#4 - remove item
+            component.removeItem(component.lineItems[1]);
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 2, 'validationController.bindings.size 5');
+            // round#5 - add item
+            component.editor = 'editor2';
+            component.addItem();
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 3, 'validationController.bindings.size 6');
+            // round#6 - add item
+            component.editor = 'editor2';
+            component.addItem();
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 4, 'validationController.bindings.size 7');
+            // round#7 - remove item
+            component.removeItem(component.lineItems[0]);
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 3, 'validationController.bindings.size 8');
+            // round#8 - remove item
+            component.removeItem(component.lineItems[0]);
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 2, 'validationController.bindings.size 9');
+            // round#9 - remove item
+            component.removeItem(component.lineItems[0]);
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 1, 'validationController.bindings.size 10');
+            // round#10 - remove item
+            component.removeItem(component.lineItems[0]);
+            await domQueue.yield();
+            assert.strictEqual(validationController.bindings.size, 0, 'validationController.bindings.size 11');
+            await stop(true);
+        });
     });
 });
 //# sourceMappingURL=validate-binding-behavior.spec.js.map

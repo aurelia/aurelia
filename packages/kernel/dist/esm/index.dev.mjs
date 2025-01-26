@@ -2034,8 +2034,8 @@ PERFORMANCE OF THIS SOFTWARE.
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
-    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+    var target = ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -2716,16 +2716,16 @@ class EventAggregator {
             let subscribers = this.eventLookup[channelOrInstance];
             if (subscribers !== void 0) {
                 subscribers = subscribers.slice();
-                let i = subscribers.length;
-                while (i-- > 0) {
+                const numSubscribers = subscribers.length;
+                for (let i = 0; i < numSubscribers; i++) {
                     subscribers[i](message, channelOrInstance);
                 }
             }
         }
         else {
             const subscribers = this.messageHandlers.slice();
-            let i = subscribers.length;
-            while (i-- > 0) {
+            const numSubscribers = subscribers.length;
+            for (let i = 0; i < numSubscribers; i++) {
                 subscribers[i].handle(channelOrInstance);
             }
         }

@@ -169,7 +169,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
             midHtml: '<i>tac</i>',
             post: ' toe',
             postHtml: ' <b>toe</b><span>bar</span>',
-            imgPath: 'foo.jpg'
+            imgPath: 'foo.jpg',
+            projectedContent: 'content'
         };
         const deTranslation = {
             simple: {
@@ -190,7 +191,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
             mid: 'Tac',
             midHtml: '<i>Tac</i>',
             post: ' Toe',
-            imgPath: 'bar.jpg'
+            imgPath: 'bar.jpg',
+            projectedContent: 'Inhalt'
         };
         const ctx = TestContext.create();
         const host = PLATFORM.document.createElement('app');
@@ -3420,6 +3422,192 @@ describe('i18n/t/translation-integration.spec.ts', function () {
             })();
             $it('with projection - mixed', function ({ host }) {
                 assertTextContent(host, 'div', 'dispatched on 1971-12-25');
+            }, { component: App });
+        }
+        {
+            let Ce1 = (() => {
+                let _classDecorators = [customElement({ name: 'ce-1', template: '<au-slot></au-slot>' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var Ce1 = _classThis = class {
+                };
+                __setFunctionName(_classThis, "Ce1");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Ce1 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Ce1 = _classThis;
+            })();
+            let Ce2 = (() => {
+                let _classDecorators = [customElement({ name: 'ce-2', template: '${value}' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                let _value_decorators;
+                let _value_initializers = [];
+                let _value_extraInitializers = [];
+                var Ce2 = _classThis = class {
+                    constructor() {
+                        this.value = __runInitializers(this, _value_initializers, void 0);
+                        __runInitializers(this, _value_extraInitializers);
+                    }
+                };
+                __setFunctionName(_classThis, "Ce2");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _value_decorators = [bindable];
+                    __esDecorate(null, null, _value_decorators, { kind: "field", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value, set: (obj, value) => { obj.value = value; } }, metadata: _metadata }, _value_initializers, _value_extraInitializers);
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Ce2 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Ce2 = _classThis;
+            })();
+            let App = (() => {
+                let _classDecorators = [customElement({
+                        name: 'app',
+                        template: `<ce-1 if.bind="show">
+        <ce-2 au-slot value="foo" t="[value]projectedContent"></ce-2>
+      </ce-1>`,
+                        dependencies: [Ce1, Ce2]
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var App = _classThis = class {
+                    constructor() {
+                        this.show = false;
+                    }
+                };
+                __setFunctionName(_classThis, "App");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    App = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return App = _classThis;
+            })();
+            $it('with projection - if.bind on host', async function ({ host, app, platform: { domQueue }, i18n }) {
+                assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
+                app.show = true;
+                domQueue.flush();
+                assert.html.textContent(host, 'content', 'round #1');
+                // change locale
+                await i18n.setLocale('de');
+                domQueue.flush();
+                assert.html.textContent(host, 'Inhalt', 'round #2');
+                // toggle visibility
+                app.show = false;
+                domQueue.flush();
+                assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
+                // toggle visibility
+                app.show = true;
+                domQueue.flush();
+                assert.html.textContent(host, 'Inhalt', 'round #3');
+                // change locale
+                await i18n.setLocale('en');
+                domQueue.flush();
+                assert.html.textContent(host, 'content', 'round #4');
+            }, { component: App });
+        }
+        {
+            let Ce1 = (() => {
+                let _classDecorators = [customElement({ name: 'ce-1', template: '<au-slot></au-slot>' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var Ce1 = _classThis = class {
+                };
+                __setFunctionName(_classThis, "Ce1");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Ce1 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Ce1 = _classThis;
+            })();
+            let Ce2 = (() => {
+                let _classDecorators = [customElement({ name: 'ce-2', template: '${value}' })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                let _value_decorators;
+                let _value_initializers = [];
+                let _value_extraInitializers = [];
+                var Ce2 = _classThis = class {
+                    constructor() {
+                        this.value = __runInitializers(this, _value_initializers, void 0);
+                        __runInitializers(this, _value_extraInitializers);
+                    }
+                };
+                __setFunctionName(_classThis, "Ce2");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _value_decorators = [bindable];
+                    __esDecorate(null, null, _value_decorators, { kind: "field", name: "value", static: false, private: false, access: { has: obj => "value" in obj, get: obj => obj.value, set: (obj, value) => { obj.value = value; } }, metadata: _metadata }, _value_initializers, _value_extraInitializers);
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    Ce2 = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return Ce2 = _classThis;
+            })();
+            let App = (() => {
+                let _classDecorators = [customElement({
+                        name: 'app',
+                        template: `<ce-1>
+        <ce-2 au-slot if.bind="show" value="foo" t="[value]projectedContent"></ce-2>
+      </ce-1>`,
+                        dependencies: [Ce1, Ce2]
+                    })];
+                let _classDescriptor;
+                let _classExtraInitializers = [];
+                let _classThis;
+                var App = _classThis = class {
+                    constructor() {
+                        this.show = false;
+                    }
+                };
+                __setFunctionName(_classThis, "App");
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                    App = _classThis = _classDescriptor.value;
+                    if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                    __runInitializers(_classThis, _classExtraInitializers);
+                })();
+                return App = _classThis;
+            })();
+            $it('with projection - if.bind on content', async function ({ host, app, platform: { domQueue }, i18n }) {
+                assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
+                app.show = true;
+                domQueue.flush();
+                assert.html.textContent(host, 'content', 'round #1');
+                // change locale
+                await i18n.setLocale('de');
+                domQueue.flush();
+                assert.html.textContent(host, 'Inhalt', 'round #2');
+                // toggle visibility
+                app.show = false;
+                domQueue.flush();
+                assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
+                // toggle visibility
+                app.show = true;
+                domQueue.flush();
+                assert.html.textContent(host, 'Inhalt', 'round #3');
+                // change locale
+                await i18n.setLocale('en');
+                domQueue.flush();
+                assert.html.textContent(host, 'content', 'round #4');
             }, { component: App });
         }
     });

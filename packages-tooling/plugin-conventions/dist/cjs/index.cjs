@@ -4,8 +4,10 @@ var kernel = require('@aurelia/kernel');
 var path = require('path');
 var pkg = require('typescript');
 var $modifyCode = require('modify-code');
-var runtimeHtml = require('@aurelia/runtime-html');
+var expressionParser = require('@aurelia/expression-parser');
+var templateCompiler = require('@aurelia/template-compiler');
 var parse5 = require('parse5');
+var runtimeHtml = require('@aurelia/runtime-html');
 var fs = require('fs');
 
 function _interopNamespaceDefault(e) {
@@ -56,16 +58,433 @@ const modifyCode = (typeof $modifyCode === 'function'
             ? $modifyCode__namespace
             : $modifyCode__namespace.default);
 
-const { ModifierFlags, ScriptTarget, SyntaxKind, canHaveDecorators, canHaveModifiers, createPrinter, createSourceFile, getCombinedModifierFlags, getDecorators, getModifiers, isCallExpression, isClassDeclaration, isIdentifier, isImportDeclaration, isObjectLiteralExpression, isPropertyDeclaration, isNamedImports, isStringLiteral, transform, visitEachChild, visitNode, factory: { createIdentifier, createObjectLiteralExpression, createSpreadAssignment, updateClassDeclaration, updatePropertyDeclaration, } } = pkg;
+var _a;
+function prependUtilityTypes(m, isJs) {
+    m.prepend(`// @ts-check
+${isJs
+        ?
+            `/**
+  * @template TCollection
+  * @typedef {TCollection extends Array<infer TElement> ? TElement : TCollection extends Set<infer TElement> ? TElement : TCollection extends Map<infer TKey, infer TValue> ? [TKey, TValue] : TCollection extends number ? number : TCollection extends object ? any : never} CollectionElement
+  */`
+        :
+            `type CollectionElement<TCollection> = TCollection extends Array<infer TElement>
+      ? TElement
+      : TCollection extends Set<infer TElement>
+        ? TElement
+        : TCollection extends Map<infer TKey, infer TValue>
+          ? [TKey, TValue]
+          : TCollection extends number
+           ? number
+           : TCollection extends object
+             ? any
+             : never;`}
+`);
+}
+var IdentifierInstruction;
+(function (IdentifierInstruction) {
+    IdentifierInstruction[IdentifierInstruction["None"] = 0] = "None";
+    IdentifierInstruction[IdentifierInstruction["SkipGeneration"] = 1] = "SkipGeneration";
+    IdentifierInstruction[IdentifierInstruction["AddToOverrides"] = 2] = "AddToOverrides";
+    IdentifierInstruction[IdentifierInstruction["Promise"] = 16] = "Promise";
+})(IdentifierInstruction || (IdentifierInstruction = {}));
+class IdentifierScope {
+    get isRoot() { return this.parent === null; }
+    constructor(type, classes, parent = null) {
+        this.type = type;
+        this.classes = classes;
+        this.parent = parent;
+        this.overriddenIdentMap = new Map();
+        this.promiseProperty = null;
+        this.decIdentMap = parent === null ? new Map() : null;
+        this.root = parent === null ? this : parent.root;
+    }
+    createChild(type) { return new IdentifierScope(type, this.classes, this); }
+    getIdentifier(ident, instruction = 0) {
+        var _b;
+        const returnIdentifier = (newIdent) => {
+            if (isPromise)
+                this.promiseProperty = newIdent;
+            return newIdent;
+        };
+        if (ident.startsWith(identifierPrefix))
+            throw new Error(`Identifier '${ident}' uses reserved prefix '${identifierPrefix}'; consider renaming it.`);
+        const isPromise = (instruction & 16) > 0;
+        if (isPromise) {
+            if (this.type !== 'promise')
+                throw new Error(`Identifier '${ident}' is used for promise template controller, but scope is not marked as a promise scope.`);
+        }
+        if (this.classes.some(c => c.members.includes(ident)))
+            return returnIdentifier(ident);
+        let current = this;
+        while (current !== null) {
+            const lookup = current.overriddenIdentMap;
+            if (lookup.has(ident))
+                return returnIdentifier(lookup.get(ident));
+            current = current.parent;
+        }
+        if ((instruction & 1) > 0)
+            return null;
+        const lookup = this.root.decIdentMap;
+        let count = (_b = lookup.get(ident)) !== null && _b !== void 0 ? _b : 0;
+        lookup.set(ident, ++count);
+        const newName = `${identifierPrefix}${ident}${count}`;
+        if ((instruction & 2) > 0)
+            this.overriddenIdentMap.set(ident, newName);
+        return returnIdentifier(newName);
+    }
+    getPromiseProperty() {
+        let current = this;
+        while (current !== null) {
+            if (current.promiseProperty !== null)
+                return current.promiseProperty;
+            current = current.parent;
+        }
+        return null;
+    }
+}
+const identifierPrefix = '__Template_TypeCheck_Synthetic_';
+class TypeCheckingContext {
+    get accessType() { var _b; return (_b = this._accessType) !== null && _b !== void 0 ? _b : (this._accessType = this.accessTypeParts.reduce((acc, part) => part(acc), '')); }
+    get hasRepeatContextualProperties() { return this._hasRepeatContextualProperties; }
+    set hasRepeatContextualProperties(value) {
+        if (this._hasRepeatContextualProperties || !value)
+            return;
+        this._hasRepeatContextualProperties = value;
+        this.accessTypeParts.push((acc) => `${acc} & { $index: number, $first: boolean, $last: boolean, $even: boolean, $odd: boolean, $length: number }`);
+    }
+    constructor(attrParser, exprParser, classes, isJs) {
+        this.attrParser = attrParser;
+        this.exprParser = exprParser;
+        this.classes = classes;
+        this.isJs = isJs;
+        this.toReplace = [];
+        this._accessType = void 0;
+        this._hasRepeatContextualProperties = false;
+        const classNames = classes.map(c => c.name);
+        this.classUnion = `(${classNames.join('|')})`;
+        this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
+        this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
+        this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
+        this.scope = new IdentifierScope('none', classes);
+    }
+    produceTypeCheckedTemplate(rawHtml) {
+        const { accessType, isJs, accessTypeIdentifier, classes } = this;
+        let html = '';
+        let lastIndex = 0;
+        this.toReplace.forEach(({ loc, modifiedContent }) => {
+            html += rawHtml.slice(lastIndex, loc.startOffset) + modifiedContent();
+            lastIndex = loc.endOffset;
+        });
+        html += rawHtml.slice(lastIndex);
+        const output = `
+${isJs ? '' : `type ${accessTypeIdentifier} = ${accessType};`}
+function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
+  ${isJs
+            ? `
+  /**
+   * @typedef {${accessType}} ${accessTypeIdentifier}
+   */
+  /**
+   * @template {${accessTypeIdentifier}} T
+   * @param {function(T): unknown} typecheck
+   * @param {string} expr
+   * @returns {string}
+   */
+  `
+            : ''}
+  const access = ${isJs ? '' : `<T extends object>`}(typecheck${isJs ? '' : ': (o: T) => unknown'}, expr${isJs ? '' : ': string'}) => expr;
+  return \`${html}\`;
+}\n\n`;
+        return output;
+    }
+    getIdentifier(ident, instruction = 0) {
+        return this.scope.getIdentifier(ident, instruction);
+    }
+    createLambdaExpression(...args) {
+        const len = args.length;
+        switch (len) {
+            case 0: throw new Error('At least one argument is required');
+            case 1: return `${_a._o} => ${_a._o}.${args[0]}`;
+            default: return `${_a._o} => (${args.map(arg => `${_a._o}.${arg}`).join(',')})`;
+        }
+    }
+    createMemberAccessExpression(member) {
+        return new expressionParser.AccessMemberExpression(_a.rootAccessScope, member);
+    }
+    pushScope(type) {
+        this.scope = this.scope.createChild(type);
+    }
+    popScope() {
+        if (this.scope.isRoot)
+            return;
+        this.scope = this.scope.parent;
+    }
+    addPromiseResolvedProperty(identifier) {
+        const promiseProp = this.scope.getPromiseProperty();
+        if (promiseProp === null)
+            throw new Error('Promise property not found');
+        this.accessTypeParts.push((acc) => `${acc} & { ${identifier}: Awaited<${this.accessTypeIdentifier}['${promiseProp}']> }`);
+    }
+}
+_a = TypeCheckingContext;
+TypeCheckingContext._o = 'o';
+TypeCheckingContext.rootAccessScope = new expressionParser.AccessScopeExpression(_a._o, 0);
+function createTypeCheckedTemplate(rawHtml, classes, isJs) {
+    const tree = parse5.parseFragment(rawHtml, { sourceCodeLocationInfo: true });
+    const container = kernel.DI.createContainer().register(templateCompiler.DotSeparatedAttributePattern, templateCompiler.EventAttributePattern, templateCompiler.RefAttributePattern, templateCompiler.AtPrefixedTriggerAttributePattern, templateCompiler.ColonPrefixedBindAttributePattern);
+    const attrParser = container.get(templateCompiler.IAttributeParser);
+    const exprParser = container.get(expressionParser.ExpressionParser);
+    const ctx = new TypeCheckingContext(attrParser, exprParser, classes, isJs);
+    traverse$1(tree, (node) => processNode(node, ctx));
+    return ctx.produceTypeCheckedTemplate(rawHtml);
+}
+function traverseDepth($node, ctx) {
+    var _b;
+    if ($node.childNodes)
+        traverse$1($node, n => processNode(n, ctx));
+    if ((_b = $node.content) === null || _b === void 0 ? void 0 : _b.childNodes)
+        traverse$1($node.content, n => processNode(n, ctx));
+    ctx.popScope();
+}
+function tryProcessRepeat(syntax, attr, node, ctx) {
+    if (syntax.command !== 'for')
+        return false;
+    ctx.pushScope('repeat');
+    const expr = ctx.exprParser.parse(attr.value, 'IsIterator');
+    let iterable;
+    let propAccExpr;
+    if (expr.iterable.$kind === 'PrimitiveLiteral') {
+        const identifier = ctx.getIdentifier(rangeIterableIdentifier);
+        const primitiveValue = expr.iterable.value;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
+        ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
+        propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
+    }
+    else {
+        const rawIterIdentifier = expressionParser.Unparser.unparse(expr.iterable);
+        const [iterIdent, path] = mutateAccessScope(expr.iterable, ctx, member => {
+            const newName = ctx.getIdentifier(member, 2);
+            return newName;
+        }, true);
+        propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdentifier}')}`;
+    }
+    let declaration;
+    switch (expr.declaration.$kind) {
+        case 'ArrayDestructuring': {
+            const [keyAssignLeaf, valueAssignLeaf] = expr.declaration.list;
+            const [rawKeyIdent, keyIdent] = getArrDestIdent(keyAssignLeaf);
+            const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
+            ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
+            break;
+            function getArrDestIdent(leafExpr) {
+                switch (leafExpr.$kind) {
+                    case 'DestructuringAssignmentLeaf': {
+                        const rawIdentifier = leafExpr.target.name;
+                        const identifier = ctx.getIdentifier(rawIdentifier, 2);
+                        return [rawIdentifier, identifier];
+                    }
+                    default: throw new Error(`Unsupported declaration kind: ${keyAssignLeaf.$kind}`);
+                }
+            }
+        }
+        default: {
+            const rawDecIdentifier = expressionParser.Unparser.unparse(expr.declaration);
+            const decIdentifier = ctx.getIdentifier(rawDecIdentifier, 2);
+            ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdentifier}: CollectionElement<${propAccExpr}> }`);
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(decIdentifier)}, '${rawDecIdentifier}')}`;
+            break;
+        }
+    }
+    ctx.toReplace.push({
+        loc: node.sourceCodeLocation.attrs[attr.name],
+        modifiedContent: () => `${attr.name}="${declaration()} of ${iterable()}"`,
+    });
+    traverseDepth(node, ctx);
+    return true;
+}
+function tryProcessPromise(syntax, attr, node, ctx) {
+    const target = syntax.target;
+    switch (target) {
+        case 'promise': {
+            ctx.pushScope('promise');
+            const value = attr.value.length === 0 ? target : attr.value;
+            const expr = ctx.exprParser.parse(value, 'None');
+            if (expr != null) {
+                const [_expr] = mutateAccessScope(expr, ctx, member => { var _b; return (_b = ctx.getIdentifier(member, 1 | 16)) !== null && _b !== void 0 ? _b : member; });
+                addReplaceParts(_expr, value);
+            }
+            traverseDepth(node, ctx);
+            return [true, false];
+        }
+        case 'then': {
+            ctx.pushScope('none');
+            const value = attr.value.length === 0 ? target : attr.value;
+            const expr = ctx.exprParser.parse(value, 'None');
+            if (expr != null) {
+                const [_expr] = mutateAccessScope(expr, ctx, member => {
+                    const newName = ctx.getIdentifier(member, 2);
+                    ctx.addPromiseResolvedProperty(newName);
+                    return newName;
+                });
+                addReplaceParts(_expr, value);
+            }
+            traverseDepth(node, ctx);
+            return [true, false];
+        }
+        case 'catch': {
+            ctx.pushScope('none');
+            const value = attr.value.length === 0 ? target : attr.value;
+            const expr = ctx.exprParser.parse(value, 'None');
+            if (expr != null) {
+                const [_expr] = mutateAccessScope(expr, ctx, member => {
+                    const newName = ctx.getIdentifier(member, 2);
+                    ctx.accessTypeParts.push((acc) => `${acc} & { ${newName}: any }`);
+                    return newName;
+                });
+                addReplaceParts(_expr, value);
+            }
+            traverseDepth(node, ctx);
+            return [true, false];
+        }
+        default: return [false, void 0];
+    }
+    function addReplaceParts(_expr, value) {
+        ctx.toReplace.push({
+            loc: node.sourceCodeLocation.attrs[attr.name],
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+        });
+    }
+}
+const rangeIterableIdentifier = '__TypeCheck_RangeIterable__';
+function processNode(node, ctx) {
+    var _b;
+    let retVal = void 0;
+    if ('tagName' in node) {
+        (_b = node.attrs) === null || _b === void 0 ? void 0 : _b.forEach(attr => {
+            const syntax = ctx.attrParser.parse(attr.name, attr.value);
+            if (tryProcessRepeat(syntax, attr, node, ctx))
+                retVal = false;
+            else {
+                let promisedProcessed;
+                [promisedProcessed, retVal] = tryProcessPromise(syntax, attr, node, ctx);
+                if (!promisedProcessed && syntax.command) {
+                    const value = attr.value.length === 0 ? syntax.target : attr.value;
+                    const expr = ctx.exprParser.parse(value, 'None');
+                    if (expr == null)
+                        return;
+                    const [_expr] = mutateAccessScope(expr, ctx, member => { var _b; return (_b = ctx.getIdentifier(member, 1)) !== null && _b !== void 0 ? _b : member; });
+                    if (_expr.$kind === 'PrimitiveLiteral')
+                        return;
+                    ctx.toReplace.push({
+                        loc: node.sourceCodeLocation.attrs[attr.name],
+                        modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+                    });
+                }
+            }
+        });
+    }
+    else if (node.nodeName === '#text') {
+        const expr = ctx.exprParser.parse(node.value, 'Interpolation');
+        if (expr != null) {
+            const htmlFactories = [() => expr.parts[0]];
+            expr.expressions.forEach((part, idx) => {
+                const originalExpr = part;
+                [part] = mutateAccessScope(part, ctx, member => { var _b; return (_b = ctx.getIdentifier(member, 1)) !== null && _b !== void 0 ? _b : member; });
+                htmlFactories.push(() => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`, () => expr.parts[idx + 1]);
+            });
+            ctx.toReplace.push({
+                loc: node.sourceCodeLocation,
+                modifiedContent: () => htmlFactories.map(factory => factory()).join('')
+            });
+        }
+    }
+    return retVal;
+}
+function unparse(expr) {
+    return expressionParser.Unparser.unparse(expr);
+}
+const contextualRepeatProperties = ['$index', '$first', '$last', '$even', '$odd', '$length'];
+function mutateAccessScope(expr, ctx, memberNameResolver, needsPath = false) {
+    var _b;
+    while (expr.$kind === 'ValueConverter' || expr.$kind === 'BindingBehavior') {
+        expr = expr.expression;
+    }
+    if ((expr.$kind === 'AccessScope' || expr.$kind === 'AccessMember') && contextualRepeatProperties.includes(expr.name)) {
+        ctx.hasRepeatContextualProperties = true;
+        if (needsPath)
+            throw new Error('Not supported');
+        return [new expressionParser.AccessScopeExpression(expr.name, 0), null];
+    }
+    expr = structuredClone(expr);
+    let object = expr;
+    const path = needsPath ? [] : null;
+    if (object.$kind === 'AccessScope' && object.ancestor === 0) {
+        const member = object.name;
+        const prop = object.name = memberNameResolver(member);
+        path === null || path === void 0 ? void 0 : path.push(prop);
+    }
+    else {
+        while (!isAccessGlobal(object) && (object.$kind === 'CallMember' || object.$kind === 'AccessMember' || object.$kind === 'AccessKeyed')) {
+            switch (object.$kind) {
+                case 'AccessMember':
+                    path === null || path === void 0 ? void 0 : path.push(object.name);
+                    break;
+                case 'AccessKeyed': {
+                    if (object.key.$kind === 'AccessScope' && object.key.ancestor === 0) {
+                        const member = object.key.name;
+                        const overriddenMember = memberNameResolver(member);
+                        object.key = ctx.createMemberAccessExpression(overriddenMember);
+                    }
+                    break;
+                }
+            }
+            object = object.object;
+            if (object.$kind === 'AccessScope' && object.ancestor === 0) {
+                const member = object.name;
+                const prop = object.name = memberNameResolver(member);
+                path === null || path === void 0 ? void 0 : path.push(prop);
+                break;
+            }
+        }
+    }
+    return [expr, (_b = path === null || path === void 0 ? void 0 : path.reverse()) !== null && _b !== void 0 ? _b : null];
+}
+function isAccessGlobal(ast) {
+    return ast.$kind === 'AccessGlobal' ||
+        (ast.$kind === 'AccessMember' ||
+            ast.$kind === 'AccessKeyed') && ast.accessGlobal;
+}
+function traverse$1(tree, cb) {
+    tree.childNodes.forEach((n) => {
+        var _b;
+        const ne = n;
+        if (ne.tagName === 'template' && ne.attrs.some(attr => attr.name === 'as-custom-element'))
+            return;
+        const processChild = cb(ne);
+        if (processChild === false)
+            return;
+        if (n.childNodes)
+            traverse$1(n, cb);
+        if ((_b = n.content) === null || _b === void 0 ? void 0 : _b.childNodes)
+            traverse$1(n.content, cb);
+    });
+}
+
+const { ModifierFlags, ScriptTarget, SyntaxKind, canHaveDecorators, canHaveModifiers, createPrinter, createSourceFile, getCombinedModifierFlags, getDecorators, getModifiers, isCallExpression, isClassDeclaration, isExpressionStatement, isIdentifier, isImportDeclaration, isObjectLiteralExpression, isPropertyDeclaration, isPropertyAccessExpression, isNamedImports, isStringLiteral, transform, visitEachChild, visitNode, factory: { createIdentifier, createObjectLiteralExpression, createSpreadAssignment, updateClassDeclaration, updatePropertyDeclaration, } } = pkg;
 function preprocessResource(unit, options) {
+    var _a;
     const expectedResourceName = resourceName(unit.path);
     const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
-    let exportedClassName;
+    let exportedClassMetadata;
     let auImport = { names: [], start: 0, end: 0 };
     let runtimeImport = { names: [], start: 0, end: 0 };
     let implicitElement;
     let customElementDecorator;
     let defineElementInformation;
+    const templateMetadata = [];
     const localDeps = [];
     const modifications = [];
     sf.statements.forEach(s => {
@@ -79,10 +498,17 @@ function preprocessResource(unit, options) {
             runtimeImport = runtime;
             return;
         }
-        const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents);
+        const templateImport = captureTemplateImport(s, unit.contents);
+        if (templateImport) {
+            templateMetadata.push(templateImport);
+            return;
+        }
+        if (tryCaptureCustomElementDefine(s, sf, templateMetadata))
+            return;
+        const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata);
         if (!resource)
             return;
-        const { className, localDep, modification, implicitStatement, runtimeImportName, customElementDecorator: customName, defineElementInformation: $defineElementInformation, } = resource;
+        const { classMetadata, localDep, modification, implicitStatement, runtimeImportName, customElementDecorator: customName, defineElementInformation: $defineElementInformation, } = resource;
         if (localDep)
             localDeps.push(localDep);
         if (modification)
@@ -92,8 +518,8 @@ function preprocessResource(unit, options) {
         if (runtimeImportName && !auImport.names.includes(runtimeImportName)) {
             ensureTypeIsExported(runtimeImport.names, runtimeImportName);
         }
-        if (className) {
-            exportedClassName = className;
+        if (classMetadata) {
+            exportedClassMetadata = classMetadata;
         }
         if (customName)
             customElementDecorator = customName;
@@ -101,7 +527,7 @@ function preprocessResource(unit, options) {
             defineElementInformation = $defineElementInformation;
     });
     let m = modifyCode(unit.contents, unit.path);
-    const hmrEnabled = options.hmr && exportedClassName && process.env.NODE_ENV !== 'production';
+    const hmrEnabled = options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production';
     if (options.enableConventions || hmrEnabled) {
         if (runtimeImport.names.length) {
             let runtimeImportStatement = `import { ${runtimeImport.names.join(', ')} } from '@aurelia/runtime-html';`;
@@ -110,27 +536,46 @@ function preprocessResource(unit, options) {
             m.replace(runtimeImport.start, runtimeImport.end, runtimeImportStatement);
         }
     }
-    if (options.enableConventions) {
-        m = modifyResource(unit, m, {
-            implicitElement,
-            localDeps,
-            modifications,
-            customElementDecorator,
-            transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
-            defineElementInformation,
-        });
-    }
-    if (options.hmr && exportedClassName && process.env.NODE_ENV !== 'production') {
+    m = modifyResource(unit, m, {
+        implicitElement,
+        localDeps,
+        modifications,
+        customElementDecorator,
+        transformHtmlImportSpecifier: options.transformHtmlImportSpecifier,
+        defineElementInformation,
+        exportedClassMetadata,
+        experimentalTemplateTypeCheck: options.experimentalTemplateTypeCheck,
+        useConventions: (_a = options.enableConventions) !== null && _a !== void 0 ? _a : false,
+        templateMetadata: templateMetadata
+    });
+    if (options.hmr && exportedClassMetadata && process.env.NODE_ENV !== 'production') {
         if (options.getHmrCode) {
-            m.append(options.getHmrCode(exportedClassName, unit.path));
+            m.append(options.getHmrCode(exportedClassMetadata.name, unit.path));
         }
     }
     return m.transform();
 }
+const jsFilePattern = /\.[m]?js$/;
 function modifyResource(unit, m, options) {
-    const { implicitElement, localDeps, modifications, customElementDecorator, transformHtmlImportSpecifier = s => s, defineElementInformation, } = options;
-    if (implicitElement && unit.filePair) {
+    const { implicitElement, localDeps, modifications, customElementDecorator, transformHtmlImportSpecifier = s => s, defineElementInformation, exportedClassMetadata, useConventions, templateMetadata, } = options;
+    const isJs = jsFilePattern.test(unit.path);
+    if (!useConventions) {
+        if (options.experimentalTemplateTypeCheck) {
+            prependUtilityTypes(m, isJs);
+            for (const templateImport of templateMetadata) {
+                const classNames = templateImport.classes;
+                if (classNames.length === 0)
+                    continue;
+                emitTypeCheckedTemplate(() => { var _a, _b; return (_a = templateImport.inlineTemplate) !== null && _a !== void 0 ? _a : (_b = unit.readFile) === null || _b === void 0 ? void 0 : _b.call(unit, templateImport.modulePath); }, templateImport.classes, isJs);
+            }
+        }
+    }
+    else if (implicitElement && unit.filePair) {
         const viewDef = '__au2ViewDef';
+        if (options.experimentalTemplateTypeCheck) {
+            prependUtilityTypes(m, isJs);
+            emitTypeCheckedTemplate(() => { var _a; return (_a = unit.readFile) === null || _a === void 0 ? void 0 : _a.call(unit, `./${unit.filePair}`); }, [exportedClassMetadata], isJs);
+        }
         m.prepend(`import * as ${viewDef} from './${transformHtmlImportSpecifier(unit.filePair)}';\n`);
         if (defineElementInformation) {
             m.replace(defineElementInformation.position.pos, defineElementInformation.position.end, defineElementInformation.modifiedContent);
@@ -188,6 +633,13 @@ function modifyResource(unit, m, options) {
         }
     }
     return m;
+    function emitTypeCheckedTemplate(contentFactory, classes, isJs) {
+        const htmlContent = contentFactory();
+        if (!htmlContent)
+            return;
+        const typeCheckedTemplate = createTypeCheckedTemplate(htmlContent, classes, isJs);
+        m.prepend(typeCheckedTemplate);
+    }
 }
 function captureImport(s, lib, code) {
     var _a;
@@ -202,6 +654,47 @@ function captureImport(s, lib, code) {
             end: s.end
         };
     }
+}
+function captureTemplateImport(s, code) {
+    var _a;
+    if (isImportDeclaration(s)
+        && isStringLiteral(s.moduleSpecifier)
+        && s.moduleSpecifier.text.endsWith('.html')
+        && ((_a = s.importClause) === null || _a === void 0 ? void 0 : _a.name) != null
+        && isIdentifier(s.importClause.name))
+        return {
+            name: s.importClause.name.text,
+            modulePath: s.moduleSpecifier.text,
+            classes: [],
+            start: ensureTokenStart(s.pos, code),
+            end: s.end
+        };
+}
+function getClassMembers(node) {
+    return node.members.reduce((acc, m) => {
+        const name = m.name;
+        if (name == null)
+            return acc;
+        if (isIdentifier(name))
+            acc.push(name.escapedText.toString());
+        return acc;
+    }, []);
+}
+function tryCaptureCustomElementDefine(s, sf, templateMetadata) {
+    if (!isExpressionStatement(s) || !isCallExpression(s.expression))
+        return false;
+    const propAccExpr = s.expression.expression;
+    if (!isPropertyAccessExpression(propAccExpr)
+        || !isIdentifier(propAccExpr.expression) || propAccExpr.expression.escapedText !== 'CustomElement'
+        || !isIdentifier(propAccExpr.name) || propAccExpr.name.escapedText !== 'define')
+        return false;
+    const [defn, className] = s.expression.arguments;
+    if (!isIdentifier(className))
+        return false;
+    const name = className.escapedText.toString();
+    const classDeclaration = sf.statements.find(s => isClassDeclaration(s) && s.name != null && s.name.text === name);
+    const $class = { name, members: getClassMembers(classDeclaration) };
+    return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 function ensureTypeIsExported(runtimeExports, type) {
     if (!runtimeExports.includes(type)) {
@@ -225,9 +718,70 @@ function isExported(node) {
     }
     return false;
 }
-const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController'];
+const KNOWN_RESOURCE_DECORATORS = ['customElement', 'customAttribute', 'valueConverter', 'bindingBehavior', 'bindingCommand', 'templateController', 'noView', 'inlineView'];
 function isKindOfSame(name1, name2) {
     return name1.replace(/-/g, '') === name2.replace(/-/g, '');
+}
+function isStaticPropertyDeclaration(node, name) {
+    return isPropertyDeclaration(node)
+        && isIdentifier(node.name)
+        && node.name.escapedText === name
+        && (getCombinedModifierFlags(node) & ModifierFlags.Static) !== 0;
+}
+function isStatic$auProperty(member) {
+    return isStaticPropertyDeclaration(member, '$au');
+}
+function tryCollectTemplateMetadataFromDefinition(defnExpr, $class, templateMetadata) {
+    var _a, _b;
+    if (defnExpr == null || !isObjectLiteralExpression(defnExpr))
+        return false;
+    let templateMetadataUpdated = false;
+    for (const p of defnExpr.properties) {
+        switch (p.kind) {
+            case SyntaxKind.ShorthandPropertyAssignment:
+                if (p.name.text === 'template') {
+                    templateMetadataUpdated = ((_a = templateMetadata.find(ti => ti.name === 'template')) === null || _a === void 0 ? void 0 : _a.classes.push($class)) != null;
+                }
+                break;
+            case SyntaxKind.PropertyAssignment: {
+                const l = p.name;
+                if (isIdentifier(l) && l.text === 'template') {
+                    const value = p.initializer;
+                    if (isIdentifier(value)) {
+                        templateMetadataUpdated = ((_b = templateMetadata.find(ti => ti.name === value.text)) === null || _b === void 0 ? void 0 : _b.classes.push($class)) != null;
+                    }
+                    else if (isStringLiteral(value)) {
+                        templateMetadata.push({
+                            inlineTemplate: value.text,
+                            classes: [$class],
+                        });
+                        templateMetadataUpdated = true;
+                    }
+                }
+                break;
+            }
+        }
+    }
+    return templateMetadataUpdated;
+}
+function tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata) {
+    var _a;
+    if (!isStaticPropertyDeclaration(member, 'template'))
+        return false;
+    const initializer = member.initializer;
+    if (!initializer)
+        return false;
+    if (isStringLiteral(initializer)) {
+        templateMetadata.push({
+            inlineTemplate: initializer.text,
+            classes: [$class],
+        });
+        return true;
+    }
+    if (isIdentifier(initializer)) {
+        return ((_a = templateMetadata.find(ti => ti.name === initializer.text)) === null || _a === void 0 ? void 0 : _a.classes.push($class)) != null;
+    }
+    return false;
 }
 function createAuResourceTransformer() {
     return function factory(context) {
@@ -240,13 +794,7 @@ function createAuResourceTransformer() {
     };
     function visitClass(node) {
         const newMembers = node.members.map(member => {
-            if (!isPropertyDeclaration(member))
-                return member;
-            const name = member.name.escapedText;
-            if (name !== '$au')
-                return member;
-            const modifiers = getCombinedModifierFlags(member);
-            if ((modifiers & ModifierFlags.Static) === 0)
+            if (!isStatic$auProperty(member))
                 return member;
             const initializer = member.initializer;
             if (initializer == null || !isObjectLiteralExpression(initializer))
@@ -258,30 +806,53 @@ function createAuResourceTransformer() {
         return updateClassDeclaration(node, node.modifiers, node.name, node.typeParameters, node.heritageClauses, newMembers);
     }
 }
-function findResource(node, expectedResourceName, filePair, code) {
-    if (!isClassDeclaration(node) || !node.name || !isExported(node))
+function findResource(node, expectedResourceName, filePair, code, useConvention, templateMetadata) {
+    var _a;
+    if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention)
         return;
     const pos = ensureTokenStart(node.pos, code);
     const className = node.name.text;
+    const $class = { name: className, members: getClassMembers(node) };
     const { name, type } = nameConvention(className);
     const isImplicitResource = isKindOfSame(name, expectedResourceName);
     const resourceType = collectClassDecorators(node);
     if (resourceType) {
+        const decorator = resourceType.expression;
+        const decoratorArgs = decorator === null || decorator === void 0 ? void 0 : decorator.arguments;
+        const numArguments = (_a = decoratorArgs === null || decoratorArgs === void 0 ? void 0 : decoratorArgs.length) !== null && _a !== void 0 ? _a : 0;
+        if (resourceType.type === 'customElement') {
+            if (numArguments === 1)
+                tryCollectTemplateMetadataFromDefinition(decoratorArgs === null || decoratorArgs === void 0 ? void 0 : decoratorArgs[0], $class, templateMetadata);
+            for (const member of node.members) {
+                tryCollectTemplateMetadataFromStaticTemplate(member, $class, templateMetadata);
+            }
+        }
         if (!isImplicitResource &&
             resourceType.type !== 'customElement') {
             return {
                 localDep: className
             };
         }
-        if (isImplicitResource &&
-            resourceType.type === 'customElement' &&
-            resourceType.expression.arguments.length === 1 &&
-            isStringLiteral(resourceType.expression.arguments[0])) {
-            const decorator = resourceType.expression;
-            const customName = decorator.arguments[0];
+        if (isImplicitResource
+            && (resourceType.originalDecorator === 'noView' || resourceType.originalDecorator === 'inlineView')
+            && !filePair) {
             return {
                 type: resourceType.type,
-                className,
+                modification: {
+                    insert: [[getPosition(node, code).pos, `@customElement('${name}')\n`]]
+                },
+                classMetadata: $class,
+                runtimeImportName: 'customElement',
+            };
+        }
+        if (isImplicitResource &&
+            resourceType.type === 'customElement' &&
+            numArguments === 1 &&
+            isStringLiteral(decoratorArgs[0])) {
+            const customName = decoratorArgs[0];
+            return {
+                type: resourceType.type,
+                classMetadata: $class,
                 implicitStatement: { pos: pos, end: node.end },
                 customElementDecorator: {
                     position: getPosition(decorator, code),
@@ -293,11 +864,17 @@ function findResource(node, expectedResourceName, filePair, code) {
     }
     else {
         if (type === 'customElement') {
+            for (const m of node.members) {
+                if (isStatic$auProperty(m)) {
+                    tryCollectTemplateMetadataFromDefinition(m.initializer, $class, templateMetadata);
+                }
+                tryCollectTemplateMetadataFromStaticTemplate(m, $class, templateMetadata);
+            }
             if (!isImplicitResource || !filePair)
                 return;
             return {
                 type,
-                className,
+                classMetadata: $class,
                 implicitStatement: { pos: pos, end: node.end },
                 runtimeImportName: type,
             };
@@ -314,10 +891,11 @@ function findResource(node, expectedResourceName, filePair, code) {
 }
 function collectClassDecorators(node) {
     var _a;
-    let resourceType;
     if (!canHaveDecorators(node))
-        return resourceType;
+        return;
     const decorators = (_a = getDecorators(node)) !== null && _a !== void 0 ? _a : [];
+    if (decorators.length === 0)
+        return;
     for (const d of decorators) {
         let name;
         let resourceExpression;
@@ -331,19 +909,17 @@ function collectClassDecorators(node) {
         else if (isIdentifier(d.expression)) {
             name = d.expression.text;
         }
-        if (name == null)
+        const isViewCe = name === 'noView' || name === 'inlineView';
+        if (name == null
+            || !KNOWN_RESOURCE_DECORATORS.includes(name)
+            || (name !== 'noView' && resourceExpression == null))
             continue;
-        if (KNOWN_RESOURCE_DECORATORS.includes(name)) {
-            if (resourceExpression == null)
-                continue;
-            resourceType = {
-                type: name,
-                expression: resourceExpression
-            };
-            continue;
-        }
+        return {
+            type: (isViewCe ? 'customElement' : name),
+            expression: resourceExpression,
+            originalDecorator: name,
+        };
     }
-    return resourceType;
 }
 function getPosition(node, code) {
     return { pos: ensureTokenStart(node.pos, code), end: node.end };
@@ -558,6 +1134,10 @@ function fileExists(unit, relativeOrAbsolutePath) {
         return false;
     }
 }
+function readFile(unit, relativeOrAbsolutePath) {
+    const p = resolveFilePath(unit, relativeOrAbsolutePath);
+    return fs__namespace.readFileSync(p, 'utf-8');
+}
 
 function preprocessHtmlTemplate(unit, options, hasViewModel, _fileExists = fileExists) {
     const name = resourceName(unit.path);
@@ -720,7 +1300,7 @@ const defaultCssExtensions = ['.css', '.scss', '.sass', '.less', '.styl'];
 const defaultJsExtensions = ['.js', '.jsx', '.ts', '.tsx', '.coffee'];
 const defaultTemplateExtensions = ['.html', '.md', '.pug', '.haml', '.jade', '.slim', '.slm'];
 function preprocessOptions(options = {}) {
-    const { cssExtensions = [], jsExtensions = [], templateExtensions = [], useCSSModule = false, hmr = true, enableConventions = true, hmrModule = 'module', ...others } = options;
+    const { cssExtensions = [], jsExtensions = [], templateExtensions = [], useCSSModule = false, hmr = true, enableConventions = true, hmrModule = 'module', experimentalTemplateTypeCheck = false, ...others } = options;
     return {
         cssExtensions: Array.from(new Set([...defaultCssExtensions, ...cssExtensions])).sort(),
         jsExtensions: Array.from(new Set([...defaultJsExtensions, ...jsExtensions])).sort(),
@@ -729,54 +1309,45 @@ function preprocessOptions(options = {}) {
         hmr,
         hmrModule,
         enableConventions,
+        experimentalTemplateTypeCheck,
         ...others
     };
 }
 
-function preprocess(unit, options, _fileExists = fileExists) {
+function preprocess(unit, options, _fileExists = fileExists, _readFile = readFile) {
     const ext = path__namespace.extname(unit.path);
     const basename = path__namespace.basename(unit.path, ext);
     const allOptions = preprocessOptions(options);
-    if (allOptions.enableConventions && allOptions.templateExtensions.includes(ext)) {
-        const possibleFilePair = [];
-        allOptions.cssExtensions.forEach(e => {
-            possibleFilePair.push(`${basename}.module${e}`, `${basename}${e}`);
-        });
-        const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
-        if (filePair) {
-            if (allOptions.useProcessedFilePairFilename) {
-                unit.filePair = `${path__namespace.basename(filePair, path__namespace.extname(filePair))}.css`;
+    const templateExtensions = allOptions.templateExtensions;
+    const useProcessedFilePairFilename = allOptions.useProcessedFilePairFilename;
+    unit.readFile = (path) => _readFile(unit, path);
+    if (allOptions.enableConventions && templateExtensions.includes(ext)) {
+        for (const ce of allOptions.cssExtensions) {
+            let filePair = `${basename}.module${ce}`;
+            if (!_fileExists(unit, `./${filePair}`)) {
+                filePair = `${basename}${ce}`;
+                if (!_fileExists(unit, `./${filePair}`))
+                    continue;
             }
-            else {
-                unit.filePair = filePair;
-            }
+            unit.filePair = useProcessedFilePairFilename ? `${path__namespace.basename(filePair, path__namespace.extname(filePair))}.css` : filePair;
+            break;
         }
-        const hasViewModel = Boolean(allOptions.jsExtensions.map(e => `${basename}${e}`).find(p => _fileExists(unit, `./${p}`)));
-        return preprocessHtmlTemplate(unit, allOptions, hasViewModel, _fileExists);
+        return preprocessHtmlTemplate(unit, allOptions, allOptions.jsExtensions.some(e => _fileExists(unit, `./${basename}${e}`)), _fileExists);
     }
-    else if (allOptions.jsExtensions.includes(ext)) {
-        const possibleFilePair = allOptions.templateExtensions.map(e => `${basename}${e}`);
-        const filePair = possibleFilePair.find(p => _fileExists(unit, `./${p}`));
-        if (filePair) {
-            if (allOptions.useProcessedFilePairFilename) {
-                unit.filePair = `${basename}.html`;
+    if (allOptions.jsExtensions.includes(ext)) {
+        for (const te of templateExtensions) {
+            const filePair = `${basename}${te}`;
+            if (!_fileExists(unit, `./${filePair}`))
+                continue;
+            unit.filePair = useProcessedFilePairFilename ? `${basename}.html` : filePair;
+            for (const te of templateExtensions) {
+                const viewPair = `${basename}-view${te}`;
+                if (!_fileExists(unit, `./${viewPair}`))
+                    continue;
+                unit.filePair = useProcessedFilePairFilename ? `${basename}-view.html` : viewPair;
+                break;
             }
-            else {
-                unit.filePair = filePair;
-            }
-        }
-        else {
-            const possibleViewPair = allOptions.templateExtensions.map(e => `${basename}-view${e}`);
-            const viewPair = possibleViewPair.find(p => _fileExists(unit, `./${p}`));
-            if (viewPair) {
-                unit.isViewPair = true;
-                if (allOptions.useProcessedFilePairFilename) {
-                    unit.filePair = `${basename}-view.html`;
-                }
-                else {
-                    unit.filePair = viewPair;
-                }
-            }
+            break;
         }
         return preprocessResource(unit, allOptions);
     }

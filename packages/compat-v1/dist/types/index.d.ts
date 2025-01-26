@@ -9,4 +9,5 @@ export { CallBinding, CallBindingCommand, CallBindingInstruction, CallBindingRen
 export { DelegateBindingCommand, DelegateBindingInstruction, DelegateListenerBinding, DelegateListenerOptions, EventDelegator, IEventDelegator, ListenerBindingRenderer, delegateSyntax, eventPreventDefaultBehavior, } from './compat-event';
 export { BindingEngine, } from './compat-binding-engine';
 export { enableComposeCompat, disableComposeCompat, } from './compat-au-compose';
+export { inlineView, noView, } from './compat-custom-element';
 //# sourceMappingURL=index.d.ts.map

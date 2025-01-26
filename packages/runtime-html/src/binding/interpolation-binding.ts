@@ -255,17 +255,17 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
     this.updateTarget();
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
+      if (this._scope === scope) {
         /* istanbul-ignore-next */
         return;
       }
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     this._value = astEvaluate(
       this.ast,

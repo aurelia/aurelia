@@ -1,8 +1,8 @@
 # Template Promises
 
-Aurelia 2 enhances the handling of promises within templates. Unlike Aurelia 1, where promises had to be resolved in the view model before passing their values to templates, Aurelia 2 allows direct interaction with promises in templates. This is achieved through the `promise.bind` template controller, which supports `then`, `pending`, and `catch` states, reducing the need for boilerplate code.
-
-The `promise.bind` template controller allows you to use `then`, `pending` and `catch` in your view, removing unnecessary boilerplate.
+Aurelia 2 enhances the handling of promises within templates.\
+Unlike Aurelia 1, where promises had to be resolved in the view model before passing their values to templates, Aurelia 2 allows direct interaction with promises in templates.\
+This is achieved through the `promise.bind` template controller, which supports `then`, `pending`, and `catch` states, reducing the need for boilerplate code.
 
 ## Basic Example
 

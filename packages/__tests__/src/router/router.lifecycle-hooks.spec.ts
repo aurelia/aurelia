@@ -176,7 +176,7 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
           twoChecked = true;
           if ($config.Two_canLoad) {
             expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
-            // one = false;
+            oneLoaded = false;
 
             expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
             twoLoaded = true;
@@ -207,6 +207,17 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
               }
             }
           }
+        }
+
+        if (oneLoaded) {
+          expected.push('Hooks:my-one:canUnload');
+          expected.push('VM:my-one:canUnload');
+          if (!$config.Hooks_canUnload || !$config.One_canUnload) {
+            return expected;
+          }
+
+          expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
+          oneLoaded = false;
         }
 
         return expected;
@@ -378,7 +389,7 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
           twoChecked = true;
           if (config.Two_canLoad) {
             expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
-            // one = false;
+            oneLoaded = false;
 
             expected.push('Hooks:my-two:loading', 'VM:my-two:loading', 'VM:my-two:binding');
             // twoLoaded = true;
@@ -415,6 +426,17 @@ describe('router/router.lifecycle-hooks.spec.ts', function () {
           }
           // if (config.Hooks_canLoad) {
           // }
+        }
+
+        if (oneLoaded) {
+          expected.push('Hooks:my-one:canUnload');
+          expected.push('VM:my-one:canUnload');
+          if (!config.Hooks_canUnload || !config.One_canUnload) {
+            return expected;
+          }
+
+          expected.push('Hooks:my-one:unloading', 'VM:my-one:unloading');
+          oneLoaded = false;
         }
 
         return expected;

@@ -37,7 +37,7 @@ function findByExt(startPath, filter, found = []) {
 const invalidFiles = findByExt('./src', /\.spec\.tsx?$/).filter(testFile => {
   const content = fs.readFileSync(testFile, { encoding: 'utf-8' });
   const normalisedTestFilename = testFile.replace(/^src[\/\\]*/, '').replace(/\\\\?/g, '\\/').replace(/\./g, '\\.');
-  const regex = new RegExp(`describe(\\.skip)?\\(['"\`]${normalisedTestFilename}['"\`]`);
+  const regex = new RegExp(`describe((\\.skip)|(\\.only))?\\(['"\`]${normalisedTestFilename}['"\`]`);
   const { index } = regex.exec(content) ?? { index: -1 };
   return index === -1;
 });

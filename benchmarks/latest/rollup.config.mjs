@@ -1,3 +1,4 @@
+import { defineConfig } from 'rollup';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import terser from '@rollup/plugin-terser';
 import alias from '@rollup/plugin-alias';
@@ -20,37 +21,25 @@ const aliases = [
   replacement: path.resolve(__dirname, `node_modules/@aurelia/${name}/dist/esm/index.mjs`)
 }));
 
-/** @type {import('rollup').RollupOptions[]} */
-export default [{
-  input: '../app',
-  output: {
-    file: 'dist/app.latest.js',
-    sourcemap: true
-  },
-  plugins: [
-    alias({
-      entries: aliases
-    }),
-    nodeResolve(),
-    terser()
-  ]
+export default defineConfig([{
+  input: '../app-repeat-view',
+  output: '../app-repeat-view/dist/app.latest.js',
 }, {
   input: '../app-repeat-ce',
-  output: {
-    file: 'dist/app-repeat-ce.latest.js',
-    sourcemap: true
-  },
-  plugins: [
-    alias({
-      entries: aliases
-    }),
-    nodeResolve(),
-    terser()
-  ]
+  output: '../app-repeat-ce/dist/app.latest.js',
 }, {
-  input: '../app-big-template',
+  input: '../app-repeat-view-big-template',
+  output: '../app-repeat-view-big-template/dist/app.latest.js',
+}, {
+  input: '../app-repeat-view-keyed-string',
+  output: '../app-repeat-view-keyed-string/dist/app.latest.js',
+}, {
+  input: '../app-repeat-view-keyed-expr',
+  output: '../app-repeat-view-keyed-expr/dist/app.latest.js',
+}].map(input => ({
+  ...input,
   output: {
-    file: 'dist/app-big-template.latest.js',
+    file: input.output,
     sourcemap: true
   },
   plugins: [
@@ -60,4 +49,4 @@ export default [{
     nodeResolve(),
     terser()
   ]
-}]
+})));

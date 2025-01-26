@@ -79,12 +79,12 @@ export class File {
         }
       }
     } else {
-      await writeFile(this.path, this.buffer);
+      await writeFile(this.path, new Uint8Array(this.buffer));
     }
   }
 
   public async saveAs(newPath: string) {
-    await writeFile(newPath, this.content);
+    await writeFile(newPath, new Uint8Array(this.content));
   }
 
   public async readContent() {
@@ -92,7 +92,7 @@ export class File {
   }
 
   public async overwrite(newContent: Buffer) {
-    await writeFile(this.path, newContent);
+    await writeFile(this.path, new Uint8Array(newContent));
   }
 
   public async hasChanges() {
@@ -113,7 +113,7 @@ export class File {
     const stream = createReadStream(this.path);
 
     function chunksAreEqual() {
-      return content.compare(buffer, 0, bytesRead, offset, offset + bytesRead) === 0;
+      return content.compare(new Uint8Array(buffer), 0, bytesRead, offset, offset + bytesRead) === 0;
     }
 
     function streamCompare(
@@ -130,7 +130,7 @@ export class File {
             resolve(bytesRead);
           }
 
-          read(descriptor, buffer, 0, BUFFER_SIZE, BUFFER_SIZE, callback);
+          read(descriptor, new Uint8Array(buffer), 0, BUFFER_SIZE, BUFFER_SIZE, callback);
         }
 
         do {

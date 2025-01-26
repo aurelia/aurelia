@@ -322,6 +322,32 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
+  describe('surrogates', function () {
+    it('renders normal bindings before other bindings', function () {
+      let i = 0;
+      const { assertAttr } = createFixture(
+        '<el>',
+        {},
+        [
+          CustomElement.define({
+            name: 'el',
+            template: `<template data-id.one-time="id">
+              <div data-id.one-time="id">
+            `
+          },
+          class {
+            get id() {
+              return i++;
+            }
+          })
+        ]
+      );
+
+      assertAttr('el', 'data-id', '0');
+      assertAttr('div', 'data-id', '1');
+    });
+  });
+
   describe('event', function () {
     it('works with multi dot event name for trigger', function () {
       let clicked = 0;

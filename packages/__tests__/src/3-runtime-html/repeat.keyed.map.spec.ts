@@ -48,7 +48,7 @@ describe("3-runtime-html/repeat.keyed.map.spec.ts", function () {
 
     for (const spec of [
       { title: 'expression', expr: 'i of items; key.bind: i[1].k', text: '${i[1].k}' },
-      { title: 'expression', expr: '[$k, $v] of items; key.bind: $v.k', text: '${$v.k}' },
+      { title: 'destructured expression', expr: '[$k, $v] of items; key.bind: $v.k', text: '${$v.k}' },
     ]) {
       describe(`keyed - ${spec.title}`, function () {
         async function testFn(fn: (ctx: $ctx) => Promise<void>) {

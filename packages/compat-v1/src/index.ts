@@ -51,3 +51,8 @@ export {
   enableComposeCompat,
   disableComposeCompat,
 } from './compat-au-compose';
+
+export {
+  inlineView,
+  noView,
+} from './compat-custom-element';

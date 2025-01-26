@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.23"></a>
+# 2.0.0-beta.23 (2025-01-26)
+
+### Features:
+
+* **compat:** ported noView and inlineView decorators (#2094) ([bdd1284](https://github.com/aurelia/aurelia/commit/bdd1284))
+* **tooling:** type-checking for templates - Phase 1 (#2066) ([ebc1d0c](https://github.com/aurelia/aurelia/commit/ebc1d0c))
+* **templating:** support exponentiation operator (#2070) ([373a656](https://github.com/aurelia/aurelia/commit/373a656))
+* **templating:** support new operator (#2068) ([ae15ed8](https://github.com/aurelia/aurelia/commit/ae15ed8))
+
+
+### Bug Fixes:
+
+* **au-slot:** slotchange callback does not rely on deco (#2105) ([4cbef73](https://github.com/aurelia/aurelia/commit/4cbef73))
+* **rendering:** render surrogate bindings before content bindings (#2104) ([5df4a6c](https://github.com/aurelia/aurelia/commit/5df4a6c))
+* **i18n:** reactive translation of conditional projected content (#2102) ([02ce937](https://github.com/aurelia/aurelia/commit/02ce937))
+* **computed-observer:** ensure notifying changes (#2103) ([b87cc11](https://github.com/aurelia/aurelia/commit/b87cc11))
+* **docs:** missing double quote ([500c0c7](https://github.com/aurelia/aurelia/commit/500c0c7))
+* **hmr:** disposed controllers to avoid memory leak issues (#2090) ([2eac93f](https://github.com/aurelia/aurelia/commit/2eac93f))
+* **repeat:** change to key-based scope caching in keyed mode (#2088) ([c24eaaa](https://github.com/aurelia/aurelia/commit/c24eaaa))
+* **validation:** removed bindings on unbind (#2082) ([8ecffbe](https://github.com/aurelia/aurelia/commit/8ecffbe))
+* **router:** fix canLoad returning false issue (#2067) ([b83b03b](https://github.com/aurelia/aurelia/commit/b83b03b))
+
+
+### Docs:
+
+* **docs:** update dialog.md code sample (#2060) ([4789d15](https://github.com/aurelia/aurelia/commit/4789d15))
+
+
 <a name="2.0.0-beta.22"></a>
 # 2.0.0-beta.22 (2024-09-30)
 

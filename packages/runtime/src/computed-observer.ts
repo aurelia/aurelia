@@ -41,7 +41,12 @@ export class ComputedObserver<T extends object> implements
   public type: AccessorType = atObserver;
 
   /** @internal */
+  private _oldValue: unknown = void 0;
+
+  /** @internal */
   private _value: unknown = void 0;
+
+  private _notified = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /** @internal */
@@ -106,6 +111,7 @@ export class ComputedObserver<T extends object> implements
     if (this._isDirty) {
       this.compute();
       this._isDirty = false;
+      this._notified = false;
     }
     return this._value;
   }
@@ -166,8 +172,10 @@ export class ComputedObserver<T extends object> implements
     // and it should be handled similarly in subscribeToCollection
     // though not handling for now, and wait until the merge of normal + collection subscription
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.compute();
+      // start collecting dependencies
+      this._oldValue = this.compute();
       this._isDirty = false;
+      this._notified = false;
     }
   }
 
@@ -175,6 +183,8 @@ export class ComputedObserver<T extends object> implements
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this._isDirty = true;
       this.obs.clearAll();
+      this._oldValue = void 0;
+      this._notified = true;
     }
   }
 
@@ -182,16 +192,25 @@ export class ComputedObserver<T extends object> implements
     if (this._isRunning) {
       return;
     }
-    const oldValue = this._value;
+
+    const currValue = this._value;
+    const oldValue = this._oldValue;
     const newValue = this.compute();
 
     this._isDirty = false;
 
-    if (!areEqual(newValue, oldValue)) {
-      // todo: probably should set is running here too
-      // to prevent depth first notification
+    // there's case where the _value property was updated without notifying subscribers
+    // such is the case when this computed observer value was requested
+    // before the dependencies of this observer notify it of their changes
+    //
+    // if we are to notify whenever we are computing new value, it'd cause a depth first & potentially circular update
+    // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
+    // so we are only notifying subscribers when it's the actual notify phase
+    if (!this._notified || !areEqual(newValue, currValue)) {
       this._callback?.(newValue, oldValue);
-      this.subs.notify(this._value, oldValue);
+      this.subs.notify(newValue, oldValue);
+      this._oldValue = this._value = newValue;
+      this._notified = true;
     }
   }
 

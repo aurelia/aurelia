@@ -729,6 +729,17 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(component.el, 1);
     });
 
+    it('does not throw when binding to a null object', function () {
+      const { component } = createFixture(
+        `<div if.bind="show" ref="els.div">`,
+        class {
+          els: Record<string, HTMLElement> | null;
+        }
+      );
+
+      assert.equal(component.els, null);
+    });
+
     it('updates ref when property key changes GH #2106', function () {
       const { component, assertHtml, flush } = createFixture(
         `<div repeat.for="item of items"

@@ -679,7 +679,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     });
   });
 
-  describe.only('ref', function () {
+  describe('ref', function () {
     it('updates ref when key changes', function () {
       const { component } = createFixture(
         `<div ref="$this[key]"></div>`,

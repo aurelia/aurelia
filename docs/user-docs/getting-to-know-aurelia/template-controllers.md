@@ -2,7 +2,7 @@
 
 Template controllers are a unique and powerful feature in Aurelia 2, providing a way to encapsulate and reuse templating logic directly within your views.  They allow you to manipulate the rendering of a template based on custom logic, offering a higher level of abstraction compared to simple value bindings or even custom attributes.
 
-Think of template controllers as building blocks for creating reusable templating patterns. They are distinct from [custom elements](custom-elements.md) in that they don't define new HTML elements. Instead, they *control* the rendering behavior of existing elements and their content.  Common examples of built-in template controllers in Aurelia include `if.bind`, `repeat.for`, and `with.bind`.
+Think of template controllers as building blocks for creating reusable templating patterns. They are distinct from [components)(../components/components.md) in that they don't define new HTML elements. Instead, they *control* the rendering behavior of existing elements and their content.  Common examples of built-in template controllers in Aurelia include `if.bind`, `repeat.for`, and `with.bind`.
 
 ## Understanding Template Controllers
 

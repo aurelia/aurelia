@@ -41,7 +41,7 @@ You can call functions defined on your view model. For example:
 ```typescript
 export class MyApp {
   adder(val1: number, val2: number): number {
-    return val1 + val2;
+    return parseInt(val1) + parseInt(val2);
   }
 }
 ```

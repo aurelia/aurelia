@@ -1716,9 +1716,9 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await stop(true);
     });
 
-    it.only('works for conditionally accessed fields', async function () {
+    it('works for conditionally accessed fields', async function () {
       class MyApp {
-        private person: Person = new Person((void 0)!, (void 0)!);
+        public readonly person: Person = new Person((void 0)!, (void 0)!);
         public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
         private readonly fields: (keyof Person)[] = ['name', 'age'];
         public constructor()  {
@@ -1740,13 +1740,40 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await startPromise;
       const domQueue = platform.domQueue;
 
+      // round #1
       const validationController = component.validationController;
-      const validationResult = await validationController.validate();
+      let validationResult = await validationController.validate();
       assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
       assert.deepStrictEqual(
         validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
-        [['name', false, 'Name is required.'], ['age', false, 'Age is required.']],
-        'validationResult.results.length 1');
+        [['name', false, 'Name is required.'], ['age', false, 'Age is required.'], ['age', true, undefined]],
+        'validationResult.results 1'
+      );
+
+      // round #2
+      component.person.age = 7;
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult2.valid 2');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', false, 'Name is required.'], ['age', true, undefined], ['age', false, 'Age must be at least 18.']],
+        'validationResult.results 2'
+      );
+
+      // round #3
+      component.person.name = 'foo';
+      component.person.age = 18;
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, true, 'validationResult.valid 3');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', true, undefined], ['age', true, undefined], ['age', true, undefined]],
+        'validationResult.results 3'
+      );
 
       await stop(true);
     });

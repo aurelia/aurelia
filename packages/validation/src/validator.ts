@@ -50,14 +50,19 @@ export interface IValidator {
 export class StandardValidator implements IValidator {
   public async validate<TObject extends IValidateable = IValidateable>(instruction: ValidateInstruction<TObject>): Promise<ValidationResult[]> {
     const object = instruction.object;
-    const propertyName = instruction.propertyName;
+    let propertyName = instruction.propertyName;
     const propertyTag = instruction.propertyTag;
 
     const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
     const scope = Scope.create({ [rootObjectSymbol]: object });
 
     if (propertyName !== void 0) {
-      return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, scope)) ?? [];
+      let rule = rules.find((r) => r.property.name === propertyName);
+      if (rule == null && typeof propertyName === 'string' && propertyName.startsWith('[') && propertyName.endsWith(']')) {
+        propertyName = propertyName.slice(1, -1);
+        rule = rules.find((r) => r.property.name === propertyName);
+      }
+      return (await rule?.validate(object, propertyTag, scope)) ?? [];
     }
 
     return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, scope)))).flat();

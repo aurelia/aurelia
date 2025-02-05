@@ -1715,5 +1715,40 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 
       await stop(true);
     });
+
+    it.only('works for conditionally accessed fields', async function () {
+      class MyApp {
+        private person: Person = new Person((void 0)!, (void 0)!);
+        public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+        private readonly fields: (keyof Person)[] = ['name', 'age'];
+        public constructor()  {
+          resolve(IValidationRules)
+          .on(this.person)
+          .ensure(x => x.name)
+          .required()
+          .ensure(x => x.age)
+          .required()
+          .min(18);
+        }
+      }
+
+      const { startPromise, stop, component, platform, appHost } = createFixture(
+        `<input repeat.for="field of fields" value.two-way="person[field] & validate"></input>`,
+        MyApp,
+        [ValidationHtmlConfiguration]
+      );
+      await startPromise;
+      const domQueue = platform.domQueue;
+
+      const validationController = component.validationController;
+      const validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', false, 'Name is required.'], ['age', false, 'Age is required.']],
+        'validationResult.results.length 1');
+
+      await stop(true);
+    });
   });
 });

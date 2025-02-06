@@ -59,7 +59,8 @@ export class StandardValidator implements IValidator {
     if (propertyName !== void 0) {
       let rule = rules.find((r) => r.property.name === propertyName);
       if (rule == null && typeof propertyName === 'string' && propertyName.startsWith('[') && propertyName.endsWith(']')) {
-        propertyName = propertyName.slice(1, -1);
+        // normalize property name: [foo][bar] -> foo.bar, [foo] -> foo
+        propertyName = propertyName.replaceAll('][', '.').slice(1, -1);
         rule = rules.find((r) => r.property.name === propertyName);
       }
       return (await rule?.validate(object, propertyTag, scope)) ?? [];

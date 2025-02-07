@@ -1712,7 +1712,7 @@ class PropertyBinding {
         this.q.setValue(t, this.target, this.targetProperty);
     }
     updateSource(t) {
-        St(this.ast, this.s, this, t);
+        St(this.ast, this.s, this, null, t);
     }
     handleChange() {
         if (!this.isBound) {
@@ -1810,13 +1810,33 @@ const ri = {
 };
 
 class RefBinding {
-    constructor(t, e, i, s) {
-        this.ast = e;
-        this.target = i;
-        this.strict = s;
+    constructor(t, e, i, s, n) {
+        this.oL = e;
+        this.ast = i;
+        this.target = s;
+        this.strict = n;
         this.isBound = false;
         this.s = void 0;
         this.l = t;
+    }
+    updateSource() {
+        if (this.isBound) {
+            this.obs.version++;
+            St(this.ast, this.s, this, this, this.target);
+            this.obs.clear();
+        } else {
+            St(this.ast, this.s, this, null, null);
+        }
+    }
+    handleChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
+    }
+    handleCollectionChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
     }
     bind(t) {
         if (this.isBound) {
@@ -1827,16 +1847,17 @@ class RefBinding {
         }
         this.s = t;
         kt(this.ast, t, this);
-        St(this.ast, this.s, this, this.target);
         this.isBound = true;
+        this.updateSource();
     }
     unbind() {
         if (!this.isBound) {
             return;
         }
         this.isBound = false;
+        this.obs.clearAll();
         if (wt(this.ast, this.s, this, null) === this.target) {
-            St(this.ast, this.s, this, null);
+            this.updateSource();
         }
         Ct(this.ast, this.s, this);
         this.s = void 0;
@@ -1844,6 +1865,9 @@ class RefBinding {
 }
 
 RefBinding.mix = ei((() => {
+    Bt(RefBinding, null);
+    ti(RefBinding, (() => "updateSource"));
+    Ye(RefBinding);
     Ze(RefBinding);
 }));
 
@@ -2828,9 +2852,10 @@ const Ci = /*@__PURE__*/ renderer(class LetElementRenderer {
 const Bi = /*@__PURE__*/ renderer(class RefBindingRenderer {
     constructor() {
         this.target = U.refBinding;
+        RefBinding.mix();
     }
-    render(t, e, i, s, n) {
-        t.addBinding(new RefBinding(t.container, ensureExpression(n, i.from, ge), getRefTarget(e, i.to), t.strict ?? false));
+    render(t, e, i, s, n, r) {
+        t.addBinding(new RefBinding(t.container, r, ensureExpression(n, i.from, ge), getRefTarget(e, i.to), t.strict ?? false));
     }
 }, null);
 
@@ -7190,7 +7215,7 @@ const cn = {
 
 const setItem = (t, e, i, s, n, r) => {
     if (t) {
-        St(e, i, s, r);
+        St(e, i, s, null, r);
     } else {
         i.bindingContext[n] = r;
     }
@@ -7235,7 +7260,7 @@ const getScope = (t, e, i, s, n, r, l, h, a) => {
 const createScope = (t, e, i, s, n, r) => {
     if (r) {
         const n = Rt.fromParent(i, new Ht, new RepeatOverrideContext);
-        St(e.declaration, n, s, t);
+        St(e.declaration, n, s, null, t);
     }
     return Rt.fromParent(i, new Ht(n, t), new RepeatOverrideContext);
 };

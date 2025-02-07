@@ -1505,12 +1505,18 @@ const IValidator = /*@__PURE__*/ kernel.DI.createInterface('IValidator');
 class StandardValidator {
     async validate(instruction) {
         const object = instruction.object;
-        const propertyName = instruction.propertyName;
+        let propertyName = instruction.propertyName;
         const propertyTag = instruction.propertyTag;
         const rules = instruction.rules ?? validationRulesRegistrar.get(object, instruction.objectTag) ?? [];
         const scope = runtime.Scope.create({ [rootObjectSymbol]: object });
         if (propertyName !== void 0) {
-            return (await rules.find((r) => r.property.name === propertyName)?.validate(object, propertyTag, scope)) ?? [];
+            let rule = rules.find((r) => r.property.name === propertyName);
+            if (rule == null && typeof propertyName === 'string' && propertyName.startsWith('[') && propertyName.endsWith(']')) {
+                // normalize property name: [foo][bar] -> foo.bar, [foo] -> foo
+                propertyName = propertyName.replaceAll('][', '.').slice(1, -1);
+                rule = rules.find((r) => r.property.name === propertyName);
+            }
+            return (await rule?.validate(object, propertyTag, scope)) ?? [];
         }
         return (await Promise.all(rules.map(async (rule) => rule.validate(object, propertyTag, scope)))).flat();
     }

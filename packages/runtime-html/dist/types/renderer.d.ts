@@ -60,7 +60,7 @@ export declare const LetElementRenderer: {
 export declare const RefBindingRenderer: {
     new (): {
         readonly target: "rj";
-        render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction, platform: IPlatform, exprParser: IExpressionParser): void;
+        render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction, platform: IPlatform, exprParser: IExpressionParser, observerLocator: IObserverLocator): void;
     };
 };
 export declare const InterpolationBindingRenderer: {

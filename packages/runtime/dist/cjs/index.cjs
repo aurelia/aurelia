@@ -240,11 +240,11 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
 
                   case "--":
                     if (F != null) throw createMappedError(113);
-                    return astAssign(t.expression, B, j, e - 1) + t.pos;
+                    return astAssign(t.expression, B, j, F, e - 1) + t.pos;
 
                   case "++":
                     if (F != null) throw createMappedError(113);
-                    return astAssign(t.expression, B, j, e + 1) - t.pos;
+                    return astAssign(t.expression, B, j, F, e + 1) - t.pos;
 
                   default:
                     throw createMappedError(109, t.operation);
@@ -486,7 +486,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                         throw createMappedError(108, t.op);
                     }
                 }
-                return astAssign(t.target, B, j, e);
+                return astAssign(t.target, B, j, F, e);
             }
 
           case x:
@@ -534,7 +534,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
             return t.evaluate(B, j, F);
         }
     }
-    function astAssign(r, s, n, o) {
+    function astAssign(r, s, n, o, a) {
         switch (r.$kind) {
           case i:
             {
@@ -542,67 +542,67 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                     throw createMappedError(106);
                 }
                 const t = N(s, r.name, r.ancestor);
-                return t[r.name] = o;
+                return t[r.name] = a;
             }
 
           case w:
             {
-                const t = astEvaluate(r.object, s, n, null);
+                const t = astEvaluate(r.object, s, n, o);
                 if (t == null) {
                     if (n?.strict) {
                         throw createMappedError(116, r.name);
                     }
-                    astAssign(r.object, s, n, {
-                        [r.name]: o
+                    astAssign(r.object, s, n, o, {
+                        [r.name]: a
                     });
                 } else if (e.isObjectOrFunction(t)) {
-                    if (r.name === "length" && e.isArray(t) && !isNaN(o)) {
-                        t.splice(o);
+                    if (r.name === "length" && e.isArray(t) && !isNaN(a)) {
+                        t.splice(a);
                     } else {
-                        t[r.name] = o;
+                        t[r.name] = a;
                     }
                 } else ;
-                return o;
+                return a;
             }
 
           case g:
             {
-                const t = astEvaluate(r.object, s, n, null);
-                const i = astEvaluate(r.key, s, n, null);
+                const t = astEvaluate(r.object, s, n, o);
+                const i = astEvaluate(r.key, s, n, o);
                 if (t == null) {
                     if (n?.strict) {
                         throw createMappedError(116, i);
                     }
-                    astAssign(r.object, s, n, {
-                        [i]: o
+                    astAssign(r.object, s, n, o, {
+                        [i]: a
                     });
-                    return o;
+                    return a;
                 }
                 if (e.isArray(t)) {
-                    if (i === "length" && !isNaN(o)) {
-                        t.splice(o);
-                        return o;
+                    if (i === "length" && !isNaN(a)) {
+                        t.splice(a);
+                        return a;
                     }
                     if (e.isArrayIndex(i)) {
-                        t.splice(i, 1, o);
-                        return o;
+                        t.splice(i, 1, a);
+                        return a;
                     }
                 }
-                return t[i] = o;
+                return t[i] = a;
             }
 
           case A:
-            astAssign(r.value, s, n, o);
-            return astAssign(r.target, s, n, o);
+            astAssign(r.value, s, n, o, a);
+            return astAssign(r.target, s, n, o, a);
 
           case x:
             {
-                o = n?.useConverter?.(r.name, "fromView", o, r.args.map((t => astEvaluate(t, s, n, null))));
-                return astAssign(r.expression, s, n, o);
+                a = n?.useConverter?.(r.name, "fromView", a, r.args.map((t => astEvaluate(t, s, n, o))));
+                return astAssign(r.expression, s, n, o, a);
             }
 
           case S:
-            return astAssign(r.expression, s, n, o);
+            return astAssign(r.expression, s, n, o, a);
 
           case _:
           case D:
@@ -610,25 +610,25 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 const t = r.list;
                 const e = t.length;
                 let i;
-                let a;
+                let c;
                 for (i = 0; i < e; i++) {
-                    a = t[i];
-                    switch (a.$kind) {
+                    c = t[i];
+                    switch (c.$kind) {
                       case M:
-                        astAssign(a, s, n, o);
+                        astAssign(c, s, n, o, a);
                         break;
 
                       case _:
                       case D:
                         {
-                            if (typeof o !== "object" || o === null) {
+                            if (typeof a !== "object" || a === null) {
                                 throw createMappedError(112);
                             }
-                            let t = astEvaluate(a.source, Scope.create(o), n, null);
-                            if (t === void 0 && a.initializer) {
-                                t = astEvaluate(a.initializer, s, n, null);
+                            let t = astEvaluate(c.source, Scope.create(a), n, null);
+                            if (t === void 0 && c.initializer) {
+                                t = astEvaluate(c.initializer, s, n, null);
                             }
-                            astAssign(a, s, n, t);
+                            astAssign(c, s, n, o, t);
                             break;
                         }
                     }
@@ -639,46 +639,46 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
           case M:
             {
                 if (r instanceof t.DestructuringAssignmentSingleExpression) {
-                    if (o == null) {
+                    if (a == null) {
                         return;
                     }
-                    if (typeof o !== "object") {
+                    if (typeof a !== "object") {
                         throw createMappedError(112);
                     }
-                    let t = astEvaluate(r.source, Scope.create(o), n, null);
+                    let t = astEvaluate(r.source, Scope.create(a), n, o);
                     if (t === void 0 && r.initializer) {
-                        t = astEvaluate(r.initializer, s, n, null);
+                        t = astEvaluate(r.initializer, s, n, o);
                     }
-                    astAssign(r.target, s, n, t);
+                    astAssign(r.target, s, n, o, t);
                 } else {
-                    if (o == null) {
+                    if (a == null) {
                         return;
                     }
-                    if (typeof o !== "object") {
+                    if (typeof a !== "object") {
                         throw createMappedError(112);
                     }
                     const t = r.indexOrProperties;
                     let i;
                     if (e.isArrayIndex(t)) {
-                        if (!Array.isArray(o)) {
+                        if (!Array.isArray(a)) {
                             throw createMappedError(112);
                         }
-                        i = o.slice(t);
+                        i = a.slice(t);
                     } else {
-                        i = Object.entries(o).reduce(((e, [r, s]) => {
+                        i = Object.entries(a).reduce(((e, [r, s]) => {
                             if (!t.includes(r)) {
                                 e[r] = s;
                             }
                             return e;
                         }), {});
                     }
-                    astAssign(r.target, s, n, i);
+                    astAssign(r.target, s, n, o, i);
                 }
                 break;
             }
 
           case L:
-            return r.assign(s, n, o);
+            return r.assign(s, n, a);
 
           default:
             return void 0;

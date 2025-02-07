@@ -30,5 +30,5 @@ export interface IAstEvaluator {
      */
     useConverter?(name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]): unknown;
 }
-export declare const astAssign: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, val: unknown) => unknown, astEvaluate: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null) => unknown, astBind: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) => void, astUnbind: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) => void;
+export declare const astAssign: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null, val: unknown) => unknown, astEvaluate: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, e: IAstEvaluator | null, c: IConnectable | null) => unknown, astBind: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) => void, astUnbind: (ast: CustomExpression | IsExpressionOrStatement, s: Scope, b: IAstEvaluator) => void;
 //# sourceMappingURL=ast.eval.d.ts.map

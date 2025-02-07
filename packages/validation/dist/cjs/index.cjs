@@ -312,12 +312,12 @@ class RuleProperty {
 
 RuleProperty.$TYPE = "RuleProperty";
 
-const R = Object.freeze({
+const f = Object.freeze({
     allRulesAnnotations: h("validation-rules-annotations"),
     name: "validation-rules",
     defaultRuleSetName: "__default",
     set(e, t, s) {
-        const i = `${R.name}:${s ?? R.defaultRuleSetName}`;
+        const i = `${f.name}:${s ?? f.defaultRuleSetName}`;
         o(t, e, h(i));
         const r = u(this.allRulesAnnotations, e);
         if (r === void 0) {
@@ -327,14 +327,14 @@ const R = Object.freeze({
         }
     },
     get(e, t) {
-        const s = h(R.name, t ?? R.defaultRuleSetName);
+        const s = h(f.name, t ?? f.defaultRuleSetName);
         return u(s, e) ?? u(s, e.constructor);
     },
     unset(e, t) {
         const s = u(this.allRulesAnnotations, e);
         if (!Array.isArray(s)) return;
         for (const i of s.slice(0)) {
-            if (i.startsWith(R.name) && (t === void 0 || i.endsWith(t))) {
+            if (i.startsWith(f.name) && (t === void 0 || i.endsWith(t))) {
                 l(h(i), e);
                 const t = s.indexOf(i);
                 if (t > -1) {
@@ -345,7 +345,7 @@ const R = Object.freeze({
     },
     isValidationRulesSet(e) {
         const t = u(this.allRulesAnnotations, e);
-        return t !== void 0 && t.some((e => e.startsWith(R.name)));
+        return t !== void 0 && t.some((e => e.startsWith(f.name)));
     }
 });
 
@@ -544,13 +544,13 @@ PropertyRule.$TYPE = "PropertyRule";
 s.mixinNoopAstEvaluator(PropertyRule);
 
 class ModelBasedRule {
-    constructor(e, t = R.defaultRuleSetName) {
+    constructor(e, t = f.defaultRuleSetName) {
         this.ruleset = e;
         this.tag = t;
     }
 }
 
-const f = /*@__PURE__*/ e.DI.createInterface("IValidationRules");
+const R = /*@__PURE__*/ e.DI.createInterface("IValidationRules");
 
 class ValidationRules {
     constructor() {
@@ -576,20 +576,20 @@ class ValidationRules {
         return e;
     }
     on(e, t) {
-        const s = R.get(e, t);
+        const s = f.get(e, t);
         if (Object.is(s, this.rules)) {
             return this;
         }
         this.rules = s ?? [];
-        R.set(e, this.rules, t);
+        f.set(e, this.rules, t);
         this.targets.add(e);
         return this;
     }
     off(e, t) {
         const s = e !== void 0 ? [ e ] : Array.from(this.targets);
         for (const e of s) {
-            R.unset(e, t);
-            if (!R.isValidationRulesSet(e)) {
+            f.unset(e, t);
+            if (!f.isValidationRulesSet(e)) {
                 this.targets.delete(e);
             }
         }
@@ -599,7 +599,7 @@ class ValidationRules {
         for (const i of t) {
             const t = i.tag;
             const r = this.deserializer.hydrateRuleset(i.ruleset, this);
-            R.set(e, r, t);
+            f.set(e, r, t);
             s.add(t);
         }
     }
@@ -1465,14 +1465,19 @@ const z = /*@__PURE__*/ e.DI.createInterface("IValidator");
 class StandardValidator {
     async validate(e) {
         const t = e.object;
-        const i = e.propertyName;
+        let i = e.propertyName;
         const r = e.propertyTag;
-        const n = e.rules ?? R.get(t, e.objectTag) ?? [];
+        const n = e.rules ?? f.get(t, e.objectTag) ?? [];
         const a = s.Scope.create({
             [x]: t
         });
         if (i !== void 0) {
-            return await (n.find((e => e.property.name === i))?.validate(t, r, a)) ?? [];
+            let e = n.find((e => e.property.name === i));
+            if (e == null && typeof i === "string" && i.startsWith("[") && i.endsWith("]")) {
+                i = i.replaceAll("][", ".").slice(1, -1);
+                e = n.find((e => e.property.name === i));
+            }
+            return await (e?.validate(t, r, a)) ?? [];
         }
         return (await Promise.all(n.map((async e => e.validate(t, r, a))))).flat();
     }
@@ -1493,7 +1498,7 @@ function createConfiguration(t) {
         register(s) {
             const i = getDefaultValidationConfiguration();
             t(i);
-            s.register(e.Registration.instance(p, i.CustomMessages), e.Registration.singleton(z, i.ValidatorType), e.Registration.singleton($, i.MessageProviderType), e.Registration.singleton(a, i.HydratorType), e.Registration.transient(f, ValidationRules), ValidationDeserializer);
+            s.register(e.Registration.instance(p, i.CustomMessages), e.Registration.singleton(z, i.ValidatorType), e.Registration.singleton($, i.MessageProviderType), e.Registration.singleton(a, i.HydratorType), e.Registration.transient(R, ValidationRules), ValidationDeserializer);
             return s;
         },
         customize(e) {
@@ -1516,7 +1521,7 @@ exports.IValidationExpressionHydrator = a;
 
 exports.IValidationMessageProvider = $;
 
-exports.IValidationRules = f;
+exports.IValidationRules = R;
 
 exports.IValidator = z;
 
@@ -1576,5 +1581,5 @@ exports.serializePrimitives = serializePrimitives;
 
 exports.validationRule = validationRule;
 
-exports.validationRulesRegistrar = R;
+exports.validationRulesRegistrar = f;
 //# sourceMappingURL=index.cjs.map

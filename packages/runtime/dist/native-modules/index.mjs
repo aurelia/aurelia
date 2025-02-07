@@ -238,11 +238,11 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
 
                   case "--":
                     if ($ != null) throw createMappedError(113);
-                    return astAssign(t.expression, a, H, e - 1) + t.pos;
+                    return astAssign(t.expression, a, H, $, e - 1) + t.pos;
 
                   case "++":
                     if ($ != null) throw createMappedError(113);
-                    return astAssign(t.expression, a, H, e + 1) - t.pos;
+                    return astAssign(t.expression, a, H, $, e + 1) - t.pos;
 
                   default:
                     throw createMappedError(109, t.operation);
@@ -484,7 +484,7 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                         throw createMappedError(108, t.op);
                     }
                 }
-                return astAssign(t.target, a, H, e);
+                return astAssign(t.target, a, H, $, e);
             }
 
           case R:
@@ -532,7 +532,7 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
             return t.evaluate(a, H, $);
         }
     }
-    function astAssign(e, r, n, o) {
+    function astAssign(e, r, n, o, u) {
         switch (e.$kind) {
           case c:
             {
@@ -540,67 +540,67 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                     throw createMappedError(106);
                 }
                 const t = j(r, e.name, e.ancestor);
-                return t[e.name] = o;
+                return t[e.name] = u;
             }
 
           case y:
             {
-                const t = astEvaluate(e.object, r, n, null);
+                const t = astEvaluate(e.object, r, n, o);
                 if (t == null) {
                     if (n?.strict) {
                         throw createMappedError(116, e.name);
                     }
-                    astAssign(e.object, r, n, {
-                        [e.name]: o
+                    astAssign(e.object, r, n, o, {
+                        [e.name]: u
                     });
                 } else if (s(t)) {
-                    if (e.name === "length" && i(t) && !isNaN(o)) {
-                        t.splice(o);
+                    if (e.name === "length" && i(t) && !isNaN(u)) {
+                        t.splice(u);
                     } else {
-                        t[e.name] = o;
+                        t[e.name] = u;
                     }
                 } else ;
-                return o;
+                return u;
             }
 
           case C:
             {
-                const t = astEvaluate(e.object, r, n, null);
-                const s = astEvaluate(e.key, r, n, null);
+                const t = astEvaluate(e.object, r, n, o);
+                const s = astEvaluate(e.key, r, n, o);
                 if (t == null) {
                     if (n?.strict) {
                         throw createMappedError(116, s);
                     }
-                    astAssign(e.object, r, n, {
-                        [s]: o
+                    astAssign(e.object, r, n, o, {
+                        [s]: u
                     });
-                    return o;
+                    return u;
                 }
                 if (i(t)) {
-                    if (s === "length" && !isNaN(o)) {
-                        t.splice(o);
-                        return o;
+                    if (s === "length" && !isNaN(u)) {
+                        t.splice(u);
+                        return u;
                     }
                     if (a(s)) {
-                        t.splice(s, 1, o);
-                        return o;
+                        t.splice(s, 1, u);
+                        return u;
                     }
                 }
-                return t[s] = o;
+                return t[s] = u;
             }
 
           case S:
-            astAssign(e.value, r, n, o);
-            return astAssign(e.target, r, n, o);
+            astAssign(e.value, r, n, o, u);
+            return astAssign(e.target, r, n, o, u);
 
           case R:
             {
-                o = n?.useConverter?.(e.name, "fromView", o, e.args.map((t => astEvaluate(t, r, n, null))));
-                return astAssign(e.expression, r, n, o);
+                u = n?.useConverter?.(e.name, "fromView", u, e.args.map((t => astEvaluate(t, r, n, o))));
+                return astAssign(e.expression, r, n, o, u);
             }
 
           case P:
-            return astAssign(e.expression, r, n, o);
+            return astAssign(e.expression, r, n, o, u);
 
           case L:
           case N:
@@ -613,20 +613,20 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                     a = t[i];
                     switch (a.$kind) {
                       case V:
-                        astAssign(a, r, n, o);
+                        astAssign(a, r, n, o, u);
                         break;
 
                       case L:
                       case N:
                         {
-                            if (typeof o !== "object" || o === null) {
+                            if (typeof u !== "object" || u === null) {
                                 throw createMappedError(112);
                             }
-                            let t = astEvaluate(a.source, Scope.create(o), n, null);
+                            let t = astEvaluate(a.source, Scope.create(u), n, null);
                             if (t === void 0 && a.initializer) {
                                 t = astEvaluate(a.initializer, r, n, null);
                             }
-                            astAssign(a, r, n, t);
+                            astAssign(a, r, n, o, t);
                             break;
                         }
                     }
@@ -637,46 +637,46 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
           case V:
             {
                 if (e instanceof t) {
-                    if (o == null) {
+                    if (u == null) {
                         return;
                     }
-                    if (typeof o !== "object") {
+                    if (typeof u !== "object") {
                         throw createMappedError(112);
                     }
-                    let t = astEvaluate(e.source, Scope.create(o), n, null);
+                    let t = astEvaluate(e.source, Scope.create(u), n, o);
                     if (t === void 0 && e.initializer) {
-                        t = astEvaluate(e.initializer, r, n, null);
+                        t = astEvaluate(e.initializer, r, n, o);
                     }
-                    astAssign(e.target, r, n, t);
+                    astAssign(e.target, r, n, o, t);
                 } else {
-                    if (o == null) {
+                    if (u == null) {
                         return;
                     }
-                    if (typeof o !== "object") {
+                    if (typeof u !== "object") {
                         throw createMappedError(112);
                     }
                     const t = e.indexOrProperties;
                     let s;
                     if (a(t)) {
-                        if (!Array.isArray(o)) {
+                        if (!Array.isArray(u)) {
                             throw createMappedError(112);
                         }
-                        s = o.slice(t);
+                        s = u.slice(t);
                     } else {
-                        s = Object.entries(o).reduce(((e, [r, s]) => {
+                        s = Object.entries(u).reduce(((e, [r, s]) => {
                             if (!t.includes(r)) {
                                 e[r] = s;
                             }
                             return e;
                         }), {});
                     }
-                    astAssign(e.target, r, n, s);
+                    astAssign(e.target, r, n, o, s);
                 }
                 break;
             }
 
           case B:
-            return e.assign(r, n, o);
+            return e.assign(r, n, u);
 
           default:
             return void 0;

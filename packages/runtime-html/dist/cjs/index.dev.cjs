@@ -2123,7 +2123,7 @@ class PropertyBinding {
         this._targetObserver.setValue(value, this.target, this.targetProperty);
     }
     updateSource(value) {
-        runtime.astAssign(this.ast, this._scope, this, value);
+        runtime.astAssign(this.ast, this._scope, this, null, value);
     }
     handleChange() {
         if (!this.isBound) {
@@ -2237,7 +2237,8 @@ const updateTaskOpts = {
 };
 
 class RefBinding {
-    constructor(locator, ast, target, strict) {
+    constructor(locator, oL, ast, target, strict) {
+        this.oL = oL;
         this.ast = ast;
         this.target = target;
         this.strict = strict;
@@ -2245,6 +2246,26 @@ class RefBinding {
         /** @internal */
         this._scope = void 0;
         this.l = locator;
+    }
+    updateSource() {
+        if (this.isBound) {
+            this.obs.version++;
+            runtime.astAssign(this.ast, this._scope, this, this, this.target);
+            this.obs.clear();
+        }
+        else {
+            runtime.astAssign(this.ast, this._scope, this, null, null);
+        }
+    }
+    handleChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
+    }
+    handleCollectionChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
     }
     bind(_scope) {
         if (this.isBound) {
@@ -2256,9 +2277,8 @@ class RefBinding {
         }
         this._scope = _scope;
         runtime.astBind(this.ast, _scope, this);
-        runtime.astAssign(this.ast, this._scope, this, this.target);
-        // add isBound flag and remove isBinding flag
         this.isBound = true;
+        this.updateSource();
     }
     unbind() {
         if (!this.isBound) {
@@ -2266,14 +2286,18 @@ class RefBinding {
             return;
         }
         this.isBound = false;
+        this.obs.clearAll();
         if (runtime.astEvaluate(this.ast, this._scope, this, null) === this.target) {
-            runtime.astAssign(this.ast, this._scope, this, null);
+            this.updateSource();
         }
         runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
     }
 }
 RefBinding.mix = createPrototypeMixer(() => {
+    runtime.connectable(RefBinding, null);
+    mixingBindingLimited(RefBinding, () => 'updateSource');
+    mixinUseScope(RefBinding);
     mixinAstEvaluator(RefBinding);
 });
 
@@ -3424,9 +3448,10 @@ const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer {
 const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer {
     constructor() {
         this.target = templateCompiler.InstructionType.refBinding;
+        RefBinding.mix();
     }
-    render(renderingCtrl, target, instruction, platform, exprParser) {
-        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
+    render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
+        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
     }
 }, null);
 const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer {
@@ -8548,7 +8573,7 @@ const _unknownHandler = {
 };
 const setItem = (hasDestructuredLocal, dec, scope, binding, local, item) => {
     if (hasDestructuredLocal) {
-        runtime.astAssign(dec, scope, binding, item);
+        runtime.astAssign(dec, scope, binding, null, item);
     }
     else {
         scope.bindingContext[local] = item;
@@ -8597,7 +8622,7 @@ const getScope = (oldScopeMap, newScopeMap, key, item, forOf, parentScope, bindi
 const createScope = (item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
     if (hasDestructuredLocal) {
         const scope = runtime.Scope.fromParent(parentScope, new runtime.BindingContext(), new RepeatOverrideContext());
-        runtime.astAssign(forOf.declaration, scope, binding, item);
+        runtime.astAssign(forOf.declaration, scope, binding, null, item);
     }
     return runtime.Scope.fromParent(parentScope, new runtime.BindingContext(local, item), new RepeatOverrideContext());
 };

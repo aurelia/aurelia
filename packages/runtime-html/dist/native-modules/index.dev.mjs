@@ -2120,7 +2120,7 @@ class PropertyBinding {
         this._targetObserver.setValue(value, this.target, this.targetProperty);
     }
     updateSource(value) {
-        astAssign(this.ast, this._scope, this, value);
+        astAssign(this.ast, this._scope, this, null, value);
     }
     handleChange() {
         if (!this.isBound) {
@@ -2234,7 +2234,8 @@ const updateTaskOpts = {
 };
 
 class RefBinding {
-    constructor(locator, ast, target, strict) {
+    constructor(locator, oL, ast, target, strict) {
+        this.oL = oL;
         this.ast = ast;
         this.target = target;
         this.strict = strict;
@@ -2242,6 +2243,26 @@ class RefBinding {
         /** @internal */
         this._scope = void 0;
         this.l = locator;
+    }
+    updateSource() {
+        if (this.isBound) {
+            this.obs.version++;
+            astAssign(this.ast, this._scope, this, this, this.target);
+            this.obs.clear();
+        }
+        else {
+            astAssign(this.ast, this._scope, this, null, null);
+        }
+    }
+    handleChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
+    }
+    handleCollectionChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
     }
     bind(_scope) {
         if (this.isBound) {
@@ -2253,9 +2274,8 @@ class RefBinding {
         }
         this._scope = _scope;
         astBind(this.ast, _scope, this);
-        astAssign(this.ast, this._scope, this, this.target);
-        // add isBound flag and remove isBinding flag
         this.isBound = true;
+        this.updateSource();
     }
     unbind() {
         if (!this.isBound) {
@@ -2263,14 +2283,18 @@ class RefBinding {
             return;
         }
         this.isBound = false;
+        this.obs.clearAll();
         if (astEvaluate(this.ast, this._scope, this, null) === this.target) {
-            astAssign(this.ast, this._scope, this, null);
+            this.updateSource();
         }
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
     }
 }
 RefBinding.mix = createPrototypeMixer(() => {
+    connectable(RefBinding, null);
+    mixingBindingLimited(RefBinding, () => 'updateSource');
+    mixinUseScope(RefBinding);
     mixinAstEvaluator(RefBinding);
 });
 
@@ -3421,9 +3445,10 @@ const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer {
 const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer {
     constructor() {
         this.target = InstructionType.refBinding;
+        RefBinding.mix();
     }
-    render(renderingCtrl, target, instruction, platform, exprParser) {
-        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
+    render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
+        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
     }
 }, null);
 const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer {
@@ -8545,7 +8570,7 @@ const _unknownHandler = {
 };
 const setItem = (hasDestructuredLocal, dec, scope, binding, local, item) => {
     if (hasDestructuredLocal) {
-        astAssign(dec, scope, binding, item);
+        astAssign(dec, scope, binding, null, item);
     }
     else {
         scope.bindingContext[local] = item;
@@ -8594,7 +8619,7 @@ const getScope = (oldScopeMap, newScopeMap, key, item, forOf, parentScope, bindi
 const createScope = (item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
     if (hasDestructuredLocal) {
         const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
-        astAssign(forOf.declaration, scope, binding, item);
+        astAssign(forOf.declaration, scope, binding, null, item);
     }
     return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
 };

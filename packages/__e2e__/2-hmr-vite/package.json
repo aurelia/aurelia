@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.1-dev.202501261023",
+  "version": "2.0.1-dev.202502071434",
   "port": 9002,
   "scripts": {
     "dev": "vite dev",
@@ -17,17 +17,17 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.0.1-dev.202501261023",
-    "@aurelia/kernel": "2.0.1-dev.202501261023",
-    "@aurelia/metadata": "2.0.1-dev.202501261023",
-    "@aurelia/route-recognizer": "2.0.1-dev.202501261023",
-    "@aurelia/router-lite": "2.0.1-dev.202501261023",
-    "@aurelia/runtime-html": "2.0.1-dev.202501261023",
-    "@aurelia/runtime": "2.0.1-dev.202501261023",
-    "aurelia": "2.0.1-dev.202501261023"
+    "@aurelia/fetch-client": "2.0.1-dev.202502071434",
+    "@aurelia/kernel": "2.0.1-dev.202502071434",
+    "@aurelia/metadata": "2.0.1-dev.202502071434",
+    "@aurelia/route-recognizer": "2.0.1-dev.202502071434",
+    "@aurelia/router-lite": "2.0.1-dev.202502071434",
+    "@aurelia/runtime-html": "2.0.1-dev.202502071434",
+    "@aurelia/runtime": "2.0.1-dev.202502071434",
+    "aurelia": "2.0.1-dev.202502071434"
   },
   "devDependencies": {
-    "@aurelia/vite-plugin": "2.0.1-dev.202501261023",
+    "@aurelia/vite-plugin": "2.0.1-dev.202502071434",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "playwright-watch": "1.3.23",

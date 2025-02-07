@@ -351,11 +351,11 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                     case '--':
                         if (c != null)
                             throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
-                        return astAssign(ast.expression, s, e, value - 1) + ast.pos;
+                        return astAssign(ast.expression, s, e, c, value - 1) + ast.pos;
                     case '++':
                         if (c != null)
                             throw createMappedError(113 /* ErrorNames.ast_increment_infinite_loop */);
-                        return astAssign(ast.expression, s, e, value + 1) - ast.pos;
+                        return astAssign(ast.expression, s, e, c, value + 1) - ast.pos;
                     default:
                         throw createMappedError(109 /* ErrorNames.ast_unknown_unary_operator */, ast.operation);
                 }
@@ -561,7 +561,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                             throw createMappedError(108 /* ErrorNames.ast_unknown_binary_operator */, ast.op);
                     }
                 }
-                return astAssign(ast.target, s, e, value);
+                return astAssign(ast.target, s, e, c, value);
             }
             case ekValueConverter: {
                 return e?.useConverter?.(ast.name, 'toView', astEvaluate(ast.expression, s, e, c), ast.args.map(a => astEvaluate(a, s, e, c)));
@@ -615,7 +615,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                 return ast.evaluate(s, e, c);
         }
     }
-    function astAssign(ast, s, e, val) {
+    function astAssign(ast, s, e, c, val) {
         switch (ast.$kind) {
             case ekAccessScope: {
                 if (ast.name === '$host') {
@@ -625,7 +625,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                 return obj[ast.name] = val;
             }
             case ekAccessMember: {
-                const obj = astEvaluate(ast.object, s, e, null);
+                const obj = astEvaluate(ast.object, s, e, c);
                 if (obj == null) {
                     if (e?.strict) {
                         // if ast optional and the optional assignment proposal goes ahead
@@ -635,7 +635,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                     }
                     // creating an object and assign it to the owning property of the ast
                     // this is a good enough behavior, and it works well in v1
-                    astAssign(ast.object, s, e, { [ast.name]: val });
+                    astAssign(ast.object, s, e, c, { [ast.name]: val });
                 }
                 else if (kernel.isObjectOrFunction(obj)) {
                     if (ast.name === 'length' && kernel.isArray(obj) && !isNaN(val)) {
@@ -649,8 +649,8 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                 return val;
             }
             case ekAccessKeyed: {
-                const instance = astEvaluate(ast.object, s, e, null);
-                const key = astEvaluate(ast.key, s, e, null);
+                const instance = astEvaluate(ast.object, s, e, c);
+                const key = astEvaluate(ast.key, s, e, c);
                 if (instance == null) {
                     if (e?.strict) {
                         // if ast optional and the optional assignment proposal goes ahead
@@ -660,7 +660,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                     }
                     // creating an object and assign it to the owning property of the ast
                     // this is a good enough behavior, and it works well in v1
-                    astAssign(ast.object, s, e, { [key]: val });
+                    astAssign(ast.object, s, e, c, { [key]: val });
                     return val;
                 }
                 if (kernel.isArray(instance)) {
@@ -676,14 +676,14 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                 return instance[key] = val;
             }
             case ekAssign:
-                astAssign(ast.value, s, e, val);
-                return astAssign(ast.target, s, e, val);
+                astAssign(ast.value, s, e, c, val);
+                return astAssign(ast.target, s, e, c, val);
             case ekValueConverter: {
-                val = e?.useConverter?.(ast.name, 'fromView', val, ast.args.map(a => astEvaluate(a, s, e, null)));
-                return astAssign(ast.expression, s, e, val);
+                val = e?.useConverter?.(ast.name, 'fromView', val, ast.args.map(a => astEvaluate(a, s, e, c)));
+                return astAssign(ast.expression, s, e, c, val);
             }
             case ekBindingBehavior:
-                return astAssign(ast.expression, s, e, val);
+                return astAssign(ast.expression, s, e, c, val);
             case ekArrayDestructuring:
             case ekObjectDestructuring: {
                 const list = ast.list;
@@ -694,7 +694,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                     item = list[i];
                     switch (item.$kind) {
                         case ekDestructuringAssignmentLeaf:
-                            astAssign(item, s, e, val);
+                            astAssign(item, s, e, c, val);
                             break;
                         case ekArrayDestructuring:
                         case ekObjectDestructuring: {
@@ -705,7 +705,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                             if (source === void 0 && item.initializer) {
                                 source = astEvaluate(item.initializer, s, e, null);
                             }
-                            astAssign(item, s, e, source);
+                            astAssign(item, s, e, c, source);
                             break;
                         }
                     }
@@ -720,11 +720,11 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                     if (typeof val !== 'object') {
                         throw createMappedError(112 /* ErrorNames.ast_destruct_null */);
                     }
-                    let source = astEvaluate(ast.source, Scope.create(val), e, null);
+                    let source = astEvaluate(ast.source, Scope.create(val), e, c);
                     if (source === void 0 && ast.initializer) {
-                        source = astEvaluate(ast.initializer, s, e, null);
+                        source = astEvaluate(ast.initializer, s, e, c);
                     }
-                    astAssign(ast.target, s, e, source);
+                    astAssign(ast.target, s, e, c, source);
                 }
                 else {
                     if (val == null) {
@@ -752,7 +752,7 @@ const { astAssign, astEvaluate, astBind, astUnbind } = /*@__PURE__*/ (() => {
                             // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                         }, {});
                     }
-                    astAssign(ast.target, s, e, restValue);
+                    astAssign(ast.target, s, e, c, restValue);
                 }
                 break;
             }

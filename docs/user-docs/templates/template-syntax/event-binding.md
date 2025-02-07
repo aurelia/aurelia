@@ -1,337 +1,426 @@
 # Event Binding
 
-Event binding in Aurelia 2 provides a seamless way to handle DOM events within your application. By attaching event listeners directly in your view templates, you can easily respond to user interactions such as clicks, key presses, and more. This guide will delve into the specifics of event binding in Aurelia 2, offering detailed explanations and examples to enhance your understanding and usage of this feature.
+Event binding in Aurelia 2 offers a streamlined approach to managing DOM events directly within your templates. By declaratively attaching event listeners in your view templates, you can effortlessly respond to user interactions like clicks, keystrokes, form submissions, and more. This guide explores the intricacies of event binding in Aurelia 2, providing detailed explanations and practical examples to deepen your understanding and effective utilization of this feature.
 
 ## Understanding Event Binding
 
-Aurelia 2 simplifies the process of binding events to methods in your view model. It uses a straightforward syntax that allows you to specify the type of event and the corresponding method to invoke when that event occurs.
+Aurelia 2 simplifies the connection between DOM events and your view model methods. It employs a clear and concise syntax, enabling you to specify the event type and the corresponding method to be invoked in your view model when that event occurs.
 
 ### Event Binding Syntax
 
-The general syntax for event binding in Aurelia 2 is as follows:
+The general syntax for event binding in Aurelia 2 follows this pattern:
 
 ```html
-<element event.trigger="methodName(argument1, argument2, ...)">
+<element event.command="methodName(argument1, argument2, ...)">
 ```
 
-- `element` represents the HTML element to which you want to attach the event listener.
-- `event` is the event you want to listen for (e.g., `click`, `keypress`).
-- `.trigger` is the binding command that tells Aurelia to listen for the specified event and call the method when the event is fired.
-- `methodName` is the method's name in your view-model that will be called when the event occurs.
-- `argument1`, `argument2`, ... are optional arguments you can pass to the method.
+- `<element>`:  The HTML element to which you are attaching the event listener.
+- `event`: The name of the DOM event you wish to listen for (e.g., `click`, `input`, `mouseover`).
+- `.command`:  The binding command that instructs Aurelia how to handle the event. Common commands are `.trigger` and `.capture`.
+- `methodName`: The name of the method in your view model that will be executed when the event is dispatched.
+- `argument1`, `argument2`, ...:  Optional arguments that you can pass to the `methodName`.
 
-### Event Binding Commands
+### Event Binding Commands: `.trigger` and `.capture`
 
-Aurelia 2 offers two primary commands for event binding:
+Aurelia 2 primarily offers two commands for event binding, each controlling the event listening phase:
 
-1. `.trigger`: This command attaches an event listener that responds to events during the bubbling phase. It is the most commonly used event-binding command and is suitable for most use cases.
+1.  **`.trigger`**: This command attaches an event listener that reacts to events during the **bubbling phase**. This is the most frequently used and generally recommended command for event binding as it aligns with typical event handling patterns in web applications. Events are first captured by the deepest element and then propagate upwards through the DOM tree.
 
-2. `.capture`: This command listens for events during the capturing phase. It is generally reserved for special circumstances, such as when you need to intercept events before they reach a target element that may prevent their propagation.
+2.  **`.capture`**: This command listens for events during the **capturing phase**.  Capturing is the less common phase where events propagate downwards from the window to the target element.  `.capture` is typically used in specific scenarios, such as when you need to intercept an event before it reaches child elements, potentially preventing default behaviors or further propagation.
 
-#### Example: Click Event Binding
+#### Example: Click Event Binding using `.trigger`
 
-To listen for a click event on a button and call a method named `handleClick`, you would write:
+To bind a click event on a button to a method named `handleClick` in your view model, you would use:
 
 ```html
-<button click.trigger="handleClick()">Click me!</button>
+<button click.trigger="handleClick()">Click Me</button>
 ```
 
-When the button is clicked, your view-model's `handleClick` method will be executed.
+When a user clicks the "Click Me" button, Aurelia will execute the `handleClick` method defined in your associated view model.
 
-### Passing Event Data
+### Passing Event Data to Handlers
 
-You can pass the event object itself or other custom data to your event handler method. For instance, to pass the event object to the `handleClick` method, you would modify the binding like this:
+Often, you need access to the event object or want to pass additional data to your event handler method. Aurelia provides a straightforward way to do this.
+
+To pass the DOM event object itself to your handler, use the `$event` special variable:
 
 ```html
-<button click.trigger="handleClick($event)">Click me!</button>
+<button click.trigger="handleClick($event)">Click Me</button>
 ```
 
 In your view model, the `handleClick` method would accept the event object as a parameter:
 
-```javascript
+```typescript
 export class MyViewModel {
-  handleClick(event) {
-    // Handle the click event
+  handleClick(event: MouseEvent) {
+    console.log('Button clicked!', event);
+    // Access event properties like event.target, event.clientX, etc.
   }
 }
 ```
 
-## Common Events
-
-Aurelia 2 allows you to bind to any standard DOM event. Here are some common events you might use:
-
-### Click
-
-The `click` event is frequently used for buttons, links, and other clickable elements.
+You can also pass custom arguments along with the event:
 
 ```html
-<a href="#" click.trigger="navigate()">Go somewhere</a>
+<button click.trigger="removeItem(item.id, $event)">Remove Item</button>
 ```
 
-### Keypress
+```typescript
+export class MyViewModel {
+  removeItem(itemId: number, event: MouseEvent) {
+    console.log(`Removing item with ID: ${itemId}`, event);
+    // Logic to remove the item
+  }
+}
+```
 
-The `keypress` event is useful for responding to user input in text fields or when handling keyboard navigation.
+## Common DOM Events
+
+Aurelia 2 supports binding to all standard DOM events. Here are some frequently used events in web development:
+
+### `click`
+
+The `click` event is triggered when a pointing device button (typically a mouse button) is both pressed and released while the pointer is inside the element. It is commonly used for buttons, links, and interactive elements.
 
 ```html
-<input type="text" keypress.trigger="validateInput($event)" />
+<button click.trigger="submitForm()">Submit</button>
+<a href="#" click.trigger="openModal()">Learn More</a>
 ```
 
-### Mouseover
+### `input`
 
-The `mouseover` event can trigger interactions when the user hovers over an element.
+The `input` event fires when the value of an `<input>`, `<textarea>`, or `<select>` element has been changed. It's useful for real-time validation or dynamic updates based on user input.
 
 ```html
-<div mouseover.trigger="showTooltip()">Hover over me!</div>
+<input type="text" input.trigger="updateSearchQuery($event.target.value)" placeholder="Search..." />
 ```
 
-## Handling Event Propagation
+### `change`
 
-Sometimes, you may want to stop an event from bubbling up the DOM tree or prevent the default action associated with that event. You can do this within your event handler methods using the event object's methods:
-
-- `event.stopPropagation()`: Prevents further propagation of the event in the bubbling or capturing phase.
-- `event.preventDefault()`: Cancels the event if it is cancelable without stopping further propagation.
-
-## Advanced Event Binding
-
-While the `.trigger` and `.capture` commands cover most use cases, Aurelia 2 also allows for more advanced scenarios, such as throttling event handlers for performance reasons or handling custom events.
-
-### Throttling Events
-
-To improve performance, especially for events that can fire rapidly like `mousemove` or `scroll`, you can throttle the event handler invocation using Aurelia's binding behaviors.
+The `change` event is fired when the value of an element has been changed *and* the element loses focus. This is often used for `<input>`, `<select>`, and `<textarea>` elements when you want to react after the user has finished making changes.
 
 ```html
-<div mousemove.trigger="handleMouseMove() & throttle:100">Move your mouse over me</div>
+<select change.trigger="selectTheme($event.target.value)">
+  <option value="light">Light Theme</option>
+  <option value="dark">Dark Theme</option>
+</select>
 ```
 
-In the above example, the `handleMouseMove` method will be called at most once every 100 milliseconds, no matter how often the `mousemove` event is fired.
+### `mouseover` and `mouseout`
+
+The `mouseover` event occurs when the mouse pointer is moved onto an element, and `mouseout` occurs when it is moved off of an element. These are useful for hover effects and interactive UI elements.
+
+```html
+<div mouseover.trigger="highlight()" mouseout.trigger="unhighlight()">Hover Me</div>
+```
+
+### `keydown`, `keyup`, and `keypress`
+
+These keyboard events are triggered when a key is pressed down, released, or pressed and released, respectively.  `keydown` and `keyup` are generally preferred for capturing special keys like arrows, `Ctrl`, `Shift`, etc., while `keypress` is more suited for character input.
+
+```html
+<input type="text" keydown.trigger="handleKeyDown($event)" />
+```
+
+## Controlling Event Propagation
+
+In DOM event handling, events can "bubble" up the DOM tree (from the target element up to the document) or "capture" down (from the document to the target element).  Sometimes you need to control this propagation. Within your event handler methods, you can use methods of the event object to manage propagation:
+
+- `event.stopPropagation()`: Prevents the event from further bubbling up the DOM tree to parent elements.
+- `event.preventDefault()`: Prevents the default action associated with the event (if it's cancelable), without stopping event propagation. For example, `preventDefault` on a click event of a link (`<a>`) would stop the browser from navigating to the link's `href`.
+
+## Advanced Event Binding Techniques
+
+Aurelia 2 provides capabilities beyond basic event binding, allowing for performance optimization and handling specific scenarios.
+
+### Throttling and Debouncing Event Handlers
+
+For events that fire rapidly and repeatedly, such as `mousemove`, `scroll`, or `input`, calling an event handler function on every event can be performance-intensive. Aurelia's binding behaviors offer `throttle` and `debounce` to limit the rate at which your handler is invoked.
+
+**Throttling**: Ensures a function is called at most once in a specified time interval.
+
+```html
+<div mousemove.trigger="trackMouse($event) & throttle:50">Move mouse here</div>
+```
+
+In this example, `trackMouse` will be executed at most every 50 milliseconds, even if `mousemove` events are firing more frequently.
+
+**Debouncing**: Delays the execution of a function until after a certain amount of time has passed since the *last* time the event was triggered. Useful for autocomplete or search features to avoid making API calls on every keystroke.
+
+```html
+<input type="text" input.trigger="searchQuery($event.target.value) & debounce:300" placeholder="Search" />
+```
+
+Here, `searchQuery` will be called 300ms after the user *stops* typing, reducing the number of search requests.
 
 ### Custom Events
 
-Aurelia 2 supports custom events, which can be useful when integrating with third-party libraries or creating your own custom components.
+Aurelia 2 fully supports custom events, which are essential when working with custom elements or integrating third-party libraries that dispatch their own events.
 
 ```html
-<custom-element my-event.trigger="handleCustomEvent($event)"></custom-element>
+<my-custom-element data-loaded.trigger="handleDataLoaded($event)"></my-custom-element>
 ```
 
-In this example, `my-event` is a custom event emitted by `custom-element`, and `handleCustomEvent` is the method that will respond to it.
+In this scenario, `data-loaded` is a custom event emitted by `<my-custom-element>`.  `handleDataLoaded` in the parent view model will be invoked when this custom event is dispatched.
 
-## Event Binding: Examples and Scenarios
+## Event Binding Examples and Use Cases
 
-To help you better understand event binding in Aurelia 2, we've compiled a collection of examples and scenarios demonstrating different techniques and best practices. These should give you the insights to handle events in your applications effectively.
+To solidify your understanding, let's explore practical examples showcasing different event binding scenarios in Aurelia 2.
 
-### Event Binding with Modifiers
+### Self-Delegating Events with `.self`
 
-#### Self Binding Behavior
-
-To ensure that an event only triggers a method if the event originated from the element itself (and not from its children), you can use the `self` binding behavior.
+The `self` binding behavior ensures that an event handler is only triggered if the event originated directly from the element to which the listener is attached, and not from any of its child elements (due to event bubbling).
 
 ```html
 <div click.trigger="divClicked() & self">
-  <button click.trigger="buttonClicked()">Button</button>
+  <p>Clicking here will trigger divClicked</p>
+  <button click.trigger="buttonClicked()">Clicking button will NOT trigger divClicked</button>
 </div>
 ```
 
-This setup guarantees that clicking the button will not trigger the `divClicked()` method, as the `self` binding behaviour filters out events bubbling from child elements.
+In this setup, `divClicked()` will only be executed if the click originates directly on the `<div>` element. Clicks on the `<button>` (a child element) will trigger `buttonClicked()` but will *not* bubble up to trigger `divClicked()` due to the `& self` behavior.
 
-### Combining Two-Way Binding with Events
+### Checkbox `change` Event and Two-Way Binding
 
-#### Checkbox Change Event
+Combine event binding with two-way binding for interactive form elements like checkboxes.
 
-A checkbox's change in state can be combined with the `change` event to perform actions in response to user interaction.
-
-```HTML
-<input type="checkbox" checked.bind="agree" change.trigger="onAgreementChange()" />
+```html
+<input type="checkbox" checked.bind="isAgreed" change.trigger="agreementChanged()" id="agreementCheckbox">
+<label for="agreementCheckbox">I agree to the terms</label>
 ```
 
-```javascript
+```typescript
 export class MyViewModel {
-  agree = false;
+  isAgreed = false;
 
-  onAgreementChange() {
-    // Logic to handle checkbox state change
+  agreementChanged() {
+    console.log('Agreement status changed:', this.isAgreed);
+    // Perform actions based on checkbox state
   }
 }
 ```
 
-### Keyboard Interaction
+Here, `checked.bind="isAgreed"` keeps the `isAgreed` property in sync with the checkbox state (two-way binding).  `change.trigger="agreementChanged()"` additionally allows you to execute custom logic when the checkbox state changes.
 
-#### Handling Specific Key Presses
+### Handling Keyboard Events for Specific Keys
 
-To react to specific key presses, such as "Enter" or "Escape", you can inspect the `event` object within your method.
+React to specific key presses within input fields.
 
 ```html
-<input type="text" keydown.trigger="handleKeydown($event)" />
+<input type="text" keydown.trigger="handleKeyDown($event)" placeholder="Type here">
 ```
 
-```javascript
+```typescript
 export class MyViewModel {
-  handleKeydown(event) {
-    switch (event.key) {
-      case 'Enter':
-        // Handle Enter key press
-        break;
-      case 'Escape':
-        // Handle Escape key press
-        break;
-      // Add more cases as needed
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      console.log('Enter key pressed!');
+      // Perform action on Enter key press (e.g., submit form)
+      event.preventDefault(); // Prevent default form submission if inside a form
+    } else if (event.key === 'Escape') {
+      console.log('Escape key pressed!');
+      // Handle Escape key press (e.g., clear input)
     }
+    // ... handle other keys as needed
   }
 }
 ```
 
-### Working with Dynamic Content
+This example shows how to check `event.key` to handle specific keys like "Enter" and "Escape".
 
-#### Event Delegation for Lists
+### Event Delegation for Dynamic Lists
 
-Event delegation is useful for handling events on dynamically generated content, such as a list of items.
+Efficiently handle events on dynamically generated lists using event delegation. Attach a single event listener to the parent `<ul>` or `<div>` instead of individual listeners to each list item.
 
 ```html
-<ul click.trigger="listClicked($event)">
-  <li repeat.for="item of items" data-id="${item.id}">${item.name}</li>
+<ul click.trigger="listItemClicked($event)">
+  <li repeat.for="item of items" data-item-id="${item.id}">${item.name}</li>
 </ul>
 ```
 
-```javascript
+```typescript
 export class MyViewModel {
-  items = []; // Your dynamic array of items
+  items = [{ id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }];
 
-  listClicked(event) {
-    const itemId = event.target.getAttribute('data-id');
-    if (itemId) {
-      // Logic to handle the click event on an item
+  listItemClicked(event: Event) {
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'LI') {
+      const itemId = target.dataset.itemId;
+      console.log(`List item clicked, ID: ${itemId}`);
+      // Logic to handle click on list item with ID itemId
     }
   }
 }
 ```
 
-### Custom Events and Arguments
+The `listItemClicked` handler attached to the `<ul>` will be triggered for clicks on any `<li>` within it due to event bubbling.  We check `event.target` to ensure the click originated from an `<li>` and extract the `data-item-id`.
 
-#### Emitting and Responding to Custom Events
+### Custom Event Communication Between Components
 
-Custom elements can publish custom events with associated data, which parent components can listen for and handle.
+Parent components can listen for and react to custom events dispatched by child custom elements.
 
-Custom element:
+**Custom Element (Child):**
 
-```javascript
-export class CustomElement {
-  // inject host element to dispatch custom event
-  host = resolve(Element);
-  someMethod() {
-    const data = { /* Payload data */ };
-    this.host.dispatchEvent(new CustomEvent({ detail: data }))
+```typescript
+import { bindable, customElement, Element } from 'aurelia';
+import { inject } from '@aurelia/kernel';
+
+@customElement({ name: 'my-button', template: `<button click.trigger="handleClick()">\${label}</button>` })
+@inject(Element)
+export class MyButton {
+  @bindable label = 'Click Me';
+  constructor(private element: Element) {}
+
+  handleClick() {
+    this.element.dispatchEvent(new CustomEvent('button-clicked', {
+      bubbles: true, // Allow event to bubble up
+      detail: { message: 'Button with label "' + this.label + '" was clicked' }
+    }));
   }
 }
 ```
 
-Parent component:
+**Parent Component (Parent):**
 
 ```html
-<custom-element my-custom-event.trigger="handleCustomEvent($event)"></custom-element>
+<my-button label="Action Button" button-clicked.trigger="handleButtonClick($event)"></my-button>
 ```
 
-Parent view-model:
-
-```javascript
+```typescript
 export class ParentViewModel {
-  handleCustomEvent(event) {
-    const data = event.detail;
-    // Logic to handle the custom event and its data
+  handleButtonClick(event: CustomEvent) {
+    console.log('Custom event "button-clicked" received:', event.detail.message);
+    // Handle the custom event
   }
 }
 ```
 
-### Autocomplete and Search Inputs
+When the button in `<my-button>` is clicked, it dispatches a custom event `button-clicked`. The parent component listens for this event using `button-clicked.trigger` and executes `handleButtonClick`, receiving event details in `$event.detail`.
 
-#### Throttling Input for Autocomplete Features
+### Autocomplete with Debounced Input
 
-For features like search or autocomplete, where user input can trigger frequent updates, throttling can prevent excessive processing.
+Implement autocomplete functionality with debouncing to reduce API calls during typing.
 
 ```html
-<input type="text" input.trigger="search($event.target.value) & debounce:300">
+<input type="text" input.trigger="autocomplete($event.target.value) & debounce:500" placeholder="Start typing..." />
+<ul if.bind="suggestions.length">
+  <li repeat.for="suggestion of suggestions">${suggestion}</li>
+</ul>
 ```
 
-```javascript
+```typescript
 export class MyViewModel {
-  search(query) {
-    // Logic to perform search based on query
+  searchQuery = '';
+  suggestions = [];
+
+  autocomplete(query: string) {
+    this.searchQuery = query;
+    if (query.length > 2) {
+      // Simulate API call for suggestions (replace with actual API call)
+      setTimeout(() => {
+        this.suggestions = [`${query} suggestion 1`, `${query} suggestion 2`, `${query} suggestion 3`];
+      }, 300);
+    } else {
+      this.suggestions = [];
+    }
   }
 }
 ```
 
-Here, the `search` function is called only after the user has stopped typing for 300 milliseconds, improving performance and user experience.
+The `autocomplete` method will be called 500ms after the last `input` event. This delay allows users to finish typing before triggering the (simulated) autocomplete API call, improving performance.
 
-These examples showcase the versatility of event binding in Aurelia 2. By understanding and applying these patterns, you can create interactive and efficient applications that respond to user actions in a controlled and performant manner.
+### Event Modifiers: Enhancing Event Handling
 
-### Event modifiers
-
-When you need to ensure some conditions are met before processing an event, you can use event modifiers. Event modifiers can be specified via event syntax, follow by a colon and modifiers:
-
-```
-[event].trigger[:modifier]="[expression]"
-```
-
-By default, Aurelia handles 2 set of common events: mouse and keyboard events. An example is as follow:
+Event modifiers provide a declarative way to apply conditions or actions to event bindings directly in your templates. Event modifiers are appended to the event name after a colon:
 
 ```html
-<button click.trigger:ctrl="onCtrlClick()">Next page</button>
+<element event.trigger[:modifier]="methodName()">
 ```
 
-In the example above, the handler `onCtrlClick()` will only be called when the button is clicked while the `Ctrl` key being pressed.
-Keyboard event sometimes employ even more complex condition, as per the following example:
+Aurelia provides built-in modifiers for common event handling scenarios, and you can extend them with custom mappings.
+
+#### Mouse and Keyboard Event Modifiers
+
+Aurelia has built-in support for modifiers related to mouse buttons and keyboard keys.
+
+**Example: `ctrl` Key Modifier**
+
+Execute `onCtrlClick()` only when the button is clicked *and* the `Ctrl` key is pressed.
 
 ```html
-<textarea keydown.trigger:ctrl+enter="send()">
+<button click.trigger:ctrl="onCtrlClick()">Ctrl + Click</button>
 ```
-In this example, we will only call `send()` when the user hits the `Enter` + `Ctrl` key combo. This example also demonstrates how to use multiple modifiers, they can be separated by the character `+` as delimiter.
 
-#### Prevent default and stop propagation
+**Example: `ctrl+enter` Key Combination**
 
-`preventDefault` and `stopPropagation` are two functions commonly called on any events. Event modifiers can be used to declaratively and easily call those functions, as per following example:
+Execute `send()` only when the `Enter` key is pressed *while* the `Ctrl` key is also held down. Modifiers can be combined using `+`.
+
+```html
+<textarea keydown.trigger:ctrl+enter="send()"></textarea>
+```
+
+#### `prevent` and `stop` Modifiers
+
+Declaratively call `event.preventDefault()` and `event.stopPropagation()` using modifiers.
+
+**Example: `prevent` and `stop` Modifiers**
+
+Call `validate()` when the button is clicked, and also prevent the default button behavior and stop event propagation.
 
 ```html
 <button click.trigger:stop:prevent="validate()">Validate</button>
 ```
 
-#### Mouse button modifiers
+#### Mouse Button Modifiers: `left`, `middle`, `right`
 
-When handling mouse event, it sometimes requires a specific mouse button. By default, Aurelia provides 3 modifiers `left`, `middle` and `right` to support mouse button verification. An example is as follow:
+Handle clicks based on specific mouse buttons.
 
-```html
-<button click.trigger:middle="newTab()">Open in new tab</button>
-```
+**Example: `middle` Mouse Button Modifier**
 
-#### Keyboard mapping
-
-When using keyboard event modifier, sometimes a certain key is used as modifier.
-You can use the char code representing the key as the modifier, like the following example, where we want to handle the combo `Ctrl + K` (notice its the upper `K`):
+Execute `newTab()` only when the button is clicked with the middle mouse button.
 
 ```html
-<textarea keydown.trigger:ctrl+75="openSearchDialog()">
+<button click.trigger:middle="newTab()">Open in New Tab (Middle Click)</button>
 ```
-`75` is the charcode of the upper case letter `K`.
 
-Even though direct, it's not always clear `75` means when looking at the template, so it's often desirable to use the real letter `K` instead.
-Though Aurelia is not taught to, by default, understand the letter `K` means the code `75`. You can teach Aurelia by adding to the `IKeyMapping`:
+#### Keyboard Key Mappings and Custom Modifiers
+
+You can use character codes as modifiers for keyboard events. For example, `75` is the char code for uppercase 'K'.
+
+**Example: `Ctrl + K` using Char Code Modifier**
+
+Execute `openSearchDialog()` when `Ctrl + K` is pressed in the textarea.
+
+```html
+<textarea keydown.trigger:ctrl+75="openSearchDialog()"></textarea>
+```
+
+While using char codes works, it can be less readable. You can create custom key mappings to use more descriptive modifier names. For example, map `upper_k` to the key code for 'K'.
+
+**Custom Key Mapping Setup (in your main application file, e.g., `main.ts`):**
 
 ```typescript
-import { AppTask, IKeyMapping } from 'aurelia';
+import Aurelia, { AppTask, IKeyMapping } from 'aurelia';
 
 Aurelia.register(
   AppTask.creating(IKeyMapping, mapping => {
-    mapping.keys.upper_k = 'K';
+    mapping.keys.upper_k = 'K'; // Map 'upper_k' to 'K'
   })
-)
+);
 ```
-After this enhancement, the `:ctrl+upper_k` modifier will be understood as `ctrl+75` or `ctrl` + upper `K` key.
 
-Note that we cannot use the upper case letter `K` as modifier in HTML because HTML is case insensitive. We use, in this example, `upper_k` as an alternative for that, and add the mapping accordingly.
+Now you can use `:upper_k` as a modifier:
+
+```html
+<textarea keydown.trigger:ctrl+upper_k="openSearchDialog()"></textarea>
+```
+
+This makes your template more readable as `:ctrl+upper_k` is more self-explanatory than `:ctrl+75`.
 
 {% hint style="info" %}
-By default, Aurelia provides mapping for all lower case a-z letters in both keycode and leter so both `:ctrl+a` and `:ctrl+97` works.
-For upper case letter, only keycode mapping is provided, for example: `:65` for upper letter A works.
+Aurelia provides default key mappings for lowercase letters 'a' through 'z' (both as key codes and letter names). For uppercase letters, only key code mappings are provided by default (e.g., `:65` for 'A'). You can extend these mappings as shown above to create more semantic modifier names.
 {% endhint %}
-
 
 ## Conclusion
 
-Event binding in Aurelia 2 is a powerful and intuitive feature that enables you to create dynamic and responsive applications. By understanding the syntax and capabilities of event binding, you can harness the full potential of Aurelia 2 to handle user interactions gracefully and effectively. Remember to leverage the `.trigger` command for most scenarios and reserve `.capture` for special cases where you need to intercept events earlier in the event propagation cycle. With these tools, you can craft a seamless user experience that responds to every click, keypress, and interaction.
+Event binding in Aurelia 2 is a powerful and intuitive mechanism for creating interactive web applications. By mastering the syntax, commands, event modifiers, and advanced techniques like throttling and custom events, you can effectively handle user interactions and build dynamic, responsive user interfaces. Leverage the `.trigger` command for typical scenarios and `.capture` when you need to intercept events during the capturing phase. With these tools and patterns, you can craft a seamless and engaging user experience in your Aurelia 2 applications.

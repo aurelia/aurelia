@@ -99,7 +99,7 @@ export class DirtyChecker {
       return;
     }
     this._elapsedFrames = 0;
-    const tracked = this.tracked;
+    const tracked = this.tracked.slice(0);
     const len = tracked.length;
     let current: DirtyCheckProperty;
     let i = 0;

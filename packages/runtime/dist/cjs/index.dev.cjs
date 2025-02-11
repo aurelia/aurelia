@@ -2140,6 +2140,14 @@ const objectHandler = {
         connectable.observe(target, key);
         return wrap(R$get(target, key, receiver));
     },
+    deleteProperty(target, p) {
+        {
+            // eslint-disable-next-line no-console
+            console.warn(`[DEV:aurelia] deletion of a property will not always be working with Aurelia observation system, as it depends on getter/setter installation.`);
+        }
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        return delete target[p];
+    },
 };
 const arrayHandler = {
     get(target, key, receiver) {
@@ -2677,7 +2685,7 @@ class DirtyChecker {
                 return;
             }
             this._elapsedFrames = 0;
-            const tracked = this.tracked;
+            const tracked = this.tracked.slice(0);
             const len = tracked.length;
             let current;
             let i = 0;
@@ -2807,19 +2815,19 @@ class SetterObserver {
         if (this._coercer !== void 0) {
             newValue = this._coercer.call(void 0, newValue, this._coercionConfig);
         }
+        const oldValue = this._value;
         if (this._observing) {
             if (kernel.areEqual(newValue, this._value)) {
                 return;
             }
-            oV = this._value;
             this._value = newValue;
             this.subs.notifyDirty();
-            this.subs.notify(newValue, oV);
+            this.subs.notify(newValue, oldValue);
             // only call the callback if _value is the same with newValue
             // which means if during subs.notify() the value of this observer is changed
             // then it's the job of that setValue() to call the callback
             if (kernel.areEqual(newValue, this._value)) {
-                this._callback?.(newValue, oV);
+                this._callback?.(newValue, oldValue);
             }
         }
         else {
@@ -2830,7 +2838,7 @@ class SetterObserver {
             // This will happen in one-time, to-view and two-way bindings during bind, meaning that the bind will not actually update the target value.
             // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether bind updated the target or not.
             this._value = this._obj[this._key] = newValue;
-            this._callback?.(newValue, oV);
+            this._callback?.(newValue, oldValue);
         }
     }
     useCallback(callback) {
@@ -2882,9 +2890,6 @@ class SetterObserver {
 (() => {
     subscriberCollection(SetterObserver, null);
 })();
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV = void 0;
 
 const propertyAccessor = new PropertyAccessor();
 const IObserverLocator = /*@__PURE__*/ rtCreateInterface('IObserverLocator', x => x.singleton(ObserverLocator));

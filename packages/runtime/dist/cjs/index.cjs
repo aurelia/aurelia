@@ -1972,6 +1972,9 @@ const F = {
         }
         s.observe(t, e);
         return wrap(M(t, e, r));
+    },
+    deleteProperty(t, e) {
+        return delete t[e];
     }
 };
 
@@ -2536,7 +2539,7 @@ class DirtyChecker {
                 return;
             }
             this.P = 0;
-            const t = this.tracked;
+            const t = this.tracked.slice(0);
             const e = t.length;
             let r;
             let s = 0;
@@ -2655,20 +2658,20 @@ class SetterObserver {
         if (this.C !== void 0) {
             t = this.C.call(void 0, t, this.O);
         }
+        const r = this.v;
         if (this.iO) {
             if (e.areEqual(t, this.v)) {
                 return;
             }
-            q = this.v;
             this.v = t;
             this.subs.notifyDirty();
-            this.subs.notify(t, q);
+            this.subs.notify(t, r);
             if (e.areEqual(t, this.v)) {
-                this.cb?.(t, q);
+                this.cb?.(t, r);
             }
         } else {
             this.v = this.o[this.k] = t;
-            this.cb?.(t, q);
+            this.cb?.(t, r);
         }
     }
     useCallback(t) {
@@ -2723,27 +2726,25 @@ class SetterObserver {
     x(SetterObserver, null);
 })();
 
-let q = void 0;
+const q = new PropertyAccessor;
 
-const W = new PropertyAccessor;
+const W = /*@__PURE__*/ c("IObserverLocator", (t => t.singleton(ObserverLocator)));
 
-const K = /*@__PURE__*/ c("IObserverLocator", (t => t.singleton(ObserverLocator)));
-
-const G = /*@__PURE__*/ c("INodeObserverLocator", (t => t.cachedCallback((t => new DefaultNodeObserverLocator))));
+const K = /*@__PURE__*/ c("INodeObserverLocator", (t => t.cachedCallback((t => new DefaultNodeObserverLocator))));
 
 class DefaultNodeObserverLocator {
     handles() {
         return false;
     }
     getObserver() {
-        return W;
+        return q;
     }
     getAccessor() {
-        return W;
+        return q;
     }
 }
 
-const J = /*@__PURE__*/ c("IComputedObserverLocator", (t => t.singleton(class DefaultLocator {
+const G = /*@__PURE__*/ c("IComputedObserverLocator", (t => t.singleton(class DefaultLocator {
     getObserver(t, e, r, s) {
         const o = new ComputedObserver(t, r.get, r.set, s, true);
         n(t, e, {
@@ -2764,8 +2765,8 @@ class ObserverLocator {
     constructor() {
         this._ = [];
         this.I = e.resolve(U);
-        this.M = e.resolve(G);
-        this.L = e.resolve(J);
+        this.M = e.resolve(K);
+        this.L = e.resolve(G);
     }
     addAdapter(t) {
         this._.push(t);
@@ -2798,7 +2799,7 @@ class ObserverLocator {
         if (this.M.handles(t, e, this)) {
             return this.M.getAccessor(t, e, this);
         }
-        return W;
+        return q;
     }
     getArrayObserver(t) {
         return S(t);
@@ -2834,13 +2835,13 @@ class ObserverLocator {
             }
             break;
         }
-        let n = X(t, r);
+        let n = Q(t, r);
         if (n === void 0) {
-            let e = Q(t);
+            let e = J(t);
             while (e !== null) {
-                n = X(e, r);
+                n = Q(e, r);
                 if (n === void 0) {
-                    e = Q(e);
+                    e = J(e);
                 } else {
                     break;
                 }
@@ -2880,9 +2881,9 @@ const getCollectionObserver = t => {
     return r;
 };
 
-const Q = Object.getPrototypeOf;
+const J = Object.getPrototypeOf;
 
-const X = Object.getOwnPropertyDescriptor;
+const Q = Object.getOwnPropertyDescriptor;
 
 const getObserverLookup = t => {
     let r = t.$observers;
@@ -2895,11 +2896,11 @@ const getObserverLookup = t => {
     return r;
 };
 
-const Y = /*@__PURE__*/ c("IObservation", (t => t.singleton(Observation)));
+const X = /*@__PURE__*/ c("IObservation", (t => t.singleton(Observation)));
 
 class Observation {
     constructor() {
-        this.oL = e.resolve(K);
+        this.oL = e.resolve(W);
         this.V = e.resolve(t.IExpressionParser);
     }
     run(t) {
@@ -3075,7 +3076,7 @@ class ExpressionObserver {
     v(ExpressionObserver);
 })();
 
-const Z = /*@__PURE__*/ (() => {
+const Y = /*@__PURE__*/ (() => {
     function getObserversLookup(t) {
         if (t.$observers === void 0) {
             n(t, "$observers", {
@@ -3246,15 +3247,15 @@ exports.DirtyChecker = DirtyChecker;
 
 exports.ICoercionConfiguration = b;
 
-exports.IComputedObserverLocator = J;
+exports.IComputedObserverLocator = G;
 
 exports.IDirtyChecker = U;
 
-exports.INodeObserverLocator = G;
+exports.INodeObserverLocator = K;
 
-exports.IObservation = Y;
+exports.IObservation = X;
 
-exports.IObserverLocator = K;
+exports.IObserverLocator = W;
 
 exports.Observation = Observation;
 
@@ -3298,7 +3299,7 @@ exports.mixinNoopAstEvaluator = v;
 
 exports.nowrap = nowrap;
 
-exports.observable = Z;
+exports.observable = Y;
 
 exports.subscriberCollection = x;
 //# sourceMappingURL=index.cjs.map

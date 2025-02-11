@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/template-compiler",
-  "version": "2.0.1-dev.202502071434",
+  "version": "2.0.1-dev.202502111125",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -53,9 +53,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/metadata": "2.0.1-dev.202502071434",
-    "@aurelia/kernel": "2.0.1-dev.202502071434",
-    "@aurelia/expression-parser": "2.0.1-dev.202502071434"
+    "@aurelia/metadata": "2.0.1-dev.202502111125",
+    "@aurelia/kernel": "2.0.1-dev.202502111125",
+    "@aurelia/expression-parser": "2.0.1-dev.202502111125"
   },
   "devDependencies": {
     "typescript": "5.4.2"

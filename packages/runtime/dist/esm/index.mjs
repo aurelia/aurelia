@@ -1,8 +1,8 @@
 import { DestructuringAssignmentSingleExpression as t, IExpressionParser as e } from "@aurelia/expression-parser";
 
-import { DI as r, isObjectOrFunction as s, isFunction as n, isArray as i, isArrayIndex as a, isSet as o, isMap as c, areEqual as u, Registration as l, resolve as h, IPlatform as f, isObject as d, createLookup as p, emptyObject as v } from "@aurelia/kernel";
+import { DI as r, isObjectOrFunction as s, isFunction as n, isArray as i, isArrayIndex as a, isSet as o, isMap as c, areEqual as u, Registration as l, resolve as h, IPlatform as f, isObject as d, createLookup as p, emptyObject as b } from "@aurelia/kernel";
 
-import { Metadata as b } from "@aurelia/metadata";
+import { Metadata as v } from "@aurelia/metadata";
 
 const w = Object.prototype.hasOwnProperty;
 
@@ -32,9 +32,9 @@ const O = String;
 
 const A = r.createInterface;
 
-const E = b.get;
+const E = v.get;
 
-const m = b.define;
+const m = v.define;
 
 const createMappedError = (t, ...e) => new Error(`AUR${O(t).padStart(4, "0")}:${e.map(O)}`);
 
@@ -106,8 +106,8 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
     const f = "New";
     const d = "Template";
     const p = "Unary";
-    const v = "CallScope";
-    const b = "CallMember";
+    const b = "CallScope";
+    const v = "CallMember";
     const w = "CallFunction";
     const g = "CallGlobal";
     const y = "AccessMember";
@@ -249,7 +249,7 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                 }
             }
 
-          case v:
+          case b:
             {
                 const e = j(a, t.name, t.ancestor);
                 if (e == null) {
@@ -271,7 +271,7 @@ const {astAssign: S, astEvaluate: x, astBind: R, astUnbind: P} = /*@__PURE__*/ (
                 throw createMappedError(111, t.name);
             }
 
-          case b:
+          case v:
             {
                 const e = astEvaluate(t.object, a, H, $);
                 if (e == null) {
@@ -1118,8 +1118,8 @@ const F = /*@__PURE__*/ (() => {
         let i = 0, a = 0;
         let o, c, u;
         let l, h, f;
-        let d, p, v;
-        let b, w;
+        let d, p, b;
+        let v, w;
         let g, y, C, O;
         let A, E, m, S;
         while (true) {
@@ -1136,31 +1136,31 @@ const F = /*@__PURE__*/ (() => {
             f = e[i];
             d = n(o, c);
             if (d > 0) {
-                b = o;
+                v = o;
                 w = l;
                 o = c;
                 l = h;
-                c = b;
+                c = v;
                 h = w;
             }
             p = n(o, u);
             if (p >= 0) {
-                b = o;
+                v = o;
                 w = l;
                 o = u;
                 l = f;
                 u = c;
                 f = h;
-                c = b;
+                c = v;
                 h = w;
             } else {
-                v = n(c, u);
-                if (v > 0) {
-                    b = c;
+                b = n(c, u);
+                if (b > 0) {
+                    v = c;
                     w = h;
                     c = u;
                     h = f;
-                    u = b;
+                    u = v;
                     f = w;
                 }
             }
@@ -1970,6 +1970,9 @@ const Z = {
         }
         s.observe(t, e);
         return wrap(q(t, e, r));
+    },
+    deleteProperty(t, e) {
+        return delete t[e];
     }
 };
 
@@ -2534,7 +2537,7 @@ class DirtyChecker {
                 return;
             }
             this.P = 0;
-            const t = this.tracked;
+            const t = this.tracked.slice(0);
             const e = t.length;
             let r;
             let s = 0;
@@ -2653,20 +2656,20 @@ class SetterObserver {
         if (this.C !== void 0) {
             t = this.C.call(void 0, t, this.O);
         }
+        const e = this.v;
         if (this.iO) {
             if (u(t, this.v)) {
                 return;
             }
-            it = this.v;
             this.v = t;
             this.subs.notifyDirty();
-            this.subs.notify(t, it);
+            this.subs.notify(t, e);
             if (u(t, this.v)) {
-                this.cb?.(t, it);
+                this.cb?.(t, e);
             }
         } else {
             this.v = this.o[this.k] = t;
-            this.cb?.(t, it);
+            this.cb?.(t, e);
         }
     }
     useCallback(t) {
@@ -2721,27 +2724,25 @@ class SetterObserver {
     j(SetterObserver, null);
 })();
 
-let it = void 0;
+const it = new PropertyAccessor;
 
-const at = new PropertyAccessor;
+const at = /*@__PURE__*/ A("IObserverLocator", (t => t.singleton(ObserverLocator)));
 
-const ot = /*@__PURE__*/ A("IObserverLocator", (t => t.singleton(ObserverLocator)));
-
-const ct = /*@__PURE__*/ A("INodeObserverLocator", (t => t.cachedCallback((t => new DefaultNodeObserverLocator))));
+const ot = /*@__PURE__*/ A("INodeObserverLocator", (t => t.cachedCallback((t => new DefaultNodeObserverLocator))));
 
 class DefaultNodeObserverLocator {
     handles() {
         return false;
     }
     getObserver() {
-        return at;
+        return it;
     }
     getAccessor() {
-        return at;
+        return it;
     }
 }
 
-const ut = /*@__PURE__*/ A("IComputedObserverLocator", (t => t.singleton(class DefaultLocator {
+const ct = /*@__PURE__*/ A("IComputedObserverLocator", (t => t.singleton(class DefaultLocator {
     getObserver(t, e, r, s) {
         const n = new ComputedObserver(t, r.get, r.set, s, true);
         g(t, e, {
@@ -2762,8 +2763,8 @@ class ObserverLocator {
     constructor() {
         this._ = [];
         this.I = h(st);
-        this.M = h(ct);
-        this.L = h(ut);
+        this.M = h(ot);
+        this.L = h(ct);
     }
     addAdapter(t) {
         this._.push(t);
@@ -2796,7 +2797,7 @@ class ObserverLocator {
         if (this.M.handles(t, e, this)) {
             return this.M.getAccessor(t, e, this);
         }
-        return at;
+        return it;
     }
     getArrayObserver(t) {
         return F(t);
@@ -2832,13 +2833,13 @@ class ObserverLocator {
             }
             break;
         }
-        let r = ht(t, e);
+        let r = lt(t, e);
         if (r === void 0) {
-            let s = lt(t);
+            let s = ut(t);
             while (s !== null) {
-                r = ht(s, e);
+                r = lt(s, e);
                 if (r === void 0) {
-                    s = lt(s);
+                    s = ut(s);
                 } else {
                     break;
                 }
@@ -2878,9 +2879,9 @@ const getCollectionObserver = t => {
     return e;
 };
 
-const lt = Object.getPrototypeOf;
+const ut = Object.getPrototypeOf;
 
-const ht = Object.getOwnPropertyDescriptor;
+const lt = Object.getOwnPropertyDescriptor;
 
 const getObserverLookup = t => {
     let e = t.$observers;
@@ -2893,11 +2894,11 @@ const getObserverLookup = t => {
     return e;
 };
 
-const ft = /*@__PURE__*/ A("IObservation", (t => t.singleton(Observation)));
+const ht = /*@__PURE__*/ A("IObservation", (t => t.singleton(Observation)));
 
 class Observation {
     constructor() {
-        this.oL = h(ot);
+        this.oL = h(at);
         this.V = h(e);
     }
     run(t) {
@@ -3073,7 +3074,7 @@ class ExpressionObserver {
     I(ExpressionObserver);
 })();
 
-const dt = /*@__PURE__*/ (() => {
+const ft = /*@__PURE__*/ (() => {
     function getObserversLookup(t) {
         if (t.$observers === void 0) {
             g(t, "$observers", {
@@ -3098,7 +3099,7 @@ const dt = /*@__PURE__*/ (() => {
             };
             s = true;
         } else {
-            n = v;
+            n = b;
         }
         if (arguments.length === 0) {
             return function(t, e) {
@@ -3224,5 +3225,5 @@ function nowrap(t, e) {
     }
 }
 
-export { N as AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, K as ConnectableSwitcher, DirtyCheckProperty, nt as DirtyCheckSettings, DirtyChecker, k as ICoercionConfiguration, ut as IComputedObserverLocator, st as IDirtyChecker, ct as INodeObserverLocator, ft as IObservation, ot as IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, rt as ProxyObservable, Scope, SetterObserver, S as astAssign, R as astBind, x as astEvaluate, P as astUnbind, batch, cloneIndexMap, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, I as mixinNoopAstEvaluator, nowrap, dt as observable, j as subscriberCollection };
+export { N as AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, K as ConnectableSwitcher, DirtyCheckProperty, nt as DirtyCheckSettings, DirtyChecker, k as ICoercionConfiguration, ct as IComputedObserverLocator, st as IDirtyChecker, ot as INodeObserverLocator, ht as IObservation, at as IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, rt as ProxyObservable, Scope, SetterObserver, S as astAssign, R as astBind, x as astEvaluate, P as astUnbind, batch, cloneIndexMap, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, I as mixinNoopAstEvaluator, nowrap, ft as observable, j as subscriberCollection };
 //# sourceMappingURL=index.mjs.map

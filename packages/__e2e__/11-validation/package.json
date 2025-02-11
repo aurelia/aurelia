@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.22",
+  "version": "2.0.0-beta.23",
   "port": 9011,
   "scripts": {
     "start": "webpack-dev-server",
@@ -27,8 +27,8 @@
     "@types/node": "^20.16.10",
     "@playwright/test": "1.39.0",
     "playwright-watch": "1.3.23",
-    "aurelia": "2.0.0-beta.22",
-    "@aurelia/validation": "2.0.0-beta.22",
-    "@aurelia/validation-html": "2.0.0-beta.22"
+    "aurelia": "2.0.0-beta.23",
+    "@aurelia/validation": "2.0.0-beta.23",
+    "@aurelia/validation-html": "2.0.0-beta.23"
   }
 }

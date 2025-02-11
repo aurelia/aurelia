@@ -422,15 +422,20 @@ export const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRendere
 
 export const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer implements IRenderer {
   public readonly target = InstructionType.refBinding;
+  public constructor() {
+    RefBinding.mix();
+  }
   public render(
     renderingCtrl: IHydratableController,
     target: INode,
     instruction: RefBindingInstruction,
     platform: IPlatform,
     exprParser: IExpressionParser,
+    observerLocator: IObserverLocator
   ): void {
     renderingCtrl.addBinding(new RefBinding(
       renderingCtrl.container,
+      observerLocator,
       ensureExpression(exprParser, instruction.from, etIsProperty),
       getRefTarget(target, instruction.to),
       renderingCtrl.strict ?? false,

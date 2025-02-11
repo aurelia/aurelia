@@ -1,12 +1,10 @@
 # Text interpolation
 
-Text interpolation allows you to display values within your template views. By leveraging `${}`, a dollar sign followed by opening and closing curly braces, you can display values inside your views. The syntax will be familiar to you if you are familiar with [template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template\_literals).
+Text interpolation allows you to display dynamic values in your views. By wrapping an expression with `${}`, you can render variables, object properties, function results, and more within your HTML. This is conceptually similar to [JavaScript template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals).
 
-### Displaying values with interpolation
+## Displaying values with interpolation
 
-Interpolation can be used to display the value of variables within your HTML templates, object properties and other forms of valid data.
-
-To show how interpolation works, here is an example.
+Interpolation can display the values of view model properties, object fields, and any valid expression. As an example, consider the following code:
 
 {% code title="my-app.ts" %}
 ```typescript
@@ -22,24 +20,27 @@ export class MyApp {
 ```
 {% endcode %}
 
-Notice how the variable we reference in our HTML template is the same as it is defined inside of our view model? Anything specified on our view model class is accessible in the view. Aurelia will replace `${myName}` with `Aurelia` think of it as a fancy string replacement. All properties defined in your view model will be accessible inside your templates.
+Here, the template references the same property name, `myName`, that is defined in the view model. Aurelia automatically replaces `${myName}` with "Aurelia" at runtime. Any property you define on your class can be directly accessed inside your templates.
 
-### Template expressions
+## Template expressions
 
-A template expression allows you to perform code operations inside of `${}` we learned about earlier. You can perform addition, subtraction and even call functions inside of interpolation.
+Expressions inside `${}` can perform operations such as arithmetic, function calls, or ternaries:
 
-In the following simple example, we are adding two and two together. The value that will be displayed will be `4`.
-
+{% code title="Addition example" %}
 ```html
 <p>Quick maths: ${2 + 2}</p>
+<!-- Outputs "Quick maths: 4" -->
 ```
+{% endcode %}
 
-You can call functions with parameters if you have a function inside your view model.
+### Calling functions
+
+You can call functions defined on your view model. For example:
 
 {% code title="my-app.ts" %}
 ```typescript
 export class MyApp {
-  adder(val1, val2) {
+  adder(val1: number, val2: number): number {
     return parseInt(val1) + parseInt(val2);
   }
 }
@@ -49,40 +50,53 @@ export class MyApp {
 {% code title="my-app.html" %}
 ```html
 <p>Behold mathematics, 6 + 1 = ${adder(6, 1)}</p>
+<!-- Outputs "Behold mathematics, 6 + 1 = 7" -->
 ```
 {% endcode %}
 
-You can also use ternaries inside of your interpolation expressions:
+### Using ternaries
 
+You can also use ternary operations:
+
+{% code title="my-app.html" %}
 ```html
 <p>${isTrue ? 'True' : 'False'}</p>
 ```
+{% endcode %}
 
-### Optional Syntax
+This will display either "True" or "False" depending on the boolean value of `isTrue`.
 
-Also supported in template expressions is optional syntax. Aurelia supports the following optional syntax in templates.
+## Optional Syntax
 
-* `??`
-* `?.`
-* `?.()`
-* `?.[]`
+Aurelia supports the following optional chaining and nullish coalescing operators in templates:
+
+- `??`
+- `?.`
+- `?.()`
+- `?.[]`
 
 {% hint style="warning" %}
-While Aurelia supports a few optional syntaxes, `??=` is not supported.
+Note that `??=` is not supported.
 {% endhint %}
 
-Using optional syntax and nullish coalescing allows us to create safer expressions without the need for `if.bind` or boilerplate code in view models.
+You can use these operators to safely handle null or undefined values:
 
+{% code title="Optional chaining and nullish coalescing" %}
 ```html
-${myValue ?? 'Some default'}
+<p>User Name: ${user?.name ?? 'Anonymous'}</p>
 ```
+{% endcode %}
 
-This can help clean up what otherwise might have been long and complex ternary expressions to achieve the above result.
+This helps avoid lengthy if-statements or ternary checks in your view model when dealing with potentially undefined data.
 
-### Notes on syntax
+## Notes on syntax
 
-You would be forgiven for thinking that you can do pretty much anything that Javascript allows you to do, but there are limitations in what you can do inside of interpolation you need to be aware of.
+While template interpolation is powerful, there are a few limitations to keep in mind:
 
-1. Expressions cannot be chained using `;` or `,`
-2. You cannot use primitives such as `Boolean`, `String`, `instanceOf`, `typeof` and so on
-3. You can only use the pipe separator `|` when using value converters but not as a bitwise operator
+1. You cannot chain expressions using `;` or `,`.
+2. You cannot use certain primitives or operators such as `Boolean`, `String`, `instanceof`, or `typeof`.
+3. The pipe character `|` is reserved for Aurelia value converters and cannot be used as a bitwise operator inside interpolation.
+
+{% hint style="info" %}
+For complex transformations or formatting, consider using Aurelia’s value converters instead of cramming too much logic into an interpolation.
+{% endhint %}

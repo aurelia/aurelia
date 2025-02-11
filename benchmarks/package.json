@@ -8,18 +8,18 @@
     "build:runtime-html": "cd ../packages/runtime-html && npm run build",
     "build:all": "concurrently \"npm run build:kernel\" \"npm run build:runtime\" \"npm run build:runtime-html\"",
     "bench": "npm run bench rerender1k && npm run bench:startup1k && npm run bench:update1k && npm run bench:rerender1k-big && npm run bench:startup1k-big",
-    "bench:rerender1k-big": "tach --config rerender-1k-big-template.json --json-file results/rerender-1k-big-template.json",
-    "bench:startup1k-big": "tach --config startup-1k-big-template.json --json-file results/startup-1k-big-template.json",
-    "bench:rerender10k": "tach --config rerender-10k.json --json-file results/rerender-10k.json",
-    "bench:rerender10k-ce": "tach --config rerender-10k-ce.json --json-file results/rerender-10k-ce.json",
-    "bench:startup10k": "tach --config startup-10k.json --json-file results/startup-10k.json",
-    "bench:startup10k-ce": "tach --config startup-10k-ce.json --json-file results/startup-10k-ce.json",
-    "bench:update1k": "tach --config update-1k.json --json-file results/update-1k.json",
-    "bench:repeat-expr": "tach --config app-repeat-keyed-expr/bench.json --json-file results/startup-app-repeat-keyed-expr.json",
-    "bench:repeat-string": "tach --config app-repeat-keyed-string/bench.json --json-file results/startup-app-repeat-keyed-string.json"
+    "bench:rerender10k": "tach --config app-repeat-view/rerender.json --json-file results/repeat-view-rerender-10k.json",
+    "bench:startup10k": "tach --config app-repeat-view/startup.json --json-file results/repeat-view-startup-10k.json",
+    "bench:update1k": "tach --config app-repeat-view/update-1k.json --json-file results/repeat-view-update-1k.json",
+    "bench:rerender1k-big": "tach --config app-repeat-view-big-template/rerender-1k-big-template.json --json-file results/repeat-view-rerender-1k-big-template.json",
+    "bench:startup1k-big": "tach --config app-repeat-view-big-template/startup-1k-big-template.json --json-file results/repeat-view-startup-1k-big-template.json",
+    "bench:rerender10k-ce": "tach --config app-repeat-ce/rerender-ce.json --json-file results/repeat-ce-rerender-10k.json",
+    "bench:startup10k-ce": "tach --config app-repeat-ce/startup-ce.json --json-file results/repeat-ce-startup-10k.json",
+    "bench:repeat-expr": "tach --config app-repeat-view-keyed-expr/bench.json --json-file results/app-repeat-view-keyed-expr.json",
+    "bench:repeat-string": "tach --config app-repeat-view-keyed-string/bench.json --json-file results/app-repeat-view-keyed-string.json"
   },
   "dependencies": {
     "tachometer": "0.7.1"
   },
-  "version": "2.0.0-beta.22"
+  "version": "2.0.0-beta.23"
 }

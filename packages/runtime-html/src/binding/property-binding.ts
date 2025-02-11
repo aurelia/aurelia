@@ -80,7 +80,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public updateSource(value: unknown): void {
-    astAssign(this.ast, this._scope!, this, value);
+    astAssign(this.ast, this._scope!, this, null, value);
   }
 
   public handleChange(): void {

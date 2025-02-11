@@ -42,7 +42,12 @@ export class ComputedObserver<T extends object> implements
   public type: AccessorType = atObserver;
 
   /** @internal */
+  private _oldValue: unknown = void 0;
+
+  /** @internal */
   private _value: unknown = void 0;
+
+  private _notified = false;
 
   // todo: maybe use a counter allow recursive call to a certain level
   /** @internal */
@@ -107,6 +112,7 @@ export class ComputedObserver<T extends object> implements
     if (this._isDirty) {
       this.compute();
       this._isDirty = false;
+      this._notified = false;
     }
     return this._value;
   }
@@ -163,8 +169,10 @@ export class ComputedObserver<T extends object> implements
     // and it should be handled similarly in subscribeToCollection
     // though not handling for now, and wait until the merge of normal + collection subscription
     if (this.subs.add(subscriber) && this.subs.count === 1) {
-      this.compute();
+      // start collecting dependencies
+      this._oldValue = this.compute();
       this._isDirty = false;
+      this._notified = false;
     }
   }
 
@@ -172,6 +180,8 @@ export class ComputedObserver<T extends object> implements
     if (this.subs.remove(subscriber) && this.subs.count === 0) {
       this._isDirty = true;
       this.obs.clearAll();
+      this._oldValue = void 0;
+      this._notified = true;
     }
   }
 

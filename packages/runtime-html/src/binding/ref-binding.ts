@@ -5,8 +5,10 @@ import {
   type ISubscriber,
   type Scope,
   type IAstEvaluator,
+  connectable,
+  IObserverLocator,
 } from '@aurelia/runtime';
-import { createPrototypeMixer, mixinAstEvaluator } from './binding-utils';
+import { createPrototypeMixer, mixinAstEvaluator, mixingBindingLimited, mixinUseScope } from './binding-utils';
 import { type IsBindingBehavior } from '@aurelia/expression-parser';
 import { IBinding } from './interfaces-bindings';
 import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
@@ -14,6 +16,9 @@ import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle
 export interface RefBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator { }
 export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber {
   public static mix = /*@__PURE__*/ createPrototypeMixer(() => {
+    connectable(RefBinding, null!);
+    mixingBindingLimited(RefBinding, () => 'updateSource');
+    mixinUseScope(RefBinding);
     mixinAstEvaluator(RefBinding);
   });
 
@@ -29,6 +34,7 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public constructor(
     locator: IServiceLocator,
+    public oL: IObserverLocator,
     public ast: IsBindingBehavior,
     public target: object,
     public strict: boolean,

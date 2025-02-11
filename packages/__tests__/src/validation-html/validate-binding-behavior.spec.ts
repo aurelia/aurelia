@@ -34,7 +34,7 @@ import {
   type ControllerValidateResult,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
-import { Organization, Person } from '../validation/_test-resources.js';
+import { Address, Organization, Person } from '../validation/_test-resources.js';
 
 describe('validation-html/validate-binding-behavior.spec.ts', function () {
   describe('validate-binding-behavior', function () {
@@ -1695,6 +1695,74 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       component.removeItem(component.lineItems[0]);
       await yieldTasks();
       assert.strictEqual(validationController.bindings.size, 0, 'validationController.bindings.size 11');
+
+      await stop(true);
+    });
+
+    it('works for conditionally accessed fields', async function () {
+      class MyApp {
+        public readonly person: Person = new Person((void 0)!, (void 0)!);
+        public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+        private readonly fields: (keyof Person)[] = ['name', 'age'];
+        private readonly addressField: keyof Person = 'address';
+        private readonly line1Field: keyof Address = 'line1';
+        public constructor()  {
+          resolve(IValidationRules)
+          .on(this.person)
+          .ensure(x => x.name)
+          .required()
+          .ensure(x => x.age)
+          .required()
+          .min(18)
+          .ensure(x => x.address.line1)
+          .required()
+          .withMessage('Line1 is required.');
+        }
+      }
+
+      const { startPromise, stop, component, platform } = createFixture(
+        `<input repeat.for="field of fields" value.two-way="person[field] & validate"></input><input value.two-way="person[addressField][line1Field] & validate"></input>`,
+        MyApp,
+        [ValidationHtmlConfiguration]
+      );
+      await startPromise;
+      const domQueue = platform.domQueue;
+
+      // round #1
+      const validationController = component.validationController;
+      let validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['address.line1', false, 'Line1 is required.'], ['name', false, 'Name is required.'], ['age', false, 'Age is required.'], ['age', true, undefined]],
+        'validationResult.results 1'
+      );
+
+      // round #2
+      component.person.age = 7;
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult2.valid 2');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['address.line1', false, 'Line1 is required.'], ['name', false, 'Name is required.'], ['age', true, undefined], ['age', false, 'Age must be at least 18.']],
+        'validationResult.results 2'
+      );
+
+      // round #3
+      component.person.name = 'foo';
+      component.person.age = 18;
+      component.person.address = { pin: 123, city: 'foo', line1: 'foo' };
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, true, 'validationResult.valid 3');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['address.line1', true, undefined], ['name', true, undefined], ['age', true, undefined], ['age', true, undefined]],
+        'validationResult.results 3'
+      );
 
       await stop(true);
     });

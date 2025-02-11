@@ -1,7 +1,7 @@
 {
   "name": "@aurelia/monorepo",
   "private": true,
-  "version": "2.0.0-beta.22",
+  "version": "2.0.0-beta.23",
   "packageManager": "npm@8.19.2",
   "workspaces": [
     "packages/kernel",
@@ -51,6 +51,7 @@
     "packages/__e2e__/10-router-lite-none-history-with-hash",
     "packages/__e2e__/11-validation",
     "packages/__e2e__/12-type-check",
+    "packages/__e2e__/13-hmr-convention-routing-memory-leak",
     "benchmarks",
     "examples/1kcomponents",
     "examples/doc-example",
@@ -121,7 +122,7 @@
     "@typescript-eslint/eslint-plugin": "6.10.0",
     "@typescript-eslint/parser": "6.10.0",
     "chalk": "4.1.2",
-    "chromedriver": "131.0.4",
+    "chromedriver": "133.0.0",
     "codecov": "^3.8.3",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
@@ -217,7 +218,7 @@
     }
   },
   "volta": {
-    "node": "18.19.0",
+    "node": "20.16.0",
     "npm": "8.19.2"
   }
 }

@@ -94,6 +94,14 @@ const objectHandler: ProxyHandler<object> = {
 
     return wrap(R$get(target, key, receiver));
   },
+  deleteProperty(target, p) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn(`[DEV:aurelia] deletion of a property will not always be working with Aurelia observation system, as it depends on getter/setter installation.`);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    return delete (target as IIndexable)[p];
+  },
 };
 
 const arrayHandler: ProxyHandler<unknown[]> = {

@@ -167,9 +167,6 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(input.value, '');
       component.v = 'v';
       assert.strictEqual(changeCount, 1);
-      assert.strictEqual(input.value, '');
-      flush();
-      assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
       input.value = 'vv';
@@ -204,7 +201,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       component.v = 'v';
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
-      assert.strictEqual(input.value, '', 'err4');
+      assert.strictEqual(input.value, '0', 'err4');
       flush();
       assert.strictEqual(changeCount, 1, 'err5');
       assert.strictEqual(input.value, '0', 'err6');
@@ -277,7 +274,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       component.v = 'v';
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
-      assert.strictEqual(input.value, '', 'err4');
+      assert.strictEqual(input.value, '0', 'err4');
       flush();
       assert.strictEqual(changeCount, 1, 'err5');
       assert.strictEqual(input.value, '0', 'err6');

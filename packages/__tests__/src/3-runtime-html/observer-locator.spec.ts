@@ -1,4 +1,4 @@
-import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, flush, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
   CheckedObserver,
@@ -353,6 +353,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         handleChange: () => v = 1
       });
       obj.prop = 2;
+      flush();
       assert.strictEqual(v, 1);
     });
 
@@ -364,6 +365,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         handleChange: () => v = 1
       });
       obj.splice(0, 1, { prop: 2 });
+      flush();
       assert.strictEqual(v, 1);
     });
   });

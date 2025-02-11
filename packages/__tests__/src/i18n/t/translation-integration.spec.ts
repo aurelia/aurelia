@@ -1716,8 +1716,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     }
 
     const [
-      { au: au1, host: host1, vm: appOne, queue: q1 },
-      { au: au2, host: host2, vm: appTwo, queue: q2 },
+      { au: au1, host: host1, vm: appOne },
+      { au: au2, host: host2, vm: appTwo },
     ] = await Promise.all([createAppOne(), createAppTwo()]);
 
     assert.html.textContent(host1, 'ab');
@@ -1725,11 +1725,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
     appOne.key11 = 'key13';
     appOne.key12 = 'key14';
-    q1.flush();
+    flush();
 
     appTwo.key21 = 'key23';
     appTwo.key22 = 'key24';
-    q2.flush();
+    flush();
 
     assert.html.textContent(host1, 'ef');
     assert.html.textContent(host2, 'gh');

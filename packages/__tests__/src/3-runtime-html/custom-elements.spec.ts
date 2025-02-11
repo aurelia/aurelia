@@ -816,6 +816,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual(count, 0);
       component.value = 'helo';
+      flush();
       assert.strictEqual(count, 1);
     });
 
@@ -852,17 +853,17 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       );
 
       component.value = 'helo';
-      assert.deepStrictEqual(calls, [['message', 'helo', 'hey']]);
-
-      component.v = 'hi';
-
+      flush();
       assert.deepStrictEqual(calls, [
-        ['message', 'helo', 'hey'],
-        // this last argument is wrong, it should be hello
-        // but because it doesn't eagerly observe the getter
-        // so the computed observer of `m` still has the original value assigned during binding phase
-        // leaving this like this for now, since it doesnt need to commit to observation early, also for the old value
-        ['m', 'hi', 'hey']
+        ['message', 'helo', undefined],
+        ['m', 'helo', undefined]
+      ]);
+
+      calls.length = 0;
+      component.v = 'hi';
+      flush();
+      assert.deepStrictEqual(calls, [
+        ['m', 'hi', 'helo']
       ]);
     });
   });

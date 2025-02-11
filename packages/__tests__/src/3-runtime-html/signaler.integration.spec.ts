@@ -6,7 +6,6 @@ import { assert, createFixture, TestContext } from '@aurelia/testing';
 describe('3-runtime-html/signaler.integration.spec.ts', function () {
   it('1 non-observed input and 2 observed inputs - toView', async function () {
     const ctx = TestContext.create();
-    const tq = ctx.platform.domQueue;
 
     ctx.container.register(LoggerConfiguration.create({ sinks: [ConsoleSink], level: LogLevel.warn }));
     const au = new Aurelia(ctx.container);
@@ -47,27 +46,27 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
 
     component.increment();
     assert.visibleTextEqual(host, '1', 'assert #2');
-    tq.flush();
+    flush();
     assert.visibleTextEqual(host, '2', 'assert #3');
 
     component.factor = 2;
     assert.visibleTextEqual(host, '2', 'assert #4');
-    tq.flush();
+    flush();
     assert.visibleTextEqual(host, '6', 'assert #5');
 
     component.increment();
     assert.visibleTextEqual(host, '6', 'assert #6');
-    tq.flush();
+    flush();
     assert.visibleTextEqual(host, '8', 'assert #7');
 
     component.input = 10;
     assert.visibleTextEqual(host, '8', 'assert #8');
-    tq.flush();
+    flush();
     assert.visibleTextEqual(host, '20', 'assert #9');
 
     component.increment();
     assert.visibleTextEqual(host, '20', 'assert #10');
-    tq.flush();
+    flush();
     assert.visibleTextEqual(host, '22', 'assert #11');
 
     await au.stop();
@@ -81,7 +80,6 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
     ]) {
       it(expr, async function () {
         const ctx = TestContext.create();
-        const tq = ctx.platform.domQueue;
 
         ctx.container.register(LoggerConfiguration.create({ $console: console, level: LogLevel.warn }));
         const au = new Aurelia(ctx.container);
@@ -115,7 +113,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '012', 'assert #2');
-        tq.flush();
+        flush();
         assert.visibleTextEqual(host, '212', 'assert #3');
 
         items[0] = 3;
@@ -124,20 +122,20 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '212', 'assert #3');
-        tq.flush();
+        flush();
         assert.visibleTextEqual(host, '345', 'assert #4');
 
         items.reverse();
         assert.visibleTextEqual(host, '345', 'assert #5');
         if (expr.includes('oneTime')) {
-          tq.flush();
+          flush();
           assert.visibleTextEqual(host, '345', 'assert #6');
           component.updateItem();
           assert.visibleTextEqual(host, '345', 'assert #7');
-          tq.flush();
+          flush();
           assert.visibleTextEqual(host, '543', 'assert #8');
         } else {
-          tq.flush();
+          flush();
           assert.visibleTextEqual(host, '543', 'assert #9');
         }
 
@@ -145,7 +143,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '543', 'assert #10');
-        tq.flush();
+        flush();
         assert.visibleTextEqual(host, '563', 'assert #11');
 
         await au.stop();
@@ -182,11 +180,11 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
     assert.strictEqual(minusCount, 1);
     container.get(ISignaler).dispatchSignal('add');
 
+    flush();
     assert.strictEqual(addCount, 2);
     assert.strictEqual(minusCount, 2);
     container.get(ISignaler).dispatchSignal('minus');
 
-    flush();
     assertText('1');
   });
 });

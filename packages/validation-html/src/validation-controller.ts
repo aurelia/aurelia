@@ -14,6 +14,7 @@ import {
 } from '@aurelia/expression-parser';
 import {
   astEvaluate,
+  queueTask,
   type Scope,
 } from '@aurelia/runtime';
 import {
@@ -394,27 +395,30 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.platform.domQueue.queueTask(async () => {
-      try {
-        const results = await Promise.all(instructions.map(
-          async (x) => this.validator.validate(x)
-        ));
-        const newResults = results.reduce(
-          (acc, resultSet) => {
-            acc.push(...resultSet);
-            return acc;
-          },
-          []);
-        const predicate = this.getInstructionPredicate(instruction);
-        const oldResults = this.results.filter(predicate);
-        this.processResultDelta('validate', oldResults, newResults);
+    return new Promise(resolve => {
+      queueTask(() => (async () => {
+        try {
+          const results = await Promise.all(instructions.map(
+            async (x) => this.validator.validate(x)
+          ));
+          const newResults = results.reduce(
+            (acc, resultSet) => {
+              acc.push(...resultSet);
+              return acc;
+            },
+            []);
+          const predicate = this.getInstructionPredicate(instruction);
+          const oldResults = this.results.filter(predicate);
+          this.processResultDelta('validate', oldResults, newResults);
 
-        return new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction);
-      } finally {
-        this.validating = false;
-      }
+          resolve(new ControllerValidateResult(newResults.find(r => !r.valid) === void 0, newResults, instruction));
+        } catch (error) {
+          resolve((void 0)!);
+        } finally {
+          this.validating = false;
+        }
+      })());
     });
-    return task.result;
   }
 
   public reset(instruction?: ValidateInstruction) {

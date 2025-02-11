@@ -72,6 +72,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
           }
         );
 
+        flush();
         assertText('Aurelia!!');
 
         await tearDown();

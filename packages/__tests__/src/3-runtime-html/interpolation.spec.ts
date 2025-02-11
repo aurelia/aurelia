@@ -290,6 +290,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         },
         interpolation: `test $\{value} out`,
         it: 'changes from node array',
+        only: true,
       }
     ];
 

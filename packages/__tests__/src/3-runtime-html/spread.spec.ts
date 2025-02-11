@@ -1,5 +1,6 @@
 import { Constructable, resolve } from '@aurelia/kernel';
 import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode, ValueConverter } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/spread.spec.ts', function () {
@@ -29,7 +30,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         ctx.type(appHost, 'input', 'hello');
         assert.strictEqual(component.message, 'hello');
         component.message = 'Aurelia';
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
       },
     });
@@ -60,10 +61,10 @@ describe('3-runtime-html/spread.spec.ts', function () {
           capture: true,
         }),
       ],
-      assertFn: ({ platform, component, appHost }) => {
+      assertFn: ({ component, appHost }) => {
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
         component.message = 'hello';
-        platform.domQueue.flush();
+        flush();
         assert.strictEqual(appHost.querySelector('input').value, 'hello');
       },
     });
@@ -353,7 +354,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('spreads with ... syntax', function () {
-      const { assertHtml, component, flush } = createFixture('<el repeat.for="item of items" ...item>', {
+      const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...item>', {
         items: [
           { id: 1, class: 'a' },
           { id: 2, class: 'b' },
@@ -376,7 +377,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('does not affect non bindable properties', function () {
-      const { assertHtml, component, flush } = createFixture('<el repeat.for="item of items" ...item>', {
+      const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...item>', {
         items: [
           { id: 1, class: 'a', prop: 'alien' },
           { id: 2, class: 'b', prop: 'alien' },
@@ -405,7 +406,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('does not create more binding than what is available in the object', function () {
-      const { assertHtml, component, flush } = createFixture('<el ...$bindables="item">', {
+      const { assertHtml, component } = createFixture('<el ...$bindables="item">', {
         item: { id: 1 } as any,
       }, [El]);
 
@@ -422,7 +423,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('stops observing when unbound', function () {
-      const { assertHtml, component, stop, flush, getBy } = createFixture('<el ...$bindables="item">', {
+      const { assertHtml, component, stop, getBy } = createFixture('<el ...$bindables="item">', {
         item: { id: 1 } as any,
       }, [El]);
 
@@ -435,7 +436,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('stops observing when given a new object with fewer properties', function () {
-      const { assertHtml, component, flush } = createFixture('<el ...item>', {
+      const { assertHtml, component } = createFixture('<el ...item>', {
         item: { id: 1, class: 'a' } as any,
       }, [El]);
 
@@ -459,7 +460,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('spreads with literal object expression', function () {
-      const { assertHtml, component, flush } = createFixture('<el repeat.for="item of items" ...$bindables="{ id: item.id, class: item.class }">', {
+      const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...$bindables="{ id: item.id, class: item.class }">', {
         items: [
           { id: 1, class: 'a' },
           { id: 2, class: 'b' }
@@ -474,7 +475,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('spreads with ...$bindables= syntax', function () {
-      const { assertHtml, component, flush } = createFixture('<el repeat.for="item of items" ...$bindables="item">', {
+      const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...$bindables="item">', {
         items: [
           { id: 1, class: 'a' },
           { id: 2, class: 'b' },
@@ -538,7 +539,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     });
 
     it('works with collection mutation', function () {
-      const { assertHtml, component, flush } = createFixture('<el ...items[0].details>', {
+      const { assertHtml, component } = createFixture('<el ...items[0].details>', {
         items: [
           { details: { id: 1, class: 'a' } },
           { details: { id: 2, class: 'b' } },
@@ -584,7 +585,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
           classValue = v;
         }
       });
-      const { assertHtml, component, flush } = createFixture('<el ...$bindables="item | move:i">', {
+      const { assertHtml, component } = createFixture('<el ...$bindables="item | move:i">', {
         i: 0,
         item: { id: 1, class: 'a' },
       }, [El, ValueConverter.define('move', class { })]);

@@ -9,7 +9,7 @@ import {
   Scope,
   astEvaluate,
   mixinNoopAstEvaluator,
-  queueTask,
+  queueAsyncTask,
 } from '@aurelia/runtime';
 import {
   type IBinding,
@@ -262,9 +262,9 @@ class ValidationConnector implements ValidationResultsSubscriber {
       return;
     }
     this._isQueued = true;
-    queueTask(() => {
+    queueAsyncTask(() => {
       this._isQueued = false;
-      void this.controller.validateBinding(this.propertyBinding);
+      return this.controller.validateBinding(this.propertyBinding);
     });
   }
 

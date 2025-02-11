@@ -20,7 +20,9 @@ export {
 export {
   nextTick,
   queueTask,
+  queueAsyncTask,
   flush,
+  yieldTasks,
 } from './queue';
 
 export {

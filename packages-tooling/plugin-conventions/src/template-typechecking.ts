@@ -448,6 +448,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         const originalExpr = part;
         [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
         htmlFactories.push(
+          // TODO(Sayan): handle call scope properly, provide the `part` directly to createLambdaExpression
           () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${escape(unparse(originalExpr))}')}`,
           () => expr.parts[idx + 1]
         );

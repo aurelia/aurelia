@@ -2116,10 +2116,143 @@ ${prop('prop', 'string', isTs)}
       assertSuccess(entry, result.code);
     });
 
-    // TODO(Sayan): union typed property
-    // TODO(Sayan): union typed accessor
+    describe.only('union typed', function () {
+      it(`property - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toString()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+      import { customElement } from '@aurelia/runtime-html';
+      import template from './${markupFile}';
+
+      @customElement({ name: 'foo', template })
+      export class Foo {
+      ${prop('prop', 'string | number', isTs)}
+      }
+      `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`property - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+          import { customElement } from '@aurelia/runtime-html';
+          import template from './${markupFile}';
+
+          @customElement({ name: 'foo', template })
+          export class Foo {
+          ${prop('prop', 'string | number', isTs)}
+          }
+          `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
+      });
+
+      it(`accessor - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toString()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+    import { customElement } from '@aurelia/runtime-html';
+    import template from './${markupFile}';
+
+    @customElement({ name: 'foo', template })
+    export class Foo {
+    ${isTs ? '' : `
+    /**
+     * @public
+     * @type {string|number}
+     */
+    `}
+    ${isTs ? `public ` : ''}get prop()${isTs ? `: string | number` : ''} { return 'foo'; };
+    }
+    `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`accessor - fail - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+        import { customElement } from '@aurelia/runtime-html';
+        import template from './${markupFile}';
+
+        @customElement({ name: 'foo', template })
+        export class Foo {
+        ${isTs ? '' : `
+        /**
+         * @public
+         * @type {string|number}
+         */
+        `}
+        ${isTs ? `public ` : ''}get prop()${isTs ? `: string | number` : ''} { return 'foo'; };
+        }
+        `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
+      });
+
+      it.only(`method - pass - language: ${lang}`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42, bar)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+          import { customElement } from '@aurelia/runtime-html';
+          import template from './${markupFile}';
+
+          @customElement({ name: 'foo', template })
+          export class Foo {
+          ${prop('bar', 'number | boolean', isTs)}
+          ${isTs ? '' : `
+          /**
+           * @param {string | number} x
+           * @param {number | string} y
+           * @param {number | boolean} z
+           * @returns {string}
+           * @public
+           */
+          `}
+          ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number | string` : ''}, z${isTs ? `: number | boolean` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+          }
+          `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+    });
     // TODO(Sayan): union typed method argument
     // TODO(Sayan): overloaded method
+
     describe('access modifier', function () {
       for (const am of ['public', 'protected', 'private'] as const) {
         it(`${am} property - language: ${lang}`, function () {

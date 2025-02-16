@@ -2116,8 +2116,8 @@ ${prop('prop', 'string', isTs)}
       assertSuccess(entry, result.code);
     });
 
-    describe.only('union typed', function () {
-      it(`property - pass - language: ${lang}`, function () {
+    describe(`union typed - language: ${lang}`, function () {
+      it('property - pass', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop.toString()}';
@@ -2139,7 +2139,7 @@ ${prop('prop', 'string', isTs)}
         assertSuccess(entry, result.code);
       });
 
-      it(`property - fail - language: ${lang}`, function () {
+      it('property - fail', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop.toExponential(2)}';
@@ -2161,7 +2161,7 @@ ${prop('prop', 'string', isTs)}
         assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
       });
 
-      it(`accessor - pass - language: ${lang}`, function () {
+      it('accessor - pass', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop.toString()}';
@@ -2189,7 +2189,7 @@ ${prop('prop', 'string', isTs)}
         assertSuccess(entry, result.code);
       });
 
-      it(`accessor - fail - language: ${lang}`, function () {
+      it('accessor - fail', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop.toExponential(2)}';
@@ -2217,7 +2217,7 @@ ${prop('prop', 'string', isTs)}
         assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
       });
 
-      it(`method - pass - language: ${lang}`, function () {
+      it('method - pass', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop(\'foo\', 42, bar)}';
@@ -2249,7 +2249,7 @@ ${prop('prop', 'string', isTs)}
         assertSuccess(entry, result.code);
       });
 
-      it(`method - fail - language: ${lang}`, function () {
+      it('method - fail', function () {
         const entry = `entry.${extn}`;
         const markupFile = 'entry.html';
         const markup = '${prop(\'foo\', 42, bar.toString())}';
@@ -2282,7 +2282,163 @@ ${prop('prop', 'string', isTs)}
       });
     });
 
-    // TODO(Sayan): overloaded method
+    describe(`method - language: ${lang}`, function () {
+      it(`fail - not enough arguments`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\')}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Expected 2 arguments, but got 1/]);
+      });
+
+      it(`fail - too many arguments`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42, 500)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Expected 2 arguments, but got 3/]);
+      });
+
+      it(`overloaded method - pass`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42).toUpperCase()} ${prop(3.14, 42).toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @overload
+                   * @param {number} x
+                   * @param {number} y
+                   * @returns {number}
+                   */
+                  /**
+                   * @overload
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  /**
+                   * @param {string | number} x
+                   * @param {number} y
+                   * @returns {string | number}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return typeof x === 'number' ? x + y : \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`overloaded method - fail`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42).toExponential(2)} ${prop(3.14, 42).toUpperCase()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                      import { customElement } from '@aurelia/runtime-html';
+                      import template from './${markupFile}';
+
+                      @customElement({ name: 'foo', template })
+                      export class Foo {
+                      ${prop('bar', 'number | boolean', isTs)}
+                      ${isTs ? `
+                        public prop(x: number, y: number): number;
+                        public prop(x: string, y: number): string;
+                        ` : `
+                        /**
+                         * @overload
+                         * @param {number} x
+                         * @param {number} y
+                         * @returns {number}
+                         */
+                        /**
+                         * @overload
+                         * @param {string} x
+                         * @param {number} y
+                         * @returns {string}
+                         */
+                        /**
+                         * @param {string | number} x
+                         * @param {number} y
+                         * @returns {string | number}
+                         */
+                        `}
+                      ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return typeof x === 'number' ? x + y : \`\${x} \${y}\`; };
+                      }
+                      `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string'/, /Property 'toUpperCase' does not exist on type 'number'/]);
+      });
+    });
 
     describe('access modifier', function () {
       for (const am of ['public', 'protected', 'private'] as const) {

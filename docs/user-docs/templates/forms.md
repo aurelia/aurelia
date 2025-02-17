@@ -1,117 +1,134 @@
+---
+description: >-
+  Learn how to build forms in Aurelia, bind data to various input elements, and
+  handle submission and validation.
+---
+
 # Form Inputs
 
-Handling forms and user input is quite a common task in applications. Whether you are building a login form, data entry, or even a chat application, Aurelia allows you to work with forms intuitively.
-
-In Aurelia, the binding system uses `two-way` binding as a default for form elements. Text inputs, text areas and even `contenteditable` elements all use a `two-way` binding.
+Handling forms and user input is a common task in most applications. Whether you are building a login form, a data-entry screen, or even a chat interface, Aurelia makes it intuitive to work with forms. By default, Aurelia’s binding system uses **two-way** binding for form elements (like `<input>`, `<textarea>`, and `contenteditable` elements), which keeps your view and model in sync automatically.
 
 {% hint style="info" %}
-Many of the concepts discussed here assume knowledge of how Aurelia's template and binding syntax work. We recommend reading the [Template syntax & features](template-syntax.md) section before continuing with this section if you are new to Aurelia.
+Many of the concepts discussed here assume some familiarity with Aurelia’s binding and template syntax. If you’re new, please read the [Template Syntax & Features](template-syntax.md) section first.
 {% endhint %}
 
-## Data flow in forms
+---
 
-In Aurelia, form elements are reactive, and their changes are directly tied to the underlying view model. Updates flow from the view to the view model, and updates from the view model flow to the view (hence, two-way).
+## Data Flow in Forms
 
-To illustrate how `two-way` binding works in forms, let's break down the workflow:
+Aurelia’s two-way binding updates your view model properties whenever users enter data into form elements, and likewise updates the form elements if the view model changes:
 
-1. The user types a value into the input element. The element is for a first name, so they enter _John_.
-2. The native form input events are fired, and Aurelia also sees the value has changed.
-3. The binding system sees the new value and notifies the view model to update the value.
-4. Any reference to the bound value will be updated without needing any callback functions or additional notification steps (the value changes).
+1. The user types in the input (e.g., **John**).
+2. The native input events fire. Aurelia observes the value change.
+3. The binding system updates the corresponding view model property.
+4. Any references to that property automatically reflect its new value.
 
-## Creating a basic form
+Because of this automatic synchronization, you generally don’t need to write custom event handlers or watchers to track form inputs.
 
-Creating forms in Aurelia requires no special configuration or treatment. Create a form element and add form input controls with bindings. Here is a basic form example for a login form to show you how little code you need.
+---
 
-**Firstly, let's create the markup for our login form:**
+## Creating a Basic Form
+
+Aurelia lets you create forms in pure HTML without any special setup. Here’s a simple login form illustrating how little code is required.
 
 {% code title="login-component.html" %}
+
 ```html
 <form submit.trigger="handleLogin()">
-    <div>
-        <label for="email">Email:</label>
-        <input id="email" type="text" value.bind="email">
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input id="password" type="password" value.bind="password">
-    </div>
-    
-    <button type="submit">Login</button>
+  <div>
+    <label for="email">Email:</label>
+    <input id="email" type="text" value.bind="email" />
+  </div>
+  <div>
+    <label for="password">Password:</label>
+    <input id="password" type="password" value.bind="password" />
+  </div>
+
+  <button type="submit">Login</button>
 </form>
 ```
+
 {% endcode %}
 
-Before we write the view model code, let's break down what we did here:
+Key Points:
 
-* We created a form with two text inputs
-* We used `value.bind` to bind the native value attribute of these fields to the corresponding view model properties
-* We are calling a function `handleLogin` when the `submit` event on the form is triggered to handle the bindable properties inside
+- We created a form with two inputs: email and password.
+- The `value.bind` syntax binds these inputs to class properties named `email` and `password`.
+- We call a `handleLogin()` method on submit to process the form data.
 
-Now, the corresponding view model code:
+And here is the view model (`login-component.ts`):
 
 {% code title="login-component.ts" %}
+
 ```typescript
 export class LoginComponent {
-    private email = '';
-    private password = '';
-    
-    // This function is called when the form is submitted
-    handleLogin() {
-        // Call an API/validate the bound values
-    }
+  private email = "";
+  private password = "";
+
+  handleLogin() {
+    // Validate credentials or call an API
+    console.log(`Email: ${this.email}, Password: ${this.password}`);
+  }
 }
 ```
+
 {% endcode %}
 
-There is not a whole lot of code here for what is happening. Whenever the `email` or `password` values change, they will be reflected inside of our view model. Inside the `handleLogin` method, we would probably validate the data and call an API.
+Whenever the email or password fields change in the UI, their corresponding view model properties are updated. Then, in `handleLogin()`, you can handle form submission however you wish.
 
 {% hint style="warning" %}
-Using `submit.trigger` on a form will prevent its default action by applying a `event.preventDefault` behind-the-scenes. This means your form will not submit to the action or method attributes on the form, you will need to handle this manually.
+Using `submit.trigger` on a form prevents the default browser submission. If you want the form to submit normally, return `true` from your handler or remove `submit.trigger` entirely.
 {% endhint %}
 
-## Binding with text and textarea inputs
+---
 
-Binding to text inputs uses a syntax similar to binding to other elements in Aurelia. By default, input elements will use `two-way` binding, which means the value will update in the view when changed inside the view model and updated in the view model when changed in the view.
+## Binding With Text and Textarea Inputs
 
 ### Text Input
 
+Binding to text inputs in Aurelia is straightforward:
+
 ```html
 <form>
-  <label>User value</label><br>
+  <label>User value:</label><br />
   <input type="text" value.bind="userValue" />
 </form>
 ```
 
-You can even bind to other attributes on form elements such as the `placeholder` attribute.
+You can also bind other attributes like placeholder:
 
 ```html
 <form>
-  <label>User value</label><br>
+  <label>User value:</label><br />
   <input type="text" value.bind="userValue" placeholder.bind="myPlaceholder" />
 </form>
 ```
 
 ### Textarea
 
-A textarea element is just like any other form element. It allows you to bind to its value and, by default, `value.bind` will be two-way binding (meaning changes flow from out of the view into the view model and changes in the view-model flow back to the view).
+Textareas work just like text inputs, with value.bind for two-way binding:
 
 ```html
-<form role="form">
+<form>
+  <label>Comments:</label><br />
   <textarea value.bind="textAreaValue"></textarea>
 </form>
 ```
 
-## Binding with checkbox inputs
+Any changes to `textAreaValue` in the view model will show up in the `<textarea>`, and vice versa.
 
-Aurelia supports the two-way binding of various data types to checkbox input elements.
+---
+
+## Binding with Checkbox Inputs
+
+Aurelia supports two-way binding for checkboxes in various configurations.
 
 ### Booleans
 
-Bind a boolean property to an input element's `checked` attribute using `checked.bind="myBooleanProperty"`.
+Bind a boolean property to the checked attribute:
 
-```javascript
-export class App {
+```typescript
+export class MyApp {
   motherboard = false;
   cpu = false;
   memory = false;
@@ -119,32 +136,30 @@ export class App {
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label><input type="checkbox" checked.bind="motherboard">  Motherboard</label>
-    <label><input type="checkbox" checked.bind="cpu"> CPU</label>
-    <label><input type="checkbox" checked.bind="memory"> Memory</label>
+<form>
+  <h4>Products</h4>
+  <label
+    ><input type="checkbox" checked.bind="motherboard" /> Motherboard</label
+  >
+  <label><input type="checkbox" checked.bind="cpu" /> CPU</label>
+  <label><input type="checkbox" checked.bind="memory" /> Memory</label>
 
-    motherboard = ${motherboard}<br>
-    cpu = ${cpu}<br>
-    memory = ${memory}<br>
-  </form>
-</template>
+  motherboard = ${motherboard}<br />
+  cpu = ${cpu}<br />
+  memory = ${memory}<br />
+</form>
 ```
 
 ### Array of Numbers
 
-A set of checkbox elements is a multiple-selection interface. If you have an array that serves as the "selected items" list, you can bind the array to each input's `checked` attribute. The binding system will track the input's checked status, adding the input's value to the array when the input is checked and removing the input's value from the array when the input is unchecked.
+When using checkboxes as a multi-select, bind an array to each input’s checked attribute. Provide a model for each checkbox to indicate its value:
 
-To define the input's "value", bind the input's `model` attribute: `model.bind="product.id"`.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
 
   selectedProductIds = [];
@@ -152,22 +167,24 @@ export class App {
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" model.bind="product.id" checked.bind="selectedProductIds">
-      ${product.id} - ${product.name}
-    </label>
-    <br>
-    Selected product IDs: ${selectedProductIds}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="checkbox"
+      model.bind="product.id"
+      checked.bind="selectedProductIds"
+    />
+    ${product.id} - ${product.name}
+  </label>
+  <br />
+  Selected product IDs: ${selectedProductIds}
+</form>
 ```
 
 ### Array of Objects
 
-Numbers aren't the only type of value you can store in a "selected items" array. The binding system supports all types, including objects. Here's an example that adds and removes "product" objects from a `selectedProducts` array using the checkbox data-binding.
+Numbers aren’t the only value type you can store. Here’s how to manage an array of objects:
 
 ```typescript
 export interface IProduct {
@@ -175,45 +192,46 @@ export interface IProduct {
   name: string;
 }
 
-export class App {
+export class MyApp {
   products: IProduct[] = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProducts: IProduct[] = [];
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" model.bind="product" checked.bind="selectedProducts">
-      ${product.id} - ${product.name}
-    </label>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="checkbox"
+      model.bind="product"
+      checked.bind="selectedProducts"
+    />
+    ${product.id} - ${product.name}
+  </label>
 
-    Selected products:
-    <ul>
-      <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-    </ul>
-  </form>
-</template>
+  Selected products:
+  <ul>
+    <li repeat.for="product of selectedProducts">
+      ${product.id} - ${product.name}
+    </li>
+  </ul>
+</form>
 ```
 
 ### Array of Objects with Matcher
 
-You may run into situations where the object your input element's model is bound to do not have reference equality to any objects in your checked array. The objects might match by id, but they may not be the same object instance. To support this scenario, you can override Aurelia's default "matcher", which is an equality comparison function that looks like this: `(a, b) => a === b`.&#x20;
+If your objects do not share reference equality (e.g., same data, different instances), define a custom matcher:
 
-You can substitute your chosen function with the right logic to compare your objects.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   selectedProducts = [
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' }
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
 
   productMatcher = (a, b) => a.id === b.id;
@@ -221,523 +239,571 @@ export class App {
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label>
-      <input type="checkbox" model.bind="{ id: 0, name: 'Motherboard' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      Motherboard
-    </label>
-    <label>
-      <input type="checkbox" model.bind="{ id: 1, name: 'CPU' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      CPU
-    </label>
-    <label>
-      <input type="checkbox" model.bind="{ id: 2, name: 'Memory' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProducts">
-      Memory
-    </label>
-
-    Selected products:
-    <ul>
-      <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-    </ul>
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label>
+    <input
+      type="checkbox"
+      model.bind="{ id: 0, name: 'Motherboard' }"
+      matcher.bind="productMatcher"
+      checked.bind="selectedProducts"
+    />
+    Motherboard
+  </label>
+  ...
+</form>
 ```
 
 ### Array of Strings
 
-Finally, here's an example that adds and removes strings from an `selectedProducts` array using the checkbox data-binding. This is example is unique because it does not use `model.bind` to assign each checkbox's value. Instead, the input's standard `value` attribute is used.&#x20;
+If your “selected items” array holds strings, you can rely on the standard value attribute:
 
-Normally we cannot use the standard `value` attribute in conjunction with checked binding because it coerces anything assigned to a string. This example uses an array of strings, so everything works just fine.
-
-```javascript
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
+```typescript
+export class MyApp {
+  products = ["Motherboard", "CPU", "Memory"];
   selectedProducts = [];
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="checkbox" value.bind="product" checked.bind="selectedProducts">
-      ${product}
-    </label>
-    <br>
-    Selected products: ${selectedProducts}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="checkbox"
+      value.bind="product"
+      checked.bind="selectedProducts"
+    />
+    ${product}
+  </label>
+  <br />
+  Selected products: ${selectedProducts}
+</form>
 ```
 
-## Binding with radio inputs
+### Binding with Radio Inputs
 
-A radio input group is a "single select" interface. Aurelia supports two-way binding any type of property to a group of radio inputs. The examples below illustrate binding number, object, string and boolean properties to sets of radio inputs. In each of the examples, there's a common set of steps:
+Radio groups in Aurelia are similarly straightforward. Only one radio button in a group can be checked at a time.
 
-1. Group the radios via the `name` property. Radio buttons with the same value for the name attribute are in the same "radio button group"; only one radio button in a group can be selected at a time.
-2. Define each radio's value using the `model` property.
-3. Two-way bind each radio's `checked` attribute to a "selected item" property on the view model.
+#### Numbers
 
-### Numbers
-
-Let's start with an example that uses a numeric "selected item" property. Each radio input will be assigned a number value via the model property in this example. Selecting a radio will cause its model value to be assigned to the `selectedProductId` property.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProductId = null;
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group1"
-              model.bind="product.id" checked.bind="selectedProductId">
-      ${product.id} - ${product.name}
-    </label>
-    <br>
-    Selected product ID: ${selectedProductId}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="radio"
+      name="group1"
+      model.bind="product.id"
+      checked.bind="selectedProductId"
+    />
+    ${product.id} - ${product.name}
+  </label>
+  <br />
+  Selected product ID: ${selectedProductId}
+</form>
 ```
 
-### Objects
+#### Objects
 
-The binding system supports binding all types of radios, including objects. Here's an example that binds a group of radios to a `selectedProduct` object property.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProduct = null;
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group2"
-              model.bind="product" checked.bind="selectedProduct">
-      ${product.id} - ${product.name}
-    </label>
-
-    Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="radio"
+      name="group2"
+      model.bind="product"
+      checked.bind="selectedProduct"
+    />
+    ${product.id} - ${product.name}
+  </label>
+  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
+</form>
 ```
 
-### Objects with Matcher
+#### Objects with Matcher
 
-You may run into situations where the object your input element's model is bound to does not have reference equality to any of the objects in your checked attribute bound to. The objects might match by id, but they may not be the same object instance. To support this scenario, you can override Aurelia's default "matcher", which is an equality comparison function that looks like this: `(a, b) => a === b`.&#x20;
+If the selected object doesn’t share reference equality, define a custom matcher:
 
-You can substitute your chosen function with the right logic to compare your objects.
-
-```javascript
-export class App {
-  selectedProduct = { id: 1, name: 'CPU' };
-
+```typescript
+export class MyApp {
+  selectedProduct = { id: 1, name: "CPU" };
   productMatcher = (a, b) => a.id === b.id;
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 0, name: 'Motherboard' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      Motherboard
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 1, name: 'CPU' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      CPU
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="{ id: 2, name: 'Memory' }"
-              matcher.bind="productMatcher"
-              checked.bind="selectedProduct">
-      Memory
-    </label>
-
-    Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label>
+    <input
+      type="radio"
+      name="group3"
+      model.bind="{ id: 0, name: 'Motherboard' }"
+      matcher.bind="productMatcher"
+      checked.bind="selectedProduct"
+    />
+    Motherboard
+  </label>
+  ...
+</form>
 ```
 
-### Booleans
+#### Booleans
 
-In this example, each radio input is assigned one of three literal values: `null`, `true` and `false`. Selecting one of the radios will assign its value to the `likesCake` property.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   likesCake = null;
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Do you like cake?</h4>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="null" checked.bind="likesCake">
-      Don't Know
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="true" checked.bind="likesCake">
-      Yes
-    </label>
-    <label>
-      <input type="radio" name="group3"
-              model.bind="false" checked.bind="likesCake">
-      No
-    </label>
+<form>
+  <h4>Do you like cake?</h4>
+  <label>
+    <input
+      type="radio"
+      name="group4"
+      model.bind="null"
+      checked.bind="likesCake"
+    />
+    Don't Know
+  </label>
+  <label>
+    <input
+      type="radio"
+      name="group4"
+      model.bind="true"
+      checked.bind="likesCake"
+    />
+    Yes
+  </label>
+  <label>
+    <input
+      type="radio"
+      name="group4"
+      model.bind="false"
+      checked.bind="likesCake"
+    />
+    No
+  </label>
 
-    likesCake = ${likesCake}
-  </form>
-</template>
+  likesCake = ${likesCake}
+</form>
 ```
 
-### Strings
+#### Strings
 
-Finally, here's an example using strings. This is example is unique because it does not use `model.bind` to assign each radio's value. Instead, the input's standard `value` attribute is used. Normally we cannot use the standard `value` attribute in conjunction with checked binding because it coerces anything assigned to a string.
-
-```javascript
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
+```typescript
+export class MyApp {
+  products = ["Motherboard", "CPU", "Memory"];
   selectedProduct = null;
 }
 ```
 
 ```html
-<template>
-  <form>
-    <h4>Products</h4>
-    <label repeat.for="product of products">
-      <input type="radio" name="group4"
-              value.bind="product" checked.bind="selectedProduct">
-      ${product}
-    </label>
-    <br>
-    Selected product: ${selectedProduct}
-  </form>
-</template>
+<form>
+  <h4>Products</h4>
+  <label repeat.for="product of products">
+    <input
+      type="radio"
+      name="group5"
+      value.bind="product"
+      checked.bind="selectedProduct"
+    />
+    ${product}
+  </label>
+  <br />
+  Selected product: ${selectedProduct}
+</form>
 ```
 
-## Binding with select elements
+---
 
-A `<select>` element can serve as a single-select or multiple-select "picker", depending on whether the `multiple` attribute is present. The binding system supports both use cases. The samples below demonstrate a variety of scenarios.&#x20;
+## Binding with Select Elements
 
-All use a common series of steps to configure the selected element:
+You can use `<select>` as either a single-select or a multiple-select input:
 
-1. Add a `<select>` element to the template and decide whether the `multiple` attribute should be applied.
-2. Bind the select element's `value` attribute to a property. In "multiple" mode, the property should be an array. In singular mode, it can be any type.
-3. Define the select element's `<option>` elements. You can use  `repeat` or add each option element manually.
-4.  Specify each option's value via the `model` property:
+1. Use `value.bind` in single-select mode.
+2. Use `value.bind` to an array in multiple-select mode.
+3. Provide `<option>` elements that specify their own model (or value) attributes.
 
-    `<option model.bind="product.id">${product.name}</option>`
+### Single Select (Numbers)
 
-    _You can use the standard `value` attribute instead of `model`, remember- it will coerce anything it's assigned to a string._
-
-### Select Number
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProductId = null;
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProductId">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product.id">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
-  Selected product ID: ${selectedProductId}
-</template>
+<label>
+  Select product:
+  <select value.bind="selectedProductId">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products" model.bind="product.id">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
+Selected product ID: ${selectedProductId}
 ```
 
-### Select Object
+### Single Select (Objects)
 
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProduct = null;
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select product:
+  <select value.bind="selectedProduct">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products" model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-</template>
+Selected product: ${selectedProduct.id} - ${selectedProduct.name}
 ```
 
-### Select Object with Matcher
+### Single Select (Objects with Matcher)
 
-You may run into situations where the object to your select element's value is bound and does not have reference equality with any of the objects your option element model properties are bound to. The select's value object might "match" one of the option objects by id, but they may not be the same object instance.&#x20;
-
-To support this scenario, you can override Aurelia's default "matcher", which is an equality comparison function that looks like this: `(a, b) => a === b`. You can substitute your chosen function with the right logic to compare your objects.
-
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   productMatcher = (a, b) => a.id === b.id;
-
-  selectedProduct = { id: 1, name: 'CPU' };
+  selectedProduct = { id: 1, name: "CPU" };
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct" matcher.bind="productMatcher">
-      <option model.bind="null">Choose...</option>
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select product:
+  <select value.bind="selectedProduct" matcher.bind="productMatcher">
+    <option model.bind="null">Choose...</option>
+    <option repeat.for="product of products" model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected product: ${selectedProduct.id} - ${selectedProduct.name}
-</template>
+Selected product: ${selectedProduct.id} - ${selectedProduct.name}
 ```
 
-### Select Boolean
+### Single Select (Boolean)
 
-```javascript
-export class App {
+```typescript
+export class MyApp {
   likesTacos = null;
 }
 ```
 
 ```html
-<template>
-  <label>
-    Do you like tacos?:
-    <select value.bind="likesTacos">
-      <option model.bind="null">Choose...</option>
-      <option model.bind="true">Yes</option>
-      <option model.bind="false">No</option>
-    </select>
-  </label>
-  likesTacos: ${likesTacos}
-</template>
+<label>
+  Do you like tacos?
+  <select value.bind="likesTacos">
+    <option model.bind="null">Choose...</option>
+    <option model.bind="true">Yes</option>
+    <option model.bind="false">No</option>
+  </select>
+</label>
+likesTacos = ${likesTacos}
 ```
 
-### Select String
+### Single Select (Strings)
 
-```javascript
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
-  selectedProduct = '';
+```typescript
+export class MyApp {
+  products = ["Motherboard", "CPU", "Memory"];
+  selectedProduct = "";
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select product:<br>
-    <select value.bind="selectedProduct">
-      <option value="">Choose...</option>
-      <option repeat.for="product of products"
-              value.bind="product">
-        ${product}
-      </option>
-    </select>
-  </label>
-  Selected product: ${selectedProduct}
-</template>
+<label>
+  Select product:
+  <select value.bind="selectedProduct">
+    <option value="">Choose...</option>
+    <option repeat.for="product of products" value.bind="product">
+      ${product}
+    </option>
+  </select>
+</label>
+Selected product: ${selectedProduct}
 ```
 
-### Multiple Select Numbers
+### Multiple Select (Numbers)
 
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProductIds = [];
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProductIds">
-      <option repeat.for="product of products"
-              model.bind="product.id">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
-  Selected product IDs: ${selectedProductIds}
-</template>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProductIds">
+    <option repeat.for="product of products" model.bind="product.id">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
+Selected product IDs: ${selectedProductIds}
 ```
 
-### Multiple Select Objects
+### Multiple Select (Objects)
 
-```javascript
-export class App {
+```typescript
+export class MyApp {
   products = [
-    { id: 0, name: 'Motherboard' },
-    { id: 1, name: 'CPU' },
-    { id: 2, name: 'Memory' },
+    { id: 0, name: "Motherboard" },
+    { id: 1, name: "CPU" },
+    { id: 2, name: "Memory" },
   ];
-
   selectedProducts = [];
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProducts">
-      <option repeat.for="product of products"
-              model.bind="product">
-        ${product.id} - ${product.name}
-      </option>
-    </select>
-  </label>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProducts">
+    <option repeat.for="product of products" model.bind="product">
+      ${product.id} - ${product.name}
+    </option>
+  </select>
+</label>
 
-  Selected products:
-  <ul>
-    <li repeat.for="product of selectedProducts">${product.id} - ${product.name}</li>
-  </ul>
-</template>
+Selected products:
+<ul>
+  <li repeat.for="product of selectedProducts">
+    ${product.id} - ${product.name}
+  </li>
+</ul>
 ```
 
-### Multiple Select Strings
+### Multiple Select (Strings)
 
-```javascript
-export class App {
-  products = ['Motherboard', 'CPU', 'Memory'];
+```typescript
+export class MyApp {
+  products = ["Motherboard", "CPU", "Memory"];
   selectedProducts = [];
 }
 ```
 
 ```html
-<template>
-  <label>
-    Select products:
-    <select multiple value.bind="selectedProducts">
-      <option repeat.for="product of products"
-              value.bind="product">
-        ${product}
-      </option>
-    </select>
-  </label>
-  Selected products: ${selectedProducts}
-</template>
+<label>
+  Select products:
+  <select multiple value.bind="selectedProducts">
+    <option repeat.for="product of products" value.bind="product">
+      ${product}
+    </option>
+  </select>
+</label>
+Selected products: ${selectedProducts}
 ```
+
+---
 
 ## Form Submission
 
-Most of the time, a `<form>` element should be used to group one or many controls in a form. It acts as a container for those controls and can also be used for layout purposes with CSS.&#x20;
-
-Normally, HTML forms can be submitted without involving any JavaScript via the `action` and `method` attributes on a `<form>`. Though it's also common in applications that forms are driven by JavaScript.&#x20;
-
-In Aurelia, driving form via script can be achieved via `submit` event on the form, with the basic usage looking like the following example:
+Typically, a `<form>` groups related inputs. Aurelia allows you to intercept submission using `submit.trigger`:
 
 ```html
-<form submit.trigger="submitMyForm()">
-  ...
+<form submit.trigger="submitMyForm()">...</form>
+```
+
+```typescript
+export class MyApp {
+  submitMyForm() {
+    // Custom logic, e.g., fetch POST to an API endpoint
+    fetch("/register", { method: "POST" /* ... */ });
+  }
+}
+```
+
+For `<form>` elements without a method (or method="GET"), Aurelia automatically calls `event.preventDefault()` to avoid a full page reload. If you prefer the default browser submission, return `true` from your handler:
+
+```typescript
+export class MyApp {
+  submitMyForm() {
+    // Possibly do some checks...
+    return true; // Allow normal form submission
+  }
+}
+```
+
+---
+
+## File Inputs and Upload Handling
+
+Working with file uploads in Aurelia typically involves using the standard `<input type="file">` element and handling file data in your view model. While Aurelia doesn’t provide special bindings for file inputs, you can easily wire up event handlers or use standard properties to capture and upload files.
+
+### Capturing File Data
+
+In most cases, you’ll want to listen for the `change` event on a file input:
+
+{% code title="file-upload-component.html" %}
+```html
+<form>
+  <label for="fileUpload">Select files to upload:</label>
+  <input
+    id="fileUpload"
+    type="file"
+    multiple
+    accept="image/*"
+    change.trigger="handleFileSelect($event)"
+  />
+
+  <button click.trigger="uploadFiles()" disabled.bind="!selectedFiles.length">
+    Upload
+  </button>
 </form>
 ```
+{% endcode %}
 
+- `multiple`: Allows selecting more than one file.
+- `accept="image/*"`: Restricts file selection to images (this can be changed to fit your needs).
+- `change.trigger="handleFileSelect($event)"`: Calls a method in your view model to handle the file selection event.
+
+### View Model Handling
+
+You can retrieve the selected files from the event object in your view model:
+
+{% code title="file-upload-component.ts" %}
 ```typescript
-class MyApp {
-  submitMyForm() {
-    fetch('/register', { method: 'POST', ... })
+export class FileUploadComponent {
+  public selectedFiles: File[] = [];
+
+  public handleFileSelect(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
+    }
+    // Convert the FileList to a real array
+    this.selectedFiles = Array.from(input.files);
+  }
+
+  public async uploadFiles() {
+    if (this.selectedFiles.length === 0) {
+      return;
+    }
+
+    const formData = new FormData();
+    for (const file of this.selectedFiles) {
+      // The first argument (key) matches the field name expected by your backend
+      formData.append('files', file, file.name);
+    }
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Upload successful:', result);
+      // Optionally, reset selected files
+      this.selectedFiles = [];
+    } catch (error) {
+      console.error('Error uploading files:', error);
+    }
   }
 }
 ```
+{% endcode %}
 
-Note that by default, for a `<form/>` without a `method` attribute, or `method` attribute value being equal to `GET/get`, using `submit.trigger` will call `preventDefault()` on the `submit` event, which prevents the normally unwanted behavior of html of navigating the page to the `URI` of the form. If this behavior is not desired, return true in the method being called, like the following example:
+**Key Points:**
+
+- Reading File Data: `input.files` returns a `FileList`; converting it to an array (`Array.from`) makes it easier to iterate over.
+- FormData: Using `FormData` to append files is a convenient way to send them to the server (via Fetch).
+- Error Handling: Always check `response.ok` to handle server or network errors.
+- Disabling the Button: In the HTML, `disabled.bind="!selectedFiles.length"` keeps the button disabled until at least one file is selected.
+
+### Single File Inputs
+
+If you only need a single file, omit multiple and simplify your logic:
+
+```html
+<input type="file" accept="image/*" change.trigger="handleFileSelect($event)" />
+```
 
 ```typescript
-class MyApp {
-  submitMyForm() {
-    ...
-    return true;
-  }
+public handleFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement;
+  this.selectedFiles = input.files?.length ? [input.files[0]] : [];
 }
 ```
 
-## Form validation
+### Validation and Security
 
-Validation is an important part of creating good forms. Aurelia provides a robust validation plugin that allows you to validate forms, create custom validation rules and configure every facet of validation in your Aurelia applications.
+When handling file uploads, consider adding validation and security measures:
 
-To learn about form validation using the Aurelia Validation package, please consult the validation documentation below for details.
+- Server-side Validation: Even if you filter files by type on the client (accept="image/*"), always verify on the server to ensure the files are valid and safe.
+- File Size Limits: Check file sizes either on the client or server (or both) to prevent excessively large uploads.
+- Progress Indicators: For a better user experience, consider using XMLHttpRequest or the Fetch API with progress events (via third-party solutions or polyfills), so you can display an upload progress bar.
+
+---
+
+## Form Validation
+
+Validation is essential for robust, user-friendly forms. Aurelia provides a dedicated Validation plugin that helps you:
+
+- Validate inputs using built-in or custom rules.
+- Display error messages and warnings.
+- Integrate seamlessly with Aurelia’s binding system.
 
 {% content-ref url="../aurelia-packages/validation/" %}
 [validation](../aurelia-packages/validation/)

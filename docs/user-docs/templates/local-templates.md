@@ -1,18 +1,15 @@
 ---
 description: >-
-  Local templates allow you to remove boilerplate in your Aurelia applications,
-  by creating local templates specific to the templated view you are working
-  within and are not reusable.
+  Learn how to define, use, and optimize local (inline) templates in Aurelia 2 to
+  remove boilerplate and simplify your components.
 ---
 
-# Local templates (inline templates)
+# Local Templates (Inline Templates)
 
 ## Introduction
 
-In many instances, when working with templated views in Aurelia, you will be approaching development from a reusability mindset. However, sometimes, you need a template for one specific application part. You could create a component for this, but it might be overkill. This is where local templates can be useful.
+Most of the time, when working with templated views in Aurelia, you want to create reusable components. However, there are scenarios where reusability isn’t necessary or might cause unnecessary overhead. Local (inline) templates allow you to define a template as a "one-off" custom element, usable **only** within the scope of its parent view. This helps reduce boilerplate and fosters clear, localized organization of your code.
 
-{% tabs %}
-{% tab title="my-app.html" %}
 ```html
 <template as-custom-element="person-info">
   <bindable name="person"></bindable>
@@ -30,197 +27,170 @@ In many instances, when working with templated views in Aurelia, you will be app
 <person-info repeat.for="sleuth of sleuths" person.bind="sleuth"></person-info>
 
 <h2>Nemeses</h2>
-<person-info repeat.for="nemesis of nemeses" person.bind="nemesis"></person-info>
+<person-info
+  repeat.for="nemesis of nemeses"
+  person.bind="nemesis"
+></person-info>
 ```
-{% endtab %}
 
-{% tab title="my-app.ts" %}
+By defining `<template as-custom-element="person-info">`, you create a local component named person-info, which can only be used in this file (my-app.html). It accepts a bindable property person (specified via the `<bindable>` tag). You can now reuse `<person-info>` repeatedly in this view without creating a separate file or global custom element.
+
 ```typescript
-export class App {
+export class MyApp {
   public readonly sleuths: Person[] = [
-    new Person('Byomkesh Bakshi', '66, Harrison Road'),
-    new Person('Sherlock Holmes', '221b Baker Street')
+    new Person("Byomkesh Bakshi", "66, Harrison Road"),
+    new Person("Sherlock Holmes", "221b Baker Street"),
   ];
   public readonly nemeses: Person[] = [
-    new Person('Anukul Guha', 'unknown'),
-    new Person('James Moriarty', 'unknown')
+    new Person("Anukul Guha", "unknown"),
+    new Person("James Moriarty", "unknown"),
   ];
 }
 
 class Person {
-  public constructor(
-    public name: string,
-    public address: string,
-  ) { }
+  public constructor(public name: string, public address: string) {}
 }
 ```
-{% endtab %}
-{% endtabs %}
 
-The example defines a template inside the `my-app.html` markup that can be used as a custom element. The name of the custom element, so defined, comes from the value of the `as-custom-element` attribute used on the template.&#x20;
+---
 
-In this case, it is named as `person-info`. A custom element defined that way cannot be used outside the template that defines it; in this case, the `person-info` is, therefore, unavailable outside `my-app`. Thus, the name 'local template'.
+## Why Use Local Templates?
 
-Local templates can also optionally specify bindable properties using the `<bindable>` tag as shown above. Apart from `property`, other allowed attributes that can be used in this tag are `attribute`, and `mode`. In that respect, the following two declarations are synonymous.
+Local templates are similar to HTML-Only Custom Elements, with the major difference that local templates are scoped to the file that defines them. They are ideal for:
+
+- One-off Components: When you need a snippet repeated multiple times in a single view but have no intention of reusing it elsewhere.
+- Reducing Boilerplate: You don’t have to create a new .html and .ts file for every small piece of UI logic.
+- Maintain High Cohesion: Local templates can be optimized for a specific context without worrying about external usage. They can contain deeply nested markup or references to local data without polluting your global component space.
+
+That said, if you find your local template would be useful across multiple views or components, consider extracting it into a shared component.
+
+---
+
+## Syntax and Basic Usage
+
+A local template must be declared with `<template as-custom-element="your-element-name">`. Inside this <template>, you can define:
+
+- **Bindable Properties**: Using `<bindable name="property">` (and optionally attribute or mode).
+- **Custom Markup**: The HTML that your inline custom element should render.
+- **Data-Binding**: Standard Aurelia binding expressions.
+
+Example:
 
 ```html
-<bindable name="foo" mode="twoWay" attribute="fiz-baz"></bindable>
-```
-
-```typescript
-@bindable({mode: BindingMode.twoWay, attribute: 'fiz-baz'}) foo;
-```
-
-Although it might be quite clear, it is worth reiterating that the value of the `bindable` `attribute` should not be camelCased or PascalCased.
-
-### Why use local templates
-
-In essence, the local templates are similar to HTML-Only custom elements, with the difference that the local templates cannot be reused outside the defining custom element. Sometimes we need to reuse a template multiple times in a single custom element.&#x20;
-
-Creating a separate custom element for that is a bit overkill. Also, given that the custom element is only used in one single custom element, it might be optimized for that and not meant to be reused outside this context. The local templates are meant to promote that, whereas having a separate custom element makes it open for reuse in another context.&#x20;
-
-In short, it aims to reduce boilerplate code and promotes highly cohesive, better-encapsulated custom elements.
-
-This means that the following is a perfectly valid example. Note that the local templates with the same name (`foo-bar`) are _defined_ in different custom elements.
-
-{% tabs %}
-{% tab title="level-one.html" %}
-```html
-<template as-custom-element="foo-bar">
-  <bindable name='prop'></bindable>
-
-  Level One ${prop}
+<template as-custom-element="my-inline-list">
+  <bindable name="items"></bindable>
+  <ul>
+    <li repeat.for="item of items">${item}</li>
+  </ul>
 </template>
-<foo-bar prop.bind="prop"></foo-bar>
-```
-{% endtab %}
 
-{% tab title="level-one.ts" %}
-```typescript
-class LevelOne {
-  @bindable public prop: string;
-}
+<my-inline-list items.bind="someArray"></my-inline-list>
 ```
-{% endtab %}
 
-{% tab title="level-two.html" %}
+### Bindable Tag Attributes
+
+The `<bindable>` tag accepts:
+
+- `name` (required): The property name in your view model.
+- `attribute` (optional): The DOM attribute name. If unspecified, Aurelia will convert the property name to dash-case by default.
+- `mode` (optional): The binding mode (e.g., oneWay, twoWay, or fromView). Defaults to one-way.
+
+This is functionally equivalent to using the @bindable decorator in a separate .ts file.
+
+---
+
+## Local Templates vs. Regular Custom Elements
+
+| Aspect              | Local Template                         | Regular/Global Custom Element                                          |
+| ------------------- | -------------------------------------- | ---------------------------------------------------------------------- |
+| **Scope**           | Only available in the file defining it | Available across the entire app (once imported/registered)             |
+| **File Structure**  | No separate HTML/TS file required      | Typically has its own `.html` and `.ts` files                          |
+| **Reusability**     | Intended for single-use scenarios      | Intended for wider reuse throughout the application                    |
+| **Complexity**      | Lightweight, minimal boilerplate       | Potentially more complex (lifecycle hooks, dependency injection, etc.) |
+| **Discoverability** | Less visible to future maintainers     | Easier to find and reuse (explicit file, naming, etc.)                 |
+
+Use local templates when you’re sure they won’t need to be shared. If they grow larger or need to be referenced in multiple components, consider extracting them into a standard custom element.
+
+---
+
+## Advanced Usage Examples
+
+### Nested Local Templates
+
+A local template can be defined inside another local template, though this can become confusing if overused. For instance:
+
 ```html
-<template as-custom-element="foo-bar">
-  <bindable name='prop'></bindable>
-  Level Two ${prop}
-  <level-one prop="fiz baz"></level-one>
+<template as-custom-element="el-one">
+  <template as-custom-element="inner-el">
+    This is a nested local template.
+  </template>
+  Outer content.
+  <inner-el></inner-el>
 </template>
-<foo-bar prop.bind="prop"></foo-bar>
-<level-one prop.bind="prop"></level-one>
-```
-{% endtab %}
 
-{% tab title="level-two.ts" %}
-```typescript
-class LevelTwo {
-  @bindable public prop: string;
-}
+<el-one></el-one>
 ```
-{% endtab %}
 
-{% tab title="my-app.html" %}
+While Aurelia supports deeply nested local templates, it might be more readable to keep them at a reasonable nesting depth to avoid confusion.
+
+### Reusing the Same Local Template Name in Different Files
+
+Local templates are confined to their defining file or custom element. You can reuse the same local element name in different .html files without collisions:
+
 ```html
-<level-two prop="foo2"></level-two>
-<level-one prop="foo1"></level-one>
+<!-- File: order-page.html -->
+<template as-custom-element="order-details">
+  <bindable name="order"></bindable>
+  <!-- Markup for order details here -->
+</template>
+
+<!-- File: user-page.html -->
+<template as-custom-element="order-details">
+  <!-- Similarly named local template, but unique to user-page.html -->
+</template>
 ```
-{% endtab %}
-{% endtabs %}
 
-## Features and pitfalls
+These two `order-details` definitions do not conflict because each is scoped to its respective file.
 
-Like anything, there is always an upside and downside: local templates are no different. While they can be a powerful addition to your Aurelia applications, you need to be aware of the caveats when using them, as you may encounter them.
+---
 
-### Local templates are hoisted.
+## Common Pitfalls
+
+### 1. Local Templates Must Be Hoisted
+
+Local templates must be defined at the root of the file’s template:
 
 ```html
 <foo-bar foo.bind="'John'"></foo-bar>
 
 <template as-custom-element="foo-bar">
   <bindable name="foo"></bindable>
-  <div> ${foo} </div>
+  <div>${foo}</div>
 </template>
 ```
 
-It is theoretically possible to go to an infinite level of nesting. That is, the following example will work. However, whether such composition is helpful depends on the use case.
+Placing `<template as-custom-element="foo-bar">` inside other tags (like `<div>`) will cause a compilation error.
 
-Although it might provide a stronger cohesion, as the level of nesting grows, it might not be easy to work with. It is up to you to decide on a reasonable tradeoff while using local templates.&#x20;
+### 2. Empty or Duplicate Names
 
-In this respect, a good thumb rule is to keep the local function analogy in mind.
-
-```html
-<template as-custom-element="el-one">
-<template as-custom-element="one-two">
-  1
-</template>
-2
-<one-two></one-two>
-</template>
-<template as-custom-element="el-two">
-<template as-custom-element="two-two">
-  3
-</template>
-4
-<two-two></two-two>
-</template>
-<el-two></el-two>
-<el-one></el-one>
-```
-
-### Custom elements cannot contain only local templates
-
-The following examples will cause a (jit) compilation error.
-
-{% tabs %}
-{% tab title="invalid-example2.html" %}
-```html
-<!--Having such custom element does not help much either.-->
-<template as-custom-element="foo-bar">Does this work?</template>
-<template as-custom-element="fiz-baz">Of course not!</template>
-```
-{% endtab %}
-{% endtabs %}
-
-### A local template always needs to be defined directly under the root element
-
-The following example will cause a (jit) compilation error.
-
-{% tabs %}
-{% tab title="invalid-example1.html" %}
-```html
-<div>
-  <template as-custom-element="foo-bar">This does not work.</template>
-</div>
-```
-{% endtab %}
-{% endtabs %}
-
-### Local templates need to have a name
-
-The following example will cause a (jit) compilation error.
+You can’t define a local template without specifying a valid, unique name:
 
 ```html
-<template as-custom-element="">foo-bar</template>
-<div></div>
+<!-- This will fail. -->
+<template as-custom-element=""> No name provided. </template>
 ```
 
-### Local template names need to be unique
-
-The following example will cause a (jit) compilation error.
+Defining the same local template name more than once in the same file will also fail:
 
 ```html
-<template as-custom-element="foo-bar">foo-bar1</template>
-<template as-custom-element="foo-bar">foo-bar2</template>
-<div></div>
+<!-- This will fail as both are named foo-bar. -->
+<template as-custom-element="foo-bar">One</template>
+<template as-custom-element="foo-bar">Two</template>
 ```
 
-### Bindable tags need to be under the local template root
+### 3. Bindable Tags Belong at the Root
 
-The following example will cause a (jit) compilation error.
+`<bindable>` tags need to be direct children of the `<template as-custom-element="...">`. They cannot be nested inside other HTML elements. For example, the following won’t compile:
 
 ```html
 <template as-custom-element="foo-bar">
@@ -228,16 +198,28 @@ The following example will cause a (jit) compilation error.
     <bindable name="prop"></bindable>
   </div>
 </template>
-<div></div>
 ```
 
-### The property attribute on bindable tags is mandatory
+### 4. Don’t Create Empty Local Elements
 
-The following example will cause a (jit) compilation error.
+If a custom element contains only local templates (and nothing else in the top-level template), Aurelia has nothing to render at runtime. This generally leads to errors and is typically not a valid use case.
 
-```html
-<template as-custom-element="foo-bar">
-  <bindable attribute="prop"></bindable>
-</template>
-<div></div>
-```
+---
+
+## Performance Considerations
+
+- **Compilation Overhead**: Local templates compile only within their defining scope. This can be more performant if you don’t need global registration for a small, repeated snippet.
+- **Bundle Size**: By not creating multiple files or global custom elements, you avoid extra overhead in your build. However, the benefit is often marginal compared to other optimizations.
+- **Nested Templates**: Deep nesting can become harder to maintain and debug. Keep local templates at a shallow depth unless there’s a compelling reason.
+
+---
+
+## Testing Local Templates
+
+Even though local templates lack a dedicated .ts file, you can still test the parent component’s DOM interactions to ensure your inline template works as expected. For example, using a testing tool like Jest or Cypress, you would:
+
+1. Render the parent component in a test environment.
+2. Query or select the local element(s) (e.g., `<person-info>`, etc.).
+3. Check that it renders and behaves correctly (bindable props, textual content, etc.).
+
+Since the local template is compiled within the parent context, your tests just interact with the parent view’s rendered DOM.

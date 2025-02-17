@@ -1151,3 +1151,25 @@ The advantage of this kind of distributed configuration is that the routing conf
 On the other hand, highly distributed route configuration may prevent easy overview of the configured routes.
 That's the trade-off.
 Feel free to mix and match as per your need and aesthetics.
+
+## Retrieving the current route and query parameters
+
+Apart from configuring routes, you may also want to read which route is currently active and obtain any query parameters. If you only defined or named a few of them as route parameters, others might appear as query parameters. Here is a short example:
+
+```typescript
+import { ICurrentRoute } from '@aurelia/router-lite';
+import { resolve } from '@aurelia/kernel';
+
+export class MyComponent {
+  private currentRoute = resolve(ICurrentRoute);
+
+  attached() {
+    console.log('Current path:', this.currentRoute.path);
+    console.log('Query params:', this.currentRoute.url.split('?')[1] ?? 'no query');
+    // Or, to see them as a structured object:
+    console.log('Parsed query:', Object.fromEntries(this.currentRoute.parameterInformation[0].params ?? {}));
+  }
+}
+```
+
+You can inject `ICurrentRoute` in any routed view-model. For an elaborate approach, see additional references in the [navigation model](./navigation-model.md#using-the-isactive-property) and [navigation docs](./navigating.md).

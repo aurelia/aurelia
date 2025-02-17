@@ -190,6 +190,8 @@ class GrandChildTwoTwo {}
   <nav>
     <a href="r1">gc21</a>
     <a href="r2">gc22</a>
+    <a href="c1">c1 (doesn't work)</a>
+    <a href="../c1">../c1 (works)</a>
   </nav>
   <br>
   <au-viewport></au-viewport>`,
@@ -285,16 +287,16 @@ class GrandChildOneTwo {}
 
 @route({
   routes: [
-    { id: 'gc11', path: ['', 'gc11'], component: GrandChildOneOne },
-    { id: 'gc12', path: 'gc12', component: GrandChildOneTwo },
+    { id: 'r1', path: ['', 'gc11'], component: GrandChildOneOne },
+    { id: 'r2', path: 'gc12', component: GrandChildOneTwo },
   ],
 })
 @customElement({
   name: 'c-one',
   template: `c1 <br>
   <nav>
-    <a href="gc11">gc11</a>
-    <a href="gc12">gc12</a>
+    <a href="r1">gc11</a>
+    <a href="r2">gc12</a>
     <a href="c2">c2 (doesn't work)</a>
     <a href="../c2">../c2 (works)</a>
   </nav>
@@ -317,16 +319,16 @@ class GrandChildTwoTwo {}
 
 @route({
   routes: [
-    { id: 'gc21', path: ['', 'gc21'], component: GrandChildTwoOne },
-    { id: 'gc22', path: 'gc22', component: GrandChildTwoTwo },
+    { id: 'r1', path: ['', 'gc21'], component: GrandChildTwoOne },
+    { id: 'r2', path: 'gc22', component: GrandChildTwoTwo },
   ],
 })
 @customElement({
   name: 'c-two',
   template: `c2 <br>
   <nav>
-    <a href="gc21">gc21</a>
-    <a href="gc22">gc22</a>
+    <a href="r1">gc21</a>
+    <a href="r2">gc22</a>
     <a href="c1">c1 (doesn't work)</a>
     <a href="../c1">../c1 (works)</a>
   </nav>
@@ -1101,3 +1103,30 @@ Please refer to the linked documentations for more details.
 - [Redirection documentation](./configuring-routes.md#redirect-to-another-path)
 - Fallback using the [route configuration](./configuring-routes.md#fallback-redirecting-the-unknown-path)
 - Fallback using the [viewport attribute](./viewports.md#specify-a-fallback-component-for-a-viewport)
+
+## Checking or using the current route while navigating
+
+Sometimes, when navigating, you'll want to compare the route you're navigating to with the current one. This can help skip redundant navigations, read query parameters, or handle special cases. You can inject `ICurrentRoute` from `@aurelia/router-lite` and compare it:
+
+```typescript
+import { IRouter, ICurrentRoute } from '@aurelia/router-lite';
+import { resolve } from '@aurelia/kernel';
+
+export class MyApp {
+  private readonly router = resolve(IRouter);
+  private readonly currentRoute = resolve(ICurrentRoute);
+
+  public navigateToAbout() {
+    if (this.currentRoute.path === 'about') {
+      console.log('Already on "about" page');
+      return;
+    }
+    this.router.load('about');
+  }
+
+  public logParams() {
+    // For example, you might want the existing query:
+    console.log('Query string is:', this.currentRoute.url.split('?')[1]);
+  }
+}
+```

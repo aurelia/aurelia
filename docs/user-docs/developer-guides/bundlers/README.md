@@ -105,6 +105,32 @@ declare module '*.html' {
 }
 ```
 
+### Importing HTML Templates in Vite
+
+When using Vite with Aurelia, if you manually import HTML files as templates in your components, note that Vite does not automatically treat the import as a string. For example, the following will result in an error:
+
+```js
+import { customElement } from "aurelia";
+import template from "./my-app.html"; // Import without the ?raw suffix
+
+@customElement({ name: "my-app", template })
+export class MyApp {
+  public message = "Hello World!";
+}
+```
+
+To resolve this issue, append the `?raw` suffix to ensure the HTML is imported as a string:
+
+```js
+import { customElement } from "aurelia";
+import template from "./my-app.html?raw"; // Correct import as a string
+
+@customElement({ name: "my-app", template })
+export class MyApp {
+  public message = "Hello World!";
+}
+```
+
 #### Dev config
 By default, the Aurelia Vite plugin generates aliases to development packages for a better experience. It will detect development mode based on the `mode` config from `vite`. You can also override it using the `useDev` option:
 ```ts

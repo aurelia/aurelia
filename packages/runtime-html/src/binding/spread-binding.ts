@@ -1,15 +1,12 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
-import { TaskQueue } from '@aurelia/platform';
 import {
   type IObserverLocator,
   type IObserverLocatorBasedConnectable,
   connectable,
   Scope,
   type IAstEvaluator,
-  astBind,
   astEvaluate,
-  astUnbind,
 } from '@aurelia/runtime';
 import { BindingMode, IInstruction, ITemplateCompiler, InstructionType, SpreadElementPropBindingInstruction } from '@aurelia/template-compiler';
 import { ErrorNames, createMappedError } from '../errors';
@@ -21,6 +18,7 @@ import { IRendering } from '../templating/rendering';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, IBindingController } from './interfaces-bindings';
 import { PropertyBinding } from './property-binding';
+import { bindingBind, bindingHandleChange, bindingHandleCollectionChange, bindingUnbind } from './_lifecycle';
 
 /**
  * The public methods of this binding emulates the necessary of an IHydratableController,
@@ -98,7 +96,9 @@ export class SpreadBinding implements IBinding, IHasController {
     return bindings;
   }
 
-  public scope?: Scope | undefined;
+  public get $kind() { return 'Spread' as const; }
+
+  public _scope?: Scope | undefined;
   public isBound: boolean = false;
   public readonly locator: IServiceLocator;
 
@@ -116,8 +116,8 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.$controller.state;
   }
 
-  /** @internal */ private readonly _innerBindings: IBinding[] = [];
-  /** @internal */ private readonly _hydrationContext: IHydrationContext<object>;
+  /** @internal */ public readonly _innerBindings: IBinding[] = [];
+  /** @internal */ public readonly _hydrationContext: IHydrationContext<object>;
 
   public constructor(
     hydrationContext: IHydrationContext<object>,
@@ -129,26 +129,6 @@ export class SpreadBinding implements IBinding, IHasController {
     return this.locator.get(key);
   }
 
-  public bind(_scope: Scope): void {
-    /* istanbul ignore if */
-    if (this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = true;
-    const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
-    if (innerScope == null) {
-      throw createMappedError(ErrorNames.no_spread_scope_context_found);
-    }
-
-    this._innerBindings.forEach(b => b.bind(innerScope));
-  }
-
-  public unbind(): void {
-    this._innerBindings.forEach(b => b.unbind());
-    this.isBound = false;
-  }
-
   public addBinding(binding: IBinding) {
     this._innerBindings.push(binding);
   }
@@ -158,6 +138,15 @@ export class SpreadBinding implements IBinding, IHasController {
       throw createMappedError(ErrorNames.no_spread_template_controller);
     }
     this.$controller.addChild(controller);
+  }
+
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
+  }
+
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }
 
@@ -174,7 +163,10 @@ export class SpreadValueBinding implements IBinding {
   /** @internal */
   private static readonly _astCache: Record<string, AccessScopeExpression> = {};
 
+  public get $kind() { return 'SpreadValue' as const; }
+
   public isBound = false;
+  public mode: BindingMode = BindingMode.toView;
 
   /** @internal */
   public _scope?: Scope = void 0;
@@ -189,9 +181,6 @@ export class SpreadValueBinding implements IBinding {
   /** @internal */
   public l: IServiceLocator;
 
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -200,7 +189,7 @@ export class SpreadValueBinding implements IBinding {
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
+  public readonly _bindingCache: Record<PropertyKey, PropertyBinding> = {};
   // not a static weakmap because we want to clear the cache when the binding is disposed
   // also different binding at different logic with the same object shouldn't be sharing the same override context
   /** @internal */
@@ -213,90 +202,32 @@ export class SpreadValueBinding implements IBinding {
     public ast: IsBindingBehavior,
     ol: IObserverLocator,
     l: IServiceLocator,
-    taskQueue: TaskQueue,
     public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = ol;
     this.l = l;
-    this._taskQueue = taskQueue;
   }
 
-  public updateTarget(): void {
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      this
-    );
-    this.obs.clear();
-
+  public updateTarget(newValue: unknown): void {
     this._createBindings(newValue as Record<PropertyKey, unknown> | null, true);
   }
 
   public handleChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.updateTarget();
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
   }
 
   public handleCollectionChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.updateTarget();
-  }
-
-  public bind(scope: Scope) {
-      /* istanbul ignore if */
-    if (this.isBound) {
-      /* istanbul ignore if */
-      if (scope === this._scope) {
-      /* istanbul ignore next */
-        return;
-      }
-      /* istanbul ignore next */
-      this.unbind();
-    }
-    this.isBound = true;
-    this._scope = scope;
-
-    astBind(this.ast, scope, this);
-
-    const value = astEvaluate(this.ast, scope, this, this);
-
-    this._createBindings(value as Record<string, unknown> | null, false);
-  }
-
-  public unbind(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = false;
-    astUnbind(this.ast, this._scope!, this);
-    this._scope = void 0;
-    let key: string;
-    // can also try to keep track of what the active bindings are
-    // but we know in our impl, all unbind are idempotent
-    // so just be simple and unbind all
-    for (key in this._bindingCache) {
-      this._bindingCache[key].unbind();
-    }
+    bindingHandleCollectionChange(this);
   }
 
   /**
    * @internal
    */
-  private _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
+  public _createBindings(value: Record<string, unknown> | null, unbind: boolean) {
     let key: string;
+    let binding: PropertyBinding;
     if (!isObject(value)) {
       /* istanbul ignore if */
       if (__DEV__) {
@@ -304,12 +235,13 @@ export class SpreadValueBinding implements IBinding {
         console.warn(`[DEV:aurelia] $bindable spread is given a non object for properties: "${this.targetKeys.join(', ')}" of ${this.target.constructor.name}`);
       }
       for (key in this._bindingCache) {
-        this._bindingCache[key]?.unbind();
+        if ((binding = this._bindingCache[key]) != null) {
+          bindingUnbind(binding);
+        }
       }
       return;
     }
 
-    let binding: PropertyBinding;
     // use a cache as we don't wanna cause bindings to "move" (bind/unbind)
     // whenever there's a new evaluation
     let scope = this._scopeCache.get(value);
@@ -324,7 +256,6 @@ export class SpreadValueBinding implements IBinding {
             this._controller,
             this.l,
             this.oL,
-            this._taskQueue,
             SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,
@@ -332,9 +263,9 @@ export class SpreadValueBinding implements IBinding {
             this.strict,
           );
         }
-        binding.bind(scope);
-      } else if (unbind) {
-        binding?.unbind();
+        bindingBind(binding, scope);
+      } else if (unbind && binding != null) {
+        bindingUnbind(binding);
       }
     }
   }

@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router';
+import { flush } from '@aurelia/runtime';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
@@ -952,9 +953,9 @@ describe('router/router.spec.ts', function () {
 let quxCantUnload = 0;
 let plughReloadBehavior = 'default';
 
-const $load = async (path: string, router: IRouter, platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
   await router.load(path);
-  platform.domQueue.flush();
+  flush();
 };
 
 const wait = async (time = 500) => {

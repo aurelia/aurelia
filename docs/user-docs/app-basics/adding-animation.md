@@ -1,4 +1,0 @@
-# Adding Animation
-
-Placeholder...
-

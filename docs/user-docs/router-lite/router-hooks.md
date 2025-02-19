@@ -443,3 +443,27 @@ When using both globally registered hooks as well as local dependencies, the glo
 You can see this in action in [this example](https://stackblitz.com/edit/router-lite-hook-mixed-registration?ctl=1&embed=1&file=src/child1.ts).
 
 Lastly, the shared lifecycle hooks are invoked before the instance lifecycle hooks.
+
+## Reading raw route or query parameters in hooks
+
+Here is a small snippet added to the `canLoad` or `loading` hook, demonstrating how to read query parameters. The `next` argument contains the `queryParams` which can be read directly:
+
+```typescript
+import { lifecycleHooks, IRouteViewModel, RouteNode } from '@aurelia/router-lite';
+
+@lifecycleHooks()
+export class QueryReadingHooks {
+  public canLoad(
+    viewModel: IRouteViewModel,
+    params: Record<string, unknown>,
+    next: RouteNode
+  ): boolean {
+    // e.g. /product/42?foo=bar
+    console.log('Raw route path:', next.computeAbsolutePath());
+    console.log('Query parameter "foo":', next.queryParams.get('foo'));
+    return true;
+  }
+}
+```
+
+You can also do similar reading in `loading`, `canUnload`, etc. This approach can be combined with injecting `ICurrentRoute` if your logic is broader than a single hook.

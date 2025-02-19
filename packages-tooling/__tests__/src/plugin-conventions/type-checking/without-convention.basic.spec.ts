@@ -2115,5 +2115,473 @@ ${prop('prop', 'string', isTs)}
 
       assertSuccess(entry, result.code);
     });
+
+    describe(`union typed - language: ${lang}`, function () {
+      it('property - pass', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toString()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+      import { customElement } from '@aurelia/runtime-html';
+      import template from './${markupFile}';
+
+      @customElement({ name: 'foo', template })
+      export class Foo {
+      ${prop('prop', 'string | number', isTs)}
+      }
+      `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it('property - fail', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+          import { customElement } from '@aurelia/runtime-html';
+          import template from './${markupFile}';
+
+          @customElement({ name: 'foo', template })
+          export class Foo {
+          ${prop('prop', 'string | number', isTs)}
+          }
+          `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
+      });
+
+      it('accessor - pass', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toString()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+    import { customElement } from '@aurelia/runtime-html';
+    import template from './${markupFile}';
+
+    @customElement({ name: 'foo', template })
+    export class Foo {
+    ${isTs ? '' : `
+    /**
+     * @public
+     * @type {string|number}
+     */
+    `}
+    ${isTs ? `public ` : ''}get prop()${isTs ? `: string | number` : ''} { return 'foo'; };
+    }
+    `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it('accessor - fail', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop.toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+        import { customElement } from '@aurelia/runtime-html';
+        import template from './${markupFile}';
+
+        @customElement({ name: 'foo', template })
+        export class Foo {
+        ${isTs ? '' : `
+        /**
+         * @public
+         * @type {string|number}
+         */
+        `}
+        ${isTs ? `public ` : ''}get prop()${isTs ? `: string | number` : ''} { return 'foo'; };
+        }
+        `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string \| number'/]);
+      });
+
+      it('method - pass', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42, bar)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+          import { customElement } from '@aurelia/runtime-html';
+          import template from './${markupFile}';
+
+          @customElement({ name: 'foo', template })
+          export class Foo {
+          ${prop('bar', 'number | boolean', isTs)}
+          ${isTs ? '' : `
+          /**
+           * @param {string | number} x
+           * @param {number | string} y
+           * @param {number | boolean} z
+           * @returns {string}
+           * @public
+           */
+          `}
+          ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number | string` : ''}, z${isTs ? `: number | boolean` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+          }
+          `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it('method - fail', function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42, bar.toString())}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+          import { customElement } from '@aurelia/runtime-html';
+          import template from './${markupFile}';
+
+          @customElement({ name: 'foo', template })
+          export class Foo {
+          ${prop('bar', 'number | boolean', isTs)}
+          ${isTs ? '' : `
+          /**
+           * @param {string | number} x
+           * @param {number | string} y
+           * @param {number | boolean} z
+           * @returns {string}
+           * @public
+           */
+          `}
+          ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number | string` : ''}, z${isTs ? `: number | boolean` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+          }
+          `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Argument of type 'string' is not assignable to parameter of type 'number \| boolean'/]);
+      });
+    });
+
+    describe(`method - language: ${lang}`, function () {
+      it(`fail - not enough arguments`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\')}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Expected 2 arguments, but got 1/]);
+      });
+
+      it(`fail - too many arguments`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42, 500)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Expected 2 arguments, but got 3/]);
+      });
+
+      it(`overloaded method - pass`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42).toUpperCase()} ${prop(3.14, 42).toExponential(2)}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                import { customElement } from '@aurelia/runtime-html';
+                import template from './${markupFile}';
+
+                @customElement({ name: 'foo', template })
+                export class Foo {
+                ${prop('bar', 'number | boolean', isTs)}
+                ${isTs ? `
+                  public prop(x: number, y: number): number;
+                  public prop(x: string, y: number): string;
+                  ` : `
+                  /**
+                   * @overload
+                   * @param {number} x
+                   * @param {number} y
+                   * @returns {number}
+                   */
+                  /**
+                   * @overload
+                   * @param {string} x
+                   * @param {number} y
+                   * @returns {string}
+                   */
+                  /**
+                   * @param {string | number} x
+                   * @param {number} y
+                   * @returns {string | number}
+                   */
+                  `}
+                ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return typeof x === 'number' ? x + y : \`\${x} \${y}\`; };
+                }
+                `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertSuccess(entry, result.code);
+      });
+
+      it(`overloaded method - fail`, function () {
+        const entry = `entry.${extn}`;
+        const markupFile = 'entry.html';
+        const markup = '${prop(\'foo\', 42).toExponential(2)} ${prop(3.14, 42).toUpperCase()}';
+        const result = preprocessResource(
+          {
+            path: entry,
+            contents: `
+                      import { customElement } from '@aurelia/runtime-html';
+                      import template from './${markupFile}';
+
+                      @customElement({ name: 'foo', template })
+                      export class Foo {
+                      ${prop('bar', 'number | boolean', isTs)}
+                      ${isTs ? `
+                        public prop(x: number, y: number): number;
+                        public prop(x: string, y: number): string;
+                        ` : `
+                        /**
+                         * @overload
+                         * @param {number} x
+                         * @param {number} y
+                         * @returns {number}
+                         */
+                        /**
+                         * @overload
+                         * @param {string} x
+                         * @param {number} y
+                         * @returns {string}
+                         */
+                        /**
+                         * @param {string | number} x
+                         * @param {number} y
+                         * @returns {string | number}
+                         */
+                        `}
+                      ${isTs ? `public ` : ''}prop(x${isTs ? `: string | number` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string | number` : ''} { return typeof x === 'number' ? x + y : \`\${x} \${y}\`; };
+                      }
+                      `,
+            readFile: createMarkupReader(markupFile, markup),
+          }, nonConventionalOptions);
+
+        assertFailure(entry, result.code, [/Property 'toExponential' does not exist on type 'string'/, /Property 'toUpperCase' does not exist on type 'number'/]);
+      });
+    });
+
+    describe('access modifier', function () {
+      for (const accessModifier of ['public', 'protected', 'private'] as const) {
+        it(`${accessModifier} property - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${prop('prop', 'string', isTs, accessModifier)}
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        it(`${accessModifier} accessor - language: ${lang}`, function () {
+          const entry = `entry.${extn}`;
+          const markupFile = 'entry.html';
+          const markup = '${prop}';
+          const result = preprocessResource(
+            {
+              path: entry,
+              contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `
+/**
+ * @${accessModifier}
+ * @type {string}
+ */
+`}
+${isTs ? `${accessModifier} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+              readFile: createMarkupReader(markupFile, markup),
+            }, nonConventionalOptions);
+
+          assertSuccess(entry, result.code);
+        });
+
+        describe(`${accessModifier} method - language: ${lang}`, function () {
+          it(`without argument - pass`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop()}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+import { customElement } from '@aurelia/runtime-html';
+import template from './${markupFile}';
+
+@customElement({ name: 'foo', template })
+export class Foo {
+${isTs ? '' : `
+/**
+ * @${accessModifier}
+ * @returns {string}
+ */
+`}
+${isTs ? `${accessModifier} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
+}
+`,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertSuccess(entry, result.code);
+          });
+
+          it(`with arguments - pass`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop(\'foo\', 42)}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+  import { customElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  @customElement({ name: 'foo', template })
+  export class Foo {
+  ${isTs ? '' : `
+  /**
+   * @param {string} x
+   * @param {number} y
+   * @returns {string}
+   * @${accessModifier}
+   */
+  `}
+  ${isTs ? `${accessModifier} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  }
+  `,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertSuccess(entry, result.code);
+          });
+
+          it(`with arguments - fail`, function () {
+            const entry = `entry.${extn}`;
+            const markupFile = 'entry.html';
+            const markup = '${prop(42, \'foo\')}';
+            const result = preprocessResource(
+              {
+                path: entry,
+                contents: `
+  import { customElement } from '@aurelia/runtime-html';
+  import template from './${markupFile}';
+
+  @customElement({ name: 'foo', template })
+  export class Foo {
+  ${isTs ? '' : `
+  /**
+   * @param {string} x
+   * @param {number} y
+   * @returns {string}
+   * @${accessModifier}
+   */
+  `}
+  ${isTs ? `${accessModifier} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  }
+  `,
+                readFile: createMarkupReader(markupFile, markup),
+              }, nonConventionalOptions);
+
+            assertFailure(entry, result.code, [/Argument of type 'number' is not assignable to parameter of type 'string'/]);
+          });
+        });
+      }
+    });
   }
 });

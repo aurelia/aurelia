@@ -79,7 +79,50 @@ Note that from the `build` method, we are creating a `ListenerBindingInstruction
 
 To register the custom binding command, it needs to be registered with the dependency injection container.
 
-And that's it! We have created our own binding command. This means that the following syntax will work.
+### Registering the custom binding command
+
+```typescript
+import { IContainer } from 'aurelia';
+import { BsBindingCommand } from './bs-binding-command';
+
+export function registerBindingCommands(container: IContainer) {
+  // Register our custom command with Aurelia's DI container
+  container.register(BsBindingCommand);
+}
+```
+
+This function can then be called wherever you configure your Aurelia application, so that the compiler knows about your custom command.
+
+#### How to load the custom command
+
+In your `main.ts` (or equivalent entry point) where you configure Aurelia, you can call the `registerBindingCommands` function. For example:
+
+```typescript
+import Aurelia from 'aurelia';
+import { registerBindingCommands } from './register';
+import { MyRoot } from './my-root';
+
+Aurelia
+  .app(MyRoot)
+  .register(registerBindingCommands)
+  .start();
+```
+
+This ensures that when Aurelia boots, it's aware of your new binding command.
+
+#### Why `ignoreAttr = true`?
+
+Setting `ignoreAttr = true` tells the compiler that this binding command fully manages the attribute in the view. Without this flag, Aurelia might attempt to interpret the same attribute as a custom attribute or a normal bindable property. This can lead to conflicts or warnings if you reuse attribute names already in use by other features.
+
+#### Debugging custom binding commands
+
+If your command doesn't behave as expected:
+
+- Make sure you've registered it before Aurelia starts (see the `main.ts` snippet above).
+- Double-check that the **command name** (e.g., `'bs'`) matches in both the `@bindingCommand('bs')` decorator and your view markup (`foo.bar.bs="..."`).
+- Use browser dev tools to confirm whether your event is fired and that the method in your view model is triggered.
+
+And that's it! We have created our own binding command and registered it. This means the following syntax will work:
 
 ```html
 <div foo.bar.bs="ev => handleCustomEvent(ev)"></div>

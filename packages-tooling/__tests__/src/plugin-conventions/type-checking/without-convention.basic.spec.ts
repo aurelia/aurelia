@@ -2441,8 +2441,8 @@ ${prop('prop', 'string', isTs)}
     });
 
     describe('access modifier', function () {
-      for (const am of ['public', 'protected', 'private'] as const) {
-        it(`${am} property - language: ${lang}`, function () {
+      for (const accessModifier of ['public', 'protected', 'private'] as const) {
+        it(`${accessModifier} property - language: ${lang}`, function () {
           const entry = `entry.${extn}`;
           const markupFile = 'entry.html';
           const markup = '${prop}';
@@ -2455,7 +2455,7 @@ import template from './${markupFile}';
 
 @customElement({ name: 'foo', template })
 export class Foo {
-${prop('prop', 'string', isTs, am)}
+${prop('prop', 'string', isTs, accessModifier)}
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -2464,7 +2464,7 @@ ${prop('prop', 'string', isTs, am)}
           assertSuccess(entry, result.code);
         });
 
-        it(`${am} accessor - language: ${lang}`, function () {
+        it(`${accessModifier} accessor - language: ${lang}`, function () {
           const entry = `entry.${extn}`;
           const markupFile = 'entry.html';
           const markup = '${prop}';
@@ -2479,11 +2479,11 @@ import template from './${markupFile}';
 export class Foo {
 ${isTs ? '' : `
 /**
- * @${am}
+ * @${accessModifier}
  * @type {string}
  */
 `}
-${isTs ? `${am} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
+${isTs ? `${accessModifier} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
 }
 `,
               readFile: createMarkupReader(markupFile, markup),
@@ -2492,7 +2492,7 @@ ${isTs ? `${am} ` : ''}get prop()${isTs ? `: string` : ''} { return 'foo'; };
           assertSuccess(entry, result.code);
         });
 
-        describe(`${am} method - language: ${lang}`, function () {
+        describe(`${accessModifier} method - language: ${lang}`, function () {
           it(`without argument - pass`, function () {
             const entry = `entry.${extn}`;
             const markupFile = 'entry.html';
@@ -2508,11 +2508,11 @@ import template from './${markupFile}';
 export class Foo {
 ${isTs ? '' : `
 /**
- * @${am}
+ * @${accessModifier}
  * @returns {string}
  */
 `}
-${isTs ? `${am} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
+${isTs ? `${accessModifier} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
 }
 `,
                 readFile: createMarkupReader(markupFile, markup),
@@ -2539,10 +2539,10 @@ ${isTs ? `${am} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
    * @param {string} x
    * @param {number} y
    * @returns {string}
-   * @${am}
+   * @${accessModifier}
    */
   `}
-  ${isTs ? `${am} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  ${isTs ? `${accessModifier} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
   }
   `,
                 readFile: createMarkupReader(markupFile, markup),
@@ -2569,10 +2569,10 @@ ${isTs ? `${am} ` : ''}prop()${isTs ? `: string` : ''} { return 'foo'; };
    * @param {string} x
    * @param {number} y
    * @returns {string}
-   * @${am}
+   * @${accessModifier}
    */
   `}
-  ${isTs ? `${am} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
+  ${isTs ? `${accessModifier} ` : ''}prop(x${isTs ? `: string` : ''}, y${isTs ? `: number` : ''})${isTs ? `: string` : ''} { return 'foo'; };
   }
   `,
                 readFile: createMarkupReader(markupFile, markup),

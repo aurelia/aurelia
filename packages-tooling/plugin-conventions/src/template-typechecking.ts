@@ -1,4 +1,4 @@
-import { DI, Writable } from '@aurelia/kernel';
+import { DI, isArray, Writable } from '@aurelia/kernel';
 import type {
   AccessKeyedExpression,
   DestructuringAssignmentExpression,
@@ -29,7 +29,7 @@ import type {
 import { parseFragment } from 'parse5';
 import type { DefaultTreeAdapterMap, Token } from 'parse5';
 import { modifyCode } from './modify-code';
-import { ClassMetadata } from './preprocess-resource';
+import { ClassMember, ClassMetadata } from './preprocess-resource';
 
 type DefaultTreeElement = DefaultTreeAdapterMap['element'];
 type DefaultTreeTextNode = DefaultTreeAdapterMap['textNode'];
@@ -99,7 +99,7 @@ class IdentifierScope {
     if (isPromise) {
       if (this.type !== 'promise') throw new Error(`Identifier '${ident}' is used for promise template controller, but scope is not marked as a promise scope.`);
     }
-    if (this.classes.some(c => c.members.includes(ident))) return returnIdentifier(ident);
+    if (this.classes.some(c => c.members.some(x => x.name === ident))) return returnIdentifier(ident);
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let current: IdentifierScope | null = this;
@@ -160,11 +160,38 @@ class TypeCheckingContext {
     public readonly isJs: boolean,
   ) {
     const classNames = classes.map(c => c.name);
-    this.classUnion = `(${classNames.join('|')})`;
+
+    // create a class union
+    // - Omit the private and protected members
+    // - Add them back to the union type
+    // - Then create union
+    const classUnion = [];
+    for (const $class of classes) {
+      // Omit<CLASS, 'private' | 'protected'> & { PRIVATE: TYPE, PROTECTED: TYPE }
+      const nonPublicMembers = $class.members.filter(x => x.accessModifier !== 'public');
+      if (nonPublicMembers.length === 0) {
+        classUnion.push($class.name);
+        continue;
+      }
+      classUnion.push(
+        // TODO(Sayan): handle method overloads?
+        `Omit<${$class.name}, ${nonPublicMembers.map(x => `'${x.name}'`).join(' | ')}> & ${renderNonPublicMembers(nonPublicMembers)}`
+      );
+    }
+    this.classUnion = classUnion.join(' | ');
+
     this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
     this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
     this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
     this.scope = new IdentifierScope('none', classes);
+
+    function renderNonPublicMembers(nonPublicMembers: ClassMember[]): string {
+      return `{ ${nonPublicMembers.map(x => `${x.name}${renderMethodArguments(x)}: ${x.dataType}`).join(', ')} }`;
+    }
+    function renderMethodArguments(x: ClassMember): string {
+      if (x.memberType !== 'method') return '';
+      return `(${x.methodArguments!.map(a => `${a.isSpread ? '...' : ''}${a.name}${a.isOptional ? '?' : ''}: ${a.type}`).join(',')})`;
+    }
   }
 
   public produceTypeCheckedTemplate(rawHtml: string): string {
@@ -204,12 +231,31 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
     return this.scope.getIdentifier(ident, instruction);
   }
 
-  public createLambdaExpression(...args: string[]): string {
-    const len = args.length;
-    switch (len) {
-      case 0: throw new Error('At least one argument is required');
-      case 1: return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args[0]}`;
-      default: return `${TypeCheckingContext._o} => (${args.map(arg => `${TypeCheckingContext._o}.${arg}`).join(',')})`;
+  public createLambdaExpression(expression: IsBindingBehavior): string;
+  public createLambdaExpression(args: string[]): string;
+  public createLambdaExpression(args: string[] | IsBindingBehavior): string {
+    if (isArray(args)) {
+      const len = args.length;
+      switch (len) {
+        case 0: throw new Error('At least one argument is required');
+        case 1: return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args[0]}`;
+        default: return `${TypeCheckingContext._o} => (${args.map(arg => `${TypeCheckingContext._o}.${arg}`).join(',')})`;
+      }
+    }
+
+    switch (args.$kind) {
+      case 'CallScope':
+        {
+          const argList: string[] = [];
+          for (const arg of args.args) {
+            switch(arg.$kind) {
+              case 'PrimitiveLiteral': argList.push(unparse(arg)); break;
+              default: argList.push(`${TypeCheckingContext._o}.${unparse(arg)}`);
+            }
+          }
+          return `${TypeCheckingContext._o} => ${TypeCheckingContext._o}.${args.name}(${argList.join(',')})`;
+        }
+      default: return this.createLambdaExpression([unparse(args)]);
     }
   }
 
@@ -272,7 +318,7 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
     // generate a new identifier
     const identifier = ctx.getIdentifier(rangeIterableIdentifier)!;
     const primitiveValue = (expr.iterable as PrimitiveLiteralExpression).value;
-    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
+    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([identifier])}, '${primitiveValue}')}`;
     ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
     propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
   } else {
@@ -282,7 +328,7 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
       return newName;
     }, true);
     propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
-    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdentifier}')}`;
+    iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(iterIdent)}, '${rawIterIdentifier}')}`;
   }
   let declaration: () => string;
   switch (expr.declaration.$kind) {
@@ -293,7 +339,7 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
       const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
 
       ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
-      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
+      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([keyIdent, valueIdent])}, '[${rawKeyIdent},${rawValueIdent}]')}`;
       break;
 
       // eslint-disable-next-line no-inner-declarations
@@ -313,7 +359,7 @@ function tryProcessRepeat(syntax: AttrSyntax, attr: Token.Attribute, node: Defau
       const decIdentifier = ctx.getIdentifier(rawDecIdentifier, IdentifierInstruction.AddToOverrides)!;
 
       ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdentifier}: CollectionElement<${propAccExpr}> }`);
-      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(decIdentifier)}, '${rawDecIdentifier}')}`;
+      declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([decIdentifier])}, '${rawDecIdentifier}')}`;
 
       break;
     }
@@ -380,7 +426,7 @@ function tryProcessPromise(syntax: AttrSyntax, attr: Token.Attribute, node: Defa
   function addReplaceParts(_expr: IsAssign, value: string): void {
     ctx.toReplace.push({
       loc: node.sourceCodeLocation!.attrs![attr.name],
-      modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+      modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
     });
   }
 }
@@ -406,7 +452,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
 
           ctx.toReplace.push({
             loc: node.sourceCodeLocation!.attrs![attr.name],
-            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
           });
         }
       }
@@ -421,7 +467,7 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
         const originalExpr = part;
         [part] = mutateAccessScope(part, ctx, member => ctx.getIdentifier(member, IdentifierInstruction.SkipGeneration) ?? member);
         htmlFactories.push(
-          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`,
+          () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(part)}, '${escape(unparse(originalExpr))}')}`,
           () => expr.parts[idx + 1]
         );
       });
@@ -435,6 +481,9 @@ function processNode(node: DefaultTreeElement | DefaultTreeTextNode, ctx: TypeCh
   return retVal;
 }
 
+function escape(s: string): string {
+  return s.replace(/'/g, '\\\'');
+}
 function unparse(expr: IsBindingBehavior): string {
   return Unparser.unparse(expr);
 }

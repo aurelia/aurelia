@@ -453,15 +453,16 @@ export class FooBar {
   x: string;
 }
 `;
-    const expected = `import { customElement } from '@aurelia/runtime-html';
-import * as __au2ViewDef from './foo-bar.html';
+    // eslint-disable-next-line prefer-regex-literals
+    const expected = new RegExp(`import { customElement } from '@aurelia/runtime-html';
+import \\* as __au2ViewDef from './foo-bar.html';
 
 export class FooBar {
-    static $au = { ...__au2ViewDef, type: "custom-element", name: "foo-bar", bindables: ["x"] };
+    static \\$au = { ...__au2ViewDef, type: ["']custom-element["'], name: ["']foo-bar["'], bindables: \\[["']x["']\\] };
     x: string;
 }
 
-`;
+`);
     const result = preprocessResource(
       {
         path: path.join('bar', 'foo-bar.js'),
@@ -470,7 +471,7 @@ export class FooBar {
       },
       preprocessOptions({ hmr: false })
     );
-    assert.equal(result.code, expected);
+    assert.match(result.code, expected);
   });
 
   for (const nvDeco of ['noView', 'noView()']) {

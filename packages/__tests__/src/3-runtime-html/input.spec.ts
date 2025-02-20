@@ -1,4 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
+import { flush } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/input.spec.ts', function () {
@@ -20,7 +21,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -43,7 +44,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     });
 
     it('treats file input ".bind" to as ".from-view"', function () {
-      const { component, ctx } = createFixture(
+      const { component } = createFixture(
         `<input type=file files.bind="file">`,
         class App {
           public file = '';
@@ -52,7 +53,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       assert.doesNotThrow(() => {
         component.file = 'c:/my-file.txt';
-        ctx.platform.domQueue.flush();
+        flush();
       });
     });
 
@@ -83,7 +84,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -130,7 +131,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      ctx.platform.domQueue.flush();
+      flush();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -154,7 +155,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    ctx.platform.domQueue.flush();
+    flush();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -220,7 +221,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
   describe('gh issues', function () {
     it('selects radio when radios are rendered inside an [if]', async function () {
-      const { assertChecked, trigger, flush } = createFixture(
+      const { assertChecked, trigger } = createFixture(
         `
         <let show.bind="true" option.bind="'s'"></let>
         <input if.bind="show"  id="blue"  type="radio" name="r1" checked.bind="option" value="s" />

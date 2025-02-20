@@ -1,33 +1,20 @@
-import { type IServiceLocator, isString } from '@aurelia/kernel';
+import { isString, type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   type IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber,
-  astBind,
-  astEvaluate,
-  astUnbind,
   type IAstEvaluator,
   type Scope,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
-import { oneTime, toView } from './interfaces-bindings';
 
-import type {
-  ITask,
-  QueueTaskOptions,
-  TaskQueue
-} from '@aurelia/platform';
 import type { INode } from '../dom';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
-import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-
-const taskOptions: QueueTaskOptions = {
-  preempt: true,
-};
+import { safeString } from '../utilities';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -44,17 +31,16 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       mixinAstEvaluator(AttributeBinding);
   });
 
+  public get $kind() { return 'Attribute' as const; }
+
   public isBound: boolean = false;
   /** @internal */
   public _scope?: Scope = void 0;
 
-  /** @internal */
-  private _task: ITask | null = null;
-
   public target: HTMLElement;
 
   /** @internal */
-  private _value: unknown = void 0;
+  public _value: unknown = void 0;
 
   /**
    * A semi-private property used by connectable mixin
@@ -64,10 +50,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  private readonly _controller: IBindingController;
-
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
+  public readonly _controller: IBindingController;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -82,7 +65,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -100,14 +82,10 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this._controller = controller;
     this.target = target as HTMLElement;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(value: unknown): void {
-    const target = this.target;
-    const targetAttribute = this.targetAttribute;
-    const targetProperty = this.targetProperty;
-
+    const { target, targetAttribute, targetProperty } = this;
     switch (targetAttribute) {
       case 'class':
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -134,79 +112,11 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-
-    let task: ITask | null;
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
-
-    if (newValue !== this._value) {
-      this._value = newValue;
-      const shouldQueueFlush = this._controller.state !== activating;
-      if (shouldQueueFlush) {
-        // Queue the new one before canceling the old one, to prevent early yield
-        task = this._task;
-        this._task = this._taskQueue.queueTask(() => {
-          this._task = null;
-          this.updateTarget(newValue);
-        }, taskOptions);
-        task?.cancel();
-      } else {
-        this.updateTarget(newValue);
-      }
-    }
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
   }
 
-  // todo: based off collection and handle update accordingly instead off always start
   public handleCollectionChange(): void {
-    this.handleChange();
-  }
-
-  public bind(_scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = _scope;
-
-    astBind(this.ast, _scope, this);
-
-    if (this.mode & (toView | oneTime)) {
-      this.updateTarget(
-        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & toView) > 0 ? this : null)
-      );
-    }
-
-    this.isBound = true;
-  }
-
-  public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this._value = void 0;
-
-    this._task?.cancel();
-    this._task = null;
-    this.obs.clearAll();
+    bindingHandleCollectionChange(this);
   }
 }

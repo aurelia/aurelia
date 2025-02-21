@@ -96,7 +96,14 @@ When using Webpack, ensure the following rule is included in the Webpack configu
   use: {
     loader: '@aurelia/webpack-loader',
     options: {
-      defaultShadowOptions: { mode: 'open' }
+      // Option 1: Globally enable Shadow DOM by uncommenting the following line.
+      // defaultShadowOptions: { mode: 'open' },
+      //
+      // Option 2: Omit the defaultShadowOptions setting to selectively enable Shadow DOM.
+      // In this scenario, only components decorated with @useShadowDOM()
+      // (e.g. your main Aurelia component) will have Shadow DOM applied.
+      // For components where you want to disable Shadow DOM,
+      // use @useShadowDOM(null) (note that @useShadowDOM(false) does not work as expected).
     }
   },
   exclude: /node_modules/
@@ -167,12 +174,12 @@ The `useShadowDOM` decorator also allows disabling Shadow DOM for a specific com
 
 #### Example: Disabling Shadow DOM for a Component
 
-{% code title="my-component.ts" %}
+{% code title="other-component.ts" %}
 ```typescript
 import { useShadowDOM } from 'aurelia';
 
-@useShadowDOM(false)
-export class MyComponent {
+@useShadowDOM(null) // Use null to disable Shadow DOM for this component.
+export class OtherComponent {
   // Component logic without Shadow DOM
 }
 ```
@@ -452,3 +459,18 @@ By defining and exporting theme variables in `theme.css`, they can be imported a
 ## Additional Resources
 
 For more guidance on class and style bindings in Aurelia applications, please take a look at the [CSS classes and styling section](.. templates/class-and-style-bindings.md). This section covers strategies for dynamically working with classes and inline styles.
+
+{% code title="my-app.ts" %}
+```typescript
+import { useShadowDOM } from 'aurelia';
+
+@useShadowDOM()
+// This enables Shadow DOM for the main Aurelia component,
+// allowing styles from my-app.scss to be applied.
+export class MyApp {
+  // App logic here
+}
+```
+{% endcode %}
+
+When configuring Shadow DOM selectively (i.e. without enabling it globally in Webpack), only decorate the components that should have Shadow DOM with `@useShadowDOM()`. For components you wish to exclude from Shadow DOM, use `@useShadowDOM(null)` rather than `@useShadowDOM(false)`, as the latter does not properly disable the Shadow DOM.

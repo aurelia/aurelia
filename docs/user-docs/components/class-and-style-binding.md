@@ -259,7 +259,7 @@ This rule processes CSS files, enabling CSS module functionality.
 
 Define your styles, and reference the class names in your HTML templates. Webpack will handle the conversion to unique class names.
 
-{% code title="my-component.css" %}
+{% code title="my-component.module.css" %}
 ```css
 .title {
   font-size: 24px;
@@ -284,7 +284,7 @@ CSS Modules support the `:global` selector for styling global elements without t
 
 #### Example: Using Global Selectors
 
-{% code title="my-component.css" %}
+{% code title="my-component.module.css" %}
 ```css
 :global(.button-primary) {
   background-color: #007bff;

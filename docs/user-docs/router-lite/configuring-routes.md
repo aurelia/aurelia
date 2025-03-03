@@ -862,6 +862,102 @@ You can see this configuration in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-component-ce-instance-jx3kee?ctl=1&embed=1&file=src/my-app.ts" %}
 
+### Using conventional HTML-only custom element
+
+When using HTML-only custom elements, facilitated via the convention, the custom element can be directly used while configuring routes.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
++ import * as About from './about.html';
++ import * as Home from './home.html';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+        component: Home,
+        title: 'Home',
+      },
+      {
+        path: 'about',
+        component: About,
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+Using `import()` function directly is also supported.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: import('./home.html'),
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: import('./about.html'),
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+When importing the HTML-only custom elements in the HTML file using `<require from="">` syntax, use the custom element name in the route configuration.
+
+```html
+  <require from="./about.html"></require>
+  <require from="./home.html"></require>
+
+  <au-viewport></au-viewport>
+```
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: 'home',
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: 'about',
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
 ## Using classes as routes
 
 Using router-lite it is also possible to use the routed view model classes directly as routes configuration.

@@ -18,7 +18,7 @@ import {
 import { IRouteViewModel } from './component-agent';
 import { RouteType } from './route';
 import { type $RecognizedRoute, IRouteContext, RouteContext } from './route-context';
-import { expectType, isPartialViewportInstruction, shallowEquals } from './validation';
+import { expectType, isPartialCustomElementDefinition, isPartialViewportInstruction, shallowEquals } from './validation';
 import { INavigationOptions, NavigationOptions, type RouterOptions } from './options';
 import { RouteExpression } from './route-expression';
 import { mergeURLSearchParams, tryStringify } from './util';
@@ -459,6 +459,24 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     if (isCustomElementViewModel(instruction)) return new TypedNavigationInstruction(NavigationInstructionType.IRouteViewModel, instruction);
     // We might have gotten a complete definition. In that case use it as-is.
     if (instruction instanceof CustomElementDefinition) return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, instruction);
+
+    // If we have a partial definition, create a complete definition from it.
+    // Use-case:
+    // import * as component from './conventional-html-only-component.html';
+    // @route({
+    //   routes: [
+    //     {
+    //       path: 'path',
+    //       component,
+    //     },
+    //   ],
+    // })
+    if (isPartialCustomElementDefinition(instruction)) {
+      const definition = CustomElementDefinition.create(instruction);
+      CustomElement.define(definition);
+      return new TypedNavigationInstruction(NavigationInstructionType.CustomElementDefinition, definition);
+    }
+
     throw new Error(getMessage(Events.instrInvalid, tryStringify(instruction)));
   }
 

@@ -15,7 +15,7 @@ import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurel
 import {
   Controller,
   CustomElement,
-  type CustomElementDefinition,
+  CustomElementDefinition,
   IAppRoot,
   IController,
   ICustomElementController,
@@ -52,7 +52,7 @@ import {
 } from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
-import { isPartialChildRouteConfig } from './validation';
+import { isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 
@@ -517,7 +517,14 @@ export class RouteContext {
         }
       }
 
-      if (defaultExport === void 0 && firstNonDefaultExport === void 0) throw new Error(getMessage(Events.rcInvalidLazyImport, promise));
+      if (defaultExport === void 0 && firstNonDefaultExport === void 0) {
+        if (!isPartialCustomElementDefinition(raw)) throw new Error(getMessage(Events.rcInvalidLazyImport, promise));
+
+        // use-case: import('./conventional-html-only-component.html')
+        const definition = CustomElementDefinition.create(raw);
+        CustomElement.define(definition);
+        return definition;
+      }
 
       return firstNonDefaultExport ?? defaultExport!;
     });

@@ -72,21 +72,33 @@ export default function au(options: {
       // which already preprocessed by the load hook of this plugin
       if (isVirtualTsFileFromHtml(id)) return;
 
-      const result = preprocess({
-        path: id,
-        contents: code,
-      }, {
-        // hmr: true,
-        hmrModule: 'import.meta',
-        getHmrCode,
-        transformHtmlImportSpecifier: (s) => {
-          return this.meta.watchMode
-            ? s
-            : s.replace(/\.html$/, '.$au.ts');
+      // If we are in a .ts or .js file, let's rewrite .html imports to .html?raw
+      if (/\.[cm]?[tj]s$/.test(id)) {
+        // Simple check for lines with .html and no existing query (e.g. ?someFlag).
+        code = code.replace(
+          /(\.html)(?!\?)(['"])/g,
+          '.html?raw$2'
+        );
+      }
+
+      const result = preprocess(
+        {
+          path: id,
+          contents: code,
         },
-        stringModuleWrap: (id) => `${id}?inline`,
-        ...additionalOptions
-      });
+        {
+          // hmr: true,
+          hmrModule: 'import.meta',
+          getHmrCode,
+          transformHtmlImportSpecifier: (s) => {
+            return this.meta.watchMode
+              ? s
+              : s.replace(/\.html$/, '.$au.ts');
+          },
+          stringModuleWrap: (id) => `${id}?inline`,
+          ...additionalOptions,
+        }
+      );
       return result;
     },
 

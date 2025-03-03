@@ -1,5 +1,5 @@
 import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '../../../kernel/dist/native-modules/index.mjs';
-import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, Controller, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, CustomElementDefinition, Controller, IPlatform, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '../../../route-recognizer/dist/native-modules/index.mjs';
 import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 import { batch } from '../../../runtime/dist/native-modules/index.mjs';
@@ -981,9 +981,15 @@ function resolveCustomElementDefinition(routeable, context) {
         case 0 /* NavigationInstructionType.string */: {
             if (context == null)
                 throw new Error(getMessage(3551 /* Events.rtNoCtxStrComponent */));
-            const component = CustomElement.find(context.container, instruction.value);
+            const dependencies = context.component.dependencies;
+            let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value)
+                ?? CustomElement.find(context.container, instruction.value);
             if (component === null)
                 throw new Error(getMessage(3552 /* Events.rtNoComponent */, instruction.value, context));
+            if (!(component instanceof CustomElementDefinition)) {
+                component = CustomElementDefinition.create(component);
+                CustomElement.define(component);
+            }
             ceDef = component;
             break;
         }
@@ -3886,6 +3892,22 @@ class TypedNavigationInstruction {
         // We might have gotten a complete definition. In that case use it as-is.
         if (instruction instanceof CustomElementDefinition)
             return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, instruction);
+        // If we have a partial definition, create a complete definition from it.
+        // Use-case:
+        // import * as component from './conventional-html-only-component.html';
+        // @route({
+        //   routes: [
+        //     {
+        //       path: 'path',
+        //       component,
+        //     },
+        //   ],
+        // })
+        if (isPartialCustomElementDefinition(instruction)) {
+            const definition = CustomElementDefinition.create(instruction);
+            CustomElement.define(definition);
+            return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, definition);
+        }
         throw new Error(getMessage(3400 /* Events.instrInvalid */, tryStringify(instruction)));
     }
     equals(other) {
@@ -4483,8 +4505,14 @@ class RouteContext {
                     }
                 }
             }
-            if (defaultExport === void 0 && firstNonDefaultExport === void 0)
-                throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+            if (defaultExport === void 0 && firstNonDefaultExport === void 0) {
+                if (!isPartialCustomElementDefinition(raw))
+                    throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+                // use-case: import('./conventional-html-only-component.html')
+                const definition = CustomElementDefinition.create(raw);
+                CustomElement.define(definition);
+                return definition;
+            }
             return firstNonDefaultExport ?? defaultExport;
         });
     }

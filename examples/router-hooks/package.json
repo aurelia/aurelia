@@ -11,19 +11,19 @@
     "dev": "webpack serve"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.1.0-dev.202502191917",
-    "@aurelia/kernel": "2.1.0-dev.202502191917",
-    "@aurelia/metadata": "2.1.0-dev.202502191917",
-    "@aurelia/platform": "2.1.0-dev.202502191917",
-    "@aurelia/platform-browser": "2.1.0-dev.202502191917",
-    "@aurelia/route-recognizer": "2.1.0-dev.202502191917",
-    "@aurelia/router": "2.1.0-dev.202502191917",
-    "@aurelia/runtime": "2.1.0-dev.202502191917",
-    "@aurelia/runtime-html": "2.1.0-dev.202502191917"
+    "@aurelia/fetch-client": "2.1.0-dev.202503031411",
+    "@aurelia/kernel": "2.1.0-dev.202503031411",
+    "@aurelia/metadata": "2.1.0-dev.202503031411",
+    "@aurelia/platform": "2.1.0-dev.202503031411",
+    "@aurelia/platform-browser": "2.1.0-dev.202503031411",
+    "@aurelia/route-recognizer": "2.1.0-dev.202503031411",
+    "@aurelia/router": "2.1.0-dev.202503031411",
+    "@aurelia/runtime": "2.1.0-dev.202503031411",
+    "@aurelia/runtime-html": "2.1.0-dev.202503031411"
   },
   "devDependencies": {
-    "@aurelia/ts-jest": "2.1.0-dev.202502191917",
-    "@aurelia/webpack-loader": "2.1.0-dev.202502191917",
+    "@aurelia/ts-jest": "2.1.0-dev.202503031411",
+    "@aurelia/webpack-loader": "2.1.0-dev.202503031411",
     "@types/node": "^20.16.10",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",

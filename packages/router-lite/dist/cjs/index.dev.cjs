@@ -985,9 +985,15 @@ function resolveCustomElementDefinition(routeable, context) {
         case 0 /* NavigationInstructionType.string */: {
             if (context == null)
                 throw new Error(getMessage(3551 /* Events.rtNoCtxStrComponent */));
-            const component = runtimeHtml.CustomElement.find(context.container, instruction.value);
+            const dependencies = context.component.dependencies;
+            let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value)
+                ?? runtimeHtml.CustomElement.find(context.container, instruction.value);
             if (component === null)
                 throw new Error(getMessage(3552 /* Events.rtNoComponent */, instruction.value, context));
+            if (!(component instanceof runtimeHtml.CustomElementDefinition)) {
+                component = runtimeHtml.CustomElementDefinition.create(component);
+                runtimeHtml.CustomElement.define(component);
+            }
             ceDef = component;
             break;
         }
@@ -3890,6 +3896,22 @@ class TypedNavigationInstruction {
         // We might have gotten a complete definition. In that case use it as-is.
         if (instruction instanceof runtimeHtml.CustomElementDefinition)
             return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, instruction);
+        // If we have a partial definition, create a complete definition from it.
+        // Use-case:
+        // import * as component from './conventional-html-only-component.html';
+        // @route({
+        //   routes: [
+        //     {
+        //       path: 'path',
+        //       component,
+        //     },
+        //   ],
+        // })
+        if (isPartialCustomElementDefinition(instruction)) {
+            const definition = runtimeHtml.CustomElementDefinition.create(instruction);
+            runtimeHtml.CustomElement.define(definition);
+            return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, definition);
+        }
         throw new Error(getMessage(3400 /* Events.instrInvalid */, tryStringify(instruction)));
     }
     equals(other) {
@@ -4487,8 +4509,14 @@ class RouteContext {
                     }
                 }
             }
-            if (defaultExport === void 0 && firstNonDefaultExport === void 0)
-                throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+            if (defaultExport === void 0 && firstNonDefaultExport === void 0) {
+                if (!isPartialCustomElementDefinition(raw))
+                    throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+                // use-case: import('./conventional-html-only-component.html')
+                const definition = runtimeHtml.CustomElementDefinition.create(raw);
+                runtimeHtml.CustomElement.define(definition);
+                return definition;
+            }
             return firstNonDefaultExport ?? defaultExport;
         });
     }

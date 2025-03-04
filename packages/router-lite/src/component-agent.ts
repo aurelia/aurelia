@@ -89,7 +89,9 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
-    this._controller.nodes.remove();
+    this._controller.host.remove();
+    this._controller.location?.remove();
+    this._controller.location?.$start?.remove();
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
       return this._controller.deactivate(this._controller, parent);

@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@aurelia/vite-plugin": "2.0.0-beta.23",
-    "typescript": "5.4.2"
+    "typescript": "5.7.2"
   },
   "scripts": {
     "start": "vite",

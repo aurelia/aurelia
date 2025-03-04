@@ -94,7 +94,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-safari-launcher": "1.0.0",
     "karma-sourcemap-loader": "^0.4.0",
-    "mocha": "^10.8.2",
+    "mocha": "11.1.0",
     "source-map": "^0.7.3",
     "source-map-support": "^0.5.21",
     "ts-node": "10.9.2",

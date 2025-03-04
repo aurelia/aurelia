@@ -1,5 +1,5 @@
 import { ILogger } from '@aurelia/kernel';
-import type { ICustomElementController, ICustomElementViewModel, IHydratedController, ILifecycleHooks, LifecycleHooksLookup } from '@aurelia/runtime-html';
+import { MountTarget, type ICustomElementController, type ICustomElementViewModel, type IHydratedController, type ILifecycleHooks, type LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { Events, trace } from './events';
 import {
@@ -64,6 +64,19 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _activate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
+    const controller = this._controller;
+    const viewportController = this._ctx.vpa.hostController;
+    switch (controller.mountTarget) {
+      case MountTarget.host:
+      case MountTarget.shadowRoot:
+        viewportController.host.appendChild(controller.host);
+        break;
+      case MountTarget.location:
+        viewportController.host.append(controller.location!.$start!, controller.location!);
+        break;
+      case MountTarget.none:
+        throw new Error('Invalid mount target for routed component');
+    }
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caActivateSelf);
       return this._controller.activate(this._controller, parent);
@@ -76,6 +89,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
+    this._controller.nodes.remove();
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
       return this._controller.deactivate(this._controller, parent);

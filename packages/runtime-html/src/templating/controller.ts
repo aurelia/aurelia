@@ -71,7 +71,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
   // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
   // That host node is separately mounted to the host controller's original host node.
-  public hostController: Controller | null = null;
+  // public hostController: Controller | null = null;
   public mountTarget: MountTarget = targetNone;
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
@@ -405,19 +405,19 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const shadowOptions = compiledDef.shadowOptions;
     const hasSlots = compiledDef.hasSlots;
     const containerless = compiledDef.containerless;
-    let host = this.host!;
+    const host = this.host!;
     let location: IRenderLocation | null = this.location;
 
-    let createLocation = false;
-    if (hostController != null) {
-      this.hostController = hostController;
-      createLocation = true;
-    } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
-      host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-      createLocation = true;
-    }
+    // let createLocation = false;
+    // if (hostController != null) {
+    //   this.hostController = hostController;
+    //   createLocation = true;
+    // } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
+    //   host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
+    //   createLocation = true;
+    // }
 
-    if (createLocation && containerless && location == null) {
+    if (containerless && location == null) {
       location = this.location = convertToRenderLocation(host);
     }
 
@@ -676,17 +676,17 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    if (this.hostController !== null) {
-      switch (this.mountTarget) {
-        case targetHost:
-        case targetShadowRoot:
-          this.hostController._append(this.host!);
-          break;
-        case targetLocation:
-          this.hostController._append(this.location!.$start!, this.location!);
-          break;
-      }
-    }
+    // if (this.hostController !== null) {
+    //   switch (this.mountTarget) {
+    //     case targetHost:
+    //     case targetShadowRoot:
+    //       this.hostController._append(this.host!);
+    //       break;
+    //     case targetLocation:
+    //       this.hostController._append(this.location!.$start!, this.location!);
+    //       break;
+    //   }
+    // }
 
     switch (this.mountTarget) {
       case targetHost:
@@ -852,18 +852,18 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.unlink();
     }
 
-    if (this.hostController !== null) {
-      switch (this.mountTarget) {
-        case targetHost:
-        case targetShadowRoot:
-          this.host!.remove();
-          break;
-        case targetLocation:
-          this.location!.$start!.remove();
-          this.location!.remove();
-          break;
-      }
-    }
+    // if (this.hostController !== null) {
+    //   switch (this.mountTarget) {
+    //     case targetHost:
+    //     case targetShadowRoot:
+    //       this.host!.remove();
+    //       break;
+    //     case targetLocation:
+    //       this.location!.$start!.remove();
+    //       this.location!.remove();
+    //       break;
+    //   }
+    // }
   }
 
   private unbind(): void {
@@ -1179,7 +1179,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.children = null;
     }
 
-    this.hostController = null;
+    // this.hostController = null;
     this.scope = null;
 
     this.nodes = null;

@@ -1,5 +1,5 @@
 import { Constructable, IContainer, onResolve, Writable } from '@aurelia/kernel';
-import { Controller, CustomElement, CustomElementDefinition, IHydratedController, isCustomElementViewModel } from '@aurelia/runtime-html';
+import { Controller, CustomElement, CustomElementDefinition, IHydratedController, IPlatform, isCustomElementViewModel, registerHostNode } from '@aurelia/runtime-html';
 import { IRouteableComponent, RouteableComponentType } from '../interfaces';
 import { RoutingInstruction } from './routing-instruction';
 
@@ -250,6 +250,9 @@ export class InstructionComponent {
     const Type = this.isType()
       ? this.type!
       : container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.name!))!.getFactory!(container)!.Type;
+    const host = container.get(IPlatform).document.createElement(CustomElement.getDefinition(Type).name);
+    parentElement.appendChild(host);
+    registerHostNode(container, host);
     const instance = container.invoke(Type);
     // TODO: Investigate this!
     // const instance: IRouteableComponent = this.isType()
@@ -276,7 +279,7 @@ export class InstructionComponent {
     const controller = Controller.$el(
       container,
       instance,
-      parentElement,
+      host,
       null,
     );
     // TODO: Investigate if this is really necessary

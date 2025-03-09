@@ -9,7 +9,6 @@ import {
   IPlatform,
   IRendering,
   type PartialCustomElementDefinition,
-  setRef
 } from '@aurelia/runtime-html';
 
 export const IWcElementRegistry = /*@__PURE__*/DI.createInterface<IWcElementRegistry>(x => x.singleton(WcCustomElementRegistry));
@@ -105,7 +104,7 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
           childCtn,
         );
         const viewModel = childCtn.invoke(compiledDef.Type);
-        const controller = this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
+        this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
       }
 
       public connectedCallback() {

@@ -89,17 +89,20 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
 
   /** @internal */
   public _deactivate(initiator: IHydratedController | null, parent: IHydratedController): void | Promise<void> {
-    this._controller.host.remove();
-    this._controller.location?.remove();
-    this._controller.location?.$start?.remove();
+    const controller = this._controller;
+    // there's a case controller was disposed and is being deactivated again?
+    // todo: these 3 lines seems invasive, and ugly, should this be a method on Controller?
+    controller.host?.remove();
+    controller.location?.remove();
+    controller.location?.$start?.remove();
     if (initiator === null) {
       if (__DEV__) trace(this._logger, Events.caDeactivateSelf);
-      return this._controller.deactivate(this._controller, parent);
+      return controller.deactivate(controller, parent);
     }
 
     if (__DEV__) trace(this._logger, Events.caDeactivateInitiator);
     // Promise return values from user VM hooks are awaited by the initiator
-    void this._controller.deactivate(initiator, parent);
+    void controller.deactivate(initiator, parent);
   }
 
   /** @internal */

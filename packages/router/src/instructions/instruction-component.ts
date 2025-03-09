@@ -250,8 +250,9 @@ export class InstructionComponent {
     const Type = this.isType()
       ? this.type!
       : container.getResolver<RouteableComponentType>(CustomElement.keyFrom(this.name!))!.getFactory!(container)!.Type;
-    const host = container.get(IPlatform).document.createElement(CustomElement.getDefinition(Type).name);
-    parentElement.appendChild(host);
+    const host = parentElement.appendChild(
+      container.get(IPlatform).document.createElement(CustomElement.getDefinition(Type).name)
+    );
     registerHostNode(container, host);
     const instance = container.invoke(Type);
     // TODO: Investigate this!

@@ -431,8 +431,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       setRef(this.shadowRoot, definition.key, this as IHydratedController);
       this.mountTarget = targetShadowRoot;
     } else if (location != null) {
-      setRef(location, elementBaseName, this as IHydratedController);
-      setRef(location, definition.key, this as IHydratedController);
+      // when template compiler encounter a "containerless" attribute
+      // it replaces the element with a render location
+      // making the controller receive the same comment node as both host and location
+      // todo: consider making template compiler less eager to replace
+      //       this has performance implication when using ad-hoc containerless
+      if (host !== location) {
+        setRef(location, elementBaseName, this as IHydratedController);
+        setRef(location, definition.key, this as IHydratedController);
+      }
       this.mountTarget = targetLocation;
     } else {
       this.mountTarget = targetHost;

@@ -21,9 +21,8 @@ import {
   Scope,
 } from '@aurelia/runtime';
 import { convertToRenderLocation, setRef } from '../dom';
-import { IPlatform } from '../platform';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
-import { CustomElementDefinition, elementBaseName, findElementControllerFor, getElementDefinition, isElementType } from '../resources/custom-element';
+import { CustomElementDefinition, elementBaseName, getElementDefinition, isElementType } from '../resources/custom-element';
 import { etIsProperty, getOwnPropertyNames, objectFreeze } from '../utilities';
 import { createInterface, registerResolver } from '../utilities-di';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
@@ -68,10 +67,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _isBindingDone: boolean = false;
 
-  // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
-  // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
-  // That host node is separately mounted to the host controller's original host node.
-  // public hostController: Controller | null = null;
   public mountTarget: MountTarget = targetNone;
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
@@ -384,13 +379,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate(hydrationInst?.hostController);
+      this._hydrate();
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(hostController?: Controller | null): void {
+  public _hydrate(): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -407,15 +402,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const containerless = compiledDef.containerless;
     const host = this.host!;
     let location: IRenderLocation | null = this.location;
-
-    // let createLocation = false;
-    // if (hostController != null) {
-    //   this.hostController = hostController;
-    //   createLocation = true;
-    // } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
-    //   host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-    //   createLocation = true;
-    // }
 
     if (containerless && location == null) {
       location = this.location = convertToRenderLocation(host);
@@ -683,18 +669,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    // if (this.hostController !== null) {
-    //   switch (this.mountTarget) {
-    //     case targetHost:
-    //     case targetShadowRoot:
-    //       this.hostController._append(this.host!);
-    //       break;
-    //     case targetLocation:
-    //       this.hostController._append(this.location!.$start!, this.location!);
-    //       break;
-    //   }
-    // }
-
     switch (this.mountTarget) {
       case targetHost:
         this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
@@ -858,19 +832,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
         this.nodes!.remove();
         this.nodes!.unlink();
     }
-
-    // if (this.hostController !== null) {
-    //   switch (this.mountTarget) {
-    //     case targetHost:
-    //     case targetShadowRoot:
-    //       this.host!.remove();
-    //       break;
-    //     case targetLocation:
-    //       this.location!.$start!.remove();
-    //       this.location!.remove();
-    //       break;
-    //   }
-    // }
   }
 
   private unbind(): void {
@@ -1186,7 +1147,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.children = null;
     }
 
-    // this.hostController = null;
     this.scope = null;
 
     this.nodes = null;
@@ -1247,7 +1207,7 @@ export const MountTarget = objectFreeze({
 });
 export type MountTarget = typeof MountTarget[keyof typeof MountTarget];
 
-const optionalCeFind = { optional: true } as const;
+// const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
 
 function createObservers(
@@ -1901,11 +1861,6 @@ export interface IControllerElementHydrationInstruction {
    * Indicates whether the custom element was used with "containerless" attribute
    */
   readonly containerless?: boolean;
-  /**
-   * When provided, the controller is used while hydrating the custom element.
-   * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
-   */
-  readonly hostController?: Controller | null;
 }
 
 function callDispose(disposable: IDisposable): void {

@@ -1,5 +1,5 @@
 import { IContainer, onResolve } from '@aurelia/kernel';
-import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
+import { IHydratedController, ICustomElementController, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';

@@ -106,7 +106,6 @@ export class WcCustomElementRegistry implements IWcElementRegistry {
         );
         const viewModel = childCtn.invoke(compiledDef.Type);
         const controller = this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
-        setRef(this, compiledDef.key, controller);
       }
 
       public connectedCallback() {

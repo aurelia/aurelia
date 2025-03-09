@@ -1,4 +1,5 @@
 import { createFixture, assert } from '@aurelia/testing';
+import { flush } from '@aurelia/runtime';
 import { DefaultVirtualizationConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
 
@@ -79,7 +80,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   });
 
   it('rerenders when scrolled', function () {
-    const { scrollBy, flush } = createFixture(
+    const { scrollBy } = createFixture(
       createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
       class App { items = createItems(); },
       virtualRepeatDeps
@@ -96,7 +97,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
   describe('mutation', function () {
     it('rerenders when removed at the start', function () {
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
@@ -112,7 +113,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('rerenders when removed at the end', function () {
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps
@@ -127,7 +128,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
 
     it('rerenders when removed in the middle', function () {
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'),
         class App { items = createItems(); },
         virtualRepeatDeps

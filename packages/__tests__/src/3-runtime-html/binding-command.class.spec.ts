@@ -1,4 +1,5 @@
 import { Aurelia, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
@@ -81,7 +82,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = falsyValue;
 
-            platform.domQueue.flush();
+            flush();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -94,7 +95,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = truthyValue;
 
-            platform.domQueue.flush();
+            flush();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -166,7 +167,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
           (falsyValue, truthyValue) => {
             component.value = falsyValue;
 
-            platform.domQueue.flush();
+            flush();
 
             for (let i = 0, ii = els.length; ii > i; ++i) {
               const el = els[i];
@@ -179,7 +180,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = truthyValue;
 
-            platform.domQueue.flush();
+            flush();
 
             for (let i = 0, ii = els.length; ii > i; ++i) {
               const el = els[i];

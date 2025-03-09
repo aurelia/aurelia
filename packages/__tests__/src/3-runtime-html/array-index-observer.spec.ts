@@ -12,7 +12,7 @@ import {
   Aurelia,
   CustomElement,
 } from '@aurelia/runtime-html';
-import { IDirtyChecker, ArrayIndexObserver, ISubscriber } from '@aurelia/runtime';
+import { IDirtyChecker, ArrayIndexObserver, ISubscriber, flush } from '@aurelia/runtime';
 
 describe('3-runtime-html/array-index-observer.spec.ts', function () {
 
@@ -85,7 +85,6 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
           assert.strictEqual(inputEl.checked, false);
 
           component.itemNames.splice(0, 1, true as any);
-          ctx.platform.domQueue.flush();
           assert.strictEqual(inputEl.checked, true, 'should have been checked');
 
           inputEl.checked = false;
@@ -113,9 +112,8 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
           selectEl.dispatchEvent(new ctx.CustomEvent('change'));
           assert.strictEqual(component.itemNames[0], 'i-1');
 
-          component.itemNames.splice(0, 1, 'i-2');
           assert.strictEqual(selectEl.value, 'i-1');
-          ctx.platform.domQueue.flush();
+          component.itemNames.splice(0, 1, 'i-2');
           assert.strictEqual(selectEl.value, 'i-2');
         }
       },
@@ -161,7 +159,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
 
           component.itemNames.splice(0, 1, '00');
           assert.html.textContent(host, 'i-0', `#3`);
-          ctx.platform.domQueue.flush();
+          flush();
           assert.html.textContent(host, '00', `#4`);
         }
       }

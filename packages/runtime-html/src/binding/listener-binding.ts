@@ -9,12 +9,11 @@ import {
   IObserverLocatorBasedConnectable,
   ISubscriber,
   type Scope,
-  astBind,
   astEvaluate,
-  astUnbind,
   IAstEvaluator,
 } from '@aurelia/runtime';
 import { IBinding } from './interfaces-bindings';
+import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export class ListenerBindingOptions {
   public constructor(
@@ -36,13 +35,15 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     mixinAstEvaluator(ListenerBinding);
   });
 
+  public get $kind() { return 'Listener' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
   public _scope?: Scope;
 
   /** @internal */
-  private readonly _options: ListenerBindingOptions;
+  public readonly _options: ListenerBindingOptions;
 
   /** @internal */
   public l: IServiceLocator;
@@ -81,12 +82,7 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     const overrideContext = this._scope!.overrideContext;
     overrideContext.$event = event;
 
-    // let result
     let result = astEvaluate(this.ast, this._scope!, this, null);
-    // try {
-    // } catch (ex) {
-    //   console.log(ex);
-    // }
 
     delete overrideContext.$event;
 
@@ -115,34 +111,13 @@ export class ListenerBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
   }
 
-  public bind(scope: Scope): void {
-    if (this.isBound) {
-      if (this._scope === scope) {
-      /* istanbul ignore next */
-        return;
-      }
-      this.unbind();
-    }
-    this._scope = scope;
-
-    astBind(this.ast, scope, this);
-
-    this.target.addEventListener(this.targetEvent, this, this._options);
-
-    this.isBound = true;
+  public handleChange(): void {
+    // TODO: see if we can get rid of this by integrating this call in connectable
+    bindingHandleChange(this);
   }
 
-  public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
-    this.isBound = false;
-
-    astUnbind(this.ast, this._scope!, this);
-
-    this._scope = void 0;
-    this.target.removeEventListener(this.targetEvent, this, this._options);
+  public handleCollectionChange(): void {
+    bindingHandleCollectionChange(this);
   }
 }
 

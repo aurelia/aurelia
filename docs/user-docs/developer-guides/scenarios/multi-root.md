@@ -4,68 +4,65 @@ In a scenario where you need to manage multiple parts of an application that mig
 
 Below is a step-by-step guide on how to create a multi-root Aurelia 2 application, complete with detailed explanations and code examples.
 
-## Setting up the Initial Root
+## Strategy
 
-In `src/main.ts`, we set up the initial root of the application. This is typically the entry point of your Aurelia app.
+The approach uses two independent Aurelia applications, the first is the simple login wall host where the user is initially directed. The login wall application provides just the authentication flow implementation, and publishes an authenticated event using the `ĒventAggregator` if the user successfully authenticates. At the entry point of the application, the authenticated event is subscribed to and when received, the login wall application is stopped and replaced by a new Aurelia application instance containing the app features.  
+
+## Setting up
+
+In the `src/main.ts` entry point, we first set up the login wall application and subscribe to the authenticated event using an `AppTask`. Inside the event subscription, we stop the Aurelia application that provided the login wall and then call a `start()` function responsible for starting the main app.
 
 ```typescript
 // src/main.ts
 import Aurelia from 'aurelia';
 import { LoginWall } from './login-wall';
+import { MyApp } from './my-app';
 
-// Start the Aurelia app with the LoginWall component as the root,
-// attaching it to the 'login-wall' element in the HTML.
-await Aurelia.app({
-  component: LoginWall,
-  host: document.querySelector('login-wall'),
-}).start();
+const host = document.querySelector<HTMLElement>('login-wall');
+const au = new Aurelia();
+au.register(
+  StandardConfiguration,
+  AppTask.hydrated(IEventAggregator, (ea) => {
+    ea.subscribeOnce(authenticatedEvent, async () => {
+      await au.stop();
+      await start();
+     });
+  })
+);
+au.app({ host, component: LoginWall });
+await au.start();
 ```
+
+Starting the main app just requires a new Aurelia instance and host element. It is omitted here, but the authenticated event could have been passed to the start function to provide the application with the users auth token and any other user information received in the login process.
+
+```typescript
+async function start() {
+  const host = document.querySelector<HTMLElement>('my-app');
+  const au = new Aurelia();
+  au.register(StandardConfiguration, RouterConfiguration);
+  au.app({ host, component: MyApp });
+  await au.start();
+}
+```
+
 
 ## Handling Login and Root Transition
 
-In `src/login-wall.ts`, we define the `LoginWall` class with a `login` method. This method will stop the current Aurelia instance and start a new one with a different root component.
+In `src/login-wall.ts`, we define the `LoginWall` class with a `login` method. This method will start and conduct the authentication flow and then publish the authenticated event which was subscribed to at the entry point of the application.
 
 ```typescript
 // src/login-wall.ts
-import Aurelia from 'aurelia';
+import { customElement, inject, IEventAggregator } from 'aurelia';
 import { AppRoot } from './app-root';
 
+@customElement('login-wall')
+@inject(IEventAggregator)
 export class LoginWall {
-  constructor(private au: Aurelia) {}
+  constructor(private _ea: IEventAggregator) {}
 
   async login() {
-    // Stop the current Aurelia instance.
-    await this.au.stop();
-
-    // Start a new Aurelia app with the AppRoot component as the root,
-    // attaching it to the 'app-root' element in the HTML.
-    await Aurelia.app({
-      component: AppRoot,
-      host: document.querySelector('app-root'),
-    }).start();
+    this._ea.publish(authenticatedEvent);
   }
-}
-```
-
-## Defining Multiple Root Components
-
-Each root component represents a different part of your application. For instance, `LoginWall` could be the public-facing login page, and `AppRoot` could be the main interface of the private application.
-
-```typescript
-// src/app-root.ts
-import { customElement } from 'aurelia';
-
-@customElement('app-root')
-export class AppRoot {
-  // Application logic for the private app interface goes here.
-}
-
-// src/login-wall.ts (updated)
-import { customElement } from 'aurelia';
-
-@customElement('login-wall')
-export class LoginWall {
-  // Logic for the login page goes here.
 }
 ```
 
@@ -84,12 +81,18 @@ In your `index.html` or equivalent, you need to have placeholders for each root 
   <login-wall></login-wall>
 
   <!-- Placeholder for the AppRoot component -->
-  <app-root></app-root>
+  <my-app></my-app>
 
   <!-- ... -->
 </body>
 </html>
 ```
+
+## Example
+
+The following example shows a working skeleton of the approach described.
+
+{% embed url="https://stackblitz.com/edit/router-lite-load-nav-options-query-jlcrp7rf?file=src%2Flogin.ts,package.json,tsconfig.json,src%2Fabout.html,src%2Fmain.ts,webpack.config.js" %}
 
 ## Managing Application State
 
@@ -98,7 +101,7 @@ When switching roots, you might need to manage application state, like user sess
 ## Additional Considerations
 
 - **Routing**: If your application uses routing, you'll need to configure the router for each root component separately.
-- **Shared Resources**: If multiple roots share resources like services or custom elements, ensure they are registered globally or are accessible by each root component.
+- **Shared Resources**: shared resources like services or custom elements, will need to be registered independently in each application via the app entry point.
 - **Cleanup**: When stopping an Aurelia app instance, make sure to clean up any event listeners or subscriptions to prevent memory leaks.
 
 ## Conclusion

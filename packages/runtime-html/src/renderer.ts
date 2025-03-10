@@ -212,8 +212,6 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* location            */location
     );
 
-    setRef(target, def.key, childCtrl);
-
     const renderers = this._rendering.renderers;
     const props = instruction.props;
     const ii = props.length;

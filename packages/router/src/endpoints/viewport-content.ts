@@ -1,5 +1,5 @@
 import { IContainer, onResolve } from '@aurelia/kernel';
-import { Controller, IHydratedController, ICustomElementController, ICustomElementViewModel, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
+import { IHydratedController, ICustomElementController, LifecycleHook, LifecycleHooksLookup, ILifecycleHooks } from '@aurelia/runtime-html';
 import { ComponentAppellation, IRouteableComponent, RouteableComponentType, type ReloadBehavior, LoadInstruction } from '../interfaces';
 import { Viewport } from './viewport';
 import { RoutingInstruction } from '../instructions/routing-instruction';
@@ -168,20 +168,6 @@ export class ViewportContent extends EndpointContent {
    */
   public isCacheEqual(other: ViewportContent): boolean {
     return this.instruction.sameComponent(this.router, other.instruction, true);
-  }
-
-  /**
-   * Get the controller of the component in the viewport content.
-   *
-   * @param connectedCE - The custom element connected to the viewport
-   */
-  public contentController(connectedCE: IConnectedCustomElement): ICustomElementController {
-    return Controller.$el(
-      connectedCE.container.createChild(),
-      this.instruction.component.instance as ICustomElementViewModel,
-      connectedCE.element,
-      null,
-    );
   }
 
   /**

@@ -8,6 +8,7 @@ import type {
   IDisposable,
 } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from './errors';
+import { refs } from './dom.node';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -100,7 +101,9 @@ export class Aurelia implements IDisposable {
     }
 
     return this._startPromise = onResolve(this.stop(), () => {
-      Reflect.set(root.host, '$aurelia', this);
+      if (!refs.hideProp) {
+        Reflect.set(root.host, '$aurelia', this);
+      }
       this._rootProvider.prepare(this._root = root);
       this._isStarting = true;
 

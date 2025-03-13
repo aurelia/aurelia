@@ -20,7 +20,7 @@ import type {
   QueueTaskOptions,
   TaskQueue
 } from '@aurelia/platform';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';

@@ -1,7 +1,8 @@
 import { Task, TaskAbortError } from '@aurelia/platform';
 import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { INode, IRenderLocation } from '../../dom';
+import { IRenderLocation } from '../../dom';
+import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { fromView, toView } from '../../binding/interfaces-bindings';
 import {

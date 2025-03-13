@@ -2,7 +2,8 @@ import { isFunction, isPromise, type Constructable, IContainer, InstanceProvider
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator, Scope } from '@aurelia/runtime';
 import { HydrateElementInstruction, IInstruction, ITemplateCompiler, AttrSyntax } from '@aurelia/template-compiler';
-import { INode, IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
+import { IRenderLocation, convertToRenderLocation, registerHostNode } from '../../dom';
+import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { Controller, HydrationContext, IController, ICustomElementController, IHydratedController, IHydrationContext, ISyntheticView, vmkCe } from '../../templating/controller';
 import { IRendering } from '../../templating/rendering';

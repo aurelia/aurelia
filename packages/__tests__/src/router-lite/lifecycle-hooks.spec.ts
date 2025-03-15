@@ -6394,7 +6394,7 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
     await au.stop(true);
   });
 
-  it.only('loading redirecting (from canLoad) route should work without error', async function () {
+  it('loading redirecting (from canLoad) route should work without error', async function () {
     @customElement({ name: 'c-1', template: `c1` })
     class C1 implements IRouteViewModel {
       canLoad(_params: Params, _next: RouteNode, _current: RouteNode | null): NavigationInstruction {

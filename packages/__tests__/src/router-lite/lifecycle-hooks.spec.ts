@@ -22,7 +22,7 @@ import {
   Registration,
   resolve,
 } from '@aurelia/kernel';
-import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -6390,6 +6390,37 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook3\] unloading 'c1'/,
       /Hook2\] loading 'c2'/,
     ], 'round#2');
+
+    await au.stop(true);
+  });
+
+  it.only('loading redirecting (from canLoad) route should work without error', async function () {
+    @customElement({ name: 'c-1', template: `c1` })
+    class C1 implements IRouteViewModel {
+      canLoad(_params: Params, _next: RouteNode, _current: RouteNode | null): NavigationInstruction {
+        return 'p-1/c-2';
+      }
+    }
+
+    @customElement({ name: 'c-2', template: `c2` })
+    class C2 { }
+
+    @route({ routes: [C1, C2] })
+    @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({ routes: [P1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await createFixture(Root, [C1, C2, P1, Registration.instance(IKnownScopes, [/* Root.name, P1.name, C1.name, C2.name */])]);
+    const router = container.get(IRouter);
+    let errorCount = 0;
+    container.get(IRouterEvents).subscribe('au:router:navigation-error', () => errorCount++);
+
+    await router.load('p-1/c-1');
+    assert.html.textContent(host, 'c2');
+    assert.strictEqual(errorCount, 0, 'errorCount');
 
     await au.stop(true);
   });

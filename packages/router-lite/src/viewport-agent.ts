@@ -281,7 +281,6 @@ export class ViewportAgent {
     })._continueWith(b1 => {
       if (tr.guardsResult !== true) {
         if (__DEV__) trace(logger, Events.vpaCanLoadGuardsResult, tr.guardsResult, this._nextCA);
-        this._nextState = State.nextLoadAborted;
         return;
       }
       const next = this._nextNode!;
@@ -332,7 +331,6 @@ export class ViewportAgent {
             node.context.vpa._canLoad(tr, b1);
           }
           return;
-        case State.nextLoadAborted:
         case State.nextIsEmpty:
           return;
         default:
@@ -760,7 +758,6 @@ export class ViewportAgent {
       case State.nextIsEmpty:
       case State.nextIsScheduled:
       case State.nextCanLoad:
-      case State.nextLoadAborted:
       case State.nextCanLoadDone:
         this._nextNode = null;
         this._nextState = State.nextIsEmpty;
@@ -804,8 +801,6 @@ export class ViewportAgent {
       const logger = /*@__PURE__*/ this._logger.scopeTo('endTransition()');
       ensureTransitionHasNotErrored(this._currTransition);
       switch (this._nextState) {
-        case State.nextLoadAborted:
-          break;
         case State.nextIsEmpty:
           switch (this._currState) {
             case State.currIsEmpty:
@@ -884,25 +879,23 @@ function ensureTransitionHasNotErrored(tr: Transition): void {
 _START_CONST_ENUM();
 /** @internal */
 export const enum State {
-  curr              = 0b1111_1111_0000_0000,
-  currIsEmpty       = 0b1000_0000_0000_0000,
-  currIsActive      = 0b0100_0000_0000_0000,
-  currCanUnload     = 0b0010_0000_0000_0000,
-  currUnloadAborted = 0b0001_0000_0000_0000,
-  currCanUnloadDone = 0b0000_1000_0000_0000,
-  currUnload        = 0b0000_0100_0000_0000,
-  currUnloadDone    = 0b0000_0010_0000_0000,
-  currDeactivate    = 0b0000_0001_0000_0000,
-  next              = 0b0000_0000_1111_1111,
-  nextIsEmpty       = 0b0000_0000_1000_0000,
-  nextIsScheduled   = 0b0000_0000_0100_0000,
-  nextCanLoad       = 0b0000_0000_0010_0000,
-  nextLoadAborted   = 0b0000_0000_0001_0000,
-  nextCanLoadDone   = 0b0000_0000_0000_1000,
-  nextLoad          = 0b0000_0000_0000_0100,
-  nextLoadDone      = 0b0000_0000_0000_0010,
-  nextActivate      = 0b0000_0000_0000_0001,
-  bothAreEmpty      = 0b1000_0000_1000_0000,
+  curr              = 0b1111111_0000000,
+  currIsEmpty       = 0b1000000_0000000,
+  currIsActive      = 0b0100000_0000000,
+  currCanUnload     = 0b0010000_0000000,
+  currCanUnloadDone = 0b0001000_0000000,
+  currUnload        = 0b0000100_0000000,
+  currUnloadDone    = 0b0000010_0000000,
+  currDeactivate    = 0b0000001_0000000,
+  next              = 0b0000000_1111111,
+  nextIsEmpty       = 0b0000000_1000000,
+  nextIsScheduled   = 0b0000000_0100000,
+  nextCanLoad       = 0b0000000_0010000,
+  nextCanLoadDone   = 0b0000000_0001000,
+  nextLoad          = 0b0000000_0000100,
+  nextLoadDone      = 0b0000000_0000010,
+  nextActivate      = 0b0000000_0000001,
+  bothAreEmpty      = 0b1000000_1000000,
 }
 _END_CONST_ENUM();
 
@@ -910,7 +903,6 @@ type CurrState = (
   State.currIsEmpty |
   State.currIsActive |
   State.currCanUnload |
-  State.currUnloadAborted |
   State.currCanUnloadDone |
   State.currUnload |
   State.currUnloadDone |
@@ -921,7 +913,6 @@ type NextState = (
   State.nextIsEmpty |
   State.nextIsScheduled |
   State.nextCanLoad |
-  State.nextLoadAborted |
   State.nextCanLoadDone |
   State.nextLoad |
   State.nextLoadDone |

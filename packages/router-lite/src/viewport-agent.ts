@@ -653,12 +653,6 @@ export class ViewportAgent {
           });
         }
       })._continueWith(b1 => {
-        if (tr.guardsResult !== true) {
-          b1._push();
-          this._cancelUpdate();
-          b1._pop();
-        }
-      })._continueWith(b1 => {
         if (tr.guardsResult !== true) return;
         for (const node of newChildren) {
           tr._run(() => {

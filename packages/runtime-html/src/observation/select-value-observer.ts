@@ -6,7 +6,7 @@ import {
   type ISubscriberCollection,
 } from '@aurelia/runtime';
 
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import { atLayout, atNode, atObserver, hasOwnProperty } from '../utilities';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 import { mixinNodeObserverUseConfig } from './observation-utils';

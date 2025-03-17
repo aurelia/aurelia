@@ -1,7 +1,27 @@
-import { FragmentNodeSequence, isRenderLocation } from '@aurelia/runtime-html';
-import { TestContext, assert } from '@aurelia/testing';
+import { customElement, FragmentNodeSequence, isRenderLocation, refs } from '@aurelia/runtime-html';
+import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/dom.spec.ts', function () {
+  this.beforeEach(function () {
+    refs.hideProp = false;
+  });
+
+  describe('refs', function () {
+    it('does not set $aurelia on host if refs.hideProp is true', function () {
+      refs.hideProp = true;
+      const { appHost } = createFixture('', class {});
+
+      assert.strictEqual(appHost['$aurelia'], undefined);
+    });
+
+    it('does not set $au on host if refs.hideProp is true', function () {
+      refs.hideProp = true;
+      const { assertText, appHost } = createFixture('<el>', class {}, [@customElement({ name: 'el', template: 'ell'}) class {}]);
+      assertText('ell');
+      assert.strictEqual(appHost.querySelector('el')['$au'], undefined);
+    });
+  });
+
   const ctx = TestContext.create();
   let sut: FragmentNodeSequence;
 

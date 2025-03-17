@@ -12,7 +12,8 @@ import {
   isSymbol,
 } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
-import { getEffectiveParentNode, getRef } from '../dom';
+import { getEffectiveParentNode } from '../dom';
+import { refs } from '../dom.node';
 import { Watch } from '../watch';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { def, objectAssign, objectFreeze } from '../utilities';
@@ -31,7 +32,7 @@ import type {
   InterfaceSymbol,
 } from '@aurelia/kernel';
 import type { BindableDefinition } from '../bindable';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import type { Controller, ICustomElementViewModel, ICustomElementController } from '../templating/controller';
 import { ProcessContentHook, type IElementComponentDefinition, IInstruction } from '@aurelia/template-compiler';
 import type { IWatchDefinition } from '../watch';
@@ -451,7 +452,7 @@ export const isElementType = <C>(value: C): value is (C extends Constructable ? 
 /** @internal */
 export const findElementControllerFor = <C extends ICustomElementViewModel = ICustomElementViewModel>(node: Node, opts: ForOpts = defaultForOpts): ICustomElementController<C> => {
   if (opts.name === void 0 && opts.searchParents !== true) {
-    const controller = getRef(node, elementBaseName) as Controller<C> | null;
+    const controller = refs.get(node, elementBaseName) as Controller<C> | null;
     if (controller === null) {
       if (opts.optional === true) {
         return null!;
@@ -462,7 +463,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
   }
   if (opts.name !== void 0) {
     if (opts.searchParents !== true) {
-      const controller = getRef(node, elementBaseName) as Controller<C> | null;
+      const controller = refs.get(node, elementBaseName) as Controller<C> | null;
       if (controller === null) {
         throw createMappedError(ErrorNames.node_is_not_a_host2, node);
       }
@@ -477,7 +478,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
     let cur = node as INode | null;
     let foundAController = false;
     while (cur !== null) {
-      const controller = getRef(cur, elementBaseName) as Controller<C> | null;
+      const controller = refs.get(cur, elementBaseName) as Controller<C> | null;
       if (controller !== null) {
         foundAController = true;
         if (controller.is(opts.name)) {
@@ -497,7 +498,7 @@ export const findElementControllerFor = <C extends ICustomElementViewModel = ICu
 
   let cur = node as INode | null;
   while (cur !== null) {
-    const controller = getRef(cur, elementBaseName) as Controller<C> | null;
+    const controller = refs.get(cur, elementBaseName) as Controller<C> | null;
     if (controller !== null) {
       return controller as unknown as ICustomElementController<C>;
     }

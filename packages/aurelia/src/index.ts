@@ -674,4 +674,6 @@ export {
 
   IWindow,
   IHistory,
+
+  refs,
 } from '@aurelia/runtime-html';

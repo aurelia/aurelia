@@ -2,7 +2,8 @@ import { createLookup, isString, IContainer, resolve } from '@aurelia/kernel';
 import { IExpressionParser } from '@aurelia/expression-parser';
 import { IObserverLocator } from '@aurelia/runtime';
 
-import { FragmentNodeSequence, INode, INodeSequence } from '../dom';
+import { FragmentNodeSequence, INodeSequence } from '../dom';
+import { INode } from '../dom.node';
 import { IPlatform } from '../platform';
 import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';

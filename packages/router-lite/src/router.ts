@@ -646,6 +646,12 @@ export class Router {
         for (const node of all) {
           node.context.vpa._swap(tr, b);
         }
+      })._continueWith(b => {
+        // it is possible that some of the child routes are cancelling the navigation
+        if (tr.guardsResult !== true) {
+          b._push();
+          this._cancelNavigation(tr);
+        }
       })._continueWith(() => {
         if (__DEV__) trace(logger, Events.rtrRunFinalizing);
         // order doesn't matter for this operation

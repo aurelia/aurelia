@@ -22,7 +22,7 @@ import {
   Registration,
   resolve,
 } from '@aurelia/kernel';
-import { IRouter, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
 import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -6390,6 +6390,111 @@ describe('router-lite/lifecycle-hooks.spec.ts', function () {
       /Hook3\] unloading 'c1'/,
       /Hook2\] loading 'c2'/,
     ], 'round#2');
+
+    await au.stop(true);
+  });
+
+  it('redirecting from canLoad from a child route should work without error', async function () {
+    @customElement({ name: 'c-1', template: `c1` })
+    class C1 implements IRouteViewModel {
+      canLoad(_params: Params, _next: RouteNode, _current: RouteNode | null): NavigationInstruction {
+        return 'p-1/c-2';
+      }
+    }
+
+    @customElement({ name: 'c-2', template: `c2` })
+    class C2 { }
+
+    @customElement({ name: 'c-3', template: `c3` })
+    class C3 { }
+
+    @route({ routes: [C1, C2, C3] })
+    @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({ routes: [P1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await createFixture(Root, [C1, C2, C3, P1, Registration.instance(IKnownScopes, [/* Root.name, P1.name, C1.name, C2.name */])]);
+    const router = container.get(IRouter);
+    let errorCount = 0;
+    let cancelCount = 0;
+    const routerEvents = container.get(IRouterEvents);
+    routerEvents.subscribe('au:router:navigation-error', () => errorCount++);
+    routerEvents.subscribe('au:router:navigation-cancel', () => cancelCount++);
+
+    // round#1 - load c1 and redirect to c2 should take place
+    await router.load('p-1/c-1');
+    assert.html.textContent(host, 'c2');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 1, 'cancelCount');
+
+    // round#2 - load c3 and it should work a as expected
+    errorCount = 0;
+    cancelCount = 0;
+    await router.load('p-1/c-3');
+    assert.html.textContent(host, 'c3');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 0, 'cancelCount');
+
+    // round#3 - load c2 normally, and an it should be loaded
+    await router.load('p-1/c-2');
+    assert.html.textContent(host, 'c2');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 0, 'cancelCount');
+
+    // round#4 - cleanse before testing the c-1 -_ c-2 redirect scenario once again
+    await router.load('p-1/c-3');
+    assert.html.textContent(host, 'c3');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 0, 'cancelCount');
+
+    // round#5 - load c1 and redirect to c2 should take place
+    await router.load('p-1/c-1');
+    assert.html.textContent(host, 'c2');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 1, 'cancelCount');
+
+    await au.stop(true);
+  });
+
+  it('cancelling from canUnload from a child route should work without error', async function () {
+    @customElement({ name: 'c-1', template: `c1` })
+    class C1 implements IRouteViewModel {
+      canUnload(_next: RouteNode | null, _current: RouteNode): boolean | Promise<boolean> {
+        return false;
+      }
+    }
+
+    @customElement({ name: 'c-2', template: `c2` })
+    class C2 { }
+
+    @route({ routes: [C1, C2] })
+    @customElement({ name: 'p-1', template: '<au-viewport></au-viewport>' })
+    class P1 { }
+
+    @route({ routes: [P1] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, host, container } = await createFixture(Root, [C1, C2, P1, Registration.instance(IKnownScopes, [/* Root.name, P1.name, C1.name, C2.name */])]);
+    const router = container.get(IRouter);
+    let errorCount = 0;
+    let cancelCount = 0;
+    const routerEvents = container.get(IRouterEvents);
+    routerEvents.subscribe('au:router:navigation-error', () => errorCount++);
+    routerEvents.subscribe('au:router:navigation-cancel', () => cancelCount++);
+
+    await router.load('p-1/c-1');
+    assert.html.textContent(host, 'c1');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 0, 'cancelCount');
+
+    await router.load('p-1/c-2');
+    assert.html.textContent(host, 'c1');
+    assert.strictEqual(errorCount, 0, 'errorCount');
+    assert.strictEqual(cancelCount, 1, 'cancelCount');
 
     await au.stop(true);
   });

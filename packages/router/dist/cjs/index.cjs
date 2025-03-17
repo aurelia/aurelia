@@ -839,13 +839,15 @@ class InstructionComponent {
     t(t, s, e, n) {
         const r = t.createChild();
         const o = this.isType() ? this.type : r.getResolver(i.CustomElement.keyFrom(this.name)).getFactory(r).Type;
-        const h = r.invoke(o);
-        if (h == null) {
+        const h = e.appendChild(r.get(i.IPlatform).document.createElement(i.CustomElement.getDefinition(o).name));
+        i.registerHostNode(r, h);
+        const u = r.invoke(o);
+        if (u == null) {
             throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
         }
-        const u = i.Controller.$el(r, h, e, null);
-        u.parent = s;
-        return h;
+        const a = i.Controller.$el(r, u, h, null);
+        a.parent = s;
+        return u;
     }
 }
 
@@ -1722,9 +1724,6 @@ class ViewportContent extends EndpointContent {
     }
     isCacheEqual(t) {
         return this.instruction.sameComponent(this.router, t.instruction, true);
-    }
-    contentController(t) {
-        return i.Controller.$el(t.container.createChild(), this.instruction.component.instance, t.element, null);
     }
     createComponent(i, s, e, n) {
         if (this.contentStates.has("created")) {

@@ -36,10 +36,10 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
-import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAppRoot, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
+import { AppTask, Aurelia, bindable, BindingMode, Controller, customElement, CustomElement, CustomElementDefinition, IAppRoot, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter, } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { resolve } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { IObserverLocator, observable } from '@aurelia/runtime';
 describe('3-runtime-html/custom-elements.spec.ts', function () {
     it('injects right aurelia instance', function () {
@@ -1500,6 +1500,22 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
                 5: { newValue: 4, oldValue: 2 }
             });
         });
+    });
+    it('throws when trying to create a custom element with a node associated with another element', function () {
+        let i = 0;
+        class App {
+            constructor() {
+                this.ctn = resolve(IContainer);
+            }
+            attaching() {
+                i = 1;
+            }
+            attached() {
+                Controller.$el(this.ctn, {}, this.$controller.host, null, CustomElementDefinition.create({ name: 'abc' }));
+            }
+        }
+        assert.throws(() => createFixture('', App));
+        assert.strictEqual(i, 1);
     });
 });
 //# sourceMappingURL=custom-elements.spec.js.map

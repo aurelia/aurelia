@@ -3283,7 +3283,6 @@ const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementRenderer
         /* instruction         */ instruction, 
         /* definition          */ def, 
         /* location            */ location);
-        setRef(target, def.key, childCtrl);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
         const ii = props.length;
@@ -4281,10 +4280,6 @@ class Controller {
         this.isBound = false;
         /** @internal */
         this._isBindingDone = false;
-        // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
-        // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
-        // That host node is separately mounted to the host controller's original host node.
-        this.hostController = null;
         this.mountTarget = targetNone;
         this.shadowRoot = null;
         this.nodes = null;
@@ -4469,12 +4464,12 @@ class Controller {
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
         if (hydrationInst == null || hydrationInst.hydrate !== false) {
-            this._hydrate(hydrationInst?.hostController);
+            this._hydrate();
             this._hydrateChildren();
         }
     }
     /** @internal */
-    _hydrate(hostController) {
+    _hydrate() {
         if (this._lifecycleHooks.hydrating != null) {
             this._lifecycleHooks.hydrating.forEach(callHydratingHook, this);
         }
@@ -4490,18 +4485,9 @@ class Controller {
         const shadowOptions = compiledDef.shadowOptions;
         const hasSlots = compiledDef.hasSlots;
         const containerless = compiledDef.containerless;
-        let host = this.host;
+        const host = this.host;
         let location = this.location;
-        let createLocation = false;
-        if (hostController != null) {
-            this.hostController = hostController;
-            createLocation = true;
-        }
-        else if ((this.hostController = findElementControllerFor(host, optionalCeFind)) !== null) {
-            host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-            createLocation = true;
-        }
-        if (createLocation && containerless && location == null) {
+        if (containerless && location == null) {
             location = this.location = convertToRenderLocation(host);
         }
         setRef(host, elementBaseName, this);
@@ -4515,8 +4501,15 @@ class Controller {
             this.mountTarget = targetShadowRoot;
         }
         else if (location != null) {
-            setRef(location, elementBaseName, this);
-            setRef(location, definition.key, this);
+            // when template compiler encounter a "containerless" attribute
+            // it replaces the element with a render location
+            // making the controller receive the same comment node as both host and location
+            // todo: consider making template compiler less eager to replace
+            //       this has performance implication when using ad-hoc containerless
+            if (host !== location) {
+                setRef(location, elementBaseName, this);
+                setRef(location, definition.key, this);
+            }
             this.mountTarget = targetLocation;
         }
         else {
@@ -4740,17 +4733,6 @@ class Controller {
         if (this.debug) {
             this.logger.trace(`attach()`);
         }
-        if (this.hostController !== null) {
-            switch (this.mountTarget) {
-                case targetHost:
-                case targetShadowRoot:
-                    this.hostController._append(this.host);
-                    break;
-                case targetLocation:
-                    this.hostController._append(this.location.$start, this.location);
-                    break;
-            }
-        }
         switch (this.mountTarget) {
             case targetHost:
                 this.nodes.appendTo(this.host, this.definition != null && this.definition.enhance);
@@ -4896,18 +4878,6 @@ class Controller {
             case vmkSynth:
                 this.nodes.remove();
                 this.nodes.unlink();
-        }
-        if (this.hostController !== null) {
-            switch (this.mountTarget) {
-                case targetHost:
-                case targetShadowRoot:
-                    this.host.remove();
-                    break;
-                case targetLocation:
-                    this.location.$start.remove();
-                    this.location.remove();
-                    break;
-            }
         }
     }
     unbind() {
@@ -5185,7 +5155,6 @@ class Controller {
             this.children.forEach(callDispose);
             this.children = null;
         }
-        this.hostController = null;
         this.scope = null;
         this.nodes = null;
         this.location = null;
@@ -5234,7 +5203,7 @@ const MountTarget = objectFreeze({
     shadowRoot: targetShadowRoot,
     location: targetLocation,
 });
-const optionalCeFind = { optional: true };
+// const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = kernel.optionalResource(runtime.ICoercionConfiguration);
 function createObservers(controller, definition, instance) {
     const bindables = definition.bindables;
@@ -5458,7 +5427,11 @@ function getRef(node, name) {
     return node.$au?.[name] ?? null;
 }
 function setRef(node, name, controller) {
-    (node.$au ??= new Refs())[name] = controller;
+    const ref = node.$au ??= new Refs();
+    if (name in ref) {
+        throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
+    }
+    return (ref[name] = controller);
 }
 const INode = /*@__PURE__*/ createInterface('INode');
 const IEventTarget = /*@__PURE__*/ createInterface('IEventTarget', x => x.cachedCallback(handler => {
@@ -10642,6 +10615,7 @@ exports.LifecycleHooksEntry = LifecycleHooksEntry;
 exports.ListenerBinding = ListenerBinding;
 exports.ListenerBindingOptions = ListenerBindingOptions;
 exports.ListenerBindingRenderer = ListenerBindingRenderer;
+exports.MountTarget = MountTarget;
 exports.NodeObserverLocator = NodeObserverLocator;
 exports.NoopSVGAnalyzer = NoopSVGAnalyzer;
 exports.OneTimeBindingBehavior = OneTimeBindingBehavior;

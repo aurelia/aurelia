@@ -1,5 +1,5 @@
 import { DI, resolve, IContainer, InstanceProvider } from '../../../kernel/dist/native-modules/index.mjs';
-import { IPlatform, IRendering, CustomElementDefinition, CustomElement, INode, Controller, setRef } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { IPlatform, IRendering, CustomElementDefinition, CustomElement, INode, Controller } from '../../../runtime-html/dist/native-modules/index.mjs';
 
 const IWcElementRegistry = /*@__PURE__*/ DI.createInterface(x => x.singleton(WcCustomElementRegistry));
 /**
@@ -52,8 +52,7 @@ class WcCustomElementRegistry {
                 registerResolver(childCtn, p.HTMLElement, registerResolver(childCtn, p.Element, registerResolver(childCtn, INode, new InstanceProvider('ElementProvider', this))));
                 const compiledDef = rendering.compile(elDef, childCtn);
                 const viewModel = childCtn.invoke(compiledDef.Type);
-                const controller = this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
-                setRef(this, compiledDef.key, controller);
+                this.auCtrl = Controller.$el(childCtn, viewModel, this, null, compiledDef);
             }
             connectedCallback() {
                 this.auInit();

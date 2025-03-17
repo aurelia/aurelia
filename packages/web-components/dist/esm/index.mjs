@@ -1,14 +1,14 @@
 import { DI as t, resolve as s, IContainer as e, InstanceProvider as n } from "@aurelia/kernel";
 
-import { IPlatform as i, IRendering as o, CustomElementDefinition as l, CustomElement as c, INode as r, Controller as a, setRef as u } from "@aurelia/runtime-html";
+import { IPlatform as i, IRendering as l, CustomElementDefinition as o, CustomElement as r, INode as c, Controller as a } from "@aurelia/runtime-html";
 
-const h = /*@__PURE__*/ t.createInterface((t => t.singleton(WcCustomElementRegistry)));
+const u = /*@__PURE__*/ t.createInterface((t => t.singleton(WcCustomElementRegistry)));
 
 class WcCustomElementRegistry {
     constructor() {
         this.ctn = s(e);
         this.p = s(i);
-        this.r = s(o);
+        this.r = s(l);
     }
     define(t, s, e) {
         if (!t.includes("-")) {
@@ -20,33 +20,32 @@ class WcCustomElementRegistry {
         }
         switch (typeof s) {
           case "function":
-            i = c.isType(s) ? c.getDefinition(s) : l.create(c.generateName(), s);
+            i = r.isType(s) ? r.getDefinition(s) : o.create(r.generateName(), s);
             break;
 
           default:
-            i = l.getOrCreate(s);
+            i = o.getOrCreate(s);
             break;
         }
         if (i.containerless) {
             throw createError("Containerless custom element is not supported. Consider using buitl-in extends instead");
         }
-        const o = e?.extends ? this.p.document.createElement(e.extends).constructor : this.p.HTMLElement;
-        const h = this.ctn;
+        const l = e?.extends ? this.p.document.createElement(e.extends).constructor : this.p.HTMLElement;
+        const u = this.ctn;
         const m = this.r;
-        const C = i.bindables;
-        const d = this.p;
-        class CustomElementClass extends o {
+        const h = i.bindables;
+        const C = this.p;
+        class CustomElementClass extends l {
             auInit() {
                 if (this.auInited) {
                     return;
                 }
                 this.auInited = true;
-                const t = h.createChild();
-                registerResolver(t, d.HTMLElement, registerResolver(t, d.Element, registerResolver(t, r, new n("ElementProvider", this))));
+                const t = u.createChild();
+                registerResolver(t, C.HTMLElement, registerResolver(t, C.Element, registerResolver(t, c, new n("ElementProvider", this))));
                 const s = m.compile(i, t);
                 const e = t.invoke(s.Type);
-                const o = this.auCtrl = a.$el(t, e, this, null, s);
-                u(this, s.key, o);
+                this.auCtrl = a.$el(t, e, this, null, s);
             }
             connectedCallback() {
                 this.auInit();
@@ -63,8 +62,8 @@ class WcCustomElementRegistry {
                 this.auCtrl.viewModel[t] = e;
             }
         }
-        CustomElementClass.observedAttributes = Object.keys(C);
-        for (const t in C) {
+        CustomElementClass.observedAttributes = Object.keys(h);
+        for (const t in h) {
             Object.defineProperty(CustomElementClass.prototype, t, {
                 configurable: true,
                 enumerable: false,
@@ -88,5 +87,5 @@ const registerResolver = (t, s, e) => t.registerResolver(s, e);
 
 const createError = t => new Error(t);
 
-export { h as IWcElementRegistry, WcCustomElementRegistry };
+export { u as IWcElementRegistry, WcCustomElementRegistry };
 //# sourceMappingURL=index.mjs.map

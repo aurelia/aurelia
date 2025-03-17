@@ -5,7 +5,7 @@ export declare class Refs {
     [key: string]: IHydratedController | undefined;
 }
 export declare function getRef(node: INode, name: string): IHydratedController | null;
-export declare function setRef(node: INode, name: string, controller: IHydratedController): void;
+export declare function setRef<T extends IHydratedController>(node: INode, name: string, controller: T): T;
 export type INode<T extends Node = Node> = T & {
     readonly $au?: Refs;
 };

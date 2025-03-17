@@ -13,20 +13,20 @@
     "now": "rimraf --glob dist && webpack --config webpack.config.js && cd dist && now && cd .."
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.1.0-dev.202503031411",
-    "@aurelia/kernel": "2.1.0-dev.202503031411",
-    "@aurelia/metadata": "2.1.0-dev.202503031411",
-    "@aurelia/platform": "2.1.0-dev.202503031411",
-    "@aurelia/platform-browser": "2.1.0-dev.202503031411",
-    "@aurelia/route-recognizer": "2.1.0-dev.202503031411",
-    "@aurelia/router": "2.1.0-dev.202503031411",
-    "@aurelia/runtime": "2.1.0-dev.202503031411",
-    "@aurelia/runtime-html": "2.1.0-dev.202503031411"
+    "@aurelia/fetch-client": "2.1.0-dev.202503171837",
+    "@aurelia/kernel": "2.1.0-dev.202503171837",
+    "@aurelia/metadata": "2.1.0-dev.202503171837",
+    "@aurelia/platform": "2.1.0-dev.202503171837",
+    "@aurelia/platform-browser": "2.1.0-dev.202503171837",
+    "@aurelia/route-recognizer": "2.1.0-dev.202503171837",
+    "@aurelia/router": "2.1.0-dev.202503171837",
+    "@aurelia/runtime": "2.1.0-dev.202503171837",
+    "@aurelia/runtime-html": "2.1.0-dev.202503171837"
   },
   "devDependencies": {
-    "@aurelia/http-server": "2.1.0-dev.202503031411",
-    "@aurelia/ts-jest": "2.1.0-dev.202503031411",
-    "@aurelia/webpack-loader": "2.1.0-dev.202503031411",
+    "@aurelia/http-server": "2.1.0-dev.202503171837",
+    "@aurelia/ts-jest": "2.1.0-dev.202503171837",
+    "@aurelia/webpack-loader": "2.1.0-dev.202503171837",
     "@types/node": "^20.16.10",
     "autoprefixer": "^10.4.5",
     "css-loader": "^6.7.1",

@@ -1,5 +1,5 @@
 import { onResolve, getResourceKeyFor, resolve, IEventAggregator, IContainer, Protocol, DI, ILogger, Registration } from '../../../kernel/dist/native-modules/index.mjs';
-import { CustomElement, isCustomElementViewModel, Controller, IPlatform, IWindow, IHistory, ILocation, IAppRoot, CustomAttribute, BindingMode, INode, IController, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { CustomElement, isCustomElementViewModel, IPlatform, registerHostNode, Controller, IWindow, IHistory, ILocation, IAppRoot, CustomAttribute, BindingMode, INode, IController, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 import { RouteRecognizer as RouteRecognizer$1, ConfigurableRoute as ConfigurableRoute$1, RecognizedRoute as RecognizedRoute$1, Endpoint as Endpoint$2 } from '../../../route-recognizer/dist/native-modules/index.mjs';
 import { IInstruction } from '../../../template-compiler/dist/native-modules/index.mjs';
@@ -1246,6 +1246,8 @@ class InstructionComponent {
         const Type = this.isType()
             ? this.type
             : container.getResolver(CustomElement.keyFrom(this.name)).getFactory(container).Type;
+        const host = parentElement.appendChild(container.get(IPlatform).document.createElement(CustomElement.getDefinition(Type).name));
+        registerHostNode(container, host);
         const instance = container.invoke(Type);
         // TODO: Investigate this!
         // const instance: IRouteableComponent = this.isType()
@@ -1268,7 +1270,7 @@ class InstructionComponent {
             }
             throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
         }
-        const controller = Controller.$el(container, instance, parentElement, null);
+        const controller = Controller.$el(container, instance, host, null);
         // TODO: Investigate if this is really necessary
         controller.parent = parentController;
         return instance;
@@ -2658,14 +2660,6 @@ class ViewportContent extends EndpointContent {
      */
     isCacheEqual(other) {
         return this.instruction.sameComponent(this.router, other.instruction, true);
-    }
-    /**
-     * Get the controller of the component in the viewport content.
-     *
-     * @param connectedCE - The custom element connected to the viewport
-     */
-    contentController(connectedCE) {
-        return Controller.$el(connectedCE.container.createChild(), this.instruction.component.instance, connectedCE.element, null);
     }
     /**
      * Create the component for the viewport content (based on the instruction)

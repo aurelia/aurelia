@@ -1,5 +1,5 @@
 import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '../../../kernel/dist/native-modules/index.mjs';
-import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, CustomElementDefinition, Controller, IPlatform, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
+import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, CustomElementDefinition, Controller, IPlatform, MountTarget, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '../../../runtime-html/dist/native-modules/index.mjs';
 import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '../../../route-recognizer/dist/native-modules/index.mjs';
 import { Metadata } from '../../../metadata/dist/native-modules/index.mjs';
 import { batch } from '../../../runtime/dist/native-modules/index.mjs';
@@ -158,6 +158,7 @@ const eventMessageMap = {
     [3351 /* Events.vpaUnexpectedDeactivation */]: 'Unexpected viewport deactivation outside of a transition context at %s',
     [3352 /* Events.vpaUnexpectedState */]: 'Unexpected state at %s of %s',
     [3353 /* Events.vpaUnexpectedGuardsResult */]: 'Unexpected guardsResult %s at %s',
+    [3354 /* Events.vpaCanLoadGuardsResult */]: 'canLoad returned redirect result %s by the component agent %s',
     // #endregion
     // #region instruction
     [3400 /* Events.instrInvalid */]: 'Invalid component %s: must be either a class, a custom element ViewModel, or a (partial) custom element definition',
@@ -1734,6 +1735,10 @@ class ViewportAgent {
                     this._unexpectedState('canLoad');
             }
         })._continueWith(b1 => {
+            if (tr.guardsResult !== true) {
+                trace(logger, 3354 /* Events.vpaCanLoadGuardsResult */, tr.guardsResult, this._nextCA);
+                return;
+            }
             const next = this._nextNode;
             switch (this._$plan) {
                 case 'none':
@@ -2065,6 +2070,8 @@ class ViewportAgent {
                     });
                 }
             })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
                 for (const node of newChildren) {
                     tr._run(() => {
                         b1._push();
@@ -2074,6 +2081,8 @@ class ViewportAgent {
                     });
                 }
             })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
                 for (const node of newChildren) {
                     tr._run(() => {
                         b1._push();
@@ -3297,6 +3306,12 @@ class Router {
                 for (const node of all) {
                     node.context.vpa._swap(tr, b);
                 }
+            })._continueWith(b => {
+                // it is possible that some of the child routes are cancelling the navigation
+                if (tr.guardsResult !== true) {
+                    b._push();
+                    this._cancelNavigation(tr);
+                }
             })._continueWith(() => {
                 trace(logger, 3266 /* Events.rtrRunFinalizing */);
                 // order doesn't matter for this operation
@@ -3988,6 +4003,19 @@ class ComponentAgent {
     }
     /** @internal */
     _activate(initiator, parent) {
+        const controller = this._controller;
+        const viewportController = this._ctx.vpa.hostController;
+        switch (controller.mountTarget) {
+            case MountTarget.host:
+            case MountTarget.shadowRoot:
+                viewportController.host.appendChild(controller.host);
+                break;
+            case MountTarget.location:
+                viewportController.host.append(controller.location.$start, controller.location);
+                break;
+            case MountTarget.none:
+                throw new Error('Invalid mount target for routed component');
+        }
         if (initiator === null) {
             trace(this._logger, 3051 /* Events.caActivateSelf */);
             return this._controller.activate(this._controller, parent);
@@ -3998,13 +4026,19 @@ class ComponentAgent {
     }
     /** @internal */
     _deactivate(initiator, parent) {
+        const controller = this._controller;
+        // there's a case controller was disposed and is being deactivated again?
+        // todo: these 3 lines seems invasive, and ugly, should this be a method on Controller?
+        controller.host?.remove();
+        controller.location?.remove();
+        controller.location?.$start?.remove();
         if (initiator === null) {
             trace(this._logger, 3053 /* Events.caDeactivateSelf */);
-            return this._controller.deactivate(this._controller, parent);
+            return controller.deactivate(controller, parent);
         }
         trace(this._logger, 3054 /* Events.caDeactivateInitiator */);
         // Promise return values from user VM hooks are awaited by the initiator
-        void this._controller.deactivate(initiator, parent);
+        void controller.deactivate(initiator, parent);
     }
     /** @internal */
     _dispose() {
@@ -4412,7 +4446,7 @@ class RouteContext {
             ? void 0
             : onResolve(resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null), config => this._processConfig(config));
         return onResolve(task, () => {
-            const controller = Controller.$el(container, componentInstance, host, { hostController: hostController, projections: null }, elDefn);
+            const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn);
             const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
             this._hostControllerProvider.dispose();
             return componentAgent;

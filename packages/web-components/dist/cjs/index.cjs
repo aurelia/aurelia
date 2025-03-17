@@ -2,18 +2,18 @@
 
 var t = require("@aurelia/kernel");
 
-var s = require("@aurelia/runtime-html");
+var e = require("@aurelia/runtime-html");
 
-const e = /*@__PURE__*/ t.DI.createInterface((t => t.singleton(WcCustomElementRegistry)));
+const s = /*@__PURE__*/ t.DI.createInterface((t => t.singleton(WcCustomElementRegistry)));
 
 class WcCustomElementRegistry {
     constructor() {
         this.ctn = t.resolve(t.IContainer);
-        this.p = t.resolve(s.IPlatform);
-        this.r = t.resolve(s.IRendering);
+        this.p = t.resolve(e.IPlatform);
+        this.r = t.resolve(e.IRendering);
     }
-    define(e, n, i) {
-        if (!e.includes("-")) {
+    define(s, n, i) {
+        if (!s.includes("-")) {
             throw createError('Invalid web-components custom element name. It must include a "-"');
         }
         let l;
@@ -22,11 +22,11 @@ class WcCustomElementRegistry {
         }
         switch (typeof n) {
           case "function":
-            l = s.CustomElement.isType(n) ? s.CustomElement.getDefinition(n) : s.CustomElementDefinition.create(s.CustomElement.generateName(), n);
+            l = e.CustomElement.isType(n) ? e.CustomElement.getDefinition(n) : e.CustomElementDefinition.create(e.CustomElement.generateName(), n);
             break;
 
           default:
-            l = s.CustomElementDefinition.getOrCreate(n);
+            l = e.CustomElementDefinition.getOrCreate(n);
             break;
         }
         if (l.containerless) {
@@ -43,12 +43,11 @@ class WcCustomElementRegistry {
                     return;
                 }
                 this.auInited = true;
-                const e = r.createChild();
-                registerResolver(e, u.HTMLElement, registerResolver(e, u.Element, registerResolver(e, s.INode, new t.InstanceProvider("ElementProvider", this))));
-                const n = c.compile(l, e);
-                const i = e.invoke(n.Type);
-                const o = this.auCtrl = s.Controller.$el(e, i, this, null, n);
-                s.setRef(this, n.key, o);
+                const s = r.createChild();
+                registerResolver(s, u.HTMLElement, registerResolver(s, u.Element, registerResolver(s, e.INode, new t.InstanceProvider("ElementProvider", this))));
+                const n = c.compile(l, s);
+                const i = s.invoke(n.Type);
+                this.auCtrl = e.Controller.$el(s, i, this, null, n);
             }
             connectedCallback() {
                 this.auInit();
@@ -60,9 +59,9 @@ class WcCustomElementRegistry {
             adoptedCallback() {
                 this.auInit();
             }
-            attributeChangedCallback(t, s, e) {
+            attributeChangedCallback(t, e, s) {
                 this.auInit();
-                this.auCtrl.viewModel[t] = e;
+                this.auCtrl.viewModel[t] = s;
             }
         }
         CustomElementClass.observedAttributes = Object.keys(a);
@@ -73,24 +72,24 @@ class WcCustomElementRegistry {
                 get() {
                     return this["auCtrl"].viewModel[t];
                 },
-                set(s) {
+                set(e) {
                     if (!this["auInited"]) {
                         this["auInit"]();
                     }
-                    this["auCtrl"].viewModel[t] = s;
+                    this["auCtrl"].viewModel[t] = e;
                 }
             });
         }
-        this.p.customElements.define(e, CustomElementClass, i);
+        this.p.customElements.define(s, CustomElementClass, i);
         return CustomElementClass;
     }
 }
 
-const registerResolver = (t, s, e) => t.registerResolver(s, e);
+const registerResolver = (t, e, s) => t.registerResolver(e, s);
 
 const createError = t => new Error(t);
 
-exports.IWcElementRegistry = e;
+exports.IWcElementRegistry = s;
 
 exports.WcCustomElementRegistry = WcCustomElementRegistry;
 //# sourceMappingURL=index.cjs.map

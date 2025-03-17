@@ -33,7 +33,6 @@ export declare class Controller<C extends IViewModel = IViewModel> implements IC
     hasLockedScope: boolean;
     scope: Scope | null;
     isBound: boolean;
-    hostController: Controller | null;
     mountTarget: MountTarget;
     shadowRoot: ShadowRoot | null;
     nodes: INodeSequence | null;
@@ -473,11 +472,6 @@ export interface IControllerElementHydrationInstruction {
      * Indicates whether the custom element was used with "containerless" attribute
      */
     readonly containerless?: boolean;
-    /**
-     * When provided, the controller is used while hydrating the custom element.
-     * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
-     */
-    readonly hostController?: Controller | null;
 }
 export {};
 //# sourceMappingURL=controller.d.ts.map

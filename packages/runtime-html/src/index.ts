@@ -302,6 +302,7 @@ export {
   isCustomElementController,
   isCustomElementViewModel,
   type ViewModelKind,
+  MountTarget,
   State,
   type ControllerVisitor,
   type IViewModel,

@@ -14,8 +14,12 @@ export function getRef(node: INode, name: string): IHydratedController | null {
   return node.$au?.[name] ?? null;
 }
 
-export function setRef(node: INode, name: string, controller: IHydratedController): void {
-  ((node as Writable<INode>).$au ??= new Refs())[name] = controller;
+export function setRef<T extends IHydratedController>(node: INode, name: string, controller: T): T {
+  const ref = (node as Writable<INode>).$au ??= new Refs();
+  if (name in ref) {
+    throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
+  }
+  return (ref[name] = controller) as T;
 }
 
 export type INode<T extends Node = Node> = T & {

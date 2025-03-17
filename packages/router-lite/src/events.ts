@@ -158,6 +158,7 @@ export const enum Events {
   vpaUnexpectedDeactivation = 3351,
   vpaUnexpectedState = 3352,
   vpaUnexpectedGuardsResult = 3353,
+  vpaCanLoadGuardsResult = 3354,
   // #endregion
   // #region instruction
   instrInvalid = 3400,
@@ -331,6 +332,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.vpaUnexpectedDeactivation]: 'Unexpected viewport deactivation outside of a transition context at %s',
   [Events.vpaUnexpectedState]: 'Unexpected state at %s of %s',
   [Events.vpaUnexpectedGuardsResult]: 'Unexpected guardsResult %s at %s',
+  [Events.vpaCanLoadGuardsResult]: 'canLoad returned redirect result %s by the component agent %s',
   // #endregion
 
   // #region instruction

@@ -47,6 +47,7 @@ export class Transition {
     public readonly resolve: ((success: boolean) => void) | null,
     public readonly reject: ((err: unknown) => void) | null,
     public guardsResult: boolean | ViewportInstructionTree,
+    public childrenSuspension: Promise<void> | null,
     public error: unknown,
   ) { }
 
@@ -67,6 +68,7 @@ export class Transition {
       input.resolve,
       input.reject,
       input.guardsResult,
+      input.childrenSuspension,
       void 0,
     );
   }
@@ -160,6 +162,7 @@ export class Router {
       reject: null,
       promise: null,
       guardsResult: true,
+      childrenSuspension: null,
       error: void 0,
     });
   }
@@ -494,6 +497,7 @@ export class Router {
       previousRouteTree: this.routeTree,
       routeTree: this._routeTree = this.routeTree._clone(),
       guardsResult: true,
+      childrenSuspension: null,
       error: void 0,
     });
 

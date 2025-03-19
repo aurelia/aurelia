@@ -1,4 +1,4 @@
-import { ILogger } from '@aurelia/kernel';
+import { ILogger, noop } from '@aurelia/kernel';
 import { MountTarget, type ICustomElementController, type ICustomElementViewModel, type IHydratedController, type ILifecycleHooks, type LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { Events, trace } from './events';
@@ -13,9 +13,35 @@ import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import { Batch } from './util';
 
+function isChildActivationSuspensionInstruction(value: unknown): value is ChildActivationSuspensionInstruction {
+  return value != null
+    && typeof value === 'object'
+    && 'continueOn' in value
+    && ['resolution', 'rejection', 'completion'].includes((value as { continueOn: ChildRouteContinuation }).continueOn)
+    && 'promise' in value
+    ;
+}
+
+function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction): Promise<void> {
+  switch (value.continueOn) {
+    case 'resolution':
+      return value.promise.then(noop);
+    case 'rejection':
+      return value.promise.catch(noop);
+    case 'completion':
+      return value.promise.finally(noop);
+  }
+}
+
+type ChildRouteContinuation = 'resolution' | 'rejection' | 'completion';
+export interface ChildActivationSuspensionInstruction {
+  readonly continueOn: ChildRouteContinuation;
+  readonly promise: Promise<void>;
+}
+
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
-  canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | ChildActivationSuspensionInstruction | Promise<boolean | NavigationInstruction | NavigationInstruction[] | ChildActivationSuspensionInstruction>;
   loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
   unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
@@ -175,7 +201,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            if (isChildActivationSuspensionInstruction(ret)) {
+              tr.childrenSuspension = createChildSuspensionPromise(ret);
+            } else {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            }
           }
           b._pop();
           res();
@@ -194,7 +224,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            if (isChildActivationSuspensionInstruction(ret)) {
+              tr.childrenSuspension = createChildSuspensionPromise(ret);
+            } else {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            }
           }
           b._pop();
         });

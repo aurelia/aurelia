@@ -1,4 +1,4 @@
-import { IRouteViewModel, NavigationInstruction, Params, route, RouteNode } from '@aurelia/router-lite';
+import { IRouteViewModel, ChildActivationSuspensionInstruction, Params, route, RouteNode } from '@aurelia/router-lite';
 import { customElement } from 'aurelia';
 
 @customElement({
@@ -32,12 +32,15 @@ export class Promisified implements IRouteViewModel {
   private promiseResolver: () => void;
   private promiseRejector: () => void;
 
-  public canLoad(_params: Params, _next: RouteNode, _current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]> {
+  public canLoad(_params: Params, _next: RouteNode, _current: RouteNode | null): ChildActivationSuspensionInstruction{
     this.loadingPromise = new Promise((resolve, reject) => {
       this.promiseResolver = resolve;
       this.promiseRejector = reject;
     });
-    return true;
+    return {
+      continueOn: 'completion',
+      promise: this.loadingPromise
+    };
     // return this.loadingPromise;
   }
 }

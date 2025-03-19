@@ -55,6 +55,7 @@ import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
+import { TaskQueue } from '@aurelia/platform';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -173,6 +174,7 @@ export class RouteContext {
     public readonly config: RouteConfig,
     parentContainer: IContainer,
     private readonly _router: IRouter,
+    private readonly _taskQueue: TaskQueue,
   ) {
     this._vpa = viewportAgent;
     if (parent === null) {
@@ -408,7 +410,7 @@ export class RouteContext {
       );
     return onResolve(task, () => {
       const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn);
-      const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
+      const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options, this._taskQueue);
 
       this._hostControllerProvider.dispose();
 

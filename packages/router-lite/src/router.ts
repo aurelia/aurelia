@@ -397,6 +397,7 @@ export class Router {
             rdConfig,
             container,
             this,
+            this._p.taskQueue,
           ),
         );
         return routeContext;

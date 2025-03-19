@@ -12,6 +12,7 @@ import { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
 import { Batch } from './util';
+import { TaskQueue } from '@aurelia/platform';
 
 function isChildActivationSuspensionInstruction(value: unknown): value is ChildActivationSuspensionInstruction {
   return value != null
@@ -22,15 +23,39 @@ function isChildActivationSuspensionInstruction(value: unknown): value is ChildA
     ;
 }
 
-function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction): Promise<void> {
-  switch (value.continueOn) {
-    case 'resolution':
-      return value.promise.then(noop);
-    case 'rejection':
-      return value.promise.catch(noop);
-    case 'completion':
-      return value.promise.finally(noop);
-  }
+function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction, queue: TaskQueue): Promise<void> {
+  let resolve: () => void;
+  const promise = new Promise<void>(res => {
+    resolve = res;
+  });
+  const queueTask = () => {
+    queue.queueTask(() => {
+      console.log('resolving the promise');
+      resolve();
+    });
+  };
+  void value.promise
+    .then(
+      () => {
+        if (value.continueOn === 'resolution') {
+          console.log('the source promise resolved');
+          queueTask();
+        }
+      },
+      () => {
+        if (value.continueOn === 'rejection') {
+          console.log('the source promise rejected');
+          queueTask();
+        }
+      },
+    )
+    .finally(() => {
+      if (value.continueOn === 'completion') {
+        console.log('the source promise completed');
+        queueTask();
+      }
+    });
+  return promise;
 }
 
 type ChildRouteContinuation = 'resolution' | 'rejection' | 'completion';
@@ -72,6 +97,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     /** @internal */ public readonly _routeNode: RouteNode,
     /** @internal */ private readonly _ctx: IRouteContext,
     /** @internal */ private readonly _routerOptions: RouterOptions,
+    /** @internal */ private readonly _taskQueue: TaskQueue,
   ) {
     this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
 
@@ -202,7 +228,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             if (isChildActivationSuspensionInstruction(ret)) {
-              tr.childrenSuspension = createChildSuspensionPromise(ret);
+              tr.childrenSuspension = createChildSuspensionPromise(ret, this._taskQueue);
             } else {
               tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
             }
@@ -225,7 +251,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             if (isChildActivationSuspensionInstruction(ret)) {
-              tr.childrenSuspension = createChildSuspensionPromise(ret);
+              tr.childrenSuspension = createChildSuspensionPromise(ret, this._taskQueue);
             } else {
               tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
             }

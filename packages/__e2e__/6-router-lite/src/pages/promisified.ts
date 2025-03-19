@@ -24,6 +24,7 @@ export class C2 { }
       <button click.trigger="promiseRejector()">Cancel</button>
     </template>
     <au-viewport then></au-viewport>
+    <au-viewport catch></au-viewport>
   </template>
 </template>`
 })

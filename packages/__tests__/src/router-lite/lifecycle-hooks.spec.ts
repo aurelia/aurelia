@@ -12,62 +12,37 @@
 
 import {
   Class,
-  /* ConsoleSink, */
-  DefaultLogEvent,
   DI,
-  IContainer,
   ILogger,
-  ISink,
   LogLevel,
   Registration,
-  resolve,
+  resolve
 } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
-import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
+import {
+  IRouter,
+  IRouterEvents,
+  IRouteViewModel,
+  IViewportInstruction,
+  NavigationInstruction,
+  Params,
+  route,
+  RouteNode,
+  RouterConfiguration,
+} from '@aurelia/router-lite';
+import {
+  Aurelia,
+  CustomElement,
+  customElement,
+  IHydratedController,
+  ILifecycleHooks,
+  lifecycleHooks,
+} from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
+import { EventLog, IKnownScopes } from './_shared/event-log.js';
 
 describe('router-lite/lifecycle-hooks.spec.ts', function () {
-  const IKnownScopes = DI.createInterface<string[]>();
-  class EventLog implements ISink {
-    public readonly log: string[] = [];
-    private readonly scopes: string[] = resolve(IKnownScopes);
-    public handleEvent(event: DefaultLogEvent): void {
-      if (!event.scope.some(x => this.scopes.includes(x))) return;
-      this.log.push(event.toString());
-    }
-    public clear() {
-      this.log.length = 0;
-    }
-
-    public assertLog(messagePatterns: RegExp[], message: string) {
-      const log = this.log;
-      const len = messagePatterns.length;
-      for (let i = 0; i < len; i++) {
-        assert.match(log[i], messagePatterns[i], `${message} - unexpected log at index${i}: ${log[i]}; actual log: ${JSON.stringify(log, undefined, 2)}`);
-      }
-    }
-
-    public assertLogOrderInvariant(messagePatterns: RegExp[], offset: number, message: string) {
-      const log = this.log;
-      const len = messagePatterns.length;
-      for (let i = offset; i < len; i++) {
-        const item = log[i];
-        assert.notEqual(
-          messagePatterns.find(pattern => pattern.test(item)),
-          undefined,
-          `${message} - unexpected log at index${i}: ${item}; actual log: ${JSON.stringify(log, undefined, 2)}`
-        );
-      }
-    }
-
-    public static getInstance(container: IContainer): EventLog {
-      const eventLog = container.getAll(ISink).find(x => x instanceof this);
-      if (eventLog === undefined) throw new Error('Event log is not found');
-      return eventLog as EventLog;
-    }
-  }
 
   async function createFixture(rootComponent: unknown, ...registrations: any[]) {
     const ctx = TestContext.create();

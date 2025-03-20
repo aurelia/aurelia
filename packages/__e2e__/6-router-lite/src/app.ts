@@ -3,6 +3,7 @@ import template from './app.html';
 import { CustomElementStaticAuDefinition } from '@aurelia/runtime-html';
 import { Home } from './pages/home';
 import { IRouterEventLoggerService } from './router-event-logger-service';
+import { Promisified } from './pages/promisified';
 
 export class App {
   static $au: CustomElementStaticAuDefinition = {
@@ -15,6 +16,7 @@ export class App {
     { path: 'auth', component: import('./pages/auth').then(x => x.Auth), title: 'Sign in' },
     { path: 'one', component: import('./pages/one'), title: 'One' },
     { path: 'two', component: import('./pages/two'), title: 'Two' },
+    { path: 'p', component: Promisified, title: 'Promisified' },
   ];
   public static inject = [IRouter, IRouterEventLoggerService];
   public message = 'Hello World!';

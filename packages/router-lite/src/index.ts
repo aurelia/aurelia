@@ -18,6 +18,7 @@ export {
 
 export {
   type IRouteViewModel,
+  type ChildActivationSuspensionInstruction,
 } from './component-agent';
 
 export {

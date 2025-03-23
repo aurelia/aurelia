@@ -10,7 +10,7 @@ import {
 import type { IRouteConfig, RouterOptions } from './options';
 import { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
-import type { Transition } from './router';
+import { ChildrenActivationSuspension, type Transition } from './router';
 import { Batch } from './util';
 import { TaskQueue } from '@aurelia/platform';
 
@@ -23,40 +23,40 @@ function isChildActivationSuspensionInstruction(value: unknown): value is ChildA
     ;
 }
 
-function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction, queue: TaskQueue): Promise<void> {
-  let resolve: () => void;
-  const promise = new Promise<void>(res => {
-    resolve = res;
-  });
-  const queueTask = () => {
-    queue.queueTask(() => {
-      console.log('resolving the promise');
-      resolve();
-    });
-  };
-  void value.promise
-    .then(
-      () => {
-        if (value.continueOn === 'resolution') {
-          console.log('the source promise resolved');
-          queueTask();
-        }
-      },
-      () => {
-        if (value.continueOn === 'rejection') {
-          console.log('the source promise rejected');
-          queueTask();
-        }
-      },
-    )
-    .finally(() => {
-      if (value.continueOn === 'completion') {
-        console.log('the source promise completed');
-        queueTask();
-      }
-    });
-  return promise;
-}
+// function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction, queue: TaskQueue): Promise<void> {
+//   let resolve: () => void;
+//   const promise = new Promise<void>(res => {
+//     resolve = res;
+//   });
+//   const queueTask = () => {
+//     queue.queueTask(() => {
+//       console.log('resolving the promise');
+//       resolve();
+//     });
+//   };
+//   void value.promise
+//     .then(
+//       () => {
+//         if (value.continueOn === 'resolution') {
+//           console.log('the source promise resolved');
+//           queueTask();
+//         }
+//       },
+//       () => {
+//         if (value.continueOn === 'rejection') {
+//           console.log('the source promise rejected');
+//           queueTask();
+//         }
+//       },
+//     )
+//     .finally(() => {
+//       if (value.continueOn === 'completion') {
+//         console.log('the source promise completed');
+//         queueTask();
+//       }
+//     });
+//   return promise;
+// }
 
 type ChildRouteContinuation = 'resolution' | 'rejection' | 'completion';
 export interface ChildActivationSuspensionInstruction {
@@ -228,7 +228,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             if (isChildActivationSuspensionInstruction(ret)) {
-              tr.childrenSuspension = createChildSuspensionPromise(ret, this._taskQueue);
+              tr.childrenSuspension = new ChildrenActivationSuspension(ret); // createChildSuspensionPromise(ret, this._taskQueue);
             } else {
               tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
             }
@@ -251,7 +251,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
             if (isChildActivationSuspensionInstruction(ret)) {
-              tr.childrenSuspension = createChildSuspensionPromise(ret, this._taskQueue);
+              tr.childrenSuspension = new ChildrenActivationSuspension(ret); // createChildSuspensionPromise(ret, this._taskQueue);
             } else {
               tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
             }

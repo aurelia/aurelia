@@ -139,9 +139,7 @@ describe.only('router-lite/child-route-activation-suspension.spec.ts', function 
     eventLog.clear();
     console.log('resolving promise');
     CustomElement.for<P1>(host.querySelector('p-1')!).viewModel.promiseResolver();
-    await loadPromise;
-    await domQueue.yield();
-    eventLog.assertLog([
+    await eventLog.assertLogAsync([
       /C1] canLoad/,
       /C1] loading/,
       /C1] binding/,
@@ -149,6 +147,17 @@ describe.only('router-lite/child-route-activation-suspension.spec.ts', function 
       /C1] attaching/,
       /C1] attached/,
     ], 'round #1 - continued');
+
+    // await loadPromise;
+    // await domQueue.yield();
+    // eventLog.assertLog([
+    //   /C1] canLoad/,
+    //   /C1] loading/,
+    //   /C1] binding/,
+    //   /C1] bound/,
+    //   /C1] attaching/,
+    //   /C1] attached/,
+    // ], 'round #1 - continued');
 
     await au.stop(true);
   });

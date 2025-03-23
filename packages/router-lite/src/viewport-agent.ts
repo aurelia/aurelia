@@ -76,6 +76,10 @@ export class ViewportAgent {
     const tr = this._currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this._isActive = true;
+    if (tr?.childrenSuspension != null) {
+      tr.childrenSuspension.resume();
+      return;
+    }
 
     const logger = /*@__PURE__*/ this._logger.scopeTo('activateFromViewport()');
     switch (this._nextState) {
@@ -620,7 +624,7 @@ export class ViewportAgent {
     tr._run(() => {
       b._push();
       const ctx = next.context;
-      return onResolve(tr.childrenSuspension,
+      return onResolve(tr.childrenSuspension?.promise,
         () => onResolve(ctx.allResolved, () => {
           const existingChildren = next.children.slice();
           return onResolve(

@@ -5,7 +5,7 @@ import { IRouteContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
-import { IRouteViewModel } from './component-agent';
+import { ChildActivationSuspensionInstruction, IRouteViewModel } from './component-agent';
 import { RouteTree, RouteNode, createAndAppendNodes } from './route-tree';
 import { IViewportInstruction, NavigationInstruction, RouteContextLike, ViewportInstructionTree, ViewportInstruction } from './instructions';
 import { Batch, mergeDistinct, UnwrapPromise } from './util';
@@ -27,6 +27,51 @@ export function toManagedState(state: {} | null, navId: number): ManagedState {
 /** @internal */
 export class UnknownRouteError extends Error { }
 
+/** @internal */
+export class ChildrenActivationSuspension {
+  public readonly promise: Promise<void>;
+  private resolve!: () => void;
+
+  public constructor(
+    private readonly instr: ChildActivationSuspensionInstruction
+  ) {
+    this.promise = new Promise<void>((resolve) => {
+      this.resolve = resolve;
+    });
+  }
+
+  public resume(): void {
+    const value = this.instr;
+    // const queueTask = () => {
+    //   queue.queueTask(() => {
+    //     console.log('resolving the promise');
+    //     resolve();
+    //   });
+    // };
+    void value.promise
+      .then(
+        () => {
+          if (value.continueOn === 'resolution') {
+            console.log('the source promise resolved');
+            this.resolve();
+          }
+        },
+        () => {
+          if (value.continueOn === 'rejection') {
+            console.log('the source promise rejected');
+            this.resolve();
+          }
+        },
+      )
+      .finally(() => {
+        if (value.continueOn === 'completion') {
+          console.log('the source promise completed');
+          this.resolve();
+        }
+      });
+  }
+}
+
 export class Transition {
   /** @internal */
   private _erredWithUnknownRoute: boolean = false;
@@ -47,7 +92,7 @@ export class Transition {
     public readonly resolve: ((success: boolean) => void) | null,
     public readonly reject: ((err: unknown) => void) | null,
     public guardsResult: boolean | ViewportInstructionTree,
-    public childrenSuspension: Promise<void> | null,
+    public childrenSuspension: ChildrenActivationSuspension | null,
     public error: unknown,
   ) { }
 
@@ -723,7 +768,7 @@ export class Router {
   /** @internal */
   private _cancelNavigation(tr: Transition): void {
     const logger = /*@__PURE__*/ this._logger.scopeTo('cancelNavigation()');
-    if(__DEV__) trace(logger, Events.rtrCancelNavigationStart, tr);
+    if (__DEV__) trace(logger, Events.rtrCancelNavigationStart, tr);
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
@@ -752,7 +797,7 @@ export class Router {
       else instructions = guardsResult;
 
       void onResolve(this._enqueue(instructions, 'api', tr.managedState, tr), () => {
-        if(__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
+        if (__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
       });
     }
   }
@@ -760,7 +805,7 @@ export class Router {
   /** @internal */
   private _runNextTransition(): void {
     if (this._nextTr === null) return;
-    if(__DEV__) trace(this._logger, Events.rtrNextTr, this._nextTr);
+    if (__DEV__) trace(this._logger, Events.rtrNextTr, this._nextTr);
     this._p.taskQueue.queueTask(
       () => {
         // nextTransition is allowed to change up until the point when it's actually time to process it,

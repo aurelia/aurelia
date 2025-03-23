@@ -3,9 +3,9 @@ import {
   type ICustomAttributeController,
   INode,
   IWindow,
-  getRef,
   CustomAttribute,
-  type CustomAttributeStaticAuDefinition
+  type CustomAttributeStaticAuDefinition,
+  refs
 } from '@aurelia/runtime-html';
 
 import { IRouter } from '../router';
@@ -79,7 +79,7 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public binding(): void {
     if (!this._isInitialized) {
       this._isInitialized = true;
-      this._isEnabled = this._isEnabled && getRef(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
+      this._isEnabled = this._isEnabled && refs.get(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
     this.valueChanged(this.value);
     this._el.addEventListener('click', this);

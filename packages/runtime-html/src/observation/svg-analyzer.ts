@@ -3,7 +3,7 @@ import { objectAssign } from '../utilities';
 import { aliasRegistration, createInterface, singletonRegistration } from '../utilities-di';
 
 import { createLookup, isString, resolve, type IContainer } from '@aurelia/kernel';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 
 export interface ISVGAnalyzer extends NoopSVGAnalyzer {}
 export const ISVGAnalyzer = /*@__PURE__*/createInterface<ISVGAnalyzer>('ISVGAnalyzer', x => x.singleton(NoopSVGAnalyzer));

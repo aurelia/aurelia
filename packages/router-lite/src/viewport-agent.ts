@@ -76,6 +76,10 @@ export class ViewportAgent {
     const tr = this._currTransition;
     if (tr !== null) { ensureTransitionHasNotErrored(tr); }
     this._isActive = true;
+    if (tr?.childrenSuspension != null) {
+      tr.childrenSuspension.resume();
+      return;
+    }
 
     const logger = /*@__PURE__*/ this._logger.scopeTo('activateFromViewport()');
     switch (this._nextState) {
@@ -620,28 +624,29 @@ export class ViewportAgent {
     tr._run(() => {
       b._push();
       const ctx = next.context;
-      return onResolve(ctx.allResolved, () => {
-        const existingChildren = next.children.slice();
-        return onResolve(
-          onResolveAll(...next
-            .residue
-            .splice(0)
-            .map(vi => createAndAppendNodes(this._logger, next, vi))),
-          () => onResolve(
-            onResolveAll(...ctx
-              .getAvailableViewportAgents()
-              .reduce((acc, vpa) => {
-                const vp = vpa.viewport;
-                const component = vp.default;
-                if (component === null) return acc;
-                acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
-                return acc;
-              }, ([] as (void | Promise<void>)[]))
+      return onResolve(tr.childrenSuspension?.promise,
+        () => onResolve(ctx.allResolved, () => {
+          const existingChildren = next.children.slice();
+          return onResolve(
+            onResolveAll(...next
+              .residue
+              .splice(0)
+              .map(vi => createAndAppendNodes(this._logger, next, vi))),
+            () => onResolve(
+              onResolveAll(...ctx
+                .getAvailableViewportAgents()
+                .reduce((acc, vpa) => {
+                  const vp = vpa.viewport;
+                  const component = vp.default;
+                  if (component === null) return acc;
+                  acc.push(createAndAppendNodes(this._logger, next, ViewportInstruction.create({ component, viewport: vp.name, })));
+                  return acc;
+                }, ([] as (void | Promise<void>)[]))
+              ),
+              () => next.children.filter(x => !existingChildren.includes(x))
             ),
-            () => next.children.filter(x => !existingChildren.includes(x))
-          ),
-        );
-      });
+          );
+        }));
     }, newChildren => {
       Batch._start(b1 => {
         for (const node of newChildren) {

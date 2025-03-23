@@ -47,6 +47,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   public hydrated(controller: ICompiledCustomElementController): void {
+    console.log('ViewportCustomElement#hydrated');
     if (__DEV__) trace(this._logger, Events.vpHydrated);
 
     this._controller = controller as ICustomElementController;
@@ -54,6 +55,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   }
 
   public attaching(initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
+    console.log('ViewportCustomElement#attaching');
     if (__DEV__) trace(this._logger, Events.vpAttaching);
 
     return this._agent._activateFromViewport(initiator, this._controller);

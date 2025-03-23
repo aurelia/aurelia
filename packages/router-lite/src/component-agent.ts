@@ -1,4 +1,4 @@
-import { ILogger } from '@aurelia/kernel';
+import { ILogger, noop } from '@aurelia/kernel';
 import { MountTarget, type ICustomElementController, type ICustomElementViewModel, type IHydratedController, type ILifecycleHooks, type LifecycleHooksLookup } from '@aurelia/runtime-html';
 
 import { Events, trace } from './events';
@@ -10,12 +10,63 @@ import {
 import type { IRouteConfig, RouterOptions } from './options';
 import { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
-import type { Transition } from './router';
+import { ChildrenActivationSuspension, type Transition } from './router';
 import { Batch } from './util';
+import { TaskQueue } from '@aurelia/platform';
+
+function isChildActivationSuspensionInstruction(value: unknown): value is ChildActivationSuspensionInstruction {
+  return value != null
+    && typeof value === 'object'
+    && 'continueOn' in value
+    && ['resolution', 'rejection', 'completion'].includes((value as { continueOn: ChildRouteContinuation }).continueOn)
+    && 'promise' in value
+    ;
+}
+
+// function createChildSuspensionPromise(value: ChildActivationSuspensionInstruction, queue: TaskQueue): Promise<void> {
+//   let resolve: () => void;
+//   const promise = new Promise<void>(res => {
+//     resolve = res;
+//   });
+//   const queueTask = () => {
+//     queue.queueTask(() => {
+//       console.log('resolving the promise');
+//       resolve();
+//     });
+//   };
+//   void value.promise
+//     .then(
+//       () => {
+//         if (value.continueOn === 'resolution') {
+//           console.log('the source promise resolved');
+//           queueTask();
+//         }
+//       },
+//       () => {
+//         if (value.continueOn === 'rejection') {
+//           console.log('the source promise rejected');
+//           queueTask();
+//         }
+//       },
+//     )
+//     .finally(() => {
+//       if (value.continueOn === 'completion') {
+//         console.log('the source promise completed');
+//         queueTask();
+//       }
+//     });
+//   return promise;
+// }
+
+type ChildRouteContinuation = 'resolution' | 'rejection' | 'completion';
+export interface ChildActivationSuspensionInstruction {
+  readonly continueOn: ChildRouteContinuation;
+  readonly promise: Promise<void>;
+}
 
 export interface IRouteViewModel extends ICustomElementViewModel {
   getRouteConfig?(parentConfig: IRouteConfig | null, routeNode: RouteNode | null): IRouteConfig | Promise<IRouteConfig>;
-  canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | Promise<boolean | NavigationInstruction | NavigationInstruction[]>;
+  canLoad?(params: Params, next: RouteNode, current: RouteNode | null): boolean | NavigationInstruction | NavigationInstruction[] | ChildActivationSuspensionInstruction | Promise<boolean | NavigationInstruction | NavigationInstruction[] | ChildActivationSuspensionInstruction>;
   loading?(params: Params, next: RouteNode, current: RouteNode | null): void | Promise<void>;
   canUnload?(next: RouteNode | null, current: RouteNode): boolean | Promise<boolean>;
   unloading?(next: RouteNode | null, current: RouteNode): void | Promise<void>;
@@ -46,6 +97,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     /** @internal */ public readonly _routeNode: RouteNode,
     /** @internal */ private readonly _ctx: IRouteContext,
     /** @internal */ private readonly _routerOptions: RouterOptions,
+    /** @internal */ private readonly _taskQueue: TaskQueue,
   ) {
     this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
 
@@ -175,7 +227,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            if (isChildActivationSuspensionInstruction(ret)) {
+              tr.childrenSuspension = new ChildrenActivationSuspension(ret); // createChildSuspensionPromise(ret, this._taskQueue);
+            } else {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            }
           }
           b._pop();
           res();
@@ -194,7 +250,11 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            if (isChildActivationSuspensionInstruction(ret)) {
+              tr.childrenSuspension = new ChildrenActivationSuspension(ret); // createChildSuspensionPromise(ret, this._taskQueue);
+            } else {
+              tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            }
           }
           b._pop();
         });

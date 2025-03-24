@@ -2,7 +2,7 @@ import type { IIndexable } from '@aurelia/kernel';
 import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@aurelia/runtime-html';
 
 import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
-import type { IExtendedViewportInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
+import { NavigationStrategy, type IExtendedViewportInstruction, type IViewportInstruction, type Params, type RouteableComponent } from './instructions';
 import { tryStringify } from './util';
 import { Events, getMessage } from './events';
 
@@ -188,7 +188,7 @@ function validateComponent(component: Routeable | null | undefined, parentPath: 
     case 'function':
       break;
     case 'object':
-      if (component instanceof Promise) {
+      if (component instanceof Promise || component instanceof NavigationStrategy) {
         break;
       }
       if (isPartialRedirectRouteConfig(component)) {

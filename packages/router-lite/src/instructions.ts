@@ -38,7 +38,7 @@ export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustom
  * NOTE: differs from `Routeable` only in having `IViewportInstruction` instead of `IChildRouteConfig`
  * (which in turn are quite similar, but do have a few minor but important differences that make them non-interchangeable)
  */
-export type NavigationInstruction = string | IViewportInstruction | RouteableComponent;
+export type NavigationInstruction = string | IViewportInstruction | RouteableComponent | NavigationStrategy;
 
 /**
  * A component type, instance of definition that can be navigated to:
@@ -102,14 +102,17 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
 
     if (isPartialViewportInstruction(instruction)) {
-      const component = TypedNavigationInstruction.create(instruction.component);
+      let component = TypedNavigationInstruction.create(instruction.component);
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
+      if (component.type === NavigationInstructionType.NavigationStrategy) {
+        component = TypedNavigationInstruction.create(component.value.getComponent());
+      }
 
       return new ViewportInstruction(
         instruction.open ?? 0,
         instruction.close ?? 0,
         instruction.recognizedRoute ?? null,
-        component,
+        component as ITypedNavigationInstruction_Component,
         instruction.viewport ?? null,
         Object.freeze(instruction.params ?? null),
         children,
@@ -375,6 +378,29 @@ export class ViewportInstructionTree {
   }
 }
 
+type NavigationStrategyComponent = string | RouteType | Promise<IModule> | CustomElementDefinition;
+export class NavigationStrategy {
+
+  /** @internal */
+  public currentComponent: NavigationStrategyComponent | null = null;
+
+  /** @internal */
+  public readonly cacheable: boolean;
+
+  public constructor(
+    private readonly factory: () => (string | RouteType | Promise<IModule> | CustomElementDefinition),
+    cacheable: boolean = false,
+  ) {
+    this.cacheable = cacheable;
+  }
+
+  public getComponent(): NavigationStrategyComponent {
+    if (this.cacheable && this.currentComponent != null) return this.currentComponent;
+
+    return this.currentComponent = this.factory();
+  }
+}
+
 _START_CONST_ENUM();
 /**
  * @internal
@@ -385,6 +411,7 @@ export const enum NavigationInstructionType {
   CustomElementDefinition,
   Promise,
   IRouteViewModel,
+  NavigationStrategy,
 }
 _END_CONST_ENUM();
 
@@ -403,10 +430,12 @@ export interface ITypedNavigationInstruction_ViewportInstruction extends ITypedN
 export interface ITypedNavigationInstruction_CustomElementDefinition extends ITypedNavigationInstruction<CustomElementDefinition, NavigationInstructionType.CustomElementDefinition> { }
 export interface ITypedNavigationInstruction_Promise extends ITypedNavigationInstruction<Promise<IModule>, NavigationInstructionType.Promise> { }
 export interface ITypedNavigationInstruction_IRouteViewModel extends ITypedNavigationInstruction<IRouteViewModel, NavigationInstructionType.IRouteViewModel> { }
+export interface ITypedNavigationInstruction_NavigationStrategy extends ITypedNavigationInstruction<NavigationStrategy, NavigationInstructionType.NavigationStrategy> { }
 
 export type ITypedNavigationInstruction_T = (
   ITypedNavigationInstruction_Component |
-  ITypedNavigationInstruction_ViewportInstruction
+  ITypedNavigationInstruction_ViewportInstruction |
+  ITypedNavigationInstruction_NavigationStrategy
 );
 
 export type ITypedNavigationInstruction_Component = (
@@ -441,6 +470,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     if (typeof instruction === 'string') return new TypedNavigationInstruction(NavigationInstructionType.string, instruction);
     // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
     if (!isObjectOrFunction(instruction)) expectType('function/class or object', '', instruction);
+    if (instruction instanceof NavigationStrategy) return new TypedNavigationInstruction(NavigationInstructionType.NavigationStrategy, instruction);
     if (typeof instruction === 'function') {
       if (CustomElement.isType(instruction as Constructable)) {
         // This is the class itself
@@ -482,6 +512,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
 
   public equals(this: ITypedNavigationInstruction_T, other: ITypedNavigationInstruction_T): boolean {
     switch (this.type) {
+      case NavigationInstructionType.NavigationStrategy:
       case NavigationInstructionType.CustomElementDefinition:
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.Promise:
@@ -511,6 +542,9 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
         return this.value.toUrlComponent();
       case NavigationInstructionType.string:
         return this.value;
+      case NavigationInstructionType.NavigationStrategy:
+        if (this.value.currentComponent === null) throw new Error('Invalid operation; currentComponent is null.'); // TODO: better error message + getMessage + event ID
+        return 'TODO';
     }
   }
 
@@ -519,6 +553,8 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
     switch (this.type) {
       case NavigationInstructionType.CustomElementDefinition:
         return `CEDef(name:'${this.value.name}')`;
+      case NavigationInstructionType.NavigationStrategy:
+        return `NS(cacheable: ${this.value.cacheable})`;
       case NavigationInstructionType.Promise:
         return `Promise`;
       case NavigationInstructionType.IRouteViewModel:

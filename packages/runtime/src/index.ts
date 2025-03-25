@@ -23,6 +23,8 @@ export {
   queueAsyncTask,
   flush,
   yieldTasks,
+  Task,
+  TaskAbortError,
 } from './queue';
 
 export {

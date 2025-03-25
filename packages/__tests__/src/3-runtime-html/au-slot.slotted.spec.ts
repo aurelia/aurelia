@@ -642,7 +642,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
@@ -672,7 +672,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]

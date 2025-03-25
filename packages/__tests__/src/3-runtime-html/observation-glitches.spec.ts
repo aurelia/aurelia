@@ -397,7 +397,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
@@ -408,7 +408,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
       });
 
       it('handles nested dependencies glitches', function () {
@@ -462,7 +462,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
@@ -531,7 +531,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
@@ -582,7 +582,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';

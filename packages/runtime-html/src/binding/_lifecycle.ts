@@ -148,7 +148,9 @@ export const bindingBind: {
     case 'Ref': {
       astBind(b.ast, scope, b);
 
-      astAssign(b.ast, b._scope, b, b.target);
+      b.obs.version++;
+      astAssign(b.ast, b._scope, b, b, b.target);
+      b.obs.clear();
       break;
     }
     case 'Spread': {
@@ -246,7 +248,7 @@ export const bindingUnbind: {
     }
     case 'Ref': {
       if (astEvaluate(b.ast, b._scope!, b, null) === b.target) {
-        astAssign(b.ast, b._scope!, b, null);
+        astAssign(b.ast, b._scope!, b, null, null);
       }
 
       astUnbind(b.ast, b._scope!, b);
@@ -292,6 +294,7 @@ export const bindingHandleChange = (b: $Binding | BindingBase): void => {
 
   switch (b.$kind) {
     case 'Let':
+    case 'Ref':
     case 'Property': {
       flushChanges(b);
       break;
@@ -307,6 +310,9 @@ export const bindingHandleChange = (b: $Binding | BindingBase): void => {
 
 export const flushChanges = (b: $Binding): void => {
   if (!b.isBound) {
+    if (b.$kind === 'Ref') {
+      astAssign(b.ast, b._scope!, b, null, null);
+    }
     return;
   }
 
@@ -317,6 +323,12 @@ export const flushChanges = (b: $Binding): void => {
   (b.flags as Flags) &= ~Flags.isQueued;
 
   switch (b.$kind) {
+    case 'Ref': {
+      b.obs.version++;
+      astAssign(b.ast, b._scope!, b, b, b.target);
+      b.obs.clear();
+      break;
+    }
     case 'Attribute':
     case 'Content':
     case 'InterpolationPart':
@@ -328,10 +340,15 @@ export const flushChanges = (b: $Binding): void => {
       b.obs.clear();
 
       switch (b.$kind) {
-        case 'Attribute':
-        case 'Content': {
+        case 'Attribute': {
           if (newValue !== b._value) {
             b._value = newValue;
+            b.updateTarget(newValue);
+          }
+          break;
+        }
+        case 'Content': {
+          if (newValue !== b._value) {
             b.updateTarget(newValue);
           }
           break;

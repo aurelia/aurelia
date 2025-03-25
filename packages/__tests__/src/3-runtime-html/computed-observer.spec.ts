@@ -511,7 +511,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
       }
     }
 
-    const { trigger, queryBy, flush } = createFixture(
+    const { trigger, queryBy } = createFixture(
       `<style>.red { background-color: pink } .has-errors { color: red }</style>
       <notification-wrapper id="d1" errors.bind="errors">
         <button au-slot="content" click.trigger="toggle()">Set error</button>

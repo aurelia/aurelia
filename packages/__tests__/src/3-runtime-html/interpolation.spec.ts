@@ -290,7 +290,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         },
         interpolation: `test $\{value} out`,
         it: 'changes from node array',
-        only: true,
       }
     ];
 
@@ -378,12 +377,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yesMsg = 'hello';
+        flush();
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
           [0, 1],
         );
 
         source.noMsg = 'hello';
+        flush();
         assert.strictEqual(target.value, 'hello');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -392,6 +393,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         source.yesMsg = 'yes';
         source.checked = true;
+        flush();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -399,6 +401,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.noMsg = 'no1111';
+        flush();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -476,12 +479,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yes2 = 'yes22';
+        flush();
         assert.strictEqual(target.value, 'no1--no2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
         );
         source.yes1 = 'yes11';
+        flush();
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
@@ -492,6 +497,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         source.yes1 = 'yes1';
 
         source.checked2 = true;
+        flush();
         assert.strictEqual(target.value, 'no1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -499,6 +505,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.checked1 = true;
+        flush();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -506,6 +513,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.no1 = source.no2 = 'hello';
+        flush();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],

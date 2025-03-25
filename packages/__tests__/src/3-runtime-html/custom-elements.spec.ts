@@ -741,7 +741,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     });
 
     it('updates ref when property key changes GH #2106', function () {
-      const { component, assertHtml, flush } = createFixture(
+      const { component, assertHtml } = createFixture(
         `<div repeat.for="item of items"
           data-id.bind="item.id"
           ref="children[$index]">\${item.id}</div>`,

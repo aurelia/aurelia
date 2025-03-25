@@ -1,5 +1,4 @@
 import { SelectValueObserver } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
 type Anything = any;

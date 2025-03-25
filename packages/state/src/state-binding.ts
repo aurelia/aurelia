@@ -1,25 +1,24 @@
 
-import { ITask, QueueTaskOptions, TaskQueue } from '@aurelia/platform';
+import { ITask, QueueTaskOptions } from '@aurelia/platform';
 import { IDisposable, type IServiceLocator, type Writable } from '@aurelia/kernel';
 import { IsBindingBehavior } from '@aurelia/expression-parser';
 import {
   connectable,
   type IAccessor,
   type IObserverLocator,
-  AccessorType,
   type IObserverLocatorBasedConnectable,
   ISubscriber,
   type IAstEvaluator,
   type Scope,
   astEvaluate,
   type IOverrideContext,
+  queueTask,
 } from '@aurelia/runtime';
 import {
   BindingMode,
   type IBindingController,
   mixinAstEvaluator,
   mixingBindingLimited,
-  State,
   type IBinding,
 } from '@aurelia/runtime-html';
 import {
@@ -28,8 +27,6 @@ import {
 } from './interfaces';
 import { createStateBindingScope } from './state-utilities';
 
-const atLayout = AccessorType.Layout;
-const stateActivating = State.activating;
 /**
  * A binding that handles the connection of the global state to a property of a target object
  */
@@ -57,7 +54,6 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   private readonly targetProperty: PropertyKey;
 
   /** @internal */ private _task: ITask | null = null;
-  /** @internal */ private readonly _taskQueue: TaskQueue;
 
   /** @internal */ private readonly _store: IStore<object>;
   /** @internal */ private _targetObserver!: IAccessor;
@@ -78,7 +74,6 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     ast: IsBindingBehavior,
     target: object,
     prop: PropertyKey,
@@ -87,7 +82,6 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
   ) {
     this._controller = controller;
     this.l = locator;
-    this._taskQueue = taskQueue;
     this._store = store;
     this.oL = observerLocator;
     this.ast = ast;
@@ -159,29 +153,14 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       return;
     }
 
-    // Alpha: during bind a simple strategy for bind is always flush immediately
-    // todo:
-    //  (1). determine whether this should be the behavior
-    //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-    const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
     const obsRecord = this.obs;
     obsRecord.version++;
     newValue = astEvaluate(this.ast, this._scope!, this, this);
     obsRecord.clear();
 
-    let task: ITask | null;
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this._task;
-      this._task = this._taskQueue.queueTask(() => {
-        this.updateTarget(newValue);
-        this._task = null;
-      }, updateTaskOpts);
-      task?.cancel();
-      task = null;
-    } else {
+    queueTask(() => {
       this.updateTarget(newValue);
-    }
+    });
   }
 
   public handleStateChange(): void {
@@ -198,24 +177,14 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
       this,
       this.mode > BindingMode.oneTime ? this : null
     );
-    const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
 
     if (value === this._value) {
       return;
     }
     this._value = value;
-    let task: ITask | null = null;
-    if (shouldQueueFlush) {
-      // Queue the new one before canceling the old one, to prevent early yield
-      task = this._task;
-      this._task = this._taskQueue.queueTask(() => {
-        this.updateTarget(value);
-        this._task = null;
-      }, updateTaskOpts);
-      task?.cancel();
-    } else {
-      this.updateTarget(this._value);
-    }
+    queueTask(() => {
+      this.updateTarget(value);
+    });
   }
 
   /** @internal */
@@ -240,8 +209,4 @@ type SubscribableValue = {
 
 type Unsubscribable = {
   unsubscribe(): void;
-};
-
-const updateTaskOpts: QueueTaskOptions = {
-  preempt: true,
 };

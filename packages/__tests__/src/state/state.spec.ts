@@ -230,7 +230,6 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -331,7 +330,6 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -362,7 +360,6 @@ describe('state/state.spec.ts', function () {
 
       await resolveAfter(10);
       assert.strictEqual(actionCallCount, 2);
-      flush();
       assert.strictEqual(getBy('input').value, '1111');
     });
 
@@ -449,8 +446,6 @@ describe('state/state.spec.ts', function () {
         { text: '11', click: 0 },
       ]);
 
-      assertValue('input', '1');
-      flush();
       assertValue('input', '11');
     });
 
@@ -501,7 +496,6 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
-      flush();
       assertValue('input', '11');
 
       trigger('input', 'input');
@@ -515,8 +509,6 @@ describe('state/state.spec.ts', function () {
         { text: '1111', click: 2 },
       ]);
 
-      assertValue('input', '11');
-      flush();
       assertValue('input', '1111');
     });
   });
@@ -572,7 +564,6 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 

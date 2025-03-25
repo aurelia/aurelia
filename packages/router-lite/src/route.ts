@@ -24,10 +24,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     const ceDfn = CustomElement.getDefinition(this._component as RouteType);
     return this._path = [ceDfn.name, ...ceDfn.aliases];
   }
-  public get component(): Routeable {
-    if (this.isNavigationStrategy) throw new Error('Not implemented'); // TODO: implement this? Use getMessage + EventId
-    return this._component;
-  }
+  public get component(): Routeable { return this._getComponent(); }
 
   private readonly isNavigationStrategy: boolean;
 
@@ -300,7 +297,8 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
   if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
-  if (instruction.type === NavigationInstructionType.NavigationStrategy) return RouteConfig._create({ component: instruction.value }, null);
+  if (instruction.type === NavigationInstructionType.NavigationStrategy)
+    return RouteConfig._create(routeable as IChildRouteConfig, null);
 
   return onResolve(ceDef!, $ceDef => {
     const type = $ceDef.Type;

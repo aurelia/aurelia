@@ -1,10 +1,10 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router';
-import { flush } from '@aurelia/runtime';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('router/router.spec.ts', function () {
+// named router.core so that the `npm run dev` glob pattern can pick it up without including everything else
+describe('router/router.core.spec.ts', function () {
   function getModifiedRouter(container: IContainer) {
     const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
@@ -953,9 +953,9 @@ describe('router/router.spec.ts', function () {
 let quxCantUnload = 0;
 let plughReloadBehavior = 'default';
 
-const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await router.load(path);
-  flush();
+  platform.domQueue.flush();
 };
 
 const wait = async (time = 500) => {

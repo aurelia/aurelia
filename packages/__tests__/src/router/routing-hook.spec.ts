@@ -1,6 +1,5 @@
 import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 
@@ -76,9 +75,9 @@ describe('router/routing-hook.spec.ts', function () {
       router.viewer.history.replaceState = _replace;
     }
   }
-  const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
+  const $load = async (path: string, router: IRouter, platform: IPlatform) => {
     await router.load(path);
-    flush();
+    platform.domQueue.flush();
   };
 
   it('uses a hook', async function () {

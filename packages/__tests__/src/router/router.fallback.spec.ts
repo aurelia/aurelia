@@ -1,7 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IRouter, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
 describe('router/router.fallback.spec.ts', function () {
@@ -191,7 +190,7 @@ describe('router/router.fallback.spec.ts', function () {
   }
 });
 
-const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
+const $load = async (path: string, router: IRouter, platform: IPlatform) => {
   await Promise.race([
     router.load(path),
     new Promise((resolve, reject) => {
@@ -200,5 +199,5 @@ const $load = async (path: string, router: IRouter, _platform: IPlatform) => {
       }, 1000);
     })
   ]);
-  flush();
+  platform.domQueue.flush();
 };

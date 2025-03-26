@@ -4,8 +4,9 @@ import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
 describe.only('router-lite/navigation-strategy.spec.ts', function () {
-  it('works', async function () {
+  it('works for empty path', async function () {
     let dataLoaded = false;
+    let factoryInvoked = 0;
     @customElement({ name: 'c-1', template: 'c1' })
     class C1 { }
 
@@ -23,6 +24,7 @@ describe.only('router-lite/navigation-strategy.spec.ts', function () {
         {
           path: '',
           component: new NavigationStrategy(() => {
+            factoryInvoked++;
             if (dataLoaded) return C2;
 
             dataLoaded = true;
@@ -45,6 +47,13 @@ describe.only('router-lite/navigation-strategy.spec.ts', function () {
     await router.load('');
     assert.html.textContent(host, 'c2', 'round#2');
 
+    await router.load('c-3');
+    assert.html.textContent(host, 'c3', 'round#3');
+
+    await router.load('');
+    assert.html.textContent(host, 'c2', 'round#4');
+
     await au.stop(true);
+    assert.strictEqual(factoryInvoked, 3, 'factoryInvoked');
   });
 });

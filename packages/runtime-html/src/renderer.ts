@@ -27,7 +27,8 @@ import { RefBinding } from './binding/ref-binding';
 import { IEventModifier, ListenerBinding, ListenerBindingOptions } from './binding/listener-binding';
 import { CustomElement, CustomElementDefinition, findElementControllerFor } from './resources/custom-element';
 import { CustomAttribute, CustomAttributeDefinition, findAttributeControllerFor } from './resources/custom-attribute';
-import { convertToRenderLocation, IRenderLocation, INode, setRef, ICssClassMapping, registerHostNode } from './dom';
+import { convertToRenderLocation, IRenderLocation, ICssClassMapping, registerHostNode } from './dom';
+import { INode, refs } from './dom.node';
 import { Controller, ICustomElementController, ICustomElementViewModel, IController, ICustomAttributeViewModel, IHydrationContext } from './templating/controller';
 import { IPlatform } from './platform';
 import { IViewFactory } from './templating/view';
@@ -212,8 +213,6 @@ export const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementR
       /* location            */location
     );
 
-    setRef(target, def.key, childCtrl);
-
     const renderers = this._rendering.renderers;
     const props = instruction.props;
     const ii = props.length;
@@ -283,7 +282,7 @@ export const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttrib
       /* definition */def,
     );
 
-    setRef(target, def.key, childController);
+    refs.set(target, def.key, childController);
 
     const renderers = this._rendering.renderers;
     const props = instruction.props;
@@ -362,7 +361,7 @@ export const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateC
       /* definition   */def,
     );
 
-    setRef(renderLocation, def.key, childController);
+    refs.set(renderLocation, def.key, childController);
 
     results.vm.link?.(renderingCtrl, childController, target, instruction);
 

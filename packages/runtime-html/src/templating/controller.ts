@@ -20,10 +20,10 @@ import {
   IObserverLocator,
   Scope,
 } from '@aurelia/runtime';
-import { convertToRenderLocation, setRef } from '../dom';
-import { IPlatform } from '../platform';
+import { convertToRenderLocation } from '../dom';
+import { refs } from '../dom.node';
 import { CustomAttributeDefinition, getAttributeDefinition } from '../resources/custom-attribute';
-import { CustomElementDefinition, elementBaseName, findElementControllerFor, getElementDefinition, isElementType } from '../resources/custom-element';
+import { CustomElementDefinition, elementBaseName, getElementDefinition, isElementType } from '../resources/custom-element';
 import { etIsProperty, getOwnPropertyNames, objectFreeze } from '../utilities';
 import { createInterface, registerResolver } from '../utilities-di';
 import { LifecycleHooks, LifecycleHooksEntry } from './lifecycle-hooks';
@@ -42,7 +42,8 @@ import type {
 import type {
   IObservable,
 } from '@aurelia/runtime';
-import type { INode, INodeSequence, IRenderLocation } from '../dom';
+import type { INodeSequence, IRenderLocation } from '../dom';
+import type { INode } from '../dom.node';
 import { ErrorNames, createMappedError } from '../errors';
 import type { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import type { PartialCustomElementDefinition } from '../resources/custom-element';
@@ -69,10 +70,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
   /** @internal */
   private _isBindingDone: boolean = false;
 
-  // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
-  // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
-  // That host node is separately mounted to the host controller's original host node.
-  public hostController: Controller | null = null;
   public mountTarget: MountTarget = targetNone;
   public shadowRoot: ShadowRoot | null = null;
   public nodes: INodeSequence | null = null;
@@ -135,8 +132,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     this._vmHooks = v == null || this.vmKind === vmkSynth ? HooksDefinition.none : new HooksDefinition(v);
   }
 
-  public coercion: ICoercionConfiguration | undefined;
-
   public get strict() {
     return (this.definition as CustomElementDefinition)?.strict;
   }
@@ -174,9 +169,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     }
     this.location = location;
     this._rendering = container.root.get(IRendering);
-    this.coercion = vmKind === vmkSynth
-      ? void 0
-      : container.get(optionalCoercionConfigResolver);
   }
 
   public static getCached<C extends ICustomElementViewModel = ICustomElementViewModel>(viewModel: C): ICustomElementController<C> | undefined {
@@ -385,13 +377,13 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     // - Controller.compileChildren
     // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
     if (hydrationInst == null || hydrationInst.hydrate !== false) {
-      this._hydrate(hydrationInst?.hostController);
+      this._hydrate();
       this._hydrateChildren();
     }
   }
 
   /** @internal */
-  public _hydrate(hostController?: Controller | null): void {
+  public _hydrate(): void {
     if (this._lifecycleHooks!.hydrating != null) {
       this._lifecycleHooks!.hydrating.forEach(callHydratingHook, this);
     }
@@ -406,19 +398,10 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     const shadowOptions = compiledDef.shadowOptions;
     const hasSlots = compiledDef.hasSlots;
     const containerless = compiledDef.containerless;
-    let host = this.host!;
+    const host = this.host!;
     let location: IRenderLocation | null = this.location;
 
-    let createLocation = false;
-    if (hostController != null) {
-      this.hostController = hostController;
-      createLocation = true;
-    } else if ((this.hostController = findElementControllerFor(host, optionalCeFind) as Controller | null) !== null) {
-      host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-      createLocation = true;
-    }
-
-    if (createLocation && containerless && location == null) {
+    if (containerless && location == null) {
       location = this.location = convertToRenderLocation(host);
     }
 
@@ -432,8 +415,15 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       setRef(this.shadowRoot, definition.key, this as IHydratedController);
       this.mountTarget = targetShadowRoot;
     } else if (location != null) {
-      setRef(location, elementBaseName, this as IHydratedController);
-      setRef(location, definition.key, this as IHydratedController);
+      // when template compiler encounter a "containerless" attribute
+      // it replaces the element with a render location
+      // making the controller receive the same comment node as both host and location
+      // todo: consider making template compiler less eager to replace
+      //       this has performance implication when using ad-hoc containerless
+      if (host !== location) {
+        setRef(location, elementBaseName, this as IHydratedController);
+        setRef(location, definition.key, this as IHydratedController);
+      }
       this.mountTarget = targetLocation;
     } else {
       this.mountTarget = targetHost;
@@ -677,18 +667,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
     /* istanbul ignore next */
     if (__DEV__ && this.debug) { this.logger!.trace(`attach()`); }
 
-    if (this.hostController !== null) {
-      switch (this.mountTarget) {
-        case targetHost:
-        case targetShadowRoot:
-          this.hostController._append(this.host!);
-          break;
-        case targetLocation:
-          this.hostController._append(this.location!.$start!, this.location!);
-          break;
-      }
-    }
-
     switch (this.mountTarget) {
       case targetHost:
         this.nodes!.appendTo(this.host!, this.definition != null && (this.definition as CustomElementDefinition).enhance);
@@ -851,19 +829,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       case vmkSynth:
         this.nodes!.remove();
         this.nodes!.unlink();
-    }
-
-    if (this.hostController !== null) {
-      switch (this.mountTarget) {
-        case targetHost:
-        case targetShadowRoot:
-          this.host!.remove();
-          break;
-        case targetLocation:
-          this.location!.$start!.remove();
-          this.location!.remove();
-          break;
-      }
     }
   }
 
@@ -1180,7 +1145,6 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       this.children = null;
     }
 
-    this.hostController = null;
     this.scope = null;
 
     this.nodes = null;
@@ -1241,7 +1205,7 @@ export const MountTarget = objectFreeze({
 });
 export type MountTarget = typeof MountTarget[keyof typeof MountTarget];
 
-const optionalCeFind = { optional: true } as const;
+// const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = optionalResource(ICoercionConfiguration);
 
 function createObservers(
@@ -1252,10 +1216,14 @@ function createObservers(
   const bindables = definition.bindables;
   const observableNames = getOwnPropertyNames(bindables);
   const length = observableNames.length;
-  const locator = controller.container.get(IObserverLocator);
-  const hasAggregatedCallbacks = 'propertiesChanged' in instance;
 
   if (length === 0) return;
+
+  const locator = controller.container.get(IObserverLocator);
+  const hasAggregatedCallbacks = 'propertiesChanged' in instance;
+  const coercion = controller.vmKind === vmkSynth
+    ? void 0
+    : controller.container.get(optionalCoercionConfigResolver);
 
   const queueCallback = hasAggregatedCallbacks
     ? (() => {
@@ -1295,7 +1263,7 @@ function createObservers(
     const obs = locator.getObserver(instance, name);
 
     if (bindable.set !== noop) {
-      if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
+      if (obs.useCoercer?.(bindable.set, coercion) !== true) {
         throw createMappedError(ErrorNames.controller_property_not_coercible, name);
       }
     }
@@ -1516,11 +1484,6 @@ export interface IComponentController<C extends IViewModel = IViewModel> extends
    * The user instance containing the bound properties. This is always an instance of a class, which may either be user-defined, or generated by a view locator.
    */
   readonly viewModel: C;
-
-  /**
-   * Coercion configuration associated with a component (attribute/element) or an application
-   */
-  readonly coercion: ICoercionConfiguration | undefined;
 }
 
 /**
@@ -1895,11 +1858,6 @@ export interface IControllerElementHydrationInstruction {
    * Indicates whether the custom element was used with "containerless" attribute
    */
   readonly containerless?: boolean;
-  /**
-   * When provided, the controller is used while hydrating the custom element.
-   * Otherwise, the host controller is resolved in the Controller; this is the default behavior.
-   */
-  readonly hostController?: Controller | null;
 }
 
 function callDispose(disposable: IDisposable): void {
@@ -1946,3 +1904,5 @@ function callUnbindingHook(this: Controller, l: LifecycleHooksEntry<IActivationH
 let _resolve: undefined | (() => unknown);
 let _reject: undefined | ((err: unknown) => unknown);
 let _retPromise: void | Promise<void>;
+
+const setRef = refs.set;

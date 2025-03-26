@@ -1,6 +1,6 @@
 import { Constructable, noop } from '@aurelia/kernel';
 import type { ISubscriber, ISubscriberCollection } from '@aurelia/runtime';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import { defineHiddenProp } from '../utilities';
 import type { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 

@@ -2,83 +2,116 @@
 
 ## What is CSS-in-JS?
 
-CSS-in-JS is a styling technique where JavaScript is used to style components. When this JavaScript is parsed, CSS is generated (usually as an `<style>` element) and attached to the DOM. It allows you to abstract CSS to the component level, using JavaScript to describe styles in a declarative and maintainable way.&#x20;
+CSS-in-JS is a technique where JavaScript is used to style components. This approach encapsulates styles within components, making the code more declarative and maintainable.
 
-This method is very common in the ecosystem of some client-side libraries, such as React. So we decided to discuss how to use CSS-in-JS in Aurelia.
+## Why Emotion?
 
-## Why EmotionJS?
+Emotion is a highly performant and flexible CSS-in-JS library that is framework-agnostic, making it ideal for use with Aurelia 2. It provides:
+- String and object-based styling.
+- Predictable composition to avoid specificity issues.
+- A great developer experience with source maps and labels.
+- Heavy caching for optimized performance.
 
-There are multiple implementations of CSS-in-JS concept in the form of libraries, but few of them are framework-agnostic, so we chose [EmotionJS](https://github.com/emotion-js/emotion)
+## Integrating Emotion with Aurelia 2
 
-Emotion, as described on its site, says:
+To integrate Emotion with Aurelia 2, follow these steps.
 
-> Emotion is a performant and flexible CSS-in-JS library. Building on many other CSS-in-JS libraries, it allows you to style apps quickly with string or object styles. It has a predictable composition to avoid specificity issues with CSS. With source maps and labels, Emotion has a great developer experience and great performance with heavy caching in production.
+### 1. Install Emotion
 
-## EmotionJS & Aurelia 2 integration
-
-To integrate EmotionJS and Aurelia, Follow the steps below: Add EmotionJS framework-agnostic version to your project with the following command
+Install the framework-agnostic version of Emotion:
 
 ```bash
-npm i emotion --save
+npm install @emotion/css
 ```
 
-Define a custom attribute and name it Emotion, just like the following code
+### 2. Create a Custom Attribute
+
+Define a custom attribute to apply Emotion styles, ensuring it works for both Shadow DOM and non-Shadow DOM scenarios.
 
 ```typescript
-import { resolve } from "aurelia";
-import { css, cache } from 'emotion'
+// src/resources/attributes/emotion.ts
+import { resolve } from 'aurelia';
+import { css, cache } from '@emotion/css';
+
 export class EmotionCustomAttribute {
-    private element: Element = resolve(Element);
-    attached() {
-        if (this.isInShadow(this.element))
-            cache.sheet.container = this.element.getRootNode() as HTMLElement;
-        else
-            cache.sheet.container = document.head;
-        this.element.classList.add(css(this.value));
+  private element: Element = resolve(Element);
+
+  attached() {
+    if (this.isInShadow(this.element)) {
+      cache.sheet.container = (this.element.getRootNode() as ShadowRoot).querySelector('style') || this.element.getRootNode();
+    } else {
+      cache.sheet.container = document.head;
     }
-    private isInShadow(element: Element): boolean {
-        return element.getRootNode() instanceof ShadowRoot;
-    }
+
+    this.element.classList.add(css(this.value));
+  }
+
+  private isInShadow(element: Element): boolean {
+    return element.getRootNode() instanceof ShadowRoot;
+  }
 }
 ```
 
-**What is isInShadow?** This method helps us to find out if our HTMLElement is inside of a shadow-root or not.
+### Explanation of Key Concepts
 
-**Why does shadow-root matter?** Because Aurelia 2 supports ShadowDOM, we need to style those HTMLElements inside a shadow via the emotion library.
+- **Shadow DOM Handling:**
+  If the element is inside a Shadow DOM, Emotion will inject styles into the shadow root rather than the document head.
+  This ensures styles are properly scoped.
 
-**What is cache.sheet.container?** The emotion library uses container configuration to inject styles into specific DOM. To support shadow-root, we should inject our styles into the shadow block but for global styles `document.head` is good.
+- **`cache.sheet.container`:**
+  Emotion uses this setting to define where styles are injected.
+  - For Shadow DOM, styles are injected into the shadow root.
+  - For regular DOM, styles are injected into `<head>`.
 
-**Why did we choose attached?** Detecting ShadowDOM mode for an HTMLElement is possible via this life-cycle method.
+- **Why `attached()`?**
+  The `attached()` lifecycle hook ensures that the element is in the DOM before determining its shadow state.
 
-Now, Register the new Emotion custom attribute in your main.ts file.
+### 3. Register the Custom Attribute
+
+Register the custom attribute in your Aurelia application:
 
 ```typescript
+// src/main.ts
 import Aurelia from 'aurelia';
+import { EmotionCustomAttribute } from './resources/attributes/emotion';
 import { MyApp } from './my-app';
-import { EmotionCustomAttribute } from './emotion-attr';
+
 Aurelia
   .register(EmotionCustomAttribute)
   .app(MyApp)
   .start();
 ```
 
-Add an object in your view model and call it cssObject.
+### 4. Apply Styles in Components
+
+Use the `emotion` custom attribute in your components:
 
 ```typescript
+// src/my-app.ts
 export class MyApp {
   public message = 'Hello World!';
-  private color = 'white'
   public cssObject = {
-    backgroundColor: 'hotpink !important',
+    backgroundColor: 'hotpink',
     '&:hover': {
-      color: this.color
+      color: 'white'
     }
   };
 }
 ```
 
-Go to your view and add emotion custom attribute to an HTML tag.
-
 ```html
-<div class="message" emotion.bind="cssObject">${message}</div>
+<!-- src/my-app.html -->
+<template>
+  <div emotion.bind="cssObject">${message}</div>
+</template>
 ```
+
+## Considerations
+
+- **Shadow DOM Support:**
+  If you're using Shadow DOM in Aurelia, Emotion will automatically inject styles into the correct shadow root.
+
+- **Performance Implications:**
+  CSS-in-JS solutions like Emotion introduce runtime overhead. If performance is a concern, consider Emotion’s static extraction capabilities.
+
+By following this guide, you ensure that Emotion integrates seamlessly with Aurelia 2 while supporting both Shadow DOM and standard DOM rendering.

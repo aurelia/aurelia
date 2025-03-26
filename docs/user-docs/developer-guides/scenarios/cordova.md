@@ -75,3 +75,41 @@ cordova run android
 ## Conclusion
 
 You now have an Aurelia 2 application packaged within a Cordova application, ready for mobile deployment. Be sure to utilize Cordova plugins to access native device features and thoroughly test on different devices for performance and user experience.
+
+## Additional Tips and Best Practices
+
+### Using Cordova Plugins
+
+To access native device functionalities (GPS, camera, file system, etc.), install the appropriate Cordova plugins. For example, to use the Cordova device plugin:
+
+```bash
+cordova plugin add cordova-plugin-device
+```
+
+Within your Aurelia application, you can create a service to interact with the plugin. For instance:
+
+```js
+// src/services/device-service.js
+export class DeviceService {
+  getDeviceInfo() {
+    if (window.device) {
+      return {
+        model: window.device.model,
+        platform: window.device.platform,
+        version: window.device.version,
+      };
+    }
+    return null;
+  }
+}
+```
+
+Then inject and consume this service in your components as needed.
+
+### Debugging and Live Reload
+
+While Cordova doesn't provide live reload by default, you can improve your development workflow by running Aurelia's development server (e.g., `npm run start`) and pointing your Cordova `www` folder to the build output or working with the local dev server. You can then:
+
+1. Make changes in your Aurelia application.
+2. Refresh the Cordova environment (or use a live reload plugin) to pick up changes quickly.
+3. Use your browser or remote debugging tools (like Chrome DevTools or Safari Web Inspector) to debug the Cordova application when running on an emulator or device.

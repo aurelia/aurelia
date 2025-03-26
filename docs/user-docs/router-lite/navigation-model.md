@@ -140,3 +140,26 @@ You see this in action in the example below.
 
 If you are not creating a menu using the navigation model, you can also deactivate the navigation model by setting `false` to the `useNavigationModel` [router option](./router-configuration.md).
 Doing so, will set the `IRouteContext#navigationModel` to `null` and skip further processing.
+
+## Combining `ICurrentRoute` with the navigation model
+
+While the navigation model provides information about all configured routes, sometimes you also need the exact active route or query parameters. The `ICurrentRoute` object can be injected in tandem with your navigation model:
+
+```typescript
+import { IRouteContext, INavigationModel, ICurrentRoute } from '@aurelia/router-lite';
+import { resolve } from '@aurelia/kernel';
+
+export class NavBar {
+  // same as regular usage of navigation model
+  private readonly navModel: INavigationModel = resolve(IRouteContext).navigationModel;
+  private readonly currentRoute = resolve(ICurrentRoute);
+
+  public async binding() {
+    await this.navModel.resolve();
+    console.log('Active segment:', this.currentRoute.path);
+    console.log('Active query:', this.currentRoute.url.split('?')[1]);
+  }
+}
+```
+
+Using both `navModel` and `currentRoute`, you can dynamically highlight the active route in your navigation menu, differentiate query-only changes, and so on.

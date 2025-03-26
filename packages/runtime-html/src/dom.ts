@@ -1,27 +1,10 @@
-import { IContainer, IResolver, InstanceProvider, emptyArray, type Writable } from '@aurelia/kernel';
+import { IContainer, IResolver, InstanceProvider, emptyArray } from '@aurelia/kernel';
 import { IAppRoot } from './app-root';
 import { IPlatform } from './platform';
 import { findElementControllerFor } from './resources/custom-element';
 import { MountTarget } from './templating/controller';
-import type { IHydratedController } from './templating/controller';
 import { createInterface, registerResolver } from './utilities-di';
-
-export class Refs {
-  [key: string]: IHydratedController | undefined;
-}
-
-export function getRef(node: INode, name: string): IHydratedController | null {
-  return node.$au?.[name] ?? null;
-}
-
-export function setRef(node: INode, name: string, controller: IHydratedController): void {
-  ((node as Writable<INode>).$au ??= new Refs())[name] = controller;
-}
-
-export type INode<T extends Node = Node> = T & {
-  readonly $au?: Refs;
-};
-export const INode = /*@__PURE__*/createInterface<INode>('INode');
+import { INode } from './dom.node';
 
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export const IEventTarget = /*@__PURE__*/createInterface<IEventTarget>('IEventTarget', x => x.cachedCallback(handler => {

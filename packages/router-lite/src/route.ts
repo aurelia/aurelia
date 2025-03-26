@@ -1,11 +1,11 @@
 import { Metadata } from '@aurelia/metadata';
 import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 
-import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig } from './validation';
+import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, NavigationInstructionType, TypedNavigationInstruction, ViewportInstruction } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { IRouteContext } from './route-context';
-import { CustomElement, CustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
@@ -317,10 +317,16 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
     case NavigationInstructionType.string: {
       if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
-      const component = CustomElement.find(context.container, instruction.value);
+      const dependencies = context.component.dependencies;
+      let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value) as CustomElementDefinition | PartialCustomElementDefinition
+        ?? CustomElement.find(context.container, instruction.value);
       if (component === null) throw new Error(getMessage(Events.rtNoComponent, instruction.value, context));
 
-      ceDef = component;
+      if (!(component instanceof CustomElementDefinition)) {
+        component = CustomElementDefinition.create(component);
+        CustomElement.define(component);
+      }
+      ceDef = component as CustomElementDefinition;
       break;
     }
     case NavigationInstructionType.CustomElementDefinition:

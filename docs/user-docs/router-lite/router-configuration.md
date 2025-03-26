@@ -394,3 +394,27 @@ This class name is used by the [`load` custom attribute](./navigating.md#using-t
 The default value for this option is `null`, which also means that the `load` custom attribute won't add any class proactively.
 Note that the router-lite does not define any CSS class out-of-the-box.
 If you want to use this feature, make sure that you defines the class as well in your stylesheet.
+
+## Observing navigation state while configuring the router
+
+Beyond setting up routes, hash/push mode, or titles, you can optionally observe the active route and track query parameters. One way is to inject `ICurrentRoute` in any of your components. Another is to watch router events:
+
+```typescript
+import { RouterConfiguration, IRouterEvents, NavigationEndEvent, ICurrentRoute } from '@aurelia/router-lite';
+import { DI } from '@aurelia/kernel';
+
+const container = DI.createContainer();
+container.register(
+  RouterConfiguration.customize({ useHref: false }) // for example
+);
+
+const routerEvents = container.get(IRouterEvents);
+const currentRoute = container.get(ICurrentRoute);
+
+routerEvents.subscribe('au:router:navigation-end', (evt: NavigationEndEvent) => {
+  console.log('Navigation ended on:', evt.finalInstructions.toUrl());
+  console.log('Active route object:', currentRoute.path);
+});
+```
+
+This can help debug or log your router's runtime state. See the [ICurrentRoute docs](./configuring-routes.md#retrieving-the-current-route-and-query-parameters) for an example usage.

@@ -1,4 +1,4 @@
-import { INode } from '../../dom';
+import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 

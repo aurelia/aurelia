@@ -10,7 +10,7 @@ import {
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 import { safeString } from '../utilities';

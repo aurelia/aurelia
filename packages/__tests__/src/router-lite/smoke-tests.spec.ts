@@ -7586,4 +7586,202 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     await au.stop(true);
   });
+
+  /**
+   * Reported in https://discourse.aurelia.io/t/router-questions/6360/3
+   * Use case:
+   *
+   * ```ts
+   * import { route } from '@aurelia/router-lite';
+   * import * about from './about.html'; // <-- loaded via convention plugin
+   * @route({
+   *   routes: [
+   *     {
+   *       path: 'about',
+   *       component: about,
+   *     },
+   *   ],
+   * })
+   * export class MyApp {}
+   * ```
+   */
+  it('Routing to conventional HTML-only custom element works', async function () {
+    const ceOne = {
+      name: 'ce-one',
+      template: 'ce-one',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceOne._e) {
+          ceOne._e = CustomElement.define({ name: ceOne.name, template: ceOne.template, dependencies: ceOne.dependencies, bindables: ceOne.bindables });
+        }
+        container.register(ceOne._e);
+      }
+    };
+    const ceTwo = {
+      name: 'ce-two',
+      template: 'ce-two',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceTwo._e) {
+          ceTwo._e = CustomElement.define({ name: ceTwo.name, template: ceTwo.template, dependencies: ceTwo.dependencies, bindables: ceTwo.bindables });
+        }
+        container.register(ceTwo._e);
+      }
+    };
+
+    @route({
+      routes: [
+        { id: 'ce-one', path: 'ce-one', component: ceOne },
+        { id: 'ce-two', path: 'ce-two', component: ceTwo },
+      ]
+    })
+    @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('ce-one');
+    assert.html.textContent(host, 'ce-one');
+
+    await router.load('ce-two');
+    assert.html.textContent(host, 'ce-two');
+
+    await au.stop(true);
+  });
+
+  /**
+   * Reported in https://discourse.aurelia.io/t/router-questions/6360/3
+   * Use case:
+   *
+   * ```ts
+   * import { route } from '@aurelia/router-lite';
+   * import * about from './about.html'; // <-- loaded via convention plugin
+   * @route({
+   *   routes: [
+   *     {
+   *       path: 'about',
+   *       component: import('./about.html'),
+   *     },
+   *   ],
+   * })
+   * export class MyApp {}
+   * ```
+   */
+  it('Routing to conventional HTML-only custom element works - lazy loading', async function () {
+    const ceOne = {
+      name: 'ce-one',
+      template: 'ce-one',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceOne._e) {
+          ceOne._e = CustomElement.define({ name: ceOne.name, template: ceOne.template, dependencies: ceOne.dependencies, bindables: ceOne.bindables });
+        }
+        container.register(ceOne._e);
+      }
+    };
+    const ceTwo = {
+      name: 'ce-two',
+      template: 'ce-two',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceTwo._e) {
+          ceTwo._e = CustomElement.define({ name: ceTwo.name, template: ceTwo.template, dependencies: ceTwo.dependencies, bindables: ceTwo.bindables });
+        }
+        container.register(ceTwo._e);
+      }
+    };
+
+    @route({
+      routes: [
+        { id: 'ce-one', path: 'ce-one', component: Promise.resolve(ceOne) },
+        { id: 'ce-two', path: 'ce-two', component: Promise.resolve(ceTwo) },
+      ]
+    })
+    @customElement({ name: 'root', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('ce-one');
+    assert.html.textContent(host, 'ce-one');
+
+    await router.load('ce-two');
+    assert.html.textContent(host, 'ce-two');
+
+    await au.stop(true);
+  });
+
+  /**
+   * Reported in https://discourse.aurelia.io/t/router-questions/6360/3
+   * Use case:
+   *
+   * ```html
+   * <template>
+   *  <require from="./about.html"></require>
+   *  <require from="./home.html"></require>
+   *  <au-viewport></au-viewport>
+   * </template>
+   * ```
+   */
+  it('Routing to conventional HTML-only custom element works - required via HTML', async function () {
+    const ceOne = {
+      name: 'ce-one',
+      template: 'ce-one',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceOne._e) {
+          ceOne._e = CustomElement.define({ name: ceOne.name, template: ceOne.template, dependencies: ceOne.dependencies, bindables: ceOne.bindables });
+        }
+        container.register(ceOne._e);
+      }
+    };
+    const ceTwo = {
+      name: 'ce-two',
+      template: 'ce-two',
+      dependencies: [],
+      bindables: {},
+      _e: undefined,
+      register: (container) => {
+        if (!ceTwo._e) {
+          ceTwo._e = CustomElement.define({ name: ceTwo.name, template: ceTwo.template, dependencies: ceTwo.dependencies, bindables: ceTwo.bindables });
+        }
+        container.register(ceTwo._e);
+      }
+    };
+
+    @route({
+      routes: [
+        { id: 'ce-one', path: 'ce-one', component: 'ce-one' },
+        { id: 'ce-two', path: 'ce-two', component: 'ce-two' },
+      ]
+    })
+    @customElement({ name: 'root', template: '<au-viewport></au-viewport>', dependencies: [ceOne, ceTwo] })
+    class Root { }
+
+    const { container, host, au } = await start({ appRoot: Root });
+
+    const router = container.get(IRouter);
+
+    await router.load('ce-one');
+    assert.html.textContent(host, 'ce-one');
+
+    await router.load('ce-two');
+    assert.html.textContent(host, 'ce-two');
+
+    await au.stop(true);
+  });
 });

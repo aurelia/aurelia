@@ -862,6 +862,102 @@ You can see this configuration in action below.
 
 {% embed url="https://stackblitz.com/edit/router-lite-component-ce-instance-jx3kee?ctl=1&embed=1&file=src/my-app.ts" %}
 
+### Using conventional HTML-only custom element
+
+When using HTML-only custom elements, facilitated via the convention, the custom element can be directly used while configuring routes.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
++ import * as About from './about.html';
++ import * as Home from './home.html';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+        component: Home,
+        title: 'Home',
+      },
+      {
+        path: 'about',
+        component: About,
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+Using `import()` function directly is also supported.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: import('./home.html'),
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: import('./about.html'),
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
+When importing the HTML-only custom elements in the HTML file using `<require from="">` syntax, use the custom element name in the route configuration.
+
+```html
+  <require from="./about.html"></require>
+  <require from="./home.html"></require>
+
+  <au-viewport></au-viewport>
+```
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+- import { About } from './about';
+- import { Home } from './home';
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+-       component: Home,
++       component: 'home',
+        title: 'Home',
+      },
+      {
+        path: 'about',
+-       component: About,
++       component: 'about',
+        title: 'About',
+      },
+    ],
+  })
+@customElement({ name: 'my-app', template })
+export class MyApp {}
+```
+
 ## Using classes as routes
 
 Using router-lite it is also possible to use the routed view model classes directly as routes configuration.
@@ -1151,3 +1247,25 @@ The advantage of this kind of distributed configuration is that the routing conf
 On the other hand, highly distributed route configuration may prevent easy overview of the configured routes.
 That's the trade-off.
 Feel free to mix and match as per your need and aesthetics.
+
+## Retrieving the current route and query parameters
+
+Apart from configuring routes, you may also want to read which route is currently active and obtain any query parameters. If you only defined or named a few of them as route parameters, others might appear as query parameters. Here is a short example:
+
+```typescript
+import { ICurrentRoute } from '@aurelia/router-lite';
+import { resolve } from '@aurelia/kernel';
+
+export class MyComponent {
+  private currentRoute = resolve(ICurrentRoute);
+
+  attached() {
+    console.log('Current path:', this.currentRoute.path);
+    console.log('Query params:', this.currentRoute.url.split('?')[1] ?? 'no query');
+    // Or, to see them as a structured object:
+    console.log('Parsed query:', Object.fromEntries(this.currentRoute.parameterInformation[0].params ?? {}));
+  }
+}
+```
+
+You can inject `ICurrentRoute` in any routed view-model. For an elaborate approach, see additional references in the [navigation model](./navigation-model.md#using-the-isactive-property) and [navigation docs](./navigating.md).

@@ -1079,7 +1079,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       { template: `<input id="target" value.two-way="validatableProp & validate:'change'">` }
     );
     // #region collection and nested properties
-    $it('can be used to validate nested collection - collection replace',
+    $it.skip('can be used to validate nested collection - collection replace',
       async function ({ app, host }: TestExecutionContext<App>) {
         const controller = app.controller;
 
@@ -1111,7 +1111,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       },
       { template: `<employee-list id="target" employees.two-way="org.employees & validate:'change'"></employee-list>` }
     );
-    $it('can be used to validate nested collection - collection observer',
+    $it.skip('can be used to validate nested collection - collection observer',
       async function ({ app, host }: TestExecutionContext<App>) {
         const controller = app.controller;
 

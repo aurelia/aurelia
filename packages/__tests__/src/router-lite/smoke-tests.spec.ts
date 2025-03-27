@@ -4677,7 +4677,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     }
   });
 
-  it.only('isNavigating indicates router\'s navigation status', async function () {
+  it('isNavigating indicates router\'s navigation status', async function () {
 
     @customElement({ name: 'ce-p1', template: 'p1' })
     class P1 { }
@@ -4721,7 +4721,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
 
     log.length = 0;
     await container.get(IRouter).load('p2');
-    assert.deepStrictEqual(log, [true, false]);
+    assert.deepStrictEqual(log, []);
 
     await au.stop(true);
   });

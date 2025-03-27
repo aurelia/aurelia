@@ -2,7 +2,7 @@ import { Metadata } from '@aurelia/metadata';
 import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
-import { defaultViewportName, ITypedNavigationInstruction_Component, ITypedNavigationInstruction_NavigationStrategy, NavigationInstructionType, NavigationStrategy, TypedNavigationInstruction, ViewportInstruction } from './instructions';
+import { defaultViewportName, ITypedNavigationInstruction_Component, ITypedNavigationInstruction_NavigationStrategy, IViewportInstruction, NavigationInstructionType, NavigationStrategy, TypedNavigationInstruction, ViewportInstruction } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { IRouteContext } from './route-context';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
@@ -232,8 +232,15 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   /** @internal */
-  public _getComponent(): Routeable {
-    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent() : this._component;
+  public _getComponent(): Routeable;
+  public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode): Routeable;
+  public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode): Routeable {
+    if (vi == null) {
+      if (this._currentComponent != null) return this._currentComponent;
+      if (this.isNavigationStrategy) throw new Error('Invalid operation; the component is not yet resolved.'); // TODO(Sayan): use getMessage + eventId
+      return this._currentComponent ??= this._component;
+    }
+    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!) : this._component;
   }
 }
 
@@ -377,10 +384,4 @@ function createNavigationInstruction(routeable: Exclude<Routeable, IRedirectRout
   return isPartialChildRouteConfig(routeable)
     ? createNavigationInstruction(routeable.component)
     : TypedNavigationInstruction.create(routeable);
-  // if (isPartialChildRouteConfig(routeable)) return createNavigationInstruction(routeable.component);
-
-  // const instruction = TypedNavigationInstruction.create(routeable);
-  // if (instruction.type !== NavigationInstructionType.NavigationStrategy) return instruction;
-
-  // return TypedNavigationInstruction.create(instruction.value.getComponent()) as ITypedNavigationInstruction_Component;
 }

@@ -25,6 +25,7 @@ import { mergeURLSearchParams, tryStringify } from './util';
 import { Events, getMessage } from './events';
 import { State } from './viewport-agent';
 import { IUrlParser } from './url-parser';
+import { RouteNode } from './route-tree';
 
 export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
@@ -102,11 +103,8 @@ export class ViewportInstruction<TComponent extends ITypedNavigationInstruction_
     if (instruction instanceof ViewportInstruction) return instruction as ViewportInstruction; // eslint is being really weird here
 
     if (isPartialViewportInstruction(instruction)) {
-      let component = TypedNavigationInstruction.create(instruction.component);
+      const component = TypedNavigationInstruction.create(instruction.component);
       const children = instruction.children?.map(ViewportInstruction.create) ?? [];
-      if (component.type === NavigationInstructionType.NavigationStrategy) {
-        component = TypedNavigationInstruction.create(component.value.getComponent());
-      }
 
       return new ViewportInstruction(
         instruction.open ?? 0,
@@ -385,19 +383,12 @@ export class NavigationStrategy {
   public currentComponent: NavigationStrategyComponent | null = null;
 
   /** @internal */
-  public readonly cacheable: boolean;
+  public readonly getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent;
 
   public constructor(
-    private readonly factory: () => (string | RouteType | Promise<IModule> | CustomElementDefinition),
-    cacheable: boolean = false,
+    getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent,
   ) {
-    this.cacheable = cacheable;
-  }
-
-  public getComponent(): NavigationStrategyComponent {
-    if (this.cacheable && this.currentComponent != null) return this.currentComponent;
-
-    return this.currentComponent = this.factory();
+    this.getComponent = (vi, ctx, node) => this.currentComponent = getComponent(vi, ctx, node);
   }
 }
 
@@ -554,7 +545,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       case NavigationInstructionType.CustomElementDefinition:
         return `CEDef(name:'${this.value.name}')`;
       case NavigationInstructionType.NavigationStrategy:
-        return `NS(cacheable: ${this.value.cacheable})`;
+        return `NS`;
       case NavigationInstructionType.Promise:
         return `Promise`;
       case NavigationInstructionType.IRouteViewModel:

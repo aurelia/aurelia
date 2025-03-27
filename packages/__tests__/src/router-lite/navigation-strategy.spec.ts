@@ -1,4 +1,4 @@
-import { IRouter, NavigationStrategy, route } from '@aurelia/router-lite';
+import { IRouter, ITypedNavigationInstruction_string, NavigationStrategy, route } from '@aurelia/router-lite';
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
@@ -252,6 +252,51 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
       assert.html.textContent(host, expectedText, message);
       assert.strictEqual(factoryInvoked1, expectedFactory1Invocation, `${message} - factory1Invoked`);
       assert.strictEqual(factoryInvoked2, expectedFactory2Invocation, `${message} - factory2Invoked`);
+    }
+  });
+
+  it('dynamic navigation strategy', async function () {
+    @route({
+      routes: [
+        C1,
+        C2,
+        C3,
+        {
+          path: 'foo/*rest',
+          component: new NavigationStrategy((vi, _ctx, _node) => {
+            const numParts = (vi.component as ITypedNavigationInstruction_string).value.split('/').length - 1;
+            switch (numParts) {
+              case 1:
+                return C1;
+              case 2:
+                return C2;
+              default:
+                return C3;
+            }
+          })
+        }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '', 'initial');
+
+    await navigateAndAssert('foo/a', 'c1', 'round#1');
+    await navigateAndAssert('foo/a/b', 'c2', 'round#2');
+    await navigateAndAssert('foo/a/b/c', 'c3', 'round#3');
+    await navigateAndAssert('foo/e', 'c1', 'round#4');
+    await navigateAndAssert('foo/e/f/g/h', 'c3', 'round#5');
+    await navigateAndAssert('foo/a/f', 'c2', 'round#6');
+
+    await au.stop(true);
+
+    async function navigateAndAssert(route: string, expectedText: string, message: string) {
+      await router.load(route);
+      assert.html.textContent(host, expectedText, message);
     }
   });
 });

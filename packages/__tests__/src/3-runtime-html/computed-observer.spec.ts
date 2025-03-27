@@ -443,8 +443,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     assertText('1 two');
   });
 
-  // TODO: re-enable before merge
-  it.skip('notifies all bindings when multiple bindings use the same getter #2093', async function () {
+  it('notifies all bindings when multiple bindings use the same getter #2093', async function () {
     // issue summary:
     // with surrogate binding subscribings after content bindings
     // we have the sequence as below:

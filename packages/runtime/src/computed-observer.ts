@@ -192,16 +192,25 @@ export class ComputedObserver<T extends object> implements
     this._isQueued = true;
     queueTask(() => {
       this._isQueued = false;
-      const oldValue = this._value;
+      const currValue = this._value;
+      const oldValue = this._oldValue;
       const newValue = this.compute();
 
       this._isDirty = false;
 
-      if (!areEqual(newValue, oldValue)) {
-        // todo: probably should set is running here too
-        // to prevent depth first notification
+    // there's case where the _value property was updated without notifying subscribers
+    // such is the case when this computed observer value was requested
+    // before the dependencies of this observer notify it of their changes
+    //
+    // if we are to notify whenever we are computing new value, it'd cause a depth first & potentially circular update
+    // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
+    // so we are only notifying subscribers when it's the actual notify phase
+
+      if (!this._notified || !areEqual(newValue, currValue)) {
         this._callback?.(newValue, oldValue);
-        this.subs.notify(this._value, oldValue);
+        this.subs.notify(newValue, oldValue);
+        this._oldValue = this._value = newValue;
+        this._notified = true;
       }
     });
   }

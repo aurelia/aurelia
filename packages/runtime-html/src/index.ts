@@ -66,12 +66,6 @@ export {
   type IRateLimitOptions,
 } from './binding/interfaces-bindings';
 export {
-  bindingBind,
-  bindingUnbind,
-  bindingHandleChange,
-  bindingHandleCollectionChange,
-} from './binding/_lifecycle';
-export {
   IFlushQueue,
   FlushQueue,
   type IFlushable,

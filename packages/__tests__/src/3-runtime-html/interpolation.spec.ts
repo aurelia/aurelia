@@ -13,7 +13,6 @@ import {
   SVGAnalyzer,
   IPlatform,
   ValueConverter,
-  bindingBind,
 } from '@aurelia/runtime-html';
 import { flush } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
@@ -367,7 +366,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.partBindings[0].handleChange);
-        bindingBind(binding, createScopeForTest(source));
+        binding.bind(createScopeForTest(source));
 
         assert.strictEqual(target.value, 'no');
         assert.deepStrictEqual(
@@ -469,7 +468,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.partBindings[1].handleChange);
-        bindingBind(binding, createScopeForTest(source));
+        binding.bind(createScopeForTest(source));
 
         assert.strictEqual(target.value, 'no1--no2');
         assert.deepStrictEqual(

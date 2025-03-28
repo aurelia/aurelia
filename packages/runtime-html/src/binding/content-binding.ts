@@ -1,9 +1,13 @@
 import {
   connectable,
   IAstEvaluator,
+  astBind,
+  astEvaluate,
+  astUnbind,
+  queueTask,
 } from '@aurelia/runtime';
 import { toView } from './interfaces-bindings';
-import { type IServiceLocator } from '@aurelia/kernel';
+import { type IServiceLocator, isArray } from '@aurelia/kernel';
 import type {
   ICollectionSubscriber,
   IObserverLocator,
@@ -12,11 +16,10 @@ import type {
   Scope,
 } from '@aurelia/runtime';
 import type { IPlatform } from '../platform';
+import { safeString } from '../utilities';
 import type { BindingMode, IBinding, IBindingController } from './interfaces-bindings';
 import { mixinUseScope, mixingBindingLimited, mixinAstEvaluator, createPrototypeMixer } from './binding-utils';
 import { IsExpression } from '@aurelia/expression-parser';
-import { safeString } from '../utilities';
-import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
 
 export interface ContentBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -33,8 +36,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     mixinAstEvaluator(ContentBinding);
   });
 
-  public get $kind() { return 'Content' as const; }
-
   public isBound: boolean = false;
 
   // at runtime, mode may be overriden by binding behavior
@@ -43,6 +44,9 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
 
   /** @internal */
   public _scope?: Scope;
+
+  /** @internal */
+  public _isQueued: boolean = false;
 
   /**
    * A semi-private property used by connectable mixin
@@ -55,11 +59,11 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   public readonly l: IServiceLocator;
 
   /** @internal */
-  public _value: unknown = '';
+  private _value: unknown = '';
   /** @internal */
   private readonly _controller: IBindingController;
   /** @internal */
-  public _needsRemoveNode: boolean = false;
+  private _needsRemoveNode: boolean = false;
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -68,7 +72,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    public readonly p: IPlatform,
+    private readonly p: IPlatform,
     public readonly ast: IsExpression,
     public readonly target: Text,
     public strict: boolean,
@@ -95,11 +99,81 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public handleChange(): void {
-    // TODO: see if we can get rid of this by integrating this call in connectable
-    bindingHandleChange(this);
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (newValue !== this._value) {
+        this._value = newValue;
+        this.updateTarget(newValue);
+      }
+    });
   }
 
   public handleCollectionChange(): void {
-    bindingHandleCollectionChange(this);
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      const v = this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (isArray(v)) {
+        this.observeCollection(v);
+      }
+      this.updateTarget(v);
+    });
+  }
+
+  public bind(_scope: Scope): void {
+    if (this.isBound) {
+      if (this._scope === _scope) return;
+      this.unbind();
+    }
+    this._scope = _scope;
+
+    astBind(this.ast, _scope, this);
+
+    const v = this._value = astEvaluate(
+      this.ast,
+      this._scope,
+      this,
+      (this.mode & toView) > 0 ? this : null
+    );
+    if (isArray(v)) {
+      this.observeCollection(v);
+    }
+    this.updateTarget(v);
+
+    this.isBound = true;
+  }
+
+  public unbind(): void {
+    if (!this.isBound) return;
+    this.isBound = false;
+
+    astUnbind(this.ast, this._scope!, this);
+    if (this._needsRemoveNode) {
+      (this._value as Node).parentNode?.removeChild(this._value as Node);
+    }
+
+    // TODO: should existing value (either connected node, or a string)
+    // be removed when this binding is unbound?
+    // this.updateTarget('');
+    this._scope = void 0;
+    this.obs.clearAll();
   }
 }

@@ -51,7 +51,6 @@ import type { IWatchDefinition, IWatcherCallback } from '../watch';
 import type { LifecycleHooksLookup } from './lifecycle-hooks';
 import type { IViewFactory } from './view';
 import { IBinding } from '../binding/interfaces-bindings';
-import { bindingBind, bindingUnbind } from '../binding/_lifecycle';
 
 export class Controller<C extends IViewModel = IViewModel> implements IController<C> {
 
@@ -604,7 +603,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
       i = 0;
       ii = this.bindings.length;
       while (ii > i) {
-        bindingBind(this.bindings[i], this.scope!);
+        this.bindings[i].bind(this.scope!);
         ++i;
       }
     }
@@ -840,7 +839,7 @@ export class Controller<C extends IViewModel = IViewModel> implements IControlle
 
     if (this.bindings !== null) {
       for (; i < this.bindings.length; ++i) {
-        bindingUnbind(this.bindings[i]);
+        this.bindings[i].unbind();
       }
     }
 

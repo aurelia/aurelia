@@ -6,7 +6,6 @@ import {
   BindingMode,
   LetBinding,
   PropertyBinding,
-  bindingBind,
 } from '@aurelia/runtime-html';
 import { flush } from '@aurelia/runtime';
 import {
@@ -42,7 +41,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           false,
         );
 
-        bindingBind(binding, createScopeForTest(source));
+        binding.bind(createScopeForTest(source));
 
         assert.strictEqual(target.name, 'hello');
 
@@ -82,7 +81,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        bindingBind(binding, scope);
+        binding.bind(scope);
 
         assert.strictEqual(target.value, 'no');
 
@@ -136,7 +135,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           false,
         );
 
-        bindingBind(binding, scope);
+        binding.bind(scope);
 
         assert.strictEqual(source.value, 'hello');
 
@@ -174,7 +173,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
             return handleChange.apply(this, args);
           };
         })(binding.handleChange);
-        bindingBind(binding, scope);
+        binding.bind(scope);
 
         assert.strictEqual(source.value, 'no');
         assert.strictEqual(handleChangeCallCount, 0);

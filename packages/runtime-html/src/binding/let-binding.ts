@@ -6,14 +6,16 @@ import {
   type IObservable,
   type IObserverLocator,
   type Scope,
+  astBind,
+  astEvaluate,
+  astUnbind,
   type IAstEvaluator,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
 import type { IIndexable, IServiceLocator } from '@aurelia/kernel';
 import { IsExpression } from '@aurelia/expression-parser';
-import { BindingMode, IBinding } from './interfaces-bindings';
-import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
+import { IBinding } from './interfaces-bindings';
 export interface LetBinding extends IAstEvaluator, IObserverLocatorBasedConnectable, IServiceLocator {}
 
 export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber {
@@ -29,17 +31,14 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinAstEvaluator(LetBinding);
   });
 
-  public get $kind() { return 'Let' as const; }
-
   public isBound: boolean = false;
-  public mode: BindingMode = BindingMode.toView;
 
   /** @internal */
   public _scope?: Scope = void 0;
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
-  public readonly _toBindingContext: boolean;
+  private readonly _toBindingContext: boolean;
 
   /**
    * A semi-private property used by connectable mixin
@@ -50,6 +49,9 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   /** @internal */
   public l: IServiceLocator;
+
+  /** @internal */
+  private _value: unknown;
 
   // see Listener binding for explanation
   /** @internal */
@@ -71,16 +73,48 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this._toBindingContext = toBindingContext;
   }
 
-  public updateTarget(newValue: unknown): void {
-    this.target![this.targetProperty] = newValue;
+  public updateTarget() {
+    this.target![this.targetProperty] = this._value;
   }
 
   public handleChange(): void {
-    // TODO: see if we can get rid of this by integrating this call in connectable
-    bindingHandleChange(this);
+    if (!this.isBound) return;
+    this.obs.version++;
+    this._value = astEvaluate(this.ast, this._scope!, this, this);
+    this.obs.clear();
+    this.updateTarget();
   }
 
   public handleCollectionChange(): void {
-    bindingHandleCollectionChange(this);
+    this.handleChange();
+  }
+
+  public bind(scope: Scope): void {
+    if (this.isBound) {
+      if (this._scope === scope) return;
+      this.unbind();
+    }
+    this._scope = scope;
+    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+
+    astBind(this.ast, scope, this);
+
+    this._value = astEvaluate(this.ast, this._scope, this, this);
+    this.updateTarget();
+
+    this.isBound = true;
+  }
+
+  public unbind(): void {
+    if (!this.isBound) {
+      /* istanbul-ignore-next */
+      return;
+    }
+    this.isBound = false;
+
+    astUnbind(this.ast, this._scope!, this);
+
+    this._scope = void 0;
+    this.obs.clearAll();
   }
 }

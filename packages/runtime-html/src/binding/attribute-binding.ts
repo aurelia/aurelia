@@ -1,20 +1,24 @@
-import { isString, type IServiceLocator } from '@aurelia/kernel';
+import { type IServiceLocator, isString } from '@aurelia/kernel';
 import {
   connectable,
   type IObserverLocator,
   IObserverLocatorBasedConnectable,
   ISubscriber,
   ICollectionSubscriber,
+  astBind,
+  astEvaluate,
+  astUnbind,
   type IAstEvaluator,
   type Scope,
+  queueTask,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
+import { oneTime, toView } from './interfaces-bindings';
 
 import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
-import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 import { safeString } from '../utilities';
-import { bindingHandleChange, bindingHandleCollectionChange } from './_lifecycle';
+import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -31,16 +35,17 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       mixinAstEvaluator(AttributeBinding);
   });
 
-  public get $kind() { return 'Attribute' as const; }
-
   public isBound: boolean = false;
   /** @internal */
   public _scope?: Scope = void 0;
 
+  /** @internal */
+  private _isQueued: boolean = false;
+
   public target: HTMLElement;
 
   /** @internal */
-  public _value: unknown = void 0;
+  private _value: unknown = void 0;
 
   /**
    * A semi-private property used by connectable mixin
@@ -50,7 +55,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public readonly oL: IObserverLocator;
 
   /** @internal */
-  public readonly _controller: IBindingController;
+  private readonly _controller: IBindingController;
 
   /** @internal */
   public readonly l: IServiceLocator;
@@ -112,11 +117,56 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public handleChange(): void {
-    // TODO: see if we can get rid of this by integrating this call in connectable
-    bindingHandleChange(this);
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (newValue !== this._value) {
+        this._value = newValue;
+        this.updateTarget(newValue);
+      }
+    });
   }
 
+  // todo: based off collection and handle update accordingly instead off always start
   public handleCollectionChange(): void {
-    bindingHandleCollectionChange(this);
+    this.handleChange();
+  }
+
+  public bind(scope: Scope): void {
+    if (this.isBound) {
+      if (this._scope === scope) return;
+      this.unbind();
+    }
+    this._scope = scope;
+
+    astBind(this.ast, scope, this);
+
+    if (this.mode & (toView | oneTime)) {
+      this.updateTarget(
+        this._value = astEvaluate(this.ast, scope, this, (this.mode & toView) > 0 ? this : null)
+      );
+    }
+
+    this.isBound = true;
+  }
+
+  public unbind(): void {
+    if (!this.isBound) return;
+    this.isBound = false;
+
+    astUnbind(this.ast, this._scope!, this);
+
+    this._scope = void 0;
+    this._value = void 0;
+    this.obs.clearAll();
   }
 }

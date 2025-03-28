@@ -681,6 +681,81 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     );
     // #endregion
 
+    // #region cachPropertyInfo
+    $it('default sets cachePropertyInfo on bindingInfo to true',
+      async function ({ app, host }: TestExecutionContext<App>) {
+        const controller = app.controller;
+        const expectedCachePropertyInfo = true;
+
+        const target1: HTMLInputElement = host.querySelector('#target1');
+        assertCachePropertyInfoBinding(controller, 'person.name', target1, app.controllerRegisterBindingSpy, expectedCachePropertyInfo);
+      },
+      {
+        template: `
+      <input id="target1" type="text" value.two-way="person.name & validate">
+      ` }
+    );
+
+    $it('default caches propertyInfo',
+      async function ({ app }: TestExecutionContext<App>) {
+        const controller = app.controller;
+
+        await controller.validate();
+
+        const binding = Array.from(controller.bindings.keys())[0];
+        const bindingInfo = controller.bindings.get(binding);
+
+        assert.equal(bindingInfo.propertyInfo.propertyName, 'name');
+      },
+      {
+        template: `
+      <input id="target1" type="text" value.two-way="person.name & validate">
+      ` }
+    );
+
+    $it('sets cachePropertyInfo on bindingInfo',
+      async function ({ app, host }: TestExecutionContext<App>) {
+        const controller = app.controller;
+        const expectedCachePropertyInfo = false;
+
+        const target1: HTMLInputElement = host.querySelector('#target1');
+        assertCachePropertyInfoBinding(controller, 'person.name', target1, app.controllerRegisterBindingSpy, expectedCachePropertyInfo);
+      },
+      {
+        template: `
+      <input id="target1" type="text" value.two-way="person.name & validate:undefined:undefined:undefined:false">
+      ` }
+    );
+
+    $it('does not cache propertyInfo',
+      async function ({ app }: TestExecutionContext<App>) {
+        const controller = app.controller;
+
+        await controller.validate();
+
+        const binding = Array.from(controller.bindings.keys())[0];
+        const bindingInfo = controller.bindings.get(binding);
+
+        assert.equal(bindingInfo.propertyInfo, null);
+      },
+      {
+        template: `
+      <input id="target1" type="text" value.two-way="person.name & validate:undefined:undefined:undefined:false">
+      ` }
+    );
+
+    function assertCachePropertyInfoBinding(controller: ValidationController, rawExpression: string, target: INode, registerBindingSpy: ISpy, expectedCacheValue: boolean) {
+      assert.equal(registerBindingSpy.calls.length, 1, 'registerBinding should have been called once');
+      const bindings = Array.from((controller['bindings'] as Map<IBinding, any>).keys()) as BindingWithBehavior[];
+      assert.equal(bindings.length, 1, 'one binding should have been registered');
+
+      const binding = bindings[0];
+      const bindingInfo = controller.bindings.get(binding);
+      assert.equal(binding.target, target);
+      assert.equal(Unparser.unparse(binding.ast.expression), rawExpression);
+      assert.equal(bindingInfo.cachePropertyInfo, expectedCacheValue);
+    }
+
     // #region argument parsing
     const negativeTestData = [
       { args: `'chaos'`,                              code: 'AUR4202', expectedError: 'is not a supported validation trigger' },

@@ -11,4 +11,5 @@ export interface ValidationHtmlCustomizationOptions extends ValidationCustomizat
   DefaultTrigger: ValidationTrigger;
   UseSubscriberCustomAttribute: boolean;
   SubscriberCustomElementTemplate: string;
+  DefaultCacheBindingPropertyInfo: boolean;
 }

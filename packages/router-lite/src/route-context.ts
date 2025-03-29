@@ -55,6 +55,7 @@ import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
+import { IObserver, IObserverLocator } from '@aurelia/runtime';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -160,6 +161,7 @@ export class RouteContext {
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ private _childRoutesConfigured: boolean = false;
+  /** @internal */ public readonly _navigatingObserver: IObserver;
 
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
@@ -186,6 +188,8 @@ export class RouteContext {
     }
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
+
+    this._navigatingObserver = parentContainer.get(IObserverLocator).getObserver(this._router, 'isNavigating');
 
     this._moduleLoader = parentContainer.get(IModuleLoader);
 

@@ -2,7 +2,7 @@ import { Metadata } from '@aurelia/metadata';
 import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResourceKeyFor } from '@aurelia/kernel';
 
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
-import { defaultViewportName, ITypedNavigationInstruction_Component, NavigationInstructionType, TypedNavigationInstruction, ViewportInstruction } from './instructions';
+import { defaultViewportName, ITypedNavigationInstruction_Component, ITypedNavigationInstruction_NavigationStrategy, IViewportInstruction, NavigationInstructionType, NavigationStrategy, TypedNavigationInstruction, ViewportInstruction } from './instructions';
 import type { RouteNode } from './route-tree';
 import type { IRouteContext } from './route-context';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
@@ -11,6 +11,7 @@ import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
 import { Events, getMessage } from './events';
 import { RESIDUE } from '@aurelia/route-recognizer';
+import { IObserver } from '@aurelia/runtime';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
 
@@ -21,9 +22,14 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public get path(): string[] {
     const path = this._path;
     if (path.length > 0) return path;
-    const ceDfn = CustomElement.getDefinition(this.component as RouteType);
+    const ceDfn = CustomElement.getDefinition(this._component as RouteType);
     return this._path = [ceDfn.name, ...ceDfn.aliases];
   }
+  private _currentComponent: Routeable | null = null;
+  public get component(): Routeable { return this._getComponent(); }
+
+  private readonly isNavigationStrategy: boolean;
+
   private constructor(
     public readonly id: string,
     /** @internal */
@@ -36,14 +42,25 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly data: Record<string, unknown>,
     public readonly routes: readonly Routeable[],
     public readonly fallback: Routeable | FallbackFunction | null,
-    public readonly component: Routeable,
+    private readonly _component: Routeable | NavigationStrategy,
     public readonly nav: boolean,
-  ) { }
+    private readonly navigatingObserver: IObserver | null,
+  ) {
+    // eslint-disable-next-line no-cond-assign
+    if (this.isNavigationStrategy = _component instanceof NavigationStrategy) {
+      navigatingObserver?.subscribe({
+        handleChange: (newValue, _previousValue) => {
+          if (newValue === true) this._currentComponent = null;
+        }
+      });
+    }
+  }
 
   /** @internal */
   public static _create(
     configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
     Type: RouteType | null,
+    navigatingObserver: IObserver | null,
   ): RouteConfig {
     if (typeof configOrPath === 'string' || configOrPath instanceof Array) {
       const path = ensureArrayOfStrings(configOrPath);
@@ -70,6 +87,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         Type?.fallback ?? null,
         Type as Routeable,
         Type?.nav ?? true,
+        navigatingObserver,
       );
     } else if (typeof configOrPath === 'object') {
       const config = configOrPath;
@@ -103,6 +121,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
         config.fallback ?? Type?.fallback ?? null,
         (config as IChildRouteConfig).component ?? Type ?? null,
         config.nav ?? true,
+        navigatingObserver,
       );
     } else {
       expectType('string, function/class or object', '', configOrPath);
@@ -130,8 +149,9 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       config.data ?? this.data,
       config.routes ?? this.routes,
       config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null,
-      this.component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
+      this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
       config.nav ?? this.nav,
+      this.navigatingObserver,
     );
   }
 
@@ -198,8 +218,9 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       this.data,
       this.routes,
       this.fallback,
-      this.component,
+      this._component,
       this.nav,
+      this.navigatingObserver,
     );
   }
 
@@ -210,6 +231,18 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
       && !CustomElement.isType(fallback as Constructable)
       ? (fallback as FallbackFunction)(viewportInstruction, routeNode, context)
       : fallback;
+  }
+
+  /** @internal */
+  public _getComponent(): Routeable;
+  public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode): Routeable;
+  public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode): Routeable {
+    if (vi == null) {
+      if (this._currentComponent != null) return this._currentComponent;
+      if (this.isNavigationStrategy) throw new Error(getMessage(Events.rtInvalidOperationNavigationStrategyComponent, this.id));
+      return this._currentComponent = this._component;
+    }
+    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!) : this._component;
   }
 }
 
@@ -228,7 +261,7 @@ export const Route = {
     configOrPath: IRouteConfig | IChildRouteConfig | string | string[],
     Type: T,
   ): T {
-    const config = RouteConfig._create(configOrPath, Type);
+    const config = RouteConfig._create(configOrPath, Type, null);
     Metadata.define(config, Type, Route.name);
 
     return Type;
@@ -283,11 +316,13 @@ export function route(configOrPath: IRouteConfig | string | string[]): RouteDeco
 
 /** @internal */
 export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteConfig | Promise<RouteConfig> {
-  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
+  if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
+  if (instruction.type === NavigationInstructionType.NavigationStrategy)
+    return RouteConfig._create(routeable as IChildRouteConfig, null, context?._navigatingObserver ?? null);
 
-  return onResolve(ceDef, $ceDef => {
+  return onResolve(ceDef!, $ceDef => {
     const type = $ceDef.Type;
     const routeConfig = Route.getConfig(type);
 
@@ -310,10 +345,13 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
 }
 
 /** @internal */
-export function resolveCustomElementDefinition(routeable: Routeable, context: IRouteContext | null | undefined): [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>] {
+export function resolveCustomElementDefinition(routeable: Routeable, context: IRouteContext | null | undefined):
+  | [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>]
+  | [instruction: ITypedNavigationInstruction_NavigationStrategy, ceDef: null] {
   const instruction = createNavigationInstruction(routeable);
   let ceDef: CustomElementDefinition | Promise<CustomElementDefinition>;
   switch (instruction.type) {
+    case NavigationInstructionType.NavigationStrategy: return [instruction, null];
     case NavigationInstructionType.string: {
       if (context == null) throw new Error(getMessage(Events.rtNoCtxStrComponent));
 
@@ -341,10 +379,10 @@ export function resolveCustomElementDefinition(routeable: Routeable, context: IR
       ceDef = context._resolveLazy(instruction.value);
       break;
   }
-  return [instruction, ceDef];
+  return [instruction, ceDef!];
 }
 
-function createNavigationInstruction(routeable: Exclude<Routeable, IRedirectRouteConfig>): ITypedNavigationInstruction_Component {
+function createNavigationInstruction(routeable: Exclude<Routeable, IRedirectRouteConfig>): ITypedNavigationInstruction_Component | ITypedNavigationInstruction_NavigationStrategy {
   return isPartialChildRouteConfig(routeable)
     ? createNavigationInstruction(routeable.component)
     : TypedNavigationInstruction.create(routeable);

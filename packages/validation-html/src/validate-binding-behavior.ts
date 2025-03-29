@@ -61,6 +61,8 @@ export enum ValidationTrigger {
 }
 
 export const IDefaultTrigger = /*@__PURE__*/DI.createInterface<ValidationTrigger>('IDefaultTrigger');
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const IDefaultCacheBindingPropertyInfo = /*@__PURE__*/DI.createInterface<Boolean>('IDefaultCacheBindingPropertyInfo');
 
 const validationConnectorMap = new WeakMap<IBinding, ValidationConnector>();
 const validationTargetSubscriberMap = new WeakMap<PropertyBinding, WithValidationTargetSubscriber>();
@@ -83,6 +85,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
         this._platform,
         this._observerLocator,
         binding.get(IDefaultTrigger),
+        binding.get(IDefaultCacheBindingPropertyInfo) as boolean,
         binding as BindingWithBehavior,
         binding.get(IContainer)
       ));
@@ -110,7 +113,7 @@ export class ValidateBindingBehavior implements BindingBehaviorInstance {
 }
 BindingBehavior.define('validate', ValidateBindingBehavior);
 
-interface ValidationConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable {}
+interface ValidationConnector extends IAstEvaluator, IObserverLocatorBasedConnectable, IConnectable { }
 /**
  * Binding behavior. Indicates the bound property should be validated.
  */
@@ -122,6 +125,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
   private controller!: IValidationController;
   private isChangeTrigger: boolean = false;
   private readonly defaultTrigger: ValidationTrigger;
+  private readonly defaultCache: boolean;
   public scope?: Scope;
   private isDirty: boolean = false;
   private validatedOnce: boolean = false;
@@ -132,23 +136,27 @@ class ValidationConnector implements ValidationResultsSubscriber {
   /** @internal */ private readonly _triggerMediator: BindingMediator<'handleTriggerChange'>;
   /** @internal */ private readonly _controllerMediator: BindingMediator<'handleControllerChange'>;
   /** @internal */ private readonly _rulesMediator: BindingMediator<'handleRulesChange'>;
+  /** @internal */ private readonly _cacheMediator: BindingMediator<'handleCacheChange'>;
 
   public constructor(
     platform: IPlatform,
     observerLocator: IObserverLocator,
     defaultTrigger: ValidationTrigger,
+    defaultCache: boolean,
     propertyBinding: BindingWithBehavior,
     locator: IServiceLocator,
   ) {
     this.propertyBinding = propertyBinding;
     this.target = propertyBinding.target as HTMLElement;
     this.defaultTrigger = defaultTrigger;
+    this.defaultCache = defaultCache;
     this._platform = platform;
     this.oL = observerLocator;
     this.l = locator;
     this._triggerMediator = new BindingMediator('handleTriggerChange', this, observerLocator, locator);
     this._controllerMediator = new BindingMediator('handleControllerChange', this, observerLocator, locator);
     this._rulesMediator = new BindingMediator('handleRulesChange', this, observerLocator, locator);
+    this._cacheMediator = new BindingMediator('handleCacheChange', this, observerLocator, locator);
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
@@ -177,7 +185,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
     this.scope = scope;
     this.target = this._getTarget();
     const delta = this._processBindingExpressionArgs();
-    if(!this._processDelta(delta) && this.bindingInfo != null) {
+    if (!this._processDelta(delta) && this.bindingInfo != null) {
       this.controller?.registerBinding(this.propertyBinding, this.bindingInfo);
       this.controller?.addSubscriber(this);
     }
@@ -198,15 +206,19 @@ class ValidationConnector implements ValidationResultsSubscriber {
   }
 
   public handleTriggerChange(newValue: unknown, _previousValue: unknown): void {
-    this._processDelta(new ValidateArgumentsDelta(void 0, this._ensureTrigger(newValue), void 0));
+    this._processDelta(new ValidateArgumentsDelta(void 0, this._ensureTrigger(newValue), void 0, void 0));
   }
 
   public handleControllerChange(newValue: unknown, _previousValue: unknown): void {
-    this._processDelta(new ValidateArgumentsDelta(this._ensureController(newValue), void 0, void 0));
+    this._processDelta(new ValidateArgumentsDelta(this._ensureController(newValue), void 0, void 0, void 0));
   }
 
   public handleRulesChange(newValue: unknown, _previousValue: unknown): void {
-    this._processDelta(new ValidateArgumentsDelta(void 0, void 0, this._ensureRules(newValue)));
+    this._processDelta(new ValidateArgumentsDelta(void 0, void 0, this._ensureRules(newValue), void 0));
+  }
+
+  public handleCacheChange(newValue: unknown, _previousValue: unknown): void {
+    this._processDelta(new ValidateArgumentsDelta(void 0, void 0, void 0, this._ensureCache(newValue)));
   }
 
   public handleValidationEvent(event: ValidationEvent): void {
@@ -227,6 +239,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
     let rules: PropertyRule[] | undefined;
     let trigger: ValidationTrigger | undefined;
     let controller: ValidationController | undefined;
+    let cache: boolean | undefined;
 
     let ast = this.propertyBinding.ast as BindingBehaviorExpression;
     while (ast.name !== 'validate' && ast !== void 0) {
@@ -246,12 +259,15 @@ class ValidationConnector implements ValidationResultsSubscriber {
         case 2:
           rules = this._ensureRules(astEvaluate(arg, scope, this, this._rulesMediator));
           break;
+        case 3:
+          cache = this._ensureCache(astEvaluate(arg, scope, this, this._cacheMediator));
+          break;
         default:
           throw createMappedError(ErrorNames.validate_binding_behavior_extraneous_args, i + 1, astEvaluate(arg, scope, this, null));
       }
     }
 
-    return new ValidateArgumentsDelta(this._ensureController(controller), this._ensureTrigger(trigger), rules);
+    return new ValidateArgumentsDelta(this._ensureController(controller), this._ensureTrigger(trigger), rules, this._ensureCache(cache));
   }
 
   private task: ITask | null = null;
@@ -274,6 +290,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
     const trigger = delta.trigger ?? this.trigger;
     const controller = delta.controller ?? this.controller;
     const rules = delta.rules;
+    const cache = delta.cache ?? this.defaultCache;
     if (this.trigger !== trigger) {
       let event = this.triggerEvent;
       if (event !== null) {
@@ -297,7 +314,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
       this.controller?.unregisterBinding(this.propertyBinding);
 
       this.controller = controller;
-      controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules));
+      controller.registerBinding(this.propertyBinding, this._setBindingInfo(rules, cache));
       controller.addSubscriber(this);
       return true;
     }
@@ -332,6 +349,15 @@ class ValidationConnector implements ValidationResultsSubscriber {
   }
 
   /** @internal */
+  private _ensureCache(cache: unknown): boolean {
+    if (cache === (void 0) || cache === null) {
+      return this.defaultCache;
+    } else {
+      return Boolean(cache);
+    }
+  }
+
+  /** @internal */
   private _getTarget() {
     const target = this.propertyBinding.target;
     if (target instanceof this._platform.Node) {
@@ -362,8 +388,8 @@ class ValidationConnector implements ValidationResultsSubscriber {
   }
 
   /** @internal */
-  private _setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
-    return this.bindingInfo = new BindingInfo(this.target, this.scope!, rules);
+  private _setBindingInfo(rules: PropertyRule[] | undefined, cache: boolean): BindingInfo {
+    return this.bindingInfo = new BindingInfo(this.target, this.scope!, rules, cache);
   }
 }
 
@@ -390,6 +416,7 @@ class ValidateArgumentsDelta {
     public controller?: ValidationController,
     public trigger?: ValidationTrigger,
     public rules?: PropertyRule[],
+    public cache?: boolean,
   ) { }
 }
 

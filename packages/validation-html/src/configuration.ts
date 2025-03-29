@@ -2,7 +2,7 @@ import { Constructable, IContainer, noop, Registration } from '@aurelia/kernel';
 import { getDefaultValidationConfiguration, ValidationCustomizationOptions, ValidationConfiguration } from '@aurelia/validation';
 import { ValidationContainerCustomElement, defaultContainerDefinition, defaultContainerTemplate } from './subscribers/validation-container-custom-element';
 import { ValidationErrorsCustomAttribute } from './subscribers/validation-errors-custom-attribute';
-import { IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
+import { IDefaultCacheBindingPropertyInfo, IDefaultTrigger, ValidateBindingBehavior, ValidationTrigger } from './validate-binding-behavior';
 import { IValidationController, ValidationControllerFactory } from './validation-controller';
 import { ValidationHtmlCustomizationOptions } from './validation-customization-options';
 import { CustomElement } from '@aurelia/runtime-html';
@@ -15,7 +15,8 @@ export function getDefaultValidationHtmlConfiguration(): ValidationHtmlCustomiza
     ValidationControllerFactoryType: ValidationControllerFactory,
     DefaultTrigger: ValidationTrigger.focusout,
     UseSubscriberCustomAttribute: true,
-    SubscriberCustomElementTemplate: defaultContainerTemplate
+    SubscriberCustomElementTemplate: defaultContainerTemplate,
+    DefaultCacheBindingPropertyInfo: true,
   };
 }
 
@@ -39,6 +40,7 @@ function createConfiguration(optionsProvider: ValidationConfigurationProvider) {
           }
         }),
         Registration.instance(IDefaultTrigger, options.DefaultTrigger),
+        Registration.instance(IDefaultCacheBindingPropertyInfo, options.DefaultCacheBindingPropertyInfo),
         ValidateBindingBehavior,
       );
       if (options.UseSubscriberCustomAttribute) {

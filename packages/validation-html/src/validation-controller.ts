@@ -100,6 +100,7 @@ export class BindingInfo {
    * @param {Element} target - The HTMLElement associated with the binding.
    * @param {Scope} scope - The binding scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
+   * @param {boolean} [cache] - Cache property info on the binding info.
    * @param {(PropertyInfo | undefined)} [propertyInfo] - Information describing the associated property for the binding.
    * @memberof BindingInfo
    */
@@ -107,6 +108,7 @@ export class BindingInfo {
     public target: Element,
     public scope: Scope,
     public rules?: PropertyRule[],
+    public cache?: boolean,
     public propertyInfo: PropertyInfo | undefined = void 0,
   ) { }
 }
@@ -127,7 +129,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo)
 
   const scope = info.scope;
   let expression = binding.ast.expression;
-  let toCachePropertyName = true;
+  let toCachePropertyName = info.cache;
   let propertyName: string = '';
   while (expression !== void 0 && expression?.$kind !== 'AccessScope') {
     let memberName: string;

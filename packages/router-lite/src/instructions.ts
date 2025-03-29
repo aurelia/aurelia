@@ -534,7 +534,7 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
       case NavigationInstructionType.string:
         return this.value;
       case NavigationInstructionType.NavigationStrategy:
-        if (this.value.currentComponent === null) throw new Error('Invalid operation; currentComponent is null.'); // TODO: better error message + getMessage + event ID
+        if (this.value.currentComponent === null) throw new Error(getMessage(Events.instrInvalidUrlComponentOperationNavigationStrategy, this.type));
         return 'TODO';
     }
   }

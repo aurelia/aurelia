@@ -237,7 +237,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode): Routeable {
     if (vi == null) {
       if (this._currentComponent != null) return this._currentComponent;
-      if (this.isNavigationStrategy) throw new Error('Invalid operation; the component is not yet resolved.'); // TODO(Sayan): use getMessage + eventId
+      if (this.isNavigationStrategy) throw new Error(getMessage(Events.rtInvalidOperationNavigationStrategyComponent, this.id));
       return this._currentComponent ??= this._component;
     }
     return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!) : this._component;

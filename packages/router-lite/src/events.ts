@@ -165,7 +165,6 @@ export const enum Events {
   instrNoFallback = 3401,
   instrUnknownRedirect = 3402,
   instrInvalidUrlComponentOperation = 3403,
-  instrInvalidUrlComponentOperationNavigationStrategy = 3404,
   // #endregion
   // #region navigation model
   nmNoEndpoint = 3450,
@@ -342,7 +341,6 @@ const eventMessageMap: Record<Events, string> = {
   [Events.instrNoFallback]: 'Neither the route \'%s\' matched any configured route at \'%s\' nor a fallback is configured for the viewport \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
   [Events.instrUnknownRedirect]: '\'%s\' did not match any configured route or registered component name at \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
   [Events.instrInvalidUrlComponentOperation]: 'Invalid instruction type %s for "toUrlComponent" operation. If you are seeing this error, then it is probably because of an internal bug. Please report it.',
-  [Events.instrInvalidUrlComponentOperationNavigationStrategy]: 'Invalid operation, currentComponent is null for the instruction type %s.',
   // #endregion
 
   // #region navigation model

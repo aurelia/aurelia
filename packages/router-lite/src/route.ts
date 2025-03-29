@@ -46,12 +46,14 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly nav: boolean,
     private readonly navigatingObserver: IObserver | null,
   ) {
-    this.isNavigationStrategy = _component instanceof NavigationStrategy;
-    navigatingObserver?.subscribe({
-      handleChange: (newValue, _previousValue) => {
-        if (newValue === true) this._currentComponent = null;
-      }
-    });
+    // eslint-disable-next-line no-cond-assign
+    if (this.isNavigationStrategy = _component instanceof NavigationStrategy) {
+      navigatingObserver?.subscribe({
+        handleChange: (newValue, _previousValue) => {
+          if (newValue === true) this._currentComponent = null;
+        }
+      });
+    }
   }
 
   /** @internal */

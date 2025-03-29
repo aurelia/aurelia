@@ -958,6 +958,57 @@ When importing the HTML-only custom elements in the HTML file using `<require fr
 export class MyApp {}
 ```
 
+### Using a navigation strategy
+
+Components can be configured using a navigation strategy.
+A navigation strategy is an instance of `NavigationStrategy` class that takes a factory method to return a routable component.
+The following example shows how to use a navigation strategy.
+
+```diff
+  import { customElement } from '@aurelia/runtime-html';
+  import { route } from '@aurelia/router-lite';
+  import template from './my-app.html';
+  import { About } from './about';
+  import { Home } from './home';
+
++ let dataLoaded = false;
+
+  @route({
+    routes: [
+      {
+        path: ['', 'home'],
+        component: Home,
+        title: 'Home',
+      },
+      {
+        path: 'about',
+        component: About,
+        title: 'About',
+      },
++     {
++      path: 'foo',
++      component: new NavigationStrategy(() => {
++        if (dataLoaded) return Home;
++
++        dataLoaded = true;
++        return About;
++      })
++     }
+    ],
+  })
+  @customElement({ name: 'my-app', template })
+  export class MyApp {}
+```
+
+The factory method takes has the following signature.
+
+```typescript
+type NavigationStrategyComponent = string | RouteType | Promise<IModule> | CustomElementDefinition;
+function getComponent(viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode): string | RouteType | Promise<IModule> | CustomElementDefinition;
+```
+
+The parameters can be used further to determine which component to load.
+
 ## Using classes as routes
 
 Using router-lite it is also possible to use the routed view model classes directly as routes configuration.

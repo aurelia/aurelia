@@ -378,18 +378,9 @@ export class ViewportInstructionTree {
 
 type NavigationStrategyComponent = string | RouteType | Promise<IModule> | CustomElementDefinition;
 export class NavigationStrategy {
-
-  /** @internal */
-  public currentComponent: NavigationStrategyComponent | null = null;
-
-  /** @internal */
-  public readonly getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent;
-
   public constructor(
-    getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent,
-  ) {
-    this.getComponent = (vi, ctx, node) => this.currentComponent = getComponent(vi, ctx, node);
-  }
+    /** @internal */ public readonly getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent,
+  ) { }
 }
 
 _START_CONST_ENUM();
@@ -528,14 +519,12 @@ export class TypedNavigationInstruction<TInstruction extends NavigationInstructi
         return this.value.name;
       case NavigationInstructionType.IRouteViewModel:
       case NavigationInstructionType.Promise:
+      case NavigationInstructionType.NavigationStrategy:
         throw new Error(getMessage(Events.instrInvalidUrlComponentOperation, this.type));
       case NavigationInstructionType.ViewportInstruction:
         return this.value.toUrlComponent();
       case NavigationInstructionType.string:
         return this.value;
-      case NavigationInstructionType.NavigationStrategy:
-        if (this.value.currentComponent === null) throw new Error(getMessage(Events.instrInvalidUrlComponentOperationNavigationStrategy, this.type));
-        return 'TODO';
     }
   }
 

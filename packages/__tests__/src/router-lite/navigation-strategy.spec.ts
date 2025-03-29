@@ -1,5 +1,5 @@
 import { IRouter, ITypedNavigationInstruction_string, NavigationStrategy, route } from '@aurelia/router-lite';
-import { customElement } from '@aurelia/runtime-html';
+import { CustomElement, customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
@@ -299,4 +299,60 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
       assert.html.textContent(host, expectedText, message);
     }
   });
+
+  for (const type of ['ce-name', 'ce-defn'] as const) {
+    it(`works if the navigation strategy factory returns ${type}`, async function () {
+      let dataLoaded = false;
+      let factoryInvoked = 0;
+
+      @route({
+        routes: [
+          { path: 'c1', component: C1 },
+          { path: 'c2', component: C2 },
+          { path: 'c3', component: C3 },
+          {
+            path: 'foo',
+            component: new NavigationStrategy(() => {
+              factoryInvoked++;
+              if (dataLoaded) {
+                switch (type) {
+                  case 'ce-name': return 'c-2';
+                  case 'ce-defn': return CustomElement.getDefinition(C2);
+                }
+              }
+
+              dataLoaded = true;
+              switch (type) {
+                case 'ce-name': return 'c-1';
+                case 'ce-defn': return CustomElement.getDefinition(C1);
+              }
+            })
+          }
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { au, container, host } = await start({ appRoot: Root, registrations: [C1, C2, C3] });
+      const router = container.get(IRouter);
+
+      assert.html.textContent(host, '', 'initial');
+      assert.strictEqual(factoryInvoked, 0, 'initial - factoryInvoked');
+
+      await navigateAndAssert('foo', 'c1', 1, 'round#1');
+      await navigateAndAssert('c3', 'c3', 1, 'round#2');
+      await navigateAndAssert('foo', 'c2', 2, 'round#3');
+      await navigateAndAssert('c3', 'c3', 2, 'round#4');
+      await navigateAndAssert('foo', 'c2', 3, 'round#5');
+      await navigateAndAssert('c1', 'c1', 3, 'round#6');
+
+      await au.stop(true);
+
+      async function navigateAndAssert(route: string, expectedText: string, expectedFactoryInvocation: number, message: string) {
+        await router.load(route);
+        assert.html.textContent(host, expectedText, message);
+        assert.strictEqual(factoryInvoked, expectedFactoryInvocation, `${message} - factoryInvoked`);
+      }
+    });
+  }
 });

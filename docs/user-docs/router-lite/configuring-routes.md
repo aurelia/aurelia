@@ -1004,7 +1004,7 @@ The factory method takes has the following signature.
 
 ```typescript
 type NavigationStrategyComponent = string | RouteType | Promise<IModule> | CustomElementDefinition;
-function getComponent(viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode): string | RouteType | Promise<IModule> | CustomElementDefinition;
+function getComponent(viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): string | RouteType | Promise<IModule> | CustomElementDefinition;
 ```
 
 The parameters can be used further to determine which component to load.

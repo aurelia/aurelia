@@ -26,6 +26,7 @@ import { Events, getMessage } from './events';
 import { State } from './viewport-agent';
 import { IUrlParser } from './url-parser';
 import { RouteNode } from './route-tree';
+import { RecognizedRoute } from '@aurelia/route-recognizer';
 
 export const defaultViewportName = 'default';
 export type RouteContextLike = IRouteContext | ICustomElementViewModel | ICustomElementController | HTMLElement;
@@ -379,7 +380,7 @@ export class ViewportInstructionTree {
 type NavigationStrategyComponent = string | RouteType | Promise<IModule> | CustomElementDefinition;
 export class NavigationStrategy {
   public constructor(
-    /** @internal */ public readonly getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode) => NavigationStrategyComponent,
+    /** @internal */ public readonly getComponent: (viewportInstruction: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>) => NavigationStrategyComponent,
   ) { }
 }
 

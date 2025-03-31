@@ -537,7 +537,7 @@ function createConfiguredNode(
       const viWithVp = (vi.viewport?.length ?? 0) > 0;
       const vpName: string = (viWithVp ? vi.viewport : $handler.viewport)!;
       return onResolve(
-        (resolveCustomElementDefinition($handler._getComponent(vi, ctx, node), ctx) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
+        (resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
 
           const vpa = ctx._resolveViewportAgent(new ViewportRequest(

@@ -10,8 +10,7 @@ import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
 import type { FallbackFunction, IChildRouteConfig, IRedirectRouteConfig, IRouteConfig, Routeable, TransitionPlan, TransitionPlanOrFunc } from './options';
 import { Events, getMessage } from './events';
-import { RESIDUE } from '@aurelia/route-recognizer';
-import { IObserver } from '@aurelia/runtime';
+import { RecognizedRoute, RESIDUE } from '@aurelia/route-recognizer';
 
 export const noRoutes = emptyArray as RouteConfig['routes'];
 
@@ -222,14 +221,14 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
 
   /** @internal */
   public _getComponent(): Routeable;
-  public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode): Routeable;
-  public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode): Routeable {
+  public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): Routeable;
+  public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode, route?: RecognizedRoute<unknown>): Routeable {
     if (vi == null) {
       if (this._currentComponent != null) return this._currentComponent;
       if (this.isNavigationStrategy) throw new Error(getMessage(Events.rtInvalidOperationNavigationStrategyComponent, this.id));
       return this._currentComponent = this._component;
     }
-    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!) : this._component;
+    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!, route!) : this._component;
   }
 
   /** @internal */

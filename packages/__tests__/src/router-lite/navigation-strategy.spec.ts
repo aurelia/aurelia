@@ -255,7 +255,47 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     }
   });
 
-  it('dynamic navigation strategy', async function () {
+  it('dynamic navigation strategy - required parameter', async function () {
+    @route({
+      routes: [
+        C1,
+        C2,
+        C3,
+        {
+          path: 'foo/:id',
+          component: new NavigationStrategy((_vi, _ctx, _node, route) => {
+            const idRaw = route.params.id;
+            const idNum = Number(idRaw);
+            if (Number.isNaN(idNum)) return C3;
+            return idNum % 2 === 0 ? C2 : C1;
+          })
+        }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+
+    assert.html.textContent(host, '', 'initial');
+
+    await navigateAndAssert('foo/1', 'c1', 'round#1');
+    await navigateAndAssert('foo/2', 'c2', 'round#2');
+    await navigateAndAssert('foo/a', 'c3', 'round#3');
+    await navigateAndAssert('foo/3', 'c1', 'round#4');
+    await navigateAndAssert('foo/b', 'c3', 'round#5');
+    await navigateAndAssert('foo/4', 'c2', 'round#6');
+
+    await au.stop(true);
+
+    async function navigateAndAssert(route: string, expectedText: string, message: string) {
+      await router.load(route);
+      assert.html.textContent(host, expectedText, message);
+    }
+  });
+
+  it('dynamic navigation strategy - wildcard parameter', async function () {
     @route({
       routes: [
         C1,

@@ -3,6 +3,7 @@ import { isCustomElementViewModel, type PartialCustomElementDefinition } from '@
 
 import type { IChildRouteConfig, IRedirectRouteConfig, Routeable } from './options';
 import type { IExtendedViewportInstruction, IViewportInstruction, Params, RouteableComponent } from './instructions';
+import { NavigationStrategy } from './instructions';
 import { tryStringify } from './util';
 import { Events, getMessage } from './events';
 
@@ -188,7 +189,7 @@ function validateComponent(component: Routeable | null | undefined, parentPath: 
     case 'function':
       break;
     case 'object':
-      if (component instanceof Promise) {
+      if (component instanceof Promise || component instanceof NavigationStrategy) {
         break;
       }
       if (isPartialRedirectRouteConfig(component)) {

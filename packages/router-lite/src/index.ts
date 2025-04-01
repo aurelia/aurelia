@@ -32,6 +32,7 @@ export {
   type ITypedNavigationInstruction_CustomElementDefinition,
   type ITypedNavigationInstruction_Promise,
   type ITypedNavigationInstruction_IRouteViewModel,
+  NavigationStrategy,
 } from './instructions';
 
 export {

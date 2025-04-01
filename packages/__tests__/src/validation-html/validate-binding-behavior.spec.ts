@@ -1785,33 +1785,33 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await stop(true);
     });
 
-    it('replaced binding source validates', async function () {
-      class MyApp {
-        private _rules: IValidationRules;
-        public person: Person = new Person((void 0)!, (void 0)!);
-        public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
-        public constructor()  {
-          this._rules = resolve(IValidationRules);
-          this.applyValidation();
-        }
-
-        replaceBindingSource(person: Person){
-          this._rules.off(this.person);
-          this.person = person;
-          this.applyValidation();
-        }
-
-        private applyValidation() {
-          this._rules
-          .on(this.person)
-          .ensure(x => x.name)
-          .required();
-        }
+    class MyAppReplaceableSource {
+      private _rules: IValidationRules;
+      public person: Person = new Person((void 0)!, (void 0)!);
+      public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+      public constructor()  {
+        this._rules = resolve(IValidationRules);
+        this.applyValidation();
       }
 
+      replaceBindingSource(person: Person){
+        this._rules.off(this.person);
+        this.person = person;
+        this.applyValidation();
+      }
+
+      private applyValidation() {
+        this._rules
+        .on(this.person)
+        .ensure(x => x.name)
+        .required();
+      }
+    }
+
+    it('replaced binding source validates', async function () {
       const { startPromise, stop, component, platform } = createFixture(
         `<input value.two-way="person.name & validate"></input>`,
-        MyApp,
+        MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
       );
       await startPromise;
@@ -1867,32 +1867,9 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     });
 
     it('replaced binding source invalidates cached property info', async function () {
-      class MyApp {
-        private _rules: IValidationRules;
-        public person: Person = new Person((void 0)!, (void 0)!);
-        public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
-        public constructor()  {
-          this._rules = resolve(IValidationRules);
-          this.applyValidation();
-        }
-
-        replaceBindingSource(person: Person){
-          this._rules.off(this.person);
-          this.person = person;
-          this.applyValidation();
-        }
-
-        private applyValidation() {
-          this._rules
-          .on(this.person)
-          .ensure(x => x.name)
-          .required();
-        }
-      }
-
       const { startPromise, stop, component, platform } = createFixture(
         `<input value.two-way="person.name & validate"></input>`,
-        MyApp,
+        MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
       );
       await startPromise;

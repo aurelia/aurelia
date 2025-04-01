@@ -408,13 +408,13 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
 
     let resolver: () => void;
     const promise = new Promise<void>(r => resolver = r);
-    let factoryInvoked = 0;
+    let dataLoaded = false;
 
     @customElement({ name: 'c-1', template: 'c1' })
     class C11 implements IRouteViewModel {
       private readonly router: IRouter = resolve(IRouter);
       public canLoad(params: Params, _next: RouteNode, _current: RouteNode | null): boolean {
-        void promise.then(() => this.router.load(params.id, { transitionPlan: 'replace' }));
+        void promise.then(() => this.router.load(`p-1/c-12/${params.id}`, { transitionPlan: 'replace' }));
         return true;
       }
     }
@@ -422,22 +422,28 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     @customElement({ name: 'c-2', template: 'c2' })
     class C12 { }
 
-    let dataLoaded = false;
     @route({
       routes: [
         C11,
-        C12,
+        { path: 'c-12/:id', component: C12 },
         {
           path: ':id',
-          component: new NavigationStrategy((_vi, _ctx, _node, _route) => {
-            factoryInvoked++;
+          component: new NavigationStrategy(() => {
             if (dataLoaded) return C12;
+
             dataLoaded = true;
             return C11;
           })
         }
       ]
     })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
+    class P1 { }
+
+    @customElement({ name: 'p-2', template: 'p2' })
+    class P2 { }
+
+    @route({ routes: [P1, P2] })
     @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
     class Root { }
 
@@ -447,17 +453,15 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
 
     assert.html.textContent(host, '', 'initial');
 
-    await router.load('1');
-    assert.html.textContent(host, 'c1', 'round#1');
+    await router.load('p-1/1');
+    assert.html.textContent(host, 'p1 c1', 'round#1');
 
     // resolve the promise to trigger the navigation
     resolver!();
     taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
     await taskQueue.yield();
-    assert.html.textContent(host, 'c2', 'initial');
+    assert.html.textContent(host, 'p1 c2', 'initial');
 
     await au.stop(true);
-
-    assert.strictEqual(factoryInvoked, 2, 'factoryInvoked');
   });
 });

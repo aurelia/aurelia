@@ -103,7 +103,7 @@ export declare const DefaultRenderers: ({
 } | {
     new (): {
         readonly target: "rj";
-        render(renderingCtrl: import(".").IHydratableController, target: import("./dom").INode, instruction: import("@aurelia/template-compiler").RefBindingInstruction, platform: import("./platform").IPlatform, exprParser: import("@aurelia/expression-parser").IExpressionParser, observerLocator: import("@aurelia/runtime").IObserverLocator): void;
+        render(renderingCtrl: import(".").IHydratableController, target: import("./dom.node").INode, instruction: import("@aurelia/template-compiler").RefBindingInstruction, platform: import("./platform").IPlatform, exprParser: import("@aurelia/expression-parser").IExpressionParser, observerLocator: import("@aurelia/runtime").IObserverLocator): void;
     };
 } | {
     new (): {

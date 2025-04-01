@@ -1,6 +1,6 @@
 import { SetterObserver, type AccessorType, type ISubscriberCollection, type IObserverLocator } from '@aurelia/runtime';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import type { ValueAttributeObserver } from './value-attribute-observer';
 export interface IInputElement extends HTMLInputElement {
     model?: unknown;

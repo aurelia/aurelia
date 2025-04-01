@@ -59,7 +59,8 @@ export { type IAuSlotProjections, type IAuSlot, type IAuSlotSubscriber, IAuSlotW
 export { ILifecycleHooks, LifecycleHooksEntry, LifecycleHooksDefinition, type LifecycleHooksLookup, type LifecycleHook, LifecycleHooks, lifecycleHooks, } from './templating/lifecycle-hooks';
 export { IRendering, Rendering, } from './templating/rendering';
 export { ViewFactory, IViewFactory, } from './templating/view';
-export { INode, IEventTarget, IRenderLocation, type INodeSequence, FragmentNodeSequence, IHistory, IWindow, ILocation, getEffectiveParentNode, setEffectiveParentNode, convertToRenderLocation, isRenderLocation, getRef, setRef, registerHostNode, } from './dom';
+export { IEventTarget, IRenderLocation, type INodeSequence, FragmentNodeSequence, IHistory, IWindow, ILocation, getEffectiveParentNode, setEffectiveParentNode, convertToRenderLocation, isRenderLocation, registerHostNode, } from './dom';
+export { refs, INode, } from './dom.node';
 export { IPlatform, } from './platform';
 export { CSSModulesProcessorRegistry, cssModules, ShadowDOMRegistry, shadowCSS, StyleConfiguration, IShadowDOMStyleFactory, type IShadowDOMConfiguration, AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles, IShadowDOMGlobalStyles, } from './templating/styles';
 export { Watch, watch, type IWatchDefinition, type IWatcherCallback, type IDepCollectionFn, } from './watch';

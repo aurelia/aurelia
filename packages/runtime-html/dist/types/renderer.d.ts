@@ -4,7 +4,7 @@ import { IObserverLocator } from '@aurelia/runtime';
 import { IEventModifier } from './binding/listener-binding';
 import { CustomElementDefinition } from './resources/custom-element';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
-import { INode } from './dom';
+import { INode } from './dom.node';
 import { ICustomElementController, IController } from './templating/controller';
 import { IPlatform } from './platform';
 import { IRendering } from './templating/rendering';

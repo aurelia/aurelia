@@ -186,7 +186,8 @@ const eventMessageMap = {
     [3554 /* Events.rtInvalidConfigProperty */]: 'Invalid route config property: "%s". Expected %s, but got %s.',
     [3555 /* Events.rtInvalidConfig */]: 'Invalid route config: expected an object or string, but got: %s',
     [3556 /* Events.rtUnknownConfigProperty */]: 'Unknown route config property: "%s.%s". Please specify known properties only.',
-    [3557 /* Events.rtUnknownRedirectConfigProperty */]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.'
+    [3557 /* Events.rtUnknownRedirectConfigProperty */]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.',
+    [3558 /* Events.rtInvalidOperationNavigationStrategyComponent */]: 'Invalid operation, the component is not yet resolved for the navigation strategy (id: %s).',
     // #endregion
 };
 /**
@@ -501,7 +502,7 @@ function validateComponent(component, parentPath, property) {
         case 'function':
             break;
         case 'object':
-            if (component instanceof Promise) {
+            if (component instanceof Promise || component instanceof NavigationStrategy) {
                 break;
             }
             if (isPartialRedirectRouteConfig(component)) {
@@ -787,9 +788,10 @@ class RouteConfig {
         const path = this._path;
         if (path.length > 0)
             return path;
-        const ceDfn = runtimeHtml.CustomElement.getDefinition(this.component);
+        const ceDfn = runtimeHtml.CustomElement.getDefinition(this._component);
         return this._path = [ceDfn.name, ...ceDfn.aliases];
     }
+    get component() { return this._getComponent(); }
     constructor(id, 
     /** @internal */
     _path, title, redirectTo, caseSensitive, transitionPlan, viewport, data, routes, fallback, component, nav) {
@@ -803,10 +805,12 @@ class RouteConfig {
         this.data = data;
         this.routes = routes;
         this.fallback = fallback;
-        this.component = component;
         this.nav = nav;
         /** @internal */
         this._configurationFromHookApplied = false;
+        /** @internal */ this._currentComponent = null;
+        this._component = component;
+        this._isNavigationStrategy = component instanceof NavigationStrategy;
     }
     /** @internal */
     static _create(configOrPath, Type) {
@@ -856,7 +860,7 @@ class RouteConfig {
     _applyChildRouteConfig(config, parentConfig) {
         validateRouteConfig(config, this.path[0] ?? '');
         const path = ensureArrayOfStrings(config.path ?? this.path);
-        return new RouteConfig(ensureString(config.id ?? this.id ?? path), path, config.title ?? this.title, config.redirectTo ?? this.redirectTo, config.caseSensitive ?? this.caseSensitive, config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null, config.viewport ?? this.viewport, config.data ?? this.data, config.routes ?? this.routes, config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null, this.component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
+        return new RouteConfig(ensureString(config.id ?? this.id ?? path), path, config.title ?? this.title, config.redirectTo ?? this.redirectTo, config.caseSensitive ?? this.caseSensitive, config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null, config.viewport ?? this.viewport, config.data ?? this.data, config.routes ?? this.routes, config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null, this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
         config.nav ?? this.nav);
     }
     /** @internal */
@@ -908,7 +912,7 @@ class RouteConfig {
     }
     /** @internal */
     _clone() {
-        return new RouteConfig(this.id, this.path, this.title, this.redirectTo, this.caseSensitive, this.transitionPlan, this.viewport, this.data, this.routes, this.fallback, this.component, this.nav);
+        return new RouteConfig(this.id, this.path, this.title, this.redirectTo, this.caseSensitive, this.transitionPlan, this.viewport, this.data, this.routes, this.fallback, this._component, this.nav);
     }
     /** @internal */
     _getFallback(viewportInstruction, routeNode, context) {
@@ -917,6 +921,22 @@ class RouteConfig {
             && !runtimeHtml.CustomElement.isType(fallback)
             ? fallback(viewportInstruction, routeNode, context)
             : fallback;
+    }
+    _getComponent(vi, ctx, node, route) {
+        if (vi == null) {
+            if (this._currentComponent != null)
+                return this._currentComponent;
+            if (this._isNavigationStrategy)
+                throw new Error(getMessage(3558 /* Events.rtInvalidOperationNavigationStrategyComponent */, this.id));
+            return this._currentComponent = this._component;
+        }
+        return this._currentComponent ??= this._isNavigationStrategy ? this._component.getComponent(vi, ctx, node, route) : this._component;
+    }
+    /** @internal */
+    _handleNavigationStart() {
+        if (!this._isNavigationStrategy)
+            return;
+        this._currentComponent = null;
     }
 }
 const Route = {
@@ -960,6 +980,8 @@ function resolveRouteConfiguration(routeable, isChild, parent, routeNode, contex
     if (isPartialRedirectRouteConfig(routeable))
         return RouteConfig._create(routeable, null);
     const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
+    if (instruction.type === 5 /* NavigationInstructionType.NavigationStrategy */)
+        return RouteConfig._create(routeable, null);
     return kernel.onResolve(ceDef, $ceDef => {
         const type = $ceDef.Type;
         const routeConfig = Route.getConfig(type);
@@ -983,6 +1005,7 @@ function resolveCustomElementDefinition(routeable, context) {
     const instruction = createNavigationInstruction(routeable);
     let ceDef;
     switch (instruction.type) {
+        case 5 /* NavigationInstructionType.NavigationStrategy */: return [instruction, null];
         case 0 /* NavigationInstructionType.string */: {
             if (context == null)
                 throw new Error(getMessage(3551 /* Events.rtNoCtxStrComponent */));
@@ -2717,7 +2740,7 @@ function createConfiguredNode(log, node, vi, rr, originalVi, route = rr.route.en
         if ($handler.redirectTo === null) {
             const viWithVp = (vi.viewport?.length ?? 0) > 0;
             const vpName = (viWithVp ? vi.viewport : $handler.viewport);
-            return kernel.onResolve(resolveCustomElementDefinition($handler.component, ctx)[1], ced => {
+            return kernel.onResolve(resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx)[1], ced => {
                 const vpa = ctx._resolveViewportAgent(new ViewportRequest(vpName, ced.name));
                 if (!viWithVp) {
                     vi.viewport = vpa.viewport.name;
@@ -3874,6 +3897,12 @@ class ViewportInstructionTree {
         return `[${this.children.map(String).join(',')}]`;
     }
 }
+class NavigationStrategy {
+    constructor(
+    /** @internal */ getComponent) {
+        this.getComponent = getComponent;
+    }
+}
 
 class TypedNavigationInstruction {
     constructor(type, value) {
@@ -3889,6 +3918,8 @@ class TypedNavigationInstruction {
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
         if (!kernel.isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
+        if (instruction instanceof NavigationStrategy)
+            return new TypedNavigationInstruction(5 /* NavigationInstructionType.NavigationStrategy */, instruction);
         if (typeof instruction === 'function') {
             if (runtimeHtml.CustomElement.isType(instruction)) {
                 // This is the class itself
@@ -3931,6 +3962,7 @@ class TypedNavigationInstruction {
     }
     equals(other) {
         switch (this.type) {
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
             case 2 /* NavigationInstructionType.CustomElementDefinition */:
             case 4 /* NavigationInstructionType.IRouteViewModel */:
             case 3 /* NavigationInstructionType.Promise */:
@@ -3950,6 +3982,7 @@ class TypedNavigationInstruction {
                 return this.value.name;
             case 4 /* NavigationInstructionType.IRouteViewModel */:
             case 3 /* NavigationInstructionType.Promise */:
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
                 throw new Error(getMessage(3403 /* Events.instrInvalidUrlComponentOperation */, this.type));
             case 1 /* NavigationInstructionType.ViewportInstruction */:
                 return this.value.toUrlComponent();
@@ -3962,6 +3995,8 @@ class TypedNavigationInstruction {
         switch (this.type) {
             case 2 /* NavigationInstructionType.CustomElementDefinition */:
                 return `CEDef(name:'${this.value.name}')`;
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
+                return `NS`;
             case 3 /* NavigationInstructionType.Promise */:
                 return `Promise`;
             case 4 /* NavigationInstructionType.IRouteViewModel */:
@@ -4273,6 +4308,21 @@ class RouteContext {
         }
         this._logger = parentContainer.get(kernel.ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
         trace(this._logger, 3150 /* Events.rcCreated */);
+        const observer = parentContainer.get(runtime.IObserverLocator).getObserver(this._router, 'isNavigating');
+        const subscriber = {
+            handleChange: (newValue, _previousValue) => {
+                if (newValue !== true)
+                    return;
+                this.config._handleNavigationStart();
+                for (const childRoute of this.childRoutes) {
+                    if (childRoute instanceof Promise)
+                        continue;
+                    childRoute._handleNavigationStart();
+                }
+            }
+        };
+        observer.subscribe(subscriber);
+        this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
         this._moduleLoader = parentContainer.get(kernel.IModuleLoader);
         const container = this.container = parentContainer.createChild();
         this._platform = container.get(runtimeHtml.IPlatform);
@@ -4413,6 +4463,7 @@ class RouteContext {
     }
     dispose() {
         this.container.dispose();
+        this._unsubscribeIsNavigatingChange();
     }
     /** @internal */
     _resolveViewportAgent(req) {
@@ -5008,7 +5059,7 @@ class HrefCustomAttribute {
     binding() {
         if (!this._isInitialized) {
             this._isInitialized = true;
-            this._isEnabled = this._isEnabled && runtimeHtml.getRef(this._el, runtimeHtml.CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
+            this._isEnabled = this._isEnabled && runtimeHtml.refs.get(this._el, runtimeHtml.CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
         }
         this.valueChanged(this.value);
         this._el.addEventListener('click', this);
@@ -5241,6 +5292,7 @@ exports.NavigationEndEvent = NavigationEndEvent;
 exports.NavigationErrorEvent = NavigationErrorEvent;
 exports.NavigationOptions = NavigationOptions;
 exports.NavigationStartEvent = NavigationStartEvent;
+exports.NavigationStrategy = NavigationStrategy;
 exports.ParameterExpression = ParameterExpression;
 exports.ParameterListExpression = ParameterListExpression;
 exports.Route = Route;

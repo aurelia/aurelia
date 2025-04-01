@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/validation",
-  "version": "2.1.0-dev.202503171837",
+  "version": "2.1.0-dev.202504011835",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -54,12 +54,12 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202503171837",
-    "@aurelia/metadata": "2.1.0-dev.202503171837",
-    "@aurelia/platform": "2.1.0-dev.202503171837",
-    "@aurelia/expression-parser": "2.1.0-dev.202503171837",
-    "@aurelia/runtime": "2.1.0-dev.202503171837",
-    "@aurelia/runtime-html": "2.1.0-dev.202503171837"
+    "@aurelia/kernel": "2.1.0-dev.202504011835",
+    "@aurelia/metadata": "2.1.0-dev.202504011835",
+    "@aurelia/platform": "2.1.0-dev.202504011835",
+    "@aurelia/expression-parser": "2.1.0-dev.202504011835",
+    "@aurelia/runtime": "2.1.0-dev.202504011835",
+    "@aurelia/runtime-html": "2.1.0-dev.202504011835"
   },
   "devDependencies": {
     "typescript": "5.4.2"

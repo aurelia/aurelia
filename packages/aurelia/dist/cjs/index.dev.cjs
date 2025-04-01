@@ -130,6 +130,7 @@ exports.customAttribute = runtimeHtml.customAttribute;
 exports.customElement = runtimeHtml.customElement;
 exports.lifecycleHooks = runtimeHtml.lifecycleHooks;
 exports.processContent = runtimeHtml.processContent;
+exports.refs = runtimeHtml.refs;
 exports.registerAliases = runtimeHtml.registerAliases;
 exports.renderer = runtimeHtml.renderer;
 exports.shadowCSS = runtimeHtml.shadowCSS;

@@ -1,7 +1,7 @@
 import { IServiceLocator } from '@aurelia/kernel';
 import { INodeObserverLocator, IObserverLocator } from '@aurelia/runtime';
 import type { IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 export interface INodeObserverConfigBase {
     /**
      * Indicates the list of events can be used to observe a particular property

@@ -820,6 +820,35 @@ function createAppTaskSlotHook(slotName) {
 
 const IPlatform = IPlatform$1;
 
+class Refs {
+}
+const refs = /*@__PURE__*/ (() => {
+    const refsMap = new WeakMap();
+    let hideProp = false;
+    return new class {
+        get hideProp() {
+            return hideProp;
+        }
+        set hideProp(value) {
+            hideProp = value;
+        }
+        get(node, name) {
+            return refsMap.get(node)?.[name] ?? null;
+        }
+        set(node, name, controller) {
+            const ref = refsMap.get(node) ?? (refsMap.set(node, new Refs()), refsMap.get(node));
+            if (name in ref) {
+                throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
+            }
+            if (!hideProp) {
+                node.$au ??= ref;
+            }
+            return (ref[name] = controller);
+        }
+    }();
+})();
+const INode = /*@__PURE__*/ createInterface('INode');
+
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (expressionOrPropertyAccessFn == null) {
         throw createMappedError(772 /* ErrorNames.watch_null_config */);
@@ -979,7 +1008,7 @@ const isAttributeType = (value) => {
 };
 /** @internal */
 const findAttributeControllerFor = (node, name) => {
-    return (getRef(node, getAttributeKeyFrom(name)) ?? void 0);
+    return (refs.get(node, getAttributeKeyFrom(name)) ?? void 0);
 };
 /** @internal */
 const defineAttribute = (nameOrDef, Type) => {
@@ -1012,7 +1041,7 @@ const findClosestControllerByName = (node, attrNameOrType) => {
     }
     let cur = node;
     while (cur !== null) {
-        const controller = getRef(cur, key);
+        const controller = refs.get(cur, key);
         if (controller?.is(attrName)) {
             return controller;
         }
@@ -3339,7 +3368,7 @@ const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttributeRend
         /* viewModel  */ results.vm, 
         /* host       */ target, 
         /* definition */ def);
-        setRef(target, def.key, childController);
+        refs.set(target, def.key, childController);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
         const ii = props.length;
@@ -3403,7 +3432,7 @@ const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateControll
         /* viewModel    */ results.vm, 
         /* host         */ target, 
         /* definition   */ def);
-        setRef(renderLocation, def.key, childController);
+        refs.set(renderLocation, def.key, childController);
         results.vm.link?.(renderingCtrl, childController, target, instruction);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
@@ -4304,9 +4333,6 @@ class Controller {
         }
         this.location = location;
         this._rendering = container.root.get(IRendering);
-        this.coercion = vmKind === vmkSynth
-            ? void 0
-            : container.get(optionalCoercionConfigResolver);
     }
     static getCached(viewModel) {
         return controllerLookup.get(viewModel);
@@ -5206,10 +5232,13 @@ function createObservers(controller, definition, instance) {
     const bindables = definition.bindables;
     const observableNames = getOwnPropertyNames(bindables);
     const length = observableNames.length;
-    const locator = controller.container.get(IObserverLocator);
-    const hasAggregatedCallbacks = 'propertiesChanged' in instance;
     if (length === 0)
         return;
+    const locator = controller.container.get(IObserverLocator);
+    const hasAggregatedCallbacks = 'propertiesChanged' in instance;
+    const coercion = controller.vmKind === vmkSynth
+        ? void 0
+        : controller.container.get(optionalCoercionConfigResolver);
     const queueCallback = hasAggregatedCallbacks
         ? (() => {
             let changes = {};
@@ -5245,7 +5274,7 @@ function createObservers(controller, definition, instance) {
         const handler = bindable.callback;
         const obs = locator.getObserver(instance, name);
         if (bindable.set !== noop) {
-            if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
+            if (obs.useCoercer?.(bindable.set, coercion) !== true) {
                 throw createMappedError(507 /* ErrorNames.controller_property_not_coercible */, name);
             }
         }
@@ -5417,20 +5446,8 @@ function callUnbindingHook(l) {
 let _resolve;
 let _reject;
 let _retPromise;
+const setRef = refs.set;
 
-class Refs {
-}
-function getRef(node, name) {
-    return node.$au?.[name] ?? null;
-}
-function setRef(node, name, controller) {
-    const ref = node.$au ??= new Refs();
-    if (name in ref) {
-        throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
-    }
-    return (ref[name] = controller);
-}
-const INode = /*@__PURE__*/ createInterface('INode');
 const IEventTarget = /*@__PURE__*/ createInterface('IEventTarget', x => x.cachedCallback(handler => {
     if (handler.has(IAppRoot, true)) {
         return handler.get(IAppRoot).host;
@@ -5874,7 +5891,7 @@ const isElementType = (value) => {
 /** @internal */
 const findElementControllerFor = (node, opts = defaultForOpts) => {
     if (opts.name === void 0 && opts.searchParents !== true) {
-        const controller = getRef(node, elementBaseName);
+        const controller = refs.get(node, elementBaseName);
         if (controller === null) {
             if (opts.optional === true) {
                 return null;
@@ -5885,7 +5902,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
     }
     if (opts.name !== void 0) {
         if (opts.searchParents !== true) {
-            const controller = getRef(node, elementBaseName);
+            const controller = refs.get(node, elementBaseName);
             if (controller === null) {
                 throw createMappedError(763 /* ErrorNames.node_is_not_a_host2 */, node);
             }
@@ -5897,7 +5914,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
         let cur = node;
         let foundAController = false;
         while (cur !== null) {
-            const controller = getRef(cur, elementBaseName);
+            const controller = refs.get(cur, elementBaseName);
             if (controller !== null) {
                 foundAController = true;
                 if (controller.is(opts.name)) {
@@ -5913,7 +5930,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
     }
     let cur = node;
     while (cur !== null) {
-        const controller = getRef(cur, elementBaseName);
+        const controller = refs.get(cur, elementBaseName);
         if (controller !== null) {
             return controller;
         }
@@ -6219,7 +6236,9 @@ class Aurelia {
             return this._startPromise;
         }
         return this._startPromise = onResolve(this.stop(), () => {
-            Reflect.set(root.host, '$aurelia', this);
+            if (!refs.hideProp) {
+                Reflect.set(root.host, '$aurelia', this);
+            }
             this._rootProvider.prepare(this._root = root);
             this._isStarting = true;
             return onResolve(root.activate(), () => {
@@ -10516,5 +10535,5 @@ class ChildrenLifecycleHooks {
     }
 }
 
-export { AdoptedStyleSheetsStyles, AppRoot, AppTask, ArrayLikeHandler, AttrBindingBehavior, AttrMapper, AttributeBinding, AttributeBindingRenderer, AttributeNSAccessor, AuCompose, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindingBehavior, BindingBehaviorDefinition, BindingModeBehavior, BindingTargetSubscriber, CSSModulesProcessorRegistry, Case, CheckedObserver, ChildrenBinding, ClassAttributeAccessor, ComputedWatcher, ContentBinding, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRenderer, CustomElement, CustomElementDefinition, CustomElementRenderer, DataAttributeAccessor, DebounceBindingBehavior, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultRenderers, DefaultResources, Else, EventModifier, EventModifierRegistration, ExpressionWatcher, FlushQueue, Focus, FragmentNodeSequence, FromViewBindingBehavior, FulfilledTemplateController, IAppRoot, IAppTask, IAuSlotWatcher, IAuSlotsInfo, IAurelia, IController, IEventModifier, IEventTarget, IFlushQueue, IHistory, IHydrationContext, IKeyMapping, ILifecycleHooks, IListenerBindingOptions, ILocation, IModifiedEventHandlerCreator, INode, IPlatform, IRenderLocation, IRenderer, IRendering, IRepeatableHandler, IRepeatableHandlerResolver, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISignaler, IViewFactory, IWindow, If, InterpolationBinding, InterpolationBindingRenderer, InterpolationPartBinding, IteratorBindingRenderer, LetBinding, LetElementRenderer, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, ListenerBinding, ListenerBindingOptions, ListenerBindingRenderer, MountTarget, NodeObserverLocator, NoopSVGAnalyzer, OneTimeBindingBehavior, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingRenderer, RefBinding, RefBindingRenderer, RejectedTemplateController, Rendering, Repeat, RuntimeTemplateCompilerImplementation, SVGAnalyzer, SanitizeValueConverter, SelectValueObserver, SelfBindingBehavior, SetAttributeRenderer, SetClassAttributeRenderer, SetPropertyRenderer, SetStyleAttributeRenderer, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SpreadRenderer, StandardConfiguration, State, StyleAttributeAccessor, StyleConfiguration, StyleElementStyles, StylePropertyBindingRenderer, Switch, TemplateControllerRenderer, TextBindingRenderer, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, ValueAttributeObserver, ValueConverter, ValueConverterDefinition, ViewFactory, Watch, With, alias, bindable, bindingBehavior, capture, children, coercer, containerless, convertToRenderLocation, cssModules, customAttribute, customElement, getEffectiveParentNode, getRef, isCustomElementController, isCustomElementViewModel, isRenderLocation, lifecycleHooks, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, processContent, registerAliases, registerHostNode, renderer, setEffectiveParentNode, setRef, shadowCSS, slotted, templateController, useShadowDOM, valueConverter, watch };
+export { AdoptedStyleSheetsStyles, AppRoot, AppTask, ArrayLikeHandler, AttrBindingBehavior, AttrMapper, AttributeBinding, AttributeBindingRenderer, AttributeNSAccessor, AuCompose, AuSlot, AuSlotsInfo, Aurelia, Bindable, BindableDefinition, BindingBehavior, BindingBehaviorDefinition, BindingModeBehavior, BindingTargetSubscriber, CSSModulesProcessorRegistry, Case, CheckedObserver, ChildrenBinding, ClassAttributeAccessor, ComputedWatcher, ContentBinding, Controller, CustomAttribute, CustomAttributeDefinition, CustomAttributeRenderer, CustomElement, CustomElementDefinition, CustomElementRenderer, DataAttributeAccessor, DebounceBindingBehavior, DefaultBindingLanguage, DefaultBindingSyntax, DefaultCase, DefaultComponents, DefaultRenderers, DefaultResources, Else, EventModifier, EventModifierRegistration, ExpressionWatcher, FlushQueue, Focus, FragmentNodeSequence, FromViewBindingBehavior, FulfilledTemplateController, IAppRoot, IAppTask, IAuSlotWatcher, IAuSlotsInfo, IAurelia, IController, IEventModifier, IEventTarget, IFlushQueue, IHistory, IHydrationContext, IKeyMapping, ILifecycleHooks, IListenerBindingOptions, ILocation, IModifiedEventHandlerCreator, INode, IPlatform, IRenderLocation, IRenderer, IRendering, IRepeatableHandler, IRepeatableHandlerResolver, ISVGAnalyzer, ISanitizer, IShadowDOMGlobalStyles, IShadowDOMStyleFactory, IShadowDOMStyles, ISignaler, IViewFactory, IWindow, If, InterpolationBinding, InterpolationBindingRenderer, InterpolationPartBinding, IteratorBindingRenderer, LetBinding, LetElementRenderer, LifecycleHooks, LifecycleHooksDefinition, LifecycleHooksEntry, ListenerBinding, ListenerBindingOptions, ListenerBindingRenderer, MountTarget, NodeObserverLocator, NoopSVGAnalyzer, OneTimeBindingBehavior, PendingTemplateController, Portal, PromiseTemplateController, PropertyBinding, PropertyBindingRenderer, RefBinding, RefBindingRenderer, RejectedTemplateController, Rendering, Repeat, RuntimeTemplateCompilerImplementation, SVGAnalyzer, SanitizeValueConverter, SelectValueObserver, SelfBindingBehavior, SetAttributeRenderer, SetClassAttributeRenderer, SetPropertyRenderer, SetStyleAttributeRenderer, ShadowDOMRegistry, ShortHandBindingSyntax, SignalBindingBehavior, SpreadRenderer, StandardConfiguration, State, StyleAttributeAccessor, StyleConfiguration, StyleElementStyles, StylePropertyBindingRenderer, Switch, TemplateControllerRenderer, TextBindingRenderer, ThrottleBindingBehavior, ToViewBindingBehavior, TwoWayBindingBehavior, UpdateTriggerBindingBehavior, ValueAttributeObserver, ValueConverter, ValueConverterDefinition, ViewFactory, Watch, With, alias, bindable, bindingBehavior, capture, children, coercer, containerless, convertToRenderLocation, cssModules, customAttribute, customElement, getEffectiveParentNode, isCustomElementController, isCustomElementViewModel, isRenderLocation, lifecycleHooks, mixinAstEvaluator, mixinUseScope, mixingBindingLimited, processContent, refs, registerAliases, registerHostNode, renderer, setEffectiveParentNode, shadowCSS, slotted, templateController, useShadowDOM, valueConverter, watch };
 //# sourceMappingURL=index.dev.mjs.map

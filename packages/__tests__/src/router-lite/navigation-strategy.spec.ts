@@ -1,5 +1,6 @@
-import { IRouter, ITypedNavigationInstruction_string, NavigationStrategy, route } from '@aurelia/router-lite';
-import { CustomElement, customElement } from '@aurelia/runtime-html';
+import { resolve } from '@aurelia/kernel';
+import { IRouter, IRouteViewModel, ITypedNavigationInstruction_string, NavigationStrategy, Params, route, RouteNode } from '@aurelia/router-lite';
+import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
@@ -395,4 +396,68 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
       }
     });
   }
+
+  /**
+   * This test asserts an userland scenario, where a component is used temporarily by the navigation strategy,
+   * and after the waiting is done, another component is loaded by this temporary component.
+   * Refer: https://github.com/aurelia/aurelia/pull/2137#issuecomment-2767516591
+   *
+   * Note that the 'loading' promise is resolved after the temporary component is attached.
+   */
+  it('load new route', async function () {
+
+    let resolver: () => void;
+    const promise = new Promise<void>(r => resolver = r);
+    let factoryInvoked = 0;
+
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C11 implements IRouteViewModel {
+      private readonly router: IRouter = resolve(IRouter);
+      public canLoad(params: Params, _next: RouteNode, _current: RouteNode | null): boolean {
+        void promise.then(() => this.router.load(params.id, { transitionPlan: 'replace' }));
+        return true;
+      }
+    }
+
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C12 { }
+
+    let dataLoaded = false;
+    @route({
+      routes: [
+        C11,
+        C12,
+        {
+          path: ':id',
+          component: new NavigationStrategy((_vi, _ctx, _node, _route) => {
+            factoryInvoked++;
+            if (dataLoaded) return C12;
+            dataLoaded = true;
+            return C11;
+          })
+        }
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+    class Root { }
+
+    const { au, container, host } = await start({ appRoot: Root });
+    const router = container.get(IRouter);
+    const taskQueue = container.get(IPlatform).taskQueue;
+
+    assert.html.textContent(host, '', 'initial');
+
+    await router.load('1');
+    assert.html.textContent(host, 'c1', 'round#1');
+
+    // resolve the promise to trigger the navigation
+    resolver!();
+    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+    await taskQueue.yield();
+    assert.html.textContent(host, 'c2', 'initial');
+
+    await au.stop(true);
+
+    assert.strictEqual(factoryInvoked, 2, 'factoryInvoked');
+  });
 });

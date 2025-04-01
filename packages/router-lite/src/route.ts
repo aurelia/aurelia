@@ -27,7 +27,8 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   /** @internal */ private _currentComponent: Routeable | null = null;
   public get component(): Routeable { return this._getComponent(); }
 
-  private readonly isNavigationStrategy: boolean;
+  /** @internal */ private readonly _isNavigationStrategy: boolean;
+  /** @internal */ private readonly _component: Routeable | NavigationStrategy;
 
   private constructor(
     public readonly id: string,
@@ -41,10 +42,11 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
     public readonly data: Record<string, unknown>,
     public readonly routes: readonly Routeable[],
     public readonly fallback: Routeable | FallbackFunction | null,
-    private readonly _component: Routeable | NavigationStrategy,
+    component: Routeable | NavigationStrategy,
     public readonly nav: boolean,
   ) {
-    this.isNavigationStrategy = _component instanceof NavigationStrategy;
+    this._component = component;
+    this._isNavigationStrategy = component instanceof NavigationStrategy;
   }
 
   /** @internal */
@@ -225,15 +227,15 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode, route?: RecognizedRoute<unknown>): Routeable {
     if (vi == null) {
       if (this._currentComponent != null) return this._currentComponent;
-      if (this.isNavigationStrategy) throw new Error(getMessage(Events.rtInvalidOperationNavigationStrategyComponent, this.id));
+      if (this._isNavigationStrategy) throw new Error(getMessage(Events.rtInvalidOperationNavigationStrategyComponent, this.id));
       return this._currentComponent = this._component;
     }
-    return this._currentComponent ??= this.isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!, route!) : this._component;
+    return this._currentComponent ??= this._isNavigationStrategy ? (this._component as NavigationStrategy).getComponent(vi, ctx!, node!, route!) : this._component;
   }
 
   /** @internal */
   public _handleNavigationStart(): void {
-    if (!this.isNavigationStrategy) return;
+    if (!this._isNavigationStrategy) return;
     this._currentComponent = null;
   }
 }

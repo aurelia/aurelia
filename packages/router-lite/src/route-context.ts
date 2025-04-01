@@ -166,7 +166,7 @@ export class RouteContext {
   public get navigationModel(): INavigationModel | null {
     return this._navigationModel;
   }
-  /** @internal */ private readonly unsubscribeIsNavigatingChange: () => void;
+  /** @internal */ private readonly _unsubscribeIsNavigatingChange: () => void;
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -201,7 +201,7 @@ export class RouteContext {
       }
     };
     observer.subscribe(subscriber);
-    this.unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
+    this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
 
     this._moduleLoader = parentContainer.get(IModuleLoader);
 
@@ -375,7 +375,7 @@ export class RouteContext {
 
   public dispose(): void {
     this.container.dispose();
-    this.unsubscribeIsNavigatingChange();
+    this._unsubscribeIsNavigatingChange();
   }
 
   /** @internal */

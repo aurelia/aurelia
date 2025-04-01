@@ -1,7 +1,8 @@
 import { mergeArrays, firstDefined, Key, resourceBaseName, getResourceKeyFor, isFunction, isString, ILogger } from '@aurelia/kernel';
 import { Bindable } from '../bindable';
 import { Watch } from '../watch';
-import { INode, getEffectiveParentNode, getRef } from '../dom';
+import { getEffectiveParentNode } from '../dom';
+import { INode, refs } from '../dom.node';
 import { defineMetadata, getAnnotationKeyFor, getMetadata, hasMetadata } from '../utilities-metadata';
 import { objectFreeze } from '../utilities';
 import { aliasRegistration, singletonRegistration } from '../utilities-di';
@@ -215,7 +216,7 @@ export const isAttributeType = <T>(value: T): value is (T extends Constructable 
 
 /** @internal */
 export const findAttributeControllerFor = <C extends ICustomAttributeViewModel = ICustomAttributeViewModel>(node: Node, name: string): ICustomAttributeController<C> | undefined => {
-  return (getRef(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
+  return (refs.get(node, getAttributeKeyFrom(name)) ?? void 0) as ICustomAttributeController<C> | undefined;
 };
 
 /** @internal */
@@ -253,7 +254,7 @@ const findClosestControllerByName = (node: Node, attrNameOrType: string | Custom
   }
   let cur = node as INode | null;
   while (cur !== null) {
-    const controller = getRef(cur, key) as Controller | null;
+    const controller = refs.get(cur, key) as Controller | null;
     if (controller?.is(attrName)) {
       return controller as ICustomAttributeController;
     }

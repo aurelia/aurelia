@@ -20,7 +20,7 @@ import { atLayout, atNode, isDataAttribute, objectAssign } from '../utilities';
 
 import type { IIndexable } from '@aurelia/kernel';
 import type { AccessorType, IAccessor, IObserver, ICollectionObserver, CollectionKind } from '@aurelia/runtime';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import { createMappedError, ErrorNames } from '../errors';
 
 const nsAttributes = (() => {

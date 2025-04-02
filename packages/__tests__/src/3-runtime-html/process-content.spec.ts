@@ -1,4 +1,5 @@
 import { IContainer, noop, toArray } from '@aurelia/kernel';
+import { flush } from '@aurelia/runtime';
 import { Aurelia, BindingMode, bindable, CustomElement, customElement, INode, IPlatform, processContent } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext as $TestExecutionContext, TestFunction } from '../util.js';
@@ -630,7 +631,6 @@ describe('3-runtime-html/process-content.spec.ts', function () {
 
     $it('semi-real-life example with tabs',
       async function (ctx) {
-        const platform = ctx.platform;
         const host = ctx.host;
         const tabs = host.querySelector('tabs');
         const headers = tabs.querySelectorAll<HTMLButtonElement>('div.header button');
@@ -644,7 +644,7 @@ describe('3-runtime-html/process-content.spec.ts', function () {
 
           // assert the bound trigger
           header.click();
-          platform.domQueue.flush();
+          flush();
           for (let j = numTabs - 1; j > -1; j--) {
             assert.strictEqual(headers[j].classList.contains('active'), i === j, `header#${j} class`);
             assert.html.innerEqual(tabs.querySelector<HTMLButtonElement>('div.content div'), expectedContents[i], `content#${i} content`);

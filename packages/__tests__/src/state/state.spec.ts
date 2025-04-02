@@ -1,4 +1,5 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { StateDefaultConfiguration, fromState } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
@@ -117,7 +118,7 @@ describe('state/state.spec.ts', function () {
 
   it('reacts to view model changes', async function () {
     const state = { text: '123' };
-    const { component, getBy, flush } = await createFixture
+    const { component, getBy } = await createFixture
       .component({ value: '--' })
       .html('<input value.state="text + $parent.value">')
       .deps(StateDefaultConfiguration.init(state))
@@ -222,14 +223,13 @@ describe('state/state.spec.ts', function () {
     });
 
     it('updates text when state changes', async function () {
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<input value.bind="text & state" input.dispatch="$event.target.value">`
         .component({ text: 'from view model' })
         .deps(StateDefaultConfiguration.init({ text: '1' }, (s, a) => ({ text: s.text + a })))
         .build().started;
 
       trigger('input', 'input');
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -253,7 +253,7 @@ describe('state/state.spec.ts', function () {
 
     it('dispatches action', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger } = await createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -271,7 +271,7 @@ describe('state/state.spec.ts', function () {
 
     it('handles multiple action types in a single reducer', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'clear' }">Clear</button>
@@ -300,7 +300,7 @@ describe('state/state.spec.ts', function () {
 
     it('does not throw on unreged action type', async function () {
       const state = { text: '1' };
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'no-reg', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -316,7 +316,7 @@ describe('state/state.spec.ts', function () {
 
     it('works with debounce', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = createFixture
+      const { getBy, trigger } = createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:1">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -330,14 +330,13 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
     it('works with throttle', async function () {
       let actionCallCount = 0;
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger } = await createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:1">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -361,7 +360,6 @@ describe('state/state.spec.ts', function () {
 
       await resolveAfter(10);
       assert.strictEqual(actionCallCount, 2);
-      flush();
       assert.strictEqual(getBy('input').value, '1111');
     });
 
@@ -411,7 +409,7 @@ describe('state/state.spec.ts', function () {
       let started = 0;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
         `
@@ -448,8 +446,6 @@ describe('state/state.spec.ts', function () {
         { text: '11', click: 0 },
       ]);
 
-      assertValue('input', '1');
-      flush();
       assertValue('input', '11');
     });
 
@@ -457,7 +453,7 @@ describe('state/state.spec.ts', function () {
       let started = false;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'click' }">Change</button>
@@ -500,7 +496,6 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
-      flush();
       assertValue('input', '11');
 
       trigger('input', 'input');
@@ -514,8 +509,6 @@ describe('state/state.spec.ts', function () {
         { text: '1111', click: 2 },
       ]);
 
-      assertValue('input', '11');
-      flush();
       assertValue('input', '1111');
     });
   });
@@ -565,13 +558,12 @@ describe('state/state.spec.ts', function () {
       }
 
       const state = { text: '1' };
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<my-el>`
         .deps(MyEl, StateDefaultConfiguration.init(state, (s, { v }) => ({ text: s.text + v })))
         .build().started;
 
       trigger('input', 'input');
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 

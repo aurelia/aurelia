@@ -1,6 +1,6 @@
 import { DI, IPlatform, Registration } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { batch, DirtyChecker, IObserverLocator, observable } from '@aurelia/runtime';
+import { batch, DirtyChecker, flush, IObserverLocator, observable } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/observation-glitches.spec.ts', function () {
@@ -50,15 +50,13 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      flush();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      flush();
+      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
     });
 
     it('handles nested dependencies glitches', function () {
@@ -104,15 +102,13 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      flush();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      flush();
+      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
     });
 
     it('handles many layers of nested dependencies glitches', function () {
@@ -167,15 +163,13 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      flush();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      flush();
+      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
     });
 
     it('handles @observable decorator glitches', function () {
@@ -212,15 +206,13 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      flush();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      flush();
+      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
     });
 
     it('handles array index related glitches', function () {
@@ -399,22 +391,24 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        flush();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
+        flush();
         // shouldn't go to 2 because fullName should no longer have 'Sync' in it
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
       });
 
       it('handles nested dependencies glitches', function () {
@@ -462,21 +456,19 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        flush();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        // first name change ->
-        // 1. tag() runs again
-        // 2. fullname() runs again
-        //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        flush();
+        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
       });
 
       it('handles many layers of nested dependencies glitches', function () {
@@ -533,21 +525,19 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        flush();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        // first name change ->
-        // 1. tag() runs again
-        // 2. fullname() runs again
-        //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        flush();
+        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
       });
 
       it('handles @observable decorator glitches', function () {
@@ -586,17 +576,19 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        flush();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        flush();
+        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
       });
 
       it('handles array index related glitches', function () {

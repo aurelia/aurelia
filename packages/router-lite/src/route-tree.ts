@@ -46,7 +46,7 @@ import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
-import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig } from './route';
 import { Events, getMessage } from './events';
 import { pathUrlParser } from './url-parser';
 

@@ -189,6 +189,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
 
   public stop() {
     this.task?.cancel();
+    this.source = void 0;
     this.scope = void 0;
     this.task = null;
 

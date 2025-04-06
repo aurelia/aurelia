@@ -465,7 +465,7 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('load new route and activates child viewport', async function () {
+  it('load new route and activates child viewport - explicit navigation instruction', async function () {
 
     let resolver: () => void;
     const promise = new Promise<void>(r => resolver = r);
@@ -535,7 +535,7 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     await au.stop(true);
   });
 
-  it.only('load new route and activates child viewport - 1', async function () {
+  it('load new route and activates child viewport - reuses the navigation strategy', async function () {
 
     let resolver: () => void;
     const promise = new Promise<void>(r => resolver = r);

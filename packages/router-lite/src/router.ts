@@ -379,6 +379,7 @@ export class Router {
         let routeContext = routeConfigLookup.get(rdConfig);
         if (routeContext !== void 0) {
           if (__DEV__) trace(logger, Events.rtrResolvingRcExisting, rdConfig);
+          routeContext._resolving(componentDefinition);
           return routeContext;
         }
         if (__DEV__) trace(logger, Events.rtrResolvingRcNew, rdConfig);

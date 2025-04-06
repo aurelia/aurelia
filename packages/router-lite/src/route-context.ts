@@ -10,6 +10,7 @@ import {
   Registration,
   emptyObject,
   emptyArray,
+  Writable,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -232,6 +233,21 @@ export class RouteContext {
       this._navigationModel = null;
     }
     this._processConfig(config);
+  }
+
+  /**
+   * This hoook is invoked when an existing route context is being resolved.
+   * Using this hook, the route context can take care of any necessary changes or cleanup before it can be reused.
+   * For now, this is used in the context of navigation strategy.
+   *
+   * @internal
+   */
+  public _resolving(component: CustomElementDefinition): void {
+    if (!this.config._isNavigationStrategy || this.component === component) return;
+
+    trace(this._logger, Events.rcReplacingComponent, this.component.name, component.name, this);
+    this._childRoutesConfigured = false;
+    (this as Writable<RouteContext>).component = component;
   }
 
   /** @internal */

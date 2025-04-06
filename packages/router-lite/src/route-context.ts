@@ -158,7 +158,7 @@ export class RouteContext {
   private readonly _platform: IPlatform;
 
   /** @internal */ private readonly _moduleLoader: IModuleLoader;
-  /** @internal */ private readonly _logger: ILogger;
+  /** @internal */ private _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ private _childRoutesConfigured: boolean = false;
@@ -174,7 +174,7 @@ export class RouteContext {
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
-    parentContainer: IContainer,
+    private readonly parentContainer: IContainer,
     private readonly _router: IRouter,
   ) {
     this._vpa = viewportAgent;
@@ -248,6 +248,8 @@ export class RouteContext {
     trace(this._logger, Events.rcReplacingComponent, this.component.name, component.name, this);
     this._childRoutesConfigured = false;
     (this as Writable<RouteContext>).component = component;
+    (this as Writable<RouteContext>)._friendlyPath = this.parent === null ? component.name : `${this.parent._friendlyPath}/${component.name}`;
+    this._logger = this.parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
   }
 
   /** @internal */

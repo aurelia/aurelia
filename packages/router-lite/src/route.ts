@@ -222,6 +222,16 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   /** @internal */
+  public _getComponentName(): string {
+    try {
+      return (this._getComponent() as RouteType).name;
+    } catch {
+      // TODO(Sayan): Convert all Errors in router lite to instances of RouterError
+      return 'UNRESOLVED-NAVIGATION-STRATEGY';
+    }
+  }
+
+  /** @internal */
   public _getComponent(): Routeable;
   public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): Routeable;
   public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode, route?: RecognizedRoute<unknown>): Routeable {

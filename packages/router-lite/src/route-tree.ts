@@ -274,7 +274,7 @@ export class RouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = (this.context?.config.component as RouteType)?.name ?? '';
+    const component = this.context?.config._getComponentName() ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }

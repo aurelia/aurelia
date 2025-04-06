@@ -6,7 +6,7 @@ import { IPlatform as v, INode as g, bindable as p, CustomAttribute as m, Bindin
 
 import { IExpressionParser as E } from "../../../expression-parser/dist/native-modules/index.mjs";
 
-import { astEvaluate as _, connectable as R, mixinNoopAstEvaluator as T, IObserverLocator as S } from "../../../runtime/dist/native-modules/index.mjs";
+import { astEvaluate as _, connectable as S, mixinNoopAstEvaluator as R, IObserverLocator as T } from "../../../runtime/dist/native-modules/index.mjs";
 
 function __esDecorate(t, i, e, s, n, r) {
     function accept(t) {
@@ -80,11 +80,12 @@ class ValidationEvent {
 }
 
 class BindingInfo {
-    constructor(t, i, e, s = void 0) {
-        this.target = t;
-        this.scope = i;
-        this.rules = e;
-        this.propertyInfo = s;
+    constructor(t, i, e, s, n = void 0) {
+        this.sourceObserver = t;
+        this.target = i;
+        this.scope = e;
+        this.rules = s;
+        this.propertyInfo = n;
     }
 }
 
@@ -105,7 +106,7 @@ function getPropertyInfo(t, i) {
     let r = true;
     let o = "";
     while (n !== void 0 && n?.$kind !== "AccessScope") {
-        let i;
+        let e;
         switch (n.$kind) {
           case "BindingBehavior":
           case "ValueConverter":
@@ -113,24 +114,24 @@ function getPropertyInfo(t, i) {
             continue;
 
           case "AccessMember":
-            i = n.name;
+            e = n.name;
             break;
 
           case "AccessKeyed":
             {
-                const e = n.key;
+                const o = n.key;
                 if (r) {
-                    r = e.$kind === "PrimitiveLiteral";
+                    r = o.$kind === "PrimitiveLiteral";
                 }
-                i = `[${_(e, s, t, null).toString()}]`;
+                e = `[${_(o, s, t, i.sourceObserver).toString()}]`;
                 break;
             }
 
           default:
             throw createMappedError(4205, n.constructor.name);
         }
-        const e = o.startsWith("[") ? "" : ".";
-        o = o.length === 0 ? i : `${i}${e}${o}`;
+        const a = o.startsWith("[") ? "" : ".";
+        o = o.length === 0 ? e : `${e}${a}${o}`;
         n = n.object;
     }
     if (n === void 0) {
@@ -141,7 +142,7 @@ function getPropertyInfo(t, i) {
         o = n.name;
         a = s.bindingContext;
     } else {
-        a = _(n, s, t, null);
+        a = _(n, s, t, i.sourceObserver);
     }
     if (a === null || a === void 0) {
         return void 0;
@@ -531,7 +532,7 @@ const O = new WeakMap;
 class ValidateBindingBehavior {
     constructor() {
         this.p = i(v);
-        this.oL = i(S);
+        this.oL = i(T);
     }
     bind(t, i) {
         if (!(i instanceof V)) {
@@ -568,14 +569,15 @@ class ValidationConnector {
         this.p = t;
         this.oL = i;
         this.l = n;
-        this.t = new BindingMediator("handleTriggerChange", this, i, n);
-        this.i = new BindingMediator("handleControllerChange", this, i, n);
-        this.h = new BindingMediator("handleRulesChange", this, i, n);
+        this.t = new BindingMediator("handleSourceChange", this, i, n);
+        this.i = new BindingMediator("handleTriggerChange", this, i, n);
+        this.h = new BindingMediator("handleControllerChange", this, i, n);
+        this.u = new BindingMediator("handleRulesChange", this, i, n);
         if (n.has(I, true)) {
             this.scopedController = n.get(I);
         }
     }
-    u() {
+    V() {
         this.isDirty = true;
         const t = this.triggerEvent;
         if (this.isChangeTrigger && (t === null || t !== null && this.validatedOnce)) {
@@ -589,9 +591,9 @@ class ValidationConnector {
     }
     start(t) {
         this.scope = t;
-        this.target = this.V();
-        const i = this.C();
-        if (!this.B(i) && this.bindingInfo != null) {
+        this.target = this.C();
+        const i = this.B();
+        if (!this._(i) && this.bindingInfo != null) {
             this.controller?.registerBinding(this.propertyBinding, this.bindingInfo);
             this.controller?.addSubscriber(this);
         }
@@ -609,13 +611,19 @@ class ValidationConnector {
         this.controller?.removeSubscriber(this);
     }
     handleTriggerChange(t, i) {
-        this.B(new ValidateArgumentsDelta(void 0, this._(t), void 0));
+        this._(new ValidateArgumentsDelta(void 0, this.R(t), void 0));
     }
     handleControllerChange(t, i) {
-        this.B(new ValidateArgumentsDelta(this.R(t), void 0, void 0));
+        this._(new ValidateArgumentsDelta(this.T(t), void 0, void 0));
     }
     handleRulesChange(t, i) {
-        this.B(new ValidateArgumentsDelta(void 0, void 0, this.T(t)));
+        this._(new ValidateArgumentsDelta(void 0, void 0, this.I(t)));
+    }
+    handleSourceChange(t, i) {
+        if (this.source !== t) {
+            this.source = t;
+            this.bindingInfo.propertyInfo = void 0;
+        }
     }
     handleValidationEvent(t) {
         if (this.validatedOnce || !this.isChangeTrigger) return;
@@ -625,7 +633,7 @@ class ValidationConnector {
         if (e === void 0) return;
         this.validatedOnce = t.addedResults.find((t => t.result.propertyName === e)) !== void 0;
     }
-    C() {
+    B() {
         const t = this.scope;
         let i;
         let e;
@@ -639,22 +647,22 @@ class ValidationConnector {
             const o = r[n];
             switch (n) {
               case 0:
-                e = this._(_(o, t, this, this.t));
+                e = this.R(_(o, t, this, this.i));
                 break;
 
               case 1:
-                s = this.R(_(o, t, this, this.i));
+                s = this.T(_(o, t, this, this.h));
                 break;
 
               case 2:
-                i = this.T(_(o, t, this, this.h));
+                i = this.I(_(o, t, this, this.u));
                 break;
 
               default:
                 throw createMappedError(4201, n + 1, _(o, t, this, null));
             }
         }
-        return new ValidateArgumentsDelta(this.R(s), this._(e), i);
+        return new ValidateArgumentsDelta(this.T(s), this.R(e), i);
     }
     validateBinding() {
         const t = this.task;
@@ -663,7 +671,7 @@ class ValidationConnector {
             t?.cancel();
         }
     }
-    B(t) {
+    _(t) {
         const i = t.trigger ?? this.trigger;
         const e = t.controller ?? this.controller;
         const s = t.rules;
@@ -676,7 +684,7 @@ class ValidationConnector {
             this.isDirty = false;
             this.trigger = i;
             this.isChangeTrigger = i === D.change || i === D.changeOrBlur || i === D.changeOrFocusout;
-            t = this.triggerEvent = this.I(this.trigger);
+            t = this.triggerEvent = this.P(this.trigger);
             if (t !== null) {
                 this.target.addEventListener(t, this);
             }
@@ -685,13 +693,13 @@ class ValidationConnector {
             this.controller?.removeSubscriber(this);
             this.controller?.unregisterBinding(this.propertyBinding);
             this.controller = e;
-            e.registerBinding(this.propertyBinding, this.P(s));
+            e.registerBinding(this.propertyBinding, this.A(s));
             e.addSubscriber(this);
             return true;
         }
         return false;
     }
-    _(t) {
+    R(t) {
         if (t === void 0 || t === null) {
             t = this.defaultTrigger;
         } else if (!Object.values(D).includes(t)) {
@@ -699,7 +707,7 @@ class ValidationConnector {
         }
         return t;
     }
-    R(t) {
+    T(t) {
         if (t == null) {
             t = this.scopedController;
         } else if (!(t instanceof ValidationController)) {
@@ -707,12 +715,12 @@ class ValidationConnector {
         }
         return t;
     }
-    T(t) {
+    I(t) {
         if (Array.isArray(t) && t.every((t => t instanceof u))) {
             return t;
         }
     }
-    V() {
+    C() {
         const t = this.propertyBinding.target;
         if (t instanceof this.p.Node) {
             return t;
@@ -724,7 +732,7 @@ class ValidationConnector {
             return i.host;
         }
     }
-    I(t) {
+    P(t) {
         let i = null;
         switch (t) {
           case D.blur:
@@ -739,14 +747,14 @@ class ValidationConnector {
         }
         return i;
     }
-    P(t) {
-        return this.bindingInfo = new BindingInfo(this.target, this.scope, t);
+    A(t) {
+        return this.bindingInfo = new BindingInfo(this.t, this.target, this.scope, t);
     }
 }
 
-R(ValidationConnector, null);
+S(ValidationConnector, null);
 
-T(ValidationConnector);
+R(ValidationConnector);
 
 class WithValidationTargetSubscriber extends y {
     constructor(t, i, e) {
@@ -755,7 +763,7 @@ class WithValidationTargetSubscriber extends y {
     }
     handleChange(t, i) {
         super.handleChange(t, i);
-        this.vs.u();
+        this.vs.V();
     }
 }
 
@@ -779,9 +787,9 @@ class BindingMediator {
     }
 }
 
-R(BindingMediator, null);
+S(BindingMediator, null);
 
-T(BindingMediator);
+R(BindingMediator);
 
 function getDefaultValidationHtmlConfiguration() {
     return {

@@ -566,7 +566,6 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
       routes: [
         C11,
         C12,
-        // { path: 'c-12/:id', component: C12 },
         {
           path: ':id',
           component: new NavigationStrategy(() => {

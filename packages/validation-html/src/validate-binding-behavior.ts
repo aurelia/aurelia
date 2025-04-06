@@ -116,6 +116,7 @@ interface ValidationConnector extends IAstEvaluator, IObserverLocatorBasedConnec
  */
 class ValidationConnector implements ValidationResultsSubscriber {
   private readonly propertyBinding: BindingWithBehavior;
+  private source: unknown;
   private target!: HTMLElement;
   private trigger!: ValidationTrigger;
   private readonly scopedController?: IValidationController;
@@ -129,6 +130,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
   private bindingInfo!: BindingInfo;
   /** @internal */ public readonly l: IServiceLocator;
   /** @internal */ private readonly _platform: IPlatform;
+  /** @internal */ private readonly _sourceMediator: BindingMediator<'handleSourceChange'>;
   /** @internal */ private readonly _triggerMediator: BindingMediator<'handleTriggerChange'>;
   /** @internal */ private readonly _controllerMediator: BindingMediator<'handleControllerChange'>;
   /** @internal */ private readonly _rulesMediator: BindingMediator<'handleRulesChange'>;
@@ -146,9 +148,11 @@ class ValidationConnector implements ValidationResultsSubscriber {
     this._platform = platform;
     this.oL = observerLocator;
     this.l = locator;
+    this._sourceMediator = new BindingMediator('handleSourceChange', this, observerLocator, locator);
     this._triggerMediator = new BindingMediator('handleTriggerChange', this, observerLocator, locator);
     this._controllerMediator = new BindingMediator('handleControllerChange', this, observerLocator, locator);
     this._rulesMediator = new BindingMediator('handleRulesChange', this, observerLocator, locator);
+
     if (locator.has(IValidationController, true)) {
       this.scopedController = locator.get(IValidationController);
     }
@@ -207,6 +211,13 @@ class ValidationConnector implements ValidationResultsSubscriber {
 
   public handleRulesChange(newValue: unknown, _previousValue: unknown): void {
     this._processDelta(new ValidateArgumentsDelta(void 0, void 0, this._ensureRules(newValue)));
+  }
+
+  public handleSourceChange(newValue: unknown, _previousValue: unknown): void {
+    if(this.source !== newValue) {
+      this.source = newValue;
+      this.bindingInfo.propertyInfo = void 0;
+    }
   }
 
   public handleValidationEvent(event: ValidationEvent): void {
@@ -363,7 +374,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
 
   /** @internal */
   private _setBindingInfo(rules: PropertyRule[] | undefined): BindingInfo {
-    return this.bindingInfo = new BindingInfo(this.target, this.scope!, rules);
+    return this.bindingInfo = new BindingInfo(this._sourceMediator, this.target, this.scope!, rules);
   }
 }
 

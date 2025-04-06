@@ -725,6 +725,7 @@ class ValidationConnector {
     }
     stop() {
         this.task?.cancel();
+        this.source = void 0;
         this.scope = void 0;
         this.task = null;
         const triggerEventName = this.triggerEvent;

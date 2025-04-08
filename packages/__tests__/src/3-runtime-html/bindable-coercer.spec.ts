@@ -2,6 +2,7 @@ import { Constructable, DI, noop, Registration } from '@aurelia/kernel';
 import { Aurelia, bindable, customElement, CustomElement, IPlatform, coercer, customAttribute, CustomAttribute, StandardConfiguration } from '@aurelia/runtime-html';
 import { assert, PLATFORMRegistration, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
+import { flush } from '@aurelia/runtime';
 
 describe('3-runtime-html/bindable-coercer.spec.ts', function () {
   interface TestSetupContext<TApp> {
@@ -123,27 +124,35 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.num, undefined);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.num, null);
 
         app.prop = '0';
+        flush();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.num, 42);
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = 84;
+        flush();
         assert.strictEqual(myEl.num, 84);
 
         app.prop = true;
+        flush();
         assert.strictEqual(myEl.num, 1);
 
         app.prop = 'true';
+        flush();
         assert.strictEqual(Number.isNaN(myEl.num), true);
 
         app.prop = {};
+        flush();
         assert.strictEqual(Number.isNaN(myEl.num), true);
       }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -163,12 +172,15 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(Number.isNaN(myEl.num), true);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.num, 0);
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.num, 42);
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.num, 0);
       }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -224,27 +236,35 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.str, undefined);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.str, null);
 
         app.prop = '0';
+        flush();
         assert.strictEqual(myEl.str, '0');
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.str, '0');
 
         app.prop = 42;
+        flush();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = true;
+        flush();
         assert.strictEqual(myEl.str, 'true');
 
         app.prop = false;
+        flush();
         assert.strictEqual(myEl.str, 'false');
 
         app.prop = {};
+        flush();
         assert.strictEqual(myEl.str, '[object Object]');
       }, { app: App, template: `<my-el component.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -264,12 +284,15 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.str, 'undefined');
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.str, 'null');
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.str, '42');
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.str, '0');
       }, { app: App, template: `<my-el component.ref="myEl" str.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -342,39 +365,51 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.bool, undefined);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.bool, null);
 
         app.prop = '0';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = '1';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = 1;
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 42;
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = true;
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = false;
+        flush();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = 'true';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 'false';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = {};
+        flush();
         assert.strictEqual(myEl.bool, true);
       }, { app: App, template: `<my-el component.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -394,12 +429,15 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.bool, false);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.bool, false);
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.bool, true);
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.bool, false);
       }, { app: App, template: `<my-el component.ref="myEl" bool.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -453,28 +491,36 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(myEl.num, undefined);
 
         app.prop = null;
+        flush();
         assert.strictEqual(myEl.num, null);
 
         app.prop = '0';
+        flush();
         assert.strictEqual(myEl.num, BigInt(0));
 
         app.prop = '42';
+        flush();
         assert.strictEqual(myEl.num, BigInt(42));
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.num, BigInt(0));
 
         app.prop = 84;
+        flush();
         assert.strictEqual(myEl.num, BigInt(84));
 
         app.prop = true;
+        flush();
         assert.strictEqual(myEl.num, BigInt(1));
 
         assert.throws(() => {
           app.prop = 'true';
+          flush();
         });
         assert.throws(() => {
           app.prop = {};
+          flush();
         });
       }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -495,13 +541,16 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
 
         assert.throws(() => {
           app.prop = null;
+          flush();
         });
 
         assert.throws(() => {
           app.prop = undefined;
+          flush();
         });
 
         app.prop = 0;
+        flush();
         assert.strictEqual(myEl.num, BigInt(0));
       }, { app: App, template: `<my-el component.ref="myEl" num.bind="prop"></my-el>`, registrations: [MyEl] });
     }
@@ -594,18 +643,23 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
           assert.strictEqual(myEl.person, undefined);
 
           app.prop = null;
+          flush();
           assert.strictEqual(myEl.person, null);
 
           app.prop = 'john';
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1('john', null!));
 
           app.prop = JSON.stringify(new Person1('john', 42));
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
 
           app.prop = 42;
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1(null!, 42));
 
           app.prop = { name: 'john', age: 42 };
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
         }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -625,9 +679,11 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
           assert.deepStrictEqual(myEl.person, new Person1(null!, null!));
 
           app.prop = null;
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1(null!, null!));
 
           app.prop = { name: 'john', age: 42 };
+          flush();
           assert.deepStrictEqual(myEl.person, new Person1('john', 42));
         }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -695,18 +751,23 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
           assert.strictEqual(myEl.person, undefined);
 
           app.prop = null;
+          flush();
           assert.strictEqual(myEl.person, null);
 
           app.prop = 'john';
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2('john', null!));
 
           app.prop = JSON.stringify(new Person2('john', 42));
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
 
           app.prop = 42;
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2(null!, 42));
 
           app.prop = { name: 'john', age: 42 };
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
         }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -726,9 +787,11 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
           assert.deepStrictEqual(myEl.person, new Person2(null!, null!));
 
           app.prop = null;
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2(null!, null!));
 
           app.prop = { name: 'john', age: 42 };
+          flush();
           assert.deepStrictEqual(myEl.person, new Person2('john', 42));
         }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
       }
@@ -750,14 +813,17 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.strictEqual(Person2.coerced, 1, 'error2');
 
         app.prop.age = 84;
+        flush();
         assert.deepStrictEqual(myEl.person, new Person2('john', 42), 'error3');
         assert.strictEqual(Person2.coerced, 1, 'error4');
 
         const person = app.prop = new Person2('john', 84);
+        flush();
         assert.strictEqual(myEl.person, person, 'error5');
         assert.strictEqual(Person2.coerced, 1, 'error6');
 
         person.age = 42;
+        flush();
         assert.strictEqual(myEl.person.age, 42, 'error7');
         assert.strictEqual(Person2.coerced, 1, 'error8');
       }, { app: App, template: `<my-el component.ref="myEl" person.bind="prop"></my-el>`, registrations: [MyEl] });
@@ -780,6 +846,7 @@ describe('3-runtime-html/bindable-coercer.spec.ts', function () {
         assert.notInstanceOf(app.prop, Person2);
 
         const person = myEl.person = new Person2('foo', 42);
+        flush();
         assert.strictEqual(app.prop, person);
       }, { app: App, template: `<my-el component.ref="myEl" person.two-way="prop"></my-el>`, registrations: [MyEl] });
     }

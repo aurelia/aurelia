@@ -150,7 +150,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      assert.throws(() => component.behavior = 'scope', 'Invalid scope behavior');
+      assert.throws(
+        () => {
+          component.behavior = 'scope';
+          flush();
+        },
+        'Invalid scope behavior'
+      );
     });
   });
 
@@ -370,6 +376,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       });
 
       component.items = 3;
+      flush();
       divs = Array.from(appHost.querySelectorAll('div'));
       assert.strictEqual(divs.length, 3);
       divs.forEach((div, i) => {
@@ -542,6 +549,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><h1><div>Hello</div></h1><!--au-end-->');
 
       component.i = 1;
+      flush();
       assert.strictEqual(host, appHost.querySelector('h2'));
       assertHtml('<!--au-start--><h2><div>Hello</div></h2><!--au-end-->');
     });
@@ -611,6 +619,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.html.innerEqual(appHost, '<div>Hello world</div>');
 
       component.view = '<b>Hello</b>';
+      flush();
       assert.html.innerEqual(appHost, '<b>Hello</b>');
       assert.deepStrictEqual(models, [{ index: 0 }, { index: 0 }]);
       assert.visibleTextEqual(appHost, 'Hello');
@@ -783,6 +792,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<div>Hello world from POJO</div>', { compact: true });
 
       component.El = 'my-el';
+      flush();
       assertHtml('<my-el>Hello world from ce</my-el>', { compact: true });
     });
 
@@ -810,6 +820,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<parent><child>Hello world from child 1</child></parent>', { compact: true });
 
       component.parent.c = 'child';
+      flush();
       assertHtml('<parent><child>Hello world from child 2</child></parent>', { compact: true });
     });
   });
@@ -849,6 +860,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         timeout--;
         assert.strictEqual(appHost.textContent, 'hello world0');
       }
+      flush();
       await component.pendingPromise;
       assert.strictEqual(appHost.textContent, `hello world38`);
       assert.html.innerEqual(appHost, 'hello world<div>38</div>');
@@ -913,6 +925,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     component.vm = El1;
     component.vm = El2;
 
+    flush();
     assert.strictEqual(appHost.textContent, `hello worldhello world 1`);
     // in the interim before a composition is completely disposed, on the fly host created will be in the doc
     assert.html.innerEqual(appHost, 'hello world<el1><div>hello world 1</div></el1><el2></el2>');
@@ -1005,10 +1018,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     // 1.1
     component.vm = El2;
+    flush();
     // 1.2
     component.vm = El1;
+    flush();
     // 1.3
     component.vm = El2;
+    flush();
 
     assert.deepStrictEqual(lifecyclesCalls, [
       '1.activate',
@@ -1154,6 +1170,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
+      flush();
       // when there's no template it'll just add a render location for the composition
       // and doesn't do anything beside that
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
@@ -1173,6 +1190,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
+      flush();
       // when there's no template it'll just add a render location for the composition
       // and doesn't do anything beside that
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
@@ -1299,6 +1317,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       assertHtml('<!--au-start--><b></b><!--au-end-->');
       component.i = 1;
+      flush();
 
       assertHtml('<!--au-start--><a download="true"></a><!--au-end-->');
     });

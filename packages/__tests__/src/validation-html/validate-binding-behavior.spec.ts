@@ -32,6 +32,7 @@ import {
   ValidationTrigger,
   BindingMediator,
   type ControllerValidateResult,
+  BindingInfo,
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter, $TestSetupContext } from '../util.js';
 import { Address, Organization, Person } from '../validation/_test-resources.js';
@@ -1763,6 +1764,126 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         [['address.line1', true, undefined], ['name', true, undefined], ['age', true, undefined], ['age', true, undefined]],
         'validationResult.results 3'
       );
+
+      await stop(true);
+    });
+
+    class MyAppReplaceableSource {
+      private _rules: IValidationRules;
+      public person: Person = new Person((void 0)!, (void 0)!);
+      public readonly validationController: IValidationController = resolve(newInstanceForScope(IValidationController));
+      public constructor()  {
+        this._rules = resolve(IValidationRules);
+        this.applyValidation();
+      }
+
+      replaceBindingSource(person: Person){
+        this._rules.off(this.person);
+        this.person = person;
+        this.applyValidation();
+      }
+
+      private applyValidation() {
+        this._rules
+        .on(this.person)
+        .ensure(x => x.name)
+        .required();
+      }
+    }
+
+    it('replaced binding source validates', async function () {
+      const { startPromise, stop, component, platform } = createFixture(
+        `<input value.two-way="person.name & validate"></input>`,
+        MyAppReplaceableSource,
+        [ValidationHtmlConfiguration]
+      );
+      await startPromise;
+      const domQueue = platform.domQueue;
+
+      // round #1
+      const validationController = component.validationController;
+      let validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', false, 'Name is required.']],
+        'validationResult.results 1'
+      );
+
+      // round #2
+      component.person.name = 'Aurelia';
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, true, 'validationResult2.valid 2');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', true, undefined]],
+        'validationResult.results 2'
+      );
+
+      // round #3 - replace the binding source
+      component.replaceBindingSource(new Person(void 0, void 0));
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, false, 'validationResult.valid 1');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', false, 'Name is required.']],
+        'validationResult.results 3'
+      );
+
+      // round #4 - make new binding source valid
+      component.person.name = 'Replaced Aurelia';
+      await domQueue.yield();
+
+      validationResult = await validationController.validate();
+      assert.strictEqual(validationResult.valid, true, 'validationResult2.valid 2');
+      assert.deepStrictEqual(
+        validationResult.results.map(x => [x.propertyName, x.valid, x.message]),
+        [['name', true, undefined]],
+        'validationResult.results 2'
+      );
+
+      await stop(true);
+    });
+
+    it('replaced binding source invalidates cached property info', async function () {
+      const { startPromise, stop, component, platform } = createFixture(
+        `<input value.two-way="person.name & validate"></input>`,
+        MyAppReplaceableSource,
+        [ValidationHtmlConfiguration]
+      );
+      await startPromise;
+      const domQueue = platform.domQueue;
+      const controller = component.validationController;
+
+      let bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
+      let binding = bindings[0];
+
+      // round #1 nothing cached before validation
+      assert.equal(binding.propertyInfo, undefined);
+
+      // round #2
+      await controller.validate();
+      bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
+      binding = bindings[0];
+      assert.equal(binding.propertyInfo.object, component.person);
+
+      // round #3 - replace the binding source, property info removed
+      const replacement = new Person(void 0, void 0);
+      component.replaceBindingSource(replacement);
+      await domQueue.yield();
+      bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
+      binding = bindings[0];
+      assert.equal(binding.propertyInfo, undefined);
+
+      // round #4 - after validate, new source is cached
+      await controller.validate();
+      bindings = Array.from((controller['bindings'] as Map<IBinding, BindingInfo>).values()) as BindingInfo[];
+      binding = bindings[0];
+      assert.equal(binding.propertyInfo.object, replacement);
 
       await stop(true);
     });

@@ -55,6 +55,7 @@ import { ensureArrayOfStrings } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
+import { IObserverLocator, ISubscriber } from '@aurelia/runtime';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -165,6 +166,7 @@ export class RouteContext {
   public get navigationModel(): INavigationModel | null {
     return this._navigationModel;
   }
+  /** @internal */ private readonly _unsubscribeIsNavigatingChange: () => void;
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -186,6 +188,20 @@ export class RouteContext {
     }
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
+
+    const observer = parentContainer.get(IObserverLocator).getObserver(this._router, 'isNavigating');
+    const subscriber: ISubscriber<boolean> = {
+      handleChange: (newValue, _previousValue) => {
+        if (newValue !== true) return;
+        this.config._handleNavigationStart();
+        for (const childRoute of this.childRoutes) {
+          if (childRoute instanceof Promise) continue;
+          childRoute._handleNavigationStart();
+        }
+      }
+    };
+    observer.subscribe(subscriber);
+    this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
 
     this._moduleLoader = parentContainer.get(IModuleLoader);
 
@@ -359,6 +375,7 @@ export class RouteContext {
 
   public dispose(): void {
     this.container.dispose();
+    this._unsubscribeIsNavigatingChange();
   }
 
   /** @internal */
@@ -468,7 +485,7 @@ export class RouteContext {
   private _addRoute(routeable: Promise<IModule>): Promise<void>;
   private _addRoute(routeable: Exclude<Routeable, Promise<IModule>>): void | Promise<void>;
   private _addRoute(routeable: Routeable): void | Promise<void> {
-    if(__DEV__) trace(this._logger, Events.rcAddRoute, routeable);
+    if (__DEV__) trace(this._logger, Events.rcAddRoute, routeable);
     return onResolve(
       resolveRouteConfiguration(routeable, true, this.config, null, this),
       rdConfig => {
@@ -572,7 +589,7 @@ export class RouteContext {
       const result = core(paths[0]);
       if (result === null) {
         if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
-        if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
+        if (__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
         return null;
       }
       return {
@@ -602,7 +619,7 @@ export class RouteContext {
 
     if (result === null) {
       if (throwError) throw new Error(getMessage(Events.rcEagerPathGenerationFailed, instruction, errors));
-      if(__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
+      if (__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
       return null;
     }
     return {
@@ -686,7 +703,7 @@ export class $RecognizedRoute {
   ) { }
 
   public toString(): string {
-    if(!__DEV__) return 'RR';
+    if (!__DEV__) return 'RR';
     const route = this.route;
     const cr = route.endpoint.route;
     return `RR(route:(endpoint:(route:(path:${cr.path},handler:${cr.handler})),params:${JSON.stringify(route.params)}),residue:${this.residue})`;

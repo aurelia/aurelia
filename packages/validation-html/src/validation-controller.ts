@@ -15,6 +15,7 @@ import {
 import {
   astEvaluate,
   queueAsyncTask,
+  IConnectable,
   type Scope,
 } from '@aurelia/runtime';
 import {
@@ -98,6 +99,7 @@ export interface ValidationResultsSubscriber {
  */
 export class BindingInfo {
   /**
+   * @param {IConnectable} sourceObserver - An observer for the binding source.
    * @param {Element} target - The HTMLElement associated with the binding.
    * @param {Scope} scope - The binding scope.
    * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
@@ -105,6 +107,7 @@ export class BindingInfo {
    * @memberof BindingInfo
    */
   public constructor(
+    public sourceObserver: IConnectable,
     public target: Element,
     public scope: Scope,
     public rules?: PropertyRule[],
@@ -146,7 +149,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo)
           toCachePropertyName = keyExpr.$kind === 'PrimitiveLiteral';
         }
         // eslint-disable-next-line
-        memberName = `[${(astEvaluate(keyExpr, scope, binding, null) as any).toString()}]`;
+        memberName = `[${(astEvaluate(keyExpr, scope, binding, info.sourceObserver) as any).toString()}]`;
         break;
       }
       default:
@@ -165,7 +168,7 @@ export function getPropertyInfo(binding: BindingWithBehavior, info: BindingInfo)
     propertyName = expression.name;
     object = scope.bindingContext;
   } else {
-    object = astEvaluate(expression, scope, binding, null);
+    object = astEvaluate(expression, scope, binding, info.sourceObserver);
   }
   if (object === null || object === void 0) {
     return (void 0);

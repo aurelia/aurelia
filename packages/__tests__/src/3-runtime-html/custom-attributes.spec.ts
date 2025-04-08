@@ -860,6 +860,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
+      flush();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
@@ -1258,7 +1259,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      flush();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
       flush();
@@ -1284,9 +1284,9 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      flush();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
+      flush();
       component.prop = 3;
       flush();
       assert.strictEqual(changes, void 0);
@@ -1311,7 +1311,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      flush();
+      await Promise.resolve();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
       flush();
@@ -1344,7 +1344,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      flush();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
       flush();
@@ -1375,12 +1374,14 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       );
 
       component.prop = 2;
+      flush();
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
 
       changes = void 0;
       await stop(true);
       component.prop = 3;
+      flush();
       await Promise.resolve();
       assert.deepStrictEqual(changes, void 0);
     });
@@ -1458,6 +1459,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       assert.strictEqual(propChangedCallCount, 0);
       component.prop = 2;
+      flush();
       assert.strictEqual(changes, void 0);
       assert.strictEqual(propChangedCallCount, 1);
       await Promise.resolve();
@@ -1495,6 +1497,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(propChangedCallCount, 0);
       assert.strictEqual(propertyChangedCallCount, 0);
       component.prop = 2;
+      flush();
       assert.strictEqual(changes, void 0);
       assert.strictEqual(propChangedCallCount, 1);
       assert.strictEqual(propertyChangedCallCount, 1);
@@ -1528,6 +1531,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       component.prop1 = 2;
       component.prop2 = 3;
+      flush();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(
@@ -1563,6 +1567,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       component.prop1 = 2;
       component.prop2 = 3;
+      flush();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(

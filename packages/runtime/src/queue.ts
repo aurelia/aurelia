@@ -89,11 +89,20 @@ export const flush = () => {
 };
 
 export const yieldTasks = async () => {
-  await nextTick();
-  if (queue.length === 0 && pendingAsyncCount === 0) {
-    return;
+  if (queue.length > 0 || pendingAsyncCount > 0) {
+    return yieldPromise ??= new Promise<void>((resolve, reject) => {
+      yieldPromiseResolve = resolve;
+      yieldPromiseReject = reject;
+    });
   }
-  return yieldPromise;
+  // Not strictly necessary but without this we need a lot of extra `await Promise.resolve()` in test code
+  await nextTick();
+  if (queue.length > 0 || pendingAsyncCount > 0) {
+    return yieldPromise ??= new Promise<void>((resolve, reject) => {
+      yieldPromiseResolve = resolve;
+      yieldPromiseReject = reject;
+    });
+  }
 };
 
 export const queueTask = <T = any>(callback: TaskCallback<T>) => {

@@ -1,5 +1,5 @@
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { flush, yieldTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
@@ -529,16 +529,17 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
-      flush();
+      await yieldTasks();
       assertText('Count: 1');
+
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 2');
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 1');
     });
 
@@ -560,13 +561,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       flush();
       assertText('Count: 0');
       component.i = 3;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 3');
 
       component.i = 0;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 0');
     });
 
@@ -594,8 +595,8 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       flush();
       assertText('inputs count: 1 | inputs count: 2');
       trigger.click('button');
-      await Promise.resolve();
-      flush();
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('inputs count: 1 | inputs count: 3');
     });
 
@@ -620,13 +621,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
 
@@ -649,13 +650,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
 
@@ -679,13 +680,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
   });

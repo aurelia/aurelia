@@ -47,6 +47,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('1');
 
     component.items[0].v = 1;
+    flush();
     assertText('11');
   });
 

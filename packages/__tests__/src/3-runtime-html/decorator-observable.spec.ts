@@ -166,10 +166,12 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '');
       component.v = 'v';
+      flush();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
       input.value = 'vv';
+      flush();
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 'vv');
       assert.strictEqual(changeCount, 2);
@@ -192,19 +194,16 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           changeCount++;
         }
       }
-      const { ctx, component, testHost, tearDown, startPromise }
-        = createFixture('<input value.bind="v">', App);
+      const { ctx, component, testHost, tearDown, startPromise } = createFixture('<input value.bind="v">', App);
       await startPromise;
 
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '', 'err1');
       component.v = 'v';
+      flush();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
-      flush();
-      assert.strictEqual(changeCount, 1, 'err5');
-      assert.strictEqual(input.value, '0', 'err6');
 
       input.value = 'vv';
       input.dispatchEvent(new ctx.CustomEvent('input'));
@@ -272,12 +271,10 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(input.value, '', 'err1');
 
       component.v = 'v';
+      flush();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
-      flush();
-      assert.strictEqual(changeCount, 1, 'err5');
-      assert.strictEqual(input.value, '0', 'err6');
 
       input.value = 'vv';
       input.dispatchEvent(new ctx.CustomEvent('input'));

@@ -8,6 +8,7 @@ export type TaskCallback<T = any> = () => T;
 
 const resolvedPromise = Promise.resolve();
 let flushScheduled = false;
+let isAutoFlush = false;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const queue: (Task | Function)[] = [];
@@ -30,6 +31,7 @@ const requestFlush = () => {
     flushScheduled = true;
     void resolvedPromise.then(() => {
       flushScheduled = false;
+      isAutoFlush = true;
       flush();
     });
   }
@@ -41,7 +43,11 @@ const signalYield = () => {
     if (taskErrors.length > 0) {
       const errors = taskErrors;
       taskErrors = [];
-      yieldPromiseReject!(new AggregateError(errors, 'One or more tasks failed.'));
+      if (errors.length === 1) {
+        yieldPromiseReject!(errors[0]);
+      } else {
+        yieldPromiseReject!(new AggregateError(errors, 'One or more tasks failed.'));
+      }
     } else {
       yieldPromiseResolve!();
     }
@@ -51,6 +57,8 @@ const signalYield = () => {
 export const nextTick = () => resolvedPromise;
 
 export const flush = () => {
+  const isManualFlush = !isAutoFlush;
+  isAutoFlush = false;
   yieldPromise ??= new Promise<void>((resolve, reject) => {
     yieldPromiseResolve = resolve;
     yieldPromiseReject = reject;
@@ -68,7 +76,16 @@ export const flush = () => {
       }
     }
   }
+  // Make a copy; this is for testing, signalYield will clear the array
+  const errors = taskErrors.slice();
   signalYield();
+  if (isManualFlush && errors.length > 0) {
+    if (errors.length === 1) {
+      throw errors[0];
+    } else {
+      throw new AggregateError(errors, 'One or more tasks failed.');
+    }
+  }
 };
 
 export const yieldTasks = async () => {

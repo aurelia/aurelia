@@ -17,6 +17,14 @@ let taskErrors: unknown[] = [];
 let yieldPromiseResolve: (() => void) | null = null;
 let yieldPromiseReject: ((reason?: any) => void) | null = null;
 
+Reflect.set(globalThis, '__au_queue__', {
+  get queue() { return queue; },
+  get pendingAsyncCount() { return pendingAsyncCount; },
+  get flushScheduled() { return flushScheduled; },
+  get yieldPromise() { return yieldPromise; },
+  get taskErrors() { return taskErrors; },
+});
+
 const requestFlush = () => {
   if (!flushScheduled) {
     flushScheduled = true;

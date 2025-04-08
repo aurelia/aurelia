@@ -1,3 +1,4 @@
+import { flush } from '@aurelia/runtime';
 import {
   ValueConverter,
 } from '@aurelia/runtime-html';
@@ -36,10 +37,11 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
     type('input', '00');
 
     assert.strictEqual(component.items.length, 0);
-    assert.deepStrictEqual(component.logs, ['0']);
-    assert.strictEqual(inputEl.value, '0');
+    assert.deepStrictEqual(component.logs, ['00']);
+    assert.strictEqual(inputEl.value, '00');
 
     component.items.push({ name: 'i-0', value: 1 });
+    flush();
     assert.strictEqual(inputEl.value, '1');
 
     // todo: issues with not being able to catch error in chrome

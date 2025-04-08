@@ -121,7 +121,7 @@ export class Task<T = any> {
   public readonly id: number = ++id;
 
   private _resolve!: (value: UnwrapPromise<T>) => void;
-  private _reject!: (reason?: TaskAbortError<T>) => void;
+  private _reject!: (reason?: any) => void;
 
   private readonly _result: Promise<UnwrapPromise<T>>;
   public get result(): Promise<UnwrapPromise<T>> {
@@ -151,7 +151,7 @@ export class Task<T = any> {
       ret = this.callback();
     } catch (err) {
       this._status = tsCanceled;
-      this._reject(err as TaskAbortError<T>);
+      this._reject(err);
       taskErrors.push(err);
       return;
     }
@@ -183,6 +183,7 @@ export class Task<T = any> {
       }
       this._status = tsCanceled;
       this._reject(new TaskAbortError(this));
+      signalYield();
       return true;
     }
     return false;

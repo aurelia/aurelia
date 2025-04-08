@@ -287,6 +287,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
+    flush();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -334,6 +335,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
+    flush();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -726,6 +728,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual((component.el as HTMLElement)?.tagName, 'DIV');
       component.show = false;
+      flush();
       assert.strictEqual(component.el, null);
     });
 
@@ -884,6 +887,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
+      flush();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
@@ -980,15 +984,16 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       component.value = 'helo';
       flush();
       assert.deepStrictEqual(calls, [
-        ['message', 'helo', undefined],
-        ['m', 'helo', undefined]
+        ['message', 'hey', undefined],
+        ['m', 'hey', undefined],
+        ['message', 'helo', 'hey']
       ]);
 
       calls.length = 0;
       component.v = 'hi';
       flush();
       assert.deepStrictEqual(calls, [
-        ['m', 'hi', 'helo']
+        ['m', 'hi', 'hey']
       ]);
     });
   });

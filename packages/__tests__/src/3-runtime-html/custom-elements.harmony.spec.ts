@@ -204,6 +204,7 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         assert.equal(comp.hello, undefined);
         assert.equal(div.getAttribute('hello'), 'undefined');
         div.dispatchEvent(new ctx.CustomEvent('aaabbb'));
+        flush();
         assert.equal(div.getAttribute('hello'), '555');
       }
     },
@@ -215,6 +216,7 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         const div = host.querySelector('div');
         assert.notStrictEqual(div, null);
         div.dispatchEvent(new ctx.CustomEvent('if'));
+        flush();
         assert.strictEqual(comp.hello, true);
         assert.strictEqual(host.querySelector('div'), null);
       }
@@ -281,12 +283,14 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
         assert.equal(div2.getAttribute('__click__'), 'undefined');
 
         div1.click();
+        flush();
         assert.equal(comp.log, 1);
         assert.equal(comp.hasFocus, 1);
         assert.equal(div1.getAttribute('__click__'), '1');
         assert.equal(div2.getAttribute('__click__'), 'undefined');
 
         div2.click();
+        flush();
         assert.equal(comp.log, 1);
         assert.equal(comp.hasFocus, 1);
         assert.equal(comp.log2, 1);

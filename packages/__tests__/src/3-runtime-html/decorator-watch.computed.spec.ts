@@ -250,10 +250,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(childBoundCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 1);
-      assert.strictEqual(component.child.logCallCount, 1);
+      assert.strictEqual(component.child.logCallCount, 2);
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 2);
+      flush();
+      // the observer internally updates immediately but the binding after flushing
+      assert.strictEqual(component.child.logCallCount, 3);
 
       const bindings = component.$controller!.bindings;
       assert.strictEqual(bindings.length, 3);
@@ -277,6 +280,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
       component.prop++;
+      flush();
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
     });
@@ -374,10 +378,12 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(childBoundCallCount, 1);
 
       assert.strictEqual(component.logCallCount, 1);
-      assert.strictEqual(component.child.logCallCount, 1);
+      assert.strictEqual(component.child.logCallCount, 2);
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 2);
+      flush();
+      assert.strictEqual(component.child.logCallCount, 3);
 
       const bindings = component.$controller!.bindings;
       assert.strictEqual(bindings.length, 3);

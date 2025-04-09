@@ -161,7 +161,9 @@ export class RouteContext {
   /** @internal */ private _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
-  /** @internal */ private _childRoutesConfigured: boolean = false;
+  /** @internal */ private readonly $childRoutesConfigured: Map<CustomElementDefinition, boolean> = new Map();
+  /** @internal */ private get _childRoutesConfigured(): boolean { return this.$childRoutesConfigured.get(this.component) ?? false; }
+  /** @internal */ private set _childRoutesConfigured(value: boolean) { this.$childRoutesConfigured.set(this.component, value); }
 
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
@@ -246,7 +248,6 @@ export class RouteContext {
     if (!this.config._isNavigationStrategy || this.component === component) return;
 
     trace(this._logger, Events.rcReplacingComponent, this.component.name, component.name, this);
-    this._childRoutesConfigured = false;
     (this as Writable<RouteContext>).component = component;
     (this as Writable<RouteContext>)._friendlyPath = this.parent === null ? component.name : `${this.parent._friendlyPath}/${component.name}`;
     this._logger = this.parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);

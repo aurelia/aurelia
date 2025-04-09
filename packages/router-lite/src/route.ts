@@ -337,7 +337,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
   if (instruction.type === NavigationInstructionType.NavigationStrategy)
-    return RouteConfig._create(routeable as IChildRouteConfig, null);
+    return RouteConfig._create({ ...routeable as IChildRouteConfig, nav: false }, null);
 
   return onResolve(ceDef!, $ceDef => {
     const type = $ceDef.Type;

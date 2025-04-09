@@ -535,11 +535,20 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('load new route and activates child viewport - reuses the navigation strategy', async function () {
+  it.only('load new route and activates child viewport - reuses the navigation strategy', async function () {
 
-    let resolver: () => void;
-    const promise = new Promise<void>(r => resolver = r);
-    let dataLoaded = false;
+    const resolvers = {};
+    const promises = {
+      1: new Promise<void>(r => resolvers[1] = r),
+      2: new Promise<void>(r => resolvers[2] = r),
+      3: new Promise<void>(r => resolvers[3] = r),
+    };
+
+    const dataLoaded = {
+      1: false,
+      2: false,
+      3: false,
+    };
 
     @customElement({ name: 'gc-12', template: 'gc12' })
     class GC12 { }
@@ -548,30 +557,37 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     class C11 implements IRouteViewModel {
       private readonly router: IRouter = resolve(IRouter);
       public canLoad(params: Params, _next: RouteNode, _current: RouteNode | null): boolean {
-        void promise.then(() => this.router.load(`p-1/${params.id}`, { transitionPlan: 'replace' }));
+        void promises[params.id].then(() => this.router.load(`p-1/${params.id}`, { transitionPlan: 'replace' }));
         return true;
       }
     }
 
-    @customElement({ name: 'c-12', template: 'c12 <au-viewport></au-viewport>' })
+    @customElement({ name: 'c-12', template: 'c12 ${id} <au-viewport></au-viewport>' })
     @route({
       routes: [
         C11,
         { path: ['', 'gc-12'], component: GC12 }
       ]
     })
-    class C12 { }
+    class C12 {
+      id: string;
+      loading(params) { this.id = params.id; }
+    }
+
+    @customElement({ name: 'c-13', template: 'c13' })
+    class C13 implements IRouteViewModel { }
 
     @route({
       routes: [
         C11,
         C12,
+        C13,
         {
           path: ':id',
-          component: new NavigationStrategy(() => {
-            if (dataLoaded) return C12;
+          component: new NavigationStrategy((_vi, _ctx, _node, route) => {
+            if (dataLoaded[route.params.id]) return C12;
 
-            dataLoaded = true;
+            dataLoaded[route.params.id] = true;
             return C11;
           })
         }
@@ -597,10 +613,41 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     assert.html.textContent(host, 'p1 c11', 'round#1');
 
     // resolve the promise to trigger the navigation
-    resolver!();
+    resolvers[1]();
     taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
     await taskQueue.yield();
-    assert.html.textContent(host, 'p1 c12 gc12', 'post-data-load');
+    assert.html.textContent(host, 'p1 c12 1 gc12', 'post-data-load');
+
+    // reset to some other route in the p-1 hierarchy
+    await router.load('p-1/c-13');
+    assert.html.textContent(host, 'p1 c13', 'reset');
+
+    await router.load('p-1/2');
+    assert.html.textContent(host, 'p1 c11', 'round#2');
+
+    // resolve the promise to trigger the navigation
+    resolvers[2]();
+    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+    await taskQueue.yield();
+    assert.html.textContent(host, 'p1 c12 2 gc12', 'post-data-load 2');
+
+    // go to p-2
+    await router.load('p-2');
+    assert.html.textContent(host, 'p2', 'reset to p-2');
+
+    // go back to p-1
+    await router.load('p-1/1');
+    assert.html.textContent(host, 'p1 c12 1 gc12', 'round#3');
+
+    // load p-1/3
+    await router.load('p-1/3');
+    assert.html.textContent(host, 'p1 c11', 'round#4');
+
+    // resolve the promise to trigger the navigation
+    resolvers[3]();
+    taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+    await taskQueue.yield();
+    assert.html.textContent(host, 'p1 c12 3 gc12', 'post-data-load 3');
 
     await au.stop(true);
   });

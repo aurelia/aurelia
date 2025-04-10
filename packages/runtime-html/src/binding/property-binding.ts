@@ -21,6 +21,7 @@ import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
+import { activating } from '../templating/controller';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -89,19 +90,29 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 
   public handleChange(): void {
     if (!this.isBound) return;
-    if (this._isQueued) return;
-    this._isQueued = true;
 
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
+    // update synchronously during bind lifecycle, for the developer this means that a property update during `binding` or `bound` will be reflected in `attaching` / `attached`, etc.
+    if (this._controller.state === activating) {
+      this._handleChange();
+    } else {
+      if (this._isQueued) return;
+      this._isQueued = true;
 
-      this.obs.version++;
-      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
-      this.obs.clear();
+      queueTask(() => {
+        this._isQueued = false;
+        if (!this.isBound) return;
 
-      this.updateTarget(newValue);
-    });
+        this._handleChange();
+      });
+    }
+  }
+
+  private _handleChange() {
+    this.obs.version++;
+    const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+    this.obs.clear();
+
+    this.updateTarget(newValue);
   }
 
   // todo: based off collection and handle update accordingly instead off always start

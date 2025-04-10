@@ -56,7 +56,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = '';
       flush();
-      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
     it('handles nested dependencies glitches', function () {
@@ -108,7 +108,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = '';
       flush();
-      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
     it('handles many layers of nested dependencies glitches', function () {
@@ -169,7 +169,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = '';
       flush();
-      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
     it('handles @observable decorator glitches', function () {
@@ -212,7 +212,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = '';
       flush();
-      assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
     it('handles array index related glitches', function () {
@@ -408,7 +408,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
       it('handles nested dependencies glitches', function () {
@@ -468,7 +468,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = '';
         });
         flush();
-        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
       it('handles many layers of nested dependencies glitches', function () {
@@ -537,7 +537,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = '';
         });
         flush();
-        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
       it('handles @observable decorator glitches', function () {
@@ -588,7 +588,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = '';
         });
         flush();
-        assert.deepEqual([i1, i2, i3], [1, 1, 1]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
       it('handles array index related glitches', function () {

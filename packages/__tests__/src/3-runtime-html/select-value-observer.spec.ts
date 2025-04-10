@@ -1,3 +1,4 @@
+import { flush } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
@@ -292,6 +293,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
     assert.strictEqual(component.selectedProductId, 1);
 
     component.clear();
+    flush();
     assert.strictEqual(component.selectEl.selectedIndex, 0);
 
     await tearDown();

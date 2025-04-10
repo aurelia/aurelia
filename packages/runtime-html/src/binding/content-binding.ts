@@ -112,7 +112,6 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
       this.obs.clear();
 
       if (newValue !== this._value) {
-        this._value = newValue;
         this.updateTarget(newValue);
       }
     });

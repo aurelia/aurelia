@@ -14,6 +14,7 @@ import {
   resolve,
 } from '@aurelia/kernel';
 import {
+  flush,
   queueAsyncTask,
   Scope,
   Task,
@@ -1776,6 +1777,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await $if['pending'];
               const ptc1 = $if.ifView.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
               try {
@@ -1787,7 +1789,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(`${rhost}-2`), ...getActivationSequenceFor(`${fhost}-1`)]);
-            },
+            }
           );
 
           yield new TestData(
@@ -1813,6 +1815,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await ((tc['pending']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
               await yieldTasks();
 
@@ -1844,6 +1847,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -1878,6 +1882,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await ((tc['fulfilled']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -1908,6 +1913,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -1946,6 +1952,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               const tc = controller.children.find((c) => c.viewModel instanceof PromiseTemplateController).viewModel as PromiseTemplateController;
 
               controller.scope.overrideContext.flag = true;
+              await yieldTasks();
               await ((tc['rejected']['view'] as ISyntheticView).children.find((c) => c.viewModel instanceof If).viewModel as If)['pending'];
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -2353,9 +2360,8 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 { id: 1 }
               );
 
-              await queueAsyncTask(() => {
-                assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
-              }).result;
+              await yieldTasks();
+              assert.html.innerEqual(ctx.host, wrap('pending1', 'p'), 'pending1');
               ctx.assertCallSet([], `calls mismatch2`);
               ctx.clear();
 

@@ -74,7 +74,6 @@ export const enum Events {
   rcNoPathLazyImport = 3173,
   rcNoAvailableVpa = 3174,
   rcInvalidLazyImport = 3175,
-  rcReplacingComponent = 3176,
   // #endregion
   // #region router events
   rePublishingEvent = 3200,
@@ -247,7 +246,6 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rcNoPathLazyImport]: 'Invalid route config. When the component property is a lazy import, the path must be specified.',
   [Events.rcNoAvailableVpa]: 'Failed to resolve %s at:\n%s',
   [Events.rcInvalidLazyImport]: '%s does not appear to be a component or CustomElement recognizable by Aurelia; make sure to use the @customElement decorator for your class if not using conventions.',
-  [Events.rcReplacingComponent]: 'Replcaing component %s with %s at %s',
   // #endregion
 
   // #region router events

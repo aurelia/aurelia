@@ -10,7 +10,6 @@ import {
   Registration,
   emptyObject,
   emptyArray,
-  Writable,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -174,7 +173,7 @@ export class RouteContext {
     public readonly parent: IRouteContext | null,
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
-    private readonly parentContainer: IContainer,
+    parentContainer: IContainer,
     private readonly _router: IRouter,
   ) {
     this._vpa = viewportAgent;

@@ -343,7 +343,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
     const type = $ceDef.Type;
     const routeConfig = Route.getConfig(type);
 
-    // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
+    // If the component is used as a child, then apply the child configuration (coming from parent) and return a new RouteConfig with the configuration applied.
     if (isPartialChildRouteConfig(routeable)) return routeConfig._applyChildRouteConfig(routeable, parent);
 
     // If the component is used as a child, then return a clone.

@@ -535,7 +535,7 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
     await au.stop(true);
   });
 
-  it.only('load new route and activates child viewport - reuses the navigation strategy', async function () {
+  it('load new route and activates child viewport - reuses the navigation strategy', async function () {
 
     const resolvers = {};
     const promises = {

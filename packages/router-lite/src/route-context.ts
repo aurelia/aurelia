@@ -158,12 +158,10 @@ export class RouteContext {
   private readonly _platform: IPlatform;
 
   /** @internal */ private readonly _moduleLoader: IModuleLoader;
-  /** @internal */ private _logger: ILogger;
+  /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _hostControllerProvider: InstanceProvider<ICustomElementController>;
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
-  /** @internal */ private readonly $childRoutesConfigured: Map<CustomElementDefinition, boolean> = new Map();
-  /** @internal */ private get _childRoutesConfigured(): boolean { return this.$childRoutesConfigured.get(this.component) ?? false; }
-  /** @internal */ private set _childRoutesConfigured(value: boolean) { this.$childRoutesConfigured.set(this.component, value); }
+  /** @internal */ private _childRoutesConfigured: boolean = false;
 
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
@@ -235,22 +233,6 @@ export class RouteContext {
       this._navigationModel = null;
     }
     this._processConfig(config);
-  }
-
-  /**
-   * This hoook is invoked when an existing route context is being resolved.
-   * Using this hook, the route context can take care of any necessary changes or cleanup before it can be reused.
-   * For now, this is used in the context of navigation strategy.
-   *
-   * @internal
-   */
-  public _resolving(component: CustomElementDefinition): void {
-    if (!this.config._isNavigationStrategy || this.component === component) return;
-
-    trace(this._logger, Events.rcReplacingComponent, this.component.name, component.name, this);
-    (this as Writable<RouteContext>).component = component;
-    (this as Writable<RouteContext>)._friendlyPath = this.parent === null ? component.name : `${this.parent._friendlyPath}/${component.name}`;
-    this._logger = this.parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
   }
 
   /** @internal */

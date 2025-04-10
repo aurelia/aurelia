@@ -2,7 +2,7 @@ import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
 import { IDialogGlobalSettings } from './dialog-interfaces';
-import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-default-impl';
+import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer, HtmlDialogDomRenderer } from './dialog-default-impl';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
@@ -45,9 +45,22 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
   }
 }]);
 
+/**
+ * A configuration for Dialog that uses the light DOM for rendering dialog & its overlay.
+ */
 export const DialogDefaultConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
   DialogService,
   DefaultDialogGlobalSettings,
   DefaultDialogDomRenderer,
+  DefaultDialogEventManager,
+]);
+
+/**
+ * A configuration for Dialog that uses the `<dialog>` element.
+ */
+export const DialogStandardHtmlDialogConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
+  DialogService,
+  DefaultDialogGlobalSettings,
+  HtmlDialogDomRenderer,
   DefaultDialogEventManager,
 ]);

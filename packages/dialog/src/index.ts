@@ -44,6 +44,7 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
+  DialogStandardHtmlDialogConfiguration,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 
@@ -51,6 +52,9 @@ export {
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
+
+  HtmlDialogDomRenderer,
+  HtmlDialogDom,
 } from './dialog-default-impl';
 
 export {

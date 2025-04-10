@@ -46,7 +46,7 @@ import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
-import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig } from './route';
 import { Events, getMessage } from './events';
 import { pathUrlParser } from './url-parser';
 
@@ -274,7 +274,7 @@ export class RouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = (this.context?.config.component as RouteType)?.name ?? '';
+    const component = this.context?.config._getComponentName() ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }

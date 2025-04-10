@@ -379,6 +379,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
       assertFn: (ctx, host, comp: { div: HTMLDivElement; shouldRenderRepeat: boolean; divSetterCount: number }) => {
         assert.strictEqual(comp.divSetterCount, 0, 'shoulda called setter 0 times');
         comp.shouldRenderRepeat = true;
+        flush();
         assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
       },
       assertFnAfterDestroy: (

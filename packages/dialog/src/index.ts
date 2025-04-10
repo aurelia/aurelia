@@ -51,6 +51,9 @@ export {
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
+
+  HtmlDialogDomRenderer,
+  HtmlDialogDom,
 } from './dialog-default-impl';
 
 export {

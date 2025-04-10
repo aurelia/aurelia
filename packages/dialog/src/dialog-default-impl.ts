@@ -31,7 +31,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
-  private readonly hostCss = 'position:relative;margin:auto;';
+  private readonly hostCss = 'margin:auto;';
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const doc = this.p.document;
@@ -55,6 +55,57 @@ export class DefaultDialogDom implements IDialogDom {
   public constructor(
     public readonly wrapper: HTMLElement,
     public readonly overlay: HTMLElement,
+    public readonly contentHost: HTMLElement,
+    animator?: IDialogDomAnimator,
+  ) {
+    this._animator = animator;
+  }
+
+  public show() {
+    return this._animator?.show(this);
+  }
+
+  public hide(): void | Promise<void> {
+    return this._animator?.hide(this);
+  }
+
+  public dispose(): void {
+    this.wrapper.remove();
+  }
+}
+
+export class HtmlDialogDomRenderer implements IDialogDomRenderer {
+  public static register(container: IContainer) {
+    container.register(singletonRegistration(IDialogDomRenderer, this));
+  }
+
+  private static id = 0;
+  private readonly p = resolve(IPlatform);
+  /** @internal */
+  private readonly _animator = resolve(optional(IDialogDomAnimator));
+
+  private readonly overlayCss = '';
+
+  public render(dialogHost: HTMLElement, _settings: IDialogLoadedSettings): IDialogDom {
+    const h = (name: string) => this.p.document.createElement(name);
+    const wrapper = h('dialog');
+    const id = `d-${++HtmlDialogDomRenderer.id}`;
+    const host = wrapper.appendChild(h('div'));
+
+    wrapper.setAttribute('data-dialog-id', id);
+    dialogHost.appendChild(wrapper);
+
+    return new HtmlDialogDom(id, wrapper, host, this._animator);
+  }
+}
+
+export class HtmlDialogDom implements IDialogDom {
+  /** @internal */
+  private readonly _animator?: IDialogDomAnimator;
+  public readonly overlay: HTMLElement | null = null;
+  public constructor(
+    public readonly id: string,
+    public readonly wrapper: HTMLElement,
     public readonly contentHost: HTMLElement,
     animator?: IDialogDomAnimator,
   ) {

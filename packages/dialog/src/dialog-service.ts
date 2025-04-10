@@ -1,4 +1,4 @@
-import { isFunction, isPromise, IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
+import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
 import {
@@ -147,17 +147,15 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
     const loaded = this as IDialogLoadedSettings;
     const cmp = this.component;
     const template = this.template;
-    const maybePromise = onResolveAll(...[
+    const maybePromise = onResolveAll(
       cmp == null
         ? void 0
         : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
       isFunction(template)
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0
-    ]);
-    return isPromise(maybePromise)
-      ? maybePromise.then(() => loaded)
-      : loaded;
+    );
+    return onResolve(maybePromise, () => loaded);
   }
 
   /** @internal */

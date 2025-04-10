@@ -24,7 +24,7 @@ export class DefaultDialogEventManager implements IDialogEventManager {
         void controller.cancel();
       }
     };
-    dom.overlay.addEventListener(mouseEvent, handleClick);
+    dom.overlay?.addEventListener(mouseEvent, handleClick);
 
     const handleSubmit = (e: SubmitEvent) => {
       const target = e.target as HTMLFormElement;
@@ -39,7 +39,7 @@ export class DefaultDialogEventManager implements IDialogEventManager {
     return {
       dispose: () => {
         this._remove(controller);
-        dom.overlay.removeEventListener(mouseEvent, handleClick);
+        dom.overlay?.removeEventListener(mouseEvent, handleClick);
         dom.contentHost.removeEventListener('submit', handleSubmit);
       }
     };

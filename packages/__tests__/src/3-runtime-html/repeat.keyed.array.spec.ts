@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { batch, flush } from '@aurelia/runtime';
+import { batch, flush, yieldTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from "@aurelia/testing";
 
@@ -71,7 +71,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         async function mutate(cb: () => void) {
           obs.observe(host, { childList: true });
           cb();
-          await Promise.resolve();
+          await yieldTasks();
           obs.disconnect();
         }
 
@@ -193,7 +193,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         async function mutate(cb: () => void) {
           obs.observe(host, { childList: true });
           cb();
-          await Promise.resolve();
+          await yieldTasks();
           obs.disconnect();
         }
 
@@ -382,7 +382,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
           async function mutate(cb: () => void) {
             obs.observe(host, { childList: true });
             cb();
-            await Promise.resolve();
+            await yieldTasks();
             obs.disconnect();
           }
 

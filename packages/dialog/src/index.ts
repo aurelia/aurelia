@@ -44,6 +44,7 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
+  DialogStandardHtmlDialogConfiguration,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 

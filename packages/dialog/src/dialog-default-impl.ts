@@ -6,7 +6,7 @@ import {
   IDialogDomAnimator,
 } from './dialog-interfaces';
 
-import { IContainer, optional, resolve } from '@aurelia/kernel';
+import { IContainer, isString, optional, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
 
 export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
@@ -34,6 +34,13 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer {
   private readonly hostCss = 'margin:auto;';
 
   public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
+    /* istanbul ignore next */
+    if (__DEV__) {
+      if (settings.asModal) {
+        // eslint-disable-next-line no-console
+        console.warn(`[DEV:aurelia] default dialog dom renderer does not support modal dialogs. Use the HtmlDialogDomRenderer instead.`);
+      }
+    }
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
@@ -84,35 +91,63 @@ export class HtmlDialogDomRenderer implements IDialogDomRenderer {
   /** @internal */
   private readonly _animator = resolve(optional(IDialogDomAnimator));
 
-  private readonly overlayCss = '';
-
-  public render(dialogHost: HTMLElement, _settings: IDialogLoadedSettings): IDialogDom {
+  public render(dialogHost: HTMLElement, settings: IDialogLoadedSettings): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
-    const wrapper = h('dialog');
+    const wrapper = h('dialog') as HTMLDialogElement;
     const id = `d-${++HtmlDialogDomRenderer.id}`;
     const host = wrapper.appendChild(h('div'));
 
     wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    return new HtmlDialogDom(id, wrapper, host, this._animator);
+    return new HtmlDialogDom(id, wrapper, host, this._animator, settings.asModal);
   }
 }
 
 export class HtmlDialogDom implements IDialogDom {
   /** @internal */
   private readonly _animator?: IDialogDomAnimator;
+  /** @internal */
+  private _overlayStyleEl: HTMLStyleElement | null = null;
+  /** @internal */
+  private readonly _styleParser: HTMLElement;
   public readonly overlay: HTMLElement | null = null;
+
   public constructor(
     public readonly id: string,
-    public readonly wrapper: HTMLElement,
+    public readonly wrapper: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
     animator?: IDialogDomAnimator,
+    public readonly isModal: boolean = false,
   ) {
     this._animator = animator;
+    this._styleParser = this.wrapper.ownerDocument.createElement('div');
+  }
+
+  public setOverlayStyle(css: string): void;
+  public setOverlayStyle(css: Partial<CSSStyleDeclaration>): void;
+  public setOverlayStyle(css: string | Partial<CSSStyleDeclaration>) {
+    const el = this._overlayStyleEl ??= this.wrapper.insertAdjacentElement(
+      'afterbegin',
+      this.wrapper.ownerDocument.createElement('style')
+    ) as HTMLStyleElement;
+
+    const styleParser = this._styleParser;
+    styleParser.style.cssText = '';
+    if (isString(css)) {
+      styleParser.style.cssText = css;
+    } else {
+      Object.assign(styleParser.style, css);
+    }
+    el.textContent = `[data-dialog-id="${this.id}"]::backdrop{${styleParser.style.cssText}}`;
   }
 
   public show() {
+    if (this.isModal) {
+      this.wrapper.showModal();
+    } else {
+      this.wrapper.show();
+    }
     return this._animator?.show(this);
   }
 

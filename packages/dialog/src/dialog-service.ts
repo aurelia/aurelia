@@ -121,7 +121,10 @@ export class DialogService implements IDialogService {
         })
       )
       .then(unclosedControllers =>
-        unclosedControllers.filter(unclosed => !!unclosed)
+        // something wrong with TS
+        // it's unable to recognize that the null values are filtered out already
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        unclosedControllers.filter(unclosed => !!unclosed) as IDialogController[]
       );
   }
 

@@ -1,5 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomAttribute } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/binding-command.attr.spec.ts', function () {
@@ -39,22 +40,22 @@ describe('3-runtime-html/binding-command.attr.spec.ts', function () {
       title: 'removes attribute when value is null/undefined',
       template: '<div myattr.attr="a">',
       App: class App { public a = 5; },
-      assertFn: ({ ctx, appHost, component }) => {
+      assertFn: ({ appHost, component }) => {
         assert.strictEqual(appHost.querySelector('div')?.getAttribute('myattr'), '5');
 
         component['a'] = undefined;
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
 
         component['a'] = 5;
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
 
         component['a'] = null;
         assert.strictEqual(appHost.querySelector('div').getAttribute('myattr'), '5');
-        ctx.platform.domQueue.flush();
+        flush();
         assert.strictEqual(appHost.querySelector('div').hasAttribute('myattr'), false);
       },
     },

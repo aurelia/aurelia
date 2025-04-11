@@ -27,7 +27,11 @@ export class Switch implements ICustomAttributeViewModel {
     type: attrTypeName,
     name: 'switch',
     isTemplateController: true,
-    bindables: ['value'],
+    bindables: {
+      value: {
+        synchronous: true
+      }
+    },
   };
 
   public readonly $controller!: ICustomAttributeController<this>; // This is set by the controller after this instance is constructed
@@ -251,7 +255,8 @@ const bindables: (string | PartialBindableDefinition & { name: string })[] = [
         // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
         default: return !!v;
       }
-    }
+    },
+    synchronous: true
   }
 ];
 
@@ -272,7 +277,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`${this.constructor.name}-#${this.id}`);
+  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
 
   public link(
     controller: IHydratableController,

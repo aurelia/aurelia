@@ -9,6 +9,7 @@ import type {
 } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from './errors';
 import { refs } from './dom.node';
+import { yieldTasks } from '@aurelia/runtime';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -129,14 +130,16 @@ export class Aurelia implements IDisposable {
       this._isStopping = true;
 
       return this._stopPromise = onResolve(root.deactivate(), () => {
-        Reflect.deleteProperty(root.host, '$aurelia');
-        if (dispose) {
-          root.dispose();
-        }
-        this._root = void 0;
-        this._rootProvider.dispose();
-        this._isStopping = false;
-        this._dispatchEvent(root, 'au-stopped', root.host);
+        return onResolve(yieldTasks(), () => {
+          Reflect.deleteProperty(root.host, '$aurelia');
+          if (dispose) {
+            root.dispose();
+          }
+          this._root = void 0;
+          this._rootProvider.dispose();
+          this._isStopping = false;
+          this._dispatchEvent(root, 'au-stopped', root.host);
+        });
       });
     }
   }

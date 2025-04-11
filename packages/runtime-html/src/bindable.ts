@@ -25,6 +25,7 @@ export type PartialBindableDefinition = Omit<IComponentBindablePropDefinition, '
    * @default true
    */
   nullable?: boolean;
+  synchronous?: boolean;
 };
 
 // Note: there is a invisible separator character the precedes the `@` in the jsdoc example. Otherwise the eslint rule will complain.
@@ -188,6 +189,7 @@ export class BindableDefinition {
     public readonly primary: boolean,
     public readonly name: string,
     public readonly set: InterceptorFunc,
+    public readonly synchronous: boolean,
   ) { }
 
   public static create(prop: string, def: PartialBindableDefinition = {}): BindableDefinition {
@@ -199,6 +201,7 @@ export class BindableDefinition {
       def.primary ?? false,
       def.name ?? prop,
       def.set ?? getInterceptor(def),
+      def.synchronous ?? false,
     );
   }
 }

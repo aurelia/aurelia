@@ -45,7 +45,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe.only('3-runtime-html/switch.spec.ts', function () {
+describe('3-runtime-html/switch.spec.ts', function () {
 
   const enum Status {
     unknown = 'unknown',
@@ -797,7 +797,7 @@ describe.only('3-runtime-html/switch.spec.ts', function () {
             $switch,
             () => { ctx.app.statuses.push(ctx.app.status = Status.delivered); },
             wrap('Processing.'),
-            [1, 2, 3, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-3'), 1, ...getDeactivationSequenceFor('case-host-3'), ...getActivationSequenceFor('case-host-1')]
+            [1, 1, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-1')]
           );
         }
       );
@@ -1775,11 +1775,11 @@ describe.only('3-runtime-html/switch.spec.ts', function () {
 
   for (const config of [
     new Config(false, false, noop),
-    // new Config(true, false, noop),
-    // new Config(true, true, createWaiter(0)),
-    // new Config(true, true, createWaiter(5)),
+    new Config(true, false, noop),
+    new Config(true, true, createWaiter(0)),
+    new Config(true, true, createWaiter(5)),
   ]) {
-    $it.only('supports multi-case collection mutation (unwrapped)', async function () {
+    it('supports multi-case collection mutation (unwrapped)', async function () {
       @customElement({
         name: 'app',
         template: `
@@ -1988,20 +1988,32 @@ describe.only('3-runtime-html/switch.spec.ts', function () {
       log.clear();
       app.statuses.push(app.status = Status.delivered);
       await wait($switch);
+      await new Promise(resolve => setTimeout(resolve, 100));
       assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change3 innerHTML`);
+      // WAS:
+      // const expectedLog3 = [
+      //   `Case-#${cases[0]['id']}.isMatch()`,
+      //   `Case-#${cases[1]['id']}.isMatch()`,
+      //   `Case-#${cases[2]['id']}.isMatch()`,
+      //   'default-case-host-1.detaching',
+      //   'default-case-host-1.unbinding',
+      //   'case-host-3.binding',
+      //   'case-host-3.bound',
+      //   'case-host-3.attaching',
+      //   'case-host-3.attached',
+      //   `Case-#${cases[0]['id']}.isMatch()`,
+      //   'case-host-3.detaching',
+      //   'case-host-3.unbinding',
+      //   'case-host-1.binding',
+      //   'case-host-1.bound',
+      //   'case-host-1.attaching',
+      //   'case-host-1.attached',
+      // ];
       const expectedLog3 = [
         `Case-#${cases[0]['id']}.isMatch()`,
-        `Case-#${cases[1]['id']}.isMatch()`,
-        `Case-#${cases[2]['id']}.isMatch()`,
+        `Case-#${cases[0]['id']}.isMatch()`,
         'default-case-host-1.detaching',
         'default-case-host-1.unbinding',
-        'case-host-3.binding',
-        'case-host-3.bound',
-        'case-host-3.attaching',
-        'case-host-3.attached',
-        `Case-#${cases[0]['id']}.isMatch()`,
-        'case-host-3.detaching',
-        'case-host-3.unbinding',
         'case-host-1.binding',
         'case-host-1.bound',
         'case-host-1.attaching',

@@ -27,7 +27,7 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   /** @internal */ private _currentComponent: Routeable | null = null;
   public get component(): Routeable { return this._getComponent(); }
 
-  /** @internal */ private readonly _isNavigationStrategy: boolean;
+  /** @internal */ public readonly _isNavigationStrategy: boolean;
   /** @internal */ private readonly _component: Routeable | NavigationStrategy;
 
   private constructor(
@@ -222,6 +222,16 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   }
 
   /** @internal */
+  public _getComponentName(): string {
+    try {
+      return (this._getComponent() as RouteType).name;
+    } catch {
+      // TODO(Sayan): Convert all Errors in router lite to instances of RouterError
+      return 'UNRESOLVED-NAVIGATION-STRATEGY';
+    }
+  }
+
+  /** @internal */
   public _getComponent(): Routeable;
   public _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): Routeable;
   public _getComponent(vi?: IViewportInstruction, ctx?: IRouteContext, node?: RouteNode, route?: RecognizedRoute<unknown>): Routeable {
@@ -237,6 +247,19 @@ export class RouteConfig implements IRouteConfig, IChildRouteConfig {
   public _handleNavigationStart(): void {
     if (!this._isNavigationStrategy) return;
     this._currentComponent = null;
+  }
+
+  public toString(): string {
+    let value = `RConf(id: ${this.id}, isNavigationStrategy: ${this._isNavigationStrategy}`;
+    if (!__DEV__) return `{${value}})`;
+
+    value += `, path: [${this.path.join(',')}]`;
+    if (this.redirectTo) value += `, redirectTo: ${this.redirectTo}`;
+    if (this.caseSensitive) value += `, caseSensitive: ${this.caseSensitive}`;
+    if (this.transitionPlan != null) value += `, transitionPlan: ${this.transitionPlan}`;
+    value += `, viewport: ${this.viewport}`;
+    if (this._currentComponent != null) value += `, component: ${(this._currentComponent as RouteType).name}`;
+    return `${value})`;
   }
 }
 
@@ -314,13 +337,13 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
   if (instruction.type === NavigationInstructionType.NavigationStrategy)
-    return RouteConfig._create(routeable as IChildRouteConfig, null);
+    return RouteConfig._create({ ...routeable as IChildRouteConfig, nav: false }, null);
 
   return onResolve(ceDef!, $ceDef => {
     const type = $ceDef.Type;
     const routeConfig = Route.getConfig(type);
 
-    // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
+    // If the component is used as a child, then apply the child configuration (coming from parent) and return a new RouteConfig with the configuration applied.
     if (isPartialChildRouteConfig(routeable)) return routeConfig._applyChildRouteConfig(routeable, parent);
 
     // If the component is used as a child, then return a clone.

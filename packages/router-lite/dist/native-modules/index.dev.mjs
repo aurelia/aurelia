@@ -918,6 +918,16 @@ class RouteConfig {
             ? fallback(viewportInstruction, routeNode, context)
             : fallback;
     }
+    /** @internal */
+    _getComponentName() {
+        try {
+            return this._getComponent().name;
+        }
+        catch {
+            // TODO(Sayan): Convert all Errors in router lite to instances of RouterError
+            return 'UNRESOLVED-NAVIGATION-STRATEGY';
+        }
+    }
     _getComponent(vi, ctx, node, route) {
         if (vi == null) {
             if (this._currentComponent != null)
@@ -933,6 +943,20 @@ class RouteConfig {
         if (!this._isNavigationStrategy)
             return;
         this._currentComponent = null;
+    }
+    toString() {
+        let value = `RConf(id: ${this.id}, isNavigationStrategy: ${this._isNavigationStrategy}`;
+        value += `, path: [${this.path.join(',')}]`;
+        if (this.redirectTo)
+            value += `, redirectTo: ${this.redirectTo}`;
+        if (this.caseSensitive)
+            value += `, caseSensitive: ${this.caseSensitive}`;
+        if (this.transitionPlan != null)
+            value += `, transitionPlan: ${this.transitionPlan}`;
+        value += `, viewport: ${this.viewport}`;
+        if (this._currentComponent != null)
+            value += `, component: ${this._currentComponent.name}`;
+        return `${value})`;
     }
 }
 const Route = {
@@ -977,11 +1001,11 @@ function resolveRouteConfiguration(routeable, isChild, parent, routeNode, contex
         return RouteConfig._create(routeable, null);
     const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
     if (instruction.type === 5 /* NavigationInstructionType.NavigationStrategy */)
-        return RouteConfig._create(routeable, null);
+        return RouteConfig._create({ ...routeable, nav: false }, null);
     return onResolve(ceDef, $ceDef => {
         const type = $ceDef.Type;
         const routeConfig = Route.getConfig(type);
-        // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
+        // If the component is used as a child, then apply the child configuration (coming from parent) and return a new RouteConfig with the configuration applied.
         if (isPartialChildRouteConfig(routeable))
             return routeConfig._applyChildRouteConfig(routeable, parent);
         // If the component is used as a child, then return a clone.
@@ -2537,7 +2561,7 @@ class RouteNode {
     // Should not be adjust for DEV as it is also used of logging in production build.
     toString() {
         const props = [];
-        const component = this.context?.config.component?.name ?? '';
+        const component = this.context?.config._getComponentName() ?? '';
         if (component.length > 0) {
             props.push(`c:'${component}'`);
         }
@@ -3091,10 +3115,15 @@ class Router {
      */
     getRouteContext(viewportAgent, componentDefinition, componentInstance, container, parentRouteConfig, parentContext, $rdConfig) {
         const logger = /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
-        // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-        return onResolve($rdConfig instanceof RouteConfig
+        return onResolve(
+        // In case of navigation strategy, get the route config for the resolved component directly.
+        // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
+        // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+        $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
             ? $rdConfig
-            : resolveRouteConfiguration(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, false, parentRouteConfig, null, parentContext), rdConfig => {
+            : resolveRouteConfiguration(
+            // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+            typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, false, parentRouteConfig, null, parentContext), rdConfig => {
             let routeConfigLookup = this._vpaLookup.get(viewportAgent);
             if (routeConfigLookup === void 0) {
                 this._vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());

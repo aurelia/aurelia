@@ -20,6 +20,7 @@ export declare class RouteConfig implements IRouteConfig, IChildRouteConfig {
     get component(): Routeable;
     private constructor();
     _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): Routeable;
+    toString(): string;
 }
 export declare const Route: {
     name: string;

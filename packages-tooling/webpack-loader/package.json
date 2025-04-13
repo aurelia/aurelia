@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/webpack-loader",
-  "version": "2.1.0-dev.202504061144",
+  "version": "2.1.0-dev.202504131324",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -45,11 +45,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202504061144",
-    "@aurelia/metadata": "2.1.0-dev.202504061144",
-    "@aurelia/platform": "2.1.0-dev.202504061144",
-    "@aurelia/plugin-conventions": "2.1.0-dev.202504061144",
-    "@aurelia/runtime": "2.1.0-dev.202504061144",
+    "@aurelia/kernel": "2.1.0-dev.202504131324",
+    "@aurelia/metadata": "2.1.0-dev.202504131324",
+    "@aurelia/platform": "2.1.0-dev.202504131324",
+    "@aurelia/plugin-conventions": "2.1.0-dev.202504131324",
+    "@aurelia/runtime": "2.1.0-dev.202504131324",
     "loader-utils": "^2.0.0"
   },
   "devDependencies": {

@@ -709,7 +709,7 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
         assert.html.textContent(host, 'p1 c2', 'initial');
         await au.stop(true);
     });
-    it('load new route and activates child viewport', async function () {
+    it('load new route and activates child viewport - explicit navigation instruction', async function () {
         let resolver;
         const promise = new Promise(r => resolver = r);
         let dataLoaded = false;
@@ -852,6 +852,202 @@ describe('router-lite/navigation-strategy.spec.ts', function () {
         taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
         await taskQueue.yield();
         assert.html.textContent(host, 'p1 c12 gc12', 'post-data-load');
+        await au.stop(true);
+    });
+    it('load new route and activates child viewport - reuses the navigation strategy', async function () {
+        const resolvers = {};
+        const promises = {
+            1: new Promise(r => resolvers[1] = r),
+            2: new Promise(r => resolvers[2] = r),
+            3: new Promise(r => resolvers[3] = r),
+        };
+        const dataLoaded = {
+            1: false,
+            2: false,
+            3: false,
+        };
+        let GC12 = (() => {
+            let _classDecorators = [customElement({ name: 'gc-12', template: 'gc12' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var GC12 = _classThis = class {
+            };
+            __setFunctionName(_classThis, "GC12");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                GC12 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return GC12 = _classThis;
+        })();
+        let C11 = (() => {
+            let _classDecorators = [customElement({ name: 'c-11', template: 'c11' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var C11 = _classThis = class {
+                constructor() {
+                    this.router = resolve(IRouter);
+                }
+                canLoad(params, _next, _current) {
+                    void promises[params.id].then(() => this.router.load(`p-1/${params.id}`, { transitionPlan: 'replace' }));
+                    return true;
+                }
+            };
+            __setFunctionName(_classThis, "C11");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                C11 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return C11 = _classThis;
+        })();
+        let C12 = (() => {
+            let _classDecorators = [customElement({ name: 'c-12', template: 'c12 ${id} <au-viewport></au-viewport>' }), route({
+                    routes: [
+                        C11,
+                        { path: ['', 'gc-12'], component: GC12 }
+                    ]
+                })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var C12 = _classThis = class {
+                loading(params) { this.id = params.id; }
+            };
+            __setFunctionName(_classThis, "C12");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                C12 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return C12 = _classThis;
+        })();
+        let C13 = (() => {
+            let _classDecorators = [customElement({ name: 'c-13', template: 'c13' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var C13 = _classThis = class {
+            };
+            __setFunctionName(_classThis, "C13");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                C13 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return C13 = _classThis;
+        })();
+        let P1 = (() => {
+            let _classDecorators = [route({
+                    routes: [
+                        C11,
+                        C12,
+                        C13,
+                        {
+                            path: ':id',
+                            component: new NavigationStrategy((_vi, _ctx, _node, route) => {
+                                if (dataLoaded[route.params.id])
+                                    return C12;
+                                dataLoaded[route.params.id] = true;
+                                return C11;
+                            })
+                        }
+                    ]
+                }), customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var P1 = _classThis = class {
+            };
+            __setFunctionName(_classThis, "P1");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                P1 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return P1 = _classThis;
+        })();
+        let P2 = (() => {
+            let _classDecorators = [customElement({ name: 'p-2', template: 'p2' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var P2 = _classThis = class {
+            };
+            __setFunctionName(_classThis, "P2");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                P2 = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return P2 = _classThis;
+        })();
+        let Root = (() => {
+            let _classDecorators = [route({ routes: [P1, P2] }), customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var Root = _classThis = class {
+            };
+            __setFunctionName(_classThis, "Root");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                Root = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return Root = _classThis;
+        })();
+        const { au, container, host } = await start({ appRoot: Root });
+        const router = container.get(IRouter);
+        const taskQueue = container.get(IPlatform).taskQueue;
+        assert.html.textContent(host, '', 'initial');
+        await router.load('p-1/1');
+        assert.html.textContent(host, 'p1 c11', 'round#1');
+        // resolve the promise to trigger the navigation
+        resolvers[1]();
+        taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+        await taskQueue.yield();
+        assert.html.textContent(host, 'p1 c12 1 gc12', 'post-data-load');
+        // reset to some other route in the p-1 hierarchy
+        await router.load('p-1/c-13');
+        assert.html.textContent(host, 'p1 c13', 'reset');
+        await router.load('p-1/2');
+        assert.html.textContent(host, 'p1 c11', 'round#2');
+        // resolve the promise to trigger the navigation
+        resolvers[2]();
+        taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+        await taskQueue.yield();
+        assert.html.textContent(host, 'p1 c12 2 gc12', 'post-data-load 2');
+        // go to p-2
+        await router.load('p-2');
+        assert.html.textContent(host, 'p2', 'reset to p-2');
+        // go back to p-1
+        await router.load('p-1/1');
+        assert.html.textContent(host, 'p1 c12 1 gc12', 'round#3');
+        // load p-1/3
+        await router.load('p-1/3');
+        assert.html.textContent(host, 'p1 c11', 'round#4');
+        // resolve the promise to trigger the navigation
+        resolvers[3]();
+        taskQueue.queueTask(() => new Promise(r => setTimeout(r, 0)));
+        await taskQueue.yield();
+        assert.html.textContent(host, 'p1 c12 3 gc12', 'post-data-load 3');
         await au.stop(true);
     });
 });

@@ -17,12 +17,11 @@ import {
 import { BindingTargetSubscriber, IFlushQueue, createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';
 
-import type { Constructable, IServiceLocator } from '@aurelia/kernel';
+import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 import { activating } from '../templating/controller';
-import { CustomAttribute } from '../resources/custom-attribute';
 
 export interface PropertyBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
 
@@ -36,7 +35,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   });
 
   public isBound: boolean = false;
-  public isSynchronous: boolean = false;
 
   /** @internal */
   public _scope?: Scope = void 0;
@@ -80,12 +78,6 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     this.l = locator;
     this._controller = controller;
     this.oL = observerLocator;
-    const ctor = target.constructor as Constructable;
-    if (CustomAttribute.isType(ctor)) {
-      const def = CustomAttribute.getDefinition(ctor);
-      const bindable = def.bindables[targetProperty];
-      this.isSynchronous = bindable.synchronous;
-    }
   }
 
   public updateTarget(value: unknown): void {
@@ -100,7 +92,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     if (!this.isBound) return;
 
     // update synchronously during bind lifecycle, for the developer this means that a property update during `binding` or `bound` will be reflected in `attaching` / `attached`, etc.
-    if (this.isSynchronous || this._controller.state === activating) {
+    if (this._controller.state === activating) {
       this._handleChange();
     } else {
       if (this._isQueued) return;

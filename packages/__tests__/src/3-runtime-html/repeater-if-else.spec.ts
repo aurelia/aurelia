@@ -514,7 +514,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
     [behaviorsSpecs, ceTemplateSpecs, appTemplateSpecs, itemsSpecs, countSpecs, mutationSpecs],
     (behaviorsSpec, ceTemplateSpec, appTemplateSpec, itemsSpec, countSpec, mutationSpec) => {
 
-      it(`behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, function () {
+      it(`behaviorsSpec ${behaviorsSpec.t}, ceTemplateSpec ${ceTemplateSpec.t}, appTemplateSpec ${appTemplateSpec.t}, itemsSpec ${itemsSpec.t}, countSpec ${countSpec.t}, mutationSpec ${mutationSpec.t}`, async function () {
         const { behaviors } = behaviorsSpec;
         const { createCETemplate } = ceTemplateSpec;
         const { createAppTemplate } = appTemplateSpec;
@@ -560,7 +560,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
         const host = ctx.createElement('div');
 
         const au = new Aurelia(container);
-        void au
+        await au
           .app({ host, component: Component })
           .start();
         const component = au.root.controller.viewModel;
@@ -569,14 +569,14 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
 
         execute(component as any, ctx.platform, host, count, ifText, elseText);
 
-        void au.stop();
+        await au.stop();
         assert.strictEqual(trimFull(host.textContent), '', `trimFull(host.textContent) === ''`);
 
         au.dispose();
       });
     });
 
-  it('GH #1119 - works when the repeter is wrapped in if.bind and using the same array with if.bind', function () {
+  it('GH #1119 - works when the repeter is wrapped in if.bind and using the same array with if.bind', async function () {
     const { component, getAllBy } = createFixture(
       `<div if.bind="!!items.length">
             <p repeat.for="i of items">
@@ -598,11 +598,14 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
     assert.strictEqual(getAllBy('p').length, 0);
 
     component.add();
+    flush();
     assert.strictEqual(getAllBy('p').length, 1);
     component.remove(0);
+    flush();
     assert.strictEqual(getAllBy('p').length, 0);
 
     component.add();
+    flush();
     assert.strictEqual(getAllBy('p').length, 1);
   });
 });

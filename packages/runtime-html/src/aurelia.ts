@@ -138,6 +138,7 @@ export class Aurelia implements IDisposable {
           this._root = void 0;
           this._rootProvider.dispose();
           this._isStopping = false;
+          this._stopPromise = void 0;
           this._dispatchEvent(root, 'au-stopped', root.host);
         });
       });

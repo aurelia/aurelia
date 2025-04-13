@@ -45,7 +45,7 @@ import {
   TestFunction,
 } from '../util.js';
 
-describe('3-runtime-html/switch.spec.ts', function () {
+describe.only('3-runtime-html/switch.spec.ts', function () {
 
   const enum Status {
     unknown = 'unknown',
@@ -1772,4 +1772,253 @@ describe('3-runtime-html/switch.spec.ts', function () {
       `
       .build().started;
   });
+
+  for (const config of [
+    new Config(false, false, noop),
+    // new Config(true, false, noop),
+    // new Config(true, true, createWaiter(0)),
+    // new Config(true, true, createWaiter(5)),
+  ]) {
+    $it.only('supports multi-case collection mutation (unwrapped)', async function () {
+      @customElement({
+        name: 'app',
+        template: `
+    <template>
+      <template switch.bind="status">
+        <case-host case.bind="statuses" ce-id="1">Processing.</case-host>
+        <case-host case="dispatched"    ce-id="2">On the way.</case-host>
+        <case-host case="delivered"     ce-id="3">Delivered.</case-host>
+        <default-case-host default-case ce-id="1">Unknown.</default-case-host>
+      </template>
+    </template>`
+      })
+      class App {
+        public status1: Status = Status.received;
+        public status2: Status = Status.processing;
+        public statuses: Status[] = [Status.received, Status.processing];
+        public status: Status = Status.dispatched;
+        public statusNum: StatusNum = StatusNum.unknown;
+      }
+
+      @customElement({ name: 'case-host', template: '<au-slot>' })
+      class CaseHost implements ICustomElementViewModel {
+        private logger: ILogger;
+        public readonly $controller: ICustomElementController<this>;
+        @bindable
+        private readonly ceId: unknown = null;
+        private readonly $logger: ILogger = resolve(ILogger);
+        public constructor() {
+          const node = resolve(INode);
+          const ceId = (node as HTMLElement).dataset.ceId;
+          if (ceId) {
+            (this.logger = resolve(ILogger).scopeTo(`case-host-${ceId}`)).debug('ctor');
+            delete (node as HTMLElement).dataset.ceId;
+          }
+        }
+
+        public async binding(): Promise<void> {
+          this.logger ??= this.ceId === null ? this.$logger.scopeTo('case-host') : this.$logger.scopeTo(`case-host-${this.ceId}`);
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('binding');
+        }
+
+        public async bound(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('bound');
+        }
+
+        public async attaching(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('attaching');
+        }
+
+        public async attached(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('attached');
+        }
+
+        public async detaching(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('detaching');
+        }
+
+        public async unbinding(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('unbinding');
+        }
+      }
+
+      @customElement({ name: 'default-case-host', template: '<au-slot>' })
+      class DefaultCaseHost implements ICustomElementViewModel {
+        private logger: ILogger;
+        public readonly $controller: ICustomElementController<this>;
+        @bindable
+        private readonly ceId: unknown = null;
+        private readonly $logger: ILogger = resolve(ILogger);
+        public constructor() {
+          const node = resolve(INode);
+          const ceId = (node as HTMLElement).dataset.ceId;
+          if (ceId) {
+            (this.logger = resolve(ILogger).scopeTo(`default-case-host-${ceId}`)).debug('ctor');
+            delete (node as HTMLElement).dataset.ceId;
+          }
+        }
+
+        public async binding(): Promise<void> {
+          this.logger ??= this.ceId === null ? this.$logger.scopeTo('default-case-host') : this.$logger.scopeTo(`default-case-host-${this.ceId}`);
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('binding');
+        }
+
+        public async bound(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('bound');
+        }
+
+        public async attaching(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('attaching');
+        }
+
+        public async attached(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('attached');
+        }
+
+        public async detaching(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('detaching');
+        }
+
+        public async unbinding(): Promise<void> {
+          if (config.hasPromise) await config.wait();
+          this.logger.debug('unbinding');
+        }
+      }
+
+      const ctx = TestContext.create();
+
+      const host = ctx.doc.createElement('div');
+      ctx.doc.body.appendChild(host);
+
+      const container = ctx.container;
+      const au = new Aurelia(container);
+
+      let error: Error | null = null;
+      let app: App | null = null;
+      let controller: Controller = null!;
+      try {
+        await au
+          .register(
+            LoggerConfiguration.create({ level: LogLevel.trace, sinks: [DebugLog] }),
+            ToStatusStringValueConverter,
+            NoopBindingBehavior,
+            Registration.instance(Config, config),
+            CaseHost,
+            DefaultCaseHost,
+          )
+          .app({
+            host,
+            component: App
+          })
+          .start();
+        app = au.root.controller.viewModel as App;
+        controller = au.root.controller! as unknown as Controller;
+      } catch (e) {
+        error = e;
+      }
+
+      const wait = async ($switch: Switch) => {
+        const promise = $switch.promise;
+        await promise;
+        if ($switch.promise !== promise) {
+          await wait($switch);
+        }
+      };
+
+      assert.strictEqual(error, null);
+      assert.html.innerEqual(host, `<case-host>On the way.</case-host>`, 'innerHTML');
+
+      const log = container.get(ILogger).sinks.find(s => s instanceof DebugLog) as DebugLog;
+      const $switch = controller.children.find(x => x.viewModel instanceof Switch)!.viewModel as unknown as Switch;
+      const cases = $switch['cases'];
+
+      const expectedStartLog = [
+        `Case-#${cases[0]['id']}.isMatch()`,
+        `Case-#${cases[1]['id']}.isMatch()`,
+        'case-host-2.binding',
+        'case-host-2.bound',
+        'case-host-2.attaching',
+        'case-host-2.attached',
+      ];
+      assert.deepStrictEqual(log.log, expectedStartLog, 'start lifecycle calls');
+
+      log.clear();
+      app.statuses.push(Status.dispatched);
+      await wait($switch);
+      assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change1 innerHTML`);
+      const expectedLog1 = [
+        `Case-#${cases[0]['id']}.isMatch()`,
+        'case-host-2.detaching',
+        'case-host-2.unbinding',
+        'case-host-1.binding',
+        'case-host-1.bound',
+        'case-host-1.attaching',
+        'case-host-1.attached',
+      ];
+      assert.deepStrictEqual(log.log, expectedLog1, 'change1');
+
+      log.clear();
+      app.status = Status.unknown;
+      await wait($switch);
+      assert.html.innerEqual(host, `<default-case-host>Unknown.</default-case-host>`, `change2 innerHTML`);
+      const expectedLog2 = [
+        `Case-#${cases[0]['id']}.isMatch()`,
+        `Case-#${cases[1]['id']}.isMatch()`,
+        `Case-#${cases[2]['id']}.isMatch()`,
+        'case-host-1.detaching',
+        'case-host-1.unbinding',
+        'default-case-host-1.binding',
+        'default-case-host-1.bound',
+        'default-case-host-1.attaching',
+        'default-case-host-1.attached',
+      ];
+      assert.deepStrictEqual(log.log, expectedLog2, 'change2');
+
+      log.clear();
+      app.statuses.push(app.status = Status.delivered);
+      await wait($switch);
+      assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change3 innerHTML`);
+      const expectedLog3 = [
+        `Case-#${cases[0]['id']}.isMatch()`,
+        `Case-#${cases[1]['id']}.isMatch()`,
+        `Case-#${cases[2]['id']}.isMatch()`,
+        'default-case-host-1.detaching',
+        'default-case-host-1.unbinding',
+        'case-host-3.binding',
+        'case-host-3.bound',
+        'case-host-3.attaching',
+        'case-host-3.attached',
+        `Case-#${cases[0]['id']}.isMatch()`,
+        'case-host-3.detaching',
+        'case-host-3.unbinding',
+        'case-host-1.binding',
+        'case-host-1.bound',
+        'case-host-1.attaching',
+        'case-host-1.attached',
+      ];
+      assert.deepStrictEqual(log.log, expectedLog3, 'change3');
+
+      log.clear();
+      await au.stop();
+      assert.html.innerEqual(host, '', 'post-detach innerHTML');
+      const expectedStopLog = [
+        'case-host-1.detaching',
+        'case-host-1.unbinding',
+      ];
+      assert.deepStrictEqual(log.log, expectedStopLog, 'stop lifecycle calls');
+
+      ctx.doc.body.removeChild(host);
+    });
+  }
 });

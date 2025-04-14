@@ -50,6 +50,17 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
       '%'].map(s => `${s}1`)
   ];
 
+  // Test class pairs for multi-class binding tests
+  const multiClassTests = [
+    'header-class,footer-class',
+    'grid-container,gridRow',
+    'primary_btn,active,large',
+    'fade-in,visible,animated',
+    '🤯,🤷‍♂️',
+    '1,2,3,4',
+    'SOME_RIDI-COU@#$%-class,3'
+  ];
+
   const testCases: ITestCase[] = [
     {
       selector: 'button',
@@ -109,6 +120,99 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
       }
     }
   ];
+
+  const multiClassTestCase_NoBaseClass: ITestCase = {
+    selector: 'div',
+    title: (classNames: string, callIndex: number) =>
+      `${callIndex}. Multi-class binding (no base class) <div ${classNames}.class=value>`,
+    template: (classNames) => `<div ${classNames}.class="value"></div>`,
+    assert: (au, platform, host, component, testCase, classNames) => {
+      const el = host.querySelector('div');
+      assert.instanceOf(el, platform.HTMLElement, 'el should be HTMLElement');
+      const classes = classNames.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
+
+      eachCartesianJoin(
+        [falsyValues, truthyValues],
+        (falsyValue, truthyValue) => {
+          component.value = truthyValue;
+          platform.domQueue.flush();
+          for (const cls of classes) {
+            assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
+          }
+
+          component.value = falsyValue;
+          platform.domQueue.flush();
+          for (const cls of classes) {
+            assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
+          }
+        }
+      );
+    }
+  };
+
+  const multiClassTestCase_WithBaseClass: ITestCase = {
+    selector: 'div.base-class',
+    title: (classNames: string, callIndex: number) =>
+      `${callIndex}. Multi-class binding (with base class) <div class="base-class" ${classNames}.class=value>`,
+    template: (classNames) => `<div class="base-class" ${classNames}.class="value"></div>`,
+    assert: (au, platform, host, component, testCase, classNames) => {
+      const el = host.querySelector('div.base-class');
+      assert.instanceOf(el, platform.HTMLElement, 'el should be HTMLElement');
+      const classes = classNames.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
+
+      eachCartesianJoin(
+        [falsyValues, truthyValues],
+        (falsyValue, truthyValue) => {
+          component.value = truthyValue;
+          platform.domQueue.flush();
+          assert.contains(el.classList, 'base-class', 'Base class should always be present');
+          for (const cls of classes) {
+            assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
+          }
+
+          component.value = falsyValue;
+          platform.domQueue.flush();
+          assert.contains(el.classList, 'base-class', 'Base class should always be present');
+          for (const cls of classes) {
+            assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
+          }
+        }
+      );
+    }
+  };
+
+  const multiClassTestCase_CustomElement: ITestCase = {
+    selector: 'multi-child',
+    title: (classNames: string, callIndex: number) =>
+      `${callIndex}. Multi-class binding (custom element) <multi-child value.bind=value>`,
+    template: (classNames) => `<multi-child value.bind="value"></multi-child>`, // classNames are used in the custom element definition
+    assert: (au, platform, host, component, testCase, classNames) => {
+      const el = host.querySelector('multi-child');
+      assert.instanceOf(el, platform.HTMLElement, 'el should be HTMLElement');
+      const classes = classNames.split(',').map(c => c.trim()).filter(c => c.length > 0);
+      assert.strictEqual(classes.length > 0, true, 'At least one class in multi-class test');
+
+      eachCartesianJoin(
+        [falsyValues, truthyValues],
+        (falsyValue, truthyValue) => {
+          component.value = truthyValue;
+          platform.domQueue.flush();
+          // The assertion target is the custom element itself, which should have the classes applied to its template root
+          for (const cls of classes) {
+            assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
+          }
+
+          component.value = falsyValue;
+          platform.domQueue.flush();
+          for (const cls of classes) {
+            assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
+          }
+        }
+      );
+    }
+  };
 
   /**
    * For each combination of class name and test case
@@ -195,6 +299,75 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
       });
     }
   );
+
+  describe('Multiple comma-separated classes binding', function () {
+    eachCartesianJoin(
+      [multiClassTests, [multiClassTestCase_NoBaseClass, multiClassTestCase_WithBaseClass, multiClassTestCase_CustomElement]],
+      (classNames, testCase, callIndex) => {
+        it(`[UNIT] ${testCase.title(classNames, callIndex)}`, async function () {
+          const { ctx, au, platform, appHost, component } = createFixture(
+            testCase.template(classNames),
+            class App {
+              public value: unknown = true;
+            },
+            [
+              ClassAttributePattern,
+              CustomElement.define(
+                {
+                  name: 'multi-child',
+                  template: `<template ${classNames}.class="value"></template>`
+                },
+                class MultiChild {
+                  public static bindables = {
+                    value: { property: 'value', attribute: 'value', mode: BindingMode.twoWay }
+                  };
+                  public value = true;
+                }
+              )
+            ]
+          );
+
+          // Split the classNames string to get individual classes for initial verification
+          const classes = classNames.split(',')
+            .map(c => c.trim())
+            .filter(c => c.length > 0);
+
+          // Verify classes are initially present on all elements
+          const els = typeof testCase.selector === 'string'
+            ? appHost.querySelectorAll(testCase.selector)
+            : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
+
+          // If selector targets multiple elements initially (though refactored tests shouldn't), keep loop. Otherwise, simplify.
+          // The refactored tests should each only find one element.
+          assert.strictEqual(els.length, 1, `Expected exactly one element matching selector: ${testCase.selector}`);
+          const el = els[0];
+
+          // Initial assertion: classes should be present since component.value defaults to true
+          if (testCase !== multiClassTestCase_WithBaseClass) { // Base class test starts with base-class only initially, then adds bound classes
+             for (const cls of classes) {
+              assert.contains(
+                el.classList,
+                cls.toLowerCase(),
+                `[initial]${el.className}.contains(${cls})`
+              );
+            }
+          } else {
+            // For the 'WithBaseClass' test, initially only 'base-class' should be present
+             assert.contains(el.classList, 'base-class', '[initial] Base class should be present');
+             for (const cls of classes) {
+               assert.contains( // Correction: With component.value=true, bound classes SHOULD be present initially too
+                 el.classList,
+                 cls.toLowerCase(),
+                 `[initial]${el.className}.contains(${cls})`
+               );
+             }
+           }
+
+          testCase.assert(au, platform, appHost, component, testCase, classNames);
+        });
+      }
+    );
+  });
 
   interface IApp {
     value: any;

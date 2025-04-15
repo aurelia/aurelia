@@ -125,9 +125,10 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     switch (targetAttribute) {
       case 'class':
         if (this._isMulti) {
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          const force = !!value;
           for (const cls of AttributeBinding._splitString.get(targetProperty)!) {
-            // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-            target.classList.toggle(cls, !!value);
+            target.classList.toggle(cls, force);
           }
         } else {
           // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions

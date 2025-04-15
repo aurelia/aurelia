@@ -450,7 +450,6 @@ export class ClassBindingCommand implements BindingCommandInstance {
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
     let target = info.attr.target;
-    const rawValue = info.attr.rawValue;
 
     if (target.includes(",")) {
       const classes = target
@@ -464,7 +463,7 @@ export class ClassBindingCommand implements BindingCommandInstance {
       target = classes.join(' ');
     }
 
-    return new AttributeBindingInstruction("class", exprParser.parse(rawValue, etIsProperty), target);
+    return new AttributeBindingInstruction("class", exprParser.parse(info.attr.rawValue, etIsProperty), target);
   }
 }
 

@@ -58,13 +58,13 @@ export class StyleAttributePattern {
  * ```
  */
 @attributePattern(
-  { pattern: 'class.PART', symbols: '.' },
+  // { pattern: 'class.PART', symbols: '.' },
   { pattern: 'PART.class', symbols: '.' }
 )
 export class ClassAttributePattern {
-  public 'class.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
-    return new AttrSyntax(rawName, rawValue, parts[1], 'class');
-  }
+  // public 'class.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+  //   return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+  // }
 
   public 'PART.class'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
     return new AttrSyntax(rawName, rawValue, parts[0], 'class');

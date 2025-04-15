@@ -46,29 +46,19 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
       '|',
       '<',
       // '>', // todo: better test for this scenario
-      ',',
-      '%'].map(s => `${s}1`)
-  ];
-
-  // Test class pairs for multi-class binding tests
-  const multiClassTests = [
-    'header-class,footer-class',
-    'grid-container,gridRow',
-    'primary_btn,active,large',
-    'fade-in,visible,animated',
-    '🤯,🤷‍♂️',
-    '1,2,3,4',
-    'SOME_RIDI-COU@#$%-class,3'
+      // multi class syntax with , delimiter is supported, having it will result in a different scenario
+      // ',',
+      '%'
+    ].map(s => `${s}1`)
   ];
 
   const testCases: ITestCase[] = [
     {
       selector: 'button',
-      title: (className: string, callIndex: number) => `${callIndex}. <button class.${encodeURI(className)}=value>`,
+      title: (className: string, callIndex: number) => `${callIndex}. <button ${encodeURI(className)}.class=value>`,
       template: (className) => {
         return `
         <button ${className}.class="value"></button>
-        <button class.${className}="value"></button>
         <child value.bind="value"></child>
         <child repeat.for="i of 5" value.bind="value"></child>
       `;
@@ -187,7 +177,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
     selector: 'multi-child',
     title: (classNames: string, callIndex: number) =>
       `${callIndex}. Multi-class binding (custom element) <multi-child value.bind=value>`,
-    template: (classNames) => `<multi-child value.bind="value"></multi-child>`,
+    template: (_) => `<multi-child value.bind="value"></multi-child>`,
     assert: (au, platform, host, component, testCase, classNames) => {
       const el = host.querySelector('multi-child');
       assert.instanceOf(el, platform.HTMLElement, 'el should be HTMLElement');
@@ -298,6 +288,17 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
   );
 
   describe('Multiple comma-separated classes binding', function () {
+    // Test class pairs for multi-class binding tests
+    const multiClassTests = [
+      'header-class,footer-class',
+      'grid-container,gridRow',
+      'primary_btn,active,large',
+      'fade-in,visible,animated',
+      '🤯,🤷‍♂️',
+      '1,2,3,4',
+      'SOME_RIDI-COU@#$%-class,3'
+    ];
+
     eachCartesianJoin(
       [multiClassTests, [multiClassTestCase_NoBaseClass, multiClassTestCase_WithBaseClass, multiClassTestCase_CustomElement]],
       (classNames, testCase, callIndex) => {
@@ -346,15 +347,15 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
               );
             }
           } else {
-             assert.contains(el.classList, 'base-class', '[initial] Base class should be present');
-             for (const cls of classes) {
-               assert.contains(
-                 el.classList,
-                 cls.toLowerCase(),
-                 `[initial]${el.className}.contains(${cls})`
-               );
-             }
-           }
+            assert.contains(el.classList, 'base-class', '[initial] Base class should be present');
+            for (const cls of classes) {
+              assert.contains(
+                el.classList,
+                cls.toLowerCase(),
+                `[initial]${el.className}.contains(${cls})`
+              );
+            }
+          }
 
           testCase.assert(au, platform, appHost, component, testCase, classNames);
         });

@@ -37,7 +37,7 @@ export const enum ErrorNames {
   compiler_no_reserved_spread_syntax = 720,
   compiler_no_reserved_$bindable = 721,
   compiler_no_dom_api = 722,
-  tpl_compiler_invalid_class_binding_syntax = 723,
+  compiler_invalid_class_binding_syntax = 723,
   no_spread_template_controller = 9998,
 }
 _END_CONST_ENUM();
@@ -71,7 +71,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.compiler_no_reserved_spread_syntax]: `Spreading syntax "...xxx" is reserved. Encountered "...{{0}}"`,
   [ErrorNames.compiler_no_reserved_$bindable]: `Usage of $bindables is only allowed on custom element. Encountered: <{{0}} {{1}}="{{2}}">`,
   [ErrorNames.compiler_no_dom_api]: 'Invalid platform object provided to the compilation, no DOM API found.',
-  [ErrorNames.tpl_compiler_invalid_class_binding_syntax]: `Template compilation error: Invalid comma-separated class binding syntax in {{0}}. It resulted in no valid class names after parsing.`,
+  [ErrorNames.compiler_invalid_class_binding_syntax]: `Template compilation error: Invalid comma-separated class binding syntax in {{0}}. It resulted in no valid class names after parsing.`,
 
   [ErrorNames.no_spread_template_controller]: 'Spread binding does not support spreading custom attributes/template controllers. Did you build the spread instruction manually?',
 };

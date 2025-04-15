@@ -187,7 +187,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
     selector: 'multi-child',
     title: (classNames: string, callIndex: number) =>
       `${callIndex}. Multi-class binding (custom element) <multi-child value.bind=value>`,
-    template: (classNames) => `<multi-child value.bind="value"></multi-child>`, // classNames are used in the custom element definition
+    template: (classNames) => `<multi-child value.bind="value"></multi-child>`,
     assert: (au, platform, host, component, testCase, classNames) => {
       const el = host.querySelector('multi-child');
       assert.instanceOf(el, platform.HTMLElement, 'el should be HTMLElement');
@@ -199,7 +199,6 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
           platform.domQueue.flush();
-          // The assertion target is the custom element itself, which should have the classes applied to its template root
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
@@ -225,8 +224,6 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
    * 3. Each `value` of truthy values, set bound view model value to `value` and:
    * - wait for 1 promise tick
    * - the element does contain the class
-   *
-   * 4. TODO: assert class binding command on root surrogate once root surrogate composition is supported
    */
   eachCartesianJoin(
     [classNameTests, testCases],
@@ -337,14 +334,11 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
             ? appHost.querySelectorAll(testCase.selector)
             : testCase.selector(ctx.doc) as ArrayLike<HTMLElement>;
 
-          // If selector targets multiple elements initially (though refactored tests shouldn't), keep loop. Otherwise, simplify.
-          // The refactored tests should each only find one element.
           assert.strictEqual(els.length, 1, `Expected exactly one element matching selector: ${testCase.selector}`);
           const el = els[0];
 
-          // Initial assertion: classes should be present since component.value defaults to true
-          if (testCase !== multiClassTestCase_WithBaseClass) { // Base class test starts with base-class only initially, then adds bound classes
-             for (const cls of classes) {
+          if (testCase !== multiClassTestCase_WithBaseClass) {
+            for (const cls of classes) {
               assert.contains(
                 el.classList,
                 cls.toLowerCase(),
@@ -352,10 +346,9 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
               );
             }
           } else {
-            // For the 'WithBaseClass' test, initially only 'base-class' should be present
              assert.contains(el.classList, 'base-class', '[initial] Base class should be present');
              for (const cls of classes) {
-               assert.contains( // Correction: With component.value=true, bound classes SHOULD be present initially too
+               assert.contains(
                  el.classList,
                  cls.toLowerCase(),
                  `[initial]${el.className}.contains(${cls})`
@@ -366,6 +359,23 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
           testCase.assert(au, platform, appHost, component, testCase, classNames);
         });
       }
+    );
+  });
+
+  it('[UNIT] Throws error for invalid multi-class binding syntax (empty after split)', async function () {
+    const invalidClassNames = ',,,';
+    const template = `<div ${invalidClassNames}.class="value"></div>`;
+
+    await assert.rejects(
+      async () => {
+        createFixture(
+          template,
+          class App { public value: unknown = true; },
+          [ClassAttributePattern]
+        );
+      },
+      /AUR0723/
+      , 'Should throw invalid class binding syntax error'
     );
   });
 

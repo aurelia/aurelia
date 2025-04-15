@@ -458,6 +458,10 @@ export class ClassBindingCommand implements BindingCommandInstance {
         .split(",")
         .filter(c => c.length > 0);
 
+      if (classes.length === 0) {
+        throw createMappedError(ErrorNames.tpl_compiler_invalid_class_binding_syntax, info.node.outerHTML);
+      }
+
       if (classes.length > 1) {
         const classStr = classes.join(' ');
         const expr = `(${rawValue}) ? '${classStr}' : ''`;

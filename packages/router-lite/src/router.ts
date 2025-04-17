@@ -179,6 +179,7 @@ export class Router {
 
   /** @internal */ public readonly _hasTitleBuilder: boolean = false;
 
+  /** @internal */ private readonly _activeContexts: RouteContext[] = [];
   /** @internal */ private _isNavigating: boolean = false;
   public get isNavigating(): boolean {
     return this._isNavigating;
@@ -555,8 +556,9 @@ export class Router {
      */
 
     this._isNavigating = true;
-    // TODO: connect `isNavigating` to the `handleChange` subscriber in route-context synchronously in another way and remove this flush call
-    flush();
+    for (const ctx of this._activeContexts) {
+      ctx._handleNavigationStart();
+    }
     let navigationContext = this._resolveContext(tr.options.context);
     const logger = /*@__PURE__*/ this._logger.scopeTo('run()');
 
@@ -719,6 +721,19 @@ export class Router {
       }
     }
     return title;
+  }
+
+  /** @internal */
+  public _subscribeNavigationStart(ctx: RouteContext) {
+    this._activeContexts.push(ctx);
+  }
+
+  /** @internal */
+  public _unsubscribeNavigationStart(ctx: RouteContext) {
+    const idx = this._activeContexts.indexOf(ctx);
+    if (idx > -1) {
+      this._activeContexts.splice(idx, 1);
+    }
   }
 
   /** @internal */

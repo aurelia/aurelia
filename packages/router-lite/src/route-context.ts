@@ -166,7 +166,6 @@ export class RouteContext {
   public get navigationModel(): INavigationModel | null {
     return this._navigationModel;
   }
-  /** @internal */ private readonly _unsubscribeIsNavigatingChange: () => void;
 
   public constructor(
     viewportAgent: ViewportAgent | null,
@@ -189,20 +188,7 @@ export class RouteContext {
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    const observer = parentContainer.get(IObserverLocator).getObserver(this._router, 'isNavigating');
-    const subscriber: ISubscriber<boolean> = {
-      handleChange: (newValue, _previousValue) => {
-        if (newValue !== true) return;
-        this.config._handleNavigationStart();
-        for (const childRoute of this.childRoutes) {
-          if (childRoute instanceof Promise) continue;
-          childRoute._handleNavigationStart();
-        }
-      }
-    };
-    observer.subscribe(subscriber);
-    this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
-
+    this._router._subscribeNavigationStart(this);
     this._moduleLoader = parentContainer.get(IModuleLoader);
 
     const container = this.container = parentContainer.createChild();
@@ -232,6 +218,15 @@ export class RouteContext {
       this._navigationModel = null;
     }
     this._processConfig(config);
+  }
+
+  /** @internal */
+  public _handleNavigationStart() {
+    this.config._handleNavigationStart();
+    for (const childRoute of this.childRoutes) {
+      if (childRoute instanceof Promise) continue;
+      childRoute._handleNavigationStart();
+    }
   }
 
   /** @internal */
@@ -375,7 +370,7 @@ export class RouteContext {
 
   public dispose(): void {
     this.container.dispose();
-    this._unsubscribeIsNavigatingChange();
+    this._router._unsubscribeNavigationStart(this);
   }
 
   /** @internal */

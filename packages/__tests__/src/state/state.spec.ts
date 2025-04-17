@@ -230,6 +230,7 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
+      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -243,6 +244,7 @@ describe('state/state.spec.ts', function () {
 
       assertText('center', '123');
       trigger('button', 'click');
+      flush();
       assertText('center', '456');
     });
   });
@@ -564,6 +566,7 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
+      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 

@@ -13,6 +13,7 @@ import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { isPartialViewportInstruction } from './validation';
 import { Events, debug, error, getMessage, trace } from './events';
+import { flush } from '@aurelia/runtime';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());
@@ -554,6 +555,8 @@ export class Router {
      */
 
     this._isNavigating = true;
+    // TODO: connect `isNavigating` to the `handleChange` subscriber in route-context synchronously in another way and remove this flush call
+    flush();
     let navigationContext = this._resolveContext(tr.options.context);
     const logger = /*@__PURE__*/ this._logger.scopeTo('run()');
 

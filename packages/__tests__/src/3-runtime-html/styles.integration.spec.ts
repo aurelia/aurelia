@@ -169,5 +169,17 @@ I am green if I am selected and red if I am not
 
       assertClass('div', 'abc');
     });
+
+    it('works with multi class binding syntax', function () {
+      const { assertClass } = createFixture('<my-el>', undefined, [
+        CustomElement.define({
+          name: 'my-el',
+          template: '<div my-class,some.class="true">',
+          dependencies: [cssModules({ 'my-class': 'abc', some: 'def' })]
+        }, class MyEl { })
+      ]);
+
+      assertClass('div', 'abc', 'def');
+    });
   });
 });

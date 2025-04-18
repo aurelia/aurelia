@@ -127,13 +127,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          platform.domQueue.flush();
+          flush();
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          platform.domQueue.flush();
+          flush();
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
           }
@@ -157,14 +157,14 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          platform.domQueue.flush();
+          flush();
           assert.contains(el.classList, 'base-class', 'Base class should always be present');
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          platform.domQueue.flush();
+          flush();
           assert.contains(el.classList, 'base-class', 'Base class should always be present');
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
@@ -189,13 +189,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          platform.domQueue.flush();
+          flush();
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          platform.domQueue.flush();
+          flush();
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
           }

@@ -847,16 +847,18 @@ describe('integration/integration.spec.ts', function () {
       cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
       flush();
 
+      const effectiveWidth = `${1 / window.devicePixelRatio}px`;
+
       for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
         const para = cardsEl.querySelector(`p#${id}`);
         assert.html.computedStyle(
           para,
           {
             backgroundColor: 'rgb(0, 0, 255)',
-            borderTopWidth: '1px',
-            borderBottomWidth: '1px',
-            borderRightWidth: '1px',
-            borderLeftWidth: '1px',
+            borderTopWidth: effectiveWidth,
+            borderBottomWidth: effectiveWidth,
+            borderRightWidth: effectiveWidth,
+            borderLeftWidth: effectiveWidth,
             borderTopStyle: 'solid',
             borderBottomStyle: 'solid',
             borderRightStyle: 'solid',

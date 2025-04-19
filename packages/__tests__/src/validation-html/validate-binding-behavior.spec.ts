@@ -8,6 +8,7 @@ import {
   Scope,
   nextTick,
   yieldTasks,
+  flush,
 } from '@aurelia/runtime';
 import {
   type BindingBehaviorInstance,
@@ -1511,7 +1512,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await stop(true);
     });
 
-    it('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
+    it.only('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
       type Model = { someProperty: number };
 
       @customElement({ name: 'ce-one', template: `<input value.bind="model.someProperty & validate">` })
@@ -1555,16 +1556,19 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await startPromise;
 
       component.isEditing = true;
+      flush();
       const ceOne: CeOne = CustomElement.for<CeOne>(appHost.querySelector('ce-one')).viewModel;
       const validationController = ceOne.validationController;
       let result = await validationController.validate();
       assertInvalidResult(result, 1);
 
       component.isEditing = false;
+      flush();
       result = await validationController.validate();
       assert.strictEqual(result.valid, true, 'result.valid 2');
 
       component.isEditing = true;
+      flush();
       result = await validationController.validate();
       assertInvalidResult(result, 3);
 

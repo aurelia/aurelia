@@ -1512,7 +1512,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await stop(true);
     });
 
-    it.only('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
+    it('works for conditionally rendered components with newly defined rules - GH issue 2025', async function () {
       type Model = { someProperty: number };
 
       @customElement({ name: 'ce-one', template: `<input value.bind="model.someProperty & validate">` })

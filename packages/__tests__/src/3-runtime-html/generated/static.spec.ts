@@ -8,58 +8,58 @@ describe("3-runtime-html/generated/static.spec.ts", function () {
         const host = ctx.createElement("div");
         return { au, host };
     }
-    function verify(au, host, expected) {
-        au.start();
+    async function verify(au, host, expected) {
+        await au.start();
         const outerHtmlAfterStart1 = host.outerHTML;
         assert.visibleTextEqual(host, expected, "after start #1");
-        au.stop();
+        await au.stop();
         const outerHtmlAfterStop1 = host.outerHTML;
         assert.visibleTextEqual(host, "", "after stop #1");
-        au.start();
+        await au.start();
         const outerHtmlAfterStart2 = host.outerHTML;
         assert.visibleTextEqual(host, expected, "after start #2");
-        au.stop();
+        await au.stop();
         const outerHtmlAfterStop2 = host.outerHTML;
         assert.visibleTextEqual(host, "", "after stop #2");
         assert.strictEqual(outerHtmlAfterStart1, outerHtmlAfterStart2, "outerHTML after start #1 / #2");
         assert.strictEqual(outerHtmlAfterStop1, outerHtmlAfterStop2, "outerHTML after stop #1 / #2");
         au.dispose();
     }
-    it("tag$01 text$01 _", function () {
+    it("tag$01 text$01 _", async function () {
         const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template><div>a</div></template>" }, class {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$01 text$03 _", function () {
+    it("tag$01 text$03 _", async function () {
         const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template><div>${msg}</div></template>" }, class {
             msg = "a";
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$02 text$01 _", function () {
+    it("tag$02 text$01 _", async function () {
         const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template>a</template>" }, class {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$02 text$03 _", function () {
+    it("tag$02 text$03 _", async function () {
         const { au, host } = createFixture();
         const App = CustomElement.define({ name: "app", template: "<template>${msg}</template>" }, class {
             msg = "a";
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$03 text$03 _", function () {
+    it("tag$03 text$03 _", async function () {
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
@@ -73,9 +73,9 @@ describe("3-runtime-html/generated/static.spec.ts", function () {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$04 text$03 _", function () {
+    it("tag$04 text$03 _", async function () {
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
@@ -90,9 +90,9 @@ describe("3-runtime-html/generated/static.spec.ts", function () {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$05 text$03 _", function () {
+    it("tag$05 text$03 _", async function () {
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
@@ -107,9 +107,9 @@ describe("3-runtime-html/generated/static.spec.ts", function () {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
-    it("tag$06 text$03 _", function () {
+    it("tag$06 text$03 _", async function () {
         const { au, host } = createFixture();
         const MyFoo = CustomElement.define({ name: "my-foo", template: "<template>${msg}</template>" }, class {
             static bindables = ["msg", "not", "item"];
@@ -124,6 +124,6 @@ describe("3-runtime-html/generated/static.spec.ts", function () {
         });
         const component = new App();
         au.app({ host, component });
-        verify(au, host, "a");
+        await verify(au, host, "a");
     });
 });

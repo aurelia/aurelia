@@ -272,7 +272,7 @@ export class Case implements ICustomAttributeViewModel {
   /** @internal */ private readonly _factory = resolve(IViewFactory);
   /** @internal */ private readonly _locator = resolve(IObserverLocator);
   /** @internal */ private readonly _location = resolve(IRenderLocation);
-  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`${this.constructor.name}-#${this.id}`);
+  /** @internal */ private readonly _logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
 
   public link(
     controller: IHydratableController,

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { Constructable, IRegistry } from '@aurelia/kernel';
+import { flush } from '@aurelia/runtime';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import {
   assert,
@@ -60,6 +61,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
       { position: 'beforeend' }
     );
     component.position = 'afterend';
+    flush();
     assertHtml('<div id="d1">hello</div><!--au-start--><button>click me</button><!--au-end--><!--au-start--><!--au-end-->');
   });
 
@@ -72,6 +74,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
       { position: 'beforeend' }
     );
     component.position = 'beforebegin';
+    flush();
     assertHtml('<!--au-start--><button>click me</button><!--au-end--><div id="d1">hello</div><!--au-start--><!--au-end-->');
   });
 
@@ -86,8 +89,10 @@ describe('3-runtime-html/portal.spec.tsx', function () {
 
     assertHtml('div', '');
     component.open = true;
+    flush();
     assertHtml('div', '<!--au-start--><p id="package"></p><!--au-end-->');
     component.open = false;
+    flush();
     assertHtml('div', '');
   });
 
@@ -291,6 +296,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           }
         ),
         assertionFn: (_ctx, _host, comp) => {
+          flush();
           assert.notEqual(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
             null,
@@ -334,6 +340,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = comp.localDiv;
+          flush();
           assert.equal(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
             comp.divdiv,
@@ -341,6 +348,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = null;
+          flush();
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             comp.divdiv,
@@ -348,6 +356,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = comp.localDiv;
+          flush();
           assert.equal(
             childrenQuerySelector(comp.localDiv, '.divdiv'),
             comp.divdiv,
@@ -355,6 +364,7 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = undefined;
+          flush();
           assert.equal(
             childrenQuerySelector(ctx.doc.body, '.divdiv'),
             comp.divdiv,
@@ -396,9 +406,11 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = '.mock-target';
+          flush();
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-1');
 
           comp.target = null;
+          flush();
           assert.strictEqual(comp.divdiv.parentElement, ctx.doc.body);
         }
       },
@@ -436,22 +448,28 @@ describe('3-runtime-html/portal.spec.tsx', function () {
           );
 
           comp.target = '.mock-target';
+          flush();
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
 
           comp.target = null;
+          flush();
           assert.strictEqual(comp.divdiv.parentElement, ctx.doc.body);
 
           comp.target = '.mock-target';
+          flush();
           // still not #mock-1-1 yet, because render context is unclear, so #mock-1-0 comes first for .mock-target
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
 
           comp.renderContext = host.querySelector('#mock-render-context');
+          flush();
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-1');
 
           comp.renderContext = undefined;
+          flush();
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
 
           comp.renderContext = null;
+          flush();
           assert.strictEqual(comp.divdiv.parentElement.id, 'mock-1-0');
         }
       },

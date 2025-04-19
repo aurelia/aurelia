@@ -1,3 +1,4 @@
+import { yieldTasks } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 
@@ -73,7 +74,7 @@ describe("3-runtime-html/repeat.keyed.map.spec.ts", function () {
           async function mutate(cb: () => void) {
             obs.observe(host, { childList: true });
             cb();
-            await Promise.resolve();
+            await yieldTasks();
             obs.disconnect();
           }
 

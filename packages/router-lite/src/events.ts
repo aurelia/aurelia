@@ -102,6 +102,7 @@ export const enum Events {
   rtrNextTr = 3269,
   rtrTrFailed = 3270,
   rtrNoCtx = 3271,
+  rtrIncompatiblePathGenerationInstr = 3272,
   // #endregion
   // #region viewport agent
   vpaCreated = 3300,
@@ -276,6 +277,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrNextTr]: 'scheduling next transition: %s',
   [Events.rtrTrFailed]: 'Transition %s failed with error: %s',
   [Events.rtrNoCtx]: 'Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?',
+  [Events.rtrIncompatiblePathGenerationInstr]: 'The given instruction is not compatible for eagerly generating path: %s',
   // #endregion
 
   // #region viewport agent

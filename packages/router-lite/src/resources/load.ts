@@ -59,7 +59,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
 
   public attaching(): void | Promise<void> {
     const ctx = this.context;
-    const promise = ctx!.allResolved;
+    const promise = ctx!.routeConfigContext.allResolved;
     if (promise !== null) {
       return promise.then(() => {
         this.valueChanged();
@@ -85,7 +85,7 @@ export class LoadCustomAttribute implements ICustomAttributeViewModel {
     } else if (ctx === null) {
       ctx = this.context = this._ctx.root;
     }
-    if (component != null && ctx.allResolved === null) {
+    if (component != null && ctx.routeConfigContext.allResolved === null) {
       const params = this.params;
       const instructions = this._instructions = router.createViewportInstructions(
         typeof params === 'object' && params !== null

@@ -3651,7 +3651,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
     it('respects custom buildTitle', async function () {
       const { host, au, container } = await start((tr) => {
         const root = tr.routeTree.root;
-        return `${root.context.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
+        return `${root.context.routeConfigContext.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
       });
       assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
       const vmb = CustomElement.for<VmB>(host.querySelector('vm-b')).viewModel;
@@ -3879,7 +3879,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         private readonly navModel: INavigationModel | null;
         private readonly node: INode = resolve(INode);
         public constructor() {
-          this.navModel = resolve(IRouteContext).navigationModel;
+          this.navModel = resolve(IRouteContext).routeConfigContext.navigationModel;
         }
 
         public binding(_initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {
@@ -6505,7 +6505,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         class C1 {
           private readonly parent: string;
           public constructor() {
-            this.parent = resolve(IRouteContext).parent.component.name;
+            this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
           }
         }
         @route({
@@ -6554,7 +6554,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         class C1 {
           private readonly parent: string;
           public constructor() {
-            this.parent = resolve(IRouteContext).parent.component.name;
+            this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
           }
         }
         @route({
@@ -6607,7 +6607,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         private readonly parent: string;
         private routeId: string;
         public constructor() {
-          this.parent = resolve(IRouteContext).parent.component.name;
+          this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
         }
 
         public canLoad(params: Params): boolean {
@@ -6666,7 +6666,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
       class C1 implements IRouteViewModel {
         private readonly parent: string;
         public constructor() {
-          this.parent = resolve(IRouteContext).parent.component.name;
+          this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
         }
       }
       @route('p1')

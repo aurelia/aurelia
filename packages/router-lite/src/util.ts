@@ -1,3 +1,4 @@
+import { isArray } from '@aurelia/kernel';
 import { Params } from './instructions';
 import type { RouteNode } from './route-tree';
 import { BindingMode } from '@aurelia/runtime-html';
@@ -100,14 +101,34 @@ export function ensureString(value: string | string[]): string {
   return typeof value === 'string' ? value : value[0];
 }
 
-export function mergeURLSearchParams(source: URLSearchParams, other: Params | null, clone: boolean) {
+export function mergeURLSearchParams(source: URLSearchParams, other: Params | Record<string, string | string[] | undefined> | null, clone: boolean) {
   const query = clone ? new URLSearchParams(source) : source;
-  if(other == null) return query;
-  for(const [key, value] of Object.entries(other)) {
+  if (other == null) return query;
+  for (const [key, value] of Object.entries(other)) {
     if (value == null) continue;
+    if (isArray(value)) {
+      for (const v of value) {
+        query.append(key, v);
+      }
+      continue;
+    }
     query.append(key, value);
   }
   return query;
+}
+
+export function mergeQueryParams(source: Record<string, string | string[]>, other: Record<string, string | string[] | undefined> | null): Record<string, string | string[]> {
+  if (other == null) return source;
+  for (const [key, value] of Object.entries(other)) {
+    if (value == null) continue;
+    if (source[key] == null) {
+      source[key] = value;
+    } else {
+      const values: string | string[] = source[key];
+      source[key] = [...(isArray(values) ? values : [values]), ...(isArray(value) ? value : [value])];
+    }
+  }
+  return source;
 }
 
 /** @internal */ export const bmToView = BindingMode.toView;

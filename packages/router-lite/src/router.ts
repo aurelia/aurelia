@@ -404,6 +404,11 @@ export class Router {
     );
   }
 
+  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string {
+    const vit = this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx });
+    return vit.toUrl(true, this.options._urlParser);
+  }
+
   public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 

@@ -35,7 +35,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
   /** @internal */
   private readonly _ctx: IRouteContext = resolve(IRouteContext);
   /** @internal */
-  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx._friendlyPath}>`));
+  private readonly _logger: ILogger = /*@__PURE__*/ (resolve(ILogger).scopeTo(`au-viewport<${this._ctx.routeConfigContext._friendlyPath}>`));
 
   /** @internal */
   public _getFallback(viewportInstruction: IViewportInstruction, routeNode: RouteNode, context: IRouteContext): Routeable | null {
@@ -91,7 +91,7 @@ export class ViewportCustomElement implements ICustomElementViewModel, IViewport
         }
       }
     }
-    return `VP(ctx:'${this._ctx._friendlyPath}',${propStrings.join(',')})`;
+    return `VP(ctx:'${this._ctx.routeConfigContext._friendlyPath}',${propStrings.join(',')})`;
   }
 }
 CustomElement.define({

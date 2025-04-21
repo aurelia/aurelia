@@ -1,7 +1,7 @@
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
-import { IRouteContext, RouteContext } from './route-context';
+import { IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -134,8 +134,8 @@ export class Router {
           finalPath: '',
           context: ctx,
           instruction: null,
-          component: CustomElement.getDefinition(ctx.config.component as RouteType),
-          title: ctx.config.title,
+          component: CustomElement.getDefinition(ctx.routeConfigContext.config.component as RouteType),
+          title: ctx.routeConfigContext.config.title,
         }),
       );
     }
@@ -359,6 +359,7 @@ export class Router {
   ): IRouteContext | Promise<IRouteContext> {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
+    const parentRouteConfigContext = parentContext?.routeConfigContext ?? null;
     return onResolve(
       // In case of navigation strategy, get the route config for the resolved component directly.
       // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
@@ -371,7 +372,7 @@ export class Router {
           false,
           parentRouteConfig,
           null,
-          parentContext
+          parentRouteConfigContext,
         ),
       rdConfig => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
@@ -393,10 +394,15 @@ export class Router {
           routeContext = new RouteContext(
             viewportAgent,
             parent,
-            componentDefinition,
-            rdConfig,
             container,
             this,
+            new RouteConfigContext(
+              parentRouteConfigContext,
+              componentDefinition,
+              rdConfig,
+              container,
+              this,
+            )
           ),
         );
         return routeContext;
@@ -609,11 +615,11 @@ export class Router {
         rootCtx.node = rt.root;
       }
 
-      const suffix = navigationContext.allResolved instanceof Promise ? ' - awaiting promise' : '';
+      const suffix = navigationContext.routeConfigContext.allResolved instanceof Promise ? ' - awaiting promise' : '';
       log.trace(`updateRouteTree(rootCtx:%s,rt:%s,vit:%s)${suffix}`, rootCtx, rt, vit);
       // Wait till the promises to resolve the child routes are resolved.
       // Note that a route configuration can be a promise.
-      return onResolve(navigationContext.allResolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
+      return onResolve(navigationContext.routeConfigContext.allResolved, () => updateNode(log, vit, navigationContext, rootCtx.node));
     }, () => {
       const prev = tr.previousRouteTree.root.children;
       const next = tr.routeTree.root.children;
@@ -791,7 +797,7 @@ function updateNode(
   (node as Writable<RouteNode>).queryParams = vit.queryParams;
   (node as Writable<RouteNode>).fragment = vit.fragment;
 
-  if (!node.context.isRoot) {
+  if (!node.context.routeConfigContext.isRoot) {
     node.context.vpa._scheduleUpdate(node._tree.options, node);
   }
   if (node.context === ctx) {

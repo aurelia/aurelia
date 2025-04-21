@@ -281,7 +281,7 @@ export class ViewportInstructionTree {
       const query = new URLSearchParams(options.queryParams ?? emptyObject);
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
-        const eagerVi = hasContext ? context._generateViewportInstruction(instruction) : null;
+        const eagerVi = hasContext ? context.routeConfigContext._generateViewportInstruction(instruction) : null;
         if (eagerVi !== null) {
           children[i] = eagerVi.vi;
           mergeURLSearchParams(query, eagerVi.query, false);
@@ -298,7 +298,7 @@ export class ViewportInstructionTree {
     }
 
     const eagerVi = hasContext
-      ? context._generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
+      ? context.routeConfigContext._generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
         ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
         : { component: instructionOrInstructions, params: emptyObject }
       )
@@ -345,7 +345,7 @@ export class ViewportInstructionTree {
       let ctx: IRouteContext | null = this.options.context as IRouteContext | null;
       if (ctx != null && !(ctx instanceof RouteContext)) throw new Error('Invalid operation; incompatible navigation context.');
 
-      while (ctx != null && !ctx.isRoot) {
+      while (ctx != null && !ctx.routeConfigContext.isRoot) {
         const vpa = ctx.vpa;
         const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
         if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');

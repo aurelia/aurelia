@@ -62,9 +62,9 @@ Whenever there's a request to retrieve `dist/esm/index.mjs`, you can redirect it
 
 The section below will list errors by their prefix, and code and give a corresponding explanation, and a way to fix them.
 
-### Dependency Injection Errors (from 0001 to 0015)
+### Aurelia Kernel Errors (from 0001 to 0023)
 
-Dependency Injection errors can be found [here](0001-to-0015/).
+Aurelia Kernel errors can be found [here](0001-to-0023/).
 
 ### Template Compiler Errors (From 701-749)
 

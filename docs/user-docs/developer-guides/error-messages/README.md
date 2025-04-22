@@ -66,7 +66,9 @@ The section below will list errors by their prefix, and code and give a correspo
 
 Aurelia Kernel errors can be found [here](0001-to-0023/).
 
-### Template Compiler Errors (From 701-749)
+### Template Compiler Errors (From 0088 to 0723)
+
+Template Compiler errors can be found [here](0088-to-0723/).
 
 | Error Code | Description                                                                                                                                         |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |

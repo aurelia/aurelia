@@ -29,7 +29,16 @@ Here is a working example of a boolean value being toggled using `.class` bindin
 
 ### Binding to multiple classes
 
-Unlike singular class binding, you cannot use the `.class` binding syntax to conditionally bind multiple CSS classes. However, there is a multitude of different ways in which this can be achieved.
+In addition to binding single classes conditionally, you can also bind multiple classes based on a single boolean expression using a comma-separated list in the `.class` binding syntax. This allows you to toggle a set of related classes together.
+
+```html
+<div alert,alert-danger,fade-in,bold-text.class="hasError">Something went wrong!</div>
+```
+
+In this example, if the `hasError` property in your view model is truthy, all four classes (`alert`, `alert-danger`, `fade-in`, and `bold-text`) will be added to the `div` element. If `hasError` is falsy, all four classes will be removed.
+**Important Note:** When using the comma-separated syntax for multiple classes, ensure there are no spaces around the commas. The parser expects a direct list of class names separated only by commas (e.g., `class1,class2,class3`).
+
+Besides the `.class` syntax, there are other ways to achieve dynamic class binding, especially when dealing with complex logic or generating class strings:
 
 | Syntax                    | Input Type | Example                    |
 | ------------------------- | ---------- | -------------------------- |

@@ -163,11 +163,7 @@ Aurelia Kernel errors can be found [here](0001-to-0023/).
 
 ### Plugin errors
 
-| Error Code | Plugin name | Description                                                                                                                        |
-| ---------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| AUR0901    | Dialog      | This happens when an application is closed with some dialogs still open                                                            |
-| AUR0903    | Dialog      | This happens when `IDialogService.open` is called without both `component` and `template` property                                 |
-| AUR0904    | Dialog      | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
+Dialog plugin errors can be found [here](0901-to-0908/).
 
 ## Runtime module
 

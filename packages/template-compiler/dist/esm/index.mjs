@@ -30,7 +30,10 @@ const L = /*@__PURE__*/ P("ITemplateCompiler");
 
 const D = /*@__PURE__*/ P("IAttrMapper");
 
-const createMappedError = (t, ...e) => new Error(`AUR${String(t).padStart(4, "0")}:${e.map(String)}`);
+const createMappedError = (t, ...e) => {
+    const n = String(t).padStart(4, "0");
+    return new Error(`AUR${n}:${e.map(String)}`);
+};
 
 var V, H, M, $, F;
 

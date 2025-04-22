@@ -11,8 +11,7 @@ export const createMappedError: CreateError = __DEV__
   }
   : (code: ErrorNames, ...details: unknown[]) => {
     const paddedCode = String(code).padStart(4, '0');
-    const link = `https://docs.aurelia.io/developer-guides/error-messages/0901-to-0908/aur${paddedCode}`;
-    return new Error(`AUR${paddedCode}:${details.map(String)}\n\nFor more information, see: ${link}`);
+    return new Error(`AUR${paddedCode}:${details.map(String)}`);
   };
 
 _START_CONST_ENUM();

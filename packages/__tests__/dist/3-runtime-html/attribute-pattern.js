@@ -115,14 +115,16 @@ export { StyleAttributePattern };
  * ```
  */
 let ClassAttributePattern = (() => {
-    let _classDecorators = [attributePattern({ pattern: 'class.PART', symbols: '.' }, { pattern: 'PART.class', symbols: '.' })];
+    let _classDecorators = [attributePattern(
+        // { pattern: 'class.PART', symbols: '.' },
+        { pattern: 'PART.class', symbols: '.' })];
     let _classDescriptor;
     let _classExtraInitializers = [];
     let _classThis;
     var ClassAttributePattern = _classThis = class {
-        'class.PART'(rawName, rawValue, parts) {
-            return new AttrSyntax(rawName, rawValue, parts[1], 'class');
-        }
+        // public 'class.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax {
+        //   return new AttrSyntax(rawName, rawValue, parts[1], 'class');
+        // }
         'PART.class'(rawName, rawValue, parts) {
             return new AttrSyntax(rawName, rawValue, parts[0], 'class');
         }

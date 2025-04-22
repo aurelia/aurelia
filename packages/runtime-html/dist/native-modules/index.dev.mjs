@@ -1595,7 +1595,9 @@ class AttributeBinding {
     // such as style -> collection of style rules
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-    targetAttribute, targetProperty, mode, strict) {
+    targetAttribute, 
+    // is the classes to be toggled
+    targetProperty, mode, strict) {
         this.targetAttribute = targetAttribute;
         this.targetProperty = targetProperty;
         this.mode = mode;
@@ -1610,12 +1612,20 @@ class AttributeBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        /** @internal */
+        this._isMulti = false;
         this.l = locator;
         this.ast = ast;
         this._controller = controller;
         this.target = target;
         this.oL = observerLocator;
         this._taskQueue = taskQueue;
+        // eslint-disable-next-line @typescript-eslint/prefer-includes
+        if ((this._isMulti = targetProperty.indexOf(' ') > -1)
+            && !AttributeBinding._splitString.has(targetProperty)) {
+            // split the string once and cache it
+            AttributeBinding._splitString.set(targetProperty, targetProperty.split(' '));
+        }
     }
     updateTarget(value) {
         const target = this.target;
@@ -1623,8 +1633,17 @@ class AttributeBinding {
         const targetProperty = this.targetProperty;
         switch (targetAttribute) {
             case 'class':
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                target.classList.toggle(targetProperty, !!value);
+                if (this._isMulti) {
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    const force = !!value;
+                    for (const cls of AttributeBinding._splitString.get(targetProperty)) {
+                        target.classList.toggle(cls, force);
+                    }
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    target.classList.toggle(targetProperty, !!value);
+                }
                 break;
             case 'style': {
                 let priority = '';
@@ -1714,6 +1733,8 @@ AttributeBinding.mix = createPrototypeMixer(() => {
     connectable(AttributeBinding, null);
     mixinAstEvaluator(AttributeBinding);
 });
+/** @internal */
+AttributeBinding._splitString = new Map();
 
 const queueTaskOptions$1 = {
     preempt: true,

@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/i18n",
-  "version": "2.1.0-dev.202504131324",
+  "version": "2.1.0-dev.202504222248",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -54,13 +54,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202504131324",
-    "@aurelia/metadata": "2.1.0-dev.202504131324",
-    "@aurelia/platform": "2.1.0-dev.202504131324",
-    "@aurelia/expression-parser": "2.1.0-dev.202504131324",
-    "@aurelia/runtime": "2.1.0-dev.202504131324",
-    "@aurelia/template-compiler": "2.1.0-dev.202504131324",
-    "@aurelia/runtime-html": "2.1.0-dev.202504131324",
+    "@aurelia/kernel": "2.1.0-dev.202504222248",
+    "@aurelia/metadata": "2.1.0-dev.202504222248",
+    "@aurelia/platform": "2.1.0-dev.202504222248",
+    "@aurelia/expression-parser": "2.1.0-dev.202504222248",
+    "@aurelia/runtime": "2.1.0-dev.202504222248",
+    "@aurelia/template-compiler": "2.1.0-dev.202504222248",
+    "@aurelia/runtime-html": "2.1.0-dev.202504222248",
     "i18next": ">= 17.3.1"
   },
   "devDependencies": {

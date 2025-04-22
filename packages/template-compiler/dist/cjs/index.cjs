@@ -1111,7 +1111,15 @@ class ClassBindingCommand {
         return true;
     }
     build(t, e) {
-        return new AttributeBindingInstruction("class", e.parse(t.attr.rawValue, c), t.attr.target);
+        let n = t.attr.target;
+        if (n.includes(",")) {
+            const t = n.split(",").filter((t => t.length > 0));
+            if (t.length === 0) {
+                throw createMappedError(723);
+            }
+            n = t.join(" ");
+        }
+        return new AttributeBindingInstruction("class", e.parse(t.attr.rawValue, c), n);
     }
 }
 

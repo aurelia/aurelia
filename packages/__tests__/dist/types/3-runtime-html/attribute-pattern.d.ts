@@ -37,7 +37,6 @@ export declare class StyleAttributePattern {
  * ```
  */
 export declare class ClassAttributePattern {
-    'class.PART'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;
     'PART.class'(rawName: string, rawValue: string, parts: string[]): AttrSyntax;
 }
 //# sourceMappingURL=attribute-pattern.d.ts.map

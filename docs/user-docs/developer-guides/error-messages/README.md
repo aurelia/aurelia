@@ -68,26 +68,7 @@ Aurelia Kernel errors can be found [here](0001-to-0023/).
 
 ### Template Compiler Errors (From 0088 to 0723)
 
-Template Compiler errors can be found [here](0088-to-0723/).
-
-| Error Code | Description                                                                                                                                         |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AUR0701    | This happens when a template has a single template element in your template, and it has `as-local-element` attribute on it                          |
-| AUR0702    | This happens when a template has one or more attributes that are supposed to be unique on its surrogate elements                                    |
-| AUR0703    | This happens when a template controller attribute is used on a surrogate element of a template                                                      |
-| AUR0704    | This happens when an attribute on a `<let/>` element is used without `.bind` or `.to-view` command                                                  |
-| AUR0705    | This happens when enhancing a template with one or more element in it already have a class `au` on it                                               |
-| AUR0706    | This happens when `[au-slot]` attribute is used on an element that is not an immediate child of a custom element                                    |
-| AUR0707    | This happens when the template compiler encounters binding to a non-bindable property of a custom attribute                                         |
-| AUR0708    | This happens when the template of a custom element has nothing beside template elements with `as-local-element`                                     |
-| AUR0709    | This happens when an `as-local-element` template is not defined as an immediate child of the root of a custom element template                      |
-| AUR0710    | This happens when an `as-local-element` template has a `<bindable>` element inside its template, that is not not an immediate child of its fragment |
-| AUR0711    | This happens when a `<bindable>` inside an `as-local-element` template does not have a valid `property` attribute on it                             |
-| AUR0712    | This happens when an `as-local-element` template has 2 or more `<bindable>` elements with non-unique `attribute` or `property` attributes           |
-| AUR0713    | This happens when an unknown binding command is encountered in a custom element template                                                            |
-| AUR0714    | This happens when a custom element or attribute definition has more than 1 primary bindable property                                                |
-| AUR0715    | This happens when an `as-local-template` template has the value of `as-local-template` as an empty string                                           |
-| AUR0716    | This happens when a custom element has 2 or more local elements with the same name                                                                  |
+Template Compiler errors can be found [here](0088-to-0723/).                                                              |
 
 ### Templating Errors (From 750-800)
 

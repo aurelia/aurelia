@@ -83,7 +83,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       imgPath: 'foo.jpg',
 
-      projectedContent: 'content'
+      projectedContent: 'content',
+
+      firstandMore: '{{firstItem}} and {{restCount}} more',
     };
     const deTranslation = {
       simple: {
@@ -111,7 +113,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       imgPath: 'bar.jpg',
 
-      projectedContent: 'Inhalt'
+      projectedContent: 'Inhalt',
+      firstandMore: '{{firstItem}} und {{restCount}} mehr',
     };
     const ctx = TestContext.create();
     const host = PLATFORM.document.createElement('app');
@@ -1738,6 +1741,112 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }, { component: App });
     }
 
+    {
+
+      @customElement({ name: 'ce-1', template: '<au-slot></au-slot>' })
+      class Ce1 { }
+
+      @customElement({ name: 'ce-2', template: '${value}' })
+      class Ce2 {
+        @bindable value: string;
+      }
+
+      @customElement({
+        name: 'app',
+        template: `<ce-1 if.bind="show">
+        <ce-2 au-slot value="foo" t="[value]firstandMore" t-params.bind="{firstItem, restCount}"></ce-2>
+      </ce-1>`,
+        dependencies: [Ce1, Ce2]
+      })
+      class App {
+        public show: boolean = false;
+        public restCount = 1;
+        public firstItem = 'foo';
+      }
+      $it('with projection - if.bind on host - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+        assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
+
+        app.show = true;
+        domQueue.flush();
+
+        assert.html.textContent(host, 'foo and 1 more', 'round #1');
+
+        // change locale
+        await i18n.setLocale('de');
+        domQueue.flush();
+        assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
+
+        // toggle visibility
+        app.show = false;
+        domQueue.flush();
+        assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
+
+        // toggle visibility
+        app.firstItem = 'bar';
+        app.restCount = 2;
+        app.show = true;
+        domQueue.flush();
+        assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
+
+        // change locale
+        await i18n.setLocale('en');
+        domQueue.flush();
+        assert.html.textContent(host, 'bar and 2 more', 'round #4');
+      }, { component: App });
+    }
+    {
+
+      @customElement({ name: 'ce-1', template: '<au-slot></au-slot>' })
+      class Ce1 { }
+
+      @customElement({ name: 'ce-2', template: '${value}' })
+      class Ce2 {
+        @bindable value: string;
+      }
+
+      @customElement({
+        name: 'app',
+        template: `<ce-1>
+        <ce-2 au-slot if.bind="show" value="foo" t="[value]firstandMore" t-params.bind="{firstItem, restCount}"></ce-2>
+      </ce-1>`,
+        dependencies: [Ce1, Ce2]
+      })
+      class App {
+        public show: boolean = false;
+        public restCount = 1;
+        public firstItem = 'foo';
+      }
+      $it('with projection - if.bind on content - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+        assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
+
+        app.show = true;
+        domQueue.flush();
+
+        assert.html.textContent(host, 'foo and 1 more', 'round #1');
+
+        // change locale
+        await i18n.setLocale('de');
+        domQueue.flush();
+        assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
+
+        // toggle visibility
+        app.show = false;
+        domQueue.flush();
+        assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
+
+        // toggle visibility
+        app.firstItem = 'bar';
+        app.restCount = 2;
+        app.show = true;
+        domQueue.flush();
+        assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
+
+        // change locale
+        await i18n.setLocale('en');
+        domQueue.flush();
+        assert.html.textContent(host, 'bar and 2 more', 'round #4');
+      }, { component: App });
+    }
   });
 
   // This test doubles down as the containerization of the attribute patterns; that is not global registry of patterns other than the container.

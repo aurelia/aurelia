@@ -699,6 +699,7 @@ class ParameterBinding {
         astUnbind(this.ast, this._scope, this);
         this._scope = (void 0);
         this.obs.clearAll();
+        this.isBound = false;
     }
 }
 (() => {

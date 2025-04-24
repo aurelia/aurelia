@@ -403,7 +403,7 @@ export class Router {
   ): RouteConfigContext | Promise<RouteConfigContext> {
       return onResolve(
         // In case of navigation strategy, get the route config for the resolved component directly.
-        // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
+        // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
         // Hence, when we see a navigation strategy, we resolve the route config for the component first.
         $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
           ? $rdConfig

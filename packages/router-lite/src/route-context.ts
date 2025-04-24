@@ -52,7 +52,7 @@ import {
 } from './router';
 import { IRouterEvents } from './router-events';
 import { ensureArrayOfStrings } from './util';
-import { isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
+import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialViewportInstruction } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 import { IObserverLocator, ISubscriber } from '@aurelia/runtime';
@@ -412,7 +412,7 @@ export class RouteConfigContext {
     public readonly component: CustomElementDefinition,
     public readonly config: RouteConfig,
     parentContainer: IContainer,
-    router: IRouter,
+    private readonly _router: IRouter,
   ) {
     if (parent === null) {
       this.root = this;
@@ -426,7 +426,7 @@ export class RouteConfigContext {
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    const observer = parentContainer.get(IObserverLocator).getObserver(router, 'isNavigating');
+    const observer = parentContainer.get(IObserverLocator).getObserver(_router, 'isNavigating');
     const subscriber: ISubscriber<boolean> = {
       handleChange: (newValue, _previousValue) => {
         if (newValue !== true) return;
@@ -446,7 +446,7 @@ export class RouteConfigContext {
 
     this._recognizer = new RouteRecognizer();
 
-    if (router.options.useNavigationModel) {
+    if (_router.options.useNavigationModel) {
       this._navigationModel = new NavigationModel([]);
     } else {
       this._navigationModel = null;
@@ -577,8 +577,10 @@ export class RouteConfigContext {
   public _generateViewportInstruction(instruction: { component: RouteConfig; params: Params }): PathGenerationResult;
   public _generateViewportInstruction(instruction: { component: string; params: Params }): PathGenerationResult | null;
   public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
-  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null {
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
+  public _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren?: boolean): PathGenerationResult | Promise<PathGenerationResult> | null {
     if (!isEagerInstruction(instruction)) return null;
+    traverseChildren ??= false;
     const component = instruction.component;
     let paths: string[] | undefined;
     let throwError: boolean = false;
@@ -618,17 +620,7 @@ export class RouteConfigContext {
         if (__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
         return null;
       }
-      return {
-        vi: ViewportInstruction.create({
-          recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
-          component: result.path,
-          children: (instruction as IViewportInstruction).children,
-          viewport: (instruction as IViewportInstruction).viewport,
-          open: (instruction as IExtendedViewportInstruction).open,
-          close: (instruction as IExtendedViewportInstruction).close,
-        }),
-        query: result.query,
-      };
+      return createPathGenerationResult.call(this, result);
     }
 
     let maxScore = 0;
@@ -648,17 +640,7 @@ export class RouteConfigContext {
       if (__DEV__) debug(this._logger, Events.rcEagerPathGenerationFailed, instruction, errors);
       return null;
     }
-    return {
-      vi: ViewportInstruction.create({
-        recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
-        component: result.path,
-        children: (instruction as IViewportInstruction).children,
-        viewport: (instruction as IViewportInstruction).viewport,
-        open: (instruction as IExtendedViewportInstruction).open,
-        close: (instruction as IExtendedViewportInstruction).close,
-      }),
-      query: result.query,
-    };
+    return createPathGenerationResult.call(this, result);
 
     type EagerResolutionResult = {
       path: string;
@@ -702,6 +684,54 @@ export class RouteConfigContext {
       const consumedKeys = Object.keys(consumed);
       const query = Object.fromEntries(Object.entries(params).filter(([key]) => !consumedKeys.includes(key)));
       return { path: path.replace(/\/\//g, '/'), endpoint, consumed, query };
+    }
+
+    // traverse the children
+    async function generateChildrenInstructions(this: RouteConfigContext): Promise<ViewportInstruction[]> {
+      const children = (instruction as IExtendedViewportInstruction).children;
+      if (children == null) return [];
+
+      const vis: ViewportInstruction[] = [];
+      for (const child of children) {
+        // TODO(Sayan): in case the child is a promise, then we need to abort the whole thing
+        // eslint-disable-next-line no-await-in-loop
+        await onResolve(
+          resolveCustomElementDefinition(child, this),
+          ([, ceDef]) =>
+            onResolve(
+              this._router.getRouteConfigContext(null, ceDef as CustomElementDefinition, null, this.container, this.config, this),
+              $routeConfigContext => {
+                const eagerVi = $routeConfigContext._generateViewportInstruction(isPartialViewportInstruction(child)
+                  ? { ...child, params: child.params ?? emptyObject }
+                  : { component: child, params: emptyObject }
+                );
+                if (eagerVi != null) {
+                  // TODO(Sayan): merge query params
+                  vis.push(eagerVi.vi);
+                }
+                // TODO(Sayan): need to handle the cases where the child is not compatible for eager instruction generation
+              }
+            )
+        );
+      }
+      return vis;
+    }
+
+    function createPathGenerationResult(this: RouteConfigContext, result: Exclude<ReturnType<typeof core>, null>): PathGenerationResult | Promise<PathGenerationResult> {
+      return onResolve(
+        (traverseChildren ? generateChildrenInstructions.call(this) : (instruction as IViewportInstruction).children) as NavigationInstruction[] | Promise<NavigationInstruction[]>,
+        children =>
+        ({
+          vi: ViewportInstruction.create({
+            recognizedRoute: new $RecognizedRoute(new RecognizedRoute(result.endpoint, result.consumed), null),
+            component: result.path,
+            children,
+            viewport: (instruction as IViewportInstruction).viewport,
+            open: (instruction as IExtendedViewportInstruction).open,
+            close: (instruction as IExtendedViewportInstruction).close,
+          }),
+          query: result.query,
+        }));
     }
   }
 

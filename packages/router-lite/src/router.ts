@@ -102,8 +102,9 @@ export class Transition {
   }
 }
 
-type RouteConfigLookup = WeakMap<RouteConfig, IRouteContext>;
-type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigLookup>;
+type RouteConfigLookup = WeakMap<RouteConfig, RouteConfigContext>;
+type RouteConfigContextLookup = WeakMap<RouteConfigContext, IRouteContext>;
+type ViewportAgentLookup = Map<ViewportAgent | null, RouteConfigContextLookup>;
 
 export interface IRouter extends Router { }
 export const IRouter = /*@__PURE__*/DI.createInterface<IRouter>('IRouter', x => x.singleton(Router));
@@ -337,6 +338,7 @@ export class Router {
     return this.routeTree.contains(instructions, false);
   }
 
+  private readonly _routeConfigLookup: RouteConfigLookup = new WeakMap();
   private readonly _vpaLookup: ViewportAgentLookup = new Map();
   /**
    * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
@@ -361,53 +363,67 @@ export class Router {
 
     const parentRouteConfigContext = parentContext?.routeConfigContext ?? null;
     return onResolve(
-      // In case of navigation strategy, get the route config for the resolved component directly.
-      // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
-      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
-      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
-        ? $rdConfig
-        : resolveRouteConfiguration(
-          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-          false,
-          parentRouteConfig,
-          null,
-          parentRouteConfigContext,
-        ),
-      rdConfig => {
+      getRouteConfigContext.call(this),
+      rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
           this._vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());
         }
 
-        let routeContext = routeConfigLookup.get(rdConfig);
+        let routeContext = routeConfigLookup.get(rdConfigContext);
         if (routeContext !== void 0) {
-          if (__DEV__) trace(logger, Events.rtrResolvingRcExisting, rdConfig);
+          if (__DEV__) trace(logger, Events.rtrResolvingRcExisting, rdConfigContext);
           return routeContext;
         }
-        if (__DEV__) trace(logger, Events.rtrResolvingRcNew, rdConfig);
+        if (__DEV__) trace(logger, Events.rtrResolvingRcNew, rdConfigContext);
 
         const parent = container.has(IRouteContext, true) ? container.get(IRouteContext) : null;
 
         routeConfigLookup.set(
-          rdConfig,
+          rdConfigContext,
           routeContext = new RouteContext(
             viewportAgent,
             parent,
             container,
             this,
-            new RouteConfigContext(
-              parentRouteConfigContext,
-              componentDefinition,
-              rdConfig,
-              container,
-              this,
-            )
+            rdConfigContext,
           ),
         );
         return routeContext;
       }
     );
+
+    function getRouteConfigContext(this: Router): RouteConfigContext | Promise<RouteConfigContext> {
+      return onResolve(
+        // In case of navigation strategy, get the route config for the resolved component directly.
+        // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
+        // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+        $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+          ? $rdConfig
+          : resolveRouteConfiguration(
+            // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+            typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+            false,
+            parentRouteConfig,
+            null,
+            parentRouteConfigContext,
+          ),
+        rdConfig => {
+          let routeConfigContext = this._routeConfigLookup.get(rdConfig);
+          if (routeConfigContext != null) return routeConfigContext;
+
+          routeConfigContext = new RouteConfigContext(
+            parentRouteConfigContext,
+            componentDefinition,
+            rdConfig,
+            container,
+            this,
+          );
+          this._routeConfigLookup.set(rdConfig, routeConfigContext);
+          return routeConfigContext;
+        }
+      );
+    }
   }
 
   public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string {

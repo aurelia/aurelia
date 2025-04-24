@@ -361,9 +361,8 @@ export class Router {
   ): IRouteContext | Promise<IRouteContext> {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
-    const parentRouteConfigContext = parentContext?.routeConfigContext ?? null;
     return onResolve(
-      getRouteConfigContext.call(this),
+      this.getRouteConfigContext($rdConfig, componentDefinition, componentInstance, container, parentRouteConfig, parentContext?.routeConfigContext ?? null),
       rdConfigContext => {
         let routeConfigLookup = this._vpaLookup.get(viewportAgent);
         if (routeConfigLookup === void 0) {
@@ -392,8 +391,16 @@ export class Router {
         return routeContext;
       }
     );
+  }
 
-    function getRouteConfigContext(this: Router): RouteConfigContext | Promise<RouteConfigContext> {
+  public getRouteConfigContext(
+    $rdConfig: RouteConfig | null,
+    componentDefinition: CustomElementDefinition,
+    componentInstance: IRouteViewModel | null,
+    container: IContainer,
+    parentRouteConfig: RouteConfig | null,
+    parentRouteConfigContext: RouteConfigContext | null,
+  ): RouteConfigContext | Promise<RouteConfigContext> {
       return onResolve(
         // In case of navigation strategy, get the route config for the resolved component directly.
         // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
@@ -424,7 +431,6 @@ export class Router {
         }
       );
     }
-  }
 
   public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string {
     const vit = this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx });

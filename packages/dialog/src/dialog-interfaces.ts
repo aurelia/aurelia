@@ -54,7 +54,7 @@ export interface IDialogDomRenderer {
  */
 export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
+  readonly overlay: HTMLElement | null;
   readonly contentHost: HTMLElement;
   /**
    * Called when the dialog should be shown. Application can use this for animations
@@ -150,6 +150,19 @@ export interface IDialogSettings<
    * When set to "true" the dialog does not close on ESC key or clicking outside of it.
    */
   lock?: boolean;
+
+  /**
+   * When set to "true" the dialog will be modal.
+   * This means that the dialog will be displayed as a modal dialog.
+   * The default value is "false".
+   *
+   * Note that this depends on the renderer,
+   * Some renderers may not support this feature.
+   *
+   * Readmore on the modal behavior of dialogs on MDN
+   * https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement#opening_a_modal_dialog
+   */
+  asModal?: boolean;
 
   /**
    * Allows for closing the top most dialog via the keyboard.

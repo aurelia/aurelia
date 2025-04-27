@@ -849,7 +849,7 @@ const setItem = (
   item: unknown,
 ) => {
   if (hasDestructuredLocal) {
-    astAssign(dec, scope, binding, item);
+    astAssign(dec, scope, binding, null, item);
   } else {
     scope.bindingContext[local] = item;
   }
@@ -928,7 +928,7 @@ const createScope = (
 ) => {
   if (hasDestructuredLocal) {
     const scope = Scope.fromParent(parentScope, new BindingContext(), new RepeatOverrideContext());
-    astAssign(forOf.declaration, scope, binding, item);
+    astAssign(forOf.declaration, scope, binding, null, item);
   }
   return Scope.fromParent(parentScope, new BindingContext(local, item), new RepeatOverrideContext());
 };

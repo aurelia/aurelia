@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Features:
+
+* **template-compiler:** add support for multiple .class values (#2146) ([3b7513a](https://github.com/aurelia/aurelia/commit/3b7513a))
+* **router-lite:** navigation strategy (#2137) ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **router-lite:** wip navigation strategy ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **dom:** ability to toggle $au and $aurelia (#2130) ([7e1057b](https://github.com/aurelia/aurelia/commit/7e1057b))
+
+
+### Bug Fixes:
+
+* **i18n:** reactive translation of conditional projected content - t-params (#2152) ([7fab7e6](https://github.com/aurelia/aurelia/commit/7fab7e6))
+* **test:** dialog service test updated to reflect new error message ([4eb7805](https://github.com/aurelia/aurelia/commit/4eb7805))
+* **router-lite:** cleanup while reusing route context due to nav strategy (#2144) ([a4d7a65](https://github.com/aurelia/aurelia/commit/a4d7a65))
+* **validation:** invalidate property info cache when source changes (#2138) ([a0b9ae6](https://github.com/aurelia/aurelia/commit/a0b9ae6))
+* **validation:** invalidate property info cache when source changes ([a0b9ae6](https://github.com/aurelia/aurelia/commit/a0b9ae6))
+* **router-lite:** cancelling navigation with redirection from canLoad hook from child route (#2131) ([bb0b09d](https://github.com/aurelia/aurelia/commit/bb0b09d))
+* **router-lite:** initial fix for canceling navigation from child routes ([bb0b09d](https://github.com/aurelia/aurelia/commit/bb0b09d))
+* **router-lite:** support for conventional HTML-only component (#2126) ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+* **router-lite:** support for conventional HTML-only component ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+* **router-lite:** support for local dependencies ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+* **validation:** for dynamically accessed fields (#2113) ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+* **validation:** for dynamically accessed fields ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+* **validation:** rule discovery for nested keyed expression ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+* **ref-binding:** update value when key expression changes (#2108) ([9636d86](https://github.com/aurelia/aurelia/commit/9636d86))
+
+
+### Refactorings:
+
+* **packages:** only link to docs for errors in dev mode ([4eb7805](https://github.com/aurelia/aurelia/commit/4eb7805))
+* **router-lite:** navigation strategy ([a4d7a65](https://github.com/aurelia/aurelia/commit/a4d7a65))
+* **router-lite:** navigation strategy ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **router-lite:** nav strategy test ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* ***:** remove controller host (#2128) ([402c746](https://github.com/aurelia/aurelia/commit/402c746))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

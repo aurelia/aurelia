@@ -356,3 +356,21 @@ In this case, the component lifecycle hooks are invoked in the following order.
 4. routed-view `attached`.
 
 Note that the application root is attached before any other components are attached. This happens because the router-lite starts loading the first route only after the app-root, and thereby the viewport(s) it is hosting, are fully activated/attached. In order to load a route, the router needs registered viewports. The registration process of a viewport only happens during the `attaching` phase of a viewport. More details on this topic, can be found in this [GitHub issue](https://github.com/aurelia/aurelia/issues/2019).
+
+## Inspecting current route and query inside lifecycle hooks
+
+Within lifecycle hooks like `canLoad`, `loading`, etc., you can also inspect the `RouteNode`:
+
+```typescript
+import { IRouteViewModel, RouteNode, Params } from '@aurelia/router-lite';
+
+export class Product implements IRouteViewModel {
+  public loading(params: Params, next: RouteNode): void {
+    const queryParam = next.queryParams.get('discount');
+    const rawPath = next.computeAbsolutePath();
+    console.log('Raw path is:', rawPath, 'and discount param is:', queryParam);
+  }
+}
+```
+
+If you prefer, you can also inject `ICurrentRoute` for a global view of the route, query, and title. Combine these approaches as you see fit for your `canLoad`, `loading`, etc.

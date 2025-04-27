@@ -20,7 +20,7 @@ import type {
   QueueTaskOptions,
   TaskQueue
 } from '@aurelia/platform';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
@@ -43,6 +43,9 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
       connectable(AttributeBinding, null!);
       mixinAstEvaluator(AttributeBinding);
   });
+
+  /** @internal */
+  private static readonly _splitString: Map<string, string[]> = new Map();
 
   public isBound: boolean = false;
   /** @internal */
@@ -78,6 +81,9 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
 
   public ast: IsBindingBehavior | ForOfStatement;
 
+  /** @internal */
+  private readonly _isMulti: boolean = false;
+
   public constructor(
     controller: IBindingController,
     locator: IServiceLocator,
@@ -91,6 +97,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
     public targetAttribute: string,
+    // is the classes to be toggled
     public targetProperty: string,
     public mode: BindingMode,
     public strict: boolean,
@@ -101,6 +108,13 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this.target = target as HTMLElement;
     this.oL = observerLocator;
     this._taskQueue = taskQueue;
+    // eslint-disable-next-line @typescript-eslint/prefer-includes
+    if ((this._isMulti = targetProperty.indexOf(' ') > -1)
+      && !AttributeBinding._splitString.has(targetProperty)
+    ) {
+      // split the string once and cache it
+      AttributeBinding._splitString.set(targetProperty, targetProperty.split(' '));
+    }
   }
 
   public updateTarget(value: unknown): void {
@@ -110,8 +124,16 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
 
     switch (targetAttribute) {
       case 'class':
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        target.classList.toggle(targetProperty, !!value);
+        if (this._isMulti) {
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          const force = !!value;
+          for (const cls of AttributeBinding._splitString.get(targetProperty)!) {
+            target.classList.toggle(cls, force);
+          }
+        } else {
+          // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+          target.classList.toggle(targetProperty, !!value);
+        }
         break;
       case 'style': {
         let priority = '';

@@ -54,20 +54,20 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
     if (this._coercer !== void 0) {
       newValue = this._coercer.call(void 0, newValue, this._coercionConfig);
     }
+    const oldValue = this._value;
     if (this._observing) {
       if (areEqual(newValue, this._value)) {
         return;
       }
-      oV = this._value;
       this._value = newValue;
       this.subs.notifyDirty();
-      this.subs.notify(newValue, oV);
+      this.subs.notify(newValue, oldValue);
 
       // only call the callback if _value is the same with newValue
       // which means if during subs.notify() the value of this observer is changed
       // then it's the job of that setValue() to call the callback
       if (areEqual(newValue, this._value)) {
-        this._callback?.(newValue, oV);
+        this._callback?.(newValue, oldValue);
       }
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,
@@ -77,7 +77,7 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
       // This will happen in one-time, to-view and two-way bindings during bind, meaning that the bind will not actually update the target value.
       // This wasn't visible in vCurrent due to connect-queue always doing a delayed update, so in many cases it didn't matter whether bind updated the target or not.
       this._value = this._obj[this._key] = newValue;
-      this._callback?.(newValue, oV);
+      this._callback?.(newValue, oldValue);
     }
   }
 
@@ -136,7 +136,3 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
     return this;
   }
 }
-
-// a reusable variable for `.flush()` methods of observers
-// so that there doesn't need to create an env record for every call
-let oV: unknown = void 0;

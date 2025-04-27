@@ -158,6 +158,7 @@ export const enum Events {
   vpaUnexpectedDeactivation = 3351,
   vpaUnexpectedState = 3352,
   vpaUnexpectedGuardsResult = 3353,
+  vpaCanLoadGuardsResult = 3354,
   // #endregion
   // #region instruction
   instrInvalid = 3400,
@@ -182,6 +183,7 @@ export const enum Events {
   rtInvalidConfig = 3555,
   rtUnknownConfigProperty = 3556,
   rtUnknownRedirectConfigProperty = 3557,
+  rtInvalidOperationNavigationStrategyComponent = 3558,
   // #endregion
 }
 _END_CONST_ENUM();
@@ -331,6 +333,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.vpaUnexpectedDeactivation]: 'Unexpected viewport deactivation outside of a transition context at %s',
   [Events.vpaUnexpectedState]: 'Unexpected state at %s of %s',
   [Events.vpaUnexpectedGuardsResult]: 'Unexpected guardsResult %s at %s',
+  [Events.vpaCanLoadGuardsResult]: 'canLoad returned redirect result %s by the component agent %s',
   // #endregion
 
   // #region instruction
@@ -358,7 +361,8 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtInvalidConfigProperty]: 'Invalid route config property: "%s". Expected %s, but got %s.',
   [Events.rtInvalidConfig]: 'Invalid route config: expected an object or string, but got: %s',
   [Events.rtUnknownConfigProperty]: 'Unknown route config property: "%s.%s". Please specify known properties only.',
-  [Events.rtUnknownRedirectConfigProperty]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.'
+  [Events.rtUnknownRedirectConfigProperty]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.',
+  [Events.rtInvalidOperationNavigationStrategyComponent]: 'Invalid operation, the component is not yet resolved for the navigation strategy (id: %s).',
   // #endregion
 };
 

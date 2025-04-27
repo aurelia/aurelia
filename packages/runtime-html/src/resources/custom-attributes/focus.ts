@@ -1,5 +1,5 @@
 import { twoWay } from '../../binding/interfaces-bindings';
-import { INode } from '../../dom';
+import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel } from '../../templating/controller';

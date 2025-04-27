@@ -279,6 +279,10 @@ export class ViewportAgent {
           this._unexpectedState('canLoad');
       }
     })._continueWith(b1 => {
+      if (tr.guardsResult !== true) {
+        if (__DEV__) trace(logger, Events.vpaCanLoadGuardsResult, tr.guardsResult, this._nextCA);
+        return;
+      }
       const next = this._nextNode!;
       switch (this._$plan) {
         case 'none':
@@ -649,6 +653,7 @@ export class ViewportAgent {
           });
         }
       })._continueWith(b1 => {
+        if (tr.guardsResult !== true) return;
         for (const node of newChildren) {
           tr._run(() => {
             b1._push();
@@ -658,6 +663,7 @@ export class ViewportAgent {
           });
         }
       })._continueWith(b1 => {
+        if (tr.guardsResult !== true) return;
         for (const node of newChildren) {
           tr._run(() => {
             b1._push();

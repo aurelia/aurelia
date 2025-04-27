@@ -359,11 +359,14 @@ export class Router {
   ): IRouteContext | Promise<IRouteContext> {
     const logger =  /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
 
-    // getRouteConfig is prioritized over the statically configured routes via @route decorator.
     return onResolve(
-      $rdConfig instanceof RouteConfig
+      // In case of navigation strategy, get the route config for the resolved component directly.
+      // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
+      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
         ? $rdConfig
         : resolveRouteConfiguration(
+          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
           typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
           false,
           parentRouteConfig,
@@ -646,6 +649,12 @@ export class Router {
         for (const node of all) {
           node.context.vpa._swap(tr, b);
         }
+      })._continueWith(b => {
+        // it is possible that some of the child routes are cancelling the navigation
+        if (tr.guardsResult !== true) {
+          b._push();
+          this._cancelNavigation(tr);
+        }
       })._continueWith(() => {
         if (__DEV__) trace(logger, Events.rtrRunFinalizing);
         // order doesn't matter for this operation
@@ -712,7 +721,7 @@ export class Router {
   /** @internal */
   private _cancelNavigation(tr: Transition): void {
     const logger = /*@__PURE__*/ this._logger.scopeTo('cancelNavigation()');
-    if(__DEV__) trace(logger, Events.rtrCancelNavigationStart, tr);
+    if (__DEV__) trace(logger, Events.rtrCancelNavigationStart, tr);
 
     const prev = tr.previousRouteTree.root.children;
     const next = tr.routeTree.root.children;
@@ -741,7 +750,7 @@ export class Router {
       else instructions = guardsResult;
 
       void onResolve(this._enqueue(instructions, 'api', tr.managedState, tr), () => {
-        if(__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
+        if (__DEV__) trace(this._logger, Events.rtrCancelNavigationCompleted, tr);
       });
     }
   }
@@ -749,7 +758,7 @@ export class Router {
   /** @internal */
   private _runNextTransition(): void {
     if (this._nextTr === null) return;
-    if(__DEV__) trace(this._logger, Events.rtrNextTr, this._nextTr);
+    if (__DEV__) trace(this._logger, Events.rtrNextTr, this._nextTr);
     this._p.taskQueue.queueTask(
       () => {
         // nextTransition is allowed to change up until the point when it's actually time to process it,

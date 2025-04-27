@@ -80,7 +80,7 @@ function assignDoesNotThrow(inputs: [string, IsBindingBehavior][]) {
   describe('assign() does not throw / is a no-op', function () {
     for (const [text, expr] of inputs) {
       it(`${text}, null`, function () {
-        astAssign(expr, null, null, null);
+        astAssign(expr, null, null, null, null);
       });
     }
   });
@@ -401,7 +401,7 @@ describe('2-runtime/ast.spec.ts', function () {
       describe('assign() does not throw when returned converter is null', function () {
         for (const [text, expr] of SimpleValueConverterList) {
           it(`${text}, null`, function () {
-            assert.doesNotThrow(() => astAssign(expr, dummyScope, dummyLocatorThatReturnsNull, null));
+            assert.doesNotThrow(() => astAssign(expr, dummyScope, dummyLocatorThatReturnsNull, null, null));
             // throwsOn(expr, 'assign', `ValueConverter named 'b' could not be found. Did you forget to register it as a dependency?`, LF.none, dummyScope, dummyLocatorThatReturnsNull, null);
           });
         }
@@ -440,14 +440,14 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('assigns member on bindingContext', function () {
       const scope = createScopeForTest({ foo: { bar: 'baz' } });
-      astAssign(expression, scope, null, 'bang');
+      astAssign(expression, scope, null, null, 'bang');
       assert.strictEqual((scope.bindingContext.foo as IIndexable).bar, 'bang', `(scope.bindingContext.foo as IIndexable).bar`);
     });
 
     it('assigns member on overrideContext', function () {
       const scope = createScopeForTest({});
       scope.overrideContext.foo = { bar: 'baz' };
-      astAssign(expression, scope, null, 'bang');
+      astAssign(expression, scope, null, null, 'bang');
       assert.strictEqual((scope.overrideContext.foo as IIndexable).bar, 'bang', `(scope.overrideContext.foo as IIndexable).bar`);
     });
 
@@ -669,7 +669,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          astAssign(sut, scope, null, 42);// }
+          astAssign(sut, scope, null, null, 42);// }
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
           assert.strictEqual((scope.bindingContext['foo'] as IIndexable), obj, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
         }
@@ -695,7 +695,7 @@ describe('2-runtime/ast.spec.ts', function () {
 
         if (!(obj instanceof Object)) {
           assert.notInstanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
-          astAssign(sut, scope, null, 42);
+          astAssign(sut, scope, null, null, 42);
           if (obj == null) {
             assert.instanceOf(scope.bindingContext['foo'], Object, `scope.bindingContext['foo']`);
             assert.strictEqual((scope.bindingContext['foo'] as IIndexable)[prop], 42, `(scope.bindingContext['foo'] as IIndexable)[prop]`);
@@ -720,20 +720,20 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it('assigns member on bindingContext', function () {
       const scope = createScopeForTest({ foo: { bar: 'baz' } });
-      astAssign(expression, scope, null, 'bang');
+      astAssign(expression, scope, null, null, 'bang');
       assert.strictEqual((scope.bindingContext.foo as IIndexable).bar, 'bang', `(scope.bindingContext.foo as IIndexable).bar`);
     });
 
     it('assigns member on overrideContext', function () {
       const scope = createScopeForTest({});
       scope.overrideContext.foo = { bar: 'baz' };
-      astAssign(expression, scope, null, 'bang');
+      astAssign(expression, scope, null, null, 'bang');
       assert.strictEqual((scope.overrideContext.foo as IIndexable).bar, 'bang', `(scope.overrideContext.foo as IIndexable).bar`);
     });
 
     it('returns the assigned value', function () {
       const scope = createScopeForTest({ foo: { bar: 'baz' } });
-      assert.strictEqual(astAssign(expression, scope, null, 'bang'), 'bang', `astAssign(expression, scope, null, 'bang')`);
+      assert.strictEqual(astAssign(expression, scope, null, null, 'bang'), 'bang', `astAssign(expression, scope, null, 'bang')`);
     });
 
     // describe('does not attempt to observe property when object is falsey', function () {
@@ -803,20 +803,20 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it(`assigns defined property on bindingContext`, function () {
       const scope = createScopeForTest({ foo: 'bar' });
-      astAssign(foo, scope, null, 'baz');
+      astAssign(foo, scope, null, null, 'baz');
       assert.strictEqual(scope.bindingContext.foo, 'baz', `scope.bindingContext.foo`);
     });
 
     it(`assigns undefined property to bindingContext`, function () {
       const scope = createScopeForTest({ abc: 'xyz' });
-      astAssign(foo, scope, null, 'baz');
+      astAssign(foo, scope, null, null, 'baz');
       assert.strictEqual(scope.bindingContext.foo, 'baz', `scope.bindingContext.foo`);
     });
 
     it(`assigns defined property on overrideContext`, function () {
       const scope = createScopeForTest({ abc: 'xyz' });
       scope.overrideContext.foo = 'bar';
-      astAssign(foo, scope, null, 'baz');
+      astAssign(foo, scope, null, null, 'baz');
       assert.strictEqual(scope.overrideContext.foo, 'baz', `scope.overrideContext.foo`);
     });
 
@@ -860,18 +860,18 @@ describe('2-runtime/ast.spec.ts', function () {
 
     it(`assigns defined property on first ancestor bindingContext`, function () {
       const scope = createScopeForTest({ abc: 'xyz' }, { foo: 'bar' });
-      astAssign(foo, scope, null, 'baz');
+      astAssign(foo, scope, null, null, 'baz');
       assert.strictEqual(scope.parent.bindingContext.foo, 'baz', `scope.parent.bindingContext.foo`);
-      astAssign($parentfoo, scope, null, 'beep');
+      astAssign($parentfoo, scope, null, null, 'beep');
       assert.strictEqual(scope.parent.bindingContext.foo, 'beep', `scope.parent.bindingContext.foo`);
     });
 
     it(`assigns defined property on first ancestor overrideContext`, function () {
       const scope = createScopeForTest({ abc: 'xyz' }, { def: 'rsw' });
       scope.parent.overrideContext.foo = 'bar';
-      astAssign(foo, scope, null, 'baz');
+      astAssign(foo, scope, null, null, 'baz');
       assert.strictEqual(scope.parent.overrideContext.foo, 'baz', `scope.parent.overrideContext.foo`);
-      astAssign($parentfoo, scope, null, 'beep');
+      astAssign($parentfoo, scope, null, null, 'beep');
       assert.strictEqual(scope.parent.overrideContext.foo, 'beep', `scope.parent.overrideContext.foo`);
     });
 
@@ -967,7 +967,7 @@ describe('2-runtime/ast.spec.ts', function () {
     it('can chain assignments', function () {
       const foo = new AssignExpression(new AccessScopeExpression('foo', 0), new AccessScopeExpression('bar', 0));
       const scope = Scope.create({});
-      astAssign(foo, scope, null, 1);
+      astAssign(foo, scope, null, null, 1);
       assert.strictEqual(scope.bindingContext.foo, 1, `scope.overrideContext.foo`);
       assert.strictEqual(scope.bindingContext.bar, 1, `scope.overrideContext.bar`);
     });
@@ -1602,7 +1602,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'a'),
           void 0,
-        ), Scope.create(bc), null, { a: 42 });
+        ), Scope.create(bc), null, null, { a: 42 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1612,7 +1612,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, '1'),
           void 0,
-        ), Scope.create(bc), null, { 1: '42' });
+        ), Scope.create(bc), null, null, { 1: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
@@ -1622,7 +1622,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'x'),
           void 0,
-        ), Scope.create(bc), null, { x: '42' });
+        ), Scope.create(bc), null, null, { x: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
@@ -1632,7 +1632,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'a'),
           new PrimitiveLiteralExpression(42),
-        ), Scope.create(bc), null, { b: 404 });
+        ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1642,7 +1642,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, '1'),
           new PrimitiveLiteralExpression(42),
-        ), Scope.create(bc), null, { 2: "404" });
+        ), Scope.create(bc), null, null, { 2: "404" });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1652,7 +1652,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'x'),
           new PrimitiveLiteralExpression(42),
-        ), Scope.create(bc), null, { b: 404 });
+        ), Scope.create(bc), null, null, { b: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1662,7 +1662,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'a'),
           new PrimitiveLiteralExpression(404),
-        ), Scope.create(bc), null, { a: 42 });
+        ), Scope.create(bc), null, null, { a: 42 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1672,7 +1672,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, '1'),
           new PrimitiveLiteralExpression(404),
-        ), Scope.create(bc), null, { 1: '42' });
+        ), Scope.create(bc), null, null, { 1: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
@@ -1682,7 +1682,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'x'),
           new PrimitiveLiteralExpression(404),
-        ), Scope.create(bc), null, { x: '42' });
+        ), Scope.create(bc), null, null, { x: '42' });
         assert.strictEqual(bc.a, '42');
       });
 
@@ -1692,7 +1692,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
           void 0,
-        ), Scope.create(bc), null, [42]);
+        ), Scope.create(bc), null, null, [42]);
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1702,7 +1702,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessKeyedExpression($this, new PrimitiveLiteralExpression(0)),
           new PrimitiveLiteralExpression(42),
-        ), Scope.create(bc), null, []);
+        ), Scope.create(bc), null, null, []);
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1712,7 +1712,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
           new PrimitiveLiteralExpression(42),
-        ), Scope.create(bc), null, [404]);
+        ), Scope.create(bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1723,7 +1723,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'a'),
           new AccessScopeExpression('prop', 0),
-        ), Scope.fromParent(ps, bc), null, { x: 404 });
+        ), Scope.fromParent(ps, bc), null, null, { x: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1734,7 +1734,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
           new AccessScopeExpression('prop', 0),
-        ), Scope.fromParent(ps, bc), null, [404]);
+        ), Scope.fromParent(ps, bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1745,7 +1745,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessMemberExpression($this, 'a'),
           new AccessScopeExpression('prop', 2),
-        ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, { x: 404 });
+        ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, null, { x: 404 });
         assert.strictEqual(bc.a, 42);
       });
 
@@ -1756,7 +1756,7 @@ describe('2-runtime/ast.spec.ts', function () {
           new AccessMemberExpression($this, 'a'),
           new AccessKeyedExpression($this, new PrimitiveLiteralExpression(1)),
           new AccessScopeExpression('prop', 2),
-        ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, [404]);
+        ), Scope.fromParent(Scope.fromParent(ps, Object.create(null)), bc), null, null, [404]);
         assert.strictEqual(bc.a, 42);
       });
     });
@@ -1768,7 +1768,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           [],
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: { a: 1, b: 2 } });
       });
 
@@ -1777,7 +1777,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           ['a'],
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: { b: 2 } });
       });
 
@@ -1786,7 +1786,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           ['a', 'b'],
-        ), Scope.create(bc), null, { a: 1, b: 2, c: 3 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2, c: 3 });
         assert.deepStrictEqual(bc, { rest: { c: 3 } });
       });
 
@@ -1795,7 +1795,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           ['a', 'b'],
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { rest: {} });
       });
 
@@ -1804,7 +1804,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           0,
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [1, 2] });
       });
 
@@ -1813,7 +1813,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           1,
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [2] });
       });
 
@@ -1822,7 +1822,7 @@ describe('2-runtime/ast.spec.ts', function () {
         astAssign(new DestructuringAssignmentRestExpression(
           new AccessMemberExpression($this, 'rest'),
           3,
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [] });
       });
     });
@@ -1842,7 +1842,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { a: 1 });
       });
 
@@ -1864,7 +1864,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc, { a: 1, b: 2 });
       });
 
@@ -1880,7 +1880,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, { a: 1, b: 2 });
+        ), Scope.create(bc), null, null, { a: 1, b: 2 });
         assert.deepStrictEqual(bc.rest, { a: 1, b: 2 });
       });
 
@@ -1897,7 +1897,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { a: 1 });
       });
 
@@ -1919,7 +1919,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { a: 1, b: 2 });
       });
 
@@ -1935,7 +1935,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0
-        ), Scope.create(bc), null, [1, 2]);
+        ), Scope.create(bc), null, null, [1, 2]);
         assert.deepStrictEqual(bc, { rest: [1, 2] });
       });
 
@@ -1964,7 +1964,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-        ), Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: 123 } });
+        ), Scope.create(bc), null, null, { prop1: 'foo', prop2: { prop21: 123 } });
         assert.deepStrictEqual(bc, { prop1: 'foo', prop21: 123 });
       });
 
@@ -2005,7 +2005,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-        ), Scope.create(bc), null, { prop1: 'foo', prop2: { prop21: { prop211: 123, prop212: 456 }, prop22: 'bar' } });
+        ), Scope.create(bc), null, null, { prop1: 'foo', prop2: { prop21: { prop211: 123, prop212: 456 }, prop22: 'bar' } });
         assert.deepStrictEqual(bc, { prop1: 'foo', newProp212: 456, prop22: 'bar' });
       });
 
@@ -2041,7 +2041,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-          ), Scope.create(bc), null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
+          ), Scope.create(bc), null, null, { prop1: 'foo', coll: [{ p1: 1, p2: 2 }, { p1: 3, p2: 4 }] });
         assert.deepStrictEqual(bc, { prop1: 'foo', item2p2: 4 });
       });
 
@@ -2084,7 +2084,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-        ), Scope.create(bc), null, { prop1: "foo", coll: [{ p: [1, 2] }, { p: [3, 4] }] });
+        ), Scope.create(bc), null, null, { prop1: "foo", coll: [{ p: [1, 2] }, { p: [3, 4] }] });
         assert.deepStrictEqual(bc, { prop1: 'foo', item21: 3 });
       });
 
@@ -2126,7 +2126,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-          ), Scope.create(bc), null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
+          ), Scope.create(bc), null, null, ['key', { prop1: 'foo', prop2: { prop21: 123 } }]);
         assert.deepStrictEqual(bc, { k: 'key', prop1: 'foo', prop21: 123 });
       });
 
@@ -2156,7 +2156,7 @@ describe('2-runtime/ast.spec.ts', function () {
           ],
           void 0,
           void 0,
-          ), Scope.create(bc), null, ['key', [1,2]]);
+          ), Scope.create(bc), null, null, ['key', [1,2]]);
         assert.deepStrictEqual(bc, { k: 'key', item2: 2 });
       });
 
@@ -2187,7 +2187,7 @@ describe('2-runtime/ast.spec.ts', function () {
           void 0,
           void 0
         );
-        astAssign(expr, Scope.create(bc), null, {a:42});
+        astAssign(expr, Scope.create(bc), null, null, {a:42});
         assert.deepStrictEqual(bc, { a:42, c:42});
       });
     });

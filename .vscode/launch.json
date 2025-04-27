@@ -164,7 +164,7 @@
         "--colors",
         "--recursive",
         "--timeout",
-        "5000",
+        "0",
         "-r",
         "source-map-support/register",
         "--watch-extensions",

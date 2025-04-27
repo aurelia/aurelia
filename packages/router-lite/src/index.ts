@@ -32,6 +32,7 @@ export {
   type ITypedNavigationInstruction_CustomElementDefinition,
   type ITypedNavigationInstruction_Promise,
   type ITypedNavigationInstruction_IRouteViewModel,
+  NavigationStrategy,
 } from './instructions';
 
 export {
@@ -67,7 +68,7 @@ export {
 } from './route-expression';
 
 export {
-  IRouteNodeInitializationOptions,
+  type IRouteNodeInitializationOptions,
   RouteNode,
   RouteTree,
 } from './route-tree';

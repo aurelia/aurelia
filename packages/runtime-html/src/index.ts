@@ -302,6 +302,7 @@ export {
   isCustomElementController,
   isCustomElementViewModel,
   type ViewModelKind,
+  MountTarget,
   State,
   type ControllerVisitor,
   type IViewModel,
@@ -352,7 +353,6 @@ export {
   IViewFactory,
 } from './templating/view';
 export {
-  INode,
   IEventTarget,
   IRenderLocation,
   type INodeSequence,
@@ -364,10 +364,12 @@ export {
   setEffectiveParentNode,
   convertToRenderLocation,
   isRenderLocation,
-  getRef,
-  setRef,
   registerHostNode,
 } from './dom';
+export {
+  refs,
+  INode,
+} from './dom.node';
 export {
   IPlatform,
 } from './platform';

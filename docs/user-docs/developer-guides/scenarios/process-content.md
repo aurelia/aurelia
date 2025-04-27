@@ -119,6 +119,10 @@ Also it is easy to refactor as now we know which parts belong together.
 To support this usage-syntax we will use the 'processContent' hook to rearrange the DOM tree, so that the nodes are correctly projected at the end.
 A prototype implementation is shown below.
 
+{% hint style="info" %}
+Note the use of `$host` scope reference that is used when generating markup that will be projected into the slot. Host is required to access the `activeTabId` property and the `showTab` function of the `Tabs` custom element that is _hosting_ the projected markup. More details available at [Slotted content](components/shadow-dom-and-slots.md).
+{% endhint %}
+
 ```typescript
 // tabs.ts
 import { INode, IPlatform, processContent } from '@aurelia/runtime-html';
@@ -143,16 +147,16 @@ class Tabs {
       // Add header.
       const header = p.document.createElement('button');
       // Add a class binding to mark the active tab.
-      header.setAttribute('class.bind', `activeTabId=='${i}'?'active':''`);
+      header.setAttribute('class.bind', `$host.activeTabId=='${i}'?'active':''`);
       // Add a click delegate to activate a tab.
-      header.setAttribute('click.delegate', `showTab('${i}')`);
+      header.setAttribute('click.delegate', `$host.showTab('${i}')`);
       header.appendChild(p.document.createTextNode(tab.getAttribute('header')));
       headerTemplate.content.appendChild(header);
 
       // Add content.
       const content = p.document.createElement('div');
       // Show the content if the tab is activated.
-      content.setAttribute('if.bind', `activeTabId=='${i}'`);
+      content.setAttribute('if.bind', `$host.activeTabId=='${i}'`);
       content.append(...toArray(tab.childNodes));
       contentTemplate.content.appendChild(content);
 

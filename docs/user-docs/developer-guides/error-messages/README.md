@@ -62,30 +62,13 @@ Whenever there's a request to retrieve `dist/esm/index.mjs`, you can redirect it
 
 The section below will list errors by their prefix, and code and give a corresponding explanation, and a way to fix them.
 
-### Dependency Injection Errors (from 0001 to 0015)
+### Aurelia Kernel Errors (from 0001 to 0023)
 
-Dependency Injection errors can be found [here](0001-to-0015/).
+Aurelia Kernel errors can be found [here](0001-to-0023/).
 
-### Template Compiler Errors (From 701-749)
+### Template Compiler Errors (From 0088 to 0723)
 
-| Error Code | Description                                                                                                                                         |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| AUR0701    | This happens when a template has a single template element in your template, and it has `as-local-element` attribute on it                          |
-| AUR0702    | This happens when a template has one or more attributes that are supposed to be unique on its surrogate elements                                    |
-| AUR0703    | This happens when a template controller attribute is used on a surrogate element of a template                                                      |
-| AUR0704    | This happens when an attribute on a `<let/>` element is used without `.bind` or `.to-view` command                                                  |
-| AUR0705    | This happens when enhancing a template with one or more element in it already have a class `au` on it                                               |
-| AUR0706    | This happens when `[au-slot]` attribute is used on an element that is not an immediate child of a custom element                                    |
-| AUR0707    | This happens when the template compiler encounters binding to a non-bindable property of a custom attribute                                         |
-| AUR0708    | This happens when the template of a custom element has nothing beside template elements with `as-local-element`                                     |
-| AUR0709    | This happens when an `as-local-element` template is not defined as an immediate child of the root of a custom element template                      |
-| AUR0710    | This happens when an `as-local-element` template has a `<bindable>` element inside its template, that is not not an immediate child of its fragment |
-| AUR0711    | This happens when a `<bindable>` inside an `as-local-element` template does not have a valid `property` attribute on it                             |
-| AUR0712    | This happens when an `as-local-element` template has 2 or more `<bindable>` elements with non-unique `attribute` or `property` attributes           |
-| AUR0713    | This happens when an unknown binding command is encountered in a custom element template                                                            |
-| AUR0714    | This happens when a custom element or attribute definition has more than 1 primary bindable property                                                |
-| AUR0715    | This happens when an `as-local-template` template has the value of `as-local-template` as an empty string                                           |
-| AUR0716    | This happens when a custom element has 2 or more local elements with the same name                                                                  |
+Template Compiler errors can be found [here](0088-to-0723/).                                                              |
 
 ### Templating Errors (From 750-800)
 
@@ -163,11 +146,7 @@ Dependency Injection errors can be found [here](0001-to-0015/).
 
 ### Plugin errors
 
-| Error Code | Plugin name | Description                                                                                                                        |
-| ---------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| AUR0901    | Dialog      | This happens when an application is closed with some dialogs still open                                                            |
-| AUR0903    | Dialog      | This happens when `IDialogService.open` is called without both `component` and `template` property                                 |
-| AUR0904    | Dialog      | This happens when the default configuration of the dialog plugin is used, as there's no registration associated for key interfaces |
+Dialog plugin errors can be found [here](0901-to-0908/).
 
 ## Runtime module
 

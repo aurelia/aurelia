@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Features:
+
+* **router-lite:** navigation strategy (#2137) ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **router-lite:** wip navigation strategy ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **dom:** ability to toggle $au and $aurelia (#2130) ([7e1057b](https://github.com/aurelia/aurelia/commit/7e1057b))
+
+
+### Bug Fixes:
+
+* **router-lite:** cleanup while reusing route context due to nav strategy (#2144) ([a4d7a65](https://github.com/aurelia/aurelia/commit/a4d7a65))
+* **router-lite:** cancelling navigation with redirection from canLoad hook from child route (#2131) ([bb0b09d](https://github.com/aurelia/aurelia/commit/bb0b09d))
+* **router-lite:** initial fix for canceling navigation from child routes ([bb0b09d](https://github.com/aurelia/aurelia/commit/bb0b09d))
+* **router-lite:** support for conventional HTML-only component (#2126) ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+* **router-lite:** support for conventional HTML-only component ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+* **router-lite:** support for local dependencies ([922eccd](https://github.com/aurelia/aurelia/commit/922eccd))
+
+
+### Refactorings:
+
+* **router-lite:** navigation strategy ([a4d7a65](https://github.com/aurelia/aurelia/commit/a4d7a65))
+* **router-lite:** navigation strategy ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* **router-lite:** nav strategy test ([6a7757f](https://github.com/aurelia/aurelia/commit/6a7757f))
+* ***:** remove controller host (#2128) ([402c746](https://github.com/aurelia/aurelia/commit/402c746))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

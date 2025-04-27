@@ -37,21 +37,22 @@ To integrate the React component into Aurelia, create a wrapper Aurelia componen
 ```typescript
 // src/resources/elements/react-wrapper.ts
 import { customElement, bindable, INode, resolve } from 'aurelia';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
 
-@customElement({ name: 'react-wrapper', template: '<template></template>' })
+@customElement({ name: 'react-wrapper', template: '<template><div ref="container"></div></template>' })
 export class ReactWrapper {
-  @bindable public reactComponent: React.FunctionComponent;
-
-  private element: Element = resolve(INode);
+  @bindable public reactComponent;
+  private container!: HTMLDivElement;
+  private root: ReactDOM.Root | null = null;
 
   public binding(): void {
-    ReactDOM.render(React.createElement(this.reactComponent), this.element);
+    this.root = createRoot(this.container);
+    this.root.render(createElement(this.reactComponent));
   }
 
   public unbinding(): void {
-    ReactDOM.unmountComponentAtNode(this.element);
+    this.root?.unmount();
   }
 }
 ```
@@ -78,7 +79,7 @@ Then, use it in a view:
 ```html
 <!-- src/my-view.html -->
 <template>
-  <react-wrapper react-component.bind="MyReactComponent"></react-wrapper>
+  <react-wrapper react-component.bind="myReactComponent"></react-wrapper>
 </template>
 ```
 
@@ -89,7 +90,7 @@ Ensure you import and make the React component available in your Aurelia compone
 import MyReactComponent from './components/MyReactComponent';
 
 export class MyView {
-  public MyReactComponent = MyReactComponent;
+  public myReactComponent = MyReactComponent;
 }
 ```
 

@@ -3,8 +3,16 @@
 
 /** @internal */
 export const createMappedError: CreateError = __DEV__
-  ? (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
-  : (code: ErrorNames, ...details: unknown[]) => new Error(`AUR${String(code).padStart(4, '0')}:${details.map(String)}`);
+  ? (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = String(code).padStart(4, '0');
+    const message = getMessageByCode(code, ...details);
+    const link = `https://docs.aurelia.io/developer-guides/error-messages/0088-to-0723/aur${paddedCode}`;
+    return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+  }
+  : (code: ErrorNames, ...details: unknown[]) => {
+    const paddedCode = String(code).padStart(4, '0');
+    return new Error(`AUR${paddedCode}:${details.map(String)}`);
+  };
 
 _START_CONST_ENUM();
 /** @internal */
@@ -37,6 +45,7 @@ export const enum ErrorNames {
   compiler_no_reserved_spread_syntax = 720,
   compiler_no_reserved_$bindable = 721,
   compiler_no_dom_api = 722,
+  compiler_invalid_class_binding_syntax = 723,
   no_spread_template_controller = 9998,
 }
 _END_CONST_ENUM();
@@ -70,6 +79,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.compiler_no_reserved_spread_syntax]: `Spreading syntax "...xxx" is reserved. Encountered "...{{0}}"`,
   [ErrorNames.compiler_no_reserved_$bindable]: `Usage of $bindables is only allowed on custom element. Encountered: <{{0}} {{1}}="{{2}}">`,
   [ErrorNames.compiler_no_dom_api]: 'Invalid platform object provided to the compilation, no DOM API found.',
+  [ErrorNames.compiler_invalid_class_binding_syntax]: `Template compilation error: Invalid comma-separated class binding syntax in {{0}}. It resulted in no valid class names after parsing.`,
 
   [ErrorNames.no_spread_template_controller]: 'Spread binding does not support spreading custom attributes/template controllers. Did you build the spread instruction manually?',
 };

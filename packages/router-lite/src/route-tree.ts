@@ -15,6 +15,7 @@ import {
   CustomElementDefinition,
 } from '@aurelia/runtime-html';
 import {
+  ITypedNavigationInstruction_Component,
   ITypedNavigationInstruction_ResolvedComponent,
   ITypedNavigationInstruction_string,
   NavigationInstruction,
@@ -45,7 +46,7 @@ import { mergeURLSearchParams } from './util';
 import {
   ViewportRequest,
 } from './viewport-agent';
-import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
+import { resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig } from './route';
 import { Events, getMessage } from './events';
 import { pathUrlParser } from './url-parser';
 
@@ -273,7 +274,7 @@ export class RouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = (this.context?.config.component as RouteType)?.name ?? '';
+    const component = this.context?.config._getComponentName() ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }
@@ -495,7 +496,7 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       return onResolve(
-        resolveCustomElementDefinition(vi.component.value, rc)[1],
+        (resolveCustomElementDefinition(vi.component.value, rc) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
           const { vi: newVi, query } = rc._generateViewportInstruction({
             component: ced,
@@ -536,7 +537,7 @@ function createConfiguredNode(
       const viWithVp = (vi.viewport?.length ?? 0) > 0;
       const vpName: string = (viWithVp ? vi.viewport : $handler.viewport)!;
       return onResolve(
-        resolveCustomElementDefinition($handler.component, ctx)[1],
+        (resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
 
           const vpa = ctx._resolveViewportAgent(new ViewportRequest(

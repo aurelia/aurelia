@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.0.0-beta.23",
+  "version": "2.0.0-beta.24",
   "port": 9003,
   "scripts": {
     "dev": "webpack serve",
@@ -17,18 +17,18 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/compat-v1": "2.0.0-beta.23",
-    "@aurelia/fetch-client": "2.0.0-beta.23",
-    "@aurelia/kernel": "2.0.0-beta.23",
-    "@aurelia/metadata": "2.0.0-beta.23",
-    "@aurelia/route-recognizer": "2.0.0-beta.23",
-    "@aurelia/router-lite": "2.0.0-beta.23",
-    "@aurelia/runtime-html": "2.0.0-beta.23",
-    "@aurelia/runtime": "2.0.0-beta.23",
-    "aurelia": "2.0.0-beta.23"
+    "@aurelia/compat-v1": "2.0.0-beta.24",
+    "@aurelia/fetch-client": "2.0.0-beta.24",
+    "@aurelia/kernel": "2.0.0-beta.24",
+    "@aurelia/metadata": "2.0.0-beta.24",
+    "@aurelia/route-recognizer": "2.0.0-beta.24",
+    "@aurelia/router-lite": "2.0.0-beta.24",
+    "@aurelia/runtime-html": "2.0.0-beta.24",
+    "@aurelia/runtime": "2.0.0-beta.24",
+    "aurelia": "2.0.0-beta.24"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.0.0-beta.23",
+    "@aurelia/webpack-loader": "2.0.0-beta.24",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",

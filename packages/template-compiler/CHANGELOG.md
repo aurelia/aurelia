@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Features:
+
+* **template-compiler:** add support for multiple .class values (#2146) ([3b7513a](https://github.com/aurelia/aurelia/commit/3b7513a))
+
+
+### Bug Fixes:
+
+* **test:** dialog service test updated to reflect new error message ([b7c0eaa](https://github.com/aurelia/aurelia/commit/b7c0eaa))
+
+
+### Refactorings:
+
+* **packages:** only link to docs for errors in dev mode ([b7c0eaa](https://github.com/aurelia/aurelia/commit/b7c0eaa))
+* **template-compiler:** only link to errors in dev mode ([b7c0eaa](https://github.com/aurelia/aurelia/commit/b7c0eaa))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

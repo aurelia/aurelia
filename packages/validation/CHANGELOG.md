@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Bug Fixes:
+
+* **validation:** for dynamically accessed fields (#2113) ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+* **validation:** for dynamically accessed fields ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+* **validation:** rule discovery for nested keyed expression ([f1e8956](https://github.com/aurelia/aurelia/commit/f1e8956))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

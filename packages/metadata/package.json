@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/metadata",
-  "version": "2.0.0-beta.24",
+  "version": "2.0.1-dev.202504271314",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {

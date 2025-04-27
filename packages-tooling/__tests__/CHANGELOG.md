@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Features:
+
+* **tooling/type-checking:** support for non-public members ([165c213](https://github.com/aurelia/aurelia/commit/165c213))
+
+
+### Bug Fixes:
+
+* **tooling/typechecking:** method call ([165c213](https://github.com/aurelia/aurelia/commit/165c213))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

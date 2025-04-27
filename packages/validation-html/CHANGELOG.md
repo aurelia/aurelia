@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Bug Fixes:
+
+* **validation:** release reference to binding behavior source (#2143) ([78d0229](https://github.com/aurelia/aurelia/commit/78d0229))
+* **validation:** invalidate property info cache when source changes (#2138) ([a0b9ae6](https://github.com/aurelia/aurelia/commit/a0b9ae6))
+* **validation:** invalidate property info cache when source changes ([a0b9ae6](https://github.com/aurelia/aurelia/commit/a0b9ae6))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

@@ -20,12 +20,12 @@
     "postbuild:all": "rollup -c"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202504230602",
-    "@aurelia/metadata": "2.1.0-dev.202504230602",
-    "@aurelia/platform": "2.1.0-dev.202504230602",
-    "@aurelia/platform-browser": "2.1.0-dev.202504230602",
-    "@aurelia/runtime-html": "2.1.0-dev.202504230602",
-    "@aurelia/runtime": "2.1.0-dev.202504230602",
-    "@aurelia/state": "2.1.0-dev.202504230602"
+    "@aurelia/kernel": "2.0.0-beta.24",
+    "@aurelia/metadata": "2.0.0-beta.24",
+    "@aurelia/platform": "2.0.0-beta.24",
+    "@aurelia/platform-browser": "2.0.0-beta.24",
+    "@aurelia/runtime-html": "2.0.0-beta.24",
+    "@aurelia/runtime": "2.0.0-beta.24",
+    "@aurelia/state": "2.0.0-beta.24"
   }
 }

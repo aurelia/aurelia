@@ -32,7 +32,10 @@ const d = /*@__PURE__*/ r("ITemplateCompiler");
 
 const f = /*@__PURE__*/ r("IAttrMapper");
 
-const createMappedError = (t, ...e) => new Error(`AUR${String(t).padStart(4, "0")}:${e.map(String)}`);
+const createMappedError = (t, ...e) => {
+    const n = String(t).padStart(4, "0");
+    return new Error(`AUR${n}:${e.map(String)}`);
+};
 
 var p, m, g, w, b;
 
@@ -1111,7 +1114,15 @@ class ClassBindingCommand {
         return true;
     }
     build(t, e) {
-        return new AttributeBindingInstruction("class", e.parse(t.attr.rawValue, c), t.attr.target);
+        let n = t.attr.target;
+        if (n.includes(",")) {
+            const t = n.split(",").filter((t => t.length > 0));
+            if (t.length === 0) {
+                throw createMappedError(723);
+            }
+            n = t.join(" ");
+        }
+        return new AttributeBindingInstruction("class", e.parse(t.attr.rawValue, c), n);
     }
 }
 

@@ -1,8 +1,8 @@
 import { DI, resolve, IEventAggregator, ILogger, emptyArray, onResolve, getResourceKeyFor, onResolveAll, emptyObject, isObjectOrFunction, IContainer, Registration, isArrayIndex, IModuleLoader, InstanceProvider, noop } from '@aurelia/kernel';
-import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, Controller, IPlatform, CustomElementDefinition, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, getRef, AppTask } from '@aurelia/runtime-html';
+import { BindingMode, isCustomElementViewModel, IHistory, ILocation, IWindow, CustomElement, CustomElementDefinition, Controller, IPlatform, MountTarget, IController, IAppRoot, isCustomElementController, registerHostNode, CustomAttribute, INode, refs, AppTask } from '@aurelia/runtime-html';
 import { RESIDUE, RecognizedRoute, Endpoint, ConfigurableRoute, RouteRecognizer } from '@aurelia/route-recognizer';
 import { Metadata } from '@aurelia/metadata';
-import { batch } from '@aurelia/runtime';
+import { IObserverLocator, batch } from '@aurelia/runtime';
 
 /**
  * Ranges
@@ -158,6 +158,7 @@ const eventMessageMap = {
     [3351 /* Events.vpaUnexpectedDeactivation */]: 'Unexpected viewport deactivation outside of a transition context at %s',
     [3352 /* Events.vpaUnexpectedState */]: 'Unexpected state at %s of %s',
     [3353 /* Events.vpaUnexpectedGuardsResult */]: 'Unexpected guardsResult %s at %s',
+    [3354 /* Events.vpaCanLoadGuardsResult */]: 'canLoad returned redirect result %s by the component agent %s',
     // #endregion
     // #region instruction
     [3400 /* Events.instrInvalid */]: 'Invalid component %s: must be either a class, a custom element ViewModel, or a (partial) custom element definition',
@@ -181,7 +182,8 @@ const eventMessageMap = {
     [3554 /* Events.rtInvalidConfigProperty */]: 'Invalid route config property: "%s". Expected %s, but got %s.',
     [3555 /* Events.rtInvalidConfig */]: 'Invalid route config: expected an object or string, but got: %s',
     [3556 /* Events.rtUnknownConfigProperty */]: 'Unknown route config property: "%s.%s". Please specify known properties only.',
-    [3557 /* Events.rtUnknownRedirectConfigProperty */]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.'
+    [3557 /* Events.rtUnknownRedirectConfigProperty */]: 'Unknown redirect route config property: "%s.%s". Only \'path\' and \'redirectTo\' should be specified for redirects.',
+    [3558 /* Events.rtInvalidOperationNavigationStrategyComponent */]: 'Invalid operation, the component is not yet resolved for the navigation strategy (id: %s).',
     // #endregion
 };
 /**
@@ -496,7 +498,7 @@ function validateComponent(component, parentPath, property) {
         case 'function':
             break;
         case 'object':
-            if (component instanceof Promise) {
+            if (component instanceof Promise || component instanceof NavigationStrategy) {
                 break;
             }
             if (isPartialRedirectRouteConfig(component)) {
@@ -782,9 +784,10 @@ class RouteConfig {
         const path = this._path;
         if (path.length > 0)
             return path;
-        const ceDfn = CustomElement.getDefinition(this.component);
+        const ceDfn = CustomElement.getDefinition(this._component);
         return this._path = [ceDfn.name, ...ceDfn.aliases];
     }
+    get component() { return this._getComponent(); }
     constructor(id, 
     /** @internal */
     _path, title, redirectTo, caseSensitive, transitionPlan, viewport, data, routes, fallback, component, nav) {
@@ -798,10 +801,12 @@ class RouteConfig {
         this.data = data;
         this.routes = routes;
         this.fallback = fallback;
-        this.component = component;
         this.nav = nav;
         /** @internal */
         this._configurationFromHookApplied = false;
+        /** @internal */ this._currentComponent = null;
+        this._component = component;
+        this._isNavigationStrategy = component instanceof NavigationStrategy;
     }
     /** @internal */
     static _create(configOrPath, Type) {
@@ -851,7 +856,7 @@ class RouteConfig {
     _applyChildRouteConfig(config, parentConfig) {
         validateRouteConfig(config, this.path[0] ?? '');
         const path = ensureArrayOfStrings(config.path ?? this.path);
-        return new RouteConfig(ensureString(config.id ?? this.id ?? path), path, config.title ?? this.title, config.redirectTo ?? this.redirectTo, config.caseSensitive ?? this.caseSensitive, config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null, config.viewport ?? this.viewport, config.data ?? this.data, config.routes ?? this.routes, config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null, this.component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
+        return new RouteConfig(ensureString(config.id ?? this.id ?? path), path, config.title ?? this.title, config.redirectTo ?? this.redirectTo, config.caseSensitive ?? this.caseSensitive, config.transitionPlan ?? this.transitionPlan ?? parentConfig?.transitionPlan ?? null, config.viewport ?? this.viewport, config.data ?? this.data, config.routes ?? this.routes, config.fallback ?? this.fallback ?? parentConfig?.fallback ?? null, this._component, // The RouteConfig is created using a definitive Type as component; do not overwrite it.
         config.nav ?? this.nav);
     }
     /** @internal */
@@ -903,7 +908,7 @@ class RouteConfig {
     }
     /** @internal */
     _clone() {
-        return new RouteConfig(this.id, this.path, this.title, this.redirectTo, this.caseSensitive, this.transitionPlan, this.viewport, this.data, this.routes, this.fallback, this.component, this.nav);
+        return new RouteConfig(this.id, this.path, this.title, this.redirectTo, this.caseSensitive, this.transitionPlan, this.viewport, this.data, this.routes, this.fallback, this._component, this.nav);
     }
     /** @internal */
     _getFallback(viewportInstruction, routeNode, context) {
@@ -912,6 +917,46 @@ class RouteConfig {
             && !CustomElement.isType(fallback)
             ? fallback(viewportInstruction, routeNode, context)
             : fallback;
+    }
+    /** @internal */
+    _getComponentName() {
+        try {
+            return this._getComponent().name;
+        }
+        catch {
+            // TODO(Sayan): Convert all Errors in router lite to instances of RouterError
+            return 'UNRESOLVED-NAVIGATION-STRATEGY';
+        }
+    }
+    _getComponent(vi, ctx, node, route) {
+        if (vi == null) {
+            if (this._currentComponent != null)
+                return this._currentComponent;
+            if (this._isNavigationStrategy)
+                throw new Error(getMessage(3558 /* Events.rtInvalidOperationNavigationStrategyComponent */, this.id));
+            return this._currentComponent = this._component;
+        }
+        return this._currentComponent ??= this._isNavigationStrategy ? this._component.getComponent(vi, ctx, node, route) : this._component;
+    }
+    /** @internal */
+    _handleNavigationStart() {
+        if (!this._isNavigationStrategy)
+            return;
+        this._currentComponent = null;
+    }
+    toString() {
+        let value = `RConf(id: ${this.id}, isNavigationStrategy: ${this._isNavigationStrategy}`;
+        value += `, path: [${this.path.join(',')}]`;
+        if (this.redirectTo)
+            value += `, redirectTo: ${this.redirectTo}`;
+        if (this.caseSensitive)
+            value += `, caseSensitive: ${this.caseSensitive}`;
+        if (this.transitionPlan != null)
+            value += `, transitionPlan: ${this.transitionPlan}`;
+        value += `, viewport: ${this.viewport}`;
+        if (this._currentComponent != null)
+            value += `, component: ${this._currentComponent.name}`;
+        return `${value})`;
     }
 }
 const Route = {
@@ -955,10 +1000,12 @@ function resolveRouteConfiguration(routeable, isChild, parent, routeNode, contex
     if (isPartialRedirectRouteConfig(routeable))
         return RouteConfig._create(routeable, null);
     const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
+    if (instruction.type === 5 /* NavigationInstructionType.NavigationStrategy */)
+        return RouteConfig._create({ ...routeable, nav: false }, null);
     return onResolve(ceDef, $ceDef => {
         const type = $ceDef.Type;
         const routeConfig = Route.getConfig(type);
-        // If the component is used as a child, then apply the child configuration (comping from parent) and return a new RouteConfig with the configuration applied.
+        // If the component is used as a child, then apply the child configuration (coming from parent) and return a new RouteConfig with the configuration applied.
         if (isPartialChildRouteConfig(routeable))
             return routeConfig._applyChildRouteConfig(routeable, parent);
         // If the component is used as a child, then return a clone.
@@ -978,12 +1025,19 @@ function resolveCustomElementDefinition(routeable, context) {
     const instruction = createNavigationInstruction(routeable);
     let ceDef;
     switch (instruction.type) {
+        case 5 /* NavigationInstructionType.NavigationStrategy */: return [instruction, null];
         case 0 /* NavigationInstructionType.string */: {
             if (context == null)
                 throw new Error(getMessage(3551 /* Events.rtNoCtxStrComponent */));
-            const component = CustomElement.find(context.container, instruction.value);
+            const dependencies = context.component.dependencies;
+            let component = dependencies.find(d => isPartialCustomElementDefinition(d) && d.name === instruction.value)
+                ?? CustomElement.find(context.container, instruction.value);
             if (component === null)
                 throw new Error(getMessage(3552 /* Events.rtNoComponent */, instruction.value, context));
+            if (!(component instanceof CustomElementDefinition)) {
+                component = CustomElementDefinition.create(component);
+                CustomElement.define(component);
+            }
             ceDef = component;
             break;
         }
@@ -1728,6 +1782,10 @@ class ViewportAgent {
                     this._unexpectedState('canLoad');
             }
         })._continueWith(b1 => {
+            if (tr.guardsResult !== true) {
+                trace(logger, 3354 /* Events.vpaCanLoadGuardsResult */, tr.guardsResult, this._nextCA);
+                return;
+            }
             const next = this._nextNode;
             switch (this._$plan) {
                 case 'none':
@@ -2059,6 +2117,8 @@ class ViewportAgent {
                     });
                 }
             })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
                 for (const node of newChildren) {
                     tr._run(() => {
                         b1._push();
@@ -2068,6 +2128,8 @@ class ViewportAgent {
                     });
                 }
             })._continueWith(b1 => {
+                if (tr.guardsResult !== true)
+                    return;
                 for (const node of newChildren) {
                     tr._run(() => {
                         b1._push();
@@ -2499,7 +2561,7 @@ class RouteNode {
     // Should not be adjust for DEV as it is also used of logging in production build.
     toString() {
         const props = [];
-        const component = this.context?.config.component?.name ?? '';
+        const component = this.context?.config._getComponentName() ?? '';
         if (component.length > 0) {
             props.push(`c:'${component}'`);
         }
@@ -2698,7 +2760,7 @@ function createConfiguredNode(log, node, vi, rr, originalVi, route = rr.route.en
         if ($handler.redirectTo === null) {
             const viWithVp = (vi.viewport?.length ?? 0) > 0;
             const vpName = (viWithVp ? vi.viewport : $handler.viewport);
-            return onResolve(resolveCustomElementDefinition($handler.component, ctx)[1], ced => {
+            return onResolve(resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx)[1], ced => {
                 const vpa = ctx._resolveViewportAgent(new ViewportRequest(vpName, ced.name));
                 if (!viWithVp) {
                     vi.viewport = vpa.viewport.name;
@@ -3053,10 +3115,15 @@ class Router {
      */
     getRouteContext(viewportAgent, componentDefinition, componentInstance, container, parentRouteConfig, parentContext, $rdConfig) {
         const logger = /*@__PURE__*/ container.get(ILogger).scopeTo('RouteContext');
-        // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-        return onResolve($rdConfig instanceof RouteConfig
+        return onResolve(
+        // In case of navigation strategy, get the route config for the resolved component directly.
+        // Conceptually, navigation strategy is another form of lazy-loading the route config for the given component.
+        // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+        $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
             ? $rdConfig
-            : resolveRouteConfiguration(typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, false, parentRouteConfig, null, parentContext), rdConfig => {
+            : resolveRouteConfiguration(
+            // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+            typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type, false, parentRouteConfig, null, parentContext), rdConfig => {
             let routeConfigLookup = this._vpaLookup.get(viewportAgent);
             if (routeConfigLookup === void 0) {
                 this._vpaLookup.set(viewportAgent, routeConfigLookup = new WeakMap());
@@ -3290,6 +3357,12 @@ class Router {
                 trace(logger, 3265 /* Events.rtrRunSwapping */, all.length);
                 for (const node of all) {
                     node.context.vpa._swap(tr, b);
+                }
+            })._continueWith(b => {
+                // it is possible that some of the child routes are cancelling the navigation
+                if (tr.guardsResult !== true) {
+                    b._push();
+                    this._cancelNavigation(tr);
                 }
             })._continueWith(() => {
                 trace(logger, 3266 /* Events.rtrRunFinalizing */);
@@ -3849,6 +3922,12 @@ class ViewportInstructionTree {
         return `[${this.children.map(String).join(',')}]`;
     }
 }
+class NavigationStrategy {
+    constructor(
+    /** @internal */ getComponent) {
+        this.getComponent = getComponent;
+    }
+}
 
 class TypedNavigationInstruction {
     constructor(type, value) {
@@ -3864,6 +3943,8 @@ class TypedNavigationInstruction {
         // Typings prevent this from happening, but guard it anyway due to `as any` and the sorts being a thing in userland code and tests.
         if (!isObjectOrFunction(instruction))
             expectType('function/class or object', '', instruction);
+        if (instruction instanceof NavigationStrategy)
+            return new TypedNavigationInstruction(5 /* NavigationInstructionType.NavigationStrategy */, instruction);
         if (typeof instruction === 'function') {
             if (CustomElement.isType(instruction)) {
                 // This is the class itself
@@ -3886,10 +3967,27 @@ class TypedNavigationInstruction {
         // We might have gotten a complete definition. In that case use it as-is.
         if (instruction instanceof CustomElementDefinition)
             return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, instruction);
+        // If we have a partial definition, create a complete definition from it.
+        // Use-case:
+        // import * as component from './conventional-html-only-component.html';
+        // @route({
+        //   routes: [
+        //     {
+        //       path: 'path',
+        //       component,
+        //     },
+        //   ],
+        // })
+        if (isPartialCustomElementDefinition(instruction)) {
+            const definition = CustomElementDefinition.create(instruction);
+            CustomElement.define(definition);
+            return new TypedNavigationInstruction(2 /* NavigationInstructionType.CustomElementDefinition */, definition);
+        }
         throw new Error(getMessage(3400 /* Events.instrInvalid */, tryStringify(instruction)));
     }
     equals(other) {
         switch (this.type) {
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
             case 2 /* NavigationInstructionType.CustomElementDefinition */:
             case 4 /* NavigationInstructionType.IRouteViewModel */:
             case 3 /* NavigationInstructionType.Promise */:
@@ -3909,6 +4007,7 @@ class TypedNavigationInstruction {
                 return this.value.name;
             case 4 /* NavigationInstructionType.IRouteViewModel */:
             case 3 /* NavigationInstructionType.Promise */:
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
                 throw new Error(getMessage(3403 /* Events.instrInvalidUrlComponentOperation */, this.type));
             case 1 /* NavigationInstructionType.ViewportInstruction */:
                 return this.value.toUrlComponent();
@@ -3921,6 +4020,8 @@ class TypedNavigationInstruction {
         switch (this.type) {
             case 2 /* NavigationInstructionType.CustomElementDefinition */:
                 return `CEDef(name:'${this.value.name}')`;
+            case 5 /* NavigationInstructionType.NavigationStrategy */:
+                return `NS`;
             case 3 /* NavigationInstructionType.Promise */:
                 return `Promise`;
             case 4 /* NavigationInstructionType.IRouteViewModel */:
@@ -3966,6 +4067,19 @@ class ComponentAgent {
     }
     /** @internal */
     _activate(initiator, parent) {
+        const controller = this._controller;
+        const viewportController = this._ctx.vpa.hostController;
+        switch (controller.mountTarget) {
+            case MountTarget.host:
+            case MountTarget.shadowRoot:
+                viewportController.host.appendChild(controller.host);
+                break;
+            case MountTarget.location:
+                viewportController.host.append(controller.location.$start, controller.location);
+                break;
+            case MountTarget.none:
+                throw new Error('Invalid mount target for routed component');
+        }
         if (initiator === null) {
             trace(this._logger, 3051 /* Events.caActivateSelf */);
             return this._controller.activate(this._controller, parent);
@@ -3976,13 +4090,19 @@ class ComponentAgent {
     }
     /** @internal */
     _deactivate(initiator, parent) {
+        const controller = this._controller;
+        // there's a case controller was disposed and is being deactivated again?
+        // todo: these 3 lines seems invasive, and ugly, should this be a method on Controller?
+        controller.host?.remove();
+        controller.location?.remove();
+        controller.location?.$start?.remove();
         if (initiator === null) {
             trace(this._logger, 3053 /* Events.caDeactivateSelf */);
-            return this._controller.deactivate(this._controller, parent);
+            return controller.deactivate(controller, parent);
         }
         trace(this._logger, 3054 /* Events.caDeactivateInitiator */);
         // Promise return values from user VM hooks are awaited by the initiator
-        void this._controller.deactivate(initiator, parent);
+        void controller.deactivate(initiator, parent);
     }
     /** @internal */
     _dispose() {
@@ -4213,6 +4333,21 @@ class RouteContext {
         }
         this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this._friendlyPath}>`);
         trace(this._logger, 3150 /* Events.rcCreated */);
+        const observer = parentContainer.get(IObserverLocator).getObserver(this._router, 'isNavigating');
+        const subscriber = {
+            handleChange: (newValue, _previousValue) => {
+                if (newValue !== true)
+                    return;
+                this.config._handleNavigationStart();
+                for (const childRoute of this.childRoutes) {
+                    if (childRoute instanceof Promise)
+                        continue;
+                    childRoute._handleNavigationStart();
+                }
+            }
+        };
+        observer.subscribe(subscriber);
+        this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
         this._moduleLoader = parentContainer.get(IModuleLoader);
         const container = this.container = parentContainer.createChild();
         this._platform = container.get(IPlatform);
@@ -4353,6 +4488,7 @@ class RouteContext {
     }
     dispose() {
         this.container.dispose();
+        this._unsubscribeIsNavigatingChange();
     }
     /** @internal */
     _resolveViewportAgent(req) {
@@ -4390,7 +4526,7 @@ class RouteContext {
             ? void 0
             : onResolve(resolveRouteConfiguration(componentInstance, false, this.config, routeNode, null), config => this._processConfig(config));
         return onResolve(task, () => {
-            const controller = Controller.$el(container, componentInstance, host, { hostController: hostController, projections: null }, elDefn);
+            const controller = Controller.$el(container, componentInstance, host, { projections: null }, elDefn);
             const componentAgent = new ComponentAgent(componentInstance, controller, routeNode, this, this._router.options);
             this._hostControllerProvider.dispose();
             return componentAgent;
@@ -4483,8 +4619,14 @@ class RouteContext {
                     }
                 }
             }
-            if (defaultExport === void 0 && firstNonDefaultExport === void 0)
-                throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+            if (defaultExport === void 0 && firstNonDefaultExport === void 0) {
+                if (!isPartialCustomElementDefinition(raw))
+                    throw new Error(getMessage(3175 /* Events.rcInvalidLazyImport */, promise));
+                // use-case: import('./conventional-html-only-component.html')
+                const definition = CustomElementDefinition.create(raw);
+                CustomElement.define(definition);
+                return definition;
+            }
             return firstNonDefaultExport ?? defaultExport;
         });
     }
@@ -4942,7 +5084,7 @@ class HrefCustomAttribute {
     binding() {
         if (!this._isInitialized) {
             this._isInitialized = true;
-            this._isEnabled = this._isEnabled && getRef(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
+            this._isEnabled = this._isEnabled && refs.get(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
         }
         this.valueChanged(this.value);
         this._el.addEventListener('click', this);
@@ -5152,5 +5294,5 @@ class ParameterInformation {
     }
 }
 
-export { AST, AuNavId, ComponentExpression, CompositeSegmentExpression, DefaultComponents, DefaultResources, HrefCustomAttribute, HrefCustomAttributeRegistration, ICurrentRoute, ILocationManager, IRouteContext, IRouter, IRouterEvents, IRouterOptions, IStateManager, LoadCustomAttribute, LoadCustomAttributeRegistration, LocationChangeEvent, NavigationCancelEvent, NavigationEndEvent, NavigationErrorEvent, NavigationOptions, NavigationStartEvent, ParameterExpression, ParameterListExpression, Route, RouteConfig, RouteContext, RouteExpression, RouteNode, RouteTree, Router, RouterConfiguration, RouterOptions, RouterRegistration, ScopedSegmentExpression, SegmentExpression, SegmentGroupExpression, Transition, ViewportAgent, ViewportCustomElement, ViewportCustomElementRegistration, ViewportExpression, fragmentUrlParser, isManagedState, pathUrlParser, route, toManagedState };
+export { AST, AuNavId, ComponentExpression, CompositeSegmentExpression, DefaultComponents, DefaultResources, HrefCustomAttribute, HrefCustomAttributeRegistration, ICurrentRoute, ILocationManager, IRouteContext, IRouter, IRouterEvents, IRouterOptions, IStateManager, LoadCustomAttribute, LoadCustomAttributeRegistration, LocationChangeEvent, NavigationCancelEvent, NavigationEndEvent, NavigationErrorEvent, NavigationOptions, NavigationStartEvent, NavigationStrategy, ParameterExpression, ParameterListExpression, Route, RouteConfig, RouteContext, RouteExpression, RouteNode, RouteTree, Router, RouterConfiguration, RouterOptions, RouterRegistration, ScopedSegmentExpression, SegmentExpression, SegmentGroupExpression, Transition, ViewportAgent, ViewportCustomElement, ViewportCustomElementRegistration, ViewportExpression, fragmentUrlParser, isManagedState, pathUrlParser, route, toManagedState };
 //# sourceMappingURL=index.dev.mjs.map

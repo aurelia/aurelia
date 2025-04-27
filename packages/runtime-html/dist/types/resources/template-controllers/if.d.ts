@@ -1,7 +1,7 @@
 import { IViewFactory } from '../../templating/view';
 import type { ISyntheticView, ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, ControllerVisitor, IHydratableController } from '../../templating/controller';
 import type { IInstruction } from '@aurelia/template-compiler';
-import type { INode } from '../../dom';
+import type { INode } from '../../dom.node';
 import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
 export declare class If implements ICustomAttributeViewModel {
     static readonly $au: CustomAttributeStaticAuDefinition;

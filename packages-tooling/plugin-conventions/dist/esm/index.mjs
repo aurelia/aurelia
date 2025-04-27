@@ -1,9 +1,9 @@
-import { camelCase, kebabCase, DI } from '@aurelia/kernel';
+import { camelCase, kebabCase, isArray, DI } from '@aurelia/kernel';
 import * as path from 'path';
 import pkg from 'typescript';
 import * as $modifyCode from 'modify-code';
 import $modifyCode__default from 'modify-code';
-import { AccessScopeExpression, AccessMemberExpression, ExpressionParser, Unparser } from '@aurelia/expression-parser';
+import { AccessScopeExpression, AccessMemberExpression, Unparser, ExpressionParser } from '@aurelia/expression-parser';
 import { DotSeparatedAttributePattern, EventAttributePattern, RefAttributePattern, AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, IAttributeParser } from '@aurelia/template-compiler';
 import { parseFragment } from 'parse5';
 import { BindingMode } from '@aurelia/runtime-html';
@@ -98,7 +98,7 @@ class IdentifierScope {
             if (this.type !== 'promise')
                 throw new Error(`Identifier '${ident}' is used for promise template controller, but scope is not marked as a promise scope.`);
         }
-        if (this.classes.some(c => c.members.includes(ident)))
+        if (this.classes.some(c => c.members.some(x => x.name === ident)))
             return returnIdentifier(ident);
         let current = this;
         while (current !== null) {
@@ -146,11 +146,28 @@ class TypeCheckingContext {
         this._accessType = void 0;
         this._hasRepeatContextualProperties = false;
         const classNames = classes.map(c => c.name);
-        this.classUnion = `(${classNames.join('|')})`;
+        const classUnion = [];
+        for (const $class of classes) {
+            const nonPublicMembers = $class.members.filter(x => x.accessModifier !== 'public');
+            if (nonPublicMembers.length === 0) {
+                classUnion.push($class.name);
+                continue;
+            }
+            classUnion.push(`Omit<${$class.name}, ${nonPublicMembers.map(x => `'${x.name}'`).join(' | ')}> & ${renderNonPublicMembers(nonPublicMembers)}`);
+        }
+        this.classUnion = classUnion.join(' | ');
         this.accessTypeParts = [() => `${this.classUnion} & { $parent: any }`];
         this.accessTypeIdentifier = `__Template_Type_${classNames.join('_')}__`;
         this.accessIdentifier = `access${isJs ? '' : `<${this.accessTypeIdentifier}>`}`;
         this.scope = new IdentifierScope('none', classes);
+        function renderNonPublicMembers(nonPublicMembers) {
+            return `{ ${nonPublicMembers.map(x => `${x.name}${renderMethodArguments(x)}: ${x.dataType}`).join(', ')} }`;
+        }
+        function renderMethodArguments(x) {
+            if (x.memberType !== 'method')
+                return '';
+            return `(${x.methodArguments.map(a => `${a.isSpread ? '...' : ''}${a.name}${a.isOptional ? '?' : ''}: ${a.type}`).join(',')})`;
+        }
     }
     produceTypeCheckedTemplate(rawHtml) {
         const { accessType, isJs, accessTypeIdentifier, classes } = this;
@@ -185,12 +202,30 @@ function __typecheck_template_${classes.map(x => x.name).join('_')}__() {
     getIdentifier(ident, instruction = 0) {
         return this.scope.getIdentifier(ident, instruction);
     }
-    createLambdaExpression(...args) {
-        const len = args.length;
-        switch (len) {
-            case 0: throw new Error('At least one argument is required');
-            case 1: return `${_a._o} => ${_a._o}.${args[0]}`;
-            default: return `${_a._o} => (${args.map(arg => `${_a._o}.${arg}`).join(',')})`;
+    createLambdaExpression(args) {
+        if (isArray(args)) {
+            const len = args.length;
+            switch (len) {
+                case 0: throw new Error('At least one argument is required');
+                case 1: return `${_a._o} => ${_a._o}.${args[0]}`;
+                default: return `${_a._o} => (${args.map(arg => `${_a._o}.${arg}`).join(',')})`;
+            }
+        }
+        switch (args.$kind) {
+            case 'CallScope':
+                {
+                    const argList = [];
+                    for (const arg of args.args) {
+                        switch (arg.$kind) {
+                            case 'PrimitiveLiteral':
+                                argList.push(unparse(arg));
+                                break;
+                            default: argList.push(`${_a._o}.${unparse(arg)}`);
+                        }
+                    }
+                    return `${_a._o} => ${_a._o}.${args.name}(${argList.join(',')})`;
+                }
+            default: return this.createLambdaExpression([unparse(args)]);
         }
     }
     createMemberAccessExpression(member) {
@@ -241,7 +276,7 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
     if (expr.iterable.$kind === 'PrimitiveLiteral') {
         const identifier = ctx.getIdentifier(rangeIterableIdentifier);
         const primitiveValue = expr.iterable.value;
-        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(identifier)}, '${primitiveValue}')}`;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([identifier])}, '${primitiveValue}')}`;
         ctx.accessTypeParts.push((acc) => `${acc} & { ${identifier}: ${primitiveValue} }`);
         propAccExpr = `${ctx.accessTypeIdentifier}['${identifier}']`;
     }
@@ -252,7 +287,7 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
             return newName;
         }, true);
         propAccExpr = `${ctx.accessTypeIdentifier}${path.map(p => `['${p}']`).join('')}`;
-        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(iterIdent))}, '${rawIterIdentifier}')}`;
+        iterable = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(iterIdent)}, '${rawIterIdentifier}')}`;
     }
     let declaration;
     switch (expr.declaration.$kind) {
@@ -261,7 +296,7 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
             const [rawKeyIdent, keyIdent] = getArrDestIdent(keyAssignLeaf);
             const [rawValueIdent, valueIdent] = getArrDestIdent(valueAssignLeaf);
             ctx.accessTypeParts.push((acc) => `${acc} & { ${keyIdent}: CollectionElement<${propAccExpr}>[0], ${valueIdent}: CollectionElement<${propAccExpr}>[1] }`);
-            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(keyIdent, valueIdent)}, '[${rawKeyIdent},${rawValueIdent}]')}`;
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([keyIdent, valueIdent])}, '[${rawKeyIdent},${rawValueIdent}]')}`;
             break;
             function getArrDestIdent(leafExpr) {
                 switch (leafExpr.$kind) {
@@ -278,7 +313,7 @@ function tryProcessRepeat(syntax, attr, node, ctx) {
             const rawDecIdentifier = Unparser.unparse(expr.declaration);
             const decIdentifier = ctx.getIdentifier(rawDecIdentifier, 2);
             ctx.accessTypeParts.push((acc) => `${acc} & { ${decIdentifier}: CollectionElement<${propAccExpr}> }`);
-            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(decIdentifier)}, '${rawDecIdentifier}')}`;
+            declaration = () => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression([decIdentifier])}, '${rawDecIdentifier}')}`;
             break;
         }
     }
@@ -338,7 +373,7 @@ function tryProcessPromise(syntax, attr, node, ctx) {
     function addReplaceParts(_expr, value) {
         ctx.toReplace.push({
             loc: node.sourceCodeLocation.attrs[attr.name],
-            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+            modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
         });
     }
 }
@@ -364,7 +399,7 @@ function processNode(node, ctx) {
                         return;
                     ctx.toReplace.push({
                         loc: node.sourceCodeLocation.attrs[attr.name],
-                        modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(_expr))}, '${value}')}"`
+                        modifiedContent: () => `${attr.name}="\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(_expr)}, '${value}')}"`
                     });
                 }
             }
@@ -377,7 +412,7 @@ function processNode(node, ctx) {
             expr.expressions.forEach((part, idx) => {
                 const originalExpr = part;
                 [part] = mutateAccessScope(part, ctx, member => { var _b; return (_b = ctx.getIdentifier(member, 1)) !== null && _b !== void 0 ? _b : member; });
-                htmlFactories.push(() => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(unparse(part))}, '${unparse(originalExpr)}')}`, () => expr.parts[idx + 1]);
+                htmlFactories.push(() => `\${${ctx.accessIdentifier}(${ctx.createLambdaExpression(part)}, '${escape(unparse(originalExpr))}')}`, () => expr.parts[idx + 1]);
             });
             ctx.toReplace.push({
                 loc: node.sourceCodeLocation,
@@ -386,6 +421,9 @@ function processNode(node, ctx) {
         }
     }
     return retVal;
+}
+function escape(s) {
+    return s.replace(/'/g, '\\\'');
 }
 function unparse(expr) {
     return Unparser.unparse(expr);
@@ -457,11 +495,11 @@ function traverse$1(tree, cb) {
     });
 }
 
-const { ModifierFlags, ScriptTarget, SyntaxKind, canHaveDecorators, canHaveModifiers, createPrinter, createSourceFile, getCombinedModifierFlags, getDecorators, getModifiers, isCallExpression, isClassDeclaration, isExpressionStatement, isIdentifier, isImportDeclaration, isObjectLiteralExpression, isPropertyDeclaration, isPropertyAccessExpression, isNamedImports, isStringLiteral, transform, visitEachChild, visitNode, factory: { createIdentifier, createObjectLiteralExpression, createSpreadAssignment, updateClassDeclaration, updatePropertyDeclaration, } } = pkg;
+const { ModifierFlags, ScriptTarget, SyntaxKind, canHaveDecorators, canHaveModifiers, createPrinter, createSourceFile, getCombinedModifierFlags, getDecorators, getModifiers, isCallExpression, isClassDeclaration, isExpressionStatement, isIdentifier, isImportDeclaration, isObjectLiteralExpression, isPropertyDeclaration, isPropertyAccessExpression, isNamedImports, isStringLiteral, transform, visitEachChild, visitNode, getJSDocType, factory: { createIdentifier, createObjectLiteralExpression, createSpreadAssignment, updateClassDeclaration, updatePropertyDeclaration, }, } = pkg;
 function preprocessResource(unit, options) {
     var _a;
     const expectedResourceName = resourceName(unit.path);
-    const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest);
+    const sf = createSourceFile(unit.path, unit.contents, ScriptTarget.Latest, true);
     let exportedClassMetadata;
     let auImport = { names: [], start: 0, end: 0 };
     let runtimeImport = { names: [], start: 0, end: 0 };
@@ -489,7 +527,7 @@ function preprocessResource(unit, options) {
         }
         if (tryCaptureCustomElementDefine(s, sf, templateMetadata))
             return;
-        const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata);
+        const resource = findResource(s, expectedResourceName, unit.filePair, unit.contents, options.enableConventions, templateMetadata, sf);
         if (!resource)
             return;
         const { classMetadata, localDep, modification, implicitStatement, runtimeImportName, customElementDecorator: customName, defineElementInformation: $defineElementInformation, } = resource;
@@ -567,7 +605,7 @@ function modifyResource(unit, m, options) {
         else {
             const elementStatement = unit.contents.slice(implicitElement.pos, implicitElement.end);
             if (elementStatement.includes('$au')) {
-                const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest);
+                const sf = createSourceFile('temp.ts', elementStatement, ScriptTarget.Latest, true);
                 const result = transform(sf, [createAuResourceTransformer()]);
                 const modified = createPrinter().printFile(result.transformed[0]);
                 m.replace(implicitElement.pos, implicitElement.end, modified);
@@ -654,13 +692,51 @@ function captureTemplateImport(s, code) {
             end: s.end
         };
 }
-function getClassMembers(node) {
+function getClassMembers(node, sf) {
     return node.members.reduce((acc, m) => {
+        var _a, _b, _c;
         const name = m.name;
         if (name == null)
             return acc;
-        if (isIdentifier(name))
-            acc.push(name.escapedText.toString());
+        let memberType = null;
+        switch (m.kind) {
+            case SyntaxKind.PropertyDeclaration:
+                memberType = 'property';
+                break;
+            case SyntaxKind.MethodDeclaration:
+                memberType = 'method';
+                break;
+            case SyntaxKind.GetAccessor:
+                memberType = 'accessor';
+                break;
+        }
+        if (memberType === null)
+            return acc;
+        if (isIdentifier(name)) {
+            const flags = getCombinedModifierFlags(m);
+            const accessModifier = flags & ModifierFlags.Private
+                ? 'private'
+                : flags & ModifierFlags.Protected
+                    ? 'protected'
+                    : 'public';
+            acc.push({
+                name: name.escapedText.toString(),
+                accessModifier: accessModifier,
+                memberType,
+                dataType: (_c = (_b = ((_a = m.type) !== null && _a !== void 0 ? _a : getJSDocType(m))) === null || _b === void 0 ? void 0 : _b.getText(sf)) !== null && _c !== void 0 ? _c : 'any',
+                methodArguments: memberType === 'method'
+                    ? m.parameters.map(p => {
+                        var _a, _b, _c;
+                        return ({
+                            name: p.name.getText(sf),
+                            type: (_c = (_b = ((_a = p.type) !== null && _a !== void 0 ? _a : getJSDocType(p))) === null || _b === void 0 ? void 0 : _b.getText(sf)) !== null && _c !== void 0 ? _c : 'any',
+                            isOptional: p.questionToken != null,
+                            isSpread: p.dotDotDotToken != null
+                        });
+                    })
+                    : null
+            });
+        }
         return acc;
     }, []);
 }
@@ -677,7 +753,7 @@ function tryCaptureCustomElementDefine(s, sf, templateMetadata) {
         return false;
     const name = className.escapedText.toString();
     const classDeclaration = sf.statements.find(s => isClassDeclaration(s) && s.name != null && s.name.text === name);
-    const $class = { name, members: getClassMembers(classDeclaration) };
+    const $class = { name, members: getClassMembers(classDeclaration, sf) };
     return tryCollectTemplateMetadataFromDefinition(defn, $class, templateMetadata);
 }
 function ensureTypeIsExported(runtimeExports, type) {
@@ -790,13 +866,13 @@ function createAuResourceTransformer() {
         return updateClassDeclaration(node, node.modifiers, node.name, node.typeParameters, node.heritageClauses, newMembers);
     }
 }
-function findResource(node, expectedResourceName, filePair, code, useConvention, templateMetadata) {
+function findResource(node, expectedResourceName, filePair, code, useConvention, templateMetadata, sf) {
     var _a;
     if (!isClassDeclaration(node) || !node.name || !isExported(node) && !useConvention)
         return;
     const pos = ensureTokenStart(node.pos, code);
     const className = node.name.text;
-    const $class = { name: className, members: getClassMembers(node) };
+    const $class = { name: className, members: getClassMembers(node, sf) };
     const { name, type } = nameConvention(className);
     const isImplicitResource = isKindOfSame(name, expectedResourceName);
     const resourceType = collectClassDecorators(node);

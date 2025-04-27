@@ -1,6 +1,6 @@
 import { type IContainer, type IFactory, type Constructable, type Transformer, type Key } from '@aurelia/kernel';
 import { BindingBehaviorExpression } from '@aurelia/expression-parser';
-import { type Scope } from '@aurelia/runtime';
+import { IConnectable, type Scope } from '@aurelia/runtime';
 import { PropertyBinding } from '@aurelia/runtime-html';
 import { PropertyAccessor, PropertyRule, ValidationResult, IValidator, ValidateInstruction, type IValidateable } from '@aurelia/validation';
 export type BindingWithBehavior = PropertyBinding & {
@@ -59,18 +59,20 @@ export interface ValidationResultsSubscriber {
  * This is provided by the `validate` binding behavior during binding registration.
  */
 export declare class BindingInfo {
+    sourceObserver: IConnectable;
     target: Element;
     scope: Scope;
     rules?: PropertyRule[] | undefined;
     propertyInfo: PropertyInfo | undefined;
     /**
+     * @param {IConnectable} sourceObserver - An observer for the binding source.
      * @param {Element} target - The HTMLElement associated with the binding.
      * @param {Scope} scope - The binding scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo] - Information describing the associated property for the binding.
      * @memberof BindingInfo
      */
-    constructor(target: Element, scope: Scope, rules?: PropertyRule[] | undefined, propertyInfo?: PropertyInfo | undefined);
+    constructor(sourceObserver: IConnectable, target: Element, scope: Scope, rules?: PropertyRule[] | undefined, propertyInfo?: PropertyInfo | undefined);
 }
 declare class PropertyInfo {
     object: any;

@@ -2,7 +2,7 @@ import { type Scope } from '@aurelia/runtime';
 import type { IInstruction } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition } from '../custom-attribute';
 import type { ICustomAttributeController, ICustomAttributeViewModel, IHydratedController, IHydratedParentController, IHydratableController, ISyntheticView, ControllerVisitor } from '../../templating/controller';
-import type { INode } from '../../dom';
+import type { INode } from '../../dom.node';
 export declare class Switch implements ICustomAttributeViewModel {
     static readonly $au: CustomAttributeStaticAuDefinition;
     readonly $controller: ICustomAttributeController<this>;

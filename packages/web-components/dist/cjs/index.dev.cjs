@@ -56,8 +56,7 @@ class WcCustomElementRegistry {
                 registerResolver(childCtn, p.HTMLElement, registerResolver(childCtn, p.Element, registerResolver(childCtn, runtimeHtml.INode, new kernel.InstanceProvider('ElementProvider', this))));
                 const compiledDef = rendering.compile(elDef, childCtn);
                 const viewModel = childCtn.invoke(compiledDef.Type);
-                const controller = this.auCtrl = runtimeHtml.Controller.$el(childCtn, viewModel, this, null, compiledDef);
-                runtimeHtml.setRef(this, compiledDef.key, controller);
+                this.auCtrl = runtimeHtml.Controller.$el(childCtn, viewModel, this, null, compiledDef);
             }
             connectedCallback() {
                 this.auInit();

@@ -1250,6 +1250,8 @@ class InstructionComponent {
         const Type = this.isType()
             ? this.type
             : container.getResolver(runtimeHtml.CustomElement.keyFrom(this.name)).getFactory(container).Type;
+        const host = parentElement.appendChild(container.get(runtimeHtml.IPlatform).document.createElement(runtimeHtml.CustomElement.getDefinition(Type).name));
+        runtimeHtml.registerHostNode(container, host);
         const instance = container.invoke(Type);
         // TODO: Investigate this!
         // const instance: IRouteableComponent = this.isType()
@@ -1272,7 +1274,7 @@ class InstructionComponent {
             }
             throw new Error(`Failed to create instance when trying to resolve component '${this.name}'!`);
         }
-        const controller = runtimeHtml.Controller.$el(container, instance, parentElement, null);
+        const controller = runtimeHtml.Controller.$el(container, instance, host, null);
         // TODO: Investigate if this is really necessary
         controller.parent = parentController;
         return instance;
@@ -2662,14 +2664,6 @@ class ViewportContent extends EndpointContent {
      */
     isCacheEqual(other) {
         return this.instruction.sameComponent(this.router, other.instruction, true);
-    }
-    /**
-     * Get the controller of the component in the viewport content.
-     *
-     * @param connectedCE - The custom element connected to the viewport
-     */
-    contentController(connectedCE) {
-        return runtimeHtml.Controller.$el(connectedCE.container.createChild(), this.instruction.component.instance, connectedCE.element, null);
     }
     /**
      * Create the component for the viewport content (based on the instruction)

@@ -823,6 +823,35 @@ function createAppTaskSlotHook(slotName) {
 
 const IPlatform = kernel.IPlatform;
 
+class Refs {
+}
+const refs = /*@__PURE__*/ (() => {
+    const refsMap = new WeakMap();
+    let hideProp = false;
+    return new class {
+        get hideProp() {
+            return hideProp;
+        }
+        set hideProp(value) {
+            hideProp = value;
+        }
+        get(node, name) {
+            return refsMap.get(node)?.[name] ?? null;
+        }
+        set(node, name, controller) {
+            const ref = refsMap.get(node) ?? (refsMap.set(node, new Refs()), refsMap.get(node));
+            if (name in ref) {
+                throw new Error(`Node already associated with a controller, remove the ref "${name}" first before associating with another controller`);
+            }
+            if (!hideProp) {
+                node.$au ??= ref;
+            }
+            return (ref[name] = controller);
+        }
+    }();
+})();
+const INode = /*@__PURE__*/ createInterface('INode');
+
 function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     if (expressionOrPropertyAccessFn == null) {
         throw createMappedError(772 /* ErrorNames.watch_null_config */);
@@ -982,7 +1011,7 @@ const isAttributeType = (value) => {
 };
 /** @internal */
 const findAttributeControllerFor = (node, name) => {
-    return (getRef(node, getAttributeKeyFrom(name)) ?? void 0);
+    return (refs.get(node, getAttributeKeyFrom(name)) ?? void 0);
 };
 /** @internal */
 const defineAttribute = (nameOrDef, Type) => {
@@ -1015,7 +1044,7 @@ const findClosestControllerByName = (node, attrNameOrType) => {
     }
     let cur = node;
     while (cur !== null) {
-        const controller = getRef(cur, key);
+        const controller = refs.get(cur, key);
         if (controller?.is(attrName)) {
             return controller;
         }
@@ -1569,7 +1598,9 @@ class AttributeBinding {
     // such as style -> collection of style rules
     //
     // for normal attributes, targetAttribute and targetProperty are the same and can be ignore
-    targetAttribute, targetProperty, mode, strict) {
+    targetAttribute, 
+    // is the classes to be toggled
+    targetProperty, mode, strict) {
         this.targetAttribute = targetAttribute;
         this.targetProperty = targetProperty;
         this.mode = mode;
@@ -1584,12 +1615,20 @@ class AttributeBinding {
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
+        /** @internal */
+        this._isMulti = false;
         this.l = locator;
         this.ast = ast;
         this._controller = controller;
         this.target = target;
         this.oL = observerLocator;
         this._taskQueue = taskQueue;
+        // eslint-disable-next-line @typescript-eslint/prefer-includes
+        if ((this._isMulti = targetProperty.indexOf(' ') > -1)
+            && !AttributeBinding._splitString.has(targetProperty)) {
+            // split the string once and cache it
+            AttributeBinding._splitString.set(targetProperty, targetProperty.split(' '));
+        }
     }
     updateTarget(value) {
         const target = this.target;
@@ -1597,8 +1636,17 @@ class AttributeBinding {
         const targetProperty = this.targetProperty;
         switch (targetAttribute) {
             case 'class':
-                // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-                target.classList.toggle(targetProperty, !!value);
+                if (this._isMulti) {
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    const force = !!value;
+                    for (const cls of AttributeBinding._splitString.get(targetProperty)) {
+                        target.classList.toggle(cls, force);
+                    }
+                }
+                else {
+                    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+                    target.classList.toggle(targetProperty, !!value);
+                }
                 break;
             case 'style': {
                 let priority = '';
@@ -1688,6 +1736,8 @@ AttributeBinding.mix = createPrototypeMixer(() => {
     runtime.connectable(AttributeBinding, null);
     mixinAstEvaluator(AttributeBinding);
 });
+/** @internal */
+AttributeBinding._splitString = new Map();
 
 const queueTaskOptions$1 = {
     preempt: true,
@@ -2123,7 +2173,7 @@ class PropertyBinding {
         this._targetObserver.setValue(value, this.target, this.targetProperty);
     }
     updateSource(value) {
-        runtime.astAssign(this.ast, this._scope, this, value);
+        runtime.astAssign(this.ast, this._scope, this, null, value);
     }
     handleChange() {
         if (!this.isBound) {
@@ -2237,7 +2287,8 @@ const updateTaskOpts = {
 };
 
 class RefBinding {
-    constructor(locator, ast, target, strict) {
+    constructor(locator, oL, ast, target, strict) {
+        this.oL = oL;
         this.ast = ast;
         this.target = target;
         this.strict = strict;
@@ -2245,6 +2296,26 @@ class RefBinding {
         /** @internal */
         this._scope = void 0;
         this.l = locator;
+    }
+    updateSource() {
+        if (this.isBound) {
+            this.obs.version++;
+            runtime.astAssign(this.ast, this._scope, this, this, this.target);
+            this.obs.clear();
+        }
+        else {
+            runtime.astAssign(this.ast, this._scope, this, null, null);
+        }
+    }
+    handleChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
+    }
+    handleCollectionChange() {
+        if (this.isBound) {
+            this.updateSource();
+        }
     }
     bind(_scope) {
         if (this.isBound) {
@@ -2256,9 +2327,8 @@ class RefBinding {
         }
         this._scope = _scope;
         runtime.astBind(this.ast, _scope, this);
-        runtime.astAssign(this.ast, this._scope, this, this.target);
-        // add isBound flag and remove isBinding flag
         this.isBound = true;
+        this.updateSource();
     }
     unbind() {
         if (!this.isBound) {
@@ -2266,14 +2336,18 @@ class RefBinding {
             return;
         }
         this.isBound = false;
+        this.obs.clearAll();
         if (runtime.astEvaluate(this.ast, this._scope, this, null) === this.target) {
-            runtime.astAssign(this.ast, this._scope, this, null);
+            this.updateSource();
         }
         runtime.astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
     }
 }
 RefBinding.mix = createPrototypeMixer(() => {
+    runtime.connectable(RefBinding, null);
+    mixingBindingLimited(RefBinding, () => 'updateSource');
+    mixinUseScope(RefBinding);
     mixinAstEvaluator(RefBinding);
 });
 
@@ -3259,7 +3333,6 @@ const CustomElementRenderer = /*@__PURE__*/ renderer(class CustomElementRenderer
         /* instruction         */ instruction, 
         /* definition          */ def, 
         /* location            */ location);
-        setRef(target, def.key, childCtrl);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
         const ii = props.length;
@@ -3319,7 +3392,7 @@ const CustomAttributeRenderer = /*@__PURE__*/ renderer(class CustomAttributeRend
         /* viewModel  */ results.vm, 
         /* host       */ target, 
         /* definition */ def);
-        setRef(target, def.key, childController);
+        refs.set(target, def.key, childController);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
         const ii = props.length;
@@ -3383,7 +3456,7 @@ const TemplateControllerRenderer = /*@__PURE__*/ renderer(class TemplateControll
         /* viewModel    */ results.vm, 
         /* host         */ target, 
         /* definition   */ def);
-        setRef(renderLocation, def.key, childController);
+        refs.set(renderLocation, def.key, childController);
         results.vm.link?.(renderingCtrl, childController, target, instruction);
         const renderers = this._rendering.renderers;
         const props = instruction.props;
@@ -3424,9 +3497,10 @@ const LetElementRenderer = /*@__PURE__*/ renderer(class LetElementRenderer {
 const RefBindingRenderer = /*@__PURE__*/ renderer(class RefBindingRenderer {
     constructor() {
         this.target = templateCompiler.InstructionType.refBinding;
+        RefBinding.mix();
     }
-    render(renderingCtrl, target, instruction, platform, exprParser) {
-        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
+    render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
+        renderingCtrl.addBinding(new RefBinding(renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), getRefTarget(target, instruction.to), renderingCtrl.strict ?? false));
     }
 }, null);
 const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationBindingRenderer {
@@ -4256,10 +4330,6 @@ class Controller {
         this.isBound = false;
         /** @internal */
         this._isBindingDone = false;
-        // If a host from another custom element was passed in, then this will be the controller for that custom element (could be `au-viewport` for example).
-        // In that case, this controller will create a new host node (with the definition's name) and use that as the target host for the nodes instead.
-        // That host node is separately mounted to the host controller's original host node.
-        this.hostController = null;
         this.mountTarget = targetNone;
         this.shadowRoot = null;
         this.nodes = null;
@@ -4287,9 +4357,6 @@ class Controller {
         }
         this.location = location;
         this._rendering = container.root.get(IRendering);
-        this.coercion = vmKind === vmkSynth
-            ? void 0
-            : container.get(optionalCoercionConfigResolver);
     }
     static getCached(viewModel) {
         return controllerLookup.get(viewModel);
@@ -4444,12 +4511,12 @@ class Controller {
         // - Controller.compileChildren
         // This keeps hydration synchronous while still allowing the composition root compile hooks to do async work.
         if (hydrationInst == null || hydrationInst.hydrate !== false) {
-            this._hydrate(hydrationInst?.hostController);
+            this._hydrate();
             this._hydrateChildren();
         }
     }
     /** @internal */
-    _hydrate(hostController) {
+    _hydrate() {
         if (this._lifecycleHooks.hydrating != null) {
             this._lifecycleHooks.hydrating.forEach(callHydratingHook, this);
         }
@@ -4465,18 +4532,9 @@ class Controller {
         const shadowOptions = compiledDef.shadowOptions;
         const hasSlots = compiledDef.hasSlots;
         const containerless = compiledDef.containerless;
-        let host = this.host;
+        const host = this.host;
         let location = this.location;
-        let createLocation = false;
-        if (hostController != null) {
-            this.hostController = hostController;
-            createLocation = true;
-        }
-        else if ((this.hostController = findElementControllerFor(host, optionalCeFind)) !== null) {
-            host = this.host = this.container.root.get(IPlatform).document.createElement(definition.name);
-            createLocation = true;
-        }
-        if (createLocation && containerless && location == null) {
+        if (containerless && location == null) {
             location = this.location = convertToRenderLocation(host);
         }
         setRef(host, elementBaseName, this);
@@ -4490,8 +4548,15 @@ class Controller {
             this.mountTarget = targetShadowRoot;
         }
         else if (location != null) {
-            setRef(location, elementBaseName, this);
-            setRef(location, definition.key, this);
+            // when template compiler encounter a "containerless" attribute
+            // it replaces the element with a render location
+            // making the controller receive the same comment node as both host and location
+            // todo: consider making template compiler less eager to replace
+            //       this has performance implication when using ad-hoc containerless
+            if (host !== location) {
+                setRef(location, elementBaseName, this);
+                setRef(location, definition.key, this);
+            }
             this.mountTarget = targetLocation;
         }
         else {
@@ -4715,17 +4780,6 @@ class Controller {
         if (this.debug) {
             this.logger.trace(`attach()`);
         }
-        if (this.hostController !== null) {
-            switch (this.mountTarget) {
-                case targetHost:
-                case targetShadowRoot:
-                    this.hostController._append(this.host);
-                    break;
-                case targetLocation:
-                    this.hostController._append(this.location.$start, this.location);
-                    break;
-            }
-        }
         switch (this.mountTarget) {
             case targetHost:
                 this.nodes.appendTo(this.host, this.definition != null && this.definition.enhance);
@@ -4871,18 +4925,6 @@ class Controller {
             case vmkSynth:
                 this.nodes.remove();
                 this.nodes.unlink();
-        }
-        if (this.hostController !== null) {
-            switch (this.mountTarget) {
-                case targetHost:
-                case targetShadowRoot:
-                    this.host.remove();
-                    break;
-                case targetLocation:
-                    this.location.$start.remove();
-                    this.location.remove();
-                    break;
-            }
         }
     }
     unbind() {
@@ -5160,7 +5202,6 @@ class Controller {
             this.children.forEach(callDispose);
             this.children = null;
         }
-        this.hostController = null;
         this.scope = null;
         this.nodes = null;
         this.location = null;
@@ -5209,16 +5250,19 @@ const MountTarget = objectFreeze({
     shadowRoot: targetShadowRoot,
     location: targetLocation,
 });
-const optionalCeFind = { optional: true };
+// const optionalCeFind = { optional: true } as const;
 const optionalCoercionConfigResolver = kernel.optionalResource(runtime.ICoercionConfiguration);
 function createObservers(controller, definition, instance) {
     const bindables = definition.bindables;
     const observableNames = getOwnPropertyNames(bindables);
     const length = observableNames.length;
-    const locator = controller.container.get(runtime.IObserverLocator);
-    const hasAggregatedCallbacks = 'propertiesChanged' in instance;
     if (length === 0)
         return;
+    const locator = controller.container.get(runtime.IObserverLocator);
+    const hasAggregatedCallbacks = 'propertiesChanged' in instance;
+    const coercion = controller.vmKind === vmkSynth
+        ? void 0
+        : controller.container.get(optionalCoercionConfigResolver);
     const queueCallback = hasAggregatedCallbacks
         ? (() => {
             let changes = {};
@@ -5254,7 +5298,7 @@ function createObservers(controller, definition, instance) {
         const handler = bindable.callback;
         const obs = locator.getObserver(instance, name);
         if (bindable.set !== kernel.noop) {
-            if (obs.useCoercer?.(bindable.set, controller.coercion) !== true) {
+            if (obs.useCoercer?.(bindable.set, coercion) !== true) {
                 throw createMappedError(507 /* ErrorNames.controller_property_not_coercible */, name);
             }
         }
@@ -5426,16 +5470,8 @@ function callUnbindingHook(l) {
 let _resolve;
 let _reject;
 let _retPromise;
+const setRef = refs.set;
 
-class Refs {
-}
-function getRef(node, name) {
-    return node.$au?.[name] ?? null;
-}
-function setRef(node, name, controller) {
-    (node.$au ??= new Refs())[name] = controller;
-}
-const INode = /*@__PURE__*/ createInterface('INode');
 const IEventTarget = /*@__PURE__*/ createInterface('IEventTarget', x => x.cachedCallback(handler => {
     if (handler.has(IAppRoot, true)) {
         return handler.get(IAppRoot).host;
@@ -5879,7 +5915,7 @@ const isElementType = (value) => {
 /** @internal */
 const findElementControllerFor = (node, opts = defaultForOpts) => {
     if (opts.name === void 0 && opts.searchParents !== true) {
-        const controller = getRef(node, elementBaseName);
+        const controller = refs.get(node, elementBaseName);
         if (controller === null) {
             if (opts.optional === true) {
                 return null;
@@ -5890,7 +5926,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
     }
     if (opts.name !== void 0) {
         if (opts.searchParents !== true) {
-            const controller = getRef(node, elementBaseName);
+            const controller = refs.get(node, elementBaseName);
             if (controller === null) {
                 throw createMappedError(763 /* ErrorNames.node_is_not_a_host2 */, node);
             }
@@ -5902,7 +5938,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
         let cur = node;
         let foundAController = false;
         while (cur !== null) {
-            const controller = getRef(cur, elementBaseName);
+            const controller = refs.get(cur, elementBaseName);
             if (controller !== null) {
                 foundAController = true;
                 if (controller.is(opts.name)) {
@@ -5918,7 +5954,7 @@ const findElementControllerFor = (node, opts = defaultForOpts) => {
     }
     let cur = node;
     while (cur !== null) {
-        const controller = getRef(cur, elementBaseName);
+        const controller = refs.get(cur, elementBaseName);
         if (controller !== null) {
             return controller;
         }
@@ -6224,7 +6260,9 @@ class Aurelia {
             return this._startPromise;
         }
         return this._startPromise = kernel.onResolve(this.stop(), () => {
-            Reflect.set(root.host, '$aurelia', this);
+            if (!refs.hideProp) {
+                Reflect.set(root.host, '$aurelia', this);
+            }
             this._rootProvider.prepare(this._root = root);
             this._isStarting = true;
             return kernel.onResolve(root.activate(), () => {
@@ -8548,7 +8586,7 @@ const _unknownHandler = {
 };
 const setItem = (hasDestructuredLocal, dec, scope, binding, local, item) => {
     if (hasDestructuredLocal) {
-        runtime.astAssign(dec, scope, binding, item);
+        runtime.astAssign(dec, scope, binding, null, item);
     }
     else {
         scope.bindingContext[local] = item;
@@ -8597,7 +8635,7 @@ const getScope = (oldScopeMap, newScopeMap, key, item, forOf, parentScope, bindi
 const createScope = (item, forOf, parentScope, binding, local, hasDestructuredLocal) => {
     if (hasDestructuredLocal) {
         const scope = runtime.Scope.fromParent(parentScope, new runtime.BindingContext(), new RepeatOverrideContext());
-        runtime.astAssign(forOf.declaration, scope, binding, item);
+        runtime.astAssign(forOf.declaration, scope, binding, null, item);
     }
     return runtime.Scope.fromParent(parentScope, new runtime.BindingContext(local, item), new RepeatOverrideContext());
 };
@@ -10617,6 +10655,7 @@ exports.LifecycleHooksEntry = LifecycleHooksEntry;
 exports.ListenerBinding = ListenerBinding;
 exports.ListenerBindingOptions = ListenerBindingOptions;
 exports.ListenerBindingRenderer = ListenerBindingRenderer;
+exports.MountTarget = MountTarget;
 exports.NodeObserverLocator = NodeObserverLocator;
 exports.NoopSVGAnalyzer = NoopSVGAnalyzer;
 exports.OneTimeBindingBehavior = OneTimeBindingBehavior;
@@ -10674,7 +10713,6 @@ exports.cssModules = cssModules;
 exports.customAttribute = customAttribute;
 exports.customElement = customElement;
 exports.getEffectiveParentNode = getEffectiveParentNode;
-exports.getRef = getRef;
 exports.isCustomElementController = isCustomElementController;
 exports.isCustomElementViewModel = isCustomElementViewModel;
 exports.isRenderLocation = isRenderLocation;
@@ -10683,11 +10721,11 @@ exports.mixinAstEvaluator = mixinAstEvaluator;
 exports.mixinUseScope = mixinUseScope;
 exports.mixingBindingLimited = mixingBindingLimited;
 exports.processContent = processContent;
+exports.refs = refs;
 exports.registerAliases = registerAliases;
 exports.registerHostNode = registerHostNode;
 exports.renderer = renderer;
 exports.setEffectiveParentNode = setEffectiveParentNode;
-exports.setRef = setRef;
 exports.shadowCSS = shadowCSS;
 exports.slotted = slotted;
 exports.templateController = templateController;

@@ -1,15 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { IPlatform } from './platform';
-import type { IHydratedController } from './templating/controller';
-export declare class Refs {
-    [key: string]: IHydratedController | undefined;
-}
-export declare function getRef(node: INode, name: string): IHydratedController | null;
-export declare function setRef(node: INode, name: string, controller: IHydratedController): void;
-export type INode<T extends Node = Node> = T & {
-    readonly $au?: Refs;
-};
-export declare const INode: import("@aurelia/kernel").InterfaceSymbol<INode<Node>>;
+import { INode } from './dom.node';
 export type IEventTarget<T extends EventTarget = EventTarget> = T;
 export declare const IEventTarget: import("@aurelia/kernel").InterfaceSymbol<EventTarget>;
 /**

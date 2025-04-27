@@ -85,7 +85,11 @@ function assertFailure(entry, code, expectedErrors, additionalModules = {}, isPa
 }
 exports.assertFailure = assertFailure;
 function prop(name, type, isTs, accessModifier = 'public') {
-    return `${isTs ? '' : `/** @type {${type}} */`}
+    return `${isTs ? '' : `
+/**
+ * @${accessModifier}
+ * @type {${type}}
+ */`}
 ${isTs ? `${accessModifier} ` : ''}${name}${isTs ? `: ${type}` : ''};`;
 }
 exports.prop = prop;

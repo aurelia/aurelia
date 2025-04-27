@@ -1,4 +1,4 @@
-import type { ICustomElementViewModel } from '@aurelia/runtime-html';
+import { type ICustomElementViewModel } from '@aurelia/runtime-html';
 import { NavigationInstruction, Params } from './instructions';
 import type { IRouteConfig } from './options';
 import type { RouteNode } from './route-tree';

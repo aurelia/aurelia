@@ -219,6 +219,8 @@ exports.lifecycleHooks = r.lifecycleHooks;
 
 exports.processContent = r.processContent;
 
+exports.refs = r.refs;
+
 exports.registerAliases = r.registerAliases;
 
 exports.renderer = r.renderer;

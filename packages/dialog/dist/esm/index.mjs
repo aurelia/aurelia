@@ -42,7 +42,10 @@ class DialogCloseResult {
     }
 }
 
-const createMappedError = (t, ...e) => new Error(`AUR${String(t).padStart(4, "0")}:${e.map(String)}`);
+const createMappedError = (t, ...e) => {
+    const i = String(t).padStart(4, "0");
+    return new Error(`AUR${i}:${e.map(String)}`);
+};
 
 class DialogController {
     constructor() {

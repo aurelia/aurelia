@@ -6,17 +6,17 @@ import { IExpressionParser as c, PrimitiveLiteralExpression as h } from "../../.
 
 import { mixinNoopAstEvaluator as d, Scope as $, astEvaluate as m } from "../../../runtime/dist/native-modules/index.mjs";
 
-import { Metadata as R } from "../../../metadata/dist/native-modules/index.mjs";
+import { Metadata as f } from "../../../metadata/dist/native-modules/index.mjs";
 
-import { mixinAstEvaluator as f } from "../../../runtime-html/dist/native-modules/index.mjs";
+import { mixinAstEvaluator as R } from "../../../runtime-html/dist/native-modules/index.mjs";
 
 const g = /*@__PURE__*/ e.createInterface("IValidationExpressionHydrator");
 
-const p = R.get;
+const p = f.get;
 
-const v = R.define;
+const v = f.define;
 
-const y = R.delete;
+const y = f.delete;
 
 const {annotation: P} = t;
 
@@ -1435,7 +1435,7 @@ class ModelValidationExpressionHydrator {
     }
 }
 
-f(ModelValidationExpressionHydrator);
+R(ModelValidationExpressionHydrator);
 
 class ValidateInstruction {
     constructor(e = void 0, t = void 0, s = void 0, i = void 0, r = void 0) {
@@ -1452,14 +1452,19 @@ const B = /*@__PURE__*/ e.createInterface("IValidator");
 class StandardValidator {
     async validate(e) {
         const t = e.object;
-        const s = e.propertyName;
+        let s = e.propertyName;
         const i = e.propertyTag;
         const r = e.rules ?? V.get(t, e.objectTag) ?? [];
         const n = $.create({
             [A]: t
         });
         if (s !== void 0) {
-            return await (r.find((e => e.property.name === s))?.validate(t, i, n)) ?? [];
+            let e = r.find((e => e.property.name === s));
+            if (e == null && typeof s === "string" && s.startsWith("[") && s.endsWith("]")) {
+                s = s.replaceAll("][", ".").slice(1, -1);
+                e = r.find((e => e.property.name === s));
+            }
+            return await (e?.validate(t, i, n)) ?? [];
         }
         return (await Promise.all(r.map((async e => e.validate(t, i, n))))).flat();
     }

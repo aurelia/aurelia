@@ -158,13 +158,15 @@ class ValidationEvent {
  */
 class BindingInfo {
     /**
+     * @param {IConnectable} sourceObserver - An observer for the binding source.
      * @param {Element} target - The HTMLElement associated with the binding.
      * @param {Scope} scope - The binding scope.
      * @param {PropertyRule[]} [rules] - Rules bound to the binding behavior.
      * @param {(PropertyInfo | undefined)} [propertyInfo] - Information describing the associated property for the binding.
      * @memberof BindingInfo
      */
-    constructor(target, scope, rules, propertyInfo = void 0) {
+    constructor(sourceObserver, target, scope, rules, propertyInfo = void 0) {
+        this.sourceObserver = sourceObserver;
         this.target = target;
         this.scope = scope;
         this.rules = rules;
@@ -204,7 +206,7 @@ function getPropertyInfo(binding, info) {
                     toCachePropertyName = keyExpr.$kind === 'PrimitiveLiteral';
                 }
                 // eslint-disable-next-line
-                memberName = `[${runtime.astEvaluate(keyExpr, scope, binding, null).toString()}]`;
+                memberName = `[${runtime.astEvaluate(keyExpr, scope, binding, info.sourceObserver).toString()}]`;
                 break;
             }
             default:
@@ -224,7 +226,7 @@ function getPropertyInfo(binding, info) {
         object = scope.bindingContext;
     }
     else {
-        object = runtime.astEvaluate(expression, scope, binding, null);
+        object = runtime.astEvaluate(expression, scope, binding, info.sourceObserver);
     }
     if (object === null || object === void 0) {
         return (void 0);
@@ -687,6 +689,7 @@ class ValidationConnector {
         this._platform = platform;
         this.oL = observerLocator;
         this.l = locator;
+        this._sourceMediator = new BindingMediator('handleSourceChange', this, observerLocator, locator);
         this._triggerMediator = new BindingMediator('handleTriggerChange', this, observerLocator, locator);
         this._controllerMediator = new BindingMediator('handleControllerChange', this, observerLocator, locator);
         this._rulesMediator = new BindingMediator('handleRulesChange', this, observerLocator, locator);
@@ -722,6 +725,7 @@ class ValidationConnector {
     }
     stop() {
         this.task?.cancel();
+        this.source = void 0;
         this.scope = void 0;
         this.task = null;
         const triggerEventName = this.triggerEvent;
@@ -740,6 +744,12 @@ class ValidationConnector {
     }
     handleRulesChange(newValue, _previousValue) {
         this._processDelta(new ValidateArgumentsDelta(void 0, void 0, this._ensureRules(newValue)));
+    }
+    handleSourceChange(newValue, _previousValue) {
+        if (this.source !== newValue) {
+            this.source = newValue;
+            this.bindingInfo.propertyInfo = void 0;
+        }
     }
     handleValidationEvent(event) {
         if (this.validatedOnce || !this.isChangeTrigger)
@@ -880,7 +890,7 @@ class ValidationConnector {
     }
     /** @internal */
     _setBindingInfo(rules) {
-        return this.bindingInfo = new BindingInfo(this.target, this.scope, rules);
+        return this.bindingInfo = new BindingInfo(this._sourceMediator, this.target, this.scope, rules);
     }
 }
 runtime.connectable(ValidationConnector, null);

@@ -127,7 +127,6 @@ const getHmrCode = (className) => {
           controller.hE(hydrationInst, hydrationContext);
         }
         h.parentNode.replaceChild(controller.host, h);
-        controller.hostController = null;
         controller.deactivate(controller, controller.parent ?? null, 0);
         controller.activate(controller, controller.parent ?? null, 0);
       });

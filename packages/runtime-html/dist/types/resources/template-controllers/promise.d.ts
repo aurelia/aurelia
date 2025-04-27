@@ -1,6 +1,6 @@
 import { registrableMetadataKey } from '@aurelia/kernel';
 import { Scope } from '@aurelia/runtime';
-import { INode } from '../../dom';
+import { INode } from '../../dom.node';
 import { ICustomAttributeController, ICustomAttributeViewModel, IHydratableController, IHydratedController, IHydratedParentController, ISyntheticView } from '../../templating/controller';
 import { IInstruction, AttrSyntax } from '@aurelia/template-compiler';
 import { CustomAttributeStaticAuDefinition } from '../custom-attribute';

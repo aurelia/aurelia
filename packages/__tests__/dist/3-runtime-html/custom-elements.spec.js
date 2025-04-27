@@ -36,10 +36,10 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
-import { AppTask, Aurelia, bindable, BindingMode, customElement, CustomElement, IAppRoot, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter } from '@aurelia/runtime-html';
+import { AppTask, Aurelia, bindable, BindingMode, Controller, customElement, CustomElement, CustomElementDefinition, IAppRoot, IAurelia, IKeyMapping, ShortHandBindingSyntax, ValueConverter, } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { resolve } from '@aurelia/kernel';
+import { IContainer, resolve } from '@aurelia/kernel';
 import { IObserverLocator, observable } from '@aurelia/runtime';
 describe('3-runtime-html/custom-elements.spec.ts', function () {
     it('injects right aurelia instance', function () {
@@ -663,6 +663,66 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
             trigger.click('button');
             assert.strictEqual(isPrevented, false);
             assert.strictEqual(e, e2);
+        });
+    });
+    describe('ref', function () {
+        it('updates ref when key changes', function () {
+            const { component } = createFixture(`<div ref="$this[key]"></div>`, class {
+                constructor() {
+                    this.key = 'a';
+                }
+            });
+            assert.strictEqual(component.a?.tagName, 'DIV');
+            component.key = 'b';
+            assert.deepEqual([component.a?.tagName, component.b?.tagName], 
+            // ref binding is not responsible for cleaning up if the key has been changed.
+            // It's also not possible to clean up if the key has been changed.
+            ['DIV', 'DIV']);
+        });
+        it('sets ref to null when unbound', function () {
+            const { component } = createFixture(`<div if.bind="show" ref="el">`, class {
+                constructor() {
+                    this.show = true;
+                }
+            });
+            assert.strictEqual(component.el?.tagName, 'DIV');
+            component.show = false;
+            assert.strictEqual(component.el, null);
+        });
+        it('does not update ref if the value has been changed before unbind', function () {
+            const { component } = createFixture(`<div if.bind="show" ref="el">`, class {
+                constructor() {
+                    this.show = true;
+                }
+            });
+            assert.strictEqual(component.el?.tagName, 'DIV');
+            component.el = 1;
+            component.show = false;
+            assert.strictEqual(component.el, 1);
+        });
+        it('does not throw when binding to a null object', function () {
+            const { component } = createFixture(`<div if.bind="show" ref="els.div">`, class {
+            });
+            assert.equal(component.els, null);
+        });
+        it('updates ref when property key changes GH #2106', function () {
+            const { component, assertHtml, flush } = createFixture(`<div repeat.for="item of items"
+          data-id.bind="item.id"
+          ref="children[$index]">\${item.id}</div>`, class {
+                constructor() {
+                    this.items = [{ id: 1 }];
+                    this.children = [];
+                }
+                add() {
+                    this.items.unshift({ id: 2 });
+                }
+            });
+            assertHtml('<div data-id="1">1</div>', { compact: true });
+            assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['1']);
+            component.add();
+            flush();
+            assertHtml('<div data-id="2">2</div><div data-id="1">1</div>', { compact: true });
+            assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['2', '1']);
         });
     });
     describe('resolve', function () {
@@ -1440,6 +1500,22 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
                 5: { newValue: 4, oldValue: 2 }
             });
         });
+    });
+    it('throws when trying to create a custom element with a node associated with another element', function () {
+        let i = 0;
+        class App {
+            constructor() {
+                this.ctn = resolve(IContainer);
+            }
+            attaching() {
+                i = 1;
+            }
+            attached() {
+                Controller.$el(this.ctn, {}, this.$controller.host, null, CustomElementDefinition.create({ name: 'abc' }));
+            }
+        }
+        assert.throws(() => createFixture('', App));
+        assert.strictEqual(i, 1);
     });
 });
 //# sourceMappingURL=custom-elements.spec.js.map

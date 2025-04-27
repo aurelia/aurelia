@@ -4,7 +4,7 @@ import { IObserverLocator } from '@aurelia/runtime';
 import { IEventModifier } from './binding/listener-binding';
 import { CustomElementDefinition } from './resources/custom-element';
 import { CustomAttributeDefinition } from './resources/custom-attribute';
-import { INode } from './dom';
+import { INode } from './dom.node';
 import { ICustomElementController, IController } from './templating/controller';
 import { IPlatform } from './platform';
 import { IRendering } from './templating/rendering';
@@ -60,7 +60,7 @@ export declare const LetElementRenderer: {
 export declare const RefBindingRenderer: {
     new (): {
         readonly target: "rj";
-        render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction, platform: IPlatform, exprParser: IExpressionParser): void;
+        render(renderingCtrl: IHydratableController, target: INode, instruction: RefBindingInstruction, platform: IPlatform, exprParser: IExpressionParser, observerLocator: IObserverLocator): void;
     };
 };
 export declare const InterpolationBindingRenderer: {

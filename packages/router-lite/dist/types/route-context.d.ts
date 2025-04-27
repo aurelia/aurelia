@@ -1,6 +1,6 @@
 import { type IContainer } from '@aurelia/kernel';
 import { RecognizedRoute } from '@aurelia/route-recognizer';
-import { type CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { IExtendedViewportInstruction, NavigationInstruction, Params, ViewportInstruction } from './instructions';
 import { IChildRouteConfig } from './options';

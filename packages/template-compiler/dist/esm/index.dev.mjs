@@ -49,7 +49,12 @@ const IAttrMapper = /*@__PURE__*/ tcCreateInterface('IAttrMapper');
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
 /** @internal */
-const createMappedError = (code, ...details) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+const createMappedError = (code, ...details) => {
+        const paddedCode = String(code).padStart(4, '0');
+        const message = getMessageByCode(code, ...details);
+        const link = `https://docs.aurelia.io/developer-guides/error-messages/0088-to-0723/aur${paddedCode}`;
+        return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+    }
     ;
 
 const errorsMap = {
@@ -78,6 +83,7 @@ const errorsMap = {
     [720 /* ErrorNames.compiler_no_reserved_spread_syntax */]: `Spreading syntax "...xxx" is reserved. Encountered "...{{0}}"`,
     [721 /* ErrorNames.compiler_no_reserved_$bindable */]: `Usage of $bindables is only allowed on custom element. Encountered: <{{0}} {{1}}="{{2}}">`,
     [722 /* ErrorNames.compiler_no_dom_api */]: 'Invalid platform object provided to the compilation, no DOM API found.',
+    [723 /* ErrorNames.compiler_invalid_class_binding_syntax */]: `Template compilation error: Invalid comma-separated class binding syntax in {{0}}. It resulted in no valid class names after parsing.`,
     [9998 /* ErrorNames.no_spread_template_controller */]: 'Spread binding does not support spreading custom attributes/template controllers. Did you build the spread instruction manually?',
 };
 const getMessageByCode = (name, ...details) => {
@@ -1259,7 +1265,17 @@ StyleBindingCommand.$au = {
 class ClassBindingCommand {
     get ignoreAttr() { return true; }
     build(info, exprParser) {
-        return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
+        let target = info.attr.target;
+        if (target.includes(",")) {
+            const classes = target
+                .split(",")
+                .filter(c => c.length > 0);
+            if (classes.length === 0) {
+                throw createMappedError(723 /* ErrorNames.compiler_invalid_class_binding_syntax */);
+            }
+            target = classes.join(' ');
+        }
+        return new AttributeBindingInstruction("class", exprParser.parse(info.attr.rawValue, etIsProperty), target);
     }
 }
 ClassBindingCommand.$au = {

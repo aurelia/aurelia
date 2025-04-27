@@ -38,7 +38,10 @@ const createLookup = () => Object.create(null);
 
 const l = Object.is;
 
-const createMappedError = (t, ...e) => new Error(`AUR${s(t).padStart(4, "0")}:${e.map(s)}`);
+const createMappedError = (t, ...e) => {
+    const n = s(t).padStart(4, "0");
+    return new Error(`AUR${n}:${e.map(s)}`);
+};
 
 const c = (() => {
     const t = {};

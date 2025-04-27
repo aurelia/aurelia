@@ -358,21 +358,22 @@ export class FooBar {
   x: string;
 }
 `;
-        const expected = `import { customElement } from '@aurelia/runtime-html';
-import * as __au2ViewDef from './foo-bar.html';
+        // eslint-disable-next-line prefer-regex-literals
+        const expected = new RegExp(`import { customElement } from '@aurelia/runtime-html';
+import \\* as __au2ViewDef from './foo-bar.html';
 
 export class FooBar {
-    static $au = { ...__au2ViewDef, type: "custom-element", name: "foo-bar", bindables: ["x"] };
+    static \\$au = { ...__au2ViewDef, type: ["']custom-element["'], name: ["']foo-bar["'], bindables: \\[["']x["']\\] };
     x: string;
 }
 
-`;
+`);
         const result = (0, plugin_conventions_1.preprocessResource)({
             path: path.join('bar', 'foo-bar.js'),
             contents: code,
             filePair: 'foo-bar.html'
         }, (0, plugin_conventions_1.preprocessOptions)({ hmr: false }));
-        testing_1.assert.equal(result.code, expected);
+        testing_1.assert.match(result.code, expected);
     });
     for (const nvDeco of ['noView', 'noView()']) {
         it(nvDeco, function () {

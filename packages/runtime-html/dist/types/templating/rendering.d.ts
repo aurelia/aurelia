@@ -1,5 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
-import { INode, INodeSequence } from '../dom';
+import { INodeSequence } from '../dom';
+import { INode } from '../dom.node';
 import { IRenderer } from '../renderer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '../resources/custom-element';
 import { IViewFactory } from './view';

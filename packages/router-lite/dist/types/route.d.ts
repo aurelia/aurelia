@@ -1,6 +1,9 @@
 import { Constructable, ResourceType } from '@aurelia/kernel';
+import { IViewportInstruction } from './instructions';
 import type { RouteNode } from './route-tree';
+import type { IRouteContext } from './route-context';
 import type { FallbackFunction, IChildRouteConfig, IRouteConfig, Routeable, TransitionPlanOrFunc } from './options';
+import { RecognizedRoute } from '@aurelia/route-recognizer';
 export declare const noRoutes: RouteConfig["routes"];
 export declare class RouteConfig implements IRouteConfig, IChildRouteConfig {
     readonly id: string;
@@ -12,10 +15,12 @@ export declare class RouteConfig implements IRouteConfig, IChildRouteConfig {
     readonly data: Record<string, unknown>;
     readonly routes: readonly Routeable[];
     readonly fallback: Routeable | FallbackFunction | null;
-    readonly component: Routeable;
     readonly nav: boolean;
     get path(): string[];
+    get component(): Routeable;
     private constructor();
+    _getComponent(vi: IViewportInstruction, ctx: IRouteContext, node: RouteNode, route: RecognizedRoute<unknown>): Routeable;
+    toString(): string;
 }
 export declare const Route: {
     name: string;

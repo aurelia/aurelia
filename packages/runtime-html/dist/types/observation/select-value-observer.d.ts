@@ -1,5 +1,5 @@
 import { type AccessorType, type IObserverLocator, type ISubscriberCollection } from '@aurelia/runtime';
-import type { INode } from '../dom';
+import type { INode } from '../dom.node';
 import { INodeObserver, INodeObserverConfigBase } from './observer-locator';
 export interface ISelectElement extends HTMLSelectElement {
     options: HTMLCollectionOf<IOptionElement> & Pick<HTMLOptionsCollection, 'length' | 'selectedIndex' | 'add' | 'remove'>;

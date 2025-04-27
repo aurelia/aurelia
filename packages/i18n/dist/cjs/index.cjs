@@ -646,6 +646,7 @@ class ParameterBinding {
         i.astUnbind(this.ast, this.s, this);
         this.s = void 0;
         this.obs.clearAll();
+        this.isBound = false;
     }
 }
 

@@ -54,7 +54,12 @@ class DialogCloseResult {
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
 /** @internal */
-const createMappedError = (code, ...details) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+const createMappedError = (code, ...details) => {
+        const paddedCode = String(code).padStart(4, '0');
+        const message = getMessageByCode(code, ...details);
+        const link = `https://docs.aurelia.io/developer-guides/error-messages/0901-to-0908/aur${paddedCode}`;
+        return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+    }
     ;
 
 const errorsMap = {

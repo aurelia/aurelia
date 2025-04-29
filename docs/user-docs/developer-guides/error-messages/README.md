@@ -62,13 +62,17 @@ Whenever there's a request to retrieve `dist/esm/index.mjs`, you can redirect it
 
 The section below will list errors by their prefix, and code and give a corresponding explanation, and a way to fix them.
 
-### Aurelia Kernel Errors (from 0001 to 0023)
+### @aurelia/kernel Errors (from 0001 to 0023)
 
 Aurelia Kernel errors can be found [here](0001-to-0023/).
 
-### Template Compiler Errors (From 0088 to 0723)
+### @aurelia/template-compiler Errors (From 0088 to 0723)
 
-Template Compiler errors can be found [here](0088-to-0723/).                                                              |
+Template Compiler errors can be found [here](0088-to-0723/).
+
+### @aurelia/runtime-html Errors (From 750-800)
+
+Runtime HTML errors can be found [here](runtime-html/).
 
 ### Templating Errors (From 750-800)
 

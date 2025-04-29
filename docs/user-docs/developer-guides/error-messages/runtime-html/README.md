@@ -1,0 +1,45 @@
+---
+description: Errors 0101 to 9989 are @aurelia/runtime-html package related errors.
+---
+
+# 0101 to 9989
+
+Please see below a reference to each [@aurelia/runtime-html](https://github.com/aurelia/aurelia/tree/master/packages/runtime-html) package related error with explanations and resources for debugging and solving.
+
+* [AUR0101](aur0101.md)
+* [AUR0102](aur0102.md)
+* [AUR0103](aur0103.md)
+* [AUR0104](aur0104.md)
+* [AUR0105](aur0105.md)
+* [AUR0106](aur0106.md)
+* [AUR0107](aur0107.md)
+* [AUR0108](aur0108.md)
+* [AUR0109](aur0109.md)
+* [AUR0110](aur0110.md)
+* [AUR0111](aur0111.md)
+* [AUR0112](aur0112.md)
+* [AUR0113](aur0113.md)
+* [AUR0114](aur0114.md)
+* [AUR0115](aur0115.md)
+* [AUR0116](aur0116.md)
+* [AUR0151](aur0151.md)
+* [AUR0152](aur0152.md)
+* [AUR0153](aur0153.md)
+* [AUR0154](aur0154.md)
+* [AUR0155](aur0155.md)
+* [AUR0156](aur0156.md)
+* [AUR0157](aur0157.md)
+* [AUR0203](aur0203.md)
+* [AUR0204](aur0204.md)
+* [AUR0227](aur0227.md)
+* [AUR0228](aur0228.md)
+* [AUR0229](aur0229.md)
+* [AUR0500](aur0500.md)
+* [AUR0501](aur0501.md)
+* [AUR0502](aur0502.md)
+* [AUR0503](aur0503.md)
+* [AUR0504](aur0504.md)
+* [AUR0505](aur0505.md)
+* [AUR0506](aur0506.md)
+* [AUR0507](aur0507.md)
+* [AUR0508](aur0508.md)

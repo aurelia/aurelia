@@ -1,4 +1,5 @@
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
+import { flush, yieldTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
@@ -38,6 +39,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -57,6 +59,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -80,6 +83,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 1);
     });
 
@@ -105,6 +109,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 1);
     });
 
@@ -128,6 +133,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
 
@@ -151,6 +157,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
 
@@ -170,6 +177,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(divs.length, 1);
       assert.strictEqual(divs2.length, 1);
     });
@@ -190,6 +198,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 1 2');
     });
 
@@ -218,6 +227,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.deepStrictEqual([call1, call2], [1, 1]);
     });
 
@@ -237,6 +247,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 3 6');
     });
 
@@ -256,6 +267,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       // comments are filtered out by projection slot change notifier
+      flush();
       assertText('Count: 3 text');
     });
 
@@ -274,6 +286,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 2 text');
     });
 
@@ -293,6 +306,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 3');
     });
 
@@ -311,6 +325,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -335,6 +350,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -359,6 +375,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('div count: 1');
     });
 
@@ -383,6 +400,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 2');
     });
 
@@ -401,6 +419,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -424,6 +443,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -445,6 +465,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 1');
     });
 
@@ -463,6 +484,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assertText('Count: 3');
     });
 
@@ -486,6 +508,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
+      flush();
       assert.strictEqual(call, 0);
     });
   });
@@ -500,21 +523,23 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
       );
 
+      await yieldTasks();
       assertText('Count: 1');
+
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 2');
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 1');
     });
 
@@ -527,21 +552,22 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         '<el><div repeat.for="_ of i">',
         class App { i = 0; },
         [El,]
       );
 
+      flush();
       assertText('Count: 0');
       component.i = 3;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 3');
 
       component.i = 0;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('Count: 0');
     });
 
@@ -560,16 +586,17 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input') inputs;
       }
 
-      const { assertText, trigger, flush } = createFixture(
+      const { assertText, trigger } = createFixture(
         '<parent>',
         class App {},
         [Parent, El]
       );
 
+      flush();
       assertText('inputs count: 1 | inputs count: 2');
       trigger.click('button');
-      await Promise.resolve();
-      flush();
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assertText('inputs count: 1 | inputs count: 3');
     });
 
@@ -587,20 +614,20 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
 
@@ -616,20 +643,20 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
 
@@ -646,20 +673,20 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      const { component, flush } = createFixture(
+      const { component } = createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
       );
 
       component.show = true;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await Promise.resolve(); // for mutation observer to tick
-      flush(); // for text update
+      await yieldTasks(); // flush binding
+      await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
   });

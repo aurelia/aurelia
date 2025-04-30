@@ -1,4 +1,5 @@
 import { Registration } from '@aurelia/kernel';
+import { flush } from '@aurelia/runtime';
 import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
@@ -26,6 +27,7 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
       }]
     );
 
+    flush();
     assertText('hey 0--#text');
   });
 
@@ -45,6 +47,7 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
       }]
     );
 
+    flush();
     assertText('hey 0--#text');
   });
 

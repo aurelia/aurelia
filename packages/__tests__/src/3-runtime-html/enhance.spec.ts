@@ -14,6 +14,7 @@ import {
   AppTask,
   BindingBehavior,
 } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 import { delegateSyntax } from '@aurelia/compat-v1';
@@ -86,10 +87,10 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
     let handled = false;
     $it(`preserves the element reference - ${text}`,
-      function ({ host, platform }) {
+      function ({ host }) {
         handled = false;
         host.querySelector('span').click();
-        platform.domQueue.flush();
+        flush();
         assert.equal(handled, true);
       },
       {
@@ -151,8 +152,8 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
       host.querySelector('button').click();
       await Promise.resolve();
-      ctx.platform.domQueue.flush();
-      ctx.platform.domQueue.flush();
+      flush();
+      flush();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 

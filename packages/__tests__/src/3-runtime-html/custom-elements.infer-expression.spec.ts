@@ -1,10 +1,11 @@
 import { resolve } from '@aurelia/kernel';
+import { flush } from '@aurelia/runtime';
 import { CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () {
   it('auto infers binding expression with .bind', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.bind>', {
+    const { assertHtml, component } = createFixture('<div textcontent.bind>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
@@ -14,7 +15,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
   });
 
   it('auto infers binding expression with .one-time', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.one-time>', {
+    const { assertHtml, component } = createFixture('<div textcontent.one-time>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
@@ -24,7 +25,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
   });
 
   it('auto infers binding expression with .to-view', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.to-view>', {
+    const { assertHtml, component } = createFixture('<div textcontent.to-view>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
@@ -43,7 +44,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
   });
 
   it('auto infers binding expression with .from-view', function () {
-    const { assertValue, type, component, flush } = createFixture('<input value.from-view>', {
+    const { assertValue, type, component } = createFixture('<input value.from-view>', {
       value: 'hey'
     });
     assertValue('input', '');

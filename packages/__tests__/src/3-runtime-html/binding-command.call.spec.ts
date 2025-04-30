@@ -1,6 +1,7 @@
 import { callSyntax } from '@aurelia/compat-v1';
 import { Constructable } from '@aurelia/kernel';
 import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
+import { flush } from '@aurelia/runtime';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/binding-command.call.spec.ts', function () {
@@ -9,9 +10,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       title: 'sets normal handler on element DOM lv1 prop',
       template: `<div onclick.call="a = 6">\${a}`,
       App: class { public a = 5; },
-      assertFn: ({ ctx, appHost }) => {
+      assertFn: ({ appHost }) => {
         appHost.querySelector('div').click();
-        ctx.platform.domQueue.flush();
+        flush();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -19,9 +20,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       title: 'set a property on an element',
       template: `<div on-bla.call="a = 6">\${a}`,
       App: class { public a = 5; },
-      assertFn: ({ ctx, appHost }) => {
+      assertFn: ({ appHost }) => {
         (appHost.querySelector('div') as any).onBla();
-        ctx.platform.domQueue.flush();
+        flush();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -35,9 +36,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
           bindables: ['value']
         }, class {})
       ],
-      assertFn: ({ ctx, appHost, component }) => {
+      assertFn: ({ appHost, component }) => {
         (component as any).attr.value(6);
-        ctx.platform.domQueue.flush();
+        flush();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -51,9 +52,9 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
           bindables: ['value']
         }, class {})
       ],
-      assertFn: ({ ctx, appHost, component }) => {
+      assertFn: ({ appHost, component }) => {
         (component as any).attr.value(6);
-        ctx.platform.domQueue.flush();
+        flush();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -81,7 +82,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
   }
 
   it('sets property on custom element bindable', async function () {
-    const { trigger, flush, assertText } = await createFixture
+    const { trigger, assertText } = await createFixture
       .component(class { a = 5; })
       .html`<el on-click.call="a = $event"><span>\${a}</span>`
       .deps(
@@ -103,7 +104,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
   });
 
   it('sets property on custom element surrogate from bindable', async function () {
-    const { trigger, flush, assertText } = await createFixture
+    const { trigger, assertText } = await createFixture
       .component(class { a = 5; })
       .html`<el on-bla.call="a = $event"><span>\${a}</span>`
       .deps(

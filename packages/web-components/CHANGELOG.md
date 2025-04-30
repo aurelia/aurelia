@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Refactorings:
+
+* ***:** remove controller host (#2128) ([402c746](https://github.com/aurelia/aurelia/commit/402c746))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

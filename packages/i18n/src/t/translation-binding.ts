@@ -441,6 +441,7 @@ class ParameterBinding implements IBinding {
 
     this._scope = (void 0)!;
     this.obs.clearAll();
+    this.isBound = false;
   }
 }
 

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Bug Fixes:
+
+* **observation:** allow property deletion with proxy (#2114) ([7e652e9](https://github.com/aurelia/aurelia/commit/7e652e9))
+* **ref-binding:** update value when key expression changes (#2108) ([9636d86](https://github.com/aurelia/aurelia/commit/9636d86))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

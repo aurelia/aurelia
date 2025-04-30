@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Bug Fixes:
+
+* **test:** dialog service test updated to reflect new error message ([4eb7805](https://github.com/aurelia/aurelia/commit/4eb7805))
+
+
+### Refactorings:
+
+* **packages:** only link to docs for errors in dev mode ([4eb7805](https://github.com/aurelia/aurelia/commit/4eb7805))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

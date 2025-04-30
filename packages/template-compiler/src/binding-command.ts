@@ -449,7 +449,21 @@ export class ClassBindingCommand implements BindingCommandInstance {
   public get ignoreAttr() { return true; }
 
   public build(info: ICommandBuildInfo, exprParser: IExpressionParser): IInstruction {
-    return new AttributeBindingInstruction('class', exprParser.parse(info.attr.rawValue, etIsProperty), info.attr.target);
+    let target = info.attr.target;
+
+    if (target.includes(",")) {
+      const classes = target
+        .split(",")
+        .filter(c => c.length > 0);
+
+      if (classes.length === 0) {
+        throw createMappedError(ErrorNames.compiler_invalid_class_binding_syntax);
+      }
+
+      target = classes.join(' ');
+    }
+
+    return new AttributeBindingInstruction("class", exprParser.parse(info.attr.rawValue, etIsProperty), target);
   }
 }
 

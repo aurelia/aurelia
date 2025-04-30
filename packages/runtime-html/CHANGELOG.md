@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="2.0.0-beta.24"></a>
+# 2.0.0-beta.24 (2025-04-27)
+
+### Features:
+
+* **template-compiler:** add support for multiple .class values (#2146) ([3b7513a](https://github.com/aurelia/aurelia/commit/3b7513a))
+* **dom:** ability to toggle $au and $aurelia (#2130) ([7e1057b](https://github.com/aurelia/aurelia/commit/7e1057b))
+
+
+### Bug Fixes:
+
+* **ref-binding:** update value when key expression changes (#2108) ([9636d86](https://github.com/aurelia/aurelia/commit/9636d86))
+
+
+### Refactorings:
+
+* ***:** remove controller host (#2128) ([402c746](https://github.com/aurelia/aurelia/commit/402c746))
+
 <a name="2.0.0-beta.23"></a>
 # 2.0.0-beta.23 (2025-01-26)
 

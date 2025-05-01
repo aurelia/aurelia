@@ -61,3 +61,8 @@ Please see below a reference to each [@aurelia/runtime-html](https://github.com/
 * [AUR0755](aur0755.md)
 * [AUR0756](aur0756.md)
 * [AUR0757](aur0757.md)
+* [AUR0759](aur0759.md)
+* [AUR0760](aur0760.md)
+* [AUR0761](aur0762-0763.md)
+* [AUR0761](aur0764-0765.md)
+* [AUR0766](aur0766.md)

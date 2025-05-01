@@ -700,17 +700,21 @@ export class RouteConfigContext {
           ([, ceDef]) =>
             onResolve(
               this._router.getRouteConfigContext(null, ceDef as CustomElementDefinition, null, this.container, this.config, this),
-              $routeConfigContext => {
-                const eagerVi = $routeConfigContext._generateViewportInstruction(isPartialViewportInstruction(child)
-                  ? { ...child, params: child.params ?? emptyObject }
-                  : { component: child, params: emptyObject }
-                );
-                if (eagerVi != null) {
-                  // TODO(Sayan): merge query params
-                  vis.push(eagerVi.vi);
+              $routeConfigContext => onResolve(
+                $routeConfigContext._generateViewportInstruction(
+                  isPartialViewportInstruction(child)
+                    ? { ...child, params: child.params ?? emptyObject }
+                    : { component: child, params: emptyObject },
+                  traverseChildren as true
+                ),
+                eagerVi => {
+                  if (eagerVi != null) {
+                    // TODO(Sayan): merge query params
+                    vis.push(eagerVi.vi);
+                  }
+                  // TODO(Sayan): need to handle the cases where the child is not compatible for eager instruction generation
                 }
-                // TODO(Sayan): need to handle the cases where the child is not compatible for eager instruction generation
-              }
+              )
             )
         );
       }

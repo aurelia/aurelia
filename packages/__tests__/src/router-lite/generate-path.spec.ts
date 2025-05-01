@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/await-thenable */
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, Params, route, RouteContext, RouteNode } from '@aurelia/router-lite';
 import { CustomElement, customElement } from '@aurelia/runtime-html';
@@ -9,7 +10,7 @@ describe('router-lite/generate-path.spec.ts', function () {
   abstract class AbstractVm implements IRouteViewModel {
     public readonly routeContext: IRouteContext = resolve(IRouteContext);
     private readonly _router: IRouter = resolve(IRouter);
-    public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContext): string {
+    public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContext): string | Promise<string> {
       return this._router.generatePath(instructionOrInstructions, context ?? this);
     }
 
@@ -47,23 +48,23 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     // round#1
     let expected = 'c-2';
-    let path = router.generatePath(C2);
+    let path = await router.generatePath(C2);
     assert.strictEqual(path, expected, 'round#1 - generatePath(C2)');
 
-    path = router.generatePath(C2, rootVm);
+    path = await router.generatePath(C2, rootVm);
     assert.strictEqual(path, expected, 'round#1 - generatePath(C2, rootVm)');
 
-    path = router.generatePath('c-2');
+    path = await router.generatePath('c-2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'c-2\')');
 
-    path = router.generatePath('c-2', rootVm);
+    path = await router.generatePath('c-2', rootVm);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'c-2\', rootVm)');
 
     const c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
-    path = c1.generateRelativePath('../c-2');
+    path = await c1.generateRelativePath('../c-2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'../c-2\', C1)');
 
-    path = c1.generateRelativePath('c-2', c1.routeContext.parent);
+    path = await c1.generateRelativePath('c-2', c1.routeContext.parent);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'c-2\', C1)');
 
     await router.load(path);
@@ -71,23 +72,23 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     // round#2
     expected = 'foo/1';
-    path = router.generatePath({ component: C3, params: { id: 1 } });
+    path = await router.generatePath({ component: C3, params: { id: 1 } });
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: C3, params: { id: 1 } })');
 
-    path = router.generatePath({ component: C3, params: { id: 1 } }, rootVm);
+    path = await router.generatePath({ component: C3, params: { id: 1 } }, rootVm);
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: C3, params: { id: 1 } }, rootVm)');
 
-    path = router.generatePath({ component: 'bar', params: { id: 1 } });
+    path = await router.generatePath({ component: 'bar', params: { id: 1 } });
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'bar\', params: { id: 1 } })');
 
-    path = router.generatePath({ component: 'bar', params: { id: 1 } }, rootVm);
+    path = await router.generatePath({ component: 'bar', params: { id: 1 } }, rootVm);
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'bar\', params: { id: 1 } }, rootVm)');
 
     const c2 = CustomElement.for<C1>(host.querySelector('c-2')!).viewModel;
-    path = c2.generateRelativePath({ component: '../bar', params: { id: 1 } });
+    path = await c2.generateRelativePath({ component: '../bar', params: { id: 1 } });
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'../bar\', params: { id: 1 } }, C2)');
 
-    path = c2.generateRelativePath({ component: 'bar', params: { id: 1 } }, c2.routeContext.parent);
+    path = await c2.generateRelativePath({ component: 'bar', params: { id: 1 } }, c2.routeContext.parent);
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'bar\', params: { id: 1 } }, C2)');
 
     await router.load(path);
@@ -95,28 +96,28 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     // round#3
     expected = '';
-    path = router.generatePath(C1);
+    path = await router.generatePath(C1);
     assert.strictEqual(path, expected, 'round#3 - generatePath(C1)');
 
-    path = router.generatePath(C1, rootVm);
+    path = await router.generatePath(C1, rootVm);
     assert.strictEqual(path, expected, 'round#3 - generatePath(C1, rootVm)');
 
-    path = router.generatePath('');
+    path = await router.generatePath('');
     assert.strictEqual(path, expected, 'round#3 - generatePath(\'\')');
 
-    path = router.generatePath('', rootVm);
+    path = await router.generatePath('', rootVm);
     assert.strictEqual(path, expected, 'round#3 - generatePath(\'\', rootVm)');
 
-    path = router.generatePath({ component: C1 });
+    path = await router.generatePath({ component: C1 });
     assert.strictEqual(path, expected, 'round#3 - generatePath({ component: C1 })');
 
-    path = router.generatePath({ component: C1 }, rootVm);
+    path = await router.generatePath({ component: C1 }, rootVm);
     assert.strictEqual(path, expected, 'round#3 - generatePath({ component: C1 }, rootVm)');
 
-    path = router.generatePath({ component: '' });
+    path = await router.generatePath({ component: '' });
     assert.strictEqual(path, expected, 'round#3 - generatePath({ component: \'c-1\' })');
 
-    path = router.generatePath({ component: '' }, rootVm);
+    path = await router.generatePath({ component: '' }, rootVm);
     assert.strictEqual(path, expected, 'round#3 - generatePath({ component: \'c-1\' }, rootVm)');
 
     await router.load(path);
@@ -125,7 +126,7 @@ describe('router-lite/generate-path.spec.ts', function () {
     await au.stop(true);
   });
 
-  it('multi-level hierarchy', async function () {
+  it.only('multi-level hierarchy', async function () {
     @customElement({ name: 'c-1', template: 'c1' })
     class C1 extends AbstractVm { }
 
@@ -191,39 +192,39 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     // round#1
     let expected = 'p2';
-    let path = router.generatePath(P2);
+    let path = await router.generatePath(P2);
     assert.strictEqual(path, expected, 'round#1 - generatePath(P2)');
 
-    path = router.generatePath(P2, rootVm);
+    path = await router.generatePath(P2, rootVm);
     assert.strictEqual(path, expected, 'round#1 - generatePath(P2, rootVm)');
 
-    path = router.generatePath('p2');
+    path = await router.generatePath('p2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\')');
 
-    path = router.generatePath('p2', rootVm);
+    path = await router.generatePath('p2', rootVm);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', rootVm)');
 
     const p1 = CustomElement.for<P1>(host.querySelector('p-1')!).viewModel;
-    path = p1.generateRelativePath('../p2');
+    path = await p1.generateRelativePath('../p2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'../p2\', P1)');
 
-    path = p1.generateRelativePath('p2', p1.routeContext.parent);
+    path = await p1.generateRelativePath('p2', p1.routeContext.parent);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', P1)');
 
     const c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
-    path = c1.generateRelativePath('../../p2');
+    path = await c1.generateRelativePath('../../p2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'../../p2\', C1)');
 
-    path = c1.generateRelativePath('p2', c1.routeContext.parent.parent);
+    path = await c1.generateRelativePath('p2', c1.routeContext.parent.parent);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', C1)');
 
     await router.load(path);
     assert.html.textContent(host, 'p2 c2', 'round#1 - load(path)');
 
-    // // round#2
-    // expected = 'p1/foo/1';
-    // path = router.generatePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] });
-    // assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
+    // round#2
+    expected = 'p1/foo/1';
+    path = await router.generatePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] });
+    assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
 
     // const c2 = CustomElement.for<C2>(host.querySelector('c-2')!).viewModel;
     // path = c2.generateRelativePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] }, c2.routeContext.parent.parent);

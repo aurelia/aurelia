@@ -192,7 +192,7 @@ export class Router {
   public readonly options: Readonly<RouterOptions> = resolve(IRouterOptions);
 
   public constructor() {
-    this._instructions = ViewportInstructionTree.create('', this.options);
+    this._instructions = ViewportInstructionTree.create('', this.options, null, null);
     this._container.registerResolver(Router, Registration.instance(Router, this));
   }
 
@@ -432,12 +432,16 @@ export class Router {
       );
     }
 
-  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string {
-    const vit = this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx });
-    return vit.toUrl(true, this.options._urlParser);
+  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
+    return onResolve(
+      this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx }, true),
+      vit => vit.toUrl(true, this.options._urlParser)
+    );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
@@ -465,7 +469,8 @@ export class Router {
       instructionOrInstructions,
       routerOptions,
       NavigationOptions.create(routerOptions, { ...options, context }),
-      this._ctx
+      this._ctx,
+      traverseChildren as true,
     );
   }
 

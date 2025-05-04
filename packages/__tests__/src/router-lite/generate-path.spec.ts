@@ -126,7 +126,7 @@ describe('router-lite/generate-path.spec.ts', function () {
     await au.stop(true);
   });
 
-  it.only('multi-level hierarchy', async function () {
+  it('multi-level hierarchy', async function () {
     @customElement({ name: 'c-1', template: 'c1' })
     class C1 extends AbstractVm { }
 
@@ -159,7 +159,7 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c1'], component: C1 },
+        { path: ['c1', ''], component: C1 },
         C3,
       ]
     })
@@ -168,7 +168,7 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     @route({
       routes: [
-        { path: ['', 'c2'], component: C2 },
+        { path: ['c2', ''], component: C2 },
         C4,
       ]
     })
@@ -177,7 +177,7 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     @route({
       routes: [
-        { id: 'p1', path: ['', 'p1'], component: P1 },
+        { id: 'p1', path: ['p1', ''], component: P1 },
         { id: 'p2', path: 'p2', component: P2 },
       ]
     })
@@ -185,10 +185,9 @@ describe('router-lite/generate-path.spec.ts', function () {
     class Root { }
 
     const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
+    const router = container.get(IRouter);
 
     assert.html.textContent(host, 'p1 c1', 'init');
-
-    const router = container.get(IRouter);
 
     // round#1
     let expected = 'p2';

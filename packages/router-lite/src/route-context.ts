@@ -687,7 +687,7 @@ export class RouteConfigContext {
     }
 
     // traverse the children
-    async function generateChildrenInstructions(this: RouteConfigContext): Promise<ViewportInstruction[]> {
+    async function generateChildrenInstructions(this: RouteConfigContext, parentConfig: RouteConfig): Promise<ViewportInstruction[]> {
       const children = (instruction as IExtendedViewportInstruction).children;
       if (children == null) return [];
 
@@ -696,10 +696,10 @@ export class RouteConfigContext {
         // TODO(Sayan): in case the child is a promise, then we need to abort the whole thing
         // eslint-disable-next-line no-await-in-loop
         await onResolve(
-          resolveCustomElementDefinition(child, this),
-          ([, ceDef]) =>
+          $resolveCustomElementDefinition.call(this, child, parentConfig),
+          ceDef =>
             onResolve(
-              this._router.getRouteConfigContext(null, ceDef as CustomElementDefinition, null, this.container, this.config, this),
+              this._router.getRouteConfigContext(null, ceDef as CustomElementDefinition, null, this.container, parentConfig, this),
               $routeConfigContext => onResolve(
                 $routeConfigContext._generateViewportInstruction(
                   isPartialViewportInstruction(child)
@@ -719,11 +719,34 @@ export class RouteConfigContext {
         );
       }
       return vis;
+
+      function $resolveCustomElementDefinition(this: RouteConfigContext, child: NavigationInstruction, parentConfig: RouteConfig): CustomElementDefinition | null | Promise<CustomElementDefinition | null> {
+        // resolve the RouteConfig defined for the parent.
+        const parentComponent = parentConfig.component;
+        const parentDefn = CustomElement.isType(parentComponent) ? CustomElement.getDefinition(parentComponent) : resolveCustomElementDefinition(parentComponent, this)[1] as CustomElementDefinition;
+        return onResolve(
+          this._router.getRouteConfigContext(parentConfig, parentDefn, null, this.container, this.config, this),
+          routeConfigContext => {
+            return onResolve(routeConfigContext.allResolved, () => {
+              // look for a route id under the parentConfig that matches the child component
+              let component: Routeable;
+              if (isPartialChildRouteConfig(child) && typeof (component = child.component) === 'string') {
+                for (const route of routeConfigContext.childRoutes as RouteConfig[]) {
+                  if (route.id !== component) continue;
+                  return resolveCustomElementDefinition(route.component, routeConfigContext)[1];
+                }
+              }
+              // fallback to resolveCustomElementDefinition
+              return resolveCustomElementDefinition(child, routeConfigContext)[1];
+            });
+          }
+        );
+      }
     }
 
     function createPathGenerationResult(this: RouteConfigContext, result: Exclude<ReturnType<typeof core>, null>): PathGenerationResult | Promise<PathGenerationResult> {
       return onResolve(
-        (traverseChildren ? generateChildrenInstructions.call(this) : (instruction as IViewportInstruction).children) as NavigationInstruction[] | Promise<NavigationInstruction[]>,
+        (traverseChildren ? generateChildrenInstructions.call(this, result.endpoint.route.handler as RouteConfig) : (instruction as IViewportInstruction).children) as NavigationInstruction[] | Promise<NavigationInstruction[]>,
         children =>
         ({
           vi: ViewportInstruction.create({
@@ -738,6 +761,36 @@ export class RouteConfigContext {
         }));
     }
   }
+
+  // function getComponent(child: NavigationInstruction, parentCandidates: RouteConfig[]): CustomElementType {
+  //   // if (CustomElement.isType(child)) return child;
+  //   for (const parent of parentCandidates) {
+  //     for (const route of parent.routes) {
+  //       // case 1: route is a custom element
+  //       if (CustomElement.isType(route)) {
+  //         // get the route config for the custom element
+  //         // if isMatch(child, route), then return it
+  //         // else throw an error
+  //       }
+  //       // case 2: route is an object
+  //       // 2.1. if the route is a promise or navigation strategy or redirect config then skip it.
+  //       // 2.2. if the route is a partial child route config (the route has component)
+  //       // 2.2.1. the component is a custom element -> if isMatch(child, route.component), then return it
+  //       // 2.2.2. the component is a string
+  //       // 2.2.2.1. If a custom element with the same name exists -> if isMatch(child, found_custom_element), then return it
+  //       // 2.2.2.2. Else throw error
+  //       // 2.2.3. the component is a function -> if isMatch(child, route.component()), then return it
+  //       // 2.2.3. the component is a CEDefn -> if isMatch(child, CEDefn.Type), then return it
+  //       // 2.2.4. the component is an instance of a route viewmodel -> if isMatch(child, component), then return it
+  //     }
+  //   }
+
+  //   function isMatch(child: NavigationInstruction, ceType: CustomElementType): boolean {
+  //     // get the route config for the custom element
+  //     // if the child.component matches with the route id or the custom element name, then return it
+  //     return false;
+  //   }
+  // }
 
   public recognize(path: string, searchAncestor: boolean = false): $RecognizedRoute | null {
     if (__DEV__) trace(this._logger, Events.rcRecognizePath, path);

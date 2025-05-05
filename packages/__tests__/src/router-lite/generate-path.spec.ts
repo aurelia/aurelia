@@ -5,7 +5,7 @@ import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe.only('router-lite/generate-path.spec.ts', function () {
+describe('router-lite/generate-path.spec.ts', function () {
 
   abstract class AbstractVm implements IRouteViewModel {
     public readonly routeContext: IRouteContext = resolve(IRouteContext);

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/await-thenable */
 import { resolve } from '@aurelia/kernel';
 import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, Params, route, RouteContext, RouteNode } from '@aurelia/router-lite';
-import { CustomElement, customElement } from '@aurelia/runtime-html';
+import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/generate-path.spec.ts', function () {
+describe.only('router-lite/generate-path.spec.ts', function () {
 
   abstract class AbstractVm implements IRouteViewModel {
     public readonly routeContext: IRouteContext = resolve(IRouteContext);
@@ -127,11 +127,17 @@ describe('router-lite/generate-path.spec.ts', function () {
   });
 
   it('multi-level hierarchy', async function () {
-    @customElement({ name: 'c-1', template: 'c1' })
-    class C1 extends AbstractVm { }
+    @customElement({ name: 'c-1', template: 'c1 <a load="route.bind: route; context.bind: context"></a>' })
+    class C1 extends AbstractVm {
+      public route: string;
+      public context: IRouteContext;
+    }
 
-    @customElement({ name: 'c-2', template: 'c2' })
-    class C2 extends AbstractVm { }
+    @customElement({ name: 'c-2', template: 'c2 <a load="route.bind: route; context.bind: context"></a>' })
+    class C2 extends AbstractVm {
+      public route: string;
+      public context: IRouteContext;
+    }
 
     @route({ id: 'c3', path: 'foo/:id' })
     @customElement({ name: 'c-3', template: 'c3 ${params.id}' })
@@ -163,8 +169,10 @@ describe('router-lite/generate-path.spec.ts', function () {
         C3,
       ]
     })
-    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
-    class P1 extends AbstractVm { }
+    @customElement({ name: 'p-1', template: 'p1 <a href.bind="route"></a> <au-viewport></au-viewport>' })
+    class P1 extends AbstractVm {
+      public route: string;
+    }
 
     @route({
       routes: [
@@ -172,8 +180,10 @@ describe('router-lite/generate-path.spec.ts', function () {
         C4,
       ]
     })
-    @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
-    class P2 extends AbstractVm { }
+    @customElement({ name: 'p-2', template: 'p2 <a href.bind="route"></a> <au-viewport></au-viewport>' })
+    class P2 extends AbstractVm {
+      public route: string;
+    }
 
     @route({
       routes: [
@@ -186,10 +196,17 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
     const router = container.get(IRouter);
+    const platform = container.get(IPlatform);
+    const domQueue = platform.domQueue;
+    const taskQueue = platform.taskQueue;
+    const $yield = () => Promise.all([
+      domQueue.yield(),
+      taskQueue.yield(),
+    ]);
 
     assert.html.textContent(host, 'p1 c1', 'init');
 
-    // round#1
+    // #region round#1
     let expected = 'p2';
     let path = await router.generatePath(P2);
     assert.strictEqual(path, expected, 'round#1 - generatePath(P2)');
@@ -210,7 +227,7 @@ describe('router-lite/generate-path.spec.ts', function () {
     path = await p1.generateRelativePath('p2', p1.routeContext.parent);
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'p2\', P1)');
 
-    const c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
+    let c1 = CustomElement.for<C1>(host.querySelector('c-1')!).viewModel;
     path = await c1.generateRelativePath('../../p2');
     assert.strictEqual(path, expected, 'round#1 - generatePath(\'../../p2\', C1)');
 
@@ -219,15 +236,262 @@ describe('router-lite/generate-path.spec.ts', function () {
 
     await router.load(path);
     assert.html.textContent(host, 'p2 c2', 'round#1 - load(path)');
+    // #endregion
 
-    // round#2
+    // #region round#2
     expected = 'p1/foo/1';
+    // route id
     path = await router.generatePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] });
     assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
 
-    // const c2 = CustomElement.for<C2>(host.querySelector('c-2')!).viewModel;
-    // path = c2.generateRelativePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] }, c2.routeContext.parent.parent);
-    // assert.strictEqual(path, expected, 'round#2 - generatePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] })');
+    // custom element
+    path = await router.generatePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] });
+    assert.strictEqual(path, expected, 'round#2 - generatePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] })');
+
+    // custom element definition
+    path = await router.generatePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] });
+    assert.strictEqual(path, expected, 'round#2 - generatePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] })');
+
+    // function
+    path = await router.generatePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] });
+    assert.strictEqual(path, expected, 'round#2 - generatePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] })');
+
+    await router.load(path);
+    assert.html.textContent(host, 'p1 c3 1', 'round#2 - load(path)');
+    // #endregion
+
+    // reset to p2/c2
+    await router.load('p2/c2');
+    assert.html.textContent(host, 'p2 c2', 'round#2 - reset - load(\'p2/c2\')');
+
+    // #region round#3 - resolve relative path at child using ancestor context
+    let c2El = host.querySelector('c-2')!;
+    let c2 = CustomElement.for<C2>(c2El).viewModel;
+    let context = c2.context = c2.routeContext.parent.parent;
+    // route id
+    path = await c2.generateRelativePath({ component: 'p1', children: [{ component: 'c3', params: { id: 1 } }] }, context);
+    assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: \'p1\', children: [{ component: \'c3\', params: { id: 1 } }] }, context)');
+
+    // custom element
+    path = await c2.generateRelativePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] }, context);
+    assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: P1, children: [{ component: C3, params: { id: 1 } }] }, context)');
+
+    // custom element definition
+    path = await c2.generateRelativePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] }, context);
+    assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: CustomElement.getDefinition(P1), children: [{ component: CustomElement.getDefinition(C3), params: { id: 1 } }] }, context)');
+
+    // function
+    path = await c2.generateRelativePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] }, context);
+    assert.strictEqual(path, expected, 'round#3 - c2.generateRelativePath({ component: () => P1, children: [{ component: () => C3, params: { id: 1 } }] }, context)');
+
+    // click on link
+    c2.route = expected;
+    await $yield();
+    c2El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p1 c3 1', 'round#3 - click on link');
+    // #endregion
+
+    // reset to p1/c1
+    await router.load('p1/c1');
+    assert.html.textContent(host, 'p1 c1', 'round#3 - reset - load(\'p1/c1\')');
+
+    // #region round#4 - resolve relative path at child using parent context
+    expected = 'foo/1';
+    let c1El = host.querySelector('c-1')!;
+    c1 = CustomElement.for<C1>(c1El).viewModel;
+    context = c1.context = c1.routeContext.parent;
+
+    // route id
+    path = await c1.generateRelativePath({ component: 'c3', params: { id: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: \'c3\', params: { id: 1 } }, context)');
+
+    // custom element
+    path = await c1.generateRelativePath({ component: C3, params: { id: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: C3, params: { id: 1 } }, context)');
+
+    // custom element definition
+    path = await c1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } }, context)');
+
+    // function
+    path = await c1.generateRelativePath({ component: () => C3, params: { id: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#4 - c1.generateRelativePath({ component: () => C3, params: { id: 1 } }, context)');
+
+    // click on link
+    c1.route = expected;
+    await $yield();
+    c1El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p1 c3 1', 'round#4 - click on link');
+    // #endregion
+
+    // reset to p1/c1
+    await router.load('p1/c1');
+    assert.html.textContent(host, 'p1 c1', 'round#4 - reset - load(\'p1/c1\')');
+
+    // #region round#5 - resolve relative path to child
+    const p1El = host.querySelector('p-1')!;
+    const p1Vm = CustomElement.for<P1>(p1El).viewModel;
+
+    // route id
+    path = await p1Vm.generateRelativePath({ component: 'c3', params: { id: 1 } });
+    assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: \'c3\', params: { id: 1 } })');
+
+    // custom element
+    path = await p1Vm.generateRelativePath({ component: C3, params: { id: 1 } });
+    assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: C3, params: { id: 1 } })');
+
+    // custom element definition
+    path = await p1Vm.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } });
+    assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: CustomElement.getDefinition(C3), params: { id: 1 } })');
+
+    // function
+    path = await p1Vm.generateRelativePath({ component: () => C3, params: { id: 1 } });
+    assert.strictEqual(path, expected, 'round#5 - p1.generateRelativePath({ component: () => C3, params: { id: 1 } })');
+
+    // click on link
+    p1Vm.route = expected;
+    await $yield();
+    p1El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p1 c3 1', 'round#5 - click on link');
+    // #endregion
+
+    // reset to p1/c1
+    await router.load('p1/c1');
+    assert.html.textContent(host, 'p1 c1', 'round#5 - reset - load(\'p1/c1\')');
+
+    // #region round#6 - resolve relative path to a child (required parameters) under the parent's sibling
+    expected = 'p2/bar/1/2';
+    c1El = host.querySelector('c-1')!;
+    c1 = CustomElement.for<C1>(c1El).viewModel;
+    context = c1.context = c1.routeContext.parent.parent;
+
+    // route id
+    path = await c1.generateRelativePath({ component: 'p2', children: [{ component: 'c4', params: { id1: 1, id2: 2 } }] }, context);
+    assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: \'p2\', children: [{ component: \'c4\', params: { id1: 1, id2: 2 } }] }, context)');
+
+    // custom element
+    path = await c1.generateRelativePath({ component: P2, children: [{ component: C4, params: { id1: 1, id2: 2 } }] }, context);
+    assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: P2, children: [{ component: C4, params: { id1: 1, id2: 2 } }] }, context)');
+
+    // custom element definition
+    path = await c1.generateRelativePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id1: 1, id2: 2 } }] }, context);
+    assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: CustomElement.getDefinition(P2), children: [{ component: CustomElement.getDefinition(C4), params: { id1: 1, id2: 2 } }] }, context)');
+
+    // function
+    path = await c1.generateRelativePath({ component: () => P2, children: [{ component: () => C4, params: { id1: 1, id2: 2 } }] }, context);
+    assert.strictEqual(path, expected, 'round#6 - c1.generateRelativePath({ component: () => P2, children: [{ component: () => C4, params: { id1: 1, id2: 2 } }] }, context)');
+
+    // click on link
+    c1.route = expected;
+    await $yield();
+    c1El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p2 c4 1 2', 'round#6 - click on link');
+    // #endregion
+
+    // reset to p2/c2
+    await router.load('p2/c2');
+    assert.html.textContent(host, 'p2 c2', 'round#6 - reset - load(\'p2/c2\')');
+
+    // #region round#7 - resolve relative path to a different child (optional parameters - value for all) under parent
+    expected = 'fizz/1/2';
+    c2El = host.querySelector('c-2')!;
+    c2 = CustomElement.for<C2>(c2El).viewModel;
+    context = c2.context = c2.routeContext.parent;
+
+    // route id
+    path = await c2.generateRelativePath({ component: 'c4', params: { id3: 1, id4: 2 } }, context);
+    assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1, id4: 2 } }, context)');
+
+    // custom element
+    path = await c2.generateRelativePath({ component: C4, params: { id3: 1, id4: 2 } }, context);
+    assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: C4, params: { id3: 1, id4: 2 } }, context)');
+
+    // custom element definition
+    path = await c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1, id4: 2 } }, context);
+    assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1, id4: 2 } }, context)');
+
+    // function
+    path = await c2.generateRelativePath({ component: () => C4, params: { id3: 1, id4: 2 } }, context);
+    assert.strictEqual(path, expected, 'round#7 - c2.generateRelativePath({ component: () => C4, params: { id3: 1, id4: 2 } }, context)');
+
+    // click on link
+    c2.route = expected;
+    await $yield();
+    c2El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p2 c4 1 2', 'round#7 - click on link');
+    // #endregion
+
+    // reset to p2/c2
+    await router.load('p2/c2');
+    assert.html.textContent(host, 'p2 c2', 'round#7 - reset - load(\'p2/c2\')');
+
+    // #region round#8 - resolve relative path to a different child (optional parameters - no value) under parent
+    expected = 'fizz/1/';
+    c2El = host.querySelector('c-2')!;
+    c2 = CustomElement.for<C2>(c2El).viewModel;
+    context = c2.context = c2.routeContext.parent;
+
+    // route id
+    path = await c2.generateRelativePath({ component: 'c4', params: { id3: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: \'c4\', params: { id3: 1 } }, context)');
+
+    // custom element
+    path = await c2.generateRelativePath({ component: C4, params: { id3: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: C4, params: { id3: 1 } }, context)');
+
+    // custom element definition
+    path = await c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id3: 1 } }, context)');
+
+    // function
+    path = await c2.generateRelativePath({ component: () => C4, params: { id3: 1 } }, context);
+    assert.strictEqual(path, expected, 'round#8 - c2.generateRelativePath({ component: () => C4, params: { id3: 1 } }, context)');
+
+    // click on link
+    c2.route = expected;
+    await $yield();
+    c2El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p2 c4 1', 'round#8 - click on link');
+    // #endregion
+
+    // reset to p2/c2
+    await router.load('p2/c2');
+    assert.html.textContent(host, 'p2 c2', 'round#8 - reset - load(\'p2/c2\')');
+
+    // #region round#9 - resolve relative path to a child (wildcard parameter)
+    expected = 'buzz/1/2%2F3%2F4';
+    const p2El = host.querySelector('p-2')!;
+    const p2 = CustomElement.for<P2>(p2El).viewModel;
+
+    // route id
+    path = await p2.generateRelativePath({ component: 'c4', params: { id5: 1, rest: '2/3/4' } });
+    assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: \'c4\', params: { id5: 1, rest: \'2/3/4\' } })');
+
+    // custom element
+    path = await p2.generateRelativePath({ component: C4, params: { id5: 1, rest: '2/3/4' } });
+    assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: C4, params: { id5: 1, rest: \'2/3/4\' } })');
+
+    // custom element definition
+    path = await p2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id5: 1, rest: '2/3/4' } });
+    assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: CustomElement.getDefinition(C4), params: { id5: 1, rest: \'2/3/4\' } })');
+
+    // function
+    path = await p2.generateRelativePath({ component: () => C4, params: { id5: 1, rest: '2/3/4' } });
+    assert.strictEqual(path, expected, 'round#9 - p2.generateRelativePath({ component: () => C4, params: { id5: 1, rest: \'2/3/4\' } })');
+
+    // click on link
+    p2.route = expected;
+    await $yield();
+    p2El.querySelector('a').click();
+    await $yield();
+    assert.html.textContent(host, 'p2 c4 1 2/3/4', 'round#9 - click on link');
+    // #endregion
 
     await au.stop(true);
   });

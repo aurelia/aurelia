@@ -66,11 +66,11 @@ type PathGenerationResult = { vi: ViewportInstruction; query: Params };
 type EagerInstruction = {
   component: string | RouteConfig | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
   params: Params;
+  children?: EagerInstruction[];
 };
 
 const allowedEagerComponentTypes = Object.freeze(['string', 'object', 'function']);
 function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val is EagerInstruction {
-  // don't try to resolve an instruction with children eagerly, as the children are essentially resolved lazily, for now.
   if (val == null) return false;
   const params = (val as EagerInstruction).params;
   const component = (val as EagerInstruction).component;
@@ -80,6 +80,22 @@ function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val 
     && allowedEagerComponentTypes.includes(typeof component)
     && !(component instanceof Promise) // a promise component is inherently meant to be lazy-loaded
     ;
+}
+
+export function createEagerInstruction(val: NavigationInstruction): EagerInstruction | null {
+  let component: EagerInstruction['component'];
+  if (typeof val === 'string' || typeof val === 'function') {
+    component = val;
+    val = null!;
+  } else {
+    component = (val as EagerInstruction).component;
+  }
+  if (
+       component == null
+    || !allowedEagerComponentTypes.includes(typeof component)
+    || component instanceof Promise
+  ) return null;
+  return { ...(val as object), component,  params: (val as EagerInstruction)?.params ?? emptyObject };
 }
 
 /**

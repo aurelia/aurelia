@@ -1,7 +1,7 @@
-import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction } from '@aurelia/kernel';
+import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, isArray } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
-import { IRouteContext, RouteConfigContext, RouteContext } from './route-context';
+import { createEagerInstruction, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -401,38 +401,58 @@ export class Router {
     parentRouteConfig: RouteConfig | null,
     parentRouteConfigContext: RouteConfigContext | null,
   ): RouteConfigContext | Promise<RouteConfigContext> {
-      return onResolve(
-        // In case of navigation strategy, get the route config for the resolved component directly.
-        // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
-        // Hence, when we see a navigation strategy, we resolve the route config for the component first.
-        $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
-          ? $rdConfig
-          : resolveRouteConfiguration(
-            // getRouteConfig is prioritized over the statically configured routes via @route decorator.
-            typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
-            false,
-            parentRouteConfig,
-            null,
-            parentRouteConfigContext,
-          ),
-        rdConfig => {
-          let routeConfigContext = this._routeConfigLookup.get(rdConfig);
-          if (routeConfigContext != null) return routeConfigContext;
+    return onResolve(
+      // In case of navigation strategy, get the route config for the resolved component directly.
+      // Conceptually, navigation strategy is another form of lazily deciding on the route config for the given component.
+      // Hence, when we see a navigation strategy, we resolve the route config for the component first.
+      $rdConfig instanceof RouteConfig && !$rdConfig._isNavigationStrategy
+        ? $rdConfig
+        : resolveRouteConfiguration(
+          // getRouteConfig is prioritized over the statically configured routes via @route decorator.
+          typeof componentInstance?.getRouteConfig === 'function' ? componentInstance : componentDefinition.Type,
+          false,
+          parentRouteConfig,
+          null,
+          parentRouteConfigContext,
+        ),
+      rdConfig => {
+        let routeConfigContext = this._routeConfigLookup.get(rdConfig);
+        if (routeConfigContext != null) return routeConfigContext;
 
-          routeConfigContext = new RouteConfigContext(
-            parentRouteConfigContext,
-            componentDefinition,
-            rdConfig,
-            container,
-            this,
-          );
-          this._routeConfigLookup.set(rdConfig, routeConfigContext);
-          return routeConfigContext;
-        }
-      );
-    }
+        routeConfigContext = new RouteConfigContext(
+          parentRouteConfigContext,
+          componentDefinition,
+          rdConfig,
+          container,
+          this,
+        );
+        this._routeConfigLookup.set(rdConfig, routeConfigContext);
+        return routeConfigContext;
+      }
+    );
+  }
 
   public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
+
+    // convert to eager instructions
+    // this is also a sanity check for the instructions
+    if (!isArray(instructionOrInstructions)) instructionOrInstructions = [instructionOrInstructions];
+    const numInstr = (instructionOrInstructions as NavigationInstruction[]).length;
+    for (let i = 0; i < numInstr; ++i) {
+      const instr = createEagerInstruction((instructionOrInstructions as NavigationInstruction[])[i]);
+      if (instr == null) throw new Error("The given instruction is not compatible for eagerly generating path."); // TODO(Sayan): use eventId and getMessage infra
+
+      const children = instr.children as NavigationInstruction[];
+      const numChildren = children?.length ?? 0;
+      for (let j = 0; j < numChildren; ++j) {
+        const child = createEagerInstruction(children[j]);
+        if (child == null) throw new Error("The given instruction is not compatible for eagerly generating path."); // TODO(Sayan): use eventId and getMessage infra
+        children[j] = child;
+      }
+
+      (instructionOrInstructions as NavigationInstruction[])[i] = instr;
+    }
+
     return onResolve(
       this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx }, true),
       vit => vit.toUrl(true, this.options._urlParser)

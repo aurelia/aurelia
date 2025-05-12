@@ -496,7 +496,121 @@ describe('router-lite/generate-path.spec.ts', function () {
     await au.stop(true);
   });
 
-  // flat hierarchy with sibling viewports
-  // multi-level hierarchy with sibling viewports
+  it('flat hierarchy with sibling viewports', async function () {
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 extends AbstractVm { }
 
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 extends AbstractVm { }
+
+    @customElement({ name: 'c-3', template: 'c3 ${params.id}' })
+    class C3 extends AbstractVm { }
+
+    @route({
+      routes: [
+        C1,
+        C2,
+        { id: 'bar', path: 'foo/:id', component: C3 },
+      ]
+    })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="vp1"></au-viewport> <au-viewport name="vp2"></au-viewport>' })
+    class Root { }
+
+    const { host, au, container } = await start({ appRoot: Root, registrations: [C1, C2, C3] });
+
+    const router = container.get(IRouter);
+
+    // round#1
+    let expected = 'c-2+foo/1';
+    let path = await router.generatePath([C2, { component: C3, params: { id: 1 } }]);
+    assert.strictEqual(path, expected, 'round#1 - generatePath([C2, { component: C3, params: { id: 1 } }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'c2 c3 1', 'round#1 - load(path)');
+
+    // round#2
+    expected = 'foo/2+c-1';
+    path = await router.generatePath([{ component: 'bar', params: { id: 2 } }, C1]);
+    assert.strictEqual(path, expected, 'round#2 - generatePath([{ component: \'bar\', params: { id: 2 } }, C1])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'c3 2 c1', 'round#2 - load(path)');
+
+    // round#3 - named viewports
+    expected = 'c-2@vp2+foo/3@vp1';
+    path = await router.generatePath([{ component: 'c-2', viewport: 'vp2' }, { component: C3, params: { id: 3 }, viewport: 'vp1' }]);
+    assert.strictEqual(path, expected, 'round#3 - generatePath([{ component: C2, viewport: \'vp2\' }, { component: C3, params: { id: 3 }, viewport: \'vp1\' }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'c3 3 c2', 'round#3 - load(path)');
+
+    // round#4 - named viewports
+    expected = 'foo/4@vp1+c-1@vp2';
+    path = await router.generatePath([{ component: 'bar', params: { id: 4 }, viewport: 'vp1' }, { component: C1, viewport: 'vp2' }]);
+    assert.strictEqual(path, expected, 'round#4 - generatePath([{ component: \'bar\', params: { id: 4 }, viewport: \'vp1\' }, { component: C1, viewport: \'vp2\' }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'c3 4 c1', 'round#4 - load(path)');
+
+    await au.stop(true);
+  });
+
+  it('multi-level hierarchy with sibling viewports', async function () {
+    @route('c1')
+    @customElement({ name: 'c-1', template: 'c1' })
+    class C1 extends AbstractVm { }
+
+    @route('c2')
+    @customElement({ name: 'c-2', template: 'c2' })
+    class C2 extends AbstractVm { }
+
+    @route({ id: 'c3', path: 'foo/:id' })
+    @customElement({ name: 'c-3', template: 'c3 ${params.id}' })
+    class C3 extends AbstractVm { }
+
+    @route({ id: 'c4', path: 'bar/:id1/:id2' })
+    @customElement({ name: 'c-4', template: 'c4 ${params.id1} ${params.id2}' })
+    class C4 extends AbstractVm { }
+
+    @route({ path: 'p1', routes: [C1, C3,] })
+    @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
+    class P1 extends AbstractVm { }
+
+    @route({ path: 'p2', routes: [C2, C4,] })
+    @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
+    class P2 extends AbstractVm { }
+
+    @route({ routes: [P1, P2] })
+    @customElement({ name: 'ro-ot', template: '<au-viewport name="vp1"></au-viewport> <au-viewport name="vp2"></au-viewport>' })
+    class Root { }
+
+    const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
+    const router = container.get(IRouter);
+
+    // round #1
+    let expected = 'p2@vp2+p1@vp1';
+    let path = await router.generatePath([{ component: P2, viewport: 'vp2' }, { component: P1, viewport: 'vp1' }]);
+    assert.strictEqual(path, expected, 'round#1 - generatePath([{ component: P2, viewport: \'vp2\' }, { component: P1, viewport: \'vp1\' }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'p1 p2', 'round#1 - load(path)');
+
+    // round #2
+    expected = 'p1@vp1/foo/1+p2@vp2/c2';
+    path = await router.generatePath([{ component: P1, children: [{ component: 'c3', params: { id: 1 } }], viewport: 'vp1' }, { component: P2, children: ['c2'], viewport: 'vp2' }]);
+    assert.strictEqual(path, expected, 'round#2 - generatePath([{ component: P1, children: [{ component: C3, params: { id: 1 } }], viewport: \'vp1\' }, { component: P2, children: [C2], viewport: \'vp2\' }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'p1 c3 1 p2 c2', 'round#2 - load(path)');
+
+    // round #3
+    expected = 'p2@vp1/bar/2/3+p1@vp2/c1';
+    path = await router.generatePath([{ component: 'p2', children: [{ component: C4, params: { id1: 2, id2: 3 } }], viewport: 'vp1' }, { component: 'p1', children: [C1], viewport: 'vp2' }]);
+    assert.strictEqual(path, expected, 'round#3 - generatePath([{ component: \'p-2\', children: [{ component: C4, params: { id1: 2, id2: 3 } }], viewport: \'vp1\' }, { component: \'p-1\', children: [C1], viewport: \'vp2\' }])');
+
+    await router.load(path);
+    assert.html.textContent(host, 'p2 c4 2 3 p1 c1', 'round#3 - load(path)');
+
+    await au.stop(true);
+  });
 });

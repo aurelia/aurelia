@@ -1,7 +1,7 @@
 import { createInterface } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { ICustomElementViewModel } from '@aurelia/runtime-html';
+import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
  * The dialog service for composing view & view model into a dialog
@@ -54,7 +54,7 @@ export interface IDialogDomRenderer {
  */
 export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
+  readonly overlay: HTMLElement | null;
   readonly contentHost: HTMLElement;
   /**
    * Called when the dialog should be shown. Application can use this for animations
@@ -122,7 +122,7 @@ export interface IDialogSettings<
   /**
    * The view model url, constructor or instance for the dialog.
    */
-  component?: () => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>);
+  component?: CustomElementType<Constructable<TVm>> | Constructable<TVm> | (() => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>));
 
   /**
    * The view url or view strategy to override the default view location convention.
@@ -150,6 +150,19 @@ export interface IDialogSettings<
    * When set to "true" the dialog does not close on ESC key or clicking outside of it.
    */
   lock?: boolean;
+
+  /**
+   * When set to "true" the dialog will be modal.
+   * This means that the dialog will be displayed as a modal dialog.
+   * The default value is "false".
+   *
+   * Note that this depends on the renderer,
+   * Some renderers may not support this feature.
+   *
+   * Readmore on the modal behavior of dialogs on MDN
+   * https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement#opening_a_modal_dialog
+   */
+  asModal?: boolean;
 
   /**
    * Allows for closing the top most dialog via the keyboard.

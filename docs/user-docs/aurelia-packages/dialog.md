@@ -511,6 +511,27 @@ There are two ways to use your own dialog renderer: register your own default di
     }
     ```
 
+### The standard `<dialog>` element renderer
+
+Beside the default dialog renderer, Aurelia also provides an out-of-the-box renderer that uses the `<dialog>` element.
+
+Compared to the default renderer, this dialog renderer has the following differences:
+- the dialog wrapper doesn't come with any default style, so it will take the default user agent style, which could come with the strong dark border around the content.
+- the dialog dom does not have an overlay. Since only modal dialog has a backdrop for overlay purpose, the overlay isn't always needed.
+- the overlay, can be styled with a helper via a method on the dialog dom (`HtmlDialogDom`), like the following example:
+    ```ts
+    import { IDialogDom, HtmlDialogDom } from '@aurelia/dialog';
+
+    class MyDialogComponent {
+      dom = resolve(IDialogDom) as HtmlDialogDom;
+
+      binding() {
+        dom.setOverlayStyle('background: pink');
+      }
+    }
+    ```
+    Note that the backdrop of a `<dialog>` is a pseudo element, and thus its style cannot be modified like a normal element.
+
 ### Animation
 
 #### Using the `IDialogDomAnimator`

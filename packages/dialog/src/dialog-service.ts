@@ -1,5 +1,5 @@
-import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
-import { AppTask } from '@aurelia/runtime-html';
+import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve, Constructable } from '@aurelia/kernel';
+import { AppTask, CustomElement } from '@aurelia/runtime-html';
 
 import {
   DialogCloseResult,
@@ -153,7 +153,13 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
     const maybePromise = onResolveAll(
       cmp == null
         ? void 0
-        : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
+        : onResolve(
+            CustomElement.isType(cmp)
+              ? cmp
+              : (cmp as Exclude<typeof cmp, Constructable>)(),
+            // (cmp as Exclude<typeof cmp, Constructable>)(),
+            loadedCmp => { loaded.component = loadedCmp; }
+          ),
       isFunction(template)
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0

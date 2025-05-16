@@ -1,7 +1,7 @@
 import { createInterface } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { ICustomElementViewModel } from '@aurelia/runtime-html';
+import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
  * The dialog service for composing view & view model into a dialog
@@ -122,7 +122,7 @@ export interface IDialogSettings<
   /**
    * The view model url, constructor or instance for the dialog.
    */
-  component?: () => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>);
+  component?: CustomElementType<Constructable<TVm>> | Constructable<TVm> | (() => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>));
 
   /**
    * The view url or view strategy to override the default view location convention.

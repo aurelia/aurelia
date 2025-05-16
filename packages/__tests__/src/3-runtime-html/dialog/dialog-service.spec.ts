@@ -162,6 +162,24 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
+        title: 'distinguishes between a custom element constructor and a normal function',
+        afterStarted: async ({ ctx }, dialogService) => {
+          const expected = 'hello world';
+          const Klass = CustomElement.define({ name: 'any', template: 'hello world' }, class {
+            public static inject = [IDialogController];
+            public constructor(controller: IDialogController) {
+              assert.strictEqual(controller.settings.component, this.constructor);
+            }
+          });
+          const { dialog } = await dialogService.open({
+            component: Klass
+          });
+          assert.html.textContent(ctx.doc.querySelector('au-dialog-container'), expected);
+          void dialog.ok();
+          await dialog.closed;
+        }
+      },
+      {
         title: 'works with promise component',
         afterStarted: async (_, dialogService) => {
           let activated = false;

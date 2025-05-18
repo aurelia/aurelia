@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/platform",
-  "version": "2.1.0-dev.202505181128",
+  "version": "2.1.0-dev.202505182253",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {

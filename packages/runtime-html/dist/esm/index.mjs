@@ -98,7 +98,10 @@ const ye = wt.Node;
 
 const we = wt.Layout;
 
-const createMappedError = (t, ...e) => new Error(`AUR${se(t).padStart(4, "0")}:${e.map(se)}`);
+const createMappedError = (t, ...e) => {
+    const i = se(t).padStart(4, "0");
+    return new Error(`AUR${i}:${e.map(se)}`);
+};
 
 function bindable(t, s) {
     let n = void 0;

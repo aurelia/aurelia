@@ -1159,8 +1159,15 @@ Path generation is supported for hierarchical routing configurations and sibling
 Following are few examples.
 
 ```typescript
-const childRoutePath = await router.generatePath({ component: 'parent', params: { id: 42 }, children: [{ component: 'child1' }] });
-const siblingRoutePath = await router.generatePath([{ component: 'sibling1', viewport: 'vp1' }, { component: 'sibling2', viewport: 'vp2' }]);
+const childRoutePath = await router.generatePath({
+  component: 'parent',
+  params: { id: 42 },
+  children: [{ component: 'child1' }]
+});
+const siblingRoutePath = await router.generatePath([
+  { component: 'sibling1', viewport: 'vp1' },
+  { component: 'sibling2', viewport: 'vp2' },
+]);
 ```
 
 Note that all routes are resolved, when said otherwise from the root routing context.

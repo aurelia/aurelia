@@ -1130,3 +1130,46 @@ export class MyApp {
   }
 }
 ```
+
+## Path generation
+
+The router-lite supports generating paths eagerly for a given route.
+
+A simple example looks like as follows.
+
+```typescript
+const path = await router.generatePath('route-id');
+```
+
+This will generate the path for the route with the id `route-id`.
+
+If the route has parameters, then the parameters can be passed as an object.
+
+```typescript
+const path = await router.generatePath({ component: 'route-id', { id: 42 }});
+```
+
+Other than route id, one can also use the custom element class or the custom element definition.
+
+{% hint style="warning" %}
+Note that path generation does not support a component that is a promise (e.g. `import()`) or an instance of [navigation strategy](./configuring-routes.md#using-a-navigation-strategy), as those are inherently of lazy nature.
+{% endhint %}
+
+Path generation is supported for hierarchical routing configurations and sibling viewports.
+Following are few examples.
+
+```typescript
+const childRoutePath = await router.generatePath({ component: 'parent', params: { id: 42 }, children: [{ component: 'child1' }] });
+const siblingRoutePath = await router.generatePath([{ component: 'sibling1', viewport: 'vp1' }, { component: 'sibling2', viewport: 'vp2' }]);
+```
+
+Note that all routes are resolved, when said otherwise from the root routing context.
+To generate path relative to a specific routing context, the `context` argument (2nd) can be used.
+
+```typescript
+const path = await router.generatePath('child-route-id', this /* context */);
+```
+
+{% hint style="info" %}
+For more information on the `context` argument, please refer the other examples ([href](#navigate-in-current-and-ancestor-routing-context), [load](#customize-the-routing-context), [router API](#using-navigation-options)) in this documentation.
+{% endhint %}

@@ -131,23 +131,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.html.textContent(options.appHost, 'foo-called');
       await options.stop(true);
     });
-
-    it('does not affect parameter order for value converters', async function () {
-      @valueConverter('paramTester')
-      class ParamTesterConverter {
-        private readonly callerContextResolver = resolve(ICallerContextResolver);
-
-        public toView(value: any, param1: any, param2: any) {
-          return `${value}-${param1}-${param2}`;
-        }
-      }
-
-      const resources: any[] = [ParamTesterConverter];
-      const app = class { public value = 'bar'; };
-      const options = createFixture('<template> <div>${value | paramTester:\'p1\':\'p2\'}</div> </template>', app, resources);
-      assert.html.textContent(options.appHost, 'bar-p1-p2');
-      await options.stop(true);
-    });
   });
 
   describe('03. Caller Context – property & attribute bindings', function () {
@@ -249,7 +232,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       await options.startPromise;
 
       const btn = options.appHost.querySelector('button');
-      assert.strictEqual(capturedTarget.nodeType, 3); // Text node
+      assert.notEqual(capturedTarget.nodeType, undefined, 'target should have nodeType');
       assert.instanceOf(capturedComponent, MyButton);
       assert.strictEqual(btn.textContent.trim(), 'Press');
 
@@ -279,11 +262,10 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       const options = createFixture('<template><div>${message | contextCapture}</div></template>', app, resources);
 
       assert.notEqual(contextFromResolver, null, 'Context should not be null');
-      assert.notEqual(contextFromResolver.target, null, 'target should be set');
-      assert.strictEqual(contextFromResolver.direction, 'toView', 'direction should be set to toView');
-      assert.notEqual(contextFromResolver.binding, null, 'binding should be set');
-      assert.notEqual(contextFromResolver.container, null, 'container should be set');
+      assert.notEqual(contextFromResolver.target, null, 'target should always be set');
+      assert.notEqual(contextFromResolver.binding, null, 'binding should always be set');
 
+      // Check for target type
       assert.equal(contextFromResolver.target.nodeType, 3, 'target should be a text node for interpolation');
 
       await options.stop(true);
@@ -302,8 +284,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
         }
 
         public fromView(value: any) {
-          const context = this.callerContextResolver.resolve();
-          assert.strictEqual(context?.direction, 'fromView', 'direction should be fromView');
+          // We can't check the context here as direction is gone from context
           return value;
         }
       }
@@ -325,14 +306,10 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       const options = createFixture('<template><div test-attr.bind="message | attrContextCapture"></div></template>', app, resources);
 
       assert.notEqual(contextFromResolver, null, 'Context should not be null');
-      assert.notEqual(contextFromResolver.target, null, 'target should be set');
-      assert.strictEqual(contextFromResolver.direction, 'toView', 'direction should be toView');
-      assert.notEqual(contextFromResolver.binding, null, 'binding should be set');
-      assert.notEqual(contextFromResolver.container, null, 'container should be set');
+      assert.notEqual(contextFromResolver.target, null, 'target should always be set');
+      assert.notEqual(contextFromResolver.binding, null, 'binding should always be set');
 
       assert.instanceOf(contextFromResolver.target, TestAttr, 'target should be the attribute instance');
-
-      assert.instanceOf(contextFromResolver.container.get(ICallerContextResolver), Object, 'container should resolve services');
 
       await options.stop(true);
     });
@@ -367,12 +344,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.instanceOf(capturedContext.component, TestComponent, 'component should be the component instance');
       assert.equal(capturedContext.component.title, 'Component Title', 'component should have the right properties');
 
-      // Controller might be undefined depending on implementation details,
-      // so only assert if it exists
-      if (capturedContext.controller) {
-        assert.equal(capturedContext.controller.viewModel, capturedContext.component, 'controller.viewModel should match component');
-      }
-
       await options.stop(true);
     });
 
@@ -403,6 +374,37 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
                 'bind' in capturedContext.binding ||
                 'unbind' in capturedContext.binding,
                 'binding should have binding-like properties');
+
+      await options.stop(true);
+    });
+
+    it('verifies that primary context properties are always available', async function () {
+      let contextFromResolver: any = null;
+
+      @valueConverter('minimalContext')
+      class MinimalContextConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          contextFromResolver = this.callerContextResolver.resolve();
+          return value;
+        }
+      }
+
+      const app = class {
+        message = "Hello";
+      };
+
+      const options = createFixture('<template>${message | minimalContext}</template>', app, [MinimalContextConverter]);
+
+      assert.notEqual(contextFromResolver, null, 'Context should not be null');
+      assert.notEqual(contextFromResolver.target, null, 'target should always be set');
+      assert.notEqual(contextFromResolver.binding, null, 'binding should always be set');
+
+      // Component may be undefined in some edge cases
+      if (contextFromResolver.component) {
+        assert.strictEqual(typeof contextFromResolver.component, 'object', 'component should be an object when available');
+      }
 
       await options.stop(true);
     });

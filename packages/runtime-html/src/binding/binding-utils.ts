@@ -11,6 +11,7 @@ import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { findElementControllerFor } from '../resources/custom-element';
 import { ICallerContextResolver } from './caller-context-resolver';
+import { Controller } from '../templating/controller';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -162,64 +163,57 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     }
   }
 
-  function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
+    function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
     const vc = evaluatorGetConverter(this, name);
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
 
-    let component;
-    let element;
-    let controller;
+    const binding = this;
+    const container = this.l;
+    const resolver = container.get(ICallerContextResolver);
 
-    try {
-      // Prefer to get the component from the binding's controller if available
-      const maybeController = (this as any)._controller;
-      if (typeof maybeController === 'object' && maybeController && 'viewModel' in maybeController) {
-        component = maybeController.viewModel;
-        controller = maybeController;
-      } else {
-        const node = (this as any).target;
-        let searchNode = node;
-        if (node && node.nodeType === 3 && node.parentNode) {
-          searchNode = node.parentNode;
-        }
+    // Create the context factory function for lazy evaluation
+    const createContext = () => {
+      let component: unknown;
+      const target = (binding as any).target;
 
-        // Try to find the element
-        if (searchNode && searchNode.nodeType !== undefined) {
-          element = searchNode;
-          const ceController = findElementControllerFor(searchNode, { optional: true });
-          component = ceController?.viewModel;
-          controller = ceController;
-        } else if (node && node.element) {
-          element = node.element;
-          const ceController = findElementControllerFor(node.element, { optional: true });
-          component = ceController?.viewModel;
-          controller = ceController;
+      // 1. Try to obtain component/controller directly from the binding
+      if ('_controller' in (binding as any)) {
+        const maybeController = (binding as any)._controller;
+        if (maybeController instanceof Controller) {
+          component = maybeController.viewModel;
         }
       }
-    } catch (e) {
-      // ignore
-    }
 
-    const target = (this as any).target;
-    const container = this.l;
-    const direction: 'toView' | 'fromView' = mode;
+      // 2. Fallback – derive from target/node hierarchy
+      if (component === undefined) {
+        const node: any = target;
+        let searchNode: any = node;
+        if (searchNode && searchNode.nodeType === 3 && searchNode.parentNode) {
+          searchNode = searchNode.parentNode;
+        }
 
-    const callerContext = {
-      target,
-      component,
-      binding: this,
-      element,
-      direction,
-      controller,
-      container
+        if (searchNode && (searchNode as Node).nodeType !== undefined) {
+          const ceController = findElementControllerFor(searchNode as Element, { optional: true });
+          component = ceController?.viewModel ?? component;
+        } else if (node && (node as any).element) {
+          const element = (node as any).element;
+          const ceController = findElementControllerFor(element, { optional: true });
+          component = ceController?.viewModel ?? component;
+        }
+      }
+
+      // Create context only when needed
+      return {
+        target,
+        binding,
+        component,
+      };
     };
 
-    const resolver = this.l.get(ICallerContextResolver);
-    resolver.set(callerContext);
-
-    try {
+    // Execute the value converter method with lazy context
+    return resolver.createLazyContext(createContext, () => {
       switch (mode) {
         case 'toView':
           if ('toView' in vc) {
@@ -232,10 +226,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
           }
           return value;
       }
-    } finally {
-      // Always clear the context after executing
-      resolver.set(null);
-    }
+    });
   }
 
   return <T extends IHasServiceLocator>(target: Constructable<T>) => {

@@ -182,10 +182,8 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
         // fallback to null if not available
       }
       callerContext = {
-        target: (this as any).target,
-        bridge: this,
-        controller,
         source: viewModel,
+        binding: this,
       };
     }
     switch (mode) {

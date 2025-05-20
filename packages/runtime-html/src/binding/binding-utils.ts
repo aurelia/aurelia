@@ -10,6 +10,7 @@ import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { IHydrationContext } from '../templating/controller';
+import type { ICallerContext } from '../resources/value-converter';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -170,7 +171,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     const def = ValueConverter.find(this.l as IContainer, name);
     const contextual = def?.contextual === true;
     // Compose caller context
-    let callerContext: any = null;
+    let callerContext: ICallerContext | null = null;
     if (contextual) {
       let controller = null;
       let viewModel = null;

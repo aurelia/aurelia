@@ -9,6 +9,7 @@ import {
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { resolve } from '@aurelia/kernel';
+import type { ICallerContext } from '@aurelia/runtime-html';
 
 // TemplateCompiler - value converter integration
 describe('3-runtime-html/value-converters.spec.ts', function () {
@@ -112,10 +113,10 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     it('passes the binding as the second argument if contextual is true', async function () {
       @valueConverter({ name: 'callerAware', contextual: true })
       class CallerAwareConverter {
-        public toView(value: any, caller: { source?: unknown, binding: unknown }) {
+        public toView(value: any, caller: ICallerContext) {
           return caller && caller.binding ? `${value}-called` : value;
         }
-        public fromView(value: any, caller: { source?: unknown, binding: unknown }) {
+        public fromView(value: any, caller: ICallerContext) {
           return caller && caller.binding ? `${value}-from` : value;
         }
       }
@@ -148,7 +149,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       let capturedBinding: any = null;
       @valueConverter({ name: 'propCaller', contextual: true })
       class PropCallerConverter {
-        public toView(v: any, caller: { source?: unknown, binding: unknown }) {
+        public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
           return v;
@@ -174,7 +175,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       let capturedBinding: any = null;
       @valueConverter({ name: 'attrCaller', contextual: true })
       class AttrCallerConverter {
-        public toView(v: any, caller: { source?: unknown, binding: unknown }) {
+        public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
           return v;
@@ -201,7 +202,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       let capturedBinding: any = null;
       @valueConverter({ name: 'vmCaller', contextual: true })
       class VmCallerConverter {
-        public toView(v: any, caller: { source?: unknown, binding: unknown }) {
+        public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
           return v;

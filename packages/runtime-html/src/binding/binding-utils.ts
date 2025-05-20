@@ -9,6 +9,8 @@ import { createInterface } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
+import { findElementControllerFor } from '../resources/custom-element';
+import { ICallerContextResolver } from './caller-context-resolver';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -165,11 +167,74 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
-    switch (mode) {
-      case 'toView':
-        return 'toView' in vc ? vc.toView(value, ...args) : value;
-      case 'fromView':
-        return 'fromView' in vc ? vc.fromView?.(value, ...args) : value;
+
+    let component;
+    let element;
+    let controller;
+
+    try {
+      // Prefer to get the component from the binding's controller if available
+      const maybeController = (this as any)._controller;
+      if (typeof maybeController === 'object' && maybeController && 'viewModel' in maybeController) {
+        component = maybeController.viewModel;
+        controller = maybeController;
+      } else {
+        const node = (this as any).target;
+        let searchNode = node;
+        if (node && node.nodeType === 3 && node.parentNode) {
+          searchNode = node.parentNode;
+        }
+
+        // Try to find the element
+        if (searchNode && searchNode.nodeType !== undefined) {
+          element = searchNode;
+          const ceController = findElementControllerFor(searchNode, { optional: true });
+          component = ceController?.viewModel;
+          controller = ceController;
+        } else if (node && node.element) {
+          element = node.element;
+          const ceController = findElementControllerFor(node.element, { optional: true });
+          component = ceController?.viewModel;
+          controller = ceController;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    const target = (this as any).target;
+    const container = this.l;
+    const direction: 'toView' | 'fromView' = mode;
+
+    const callerContext = {
+      target,
+      component,
+      binding: this,
+      element,
+      direction,
+      controller,
+      container
+    };
+
+    const resolver = this.l.get(ICallerContextResolver);
+    resolver.set(callerContext);
+
+    try {
+      switch (mode) {
+        case 'toView':
+          if ('toView' in vc) {
+            return vc.toView(value, ...args);
+          }
+          return value;
+        case 'fromView':
+          if ('fromView' in vc) {
+            return vc.fromView?.(value, ...args);
+          }
+          return value;
+      }
+    } finally {
+      // Always clear the context after executing
+      resolver.set(null);
     }
   }
 

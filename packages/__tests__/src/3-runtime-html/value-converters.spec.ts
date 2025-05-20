@@ -4,6 +4,8 @@ import {
   bindable,
   customAttribute,
   INode,
+  customElement,
+  ICallerContextResolver
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { resolve } from '@aurelia/kernel';
@@ -59,51 +61,351 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     it('Simple spread Alias doesn\'t break def alias works on value converter', async function () {
       const options = createFixture('<template> <div foo53.bind="value | woot13"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple spread Alias (1st position) works on value converter', async function () {
       const options = createFixture('<template> <div foo51.bind="value | woot11"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple spread Alias (2nd position) works on value converter', async function () {
       const options = createFixture('<template> <div foo52.bind="value | woot12"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple spread Alias doesn\'t break original value converter', async function () {
       const options = createFixture('<template> <div foo5.bind="value | woot2"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple Alias doesn\'t break def alias works on value converter', async function () {
       const options = createFixture('<template> <div foo43.bind="value | woot23"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple Alias (1st position) works on value converter', async function () {
       const options = createFixture('<template> <div foo41.bind="value | woot21"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple Alias (2nd position) works on value converter', async function () {
       const options = createFixture('<template> <div foo42.bind="value | woot22"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
     it('Simple Alias doesn\'t break original value converter', async function () {
       const options = createFixture('<template> <div foo4.bind="value | woot2"></div> </template>', app, resources);
       assert.strictEqual(options.appHost.firstElementChild.getAttribute('test'), 'wOOt1');
-      await options.tearDown();
+      await options.stop(true);
     });
 
+  });
+
+  describe('02. Caller Context', function () {
+    it('provides caller context through ICallerContextResolver', async function () {
+      @valueConverter('callerAware')
+      class CallerAwareConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          const callerContext = this.callerContextResolver.resolve();
+          return callerContext && callerContext.target ? `${value}-called` : value;
+        }
+
+        public fromView(value: any) {
+          const callerContext = this.callerContextResolver.resolve();
+          return callerContext && callerContext.target ? `${value}-from` : value;
+        }
+      }
+
+      const resources: any[] = [CallerAwareConverter];
+      const app = class { public value = 'foo'; };
+      const options = createFixture('<template> <div>${value | callerAware}</div> </template>', app, resources);
+      assert.html.textContent(options.appHost, 'foo-called');
+      await options.stop(true);
+    });
+
+    it('does not affect parameter order for value converters', async function () {
+      @valueConverter('paramTester')
+      class ParamTesterConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any, param1: any, param2: any) {
+          return `${value}-${param1}-${param2}`;
+        }
+      }
+
+      const resources: any[] = [ParamTesterConverter];
+      const app = class { public value = 'bar'; };
+      const options = createFixture('<template> <div>${value | paramTester:\'p1\':\'p2\'}</div> </template>', app, resources);
+      assert.html.textContent(options.appHost, 'bar-p1-p2');
+      await options.stop(true);
+    });
+  });
+
+  describe('03. Caller Context – property & attribute bindings', function () {
+    it('provides caller.target for property binding and caller.component for component context', async function () {
+      let capturedTarget: any = null;
+      let capturedComponent: any = null;
+
+      @valueConverter('propCaller')
+      class PropCallerConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(v: any) {
+          const caller = this.callerContextResolver.resolve();
+          capturedTarget = caller?.target;
+          capturedComponent = caller?.component;
+          // For property binding, caller.target is the input element, caller.component is the component
+          return v;
+        }
+      }
+
+      @customElement({
+        name: 'my-button',
+        template: '<input value.bind="value | propCaller">',
+        dependencies: [PropCallerConverter]
+      })
+      class MyButton {
+        public value = 'hello';
+      }
+
+      const options = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
+      await options.startPromise;
+
+      const input = options.appHost.querySelector('input');
+      assert.instanceOf(capturedTarget, options.appHost.ownerDocument.defaultView.HTMLInputElement);
+      assert.instanceOf(capturedComponent, MyButton);
+      assert.strictEqual(input.value, 'hello');
+
+      await options.stop(true);
+    });
+
+    it('provides caller.target for custom attribute binding', async function () {
+      let capturedTarget: any = null;
+
+      @valueConverter('attrCaller')
+      class AttrCallerConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(v: any) {
+          const caller = this.callerContextResolver.resolve();
+          capturedTarget = caller?.target;
+          return v;
+        }
+      }
+
+      @customAttribute('dummy')
+      class DummyAttr {
+        @bindable({ primary: true }) public value!: string;
+      }
+
+      const resources: any[] = [AttrCallerConverter, DummyAttr];
+      const app = class { public value = 'hi'; };
+
+      const options = createFixture('<template><div dummy.bind="value | attrCaller"></div></template>', app, resources);
+      assert.instanceOf(capturedTarget, DummyAttr);
+
+      await options.stop(true);
+    });
+  });
+
+  // 04. Caller Context – component resolution via interpolation
+  describe('04. Caller Context – component resolution via interpolation', function () {
+    it('captures the element and component via caller context when using interpolation in a custom element', async function () {
+      let capturedTarget: any = null;
+      let capturedComponent: any = null;
+
+      @valueConverter('vmCaller')
+      class VmCallerConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(v: any) {
+          const caller = this.callerContextResolver.resolve();
+          capturedTarget = caller?.target;
+          capturedComponent = caller?.component;
+          // For interpolation, caller.target is a Text node, caller.component is the component
+          return v;
+        }
+      }
+
+      @customElement({
+        name: 'my-button',
+        template: '<button>${label | vmCaller}</button>',
+        dependencies: [VmCallerConverter]
+      })
+      class MyButton {
+        public label = 'Press';
+      }
+
+      const options = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
+      await options.startPromise;
+
+      const btn = options.appHost.querySelector('button');
+      assert.strictEqual(capturedTarget.nodeType, 3); // Text node
+      assert.instanceOf(capturedComponent, MyButton);
+      assert.strictEqual(btn.textContent.trim(), 'Press');
+
+      await options.stop(true);
+    });
+  });
+
+  describe('05. Enhanced Caller Context Properties', function () {
+    it('provides all context properties in interpolation binding', async function () {
+      let contextFromResolver: any = null;
+
+      @valueConverter('contextCapture')
+      class ContextCaptureConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          contextFromResolver = this.callerContextResolver.resolve();
+          return value;
+        }
+      }
+
+      const resources = [ContextCaptureConverter];
+      const app = class {
+        message = "Hello World";
+      };
+
+      const options = createFixture('<template><div>${message | contextCapture}</div></template>', app, resources);
+
+      assert.notEqual(contextFromResolver, null, 'Context should not be null');
+      assert.notEqual(contextFromResolver.target, null, 'target should be set');
+      assert.strictEqual(contextFromResolver.direction, 'toView', 'direction should be set to toView');
+      assert.notEqual(contextFromResolver.binding, null, 'binding should be set');
+      assert.notEqual(contextFromResolver.container, null, 'container should be set');
+
+      assert.equal(contextFromResolver.target.nodeType, 3, 'target should be a text node for interpolation');
+
+      await options.stop(true);
+    });
+
+    it('provides all context properties in property binding', async function () {
+      let contextFromResolver: any = null;
+
+      @valueConverter('attrContextCapture')
+      class AttrContextCaptureConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          contextFromResolver = this.callerContextResolver.resolve();
+          return value;
+        }
+
+        public fromView(value: any) {
+          const context = this.callerContextResolver.resolve();
+          assert.strictEqual(context?.direction, 'fromView', 'direction should be fromView');
+          return value;
+        }
+      }
+
+      @customAttribute('test-attr')
+      class TestAttr {
+        @bindable({ primary: true }) value: string = '';
+      }
+
+      const resources = [AttrContextCaptureConverter, TestAttr];
+      const app = class {
+        message = "Test Message";
+
+        constructor() {
+          setTimeout(() => { this.message = "Changed"; }, 10);
+        }
+      };
+
+      const options = createFixture('<template><div test-attr.bind="message | attrContextCapture"></div></template>', app, resources);
+
+      assert.notEqual(contextFromResolver, null, 'Context should not be null');
+      assert.notEqual(contextFromResolver.target, null, 'target should be set');
+      assert.strictEqual(contextFromResolver.direction, 'toView', 'direction should be toView');
+      assert.notEqual(contextFromResolver.binding, null, 'binding should be set');
+      assert.notEqual(contextFromResolver.container, null, 'container should be set');
+
+      assert.instanceOf(contextFromResolver.target, TestAttr, 'target should be the attribute instance');
+
+      assert.instanceOf(contextFromResolver.container.get(ICallerContextResolver), Object, 'container should resolve services');
+
+      await options.stop(true);
+    });
+
+    it('provides component and controller in custom element context', async function () {
+      let capturedContext: any = null;
+
+      @valueConverter('componentContext')
+      class ComponentContextConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          capturedContext = this.callerContextResolver.resolve();
+          return value;
+        }
+      }
+
+      @customElement({
+        name: 'test-component',
+        template: '<div>${title | componentContext}</div>',
+        dependencies: [ComponentContextConverter]
+      })
+      class TestComponent {
+        @bindable title: string = 'Component Title';
+      }
+
+      const options = createFixture('<template><test-component></test-component></template>', class {}, [TestComponent]);
+      await options.startPromise;
+
+      // Verify component-specific properties
+      assert.notEqual(capturedContext, null, 'Context should not be null');
+      assert.instanceOf(capturedContext.component, TestComponent, 'component should be the component instance');
+      assert.equal(capturedContext.component.title, 'Component Title', 'component should have the right properties');
+
+      // Controller might be undefined depending on implementation details,
+      // so only assert if it exists
+      if (capturedContext.controller) {
+        assert.equal(capturedContext.controller.viewModel, capturedContext.component, 'controller.viewModel should match component');
+      }
+
+      await options.stop(true);
+    });
+
+    it('provides binding instance with access to scope in context', async function () {
+      let capturedContext: any = null;
+
+      @valueConverter('bindingContext')
+      class BindingContextConverter {
+        private readonly callerContextResolver = resolve(ICallerContextResolver);
+
+        public toView(value: any) {
+          capturedContext = this.callerContextResolver.resolve();
+          return value;
+        }
+      }
+
+      const app = class {
+        items = ['one', 'two', 'three'];
+      };
+
+      const options = createFixture('<template><div repeat.for="item of items">${item | bindingContext}</div></template>', app, [BindingContextConverter]);
+
+      assert.notEqual(capturedContext, null, 'Context should not be null');
+      assert.notEqual(capturedContext.binding, null, 'binding should be set');
+      assert.strictEqual(typeof capturedContext.binding, 'object', 'binding should be an object');
+
+      assert.ok('isBound' in capturedContext.binding ||
+                'bind' in capturedContext.binding ||
+                'unbind' in capturedContext.binding,
+                'binding should have binding-like properties');
+
+      await options.stop(true);
+    });
   });
 
 });

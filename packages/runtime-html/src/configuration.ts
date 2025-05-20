@@ -77,6 +77,7 @@ import { NodeObserverLocator } from './observation/observer-locator';
 import { instanceRegistration } from './utilities-di';
 import { EventModifierRegistration } from './binding/listener-binding';
 import { RuntimeTemplateCompilerImplementation } from './compiler/template-compiler';
+import { ICallerContextResolver } from './binding/caller-context-resolver';
 
 /**
  * Default HTML-specific (but environment-agnostic) implementations for the following interfaces:
@@ -88,6 +89,7 @@ export const DefaultComponents = [
   RuntimeTemplateCompilerImplementation,
   DirtyChecker,
   NodeObserverLocator,
+  ICallerContextResolver,
 ];
 
 /**

@@ -173,39 +173,35 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     // Compose caller context
     let callerContext: ICallerContext | null = null;
     if (contextual) {
-      let controller = null;
-      let viewModel = null;
-      try {
-        const hydrationContext = this.l.get(IHydrationContext);
-        controller = hydrationContext.controller;
-        viewModel = controller.viewModel;
-      } catch (e) {
-        // fallback to null if not available
-      }
+      const hydrationContext = this.l.get(IHydrationContext);
+      const controller = hydrationContext.controller;
+      const viewModel = controller.viewModel;
       callerContext = {
         source: viewModel,
         binding: this,
       };
     }
     switch (mode) {
-      case 'toView':
-        if ('toView' in vc) {
-          if (contextual) {
-            return vc.toView(value, callerContext, ...args);
-          } else {
-            return vc.toView(value, ...args);
-          }
+      case 'toView': {
+        if (!('toView' in vc)) {
+          return value;
         }
-        return value;
-      case 'fromView':
-        if ('fromView' in vc) {
-          if (contextual) {
-            return vc.fromView?.(value, callerContext, ...args);
-          } else {
-            return vc.fromView?.(value, ...args);
-          }
+
+        if (contextual) {
+          return vc.toView(value, callerContext, ...args);
         }
-        return value;
+        return vc.toView(value, ...args);
+      }
+      case 'fromView': {
+        if (!('fromView' in vc)) {
+          return value;
+        }
+
+        if (contextual) {
+          return vc.fromView?.(value, callerContext, ...args);
+        }
+        return vc.fromView?.(value, ...args);
+      }
     }
   }
 

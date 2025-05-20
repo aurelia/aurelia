@@ -122,8 +122,18 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       }
       const resources: any[] = [CallerAwareConverter];
       const app = class { public value = 'foo'; };
-      const options = createFixture('<template> <div>${value | callerAware}</div> </template>', app, resources);
-      assert.html.textContent(options.appHost, 'foo-called');
+      const options = createFixture('<template> <input value.bind="value | callerAware"></template>', app, resources);
+      // toView assertion
+      const input = options.appHost.querySelector('input');
+      assert.strictEqual(input.value, 'foo-called');
+
+      input.value = 'bar';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+
+      await Promise.resolve();
+
+      assert.strictEqual(options.component.value, 'bar-from');
+
       await options.stop(true);
     });
 
@@ -139,6 +149,35 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       const app = class { public value = 'bar'; };
       const options = createFixture('<template> <div>${value | noCaller}</div> </template>', app, resources);
       assert.html.textContent(options.appHost, 'bar-plain');
+      await options.stop(true);
+    });
+
+    it('passes both the context and additional arguments to a contextual value converter', async function () {
+      let receivedContext: ICallerContext | undefined;
+      let receivedArg1: any, receivedArg2: any;
+
+      @valueConverter({ name: 'contextAndArgs', contextual: true })
+      class ContextAndArgsConverter {
+        public toView(value: any, context: ICallerContext, arg1: any, arg2: any) {
+          receivedContext = context;
+          receivedArg1 = arg1;
+          receivedArg2 = arg2;
+          return `${value}-${arg1}-${arg2}`;
+        }
+      }
+
+      const resources: any[] = [ContextAndArgsConverter];
+      const app = class { public value = 'foo'; public arg1 = 'bar'; public arg2 = 42; };
+      const options = createFixture(
+        '<template> <div>${value | contextAndArgs:arg1:arg2}</div> </template>',
+        app,
+        resources
+      );
+      assert.html.textContent(options.appHost, 'foo-bar-42');
+      assert.strictEqual(typeof receivedContext, 'object');
+      assert.notStrictEqual(receivedContext, null);
+      assert.strictEqual(receivedArg1, 'bar');
+      assert.strictEqual(receivedArg2, 42);
       await options.stop(true);
     });
   });

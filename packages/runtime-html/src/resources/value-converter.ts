@@ -31,6 +31,7 @@ export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition &
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterInstance<T extends {} = {}> = {
   signals?: string[];
+  useCallerContext?: boolean;
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;

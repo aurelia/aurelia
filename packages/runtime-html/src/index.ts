@@ -409,5 +409,3 @@ export {
   alias,
   registerAliases,
 } from './utilities-di';
-
-export { ICallerContext, ICallerContextResolver } from './binding/caller-context-resolver';

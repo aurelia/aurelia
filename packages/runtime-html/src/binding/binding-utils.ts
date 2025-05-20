@@ -10,8 +10,6 @@ import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { findElementControllerFor } from '../resources/custom-element';
-import { ICallerContextResolver } from './caller-context-resolver';
-import { Controller } from '../templating/controller';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -163,70 +161,68 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     }
   }
 
-    function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
+  function evaluatorUseConverter<T extends IHasServiceLocator>(this: T, name: string, mode: 'toView' | 'fromView', value: unknown, args: unknown[]) {
     const vc = evaluatorGetConverter(this, name);
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
-
-    const binding = this;
-    const container = this.l;
-    const resolver = container.get(ICallerContextResolver);
-
-    // Create the context factory function for lazy evaluation
-    const createContext = () => {
-      let component: unknown;
-      const target = (binding as any).target;
-
-      // 1. Try to obtain component/controller directly from the binding
-      if ('_controller' in (binding as any)) {
-        const maybeController = (binding as any)._controller;
-        if (maybeController instanceof Controller) {
+    // Check for instance useCallerContext property
+    const useCallerContext = vc.useCallerContext === true;
+    // Compose caller context
+    let callerContext: any = null;
+    if (useCallerContext) {
+      // this is the binding instance
+      // .target is the element/attribute
+      // .component is the closest custom element view-model (if any)
+      let component;
+      try {
+        // Prefer to get the component from the binding's controller if available
+        const maybeController = (this as any)._controller;
+        if (typeof maybeController === 'object' && maybeController && 'viewModel' in maybeController) {
           component = maybeController.viewModel;
+        } else {
+          const node = (this as any).target;
+          let searchNode = node;
+          if (node && node.nodeType === 3 && node.parentNode) {
+            searchNode = node.parentNode;
+          }
+          if (searchNode && searchNode.nodeType !== undefined) {
+            const ceController = findElementControllerFor(searchNode, { optional: true });
+            component = ceController?.viewModel;
+          } else if (node && node.element) {
+            const ceController = findElementControllerFor(node.element, { optional: true });
+            component = ceController?.viewModel;
+          }
         }
+      } catch (e) {
+        // ignore
       }
-
-      // 2. Fallback – derive from target/node hierarchy
-      if (component === undefined) {
-        const node: any = target;
-        let searchNode: any = node;
-        if (searchNode && searchNode.nodeType === 3 && searchNode.parentNode) {
-          searchNode = searchNode.parentNode;
-        }
-
-        if (searchNode && (searchNode as Node).nodeType !== undefined) {
-          const ceController = findElementControllerFor(searchNode as Element, { optional: true });
-          component = ceController?.viewModel ?? component;
-        } else if (node && (node as any).element) {
-          const element = (node as any).element;
-          const ceController = findElementControllerFor(element, { optional: true });
-          component = ceController?.viewModel ?? component;
-        }
-      }
-
-      // Create context only when needed
-      return {
-        target,
-        binding,
-        component,
+      callerContext = {
+        target: (this as any).target,
+        bridge: this,
+        source: component,
       };
-    };
-
-    // Execute the value converter method with lazy context
-    return resolver.createLazyContext(createContext, () => {
-      switch (mode) {
-        case 'toView':
-          if ('toView' in vc) {
+    }
+    switch (mode) {
+      case 'toView':
+        if ('toView' in vc) {
+          if (useCallerContext) {
+            return vc.toView(value, callerContext, ...args);
+          } else {
             return vc.toView(value, ...args);
           }
-          return value;
-        case 'fromView':
-          if ('fromView' in vc) {
+        }
+        return value;
+      case 'fromView':
+        if ('fromView' in vc) {
+          if (useCallerContext) {
+            return vc.fromView?.(value, callerContext, ...args);
+          } else {
             return vc.fromView?.(value, ...args);
           }
-          return value;
-      }
-    });
+        }
+        return value;
+    }
   }
 
   return <T extends IHasServiceLocator>(target: Constructable<T>) => {

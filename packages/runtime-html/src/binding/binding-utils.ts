@@ -10,6 +10,7 @@ import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { findElementControllerFor } from '../resources/custom-element';
+import { Controller } from '../templating/controller';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -178,7 +179,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
       try {
         // Prefer to get the component from the binding's controller if available
         const maybeController = (this as any)._controller;
-        if (typeof maybeController === 'object' && maybeController && 'viewModel' in maybeController) {
+        if (maybeController instanceof Controller) {
           component = maybeController.viewModel;
         } else {
           const node = (this as any).target;

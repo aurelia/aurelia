@@ -125,3 +125,5 @@ export class MyApp {
   }
 }
 ```
+
+See [Current route](./current-route.md) for a deeper look at the service.

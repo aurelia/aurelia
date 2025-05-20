@@ -75,6 +75,7 @@
     * [Router hooks](router-lite/router-hooks.md)
     * [Router events](router-lite/router-events.md)
     * [Navigation model](router-lite/navigation-model.md)
+    * [Current route](router-lite/current-route.md)
     * [Transition plan](router-lite/transition-plans.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)

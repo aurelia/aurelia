@@ -10,7 +10,7 @@ import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
 import { findElementControllerFor } from '../resources/custom-element';
-import { Controller } from '../templating/controller';
+import { Controller, IHydrationContext } from '../templating/controller';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -172,36 +172,20 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     // Compose caller context
     let callerContext: any = null;
     if (useCallerContext) {
-      // this is the binding instance
-      // .target is the element/attribute
-      // .component is the closest custom element view-model (if any)
-      let component;
+      let controller = null;
+      let viewModel = null;
       try {
-        // Prefer to get the component from the binding's controller if available
-        const maybeController = (this as any)._controller;
-        if (maybeController instanceof Controller) {
-          component = maybeController.viewModel;
-        } else {
-          const node = (this as any).target;
-          let searchNode = node;
-          if (node && node.nodeType === 3 && node.parentNode) {
-            searchNode = node.parentNode;
-          }
-          if (searchNode && searchNode.nodeType !== undefined) {
-            const ceController = findElementControllerFor(searchNode, { optional: true });
-            component = ceController?.viewModel;
-          } else if (node && node.element) {
-            const ceController = findElementControllerFor(node.element, { optional: true });
-            component = ceController?.viewModel;
-          }
-        }
+        const hydrationContext = this.l.get(IHydrationContext);
+        controller = hydrationContext.controller;
+        viewModel = controller.viewModel;
       } catch (e) {
-        // ignore
+        // fallback to null if not available
       }
       callerContext = {
         target: (this as any).target,
         bridge: this,
-        source: component,
+        controller,
+        source: viewModel,
       };
     }
     switch (mode) {

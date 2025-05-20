@@ -5,9 +5,7 @@ import {
   customAttribute,
   INode,
   customElement,
-  IController,
   PropertyBinding,
-  InterpolationPartBinding,
 } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 import { resolve } from '@aurelia/kernel';
@@ -111,15 +109,14 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
   });
 
   describe('02. Caller Context', function () {
-    it('passes the binding as the second argument if useCallerContext is true', async function () {
-      @valueConverter('callerAware')
+    it('passes the binding as the second argument if contextual is true', async function () {
+      @valueConverter({ name: 'callerAware', contextual: true })
       class CallerAwareConverter {
-        public useCallerContext = true;
         public toView(value: any, caller: { target: unknown; bridge: unknown; source?: unknown }) {
-          return caller && caller.target && caller.bridge ? `${value}-called` : value;
+          return caller?.target && caller.bridge ? `${value}-called` : value;
         }
         public fromView(value: any, caller: { target: unknown; bridge: unknown; source?: unknown }) {
-          return caller && caller.target && caller.bridge ? `${value}-from` : value;
+          return caller?.target && caller.bridge ? `${value}-from` : value;
         }
       }
       const resources: any[] = [CallerAwareConverter];
@@ -129,7 +126,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       await options.stop(true);
     });
 
-    it('does not pass the binding as the second argument if useCallerContext is not set', async function () {
+    it('does not pass the binding as the second argument if contextual is not set', async function () {
       @valueConverter('noCaller')
       class NoCallerConverter {
         public toView(value: any, ...params: any[]) {
@@ -150,9 +147,8 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       let capturedTarget: any = null;
       let capturedComponent: any = null;
       let capturedBridge: any = null;
-      @valueConverter('propCaller')
+      @valueConverter({ name: 'propCaller', contextual: true })
       class PropCallerConverter {
-        public useCallerContext = true;
         public toView(v: any, caller: { target: unknown; bridge: unknown; source?: unknown }) {
           capturedTarget = caller.target;
           capturedBridge = caller.bridge;
@@ -182,9 +178,8 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     it('provides caller.target for custom attribute binding', async function () {
       let capturedTarget: any = null;
       let capturedBridge: any = null;
-      @valueConverter('attrCaller')
+      @valueConverter({ name: 'attrCaller', contextual: true })
       class AttrCallerConverter {
-        public useCallerContext = true;
         public toView(v: any, caller: { target: unknown; bridge: unknown; source?: unknown }) {
           capturedTarget = caller.target;
           capturedBridge = caller.bridge;
@@ -210,9 +205,8 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       let capturedTarget: any = null;
       let capturedComponent: any = null;
       let capturedBridge: any = null;
-      @valueConverter('vmCaller')
+      @valueConverter({ name: 'vmCaller', contextual: true })
       class VmCallerConverter {
-        public useCallerContext = true;
         public toView(v: any, caller: { target: unknown; bridge: unknown; source?: unknown }) {
           capturedTarget = caller.target;
           capturedBridge = caller.bridge;

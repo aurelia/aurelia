@@ -9,8 +9,7 @@ import { createInterface } from '../utilities-di';
 import { PropertyBinding } from './property-binding';
 import { ErrorNames, createMappedError } from '../errors';
 import { ISignaler } from '../signaler';
-import { findElementControllerFor } from '../resources/custom-element';
-import { Controller, IHydrationContext } from '../templating/controller';
+import { IHydrationContext } from '../templating/controller';
 
 /**
  * A subscriber that is used for subcribing to target observer & invoking `updateSource` on a binding
@@ -167,11 +166,12 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
-    // Check for instance useCallerContext property
-    const useCallerContext = vc.useCallerContext === true;
+    // Get the value converter definition to check for contextual
+    const def = ValueConverter.find(this.l as IContainer, name);
+    const contextual = def?.contextual === true;
     // Compose caller context
     let callerContext: any = null;
-    if (useCallerContext) {
+    if (contextual) {
       let controller = null;
       let viewModel = null;
       try {
@@ -191,7 +191,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     switch (mode) {
       case 'toView':
         if ('toView' in vc) {
-          if (useCallerContext) {
+          if (contextual) {
             return vc.toView(value, callerContext, ...args);
           } else {
             return vc.toView(value, ...args);
@@ -200,7 +200,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
         return value;
       case 'fromView':
         if ('fromView' in vc) {
-          if (useCallerContext) {
+          if (contextual) {
             return vc.fromView?.(value, callerContext, ...args);
           } else {
             return vc.fromView?.(value, ...args);

@@ -167,12 +167,11 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     if (vc == null) {
       throw createMappedError(ErrorNames.ast_converter_not_found, name);
     }
-    // Get the value converter definition to check for contextual
-    const def = ValueConverter.find(this.l as IContainer, name);
-    const contextual = def?.contextual === true;
+    // Get the value converter instance to check for withContext
+    const withContext = vc.withContext === true;
     // Compose caller context
     let callerContext: ICallerContext | null = null;
-    if (contextual) {
+    if (withContext) {
       const hydrationContext = this.l.get(IHydrationContext);
       const controller = hydrationContext.controller;
       const viewModel = controller.viewModel;
@@ -187,7 +186,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
           return value;
         }
 
-        if (contextual) {
+        if (withContext) {
           return vc.toView(value, callerContext, ...args);
         }
         return vc.toView(value, ...args);
@@ -197,7 +196,7 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
           return value;
         }
 
-        if (contextual) {
+        if (withContext) {
           return vc.fromView?.(value, callerContext, ...args);
         }
         return vc.fromView?.(value, ...args);

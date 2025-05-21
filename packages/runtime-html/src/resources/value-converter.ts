@@ -24,7 +24,7 @@ import { ErrorNames, createMappedError } from '../errors';
 import { getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
 export type PartialValueConverterDefinition = PartialResourceDefinition & {
-  contextual?: boolean;
+  withContext?: boolean;
 };
 export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition & {
   type: 'value-converter';
@@ -33,6 +33,7 @@ export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition &
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterInstance<T extends {} = {}> = {
   signals?: string[];
+  withContext?: boolean;
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;
@@ -68,15 +69,12 @@ export function valueConverter(nameOrDef: string | PartialValueConverterDefiniti
 }
 
 export class ValueConverterDefinition<T extends Constructable = Constructable> implements ResourceDefinition<T, ValueConverterInstance> {
-  public readonly contextual: boolean;
   private constructor(
     public readonly Type: ValueConverterType<T>,
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-    contextual?: boolean,
   ) {
-    this.contextual = contextual ?? false;
   }
 
   public static create<T extends Constructable = Constructable>(
@@ -97,7 +95,6 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
       firstDefined(getConverterAnnotation(Type, 'name'), name),
       mergeArrays(getConverterAnnotation(Type, 'aliases'), def.aliases, Type.aliases),
       ValueConverter.keyFrom(name),
-      firstDefined(getConverterAnnotation(Type, 'contextual'), def.contextual, false),
     );
   }
 

@@ -110,34 +110,31 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
   });
 
   describe('02. Caller Context', function () {
-    it('passes the binding as the second argument if contextual is true', async function () {
-      @valueConverter({ name: 'callerAware', contextual: true })
+    it('passes the binding as the second argument if withContext is true', async function () {
+      @valueConverter({ name: 'callerAware' })
       class CallerAwareConverter {
+        public readonly withContext = true;
         public toView(value: any, caller: ICallerContext) {
-          return caller && caller.binding ? `${value}-called` : value;
+          return caller?.binding ? `${value}-called` : value;
         }
         public fromView(value: any, caller: ICallerContext) {
-          return caller && caller.binding ? `${value}-from` : value;
+          return caller?.binding ? `${value}-from` : value;
         }
       }
       const resources: any[] = [CallerAwareConverter];
       const app = class { public value = 'foo'; };
-      const options = createFixture('<template> <input value.bind="value | callerAware"></template>', app, resources);
+      const fixture = createFixture('<template> <input value.bind="value | callerAware"></template>', app, resources);
       // toView assertion
-      const input = options.appHost.querySelector('input');
-      assert.strictEqual(input.value, 'foo-called');
+      fixture.assertValue('input', 'foo-called');
 
-      input.value = 'bar';
-      input.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.type('input', 'bar');
 
-      await Promise.resolve();
+      assert.strictEqual(fixture.component.value, 'bar-from');
 
-      assert.strictEqual(options.component.value, 'bar-from');
-
-      await options.stop(true);
+      await fixture.stop(true);
     });
 
-    it('does not pass the binding as the second argument if contextual is not set', async function () {
+    it('does not pass the binding as the second argument if withContext is not set', async function () {
       @valueConverter('noCaller')
       class NoCallerConverter {
         public toView(value: any, ...params: any[]) {
@@ -147,17 +144,18 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       }
       const resources: any[] = [NoCallerConverter];
       const app = class { public value = 'bar'; };
-      const options = createFixture('<template> <div>${value | noCaller}</div> </template>', app, resources);
-      assert.html.textContent(options.appHost, 'bar-plain');
-      await options.stop(true);
+      const fixture = createFixture('<template> <div>${value | noCaller}</div> </template>', app, resources);
+      fixture.assertText('div', 'bar-plain');
+      await fixture.stop(true);
     });
 
-    it('passes both the context and additional arguments to a contextual value converter', async function () {
-      let receivedContext: ICallerContext | undefined;
+    it('passes both the context and additional arguments to a withContext value converter', async function () {
+      let receivedContext: ICallerContext;
       let receivedArg1: any, receivedArg2: any;
 
-      @valueConverter({ name: 'contextAndArgs', contextual: true })
+      @valueConverter({ name: 'contextAndArgs' })
       class ContextAndArgsConverter {
+        public readonly withContext = true;
         public toView(value: any, context: ICallerContext, arg1: any, arg2: any) {
           receivedContext = context;
           receivedArg1 = arg1;
@@ -168,17 +166,17 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
 
       const resources: any[] = [ContextAndArgsConverter];
       const app = class { public value = 'foo'; public arg1 = 'bar'; public arg2 = 42; };
-      const options = createFixture(
+      const fixture = createFixture(
         '<template> <div>${value | contextAndArgs:arg1:arg2}</div> </template>',
         app,
         resources
       );
-      assert.html.textContent(options.appHost, 'foo-bar-42');
+      fixture.assertText('div', 'foo-bar-42');
       assert.strictEqual(typeof receivedContext, 'object');
       assert.notStrictEqual(receivedContext, null);
       assert.strictEqual(receivedArg1, 'bar');
       assert.strictEqual(receivedArg2, 42);
-      await options.stop(true);
+      await fixture.stop(true);
     });
   });
 
@@ -186,8 +184,9 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     it('provides caller.source for property binding and caller.binding for binding context', async function () {
       let capturedSource: any = null;
       let capturedBinding: any = null;
-      @valueConverter({ name: 'propCaller', contextual: true })
+      @valueConverter({ name: 'propCaller' })
       class PropCallerConverter {
+        public readonly withContext = true;
         public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
@@ -202,18 +201,19 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       class MyButton {
         public value = 'hello';
       }
-      const options = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
-      await options.startPromise;
+      const fixture = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
+      await fixture.startPromise;
       assert.instanceOf(capturedBinding, PropertyBinding);
       assert.instanceOf(capturedSource, MyButton);
-      await options.stop(true);
+      await fixture.stop(true);
     });
 
     it('provides caller.source for custom attribute binding', async function () {
       let capturedSource: any = null;
       let capturedBinding: any = null;
-      @valueConverter({ name: 'attrCaller', contextual: true })
+      @valueConverter({ name: 'attrCaller' })
       class AttrCallerConverter {
+        public readonly withContext = true;
         public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
@@ -226,11 +226,11 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       }
       const resources: any[] = [AttrCallerConverter, DummyAttr];
       const app = class { public value = 'hi'; };
-      const options = createFixture('<template><div dummy.bind="value | attrCaller"></div></template>', app, resources);
+      const fixture = createFixture('<template><div dummy.bind="value | attrCaller"></div></template>', app, resources);
       assert.instanceOf(capturedBinding, PropertyBinding);
       // source is the component view-model, which is the app instance in this case
       assert.instanceOf(capturedSource, app);
-      await options.stop(true);
+      await fixture.stop(true);
     });
   });
 
@@ -239,8 +239,9 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     it('captures the component via caller.source and binding via caller.binding when using interpolation in a custom element', async function () {
       let capturedSource: any = null;
       let capturedBinding: any = null;
-      @valueConverter({ name: 'vmCaller', contextual: true })
+      @valueConverter({ name: 'vmCaller' })
       class VmCallerConverter {
+        public readonly withContext = true;
         public toView(v: any, caller: ICallerContext) {
           capturedSource = caller.source;
           capturedBinding = caller.binding;
@@ -255,11 +256,11 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       class MyButton {
         public label = 'Press';
       }
-      const options = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
-      await options.startPromise;
+      const fixture = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
+      await fixture.startPromise;
       assert.instanceOf(capturedBinding, Object); // _ContentBinding or similar
       assert.instanceOf(capturedSource, MyButton);
-      await options.stop(true);
+      await fixture.stop(true);
     });
   });
 

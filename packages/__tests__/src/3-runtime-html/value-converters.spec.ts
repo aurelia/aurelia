@@ -130,8 +130,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       fixture.type('input', 'bar');
 
       assert.strictEqual(fixture.component.value, 'bar-from');
-
-      await fixture.stop(true);
     });
 
     it('does not pass the binding as the second argument if withContext is not set', async function () {
@@ -146,7 +144,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       const app = class { public value = 'bar'; };
       const fixture = createFixture('<template> <div>${value | noCaller}</div> </template>', app, resources);
       fixture.assertText('div', 'bar-plain');
-      await fixture.stop(true);
     });
 
     it('passes both the context and additional arguments to a withContext value converter', async function () {
@@ -176,7 +173,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.notStrictEqual(receivedContext, null);
       assert.strictEqual(receivedArg1, 'bar');
       assert.strictEqual(receivedArg2, 42);
-      await fixture.stop(true);
     });
   });
 
@@ -230,7 +226,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.instanceOf(capturedBinding, PropertyBinding);
       // source is the component view-model, which is the app instance in this case
       assert.instanceOf(capturedSource, app);
-      await fixture.stop(true);
     });
   });
 
@@ -257,10 +252,9 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
         public label = 'Press';
       }
       const fixture = createFixture('<template><my-button></my-button></template>', class {}, [MyButton]);
-      await fixture.startPromise;
+
       assert.instanceOf(capturedBinding, Object); // _ContentBinding or similar
       assert.instanceOf(capturedSource, MyButton);
-      await fixture.stop(true);
     });
   });
 
@@ -301,8 +295,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.instanceOf(capturedBinding, Object, 'capturedBinding should be an object'); // Binding instance
       assert.instanceOf(capturedSource, ParentEl, 'capturedSource should be ParentEl instance');
       assert.strictEqual(capturedSource.message, 'hello from slot');
-
-      await fixture.stop(true);
     });
 
     it('provides correct caller.source and caller.binding when VC with context is used in projected content with explicit slot name', async function () {
@@ -340,8 +332,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.instanceOf(capturedBinding, Object, 'capturedBinding should be an object for named slot'); // Binding instance
       assert.instanceOf(capturedSource, ParentElNamed, 'capturedSource should be ParentElNamed instance for named slot');
       assert.strictEqual(capturedSource.message, 'hello from named slot');
-
-      await fixture.stop(true);
     });
 
     it('provides correct caller.source from repeater scope for VC in slotted content inside repeater', async function () {
@@ -384,8 +374,6 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
       assert.instanceOf(capturedBindings[0], Object, 'First captured binding should be an object');
       assert.instanceOf(capturedBindings[1], Object, 'Second captured binding should be an object');
       assert.notStrictEqual(capturedBindings[0], capturedBindings[1], 'Bindings should be different for each item');
-
-      await fixture.stop(true);
     });
   });
 });

@@ -235,7 +235,7 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
   });
 
   // 04. Caller Context – component resolution via interpolation
-  describe('04. Caller Context – component resolution via interpolation', function () {
+  describe('04. Caller Context - component resolution via interpolation', function () {
     it('captures the component via caller.source and binding via caller.binding when using interpolation in a custom element', async function () {
       let capturedSource: any = null;
       let capturedBinding: any = null;
@@ -264,4 +264,128 @@ describe('3-runtime-html/value-converters.spec.ts', function () {
     });
   });
 
+  // 05. Caller Context – au-slot
+  describe('05. Caller Context - au-slot', function () {
+    it('provides correct caller.source and caller.binding when VC with context is used in projected content', async function () {
+      let capturedSource: any = null;
+      let capturedBinding: any = null;
+
+      @valueConverter({ name: 'slotContextVc' })
+      class SlotContextVc {
+        public readonly withContext = true;
+        public toView(v: any, caller: ICallerContext) {
+          capturedSource = caller.source;
+          capturedBinding = caller.binding;
+          return v;
+        }
+      }
+
+      @customElement({
+        name: 'child-el',
+        template: '<au-slot></au-slot>',
+      })
+      class ChildEl {}
+
+      @customElement({
+        name: 'parent-el',
+        template: '<child-el>${message | slotContextVc}</child-el>',
+        dependencies: [ChildEl, SlotContextVc],
+      })
+      class ParentEl {
+        public message = 'hello from slot';
+      }
+
+      const fixture = createFixture('<parent-el></parent-el>', class {}, [ParentEl]);
+      await fixture.startPromise;
+
+      assert.instanceOf(capturedBinding, Object, 'capturedBinding should be an object'); // Binding instance
+      assert.instanceOf(capturedSource, ParentEl, 'capturedSource should be ParentEl instance');
+      assert.strictEqual(capturedSource.message, 'hello from slot');
+
+      await fixture.stop(true);
+    });
+
+    it('provides correct caller.source and caller.binding when VC with context is used in projected content with explicit slot name', async function () {
+      let capturedSource: any = null;
+      let capturedBinding: any = null;
+
+      @valueConverter({ name: 'slotContextNamedVc' })
+      class SlotContextNamedVc {
+        public readonly withContext = true;
+        public toView(v: any, caller: ICallerContext) {
+          capturedSource = caller.source;
+          capturedBinding = caller.binding;
+          return v;
+        }
+      }
+
+      @customElement({
+        name: 'child-el-named',
+        template: '<au-slot name="s1"></au-slot>',
+      })
+      class ChildElNamed {}
+
+      @customElement({
+        name: 'parent-el-named',
+        template: '<child-el-named><div au-slot="s1">${message | slotContextNamedVc}</div></child-el-named>',
+        dependencies: [ChildElNamed, SlotContextNamedVc],
+      })
+      class ParentElNamed {
+        public message = 'hello from named slot';
+      }
+
+      const fixture = createFixture('<parent-el-named></parent-el-named>', class {}, [ParentElNamed]);
+      await fixture.startPromise;
+
+      assert.instanceOf(capturedBinding, Object, 'capturedBinding should be an object for named slot'); // Binding instance
+      assert.instanceOf(capturedSource, ParentElNamed, 'capturedSource should be ParentElNamed instance for named slot');
+      assert.strictEqual(capturedSource.message, 'hello from named slot');
+
+      await fixture.stop(true);
+    });
+
+    it('provides correct caller.source from repeater scope for VC in slotted content inside repeater', async function () {
+      const capturedSources: any[] = [];
+      const capturedBindings: any[] = [];
+
+      @valueConverter({ name: 'repeaterSlotVc' })
+      class RepeaterSlotVc {
+        public readonly withContext = true;
+        public toView(v: any, caller: ICallerContext) {
+          capturedSources.push(caller.source);
+          capturedBindings.push(caller.binding);
+          return v;
+        }
+      }
+
+      @customElement({
+        name: 'child-repeater-el',
+        template: '<au-slot></au-slot>',
+      })
+      class ChildRepeaterEl {}
+
+      @customElement({
+        name: 'parent-repeater-el',
+        template: '<child-repeater-el repeat.for="item of items">${item.name | repeaterSlotVc}</child-repeater-el>',
+        dependencies: [ChildRepeaterEl, RepeaterSlotVc],
+      })
+      class ParentRepeaterEl {
+        public items = [{ name: 'item1' }, { name: 'item2' }];
+      }
+
+      const fixture = createFixture('<parent-repeater-el></parent-repeater-el>', class {}, [ParentRepeaterEl]);
+      await fixture.startPromise;
+
+      assert.strictEqual(capturedSources.length, 2, 'Should have captured two sources');
+      assert.strictEqual(capturedBindings.length, 2, 'Should have captured two bindings');
+      assert.instanceOf(capturedSources[0], ParentRepeaterEl, 'First captured source should be ParentRepeaterEl');
+      assert.instanceOf(capturedSources[1], ParentRepeaterEl, 'Second captured source should be ParentRepeaterEl');
+      assert.strictEqual(capturedSources[0], capturedSources[1], 'Both sources should be the same ParentRepeaterEl instance');
+      assert.instanceOf(capturedBindings[0], Object, 'First captured binding should be an object');
+      assert.instanceOf(capturedBindings[1], Object, 'Second captured binding should be an object');
+      assert.notStrictEqual(capturedBindings[0], capturedBindings[1], 'Bindings should be different for each item');
+
+      await fixture.stop(true);
+    });
+  });
 });

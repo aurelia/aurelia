@@ -182,24 +182,20 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
     }
     switch (mode) {
       case 'toView': {
-        if (!('toView' in vc)) {
-          return value;
+        if ('toView' in vc) {
+          return withContext
+            ? vc.toView(value, callerContext, ...args)
+            : vc.toView(value, ...args);
         }
-
-        if (withContext) {
-          return vc.toView(value, callerContext, ...args);
-        }
-        return vc.toView(value, ...args);
+        return value;
       }
       case 'fromView': {
-        if (!('fromView' in vc)) {
-          return value;
+        if ('fromView' in vc) {
+          return withContext
+            ? vc.fromView?.(value, callerContext, ...args)
+            : vc.fromView?.(value, ...args);
         }
-
-        if (withContext) {
-          return vc.fromView?.(value, callerContext, ...args);
-        }
-        return vc.fromView?.(value, ...args);
+        return value;
       }
     }
   }

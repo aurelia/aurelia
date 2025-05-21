@@ -4,6 +4,8 @@ import {
   IModule,
   isArrayIndex,
   isObjectOrFunction,
+  onResolve,
+  onResolveAll,
   Writable,
 } from '@aurelia/kernel';
 import {
@@ -264,9 +266,23 @@ export class ViewportInstructionTree {
   public static create(
     instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
     routerOptions: RouterOptions,
-    options?: INavigationOptions | NavigationOptions,
-    rootCtx?: IRouteContext | null,
-  ): ViewportInstructionTree {
+    options: INavigationOptions | NavigationOptions | null,
+    rootCtx: IRouteContext | null,
+  ): ViewportInstructionTree;
+  public static create(
+    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    routerOptions: RouterOptions,
+    options: INavigationOptions | NavigationOptions | null,
+    rootCtx: IRouteContext | null,
+    traverseChildren: true,
+  ): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public static create(
+    instructionOrInstructions: NavigationInstruction | NavigationInstruction[],
+    routerOptions: RouterOptions,
+    options: INavigationOptions | NavigationOptions | null,
+    rootCtx: IRouteContext | null,
+    traverseChildren?: boolean,
+  ): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     options = options instanceof NavigationOptions ? options : NavigationOptions.create(routerOptions, options ?? emptyObject);
 
     let context = options.context as RouteContext;
@@ -276,20 +292,26 @@ export class ViewportInstructionTree {
     const hasContext = context != null;
 
     if (instructionOrInstructions instanceof Array) {
+      // This whole process is synchronous, if traverseChildren is not true.
       const len = instructionOrInstructions.length;
       const children = new Array(len);
       const query = new URLSearchParams(options.queryParams ?? emptyObject);
+      const promises: (Promise<void> | void)[] = new Array(len);
       for (let i = 0; i < len; i++) {
         const instruction = instructionOrInstructions[i];
-        const eagerVi = hasContext ? context._generateViewportInstruction(instruction) : null;
-        if (eagerVi !== null) {
-          children[i] = eagerVi.vi;
-          mergeURLSearchParams(query, eagerVi.query, false);
-        } else {
-          children[i] = ViewportInstruction.create(instruction);
-        }
+        promises[i] = onResolve(
+          hasContext ? context.routeConfigContext._generateViewportInstruction(instruction, traverseChildren as true) : null,
+          eagerVi => {
+            if (eagerVi !== null) {
+              children[i] = eagerVi.vi;
+              mergeURLSearchParams(query, eagerVi.query, false);
+            } else {
+              children[i] = ViewportInstruction.create(instruction);
+            }
+          }
+        );
       }
-      return new ViewportInstructionTree(options as NavigationOptions, false, children, query, (options as NavigationOptions).fragment);
+      return onResolve(onResolveAll(Promise.all(promises)), () => new ViewportInstructionTree(options as NavigationOptions, false, children, query, (options as NavigationOptions).fragment));
     }
 
     if (typeof instructionOrInstructions === 'string') {
@@ -297,28 +319,34 @@ export class ViewportInstructionTree {
       return expr.toInstructionTree(options as NavigationOptions);
     }
 
-    const eagerVi = hasContext
-      ? context._generateViewportInstruction(isPartialViewportInstruction(instructionOrInstructions)
-        ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
-        : { component: instructionOrInstructions, params: emptyObject }
-      )
-      : null;
-    const query = new URLSearchParams(options.queryParams ?? emptyObject);
-    return eagerVi !== null
-      ? new ViewportInstructionTree(
-        options as NavigationOptions,
-        false,
-        [eagerVi.vi],
-        mergeURLSearchParams(query, eagerVi.query, false),
-        (options as NavigationOptions).fragment,
-      )
-      : new ViewportInstructionTree(
-        options as NavigationOptions,
-        false,
-        [ViewportInstruction.create(instructionOrInstructions)],
-        query,
-        (options as NavigationOptions).fragment,
-      );
+    return onResolve(
+      hasContext
+        ? context.routeConfigContext._generateViewportInstruction(
+          isPartialViewportInstruction(instructionOrInstructions)
+            ? { ...instructionOrInstructions, params: instructionOrInstructions.params ?? emptyObject }
+            : { component: instructionOrInstructions, params: emptyObject },
+          traverseChildren as true
+        )
+        : null,
+      eagerVi => {
+        const query = new URLSearchParams(options.queryParams ?? emptyObject);
+        return eagerVi !== null
+          ? new ViewportInstructionTree(
+            options as NavigationOptions,
+            false,
+            [eagerVi.vi],
+            mergeURLSearchParams(query, eagerVi.query, false),
+            (options as NavigationOptions).fragment,
+          )
+          : new ViewportInstructionTree(
+            options as NavigationOptions,
+            false,
+            [ViewportInstruction.create(instructionOrInstructions)],
+            query,
+            (options as NavigationOptions).fragment,
+          );
+      }
+    );
   }
 
   public equals(other: ViewportInstructionTree): boolean {
@@ -345,7 +373,7 @@ export class ViewportInstructionTree {
       let ctx: IRouteContext | null = this.options.context as IRouteContext | null;
       if (ctx != null && !(ctx instanceof RouteContext)) throw new Error('Invalid operation; incompatible navigation context.');
 
-      while (ctx != null && !ctx.isRoot) {
+      while (ctx != null && !ctx.routeConfigContext.isRoot) {
         const vpa = ctx.vpa;
         const node = vpa._currState === State.currIsActive ? vpa._currNode : vpa._nextNode;
         if (node == null) throw new Error('Invalid operation; nodes of the viewport agent are not set.');

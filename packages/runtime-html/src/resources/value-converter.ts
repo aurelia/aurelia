@@ -23,9 +23,7 @@ import type {
 import { ErrorNames, createMappedError } from '../errors';
 import { getDefinitionFromStaticAu, type IResourceKind } from './resources-shared';
 
-export type PartialValueConverterDefinition = PartialResourceDefinition & {
-  withContext?: boolean;
-};
+export type PartialValueConverterDefinition = PartialResourceDefinition;
 export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition & {
   type: 'value-converter';
 };

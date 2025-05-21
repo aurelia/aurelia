@@ -260,6 +260,7 @@ export {
   type ValueConverterDecorator,
   type ValueConverterType,
   type ValueConverterInstance,
+  type ICallerContext,
   valueConverter,
 } from './resources/value-converter';
 

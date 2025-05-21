@@ -7,9 +7,14 @@ export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition &
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterInstance<T extends {} = {}> = {
     signals?: string[];
+    withContext?: boolean;
     toView(input: unknown, ...args: unknown[]): unknown;
     fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;
+export interface ICallerContext {
+    source?: unknown;
+    binding: unknown;
+}
 export type ValueConverterKind = IResourceKind & {
     isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
     define<T extends Constructable>(name: string, Type: T, decoratorContext?: DecoratorContext): ValueConverterType<T>;

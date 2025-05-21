@@ -1094,12 +1094,33 @@ const gt = /*@__PURE__*/ (() => {
         if (n == null) {
             throw createMappedError(103, t);
         }
+        const r = n.withContext === true;
+        let l = null;
+        if (r) {
+            const t = this.l.get(He);
+            const e = t.controller;
+            const s = e.viewModel;
+            l = {
+                source: s,
+                binding: this
+            };
+        }
         switch (e) {
           case "toView":
-            return "toView" in n ? n.toView(s, ...i) : s;
+            {
+                if ("toView" in n) {
+                    return r ? n.toView(s, l, ...i) : n.toView(s, ...i);
+                }
+                return s;
+            }
 
           case "fromView":
-            return "fromView" in n ? n.fromView?.(s, ...i) : s;
+            {
+                if ("fromView" in n) {
+                    return r ? n.fromView?.(s, l, ...i) : n.fromView?.(s, ...i);
+                }
+                return s;
+            }
         }
     }
     return t => {

@@ -47,7 +47,7 @@ export { Portal, type PortalTarget, type PortalLifecycleCallback, } from './reso
 export { AuSlot, } from './resources/custom-elements/au-slot';
 export { capture, containerless, customElement, CustomElement, type CustomElementDecorator, type CustomElementKind, type CustomElementType, CustomElementDefinition, type PartialCustomElementDefinition, type CustomElementStaticAuDefinition, useShadowDOM, processContent, } from './resources/custom-element';
 export { AuCompose, type IDynamicComponentActivate, } from './resources/custom-elements/au-compose';
-export { ValueConverter, ValueConverterDefinition, type PartialValueConverterDefinition, type ValueConverterStaticAuDefinition, type ValueConverterKind, type ValueConverterDecorator, type ValueConverterType, type ValueConverterInstance, valueConverter, } from './resources/value-converter';
+export { ValueConverter, ValueConverterDefinition, type PartialValueConverterDefinition, type ValueConverterStaticAuDefinition, type ValueConverterKind, type ValueConverterDecorator, type ValueConverterType, type ValueConverterInstance, type ICallerContext, valueConverter, } from './resources/value-converter';
 export { ISanitizer, SanitizeValueConverter, } from './resources/value-converters/sanitize';
 export { type ConfigurationOptionsProvider, DefaultComponents, DefaultBindingSyntax, ShortHandBindingSyntax, DefaultBindingLanguage, DefaultResources, DefaultRenderers, StandardConfiguration, } from './configuration';
 export { 

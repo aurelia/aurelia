@@ -1403,11 +1403,36 @@ const mixinAstEvaluator = /*@__PURE__*/ (() => {
         if (vc == null) {
             throw createMappedError(103 /* ErrorNames.ast_converter_not_found */, name);
         }
+        // Get the value converter instance to check for withContext
+        const withContext = vc.withContext === true;
+        // Compose caller context
+        let callerContext = null;
+        if (withContext) {
+            const hydrationContext = this.l.get(IHydrationContext);
+            const controller = hydrationContext.controller;
+            const viewModel = controller.viewModel;
+            callerContext = {
+                source: viewModel,
+                binding: this,
+            };
+        }
         switch (mode) {
-            case 'toView':
-                return 'toView' in vc ? vc.toView(value, ...args) : value;
-            case 'fromView':
-                return 'fromView' in vc ? vc.fromView?.(value, ...args) : value;
+            case 'toView': {
+                if ('toView' in vc) {
+                    return withContext
+                        ? vc.toView(value, callerContext, ...args)
+                        : vc.toView(value, ...args);
+                }
+                return value;
+            }
+            case 'fromView': {
+                if ('fromView' in vc) {
+                    return withContext
+                        ? vc.fromView?.(value, callerContext, ...args)
+                        : vc.fromView?.(value, ...args);
+                }
+                return value;
+            }
         }
     }
     return (target) => {

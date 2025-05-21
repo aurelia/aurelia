@@ -1,6 +1,6 @@
 {
   "name": "@aurelia/dialog",
-  "version": "2.1.0-dev.202505182253",
+  "version": "2.1.0-dev.202505212343",
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
   "exports": {
@@ -54,11 +54,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202505182253",
-    "@aurelia/metadata": "2.1.0-dev.202505182253",
-    "@aurelia/platform-browser": "2.1.0-dev.202505182253",
-    "@aurelia/runtime": "2.1.0-dev.202505182253",
-    "@aurelia/runtime-html": "2.1.0-dev.202505182253"
+    "@aurelia/kernel": "2.1.0-dev.202505212343",
+    "@aurelia/metadata": "2.1.0-dev.202505212343",
+    "@aurelia/platform-browser": "2.1.0-dev.202505212343",
+    "@aurelia/runtime": "2.1.0-dev.202505212343",
+    "@aurelia/runtime-html": "2.1.0-dev.202505212343"
   },
   "devDependencies": {
     "typescript": "5.4.2"

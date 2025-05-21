@@ -1,7 +1,5 @@
 export {
   // enums
-  type DialogActionKey,
-  type DialogMouseEventType,
   type DialogDeactivationStatuses,
 
   // main interfaces
@@ -10,7 +8,6 @@ export {
   IDialogDomRenderer,
   IDialogDom,
   IDialogDomAnimator,
-  IDialogEventManager,
 
   // dialog results
   DialogCloseResult,
@@ -44,7 +41,7 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
-  DialogStandardHtmlDialogConfiguration,
+  DialogStandardConfiguration as DialogStandardHtmlDialogConfiguration,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 
@@ -52,11 +49,18 @@ export {
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
+  ClassDialogRenderConfig,
+  type DialogActionKey,
+  type DialogMouseEventType,
+  IDialogEventManager
+} from './dialog-classic-impl';
 
+export {
   HtmlDialogDomRenderer,
   HtmlDialogDom,
-} from './dialog-default-impl';
+  type HtmlDialogRenderConfig,
+} from './dialog-standard-impl';
 
 export {
   DefaultDialogEventManager,
-} from './dialog-event-manager';
+} from './dialog-classic-event-manager';

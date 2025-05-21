@@ -921,7 +921,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const { dialog } = await dialogService.open({
             template: 'Hello world',
             renderer: {
-              render(host, _settings) {
+              TRenderProps(host, _settings) {
                 host.append(overlay, contentHost);
                 return {
                   overlay,
@@ -951,7 +951,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           const { dialog } = await dialogService.open({
             template: 'Hello world',
             renderer: {
-              render(_host, _settings) {
+              TRenderProps(_host, _settings) {
                 return {
                   overlay,
                   contentHost,

@@ -68,7 +68,7 @@ export class DialogService implements IDialogService {
    * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
-  public open(settings: IDialogSettings): DialogOpenPromise {
+  public open<TModel, TVm extends object, TConfig>(settings: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
       const $settings = DialogSettings.from(this._defaultSettings, settings);
       const container = $settings.container ?? this._ctn.createChild();

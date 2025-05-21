@@ -15,7 +15,7 @@ export interface IDialogService {
    * @param settings - Dialog settings for this dialog instance.
    * @returns Promise A promise that settles when the dialog is closed.
    */
-  open(settings?: IDialogSettings): DialogOpenPromise;
+  open<TModel, TVm extends object, TConfig>(settings?: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -44,9 +44,9 @@ export interface IDialogController {
 /**
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
-export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer>('IDialogDomRenderer');
-export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
+export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer<unknown>>('IDialogDomRenderer');
+export interface IDialogDomRenderer<TConfig> {
+  render(dialogHost: Element, requestor: IDialogController, settings: TConfig): IDialogDom;
 }
 
 /**
@@ -76,21 +76,6 @@ export interface IDialogDomAnimator {
   hide(dom: IDialogDom): void | Promise<void>;
 }
 
-export const IDialogEventManager = /*@__PURE__*/createInterface<IDialogEventManager>('IDialogKeyboardService');
-/**
- * An interface for managing the events of dialogs
- */
-export interface IDialogEventManager {
-  /**
-   * Manage the events of a dialog controller & its dom
-   *
-   * @param controller - the dialog controller to have its events managed
-   * @param dom - the corresponding dialog dom of the controller
-   * @returns a disposable handle to be call whenever the dialog event manager should stop managing the dialog controller & its dom
-   */
-  add(controller: IDialogController, dom: IDialogDom): IDisposable;
-}
-
 /* tslint:disable:max-line-length */
 /**
  * The promised returned from a dialog composition.
@@ -112,12 +97,13 @@ export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
+  TRenderConfig = unknown,
 > {
 
   /**
    * A custom renderer for the dialog.
    */
-  renderer?: IDialogDomRenderer;
+  renderer?: IDialogDomRenderer<TRenderConfig>;
 
   /**
    * The view model url, constructor or instance for the dialog.
@@ -146,23 +132,15 @@ export interface IDialogSettings<
   container?: IContainer;
 
   /**
+   * The configuration for the dialog. Different renderers may have different configuration options.
+   */
+  config?: TRenderConfig;
+
+  /**
    * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.
    * When set to "true" the dialog does not close on ESC key or clicking outside of it.
    */
   lock?: boolean;
-
-  /**
-   * When set to "true" the dialog will be modal.
-   * This means that the dialog will be displayed as a modal dialog.
-   * The default value is "false".
-   *
-   * Note that this depends on the renderer,
-   * Some renderers may not support this feature.
-   *
-   * Readmore on the modal behavior of dialogs on MDN
-   * https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement#opening_a_modal_dialog
-   */
-  asModal?: boolean;
 
   /**
    * Allows for closing the top most dialog via the keyboard.
@@ -199,15 +177,15 @@ export interface IDialogSettings<
   rejectOnCancel?: boolean;
 }
 
-export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
+export type IDialogLoadedSettings<T extends object = object, TRenderConfig extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
   readonly keyboard: DialogActionKey[];
-  renderer?: IDialogDomRenderer;
+  renderer?: IDialogDomRenderer<TRenderConfig>;
 };
 
 export type IDialogGlobalSettings = Pick<
-  IDialogSettings,
+  IDialogSettings<object>,
   'lock' | 'startingZIndex' | 'rejectOnCancel'
 >;
 export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');

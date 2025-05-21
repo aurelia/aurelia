@@ -8,7 +8,6 @@ import {
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
-  IDialogEventManager,
 } from './dialog-interfaces';
 import { instanceRegistration } from './utilities-di';
 
@@ -35,8 +34,8 @@ export class DialogController implements IDialogController {
   /** @internal */
   private _reject!: (reason: unknown) => void;
 
-  /** @internal */
-  private _disposeHandler: IDisposable | undefined = void 0;
+  // /** @internal */
+  // private _disposeHandler: IDisposable | undefined = void 0;
 
   /**
    * @internal
@@ -79,12 +78,12 @@ export class DialogController implements IDialogController {
       renderer = container.get(IDialogDomRenderer),
     } = settings;
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = renderer.render(dialogTargetHost, settings);
+    const dom = this.dom = renderer.render(dialogTargetHost, this, settings.config);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;
     const contentHost = dom.contentHost;
-    const eventManager = container.get(IDialogEventManager);
+    // const eventManager = container.get(IDialogEventManager);
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host
@@ -126,7 +125,7 @@ export class DialogController implements IDialogController {
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
-            this._disposeHandler = eventManager.add(this, dom);
+            // this._disposeHandler = eventManager.add(this, dom);
             return onResolve(dom.show?.(),
               () => DialogOpenResult.create(false, this)
             );
@@ -166,7 +165,7 @@ export class DialogController implements IDialogController {
               () => onResolve(controller.deactivate(controller, null),
                 () => {
                   dom.dispose();
-                  this._disposeHandler?.dispose();
+                  // this._disposeHandler?.dispose();
                   if (!rejectOnCancel && status !== 'error') {
                     this._resolve(dialogResult);
                   } else {

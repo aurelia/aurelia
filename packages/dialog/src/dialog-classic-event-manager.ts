@@ -1,7 +1,8 @@
 import { IContainer, IDisposable, resolve } from '@aurelia/kernel';
-import { type DialogActionKey, IDialogController, IDialogEventManager, IDialogDom } from './dialog-interfaces';
+import { type DialogActionKey, IDialogController, IDialogDom } from './dialog-interfaces';
 import { IWindow } from '@aurelia/runtime-html';
 import { singletonRegistration } from './utilities-di';
+import { IDialogEventManager } from './dialog-classic-impl';
 
 export class DefaultDialogEventManager implements IDialogEventManager {
   public static register(container: IContainer) {
@@ -35,9 +36,14 @@ export class DefaultDialogEventManager implements IDialogEventManager {
       }
     };
     dom.contentHost.addEventListener('submit', handleSubmit);
+    let disposed = false;
 
     return {
       dispose: () => {
+        if (disposed) {
+          return;
+        }
+        disposed = true;
         this._remove(controller);
         dom.overlay?.removeEventListener(mouseEvent, handleClick);
         dom.contentHost.removeEventListener('submit', handleSubmit);

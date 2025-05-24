@@ -2,12 +2,12 @@ import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
 import { IDialogGlobalSettings } from './dialog-interfaces';
-import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-classic-impl';
+import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-impl-classic';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
-import { DefaultDialogEventManager } from './dialog-classic-event-manager';
-import { HtmlDialogDomRenderer } from './dialog-standard-impl';
+import { DefaultDialogEventManager } from './dialog-impl-classic-event-manager';
+import { HtmlDialogDomRenderer } from './dialog-impl-standard';
 
 export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
 

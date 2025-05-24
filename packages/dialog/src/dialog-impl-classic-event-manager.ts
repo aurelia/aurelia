@@ -2,7 +2,7 @@ import { IContainer, IDisposable, resolve } from '@aurelia/kernel';
 import { type DialogActionKey, IDialogController, IDialogDom } from './dialog-interfaces';
 import { IWindow } from '@aurelia/runtime-html';
 import { singletonRegistration } from './utilities-di';
-import { IDialogEventManager } from './dialog-classic-impl';
+import { IDialogEventManager } from './dialog-impl-classic';
 
 export class DefaultDialogEventManager implements IDialogEventManager {
   public static register(container: IContainer) {

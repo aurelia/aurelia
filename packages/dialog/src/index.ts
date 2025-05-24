@@ -53,14 +53,14 @@ export {
   type DialogActionKey,
   type DialogMouseEventType,
   IDialogEventManager
-} from './dialog-classic-impl';
+} from './dialog-impl-classic';
 
 export {
   HtmlDialogDomRenderer,
   HtmlDialogDom,
   type HtmlDialogRenderConfig,
-} from './dialog-standard-impl';
+} from './dialog-impl-standard';
 
 export {
   DefaultDialogEventManager,
-} from './dialog-classic-event-manager';
+} from './dialog-impl-classic-event-manager';

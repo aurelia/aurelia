@@ -3,6 +3,7 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogDomAnimator,
+  IDialogController,
 } from './dialog-interfaces';
 
 import { IContainer, isString, optional, resolve } from '@aurelia/kernel';
@@ -39,7 +40,7 @@ export class HtmlDialogDomRenderer implements IDialogDomRenderer<HtmlDialogRende
   /** @internal */
   private readonly _animator = resolve(optional(IDialogDomAnimator));
 
-  public render(dialogHost: HTMLElement, config: HtmlDialogRenderConfig): IDialogDom {
+  public render(dialogHost: HTMLElement, requestor: IDialogController, config: HtmlDialogRenderConfig): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
     const wrapper = h('dialog') as HTMLDialogElement;
     const id = `d-${++HtmlDialogDomRenderer.id}`;

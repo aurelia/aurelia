@@ -25,6 +25,8 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinAstEvaluator(RefBinding);
   });
 
+  public get $kind() { return 'Ref' as const; }
+
   public isBound: boolean = false;
 
   /** @internal */
@@ -65,28 +67,21 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     }
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
-
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
     this.isBound = true;
 
     this.updateSource();
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this.obs.clearAll();
 

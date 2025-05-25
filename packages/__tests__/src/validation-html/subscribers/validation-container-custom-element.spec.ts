@@ -11,6 +11,7 @@ import {
 } from '@aurelia/validation-html';
 import { createSpecFunction, TestExecutionContext, TestFunction, ToNumberValueConverter } from '../../util.js';
 import { Person } from '../../validation/_test-resources.js';
+import { yieldTasks } from '@aurelia/runtime';
 
 describe('validation-html/subscribers/validation-container-custom-element.spec.ts', function () {
   describe('validation-container-custom-element', function () {
@@ -104,7 +105,7 @@ describe('validation-html/subscribers/validation-container-custom-element.spec.t
       handleValidationEventSpy.calls.splice(0);
       controllerValidateSpy.calls.splice(0);
       target.dispatchEvent(new ctx.Event(event));
-      await platform.domQueue.yield();
+      await yieldTasks();
       assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
       assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
     }

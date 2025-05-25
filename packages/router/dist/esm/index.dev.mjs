@@ -1882,7 +1882,12 @@ Step.id = 0;
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable prefer-template */
 /** @internal */
-const createMappedError = (code, ...details) => new Error(`AUR${String(code).padStart(4, '0')}: ${getMessageByCode(code, ...details)}`)
+const createMappedError = (code, ...details) => {
+        const paddedCode = String(code).padStart(4, '0');
+        const message = getMessageByCode(code, ...details);
+        const link = `https://docs.aurelia.io/developer-guides/error-messages/router/aur${paddedCode}`;
+        return new Error(`AUR${paddedCode}: ${message}\n\nFor more information, see: ${link}`);
+    }
     ;
 
 const errorsMap = {

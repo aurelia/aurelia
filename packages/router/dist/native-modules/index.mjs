@@ -1271,7 +1271,10 @@ class Step {
 
 Step.id = 0;
 
-const createMappedError = (t, ...i) => new Error(`AUR${String(t).padStart(4, "0")}:${i.map(String)}`);
+const createMappedError = (t, ...i) => {
+    const s = String(t).padStart(4, "0");
+    return new Error(`AUR${s}:${i.map(String)}`);
+};
 
 class Route {
     constructor(t, i, s, n, e, r, o, h) {

@@ -78,7 +78,7 @@ export class DialogController implements IDialogController {
       renderer = container.get(IDialogDomRenderer),
     } = settings;
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = renderer.render(dialogTargetHost, this, settings.config);
+    const dom = this.dom = renderer.render(dialogTargetHost, this, settings.options);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;

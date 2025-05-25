@@ -15,7 +15,8 @@ export interface IDialogService {
    * @param settings - Dialog settings for this dialog instance.
    * @returns Promise A promise that settles when the dialog is closed.
    */
-  open<TModel, TVm extends object, TConfig>(settings?: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  open<TOptions, TModel = any, TVm extends object = object>(settings?: IDialogSettings<TModel, TVm, TOptions>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -23,6 +24,22 @@ export interface IDialogService {
    * @returns Promise<DialogController[]> All controllers whose close operation was cancelled.
    */
   closeAll(): Promise<IDialogController[]>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function testTypes(d: IDialogService) {
+  return [
+    d.open({
+      model: { b: 2 },
+      component: class Abc {},
+      options: {
+        z: 1,
+      }
+    }),
+    d.open({
+
+    }),
+  ];
 }
 
 /**
@@ -45,8 +62,8 @@ export interface IDialogController {
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
 export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer<unknown>>('IDialogDomRenderer');
-export interface IDialogDomRenderer<TConfig> {
-  render(dialogHost: Element, requestor: IDialogController, settings: TConfig): IDialogDom;
+export interface IDialogDomRenderer<TOptions> {
+  render(dialogHost: Element, requestor: IDialogController, options: TOptions): IDialogDom;
 }
 
 /**
@@ -97,13 +114,13 @@ export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 export interface IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
-  TRenderConfig = unknown,
+  TRenderOptions = unknown,
 > {
 
   /**
    * A custom renderer for the dialog.
    */
-  renderer?: IDialogDomRenderer<TRenderConfig>;
+  renderer?: IDialogDomRenderer<TRenderOptions>;
 
   /**
    * The view model url, constructor or instance for the dialog.
@@ -134,7 +151,7 @@ export interface IDialogSettings<
   /**
    * The configuration for the dialog. Different renderers may have different configuration options.
    */
-  config?: TRenderConfig;
+  options?: TRenderOptions;
 
   /**
    * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.

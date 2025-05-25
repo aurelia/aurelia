@@ -10,7 +10,7 @@ import {
 import { IContainer, IDisposable, onResolve, optional, resolve } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from './utilities-di';
 
-export type ClassDialogRenderConfig = {
+export type ClassicDialogRenderOptions = {
   /**
    * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.
    * When set to "true" the dialog does not close on ESC key or clicking outside of it.
@@ -76,7 +76,7 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
   public rejectOnCancel = false;
 }
 
-export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassDialogRenderConfig> {
+export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassicDialogRenderOptions> {
   public static register(container: IContainer) {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
@@ -90,14 +90,14 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassDialogR
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
   private readonly hostCss = 'margin:auto;';
 
-  public render(dialogHost: HTMLElement, controller: IDialogController, settings: ClassDialogRenderConfig): IDialogDom {
+  public render(dialogHost: HTMLElement, controller: IDialogController, options?: ClassicDialogRenderOptions): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
       el.style.cssText = css;
       return el;
     };
-    const { startingZIndex } = settings;
+    const { startingZIndex } = options ?? {};
     const wrapperCss = `${this.wrapperCss};${startingZIndex == null ? '' : `z-index:${startingZIndex}`}`;
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));

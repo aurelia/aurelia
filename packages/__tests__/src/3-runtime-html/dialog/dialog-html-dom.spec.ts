@@ -1,6 +1,6 @@
 import {
   DialogController,
-  DialogStandardHtmlDialogConfiguration,
+  DialogStandardConfiguration,
   HtmlDialogDom,
   IDialogService
 } from '@aurelia/dialog';
@@ -24,7 +24,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogStandardHtmlDialogConfiguration]
+      [DialogStandardConfiguration]
     );
 
     await component.dialogService.open({
@@ -42,13 +42,15 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogStandardHtmlDialogConfiguration]
+      [DialogStandardConfiguration]
     );
 
     await component.dialogService.open({
       host: component.host,
       template: 'hey',
-      asModal: true,
+      options: {
+        modal: true,
+      }
     });
 
     assertHtml('<dialog data-dialog-id="d-2" open=""><div>hey</div></dialog>');
@@ -61,13 +63,15 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogStandardHtmlDialogConfiguration]
+      [DialogStandardConfiguration]
     );
 
     const result = await component.dialogService.open({
       host: component.host,
       template: 'hey',
-      asModal: true,
+      options: {
+        modal: true,
+      }
     });
 
     assertHtml('<dialog data-dialog-id="d-3" open=""><div>hey</div></dialog>');

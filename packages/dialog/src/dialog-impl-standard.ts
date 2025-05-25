@@ -9,7 +9,7 @@ import {
 import { IContainer, isString, optional, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
 
-export type HtmlDialogRenderConfig = {
+export type StandardDialogRenderOptions = {
   /**
    * When set to "true" the dialog will be modal.
    * This means that the dialog will be displayed as a modal dialog.
@@ -30,7 +30,7 @@ export type HtmlDialogRenderConfig = {
   overlayStyle?: string | Partial<CSSStyleDeclaration>;
 };
 
-export class HtmlDialogDomRenderer implements IDialogDomRenderer<HtmlDialogRenderConfig> {
+export class HtmlDialogDomRenderer implements IDialogDomRenderer<StandardDialogRenderOptions> {
   public static register(container: IContainer) {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
@@ -40,7 +40,7 @@ export class HtmlDialogDomRenderer implements IDialogDomRenderer<HtmlDialogRende
   /** @internal */
   private readonly _animator = resolve(optional(IDialogDomAnimator));
 
-  public render(dialogHost: HTMLElement, requestor: IDialogController, config: HtmlDialogRenderConfig): IDialogDom {
+  public render(dialogHost: HTMLElement, requestor: IDialogController, options: StandardDialogRenderOptions = {}): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
     const wrapper = h('dialog') as HTMLDialogElement;
     const id = `d-${++HtmlDialogDomRenderer.id}`;
@@ -49,9 +49,9 @@ export class HtmlDialogDomRenderer implements IDialogDomRenderer<HtmlDialogRende
     wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    const dom = new HtmlDialogDom(id, wrapper, host, this._animator, config.modal);
-    if (config.overlayStyle != null) {
-      dom.setOverlayStyle(config.overlayStyle);
+    const dom = new HtmlDialogDom(id, wrapper, host, this._animator, options.modal);
+    if (options.overlayStyle != null) {
+      dom.setOverlayStyle(options.overlayStyle);
     }
     return dom;
   }

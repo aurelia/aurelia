@@ -41,7 +41,8 @@ export {
 export {
   DialogConfiguration,
   DialogDefaultConfiguration,
-  DialogStandardConfiguration as DialogStandardHtmlDialogConfiguration,
+  DialogDefaultConfiguration as DialogClassicConfiguration,
+  DialogStandardConfiguration,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 
@@ -49,7 +50,7 @@ export {
   DefaultDialogDom,
   DefaultDialogDomRenderer,
   DefaultDialogGlobalSettings,
-  ClassDialogRenderConfig,
+  type ClassicDialogRenderOptions,
   type DialogActionKey,
   type DialogMouseEventType,
   IDialogEventManager
@@ -58,7 +59,7 @@ export {
 export {
   HtmlDialogDomRenderer,
   HtmlDialogDom,
-  type HtmlDialogRenderConfig,
+  type StandardDialogRenderOptions as HtmlDialogRenderConfig,
 } from './dialog-impl-standard';
 
 export {

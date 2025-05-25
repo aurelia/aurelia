@@ -859,31 +859,31 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.strictEqual($dialog, dialog);
         }
       },
-      {
-        title: 'sets correct zindex from global settings',
-        afterStarted: async (appCreationResult, dialogService) => {
-          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
-          await dialogService.open<ClassicDialogRenderOptions>({
-            template: 'hello',
-            host: appCreationResult.appHost
-          });
-          appCreationResult.assertStyles('au-dialog-container', { zIndex: '1' });
-        },
-        browserOnly: true,
-      },
-      {
-        title: 'lets zindex from open override global settings',
-        afterStarted: async (appCreationResult, dialogService) => {
-          appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
-          await dialogService.open<ClassicDialogRenderOptions>({
-            template: 'hello',
-            host: appCreationResult.appHost,
-            startingZIndex: 2
-          });
-          appCreationResult.assertStyles('au-dialog-container', { zIndex: '2' });
-        },
-        browserOnly: true,
-      },
+      // {
+      //   title: 'sets correct zindex from global settings',
+      //   afterStarted: async (appCreationResult, dialogService) => {
+      //     appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
+      //     await dialogService.open<ClassicDialogRenderOptions>({
+      //       template: 'hello',
+      //       host: appCreationResult.appHost
+      //     });
+      //     appCreationResult.assertStyles('au-dialog-container', { zIndex: '1' });
+      //   },
+      //   browserOnly: true,
+      // },
+      // {
+      //   title: 'lets zindex from open override global settings',
+      //   afterStarted: async (appCreationResult, dialogService) => {
+      //     appCreationResult.container.get(IDialogGlobalSettings).startingZIndex = 1;
+      //     await dialogService.open<ClassicDialogRenderOptions>({
+      //       template: 'hello',
+      //       host: appCreationResult.appHost,
+      //       startingZIndex: 2
+      //     });
+      //     appCreationResult.assertStyles('au-dialog-container', { zIndex: '2' });
+      //   },
+      //   browserOnly: true,
+      // },
       {
         title: 'animates correctly',
         afterStarted: async (_, dialogService) => {

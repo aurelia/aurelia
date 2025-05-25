@@ -16,7 +16,7 @@ export interface IDialogService {
    * @returns Promise A promise that settles when the dialog is closed.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  open<TOptions, TModel = any, TVm extends object = object>(settings?: IDialogSettings<TModel, TVm, TOptions>): DialogOpenPromise;
+  open<TOptions, TModel = any, TVm extends object = object>(settings: IDialogSettings<TModel, TVm, TOptions>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -36,8 +36,10 @@ function testTypes(d: IDialogService) {
         z: 1,
       }
     }),
-    d.open({
-
+    d.open<{ a: 1 }>({
+      options: {
+        a: 1,
+      }
     }),
   ];
 }
@@ -111,11 +113,11 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
 export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
-export interface IDialogSettings<
+export type IDialogSettings<
   TModel = unknown,
   TVm extends object = object,
   TRenderOptions = unknown,
-> {
+> = {
 
   /**
    * A custom renderer for the dialog.
@@ -192,7 +194,7 @@ export interface IDialogSettings<
    * When set to true conveys a cancellation as a rejection.
    */
   rejectOnCancel?: boolean;
-}
+};
 
 export type IDialogLoadedSettings<T extends object = object, TRenderConfig extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
   component?: Constructable<T> | T;

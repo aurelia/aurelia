@@ -4,7 +4,7 @@ import { Constructable, emptyArray, onResolve, ResourceType, Writable, getResour
 import { validateRouteConfig, expectType, shallowEquals, isPartialRedirectRouteConfig, isPartialChildRouteConfig, isPartialCustomElementDefinition } from './validation';
 import { defaultViewportName, ITypedNavigationInstruction_Component, ITypedNavigationInstruction_NavigationStrategy, IViewportInstruction, NavigationInstructionType, NavigationStrategy, TypedNavigationInstruction, ViewportInstruction } from './instructions';
 import type { RouteNode } from './route-tree';
-import type { IRouteContext } from './route-context';
+import type { IRouteConfigContext, IRouteContext } from './route-context';
 import { CustomElement, CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
 import { ensureArrayOfStrings, ensureString } from './util';
@@ -332,7 +332,7 @@ export function route(configOrPath: IRouteConfig | string | string[]): RouteDeco
 }
 
 /** @internal */
-export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteContext | null): RouteConfig | Promise<RouteConfig> {
+export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean, parent: RouteConfig | null, routeNode: RouteNode | null, context: IRouteConfigContext | null): RouteConfig | Promise<RouteConfig> {
   if (isPartialRedirectRouteConfig(routeable)) return RouteConfig._create(routeable, null);
 
   const [instruction, ceDef] = resolveCustomElementDefinition(routeable, context);
@@ -362,7 +362,7 @@ export function resolveRouteConfiguration(routeable: Routeable, isChild: boolean
 }
 
 /** @internal */
-export function resolveCustomElementDefinition(routeable: Routeable, context: IRouteContext | null | undefined):
+export function resolveCustomElementDefinition(routeable: Routeable, context: IRouteConfigContext | null | undefined):
   | [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>]
   | [instruction: ITypedNavigationInstruction_NavigationStrategy, ceDef: null] {
   const instruction = createNavigationInstruction(routeable);

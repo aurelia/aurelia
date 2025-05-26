@@ -121,9 +121,11 @@ export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export type IDialogSettings<
-  TModel = unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TModel = any,
   TVm extends object = object,
-  TRenderOptions = unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TRenderOptions = any,
 > = {
 
   /**

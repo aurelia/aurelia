@@ -70,7 +70,7 @@ export class DialogService implements IDialogService {
    */
   public open<TModel, TVm extends object, TConfig>(settings: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from<TConfig>(this._defaultOptions, settings.options);
+      const $settings = DialogSettings.from<TConfig>(this._defaultOptions, settings);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -140,15 +140,18 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from<T>(...srcs: (Partial<IDialogGlobalOptions<T>> | undefined)[]): DialogSettings {
-    const baseSettings = new DialogSettings();
-    baseSettings.options = Object.assign({}, ...srcs);
+  public static from<T>(baseOptions: Partial<IDialogGlobalOptions<T>>, settings: IDialogSettings<unknown, object, T>): DialogSettings {
+    const finalSettings = Object.assign(
+      new DialogSettings(),
+      settings,
+      { options: { ...baseOptions, ...settings.options }
+    });
 
-    if (baseSettings.component == null && baseSettings.template == null) {
+    if (finalSettings.component == null && finalSettings.template == null) {
       throw createMappedError(ErrorNames.dialog_settings_invalid);
     }
 
-    return baseSettings;
+    return finalSettings;
   }
 
   public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {

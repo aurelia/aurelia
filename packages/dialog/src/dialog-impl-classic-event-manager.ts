@@ -17,7 +17,7 @@ export class DefaultDialogEventManager implements IDialogEventManager {
       this.w.addEventListener('keydown', this);
     }
 
-    const options = controller.settings as DialogRenderOptionsClassic;
+    const options = controller.settings.options as DialogRenderOptionsClassic;
     const lock = options.lock;
     let overlayDismiss = options.overlayDismiss;
 

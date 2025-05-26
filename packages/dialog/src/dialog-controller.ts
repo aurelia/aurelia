@@ -1,4 +1,4 @@
-import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, type IDisposable, resolve } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, resolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition, registerHostNode } from '@aurelia/runtime-html';
 import {
   IDialogController,
@@ -83,7 +83,6 @@ export class DialogController implements IDialogController {
       ? container.get(IEventTarget) as Element
       : null;
     const contentHost = dom.contentHost;
-    // const eventManager = container.get(IDialogEventManager);
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host

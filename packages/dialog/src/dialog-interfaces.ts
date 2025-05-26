@@ -41,6 +41,13 @@ function testTypes(d: IDialogService) {
         a: 1,
       }
     }),
+    d.open<{ a: 1 }>({
+      options: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        b: 1,
+      }
+    }),
   ];
 }
 
@@ -156,58 +163,19 @@ export type IDialogSettings<
   options?: TRenderOptions;
 
   /**
-   * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.
-   * When set to "true" the dialog does not close on ESC key or clicking outside of it.
-   */
-  lock?: boolean;
-
-  /**
-   * Allows for closing the top most dialog via the keyboard.
-   * When set to "false" no action will be taken.
-   * If set to "true", "Escape" or an array containing "Escape"
-   * the dialog will be "cancel" closed when the ESC key is pressed.
-   * If set to "Enter" or and array containing "Enter"
-   * the dialog will be "ok" closed  when the ENTER key is pressed.
-   * Using the array format allows combining the ESC and ENTER keys.
-   */
-  keyboard?: DialogActionKey[];
-
-  /**
-   * Determines which type of mouse event should be used for closing the dialog
-   *
-   * Default: click
-   */
-  mouseEvent?: DialogMouseEventType;
-
-  /**
-   * When set to "true" allows for the dismissal of the dialog by clicking outside of it.
-   */
-  overlayDismiss?: boolean;
-
-  /**
-   * The z-index of the dialog.
-   * In the terms of the DialogRenderer it is applied to the dialog overlay and the dialog container.
-   */
-  startingZIndex?: number;
-
-  /**
    * When set to true conveys a cancellation as a rejection.
    */
   rejectOnCancel?: boolean;
 };
 
-export type IDialogLoadedSettings<T extends object = object, TRenderConfig extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
+export type IDialogLoadedSettings<T extends object = object, TRenderConfig extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
   component?: Constructable<T> | T;
   template?: string | Element;
-  readonly keyboard: DialogActionKey[];
   renderer?: IDialogDomRenderer<TRenderConfig>;
 };
 
-export type IDialogGlobalSettings = Pick<
-  IDialogSettings<object>,
-  'lock' | 'startingZIndex' | 'rejectOnCancel'
->;
-export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
+export type IDialogGlobalOptions<T> = T;
+export const IDialogGlobalOptions = /*@__PURE__*/createInterface<IDialogGlobalOptions<object>>('IDialogGlobalOptions');
 
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;

@@ -2,7 +2,7 @@ import { IPlatform } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogGlobalSettings,
+  IDialogGlobalOptions,
   IDialogDomAnimator,
   IDialogController,
 } from './dialog-interfaces';
@@ -10,7 +10,7 @@ import {
 import { IContainer, IDisposable, onResolve, optional, resolve } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from './utilities-di';
 
-export type ClassicDialogRenderOptions = {
+export type DialogRenderOptionsClassic = {
   /**
    * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.
    * When set to "true" the dialog does not close on ESC key or clicking outside of it.
@@ -65,10 +65,10 @@ export interface IDialogEventManager {
   add(controller: IDialogController, dom: IDialogDom): IDisposable;
 }
 
-export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
+export class DialogGlobalOptionsClassic implements IDialogGlobalOptions<DialogRenderOptionsClassic> {
 
   public static register(container: IContainer) {
-    singletonRegistration(IDialogGlobalSettings, this).register(container);
+    singletonRegistration(IDialogGlobalOptions, this).register(container);
   }
 
   public lock: boolean = true;
@@ -76,7 +76,7 @@ export class DefaultDialogGlobalSettings implements IDialogGlobalSettings {
   public rejectOnCancel = false;
 }
 
-export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassicDialogRenderOptions> {
+export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRenderOptionsClassic> {
   public static register(container: IContainer) {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
@@ -90,7 +90,7 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassicDialo
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
   private readonly hostCss = 'margin:auto;';
 
-  public render(dialogHost: HTMLElement, controller: IDialogController, options?: ClassicDialogRenderOptions): IDialogDom {
+  public render(dialogHost: HTMLElement, controller: IDialogController, options?: DialogRenderOptionsClassic): IDialogDom {
     const doc = this.p.document;
     const h = (name: string, css: string) => {
       const el = doc.createElement(name);
@@ -102,11 +102,11 @@ export class DefaultDialogDomRenderer implements IDialogDomRenderer<ClassicDialo
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));
-    return new DefaultDialogDom(wrapper, overlay, host, controller, this._eventManager, this._animator);
+    return new DialogDomClassic(wrapper, overlay, host, controller, this._eventManager, this._animator);
   }
 }
 
-export class DefaultDialogDom implements IDialogDom {
+export class DialogDomClassic implements IDialogDom {
   /** @internal */
   private readonly _controller: IDialogController;
   /** @internal */

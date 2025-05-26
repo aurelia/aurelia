@@ -1,15 +1,15 @@
 import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
-import { IDialogGlobalSettings } from './dialog-interfaces';
-import { DefaultDialogGlobalSettings, DefaultDialogDomRenderer } from './dialog-impl-classic';
+import { IDialogGlobalOptions } from './dialog-interfaces';
+import { DialogGlobalOptionsClassic, DialogDomRendererClassic } from './dialog-impl-classic';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
 import { DefaultDialogEventManager } from './dialog-impl-classic-event-manager';
 import { HtmlDialogDomRenderer } from './dialog-impl-standard';
 
-export type DialogConfigurationProvider = (settings: IDialogGlobalSettings) => void | Promise<unknown>;
+export type DialogConfigurationProvider = <T>(settings: IDialogGlobalOptions<T>) => void | Promise<unknown>;
 
 export interface DialogConfiguration extends IRegistry {
   settingsProvider: DialogConfigurationProvider;
@@ -22,7 +22,7 @@ function createDialogConfiguration(settingsProvider: DialogConfigurationProvider
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
       ...registrations,
-      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)) as void)
+      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalOptions)) as void)
     ),
     customize(cb: DialogConfigurationProvider, regs?: IRegistry[]) {
       return createDialogConfiguration(cb, regs ?? registrations);
@@ -42,17 +42,17 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
   throw createMappedError(ErrorNames.dialog_no_empty_default_configuration);
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalSettings, this));
+    container.register(singletonRegistration(IDialogGlobalOptions, this));
   }
 }]);
 
 /**
  * A configuration for Dialog that uses the light DOM for rendering dialog & its overlay.
  */
-export const DialogDefaultConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
+export const DialogClassicConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
   DialogService,
-  DefaultDialogGlobalSettings,
-  DefaultDialogDomRenderer,
+  DialogGlobalOptionsClassic,
+  DialogDomRendererClassic,
   DefaultDialogEventManager,
 ]);
 
@@ -61,7 +61,7 @@ export const DialogDefaultConfiguration = /*@__PURE__*/createDialogConfiguration
  */
 export const DialogStandardConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
   DialogService,
-  DefaultDialogGlobalSettings,
+  DialogGlobalOptionsClassic,
   HtmlDialogDomRenderer,
   DefaultDialogEventManager,
 ]);

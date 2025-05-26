@@ -20,7 +20,7 @@ export {
   // dialog settings
   type IDialogSettings,
   type IDialogLoadedSettings,
-  IDialogGlobalSettings,
+  IDialogGlobalOptions,
 
   // implementable
   type IDialogCustomElementViewModel,
@@ -40,17 +40,17 @@ export {
 } from './dialog-service';
 export {
   DialogConfiguration,
-  DialogDefaultConfiguration,
-  DialogDefaultConfiguration as DialogClassicConfiguration,
+  DialogClassicConfiguration as DialogDefaultConfiguration,
+  DialogClassicConfiguration,
   DialogStandardConfiguration,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 
 export {
-  DefaultDialogDom,
-  DefaultDialogDomRenderer,
-  DefaultDialogGlobalSettings,
-  type ClassicDialogRenderOptions,
+  DialogDomClassic,
+  DialogDomRendererClassic,
+  DialogGlobalOptionsClassic,
+  type DialogRenderOptionsClassic,
   type DialogActionKey,
   type DialogMouseEventType,
   IDialogEventManager

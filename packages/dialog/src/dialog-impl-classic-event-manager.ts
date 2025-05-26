@@ -2,7 +2,7 @@ import { IContainer, IDisposable, resolve } from '@aurelia/kernel';
 import { type DialogActionKey, IDialogController, IDialogDom } from './dialog-interfaces';
 import { IWindow } from '@aurelia/runtime-html';
 import { singletonRegistration } from './utilities-di';
-import { IDialogEventManager } from './dialog-impl-classic';
+import { DialogRenderOptionsClassic, IDialogEventManager } from './dialog-impl-classic';
 
 export class DefaultDialogEventManager implements IDialogEventManager {
   public static register(container: IContainer) {
@@ -17,9 +17,15 @@ export class DefaultDialogEventManager implements IDialogEventManager {
       this.w.addEventListener('keydown', this);
     }
 
-    const mouseEvent = controller.settings.mouseEvent ?? 'click';
+    const options = controller.settings as DialogRenderOptionsClassic;
+    const lock = options.lock;
+    let overlayDismiss = options.overlayDismiss;
+
+    overlayDismiss = typeof overlayDismiss === 'boolean' ? overlayDismiss : !lock;
+
+    const mouseEvent = options.mouseEvent ?? 'click';
     const handleClick = (e: MouseEvent) => {
-        if (/* user allows dismiss on overlay click */controller.settings.overlayDismiss
+        if (/* user allows dismiss on overlay click */overlayDismiss
         && /* did not click inside the host element */!dom.contentHost.contains(e.target as Element)
       ) {
         void controller.cancel();
@@ -64,31 +70,38 @@ export class DefaultDialogEventManager implements IDialogEventManager {
   }
 
   /** @internal */
+  private _getKeyboardOptions(ctrl: IDialogController): string[] {
+    const options = ctrl.settings.options as DialogRenderOptionsClassic;
+    return options.keyboard ?? (options.lock ? [] : ['Enter', 'Escape']);
+  }
+
+  /** @internal */
   public handleEvent(e: Event): void {
     const keyEvent = e as KeyboardEvent;
-    const key = getActionKey(keyEvent);
+    const key = DefaultDialogEventManager._getActionKey(keyEvent);
     if (key == null) {
       return;
     }
     const top = this.ctrls.slice(-1)[0];
-    if (top == null || top.settings.keyboard.length === 0) {
+    if (top == null) {
       return;
     }
-    const keyboard = top.settings.keyboard;
+    const keyboard = this._getKeyboardOptions(top);
     if (key === 'Escape' && keyboard.includes(key)) {
       void top.cancel();
     } else if (key === 'Enter' && keyboard.includes(key)) {
       void top.ok();
     }
   }
-}
 
-function getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
-  if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
-    return 'Escape';
+  /** @internal */
+  private static _getActionKey(e: KeyboardEvent): DialogActionKey | undefined {
+    if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
+      return 'Escape';
+    }
+    if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
+      return 'Enter';
+    }
+    return undefined;
   }
-  if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
-    return 'Enter';
-  }
-  return undefined;
 }

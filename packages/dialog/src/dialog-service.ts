@@ -6,7 +6,7 @@ import {
   DialogOpenResult,
   IDialogService,
   IDialogController,
-  IDialogGlobalSettings,
+  IDialogGlobalOptions,
   IDialogLoadedSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
@@ -49,7 +49,7 @@ export class DialogService implements IDialogService {
   private readonly dlgs: IDialogController[] = [];
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
+  /** @internal */ private readonly _defaultOptions = resolve(IDialogGlobalOptions);
 
   /**
    * Opens a new dialog.
@@ -70,7 +70,7 @@ export class DialogService implements IDialogService {
    */
   public open<TModel, TVm extends object, TConfig>(settings: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from(this._defaultSettings, settings);
+      const $settings = DialogSettings.from<TConfig>(this._defaultOptions, settings.options);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -140,10 +140,15 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from(...srcs: Partial<IDialogSettings>[]): DialogSettings {
-    return (Object.assign(new DialogSettings(), ...srcs) as DialogSettings)
-      ._validate()
-      ._normalize();
+  public static from<T>(...srcs: (Partial<IDialogGlobalOptions<T>> | undefined)[]): DialogSettings {
+    const baseSettings = new DialogSettings();
+    baseSettings.options = Object.assign({}, ...srcs);
+
+    if (baseSettings.component == null && baseSettings.template == null) {
+      throw createMappedError(ErrorNames.dialog_settings_invalid);
+    }
+
+    return baseSettings;
   }
 
   public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {
@@ -165,25 +170,6 @@ class DialogSettings<T extends object = object> implements IDialogSettings<T> {
         : void 0
     );
     return onResolve(maybePromise, () => loaded);
-  }
-
-  /** @internal */
-  private _validate(): this {
-    if (this.component == null && this.template == null) {
-      throw createMappedError(ErrorNames.dialog_settings_invalid);
-    }
-    return this;
-  }
-
-  /** @internal */
-  private _normalize(): DialogSettings {
-    if (this.keyboard == null) {
-      this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
-    }
-    if (typeof this.overlayDismiss !== 'boolean') {
-      this.overlayDismiss = !this.lock;
-    }
-    return this;
   }
 }
 

@@ -3,11 +3,10 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogGlobalOptions,
-  IDialogDomAnimator,
   IDialogController,
 } from './dialog-interfaces';
 
-import { IContainer, IDisposable, onResolve, optional, resolve } from '@aurelia/kernel';
+import { IContainer, IDisposable, onResolve, resolve } from '@aurelia/kernel';
 import { createInterface, singletonRegistration } from './utilities-di';
 
 export type DialogRenderOptionsClassic = {
@@ -45,6 +44,15 @@ export type DialogRenderOptionsClassic = {
    * In the terms of the DialogRenderer it is applied to the dialog overlay and the dialog container.
    */
   startingZIndex?: number;
+
+  /**
+   * A callback that is invoked when the dialog is shown.
+   */
+  show?: (dom: IDialogDom) => void | Promise<void>;
+  /**
+   * A callback that is invoked when the dialog is hidden.
+   */
+  hide?: (dom: IDialogDom) => void | Promise<void>;
 };
 
 export type DialogActionKey = 'Escape' | 'Enter';
@@ -71,7 +79,7 @@ export class DialogGlobalOptionsClassic implements IDialogGlobalOptions<DialogRe
     singletonRegistration(IDialogGlobalOptions, this).register(container);
   }
 
-  public lock: boolean = true;
+  public lock = true;
   public startingZIndex = 1000;
   public rejectOnCancel = false;
 }
@@ -82,9 +90,8 @@ export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRender
   }
 
   private readonly p = resolve(IPlatform);
-  private readonly _eventManager = resolve(IDialogEventManager);
   /** @internal */
-  private readonly _animator = resolve(optional(IDialogDomAnimator));
+  private readonly _eventManager = resolve(IDialogEventManager);
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
@@ -102,7 +109,7 @@ export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRender
     const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
     const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
     const host = wrapper.appendChild(h('div', this.hostCss));
-    return new DialogDomClassic(wrapper, overlay, host, controller, this._eventManager, this._animator);
+    return new DialogDomClassic(wrapper, overlay, host, controller, this._eventManager, options);
   }
 }
 
@@ -110,11 +117,11 @@ export class DialogDomClassic implements IDialogDom {
   /** @internal */
   private readonly _controller: IDialogController;
   /** @internal */
-  private readonly _animator?: IDialogDomAnimator;
-  /** @internal */
   private readonly _eventManager: IDialogEventManager;
   /** @internal */
   private _sub: IDisposable | null = null;
+  /** @internal */
+  private readonly _options: DialogRenderOptionsClassic;
 
   public constructor(
     public readonly wrapper: HTMLElement,
@@ -122,22 +129,22 @@ export class DialogDomClassic implements IDialogDom {
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
     eventManager: IDialogEventManager,
-    animator?: IDialogDomAnimator,
+    options: DialogRenderOptionsClassic | undefined,
   ) {
     this._controller = controller;
     this._eventManager = eventManager;
-    this._animator = animator;
+    this._options = options ?? {};
   }
 
   public show() {
-    return onResolve(this._animator?.show(this), () => {
+    return onResolve(this._options?.show?.(this), () => {
       this._sub = this._eventManager.add(this._controller, this);
     });
   }
 
   public hide(): void | Promise<void> {
     this._sub?.dispose();
-    return this._animator?.hide(this);
+    return this._options?.hide?.(this);
   }
 
   public dispose(): void {

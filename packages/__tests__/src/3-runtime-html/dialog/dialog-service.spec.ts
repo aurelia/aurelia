@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { Registration, noop, resolve } from '@aurelia/kernel';
+import { noop, resolve } from '@aurelia/kernel';
 import {
   INode,
   customElement,
@@ -18,7 +18,6 @@ import {
   DialogController,
   DialogDomClassic,
   DialogService,
-  IDialogDomAnimator,
   DialogClassicConfiguration,
   DialogRenderOptionsClassic,
 } from '@aurelia/dialog';
@@ -902,28 +901,19 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         browserOnly: true,
       },
       {
-        title: 'animates correctly',
+        title: 'handles long animation',
         afterStarted: async (_, dialogService) => {
           const { dialog } = await dialogService.open<DialogRenderOptionsClassic>({
             template: '<div style="width: 300px; height: 300px; background: red;">Hello world',
             component: () => class MyDialog {
-              public static get inject() { return [INode]; }
-              public constructor(private readonly host: Element) {}
-
               public attaching() {
-                const animation = this.host.animate?.(
-                  [{ transform: 'translateY(0px)' }, { transform: 'translateY(-300px)' }],
-                  { duration: 100 },
-                );
-                return animation?.finished;
+                // pretend to be animating in
+                return new Promise<void>(resolve => setTimeout(resolve, 100));
               }
 
               public detaching() {
-                const animation = this.host.animate?.(
-                  [{ transform: 'translateY(-300px)' }, { transform: 'translateY(0)' }],
-                  { duration: 100 },
-                );
-                return animation?.finished;
+                // pretend to be animating out
+                return new Promise<void>(resolve => setTimeout(resolve, 100));
               }
             },
           });
@@ -988,19 +978,18 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         },
       },
 
-      // #region animator
+      // #region animation hook
       {
-        title: 'allows custom animator',
-        afterStarted: async ({ container }, dialogService) => {
+        title: 'allows custom animation hooks in open',
+        afterStarted: async (_, dialogService) => {
           let i = 0;
-
-          container.register(Registration.instance(IDialogDomAnimator, {
-            show(_dom: IDialogDom) { i = 1; },
-            hide(_dom: IDialogDom) { i = 2; }
-          }));
 
           const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
+            options: {
+              show(_dom: IDialogDom) { i = 1; },
+              hide(_dom: IDialogDom) { i = 2; },
+            }
           });
           assert.strictEqual(i, 1);
 
@@ -1009,21 +998,21 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'uses animator from provided animator instead of the global one',
+        title: 'uses hooks from open call instead of the global one',
         afterStarted: async ({ container }, dialogService) => {
           let i = 0;
 
-          container.register(Registration.instance(IDialogDomAnimator, {
+          Object.assign(container.get(IDialogGlobalOptions), {
             show(_dom: IDialogDom) { throw new Error('??'); },
             hide(_dom: IDialogDom) { throw new Error('??'); },
-          }));
+          });
 
           const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
-            container: container.createChild().register(Registration.instance(IDialogDomAnimator, {
-              show(_dom: IDialogDom) { i = 3; },
-              hide(_dom: IDialogDom) { i = 4; }
-            }))
+            options: {
+                show(_dom: IDialogDom) { i = 3; },
+                hide(_dom: IDialogDom) { i = 4; }
+            },
           });
           assert.strictEqual(i, 3);
 
@@ -1032,14 +1021,14 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         }
       },
       {
-        title: 'calls deactivate before animator.hide',
+        title: 'calls deactivate before hide option hook',
         afterStarted: async ({ container }, dialogService) => {
           const calls: string[] = [];
 
-          container.register(Registration.instance(IDialogDomAnimator, {
+          Object.assign(container.get(IDialogGlobalOptions), {
             show(_dom: IDialogDom) { },
             hide(_dom: IDialogDom) { calls.push('hide'); },
-          }));
+          });
 
           const result = await dialogService.open<DialogRenderOptionsClassic>({
             template: 'Hello world',
@@ -1053,6 +1042,8 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
           assert.deepEqual(calls, ['deactivate', 'hide']);
         }
       },
+
+      // #region form
       {
         title: 'calls prevent default on form submit event',
         async afterStarted(appCreationResult, dialogService) {

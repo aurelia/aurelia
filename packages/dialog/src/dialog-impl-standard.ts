@@ -71,7 +71,7 @@ export class HtmlDialogDom implements IDialogDom {
     public readonly wrapper: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
     animator?: IDialogDomAnimator,
-    public readonly isModal: boolean = false,
+    public readonly modal: boolean = false,
   ) {
     this._animator = animator;
     this._styleParser = wrapper.ownerDocument.createElement('div');
@@ -96,7 +96,7 @@ export class HtmlDialogDom implements IDialogDom {
   }
 
   public show() {
-    if (this.isModal) {
+    if (this.modal) {
       this.wrapper.showModal();
     } else {
       this.wrapper.show();

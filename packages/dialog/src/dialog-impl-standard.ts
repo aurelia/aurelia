@@ -5,7 +5,7 @@ import {
   IDialogController,
 } from './dialog-interfaces';
 
-import { IContainer, isString, resolve } from '@aurelia/kernel';
+import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
 
 export type DialogRenderOptionsStandard = {
@@ -46,7 +46,7 @@ export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRende
   private static id = 0;
   private readonly p = resolve(IPlatform);
 
-  public render(dialogHost: HTMLElement, requestor: IDialogController, options: DialogRenderOptionsStandard = {}): IDialogDom {
+  public render(dialogHost: HTMLElement, controller: IDialogController, options: DialogRenderOptionsStandard = {}): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
     const wrapper = h('dialog') as HTMLDialogElement;
     const id = `d-${++DialogDomRendererStandard.id}`;
@@ -55,7 +55,7 @@ export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRende
     wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    const dom = new DialogDomStandard(id, wrapper, host, options);
+    const dom = new DialogDomStandard(id, wrapper, host, controller, options);
     return dom;
   }
 }
@@ -67,6 +67,8 @@ export class DialogDomStandard implements IDialogDom {
   private readonly _styleParser: HTMLElement;
   /** @internal */
   private readonly _options: DialogRenderOptionsStandard;
+  /** @internal */
+  private readonly _controller: IDialogController;
   // only have this to fulfill the IDialogDom interface
   public readonly overlay: HTMLElement | null = null;
 
@@ -74,8 +76,10 @@ export class DialogDomStandard implements IDialogDom {
     public readonly id: string,
     public readonly wrapper: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
+    controller: IDialogController,
     options: DialogRenderOptionsStandard,
   ) {
+    this._controller = controller;
     this._options = options;
     this._styleParser = wrapper.ownerDocument.createElement('div');
     if (options.overlayStyle != null) {
@@ -107,14 +111,44 @@ export class DialogDomStandard implements IDialogDom {
     } else {
       this.wrapper.show();
     }
-    return this._options.show?.(this);
+    return onResolve(this._options.show?.(this), () => {
+      this.wrapper.addEventListener('keydown', this);
+    });
   }
 
   public hide(): void | Promise<void> {
-    return this._options.hide?.(this);
+    return onResolve(
+      this._options.hide?.(this),
+      () => {
+        this.wrapper.removeEventListener('keydown', this);
+        this.wrapper.close();
+      }
+    );
   }
 
   public dispose(): void {
     this.wrapper.remove();
+  }
+
+  /** @internal */
+  public handleEvent(event: Event): void {
+    if (event.type === 'keydown') {
+      this._handleKeydown(event as KeyboardEvent);
+    }
+  }
+
+  /** @internal */
+  private _handleKeydown(event: KeyboardEvent): void {
+    if ((event.key === 'Escape' || event.keyCode === 27)
+      && !event.defaultPrevented
+      && this._options.modal
+    ) {
+      // close the dialog on Escape key press
+      event.preventDefault();
+      void onResolve(
+        this._controller.cancel(),
+        () => this.wrapper.close()
+      );
+    }
   }
 }

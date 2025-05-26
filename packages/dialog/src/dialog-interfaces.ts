@@ -92,16 +92,6 @@ export interface IDialogDom extends IDisposable {
   hide?(): void | Promise<void>;
 }
 
-/**
- * An interface for managing the animations of dialog doms.
- * This is only used by the default dialog renderer.
- */
-export const IDialogDomAnimator = /*@__PURE__*/createInterface<IDialogDomAnimator>('IDialogDomAnimator');
-export interface IDialogDomAnimator {
-  show(dom: IDialogDom): void | Promise<void>;
-  hide(dom: IDialogDom): void | Promise<void>;
-}
-
 /* tslint:disable:max-line-length */
 /**
  * The promised returned from a dialog composition.

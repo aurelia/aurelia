@@ -7,7 +7,6 @@ export {
   IDialogController,
   IDialogDomRenderer,
   IDialogDom,
-  IDialogDomAnimator,
 
   // dialog results
   DialogCloseResult,
@@ -53,15 +52,11 @@ export {
   type DialogRenderOptionsClassic,
   type DialogActionKey,
   type DialogMouseEventType,
-  IDialogEventManager
+  type IDialogEventManager,
 } from './dialog-impl-classic';
 
 export {
-  HtmlDialogDomRenderer,
-  HtmlDialogDom,
-  type StandardDialogRenderOptions as HtmlDialogRenderConfig,
+  DialogDomRendererStandard,
+  DialogDomStandard,
+  type DialogRenderOptionsStandard,
 } from './dialog-impl-standard';
-
-export {
-  DefaultDialogEventManager,
-} from './dialog-impl-classic-event-manager';

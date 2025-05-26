@@ -1,7 +1,7 @@
 import {
   DialogController,
   DialogStandardConfiguration,
-  HtmlDialogDom,
+  DialogDomStandard,
   IDialogService
 } from '@aurelia/dialog';
 import { resolve } from '@aurelia/kernel';
@@ -76,10 +76,10 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
 
     assertHtml('<dialog data-dialog-id="d-3" open=""><div>hey</div></dialog>');
 
-    ((result.dialog as DialogController)['dom'] as HtmlDialogDom).setOverlayStyle('background: red;');
+    ((result.dialog as DialogController)['dom'] as DialogDomStandard).setOverlayStyle('background: red;');
     assertHtml('<dialog data-dialog-id="d-3" open=""><style>[data-dialog-id="d-3"]::backdrop{background: red;}</style><div>hey</div></dialog>');
 
-    ((result.dialog as DialogController)['dom'] as HtmlDialogDom).setOverlayStyle({ backgroundColor: 'blue' });
+    ((result.dialog as DialogController)['dom'] as DialogDomStandard).setOverlayStyle({ backgroundColor: 'blue' });
     assertHtml('<dialog data-dialog-id="d-3" open=""><style>[data-dialog-id="d-3"]::backdrop{background-color: blue;}</style><div>hey</div></dialog>');
   });
 });

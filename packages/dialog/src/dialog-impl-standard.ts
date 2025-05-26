@@ -2,14 +2,13 @@ import { IPlatform } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogDomAnimator,
   IDialogController,
 } from './dialog-interfaces';
 
-import { IContainer, isString, optional, resolve } from '@aurelia/kernel';
+import { IContainer, isString, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
 
-export type StandardDialogRenderOptions = {
+export type DialogRenderOptionsStandard = {
   /**
    * When set to "true" the dialog will be modal.
    * This means that the dialog will be displayed as a modal dialog.
@@ -28,53 +27,60 @@ export type StandardDialogRenderOptions = {
    * for the overlay of the dialog.
    */
   overlayStyle?: string | Partial<CSSStyleDeclaration>;
+
+  /**
+   * A callback that is invoked when the dialog is shown.
+   */
+  show?: (dom: IDialogDom) => void | Promise<void>;
+  /**
+   * A callback that is invoked when the dialog is hidden.
+   */
+  hide?: (dom: IDialogDom) => void | Promise<void>;
 };
 
-export class HtmlDialogDomRenderer implements IDialogDomRenderer<StandardDialogRenderOptions> {
+export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {
   public static register(container: IContainer) {
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
 
   private static id = 0;
   private readonly p = resolve(IPlatform);
-  /** @internal */
-  private readonly _animator = resolve(optional(IDialogDomAnimator));
 
-  public render(dialogHost: HTMLElement, requestor: IDialogController, options: StandardDialogRenderOptions = {}): IDialogDom {
+  public render(dialogHost: HTMLElement, requestor: IDialogController, options: DialogRenderOptionsStandard = {}): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
     const wrapper = h('dialog') as HTMLDialogElement;
-    const id = `d-${++HtmlDialogDomRenderer.id}`;
+    const id = `d-${++DialogDomRendererStandard.id}`;
     const host = wrapper.appendChild(h('div'));
 
     wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    const dom = new HtmlDialogDom(id, wrapper, host, this._animator, options.modal);
-    if (options.overlayStyle != null) {
-      dom.setOverlayStyle(options.overlayStyle);
-    }
+    const dom = new DialogDomStandard(id, wrapper, host, options);
     return dom;
   }
 }
 
-export class HtmlDialogDom implements IDialogDom {
-  /** @internal */
-  private readonly _animator?: IDialogDomAnimator;
+export class DialogDomStandard implements IDialogDom {
   /** @internal */
   private _overlayStyleEl: HTMLStyleElement | null = null;
   /** @internal */
   private readonly _styleParser: HTMLElement;
+  /** @internal */
+  private readonly _options: DialogRenderOptionsStandard;
+  // only have this to fulfill the IDialogDom interface
   public readonly overlay: HTMLElement | null = null;
 
   public constructor(
     public readonly id: string,
     public readonly wrapper: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
-    animator?: IDialogDomAnimator,
-    public readonly modal: boolean = false,
+    options: DialogRenderOptionsStandard,
   ) {
-    this._animator = animator;
+    this._options = options;
     this._styleParser = wrapper.ownerDocument.createElement('div');
+    if (options.overlayStyle != null) {
+      this.setOverlayStyle(options.overlayStyle);
+    }
   }
 
   public setOverlayStyle(css: string): void;
@@ -96,16 +102,16 @@ export class HtmlDialogDom implements IDialogDom {
   }
 
   public show() {
-    if (this.modal) {
+    if (this._options.modal) {
       this.wrapper.showModal();
     } else {
       this.wrapper.show();
     }
-    return this._animator?.show(this);
+    return this._options.show?.(this);
   }
 
   public hide(): void | Promise<void> {
-    return this._animator?.hide(this);
+    return this._options.hide?.(this);
   }
 
   public dispose(): void {

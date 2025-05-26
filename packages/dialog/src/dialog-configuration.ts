@@ -6,8 +6,7 @@ import { DialogGlobalOptionsClassic, DialogDomRendererClassic } from './dialog-i
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
-import { DefaultDialogEventManager } from './dialog-impl-classic-event-manager';
-import { HtmlDialogDomRenderer } from './dialog-impl-standard';
+import { DialogDomRendererStandard } from './dialog-impl-standard';
 
 export type DialogConfigurationProvider = <T>(settings: IDialogGlobalOptions<T>) => void | Promise<unknown>;
 
@@ -53,7 +52,6 @@ export const DialogClassicConfiguration = /*@__PURE__*/createDialogConfiguration
   DialogService,
   DialogGlobalOptionsClassic,
   DialogDomRendererClassic,
-  DefaultDialogEventManager,
 ]);
 
 /**
@@ -62,6 +60,5 @@ export const DialogClassicConfiguration = /*@__PURE__*/createDialogConfiguration
 export const DialogStandardConfiguration = /*@__PURE__*/createDialogConfiguration(noop, [
   DialogService,
   DialogGlobalOptionsClassic,
-  HtmlDialogDomRenderer,
-  DefaultDialogEventManager,
+  DialogDomRendererStandard,
 ]);

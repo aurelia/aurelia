@@ -6,7 +6,7 @@ import { DialogGlobalOptionsClassic, DialogDomRendererClassic, DialogRenderOptio
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
-import { DialogDomRendererStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
+import { DialogDomRendererStandard, DialogGlobalOptionsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 
 export type DialogConfigurationProvider<T> = (settings: IDialogGlobalOptions<T>) => void | Promise<unknown>;
 
@@ -48,7 +48,7 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
 /**
  * A configuration for Dialog that uses the light DOM for rendering dialog & its overlay.
  */
-export const DialogClassicConfiguration = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsClassic>(noop, [
+export const DialogConfigurationClassic = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsClassic>(noop, [
   DialogService,
   DialogGlobalOptionsClassic,
   DialogDomRendererClassic,
@@ -57,22 +57,22 @@ export const DialogClassicConfiguration = /*@__PURE__*/createDialogConfiguration
 /**
  * A configuration for Dialog that uses the `<dialog>` element.
  */
-export const DialogStandardConfiguration = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsStandard>(noop, [
+export const DialogConfigurationStandard = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsStandard>(noop, [
   DialogService,
-  DialogGlobalOptionsClassic,
+  DialogGlobalOptionsStandard,
   DialogDomRendererStandard,
 ]);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testTypes() {
   return [
-    DialogStandardConfiguration.customize(options => {
+    DialogConfigurationStandard.customize(options => {
       options.modal = false;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       options.abc = 'xyz';
     }),
-    DialogClassicConfiguration.customize(options => {
+    DialogConfigurationClassic.customize(options => {
       options.lock = true;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error

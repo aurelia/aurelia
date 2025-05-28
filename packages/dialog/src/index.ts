@@ -39,9 +39,8 @@ export {
 } from './dialog-service';
 export {
   DialogConfiguration,
-  DialogClassicConfiguration as DialogDefaultConfiguration,
-  DialogClassicConfiguration,
-  DialogStandardConfiguration,
+  DialogConfigurationClassic,
+  DialogConfigurationStandard,
   type DialogConfigurationProvider,
 } from './dialog-configuration';
 

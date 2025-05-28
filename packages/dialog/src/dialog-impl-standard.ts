@@ -3,6 +3,7 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogController,
+  IDialogGlobalOptions,
 } from './dialog-interfaces';
 
 import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
@@ -37,6 +38,12 @@ export type DialogRenderOptionsStandard = {
    */
   hide?: (dom: IDialogDom) => void | Promise<void>;
 };
+
+export class DialogGlobalOptionsStandard implements IDialogGlobalOptions<DialogRenderOptionsStandard> {
+  public static register(container: IContainer): void {
+    container.register(singletonRegistration(IDialogGlobalOptions, this));
+  }
+}
 
 export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {
   public static register(container: IContainer) {
@@ -74,14 +81,14 @@ export class DialogDomStandard implements IDialogDom {
 
   public constructor(
     public readonly id: string,
-    public readonly wrapper: HTMLDialogElement,
+    public readonly dialogHost: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
     options: DialogRenderOptionsStandard,
   ) {
     this._controller = controller;
     this._options = options;
-    this._styleParser = wrapper.ownerDocument.createElement('div');
+    this._styleParser = dialogHost.ownerDocument.createElement('div');
     if (options.overlayStyle != null) {
       this.setOverlayStyle(options.overlayStyle);
     }
@@ -90,9 +97,9 @@ export class DialogDomStandard implements IDialogDom {
   public setOverlayStyle(css: string): void;
   public setOverlayStyle(css: Partial<CSSStyleDeclaration>): void;
   public setOverlayStyle(css: string | Partial<CSSStyleDeclaration>) {
-    const el = this._overlayStyleEl ??= this.wrapper.insertAdjacentElement(
+    const el = this._overlayStyleEl ??= this.dialogHost.insertAdjacentElement(
       'afterbegin',
-      this.wrapper.ownerDocument.createElement('style')
+      this.dialogHost.ownerDocument.createElement('style')
     ) as HTMLStyleElement;
 
     const styleParser = this._styleParser;
@@ -107,12 +114,12 @@ export class DialogDomStandard implements IDialogDom {
 
   public show() {
     if (this._options.modal) {
-      this.wrapper.showModal();
+      this.dialogHost.showModal();
     } else {
-      this.wrapper.show();
+      this.dialogHost.show();
     }
     return onResolve(this._options.show?.(this), () => {
-      this.wrapper.addEventListener('keydown', this);
+      this.dialogHost.addEventListener('keydown', this);
     });
   }
 
@@ -120,14 +127,14 @@ export class DialogDomStandard implements IDialogDom {
     return onResolve(
       this._options.hide?.(this),
       () => {
-        this.wrapper.removeEventListener('keydown', this);
-        this.wrapper.close();
+        this.dialogHost.removeEventListener('keydown', this);
+        this.dialogHost.close();
       }
     );
   }
 
   public dispose(): void {
-    this.wrapper.remove();
+    this.dialogHost.remove();
   }
 
   /** @internal */
@@ -147,7 +154,7 @@ export class DialogDomStandard implements IDialogDom {
       event.preventDefault();
       void onResolve(
         this._controller.cancel(),
-        () => this.wrapper.close()
+        () => this.dialogHost.close()
       );
     }
   }

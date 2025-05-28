@@ -10,7 +10,7 @@ import {
   IDialogSettings,
   IDialogGlobalOptions,
   DialogConfiguration,
-  DialogDefaultConfiguration,
+  DialogConfigurationClassic,
   DialogGlobalOptionsClassic,
   DialogCancelError,
   IDialogDom,
@@ -18,7 +18,6 @@ import {
   DialogController,
   DialogDomClassic,
   DialogService,
-  DialogClassicConfiguration,
   DialogRenderOptionsClassic,
 } from '@aurelia/dialog';
 import {
@@ -62,7 +61,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         '',
         class App { },
         [
-          DialogDefaultConfiguration.customize(settings => {
+          DialogConfigurationClassic.customize(settings => {
             customized = true;
             assert.instanceOf(settings, DialogGlobalOptionsClassic);
           })
@@ -79,7 +78,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
     });
 
     it('allows injection of both IDialogService and DialogService', function () {
-      const { container } = createFixture('', class { }, [DialogDefaultConfiguration]);
+      const { container } = createFixture('', class { }, [DialogConfigurationClassic]);
       assert.strictEqual(
         container.get(IDialogService),
         container.get(DialogService)
@@ -89,7 +88,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
 
   describe('on deactivation', function () {
     it('throws when it fails to cleanup', async function () {
-      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogDefaultConfiguration]);
+      const { ctx, startPromise, tearDown } = createFixture('', class App { }, [DialogConfigurationClassic]);
 
       await startPromise;
       const dialogService = ctx.container.get(IDialogService);
@@ -934,6 +933,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
                 host.append(overlay, contentHost);
                 return {
                   overlay,
+                  dialogHost: contentHost,
                   contentHost,
                   dispose() {
                     disposed = 1;
@@ -963,6 +963,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
               render(_host, _controller, _settings) {
                 return {
                   overlay,
+                  dialogHost: contentHost,
                   contentHost,
                   show() { i = 1; },
                   hide() { i = 2; },
@@ -1073,7 +1074,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       if (browserOnly && isNode()) continue;
       const $it = only ? it.only : it;
       $it(title, async function () {
-        const creationResult = createFixture('', class App { }, [delegateSyntax, DialogClassicConfiguration]);
+        const creationResult = createFixture('', class App { }, [delegateSyntax, DialogConfigurationClassic]);
         const { ctx, tearDown, startPromise } = creationResult;
         await startPromise;
         const dialogService = ctx.container.get(IDialogService);

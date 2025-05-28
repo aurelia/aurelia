@@ -110,7 +110,7 @@ export class DialogDomClassic implements IDialogDom {
   private readonly _options: DialogRenderOptionsClassic;
 
   public constructor(
-    public readonly wrapper: HTMLElement,
+    public readonly dialogHost: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
@@ -135,7 +135,7 @@ export class DialogDomClassic implements IDialogDom {
 
   public dispose(): void {
     this._sub?.dispose();
-    this.wrapper.remove();
+    this.dialogHost.remove();
   }
 }
 

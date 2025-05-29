@@ -16,7 +16,7 @@ export interface IDialogService {
    * @returns Promise A promise that settles when the dialog is closed.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  open<TOptions, TModel = any, TVm extends object = object>(settings: IDialogSettings<TModel, TVm, TOptions>): DialogOpenPromise;
+  open<TOptions, TModel = any, TVm extends object = object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -45,7 +45,7 @@ function testTypes(d: IDialogService) {
       options: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        b: 1,
+        d: 1,
       }
     }),
   ];
@@ -72,7 +72,7 @@ export interface IDialogController {
  */
 export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer<unknown>>('IDialogDomRenderer');
 export interface IDialogDomRenderer<TOptions> {
-  render(dialogHost: Element, requestor: IDialogController, options: TOptions): IDialogDom;
+  render(dialogHost: Element, requestor: IDialogController, options?: TOptions): IDialogDom;
 }
 
 /**
@@ -81,7 +81,7 @@ export interface IDialogDomRenderer<TOptions> {
 export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
   readonly overlay: HTMLElement | null;
-  readonly dialogHost: HTMLElement;
+  readonly root: HTMLElement;
   readonly contentHost: HTMLElement;
   /**
    * Called when the dialog should be shown. Application can use this for animations
@@ -113,12 +113,11 @@ export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export type IDialogSettings<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TRenderOptions = any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TModel = any,
   TVm extends object = object,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TRenderOptions = any,
 > = {
-
   /**
    * A custom renderer for the dialog.
    */
@@ -151,7 +150,7 @@ export type IDialogSettings<
   container?: IContainer;
 
   /**
-   * The configuration for the dialog. Different renderers may have different configuration options.
+   * The rendering configuration for the dialog. Different renderers may have different configuration options.
    */
   options?: TRenderOptions;
 
@@ -161,14 +160,24 @@ export type IDialogSettings<
   rejectOnCancel?: boolean;
 };
 
-export type IDialogLoadedSettings<T extends object = object, TRenderConfig extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template'> & {
-  component?: Constructable<T> | T;
+export type IDialogLoadedSettings<TRenderOptions extends object = object, TModel extends object = object> = Omit<IDialogSettings<TRenderOptions, TModel>, 'component' | 'template'> & {
+  component?: Constructable<TModel> | TModel;
   template?: string | Element;
-  renderer?: IDialogDomRenderer<TRenderConfig>;
+  renderer?: IDialogDomRenderer<TRenderOptions>;
 };
 
-export type IDialogGlobalOptions<T> = T;
-export const IDialogGlobalOptions = /*@__PURE__*/createInterface<IDialogGlobalOptions<object>>('IDialogGlobalOptions');
+export type IDialogGlobalSettings<TOptions> = {
+  /**
+   * When set to true conveys a cancellation as a rejection.
+   */
+  rejectOnCancel?: boolean;
+  /**
+   * The rendering configuration for the dialog. Different renderers may have different configuration options.
+   */
+  options: TOptions;
+};
+
+export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings<object>>('IDialogGlobalSettings');
 
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;

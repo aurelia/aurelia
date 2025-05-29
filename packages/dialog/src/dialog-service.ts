@@ -6,7 +6,7 @@ import {
   DialogOpenResult,
   IDialogService,
   IDialogController,
-  IDialogGlobalOptions,
+  IDialogGlobalSettings,
   IDialogLoadedSettings,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
@@ -49,7 +49,7 @@ export class DialogService implements IDialogService {
   private readonly dlgs: IDialogController[] = [];
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly _defaultOptions = resolve(IDialogGlobalOptions);
+  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings) as IDialogGlobalSettings<unknown>;
 
   /**
    * Opens a new dialog.
@@ -68,9 +68,9 @@ export class DialogService implements IDialogService {
    * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
-  public open<TModel, TVm extends object, TConfig>(settings: IDialogSettings<TModel, TVm, TConfig>): DialogOpenPromise {
+  public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from<TConfig>(this._defaultOptions, settings);
+      const $settings = DialogSettings.from(this._defaultSettings, settings);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -140,11 +140,12 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from<T>(baseOptions: Partial<IDialogGlobalOptions<T>>, settings: IDialogSettings<unknown, object, T>): DialogSettings {
+  public static from<T>(baseSettings: Partial<IDialogGlobalSettings<T>>, settings: IDialogSettings): DialogSettings {
     const finalSettings = Object.assign(
       new DialogSettings(),
+      baseSettings,
       settings,
-      { options: { ...baseOptions, ...settings.options }
+      { options: { ...baseSettings.options, ...settings.options ?? {} }
     });
 
     if (finalSettings.component == null && finalSettings.template == null) {

@@ -2,7 +2,7 @@ import { IPlatform, IWindow } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogGlobalOptions,
+  IDialogGlobalSettings,
   IDialogController,
 } from './dialog-interfaces';
 
@@ -58,14 +58,17 @@ export type DialogRenderOptionsClassic = {
 export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
-export class DialogGlobalOptionsClassic implements IDialogGlobalOptions<DialogRenderOptionsClassic> {
+export class DialogGlobalSettingsClassic implements IDialogGlobalSettings<DialogRenderOptionsClassic> {
 
   public static register(container: IContainer) {
-    singletonRegistration(IDialogGlobalOptions, this).register(container);
+    singletonRegistration(IDialogGlobalSettings, this).register(container);
   }
 
-  public lock = true;
-  public startingZIndex = 1000;
+  public options: DialogRenderOptionsClassic = {
+    lock: true,
+    startingZIndex: 1000,
+  };
+
   public rejectOnCancel = false;
 }
 
@@ -110,7 +113,7 @@ export class DialogDomClassic implements IDialogDom {
   private readonly _options: DialogRenderOptionsClassic;
 
   public constructor(
-    public readonly dialogHost: HTMLElement,
+    public readonly root: HTMLElement,
     public readonly overlay: HTMLElement,
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
@@ -135,7 +138,7 @@ export class DialogDomClassic implements IDialogDom {
 
   public dispose(): void {
     this._sub?.dispose();
-    this.dialogHost.remove();
+    this.root.remove();
   }
 }
 

@@ -93,9 +93,9 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogConfigurationStandard.customize(options => {
-        options.show = () => { i = 1; };
-        options.hide = () => { i = 2; };
+      [DialogConfigurationStandard.customize(settings => {
+        settings.options.show = () => { i = 1; };
+        settings.options.hide = () => { i = 2; };
       })]
     );
     const result = await component.dialogService.open({
@@ -139,7 +139,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogConfigurationStandard.customize(options => {
+      [DialogConfigurationStandard.customize(({ options }) => {
         options.show = () => { throw new Error('should not be called'); };
         options.hide = () => { throw new Error('should not be called'); };
       })]
@@ -166,7 +166,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogConfigurationStandard.customize(options => {
+      [DialogConfigurationStandard.customize(({ options }) => {
         options.show = () => { throw new Error('should not be called'); };
         options.hide = () => { throw new Error('should not be called'); };
       })]

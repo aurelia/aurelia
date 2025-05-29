@@ -1,14 +1,14 @@
 import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
-import { IDialogGlobalOptions } from './dialog-interfaces';
-import { DialogGlobalOptionsClassic, DialogDomRendererClassic, DialogRenderOptionsClassic } from './dialog-impl-classic';
+import { IDialogGlobalSettings } from './dialog-interfaces';
+import { DialogGlobalSettingsClassic, DialogDomRendererClassic, DialogRenderOptionsClassic } from './dialog-impl-classic';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
 import { DialogDomRendererStandard, DialogGlobalOptionsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 
-export type DialogConfigurationProvider<T> = (settings: IDialogGlobalOptions<T>) => void | Promise<unknown>;
+export type DialogConfigurationProvider<T> = (settings: IDialogGlobalSettings<T>) => void | Promise<unknown>;
 
 export interface DialogConfiguration<T> extends IRegistry {
   settingsProvider: DialogConfigurationProvider<T>;
@@ -21,7 +21,7 @@ function createDialogConfiguration<T>(settingsProvider: DialogConfigurationProvi
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
       ...registrations,
-      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalOptions) as T) as void)
+      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings) as IDialogGlobalSettings<T>) as void)
     ),
     customize(cb: DialogConfigurationProvider<T>, regs?: IRegistry[]) {
       return createDialogConfiguration(cb, regs ?? registrations);
@@ -41,7 +41,7 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
   throw createMappedError(ErrorNames.dialog_no_empty_default_configuration);
 }, [class NoopDialogGlobalSettings {
   public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalOptions, this));
+    container.register(singletonRegistration(IDialogGlobalSettings, this));
   }
 }]);
 
@@ -50,7 +50,7 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
  */
 export const DialogConfigurationClassic = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsClassic>(noop, [
   DialogService,
-  DialogGlobalOptionsClassic,
+  DialogGlobalSettingsClassic,
   DialogDomRendererClassic,
 ]);
 
@@ -66,17 +66,22 @@ export const DialogConfigurationStandard = /*@__PURE__*/createDialogConfiguratio
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testTypes() {
   return [
-    DialogConfigurationStandard.customize(options => {
-      options.modal = false;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      options.abc = 'xyz';
+    DialogConfigurationStandard.customize(settings => {
+      settings.options.hide = () => {/*  */};
+      settings.options = {
+        modal: false,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        abc: 'xyz',
+      };
     }),
-    DialogConfigurationClassic.customize(options => {
-      options.lock = true;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      options.modal = 'abc';
+    DialogConfigurationClassic.customize(settings => {
+      settings.options = {
+        lock: true,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        modal: 'abc'
+      };
     }),
   ];
 }

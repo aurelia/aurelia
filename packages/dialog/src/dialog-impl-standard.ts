@@ -3,7 +3,7 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogController,
-  IDialogGlobalOptions,
+  IDialogGlobalSettings,
 } from './dialog-interfaces';
 
 import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
@@ -39,10 +39,13 @@ export type DialogRenderOptionsStandard = {
   hide?: (dom: IDialogDom) => void | Promise<void>;
 };
 
-export class DialogGlobalOptionsStandard implements IDialogGlobalOptions<DialogRenderOptionsStandard> {
+export class DialogGlobalOptionsStandard implements IDialogGlobalSettings<DialogRenderOptionsStandard> {
   public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalOptions, this));
+    container.register(singletonRegistration(IDialogGlobalSettings, this));
   }
+
+  public options: DialogRenderOptionsStandard = {};
+  public rejectOnCancel = false;
 }
 
 export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {
@@ -81,14 +84,14 @@ export class DialogDomStandard implements IDialogDom {
 
   public constructor(
     public readonly id: string,
-    public readonly dialogHost: HTMLDialogElement,
+    public readonly root: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
     options: DialogRenderOptionsStandard,
   ) {
     this._controller = controller;
     this._options = options;
-    this._styleParser = dialogHost.ownerDocument.createElement('div');
+    this._styleParser = root.ownerDocument.createElement('div');
     if (options.overlayStyle != null) {
       this.setOverlayStyle(options.overlayStyle);
     }
@@ -97,9 +100,9 @@ export class DialogDomStandard implements IDialogDom {
   public setOverlayStyle(css: string): void;
   public setOverlayStyle(css: Partial<CSSStyleDeclaration>): void;
   public setOverlayStyle(css: string | Partial<CSSStyleDeclaration>) {
-    const el = this._overlayStyleEl ??= this.dialogHost.insertAdjacentElement(
+    const el = this._overlayStyleEl ??= this.root.insertAdjacentElement(
       'afterbegin',
-      this.dialogHost.ownerDocument.createElement('style')
+      this.root.ownerDocument.createElement('style')
     ) as HTMLStyleElement;
 
     const styleParser = this._styleParser;
@@ -114,12 +117,12 @@ export class DialogDomStandard implements IDialogDom {
 
   public show() {
     if (this._options.modal) {
-      this.dialogHost.showModal();
+      this.root.showModal();
     } else {
-      this.dialogHost.show();
+      this.root.show();
     }
     return onResolve(this._options.show?.(this), () => {
-      this.dialogHost.addEventListener('keydown', this);
+      this.root.addEventListener('close', this);
     });
   }
 
@@ -127,35 +130,19 @@ export class DialogDomStandard implements IDialogDom {
     return onResolve(
       this._options.hide?.(this),
       () => {
-        this.dialogHost.removeEventListener('keydown', this);
-        this.dialogHost.close();
+        this.root.removeEventListener('close', this);
+        this.root.close();
       }
     );
   }
 
   public dispose(): void {
-    this.dialogHost.remove();
+    this.root.remove();
   }
 
   /** @internal */
   public handleEvent(event: Event): void {
-    if (event.type === 'keydown') {
-      this._handleKeydown(event as KeyboardEvent);
-    }
-  }
-
-  /** @internal */
-  private _handleKeydown(event: KeyboardEvent): void {
-    if ((event.key === 'Escape' || event.keyCode === 27)
-      && !event.defaultPrevented
-      && this._options.modal
-    ) {
-      // close the dialog on Escape key press
-      event.preventDefault();
-      void onResolve(
-        this._controller.cancel(),
-        () => this.dialogHost.close()
-      );
-    }
+    event.preventDefault();
+    void this._controller.cancel();
   }
 }

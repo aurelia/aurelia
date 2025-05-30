@@ -274,4 +274,73 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
 
     assert.includes(error.message, 'deactivation failed');
   });
+
+  it('closes template when calling ok()', async function () {
+    const { component, assertHtml, trigger, flush } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    await component.dialogService.open({
+      host: component.host,
+      template: '<template><button click.trigger="$dialog.ok()">ok</button></template>',
+    });
+
+    assertHtml('dialog', '<div><button>ok</button></div>');
+
+    trigger('button', 'click', { bubbles: true });
+    flush();
+
+    assertHtml('');
+  });
+
+  it('closes template when calling cancel()', async function () {
+    const { component, assertHtml, trigger, flush } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    await component.dialogService.open({
+      host: component.host,
+      template: '<template><button click.trigger="$dialog.cancel()">cancel</button></template>',
+    });
+
+    assertHtml('dialog', '<div><button>cancel</button></div>');
+
+    trigger('button', 'click', { bubbles: true });
+    flush();
+
+    assertHtml('');
+  });
+
+  it('closes template when calling error()', async function () {
+    const { component, assertHtml, trigger, flush } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    await component.dialogService.open({
+      host: component.host,
+      template: '<template><button click.trigger="$dialog.error()">error</button></template>',
+    });
+
+    assertHtml('dialog', '<div><button>error</button></div>');
+
+    trigger('button', 'click', { bubbles: true });
+    flush();
+
+    assertHtml('');
+  });
 });

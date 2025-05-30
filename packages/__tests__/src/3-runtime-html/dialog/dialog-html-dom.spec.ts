@@ -5,19 +5,40 @@ import {
   IDialogService,
   DialogRenderOptionsStandard
 } from '@aurelia/dialog';
-import { resolve } from '@aurelia/kernel';
+import { IDisposable, resolve } from '@aurelia/kernel';
 import {
   INode
 } from '@aurelia/runtime-html';
 import {
   createFixture,
   assert,
+  onFixtureCreated,
+  IFixture,
 } from '@aurelia/testing';
 import { isNode } from '../../util.js';
 
 describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
   // only deal with <dialog> in the browser
   if (isNode()) return;
+
+  let sub: IDisposable;
+  let fixtures: IFixture<object>[];
+
+  this.beforeEach(function () {
+    fixtures = [];
+    sub = onFixtureCreated((fixture) => {
+      fixtures.push(fixture);
+    });
+  });
+
+  this.afterEach(async function () {
+    sub.dispose();
+    await Promise
+      .all(fixtures.map(async f => {
+        const unclosedControllers = await ((f.component as any).dialogService as IDialogService).closeAll();
+        assert.strictEqual(unclosedControllers.length, 0, 'There should be no unclosed dialog controllers');
+      }));
+  });
 
   it('renders <dialog> element', async function () {
     const { component, assertHtml } = createFixture(
@@ -159,7 +180,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     assert.strictEqual(i, 2);
   });
 
-  it('calls hide on escape key for modal dialog', async function () {
+  it('calls hide on modal dialog close event', async function () {
     const { component, trigger } = createFixture(
       '',
       class {
@@ -183,9 +204,74 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     });
 
     assert.strictEqual(i, 1);
-    trigger('button', 'keydown', { key: 'Escape', keyCode: 27, bubbles: true });
+    trigger('button', 'close', { bubbles: true });
     // await new Promise(resolve => setTimeout(resolve, 100));
     await result.dialog.closed;
     assert.strictEqual(i, 2);
+  });
+
+  it('calls hide only once on modal dialog close event', async function () {
+    let i = 0;
+    const { component, trigger } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+    const result = await component.dialogService.open<DialogRenderOptionsStandard>({
+      host: component.host,
+      template: '<button>cancel dialog</button>',
+      options: {
+        modal: true,
+        hide: () => { i++; },
+      }
+    });
+
+    trigger('button', 'close', { bubbles: true });
+    // await new Promise(resolve => setTimeout(resolve, 100));
+    await result.dialog.closed;
+    assert.strictEqual(i, 1);
+  });
+
+  it('does not call hide when component deactivation fails', async function () {
+    const { component, trigger } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    let i = 0;
+    await component.dialogService.open<DialogRenderOptionsStandard>({
+      host: component.host,
+      template: '<button>cancel dialog</button>',
+      component: () => ({
+        deactivate: () => {
+          return i++ === 0 ? Promise.reject(new Error('deactivation failed')) : Promise.resolve();
+        }
+      }),
+      options: {
+        modal: true,
+        hide: () => { i++; },
+      }
+    });
+
+    let error: Error | undefined;
+    await new Promise<void>((resolve) => {
+      globalThis.addEventListener('unhandledrejection', function handleUncaught(ev) {
+        ev.preventDefault();
+        error = ev.reason as Error;
+        globalThis.removeEventListener('unhandledrejection', handleUncaught);
+        return component.dialogService.closeAll().then(() => resolve());
+      });
+
+      trigger('button', 'close', { bubbles: true });
+    });
+
+    assert.includes(error.message, 'deactivation failed');
   });
 });

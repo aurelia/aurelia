@@ -16,7 +16,7 @@ export interface IDialogService {
    * @returns Promise A promise that settles when the dialog is closed.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  open<TOptions, TModel = any, TVm extends object = object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise;
+  open<TOptions, TModel = any, TVm extends object = any>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.

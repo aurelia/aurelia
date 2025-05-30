@@ -131,6 +131,9 @@ export class DialogDomStandard implements IDialogDom {
       this._options.hide?.(this),
       () => {
         this.root.removeEventListener('close', this);
+        // this close will trigger the 'close' event again
+        // but we already removed the event listener
+        // so it won't cause another handleEvent call
         this.root.close();
       }
     );

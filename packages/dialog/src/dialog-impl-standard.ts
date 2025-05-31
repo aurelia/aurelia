@@ -122,7 +122,7 @@ export class DialogDomStandard implements IDialogDom {
       this.root.show();
     }
     return onResolve(this._options.show?.(this), () => {
-      this.root.addEventListener('close', this);
+      this.root.addEventListener('cancel', this);
     });
   }
 
@@ -130,7 +130,7 @@ export class DialogDomStandard implements IDialogDom {
     return onResolve(
       this._options.hide?.(this),
       () => {
-        this.root.removeEventListener('close', this);
+        this.root.removeEventListener('cancel', this);
         // this close will trigger the 'close' event again
         // but we already removed the event listener
         // so it won't cause another handleEvent call

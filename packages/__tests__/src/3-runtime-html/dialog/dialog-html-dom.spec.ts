@@ -180,7 +180,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     assert.strictEqual(i, 2);
   });
 
-  it('calls hide on modal dialog close event', async function () {
+  it('calls hide on modal dialog cancel event', async function () {
     const { component, trigger } = createFixture(
       '',
       class {
@@ -204,8 +204,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     });
 
     assert.strictEqual(i, 1);
-    trigger('button', 'close', { bubbles: true });
-    // await new Promise(resolve => setTimeout(resolve, 100));
+    trigger('button', 'cancel', { bubbles: true });
     await result.dialog.closed;
     assert.strictEqual(i, 2);
   });
@@ -229,7 +228,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       }
     });
 
-    trigger('button', 'close', { bubbles: true });
+    trigger('button', 'cancel', { bubbles: true });
     // await new Promise(resolve => setTimeout(resolve, 100));
     await result.dialog.closed;
     assert.strictEqual(i, 1);
@@ -269,7 +268,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         return component.dialogService.closeAll().then(() => resolve());
       });
 
-      trigger('button', 'close', { bubbles: true });
+      trigger('button', 'cancel', { bubbles: true });
     });
 
     assert.includes(error.message, 'deactivation failed');
@@ -341,6 +340,35 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     trigger('button', 'click', { bubbles: true });
     flush();
 
+    assertHtml('');
+  });
+
+  it('does not close and remove the dialog when canDeactivate returns false', async function () {
+    const { component, assertHtml, trigger, flush } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    let i = 0;
+    await component.dialogService.open({
+      host: component.host,
+      component: () => ({
+        // only stop the first call
+        canDeactivate: () => i++ > 0,
+      }),
+      template: '<template><button click.trigger="$dialog.ok()">error</button></template>',
+    });
+
+    trigger('button', 'click');
+    flush();
+    assertHtml('dialog', '<div><button>error</button></div>');
+
+    trigger('button', 'click');
+    flush();
     assertHtml('');
   });
 });

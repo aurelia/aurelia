@@ -8,6 +8,7 @@ import {
 
 import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
 import { singletonRegistration } from './utilities-di';
+import { createMappedError, ErrorNames } from './errors';
 
 export type DialogRenderOptionsStandard = {
   /**
@@ -127,6 +128,13 @@ export class DialogDomStandard implements IDialogDom {
   }
 
   public hide(): void | Promise<void> {
+    // istanbul ignore next
+    if (!this.root.open) {
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.warn(createMappedError(ErrorNames.dialog_closed_before_deactivation));
+      }
+    }
     return onResolve(
       this._options.hide?.(this),
       () => {

@@ -129,14 +129,18 @@ let id = 0;
 export class Task<T = any> {
   public readonly id: number = ++id;
 
+  /** @internal */
   private _resolve!: (value: UnwrapPromise<T>) => void;
+  /** @internal */
   private _reject!: (reason?: any) => void;
 
+  /** @internal */
   private readonly _result: Promise<UnwrapPromise<T>>;
   public get result(): Promise<UnwrapPromise<T>> {
     return this._result;
   }
 
+  /** @internal */
   private _status: TaskStatus = tsPending;
   public get status(): TaskStatus {
     return this._status;

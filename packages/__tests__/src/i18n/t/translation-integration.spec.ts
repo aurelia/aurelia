@@ -1764,34 +1764,34 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public restCount = 1;
         public firstItem = 'foo';
       }
-      $it('with projection - if.bind on host - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on host - changes in t-params', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        flush();
 
         assert.html.textContent(host, 'foo and 1 more', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        flush();
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         // toggle visibility
         app.firstItem = 'bar';
         app.restCount = 2;
         app.show = true;
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'bar and 2 more', 'round #4');
       }, { component: App });
     }
@@ -1817,34 +1817,34 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public restCount = 1;
         public firstItem = 'foo';
       }
-      $it('with projection - if.bind on content - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on content - changes in t-params', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        flush();
 
         assert.html.textContent(host, 'foo and 1 more', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        flush();
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         // toggle visibility
         app.firstItem = 'bar';
         app.restCount = 2;
         app.show = true;
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        flush();
         assert.html.textContent(host, 'bar and 2 more', 'round #4');
       }, { component: App });
     }

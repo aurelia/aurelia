@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const tsPending = 'pending' as const;
-const tsRunning = 'running' as const;
-const tsCompleted = 'completed' as const;
-const tsCanceled = 'canceled' as const;
+const tsPending = 'pending';
+const tsRunning = 'running';
+const tsCompleted = 'completed';
+const tsCanceled = 'canceled';
 export type TaskStatus = typeof tsPending | typeof tsRunning | typeof tsCompleted | typeof tsCanceled;
 export type TaskCallback<T = any> = () => T;
 

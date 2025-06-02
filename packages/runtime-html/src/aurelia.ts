@@ -25,11 +25,6 @@ export class Aurelia implements IDisposable {
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
-  // TODO:
-  // root should just be a controller,
-  // in all other parts of the framework, root of something is always the same type of that thing
-  // i.e: container.root => a container, RouteContext.root => a RouteContext
-  // Aurelia.root of a controller hierarchy should behave similarly
   /** @internal */
   private _root: IAppRoot | undefined = void 0;
   public get root(): IAppRoot {

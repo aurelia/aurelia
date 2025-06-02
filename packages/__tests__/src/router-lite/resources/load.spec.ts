@@ -1287,73 +1287,65 @@ describe('router-lite/resources/load.spec.ts', function () {
     await au.stop(true);
   });
 
-  for (const useHash of [true, false]) {
-    it(`respects constrained routes with hash - ${useHash}`, async function () {
-      @route('p1/*rest')
-      @customElement({ name: 'p-1', template: `p1 \${rest}` })
-      class P1 {
-        public rest: string;
-        public loading(params: Params, _next: RouteNode, _current: RouteNode): void {
-          this.rest = params.rest;
-        }
+  {
+    class TestData {
+      public readonly encodedRouteParam: string;
+      public constructor(
+        public readonly name: string,
+        public readonly routeParam: string,
+      ) {
+        this.encodedRouteParam = encodeURIComponent(routeParam);
       }
+    }
+    const testData = [
+      new TestData('with /', 'foo/bar'),
+      new TestData('with %', 'foo%bar'),
+      new TestData('with ?', 'foo?bar'),
+      new TestData('with #', 'foo#bar'),
+      new TestData('with &', 'foo&bar'),
+      new TestData('with emoji', 'foo😀bar'),
+    ] as const;
+    const numTestData = testData.length;
+    for (const useHash of [true, false]) {
+      for (let i = 0; i < numTestData; ++i) {
+        const { name, routeParam, encodedRouteParam } = testData[i];
+        it(`decodes route parameters correctly - ${name} - with hash: ${useHash}`, async function () {
+          @route('p1/*rest')
+          @customElement({ name: 'p-1', template: `p1 \${rest}` })
+          class P1 {
+            public rest: string;
+            public loading(params: Params, _next: RouteNode, _current: RouteNode): void {
+              this.rest = params.rest;
+            }
+          }
 
-      @route({ routes: [P1] })
-      @customElement({ name: 'ro-ot', template: '<a load.bind="route"></a><au-viewport></au-viewport>' })
-      class Root {
-        public route: string = `p1/${encodeURIComponent('foo/bar')}`;
+          @route({ routes: [P1] })
+          @customElement({ name: 'ro-ot', template: '<a load.bind="route"></a><au-viewport></au-viewport>' })
+          class Root {
+            public route: string = `p1/${encodedRouteParam}`;
+          }
+
+          const { au, host, container, rootVm } = await start({ appRoot: Root, registrations: [P1], useHash });
+          const queue = container.get(IPlatform).domQueue;
+
+          const anchor = host.querySelector('a');
+
+          anchor.click();
+          await queue.yield();
+          assert.html.textContent(host, `p1 ${routeParam}`, 'round#1');
+
+          // change route
+          const { routeParam: nextRouteParam, encodedRouteParam: nextEncodedRouteParam } = testData[(i + 1) % numTestData];
+          const nextRoute = rootVm.route = `p1/${nextEncodedRouteParam}`;
+          await queue.yield();
+          assert.strictEqual(anchor.getAttribute('href').endsWith(nextRoute), true, 'round#2 - href');
+          anchor.click();
+          await queue.yield();
+          assert.html.textContent(host, `p1 ${nextRouteParam}`, 'round#2');
+
+          await au.stop(true);
+        });
       }
-
-      const { au, host, container, rootVm } = await start({ appRoot: Root, registrations: [P1], useHash });
-      const queue = container.get(IPlatform).domQueue;
-
-      const anchor = host.querySelector('a');
-
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo/bar', 'round#1');
-
-      // change route - %
-      rootVm.route = `p1/${encodeURIComponent('foo%baz')}`;
-      await queue.yield();
-      assert.strictEqual(anchor.getAttribute('href').endsWith('p1/foo%25baz'), true, 'round#2 - href');
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo%baz', 'round#2');
-
-      // change route - ?
-      rootVm.route = `p1/${encodeURIComponent('foo?baz')}`;
-      await queue.yield();
-      assert.strictEqual(anchor.getAttribute('href').endsWith('p1/foo%3Fbaz'), true, 'round#3 - href');
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo?baz', 'round#3');
-
-      // change route - #
-      rootVm.route = `p1/${encodeURIComponent('foo#baz')}`;
-      await queue.yield();
-      assert.strictEqual(anchor.getAttribute('href').endsWith('p1/foo%23baz'), true, 'round#4 - href');
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo#baz', 'round#4');
-
-      // change route - &
-      rootVm.route = `p1/${encodeURIComponent('foo&baz')}`;
-      await queue.yield();
-      assert.strictEqual(anchor.getAttribute('href').endsWith('p1/foo%26baz'), true, 'round#5 - href');
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo&baz', 'round#5');
-
-      // change route - emoji
-      rootVm.route = `p1/${encodeURIComponent('foo😀baz')}`;
-      await queue.yield();
-      assert.strictEqual(anchor.getAttribute('href').endsWith('p1/foo%F0%9F%98%80baz'), true, 'round#6   - href');
-      anchor.click();
-      await queue.yield();
-      assert.html.textContent(host, 'p1 foo😀baz', 'round#6');
-
-      await au.stop(true);
-    });
+    }
   }
 });

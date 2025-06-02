@@ -31,9 +31,14 @@ export type ValueConverterStaticAuDefinition = PartialValueConverterDefinition &
 export type ValueConverterType<T extends Constructable = Constructable> = ResourceType<T, ValueConverterInstance>;
 export type ValueConverterInstance<T extends {} = {}> = {
   signals?: string[];
+  withContext?: boolean;
   toView(input: unknown, ...args: unknown[]): unknown;
   fromView?(input: unknown, ...args: unknown[]): unknown;
 } & T;
+export interface ICallerContext {
+  source?: unknown;
+  binding: unknown;
+}
 
 export type ValueConverterKind = IResourceKind & {
   isType<T>(value: T): value is (T extends Constructable ? ValueConverterType<T> : never);
@@ -67,13 +72,13 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
     public readonly name: string,
     public readonly aliases: readonly string[],
     public readonly key: string,
-  ) {}
+  ) {
+  }
 
   public static create<T extends Constructable = Constructable>(
     nameOrDef: string | PartialValueConverterDefinition,
     Type: ValueConverterType<T>,
   ): ValueConverterDefinition<T> {
-
     let name: string;
     let def: PartialValueConverterDefinition;
     if (isString(nameOrDef)) {
@@ -83,7 +88,6 @@ export class ValueConverterDefinition<T extends Constructable = Constructable> i
       name = nameOrDef.name;
       def = nameOrDef;
     }
-
     return new ValueConverterDefinition(
       Type,
       firstDefined(getConverterAnnotation(Type, 'name'), name),

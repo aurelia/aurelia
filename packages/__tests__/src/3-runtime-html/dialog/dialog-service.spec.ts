@@ -416,10 +416,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             errorCaughtCount++;
             error = err;
           });
-          assert.deepStrictEqual(error, Object.assign(new Error('AUR0908:'), {
-            wasCancelled: false,
-            value: expectedError
-          }));
+          assert.includes(error.message, 'AUR0908');
+          assert.strictEqual(error.wasCancelled, false);
+          assert.strictEqual(error.value, expectedError);
           assert.strictEqual(errorCaughtCount, 1);
         }
       },

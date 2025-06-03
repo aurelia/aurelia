@@ -28,6 +28,7 @@
     "packages/router",
     "packages/testing",
     "packages/addons",
+    "packages/insights",
     "packages/aurelia",
     "packages/__tests__",
     "packages-tooling/http-server",

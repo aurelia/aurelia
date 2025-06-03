@@ -17,7 +17,7 @@ import {
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer, resolve } from '@aurelia/kernel';
-import { IObserverLocator, observable } from '@aurelia/runtime';
+import { IObserverLocator, observable, runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('injects right aurelia instance', function () {
@@ -59,7 +59,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     nestedInputEl.value = 'aa bb';
     nestedInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
 
-    ctx.platform.domQueue.flush();
+    runTasks();
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
   });
 
@@ -287,6 +287,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
+    runTasks();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -334,6 +335,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
+    runTasks();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -726,6 +728,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual((component.el as HTMLElement)?.tagName, 'DIV');
       component.show = false;
+      runTasks();
       assert.strictEqual(component.el, null);
     });
 
@@ -756,7 +759,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     });
 
     it('updates ref when property key changes GH #2106', function () {
-      const { component, assertHtml, flush } = createFixture(
+      const { component, assertHtml } = createFixture(
         `<div repeat.for="item of items"
           data-id.bind="item.id"
           ref="children[$index]">\${item.id}</div>`,
@@ -772,7 +775,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertHtml('<div data-id="1">1</div>', { compact: true });
       assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['1']);
       component.add();
-      flush();
+      runTasks();
       assertHtml('<div data-id="2">2</div><div data-id="1">1</div>', { compact: true });
       assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['2', '1']);
     });
@@ -806,7 +809,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
   describe('getter bindable', function () {
     it('works in basic scenario', function () {
-      const { assertText, flush, trigger } = createFixture(
+      const { assertText, trigger } = createFixture(
         `<my-el component.ref=el message="hello world">`,
         class App {},
         [CustomElement.define({
@@ -827,12 +830,12 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assertText('hello world');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('1');
     });
 
     it('works with readonly bindable', function () {
-      const { assertText, flush, trigger } = createFixture(
+      const { assertText, trigger } = createFixture(
         `<my-el component.ref=el message.from-view="message">`,
         class App {
           message = 'hello-world';
@@ -851,7 +854,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assertText('hey');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -884,12 +887,13 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
+      runTasks();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
 
     it('works with array based computed bindable', function () {
-      const { component, assertText, flush, trigger } = createFixture(
+      const { component, assertText, trigger } = createFixture(
         `<my-el component.ref=el message.from-view="message">`,
         class App {
           message = '';
@@ -909,7 +913,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertText('hello world');
       assert.strictEqual(component.message, 'hello world');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('hey world');
       assert.strictEqual(component.message, 'hey world');
     });
@@ -941,6 +945,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual(count, 0);
       component.value = 'helo';
+      runTasks();
       assert.strictEqual(count, 1);
     });
 
@@ -977,16 +982,17 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       );
 
       component.value = 'helo';
-      assert.deepStrictEqual(calls, [['message', 'helo', 'hey']]);
-
-      component.v = 'hi';
-
+      runTasks();
       assert.deepStrictEqual(calls, [
-        ['message', 'helo', 'hey'],
-        // this last argument is wrong, it should be hello
-        // but because it doesn't eagerly observe the getter
-        // so the computed observer of `m` still has the original value assigned during binding phase
-        // leaving this like this for now, since it doesnt need to commit to observation early, also for the old value
+        ['message', 'hey', undefined],
+        ['m', 'hey', undefined],
+        ['message', 'helo', 'hey']
+      ]);
+
+      calls.length = 0;
+      component.v = 'hi';
+      runTasks();
+      assert.deepStrictEqual(calls, [
         ['m', 'hi', 'hey']
       ]);
     });

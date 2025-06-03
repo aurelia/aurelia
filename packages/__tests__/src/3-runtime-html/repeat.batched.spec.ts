@@ -1,3 +1,4 @@
+import { runTasks } from '@aurelia/runtime';
 import { createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.batched.spec.ts", function () {
@@ -9,6 +10,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('1234');
       component.items = [4, 1];
+      runTasks();
       assertText('41');
     });
   });
@@ -21,6 +23,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('1234');
       component.items = [4, 1];
+      runTasks();
       assertText('41');
     });
 
@@ -31,6 +34,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('12345');
       component.items = [5, 3];
+      runTasks();
       assertText('53');
     });
 
@@ -41,6 +45,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('345');
       component.items = [1, 5, 3, 2];
+      runTasks();
       assertText('1532');
     });
 
@@ -51,6 +56,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('223344');
       component.items = [4, 2];
+      runTasks();
       assertText('42');
     });
 
@@ -61,6 +67,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('7591');
       component.items = [9, 1];
+      runTasks();
       assertText('91');
     });
 
@@ -71,6 +78,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('1234');
       component.items = [3, 1, 4, 2];
+      runTasks();
       assertText('3142');
     });
 
@@ -81,6 +89,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('456');
       component.items = [2, 3, 6];
+      runTasks();
       assertText('236');
     });
 
@@ -91,6 +100,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('54321');
       component.items = [1, 2, 3];
+      runTasks();
       assertText('123');
     });
 
@@ -101,6 +111,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       );
       assertText('8910');
       component.items = [1, 2, 3];
+      runTasks();
       assertText('123');
     });
 

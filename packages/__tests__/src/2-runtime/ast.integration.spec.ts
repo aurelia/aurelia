@@ -4,10 +4,10 @@ import {
 } from '@aurelia/expression-parser';
 import {
   BindingMode,
-  IPlatform,
   LetBinding,
   PropertyBinding,
 } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import {
   assert,
   createContainer,
@@ -34,7 +34,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           { state: 0 },
           container,
           observerLocator,
-          {} as any,
           accessScopeExpr,
           target,
           'name',
@@ -46,8 +45,9 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(target.name, 'hello');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           source.name = `${idx}`;
+          runTasks();
           assert.strictEqual(target.name, `${idx}`);
         });
       });
@@ -68,7 +68,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
           { state: 0 },
           container,
           observerLocator,
-          container.get(IPlatform).domQueue,
           conditionalExpr,
           target,
           'value',
@@ -87,32 +86,39 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(target.value, 'no');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           const $count = handleChangeCallCount;
           source.checked = !source.checked;
+          runTasks();
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);
           if (source.checked) {
             source.yesMessage = `yes ${idx}`;
+            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.noMessage = `no ${idx}`;
+            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             source.noMessage = 'no';
+            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             source.noMessage = `no ${idx}`;
+            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.yesMessage = `yes ${idx}`;
+            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back to normal for next assertion
             source.yesMessage = 'yes';
+            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
@@ -141,7 +147,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         assert.strictEqual(source.value, 'hello');
 
-        Array.from({ length: 5 }).forEach(idx => {
+        Array.from({ length: 5 }).forEach((_, idx) => {
           oc.name = `${idx}`;
           assert.strictEqual(source.value, `${idx}`);
         });
@@ -215,33 +221,33 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
   describe('[[AccessMember]]', function () {
     it('notifies when binding with .length', function () {
-      const { trigger, assertText, flush } = createFixture
+      const { trigger, assertText } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items.length = 0">item count: \${items.length}</button>
         `
         .build();
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('button', 'item count: 0');
     });
   });
 
   describe('[[AccessKey]]', function () {
     it('notifies when assigning to array index', function () {
-      const { trigger, assertText, flush } = createFixture
+      const { trigger, assertText } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
         `
         .build();
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('button', 'item at [1]: 0');
     });
 
     it('notifies when binding two way with array index', function () {
-      const { getAllBy, type, flush } = createFixture
+      const { getAllBy, type } = createFixture
         .component({ items: [1, 2] })
         .html`
           <button click.trigger="items[1] = 0">item at [1]: \${items[1]}</button>
@@ -253,7 +259,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
       const inputs = getAllBy('input');
       type(inputs[0], '3');
-      flush();
+      runTasks();
 
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
     });

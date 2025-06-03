@@ -5,6 +5,7 @@ import {
   IPlatform,
   customElement,
 } from '@aurelia/runtime-html';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   assert, createFixture
 } from '@aurelia/testing';
@@ -37,9 +38,11 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(callCount, 1);
 
       component.condition = false;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       assert.strictEqual(callCount, 2);
 
@@ -68,9 +71,11 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         assert.strictEqual(callCount, 1);
 
         component.condition = false;
+        runTasks();
         assert.visibleTextEqual(appHost, '');
 
         component.condition = true;
+        runTasks();
         assert.visibleTextEqual(appHost, 'hello');
         assert.strictEqual(callCount, 2);
 
@@ -99,14 +104,17 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(callCount, 1);
 
       component.condition = false;
+      runTasks();
       assert.visibleTextEqual(appHost, 'world');
       assert.strictEqual(callCount, 2);
 
       component.condition = true;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello');
       assert.strictEqual(callCount, 3);
 
       component.condition = false;
+      runTasks();
       assert.visibleTextEqual(appHost, 'world');
       assert.strictEqual(callCount, 4);
 
@@ -136,17 +144,21 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 2);
 
       component.condition = false;
+      runTasks();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 
@@ -176,17 +188,21 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 3);
 
       component.condition = false;
+      runTasks();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
+      runTasks();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 
@@ -196,7 +212,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation as only child of <template>', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">${name}</template>',
         { on: false, name: 'a' }
       );
@@ -204,7 +220,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('');
 
       component.on = true;
-      flush();
+      runTasks();
       assertText('a');
 
       void tearDown();
@@ -213,7 +229,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation + leading + trailing text inside template', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">hey ${name}</template>',
         { on: false, name: 'a' }
       );
@@ -221,7 +237,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('');
 
       component.on = true;
-      flush();
+      runTasks();
       assertText('hey a');
 
       void tearDown();
@@ -230,7 +246,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     });
 
     it('works with interpolation as only child of <template> + else', function () {
-      const { assertText, component, flush, tearDown } = createFixture(
+      const { assertText, component, tearDown } = createFixture(
         '<template if.bind="on">${name}</template><template else>${name + 1}</template>',
         { on: false, name: 'a' }
       );
@@ -238,7 +254,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('a1');
 
       component.on = true;
-      flush();
+      runTasks();
       assertText('a');
 
       void tearDown();

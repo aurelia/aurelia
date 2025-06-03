@@ -1,35 +1,36 @@
 import { resolve } from '@aurelia/kernel';
+import { runTasks } from '@aurelia/runtime';
 import { CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () {
   it('auto infers binding expression with .bind', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.bind>', {
+    const { assertHtml, component } = createFixture('<div textcontent.bind>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    flush();
+    runTasks();
     assertHtml('<div>ahh</div>');
   });
 
   it('auto infers binding expression with .one-time', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.one-time>', {
+    const { assertHtml, component } = createFixture('<div textcontent.one-time>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    flush();
+    runTasks();
     assertHtml('<div>hey</div>');
   });
 
   it('auto infers binding expression with .to-view', function () {
-    const { assertHtml, component, flush } = createFixture('<div textcontent.to-view>', {
+    const { assertHtml, component } = createFixture('<div textcontent.to-view>', {
       textcontent: 'hey'
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    flush();
+    runTasks();
     assertHtml('<div>ahh</div>');
   });
 
@@ -43,14 +44,14 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
   });
 
   it('auto infers binding expression with .from-view', function () {
-    const { assertValue, type, component, flush } = createFixture('<input value.from-view>', {
+    const { assertValue, type, component } = createFixture('<input value.from-view>', {
       value: 'hey'
     });
     assertValue('input', '');
     type('input', 'you');
     assert.strictEqual(component.value, 'you');
     component.value = 'ahh';
-    flush();
+    runTasks();
     assertValue('input', 'you');
   });
 

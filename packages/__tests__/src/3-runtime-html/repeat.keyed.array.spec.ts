@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { batch } from '@aurelia/runtime';
+import { batch, runTasks, tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from "@aurelia/testing";
 
@@ -71,7 +71,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         async function mutate(cb: () => void) {
           obs.observe(host, { childList: true });
           cb();
-          await Promise.resolve();
+          await tasksSettled();
           obs.disconnect();
         }
 
@@ -193,7 +193,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         async function mutate(cb: () => void) {
           obs.observe(host, { childList: true });
           cb();
-          await Promise.resolve();
+          await tasksSettled();
           obs.disconnect();
         }
 
@@ -382,7 +382,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
           async function mutate(cb: () => void) {
             obs.observe(host, { childList: true });
             cb();
-            await Promise.resolve();
+            await tasksSettled();
             obs.disconnect();
           }
 
@@ -1130,14 +1130,14 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '2', data: 'bb' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = firstList; }
       );
       assertText('1-a 2-b ');
 
       component.items = secondList;
-      flush();
+      runTasks();
 
       assertText('1-aa 2-bb ');
     });
@@ -1154,7 +1154,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '3', data: 'c' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = initialList; }
       );
@@ -1162,7 +1162,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 2-b 3-c ');
 
       component.items = updatedList;
-      flush();
+      runTasks();
 
       assertText('2-bb 3-c ');
     });
@@ -1179,7 +1179,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: '2', data: 'b' },
       ];
 
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key: key">\${i.key}-\${i.data} </div>`,
         class { items = initialList; }
       );
@@ -1187,7 +1187,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 2-b ');
 
       component.items = updatedList;
-      flush();
+      runTasks();
 
       assertText('1-a 1.5-new 2-b ');
     });
@@ -1205,7 +1205,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { key: 'b', data: 'YY' },
       ];
 
-      const { getAllBy, component, flush, appHost } = createFixture(
+      const { getAllBy, component, appHost } = createFixture(
         `<div repeat.for="i of items; key: key"><input value.bind="i.data"></div>`,
         class { items = initialList; }
       );
@@ -1217,7 +1217,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assert.strictEqual(focusInput.value, 'Y');
 
       component.items = reorderedList;
-      flush();
+      runTasks();
 
       focusInput = getAllBy('input')[2];
       assert.strictEqual(doc.activeElement, focusInput);
@@ -1225,7 +1225,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
     });
 
     it('works with expression-based keys', function () {
-      const { assertText, component, flush } = createFixture(
+      const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key.bind: computeKey(i)">\${i.data} </div>`,
         class {
           items = [
@@ -1243,7 +1243,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { partId: 2, data: 'Item2' },
         { partId: 3, data: 'Item3-new' },
       ];
-      flush();
+      runTasks();
 
       assertText('Item1-updated Item2 Item3-new ');
     });

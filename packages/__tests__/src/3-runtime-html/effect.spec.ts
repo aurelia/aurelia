@@ -1,4 +1,4 @@
-import { IObservation, observable } from '@aurelia/runtime';
+import { runTasks, IObservation, observable } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/effect.spec.ts', function () {
@@ -67,6 +67,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
       }
     }
 
+    runTasks();
     assert.instanceOf(component.div, ctx.Element);
 
     let runCount = 0;
@@ -379,6 +380,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
         tearDown();
         obj.a = 2;
+        runTasks();
         assert.strictEqual(v, 2);
       });
 
@@ -393,6 +395,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
         assert.strictEqual(cancelled, 0);
         obj.a = 2;
+        runTasks();
         assert.strictEqual(v, 2);
         assert.strictEqual(cancelled, 1);
       });

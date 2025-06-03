@@ -18,6 +18,15 @@ export {
 } from './scope';
 
 export {
+  queueTask,
+  queueAsyncTask,
+  runTasks,
+  tasksSettled,
+  Task,
+  TaskAbortError,
+} from './queue';
+
+export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,

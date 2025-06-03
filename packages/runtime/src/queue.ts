@@ -7,8 +7,8 @@ export type TaskStatus = typeof tsPending | typeof tsRunning | typeof tsComplete
 export type TaskCallback<T = any> = () => T;
 
 const resolvedPromise = Promise.resolve();
-let flushScheduled = false;
-let isAutoFlush = false;
+let runScheduled = false;
+let isAutoRun = false;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const queue: (Task | Function)[] = [];
@@ -21,18 +21,18 @@ let yieldPromiseReject: ((reason?: any) => void) | null = null;
 Reflect.set(globalThis, '__au_queue__', {
   get queue() { return queue; },
   get pendingAsyncCount() { return pendingAsyncCount; },
-  get flushScheduled() { return flushScheduled; },
+  get runScheduled() { return runScheduled; },
   get yieldPromise() { return yieldPromise; },
   get taskErrors() { return taskErrors; },
 });
 
-const requestFlush = () => {
-  if (!flushScheduled) {
-    flushScheduled = true;
+const requestRun = () => {
+  if (!runScheduled) {
+    runScheduled = true;
     void resolvedPromise.then(() => {
-      flushScheduled = false;
-      isAutoFlush = true;
-      flush();
+      runScheduled = false;
+      isAutoRun = true;
+      runTasks();
     });
   }
 };
@@ -54,9 +54,9 @@ const signalYield = () => {
   }
 };
 
-export const flush = () => {
-  const isManualFlush = !isAutoFlush;
-  isAutoFlush = false;
+export const runTasks = () => {
+  const isManualRun = !isAutoRun;
+  isAutoRun = false;
   yieldPromise ??= new Promise<void>((resolve, reject) => {
     yieldPromiseResolve = resolve;
     yieldPromiseReject = reject;
@@ -77,7 +77,7 @@ export const flush = () => {
   // Make a copy; this is for testing, signalYield will clear the array
   const errors = taskErrors.slice();
   signalYield();
-  if (isManualFlush && errors.length > 0) {
+  if (isManualRun && errors.length > 0) {
     if (errors.length === 1) {
       throw errors[0];
     } else {
@@ -104,12 +104,12 @@ export const yieldTasks = async () => {
 };
 
 export const queueTask = <T = any>(callback: TaskCallback<T>) => {
-  requestFlush();
+  requestRun();
   queue.push(callback);
 };
 
 export const queueAsyncTask = <T = any>(callback: TaskCallback<T>) => {
-  requestFlush();
+  requestRun();
   const task = new Task<T>(callback);
   queue.push(task);
   return task;
@@ -200,4 +200,3 @@ export class Task<T = any> {
     return false;
   }
 }
-

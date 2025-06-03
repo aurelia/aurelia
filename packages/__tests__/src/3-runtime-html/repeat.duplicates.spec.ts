@@ -1,5 +1,5 @@
 import { createFixture } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 
 describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
   describe('yield correct $index', function () {
@@ -11,7 +11,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-a 1-b 2-a ');
 
       component.items.push('a');
-      flush();
+      runTasks();
 
       assertText('0-a 1-b 2-a 3-a ');
     });
@@ -24,7 +24,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-a 1-b 2-a ');
 
       component.items.sort();
-      flush();
+      runTasks();
 
       assertText('0-a 1-a 2-b ');
     });
@@ -37,7 +37,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 ');
 
       component.items.push(0);
-      flush();
+      runTasks();
 
       assertText('0-0 1-1 2-0 3-0 ');
     });
@@ -50,7 +50,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 ');
 
       component.items.sort();
-      flush();
+      runTasks();
 
       assertText('0-0 1-0 2-1 ');
     });
@@ -66,7 +66,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 ');
 
       component.items.push(obj0);
-      flush();
+      runTasks();
 
       assertText('0-0 1-1 2-0 3-0 ');
     });
@@ -82,7 +82,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-0 1-1 2-0 ');
 
       component.items.sort();
-      flush();
+      runTasks();
 
       assertText('0-0 1-0 2-1 ');
     });
@@ -97,7 +97,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-c 1-b 2-a ');
 
       component.items.sort();
-      flush();
+      runTasks();
 
       assertText('0-a 1-b 2-c ');
     });
@@ -113,7 +113,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-A 1-B ');
 
       component.items.unshift(objB);
-      flush();
+      runTasks();
 
       assertText('0-B 1-A 2-B ');
     });
@@ -129,7 +129,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-A 1-B ');
 
       component.items.push(objA, objB);
-      flush();
+      runTasks();
 
       assertText('0-A 1-B 2-A 3-B ');
     });
@@ -146,7 +146,7 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-A 1-B 2-C ');
 
       component.items.splice(1, 1, objA, objA);
-      flush();
+      runTasks();
 
       assertText('0-A 1-A 2-A 3-C ');
     });
@@ -164,12 +164,12 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-X3 1-X1 2-X2 3-X1 ');
 
       component.items.sort((a, b) => a.id - b.id);
-      flush();
+      runTasks();
 
       assertText('0-X1 1-X1 2-X2 3-X3 ');
 
       component.items.sort((a, b) => b.id - a.id);
-      flush();
+      runTasks();
 
       assertText('0-X3 1-X2 2-X1 3-X1 ');
     });
@@ -184,11 +184,11 @@ describe("3-runtime-html/repeat.duplicates.spec.ts", function () {
       assertText('0-A 1-A ');
 
       component.items.unshift(objA);
-      flush();
+      runTasks();
       assertText('0-A 1-A 2-A ');
 
       component.items.unshift(objA);
-      flush();
+      runTasks();
       assertText('0-A 1-A 2-A 3-A ');
     });
   });

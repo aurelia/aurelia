@@ -1,5 +1,5 @@
 import { ConsoleSink, LoggerConfiguration, LogLevel, resolve } from '@aurelia/kernel';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { ISignaler, customElement, valueConverter, Aurelia, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
@@ -46,27 +46,27 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
 
     component.increment();
     assert.visibleTextEqual(host, '1', 'assert #2');
-    flush();
+    runTasks();
     assert.visibleTextEqual(host, '2', 'assert #3');
 
     component.factor = 2;
     assert.visibleTextEqual(host, '2', 'assert #4');
-    flush();
+    runTasks();
     assert.visibleTextEqual(host, '6', 'assert #5');
 
     component.increment();
     assert.visibleTextEqual(host, '6', 'assert #6');
-    flush();
+    runTasks();
     assert.visibleTextEqual(host, '8', 'assert #7');
 
     component.input = 10;
     assert.visibleTextEqual(host, '8', 'assert #8');
-    flush();
+    runTasks();
     assert.visibleTextEqual(host, '20', 'assert #9');
 
     component.increment();
     assert.visibleTextEqual(host, '20', 'assert #10');
-    flush();
+    runTasks();
     assert.visibleTextEqual(host, '22', 'assert #11');
 
     await au.stop();
@@ -113,7 +113,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '012', 'assert #2');
-        flush();
+        runTasks();
         assert.visibleTextEqual(host, '212', 'assert #3');
 
         items[0] = 3;
@@ -122,20 +122,20 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '212', 'assert #3');
-        flush();
+        runTasks();
         assert.visibleTextEqual(host, '345', 'assert #4');
 
         items.reverse();
         assert.visibleTextEqual(host, '345', 'assert #5');
         if (expr.includes('oneTime')) {
-          flush();
+          runTasks();
           assert.visibleTextEqual(host, '345', 'assert #6');
           component.updateItem();
           assert.visibleTextEqual(host, '345', 'assert #7');
-          flush();
+          runTasks();
           assert.visibleTextEqual(host, '543', 'assert #8');
         } else {
-          flush();
+          runTasks();
           assert.visibleTextEqual(host, '543', 'assert #9');
         }
 
@@ -143,7 +143,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
         assert.areTaskQueuesEmpty();
         component.updateItem();
         assert.visibleTextEqual(host, '543', 'assert #10');
-        flush();
+        runTasks();
         assert.visibleTextEqual(host, '563', 'assert #11');
 
         await au.stop();
@@ -180,7 +180,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
     assert.strictEqual(minusCount, 1);
     container.get(ISignaler).dispatchSignal('add');
 
-    flush();
+    runTasks();
     assert.strictEqual(addCount, 2);
     assert.strictEqual(minusCount, 2);
     container.get(ISignaler).dispatchSignal('minus');

@@ -1,5 +1,5 @@
 import { Class } from '@aurelia/kernel';
-import { flush, yieldTasks } from '@aurelia/runtime';
+import { runTasks, yieldTasks } from '@aurelia/runtime';
 import {
   BindingBehavior,
   customElement,
@@ -184,7 +184,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       app.count = 3;
       app.theText = 'a';
       // await yieldTasks();
-      flush();
+      runTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);

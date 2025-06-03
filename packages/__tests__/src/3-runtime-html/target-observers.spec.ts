@@ -5,7 +5,7 @@ import {
   StyleAttributeAccessor
 } from '@aurelia/runtime-html';
 import { assert, createSpy, CSS_PROPERTIES, globalAttributeNames, TestContext } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { isFirefox } from '../util.js';
 
 function createSvgUseElement(ctx: TestContext, name: string, value: string) {
@@ -411,7 +411,7 @@ describe('3-runtime-html/target-observers.spec.ts', function () {
           const sut = new ClassAttributeAccessor(el);
 
           function tearDown() {
-            flush();
+            runTasks();
           }
 
           return { sut, el, initialClassList, tearDown };

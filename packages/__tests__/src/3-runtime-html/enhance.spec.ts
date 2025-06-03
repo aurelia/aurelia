@@ -14,7 +14,7 @@ import {
   AppTask,
   BindingBehavior,
 } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 import { delegateSyntax } from '@aurelia/compat-v1';
@@ -90,7 +90,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       function ({ host }) {
         handled = false;
         host.querySelector('span').click();
-        flush();
+        runTasks();
         assert.equal(handled, true);
       },
       {
@@ -152,8 +152,8 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
       host.querySelector('button').click();
       await Promise.resolve();
-      flush();
-      flush();
+      runTasks();
+      runTasks();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 

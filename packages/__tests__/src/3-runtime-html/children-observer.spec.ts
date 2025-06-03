@@ -1,4 +1,4 @@
-import { flush, yieldTasks } from '@aurelia/runtime';
+import { runTasks, yieldTasks } from '@aurelia/runtime';
 import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
@@ -185,7 +185,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       );
 
       await Promise.resolve();
-      flush();
+      runTasks();
 
       assertText('child count: 3');
     });

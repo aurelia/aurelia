@@ -1,4 +1,4 @@
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import {
   CustomElement,
   IPlatform,
@@ -376,7 +376,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '01',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), ifText.repeat(count), `trimFull(host.textContent)`);
       }
@@ -385,9 +385,9 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '02',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.display = true;
-        flush();
+        runTasks();
         component.display = false;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), elseText.repeat(count), `trimFull(host.textContent)`);
       }
@@ -396,7 +396,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '03',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{ if: 2, else: 1 }, { if: 4, else: 3 }];
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), '13'.repeat(count), `trimFull(host.textContent)`);
       }
@@ -408,7 +408,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
         component.items[0].else = 6;
         component.items[1].if = 7;
         component.items[1].else = 8;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), `68${elseText.slice(2)}`.repeat(count), `trimFull(host.textContent)`);
       }
@@ -417,7 +417,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '05',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.reverse();
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), (elseText.split('').reverse().join('')).repeat(count), `trimFull(host.textContent)`);
       }
@@ -427,7 +427,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.reverse();
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), (ifText.split('').reverse().join('')).repeat(count), `trimFull(host.textContent)`);
       }
@@ -436,7 +436,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '07',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{ if: 'a', else: 'b' }];
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), 'b'.repeat(count), `trimFull(host.textContent)`);
       }
@@ -446,7 +446,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{ if: 'a', else: 'b' }];
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), 'a'.repeat(count), `trimFull(host.textContent)`);
       }
@@ -455,7 +455,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '09',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.pop();
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), elseText.slice(0, -1).repeat(count), `trimFull(host.textContent)`);
       }
@@ -465,7 +465,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.pop();
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), ifText.slice(0, -1).repeat(count), `trimFull(host.textContent)`);
       }
@@ -474,7 +474,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '11',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items = component.items.slice().concat({ if: 'x', else: 'y' });
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), `${elseText}y`.repeat(count), `trimFull(host.textContent)`);
       }
@@ -484,7 +484,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, _elseText: string): void {
         component.items = [{ if: 'a', else: 'b' }, { if: 'c', else: 'd' }, { if: 'e', else: 'f' }];
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), 'ace'.repeat(count), `trimFull(host.textContent)`);
       }
@@ -493,7 +493,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       t: '13',
       execute(component: Comp, platform: IPlatform, host: Element, count: number, _ifText: string, elseText: string): void {
         component.items.push({ if: 5, else: 6 });
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), `${elseText}6`.repeat(count), `trimFull(host.textContent)`);
       }
@@ -503,7 +503,7 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
       execute(component: Comp, platform: IPlatform, host: Element, count: number, ifText: string, _elseText: string): void {
         component.items.push({ if: 5, else: 6 });
         component.display = true;
-        flush();
+        runTasks();
 
         assert.strictEqual(trimFull(host.textContent), `${ifText}5`.repeat(count), `trimFull(host.textContent)`);
       }
@@ -598,14 +598,14 @@ describe('3-runtime-html/repeater-if-else.spec.ts', function () {
     assert.strictEqual(getAllBy('p').length, 0);
 
     component.add();
-    flush();
+    runTasks();
     assert.strictEqual(getAllBy('p').length, 1);
     component.remove(0);
-    flush();
+    runTasks();
     assert.strictEqual(getAllBy('p').length, 0);
 
     component.add();
-    flush();
+    runTasks();
     assert.strictEqual(getAllBy('p').length, 1);
   });
 });

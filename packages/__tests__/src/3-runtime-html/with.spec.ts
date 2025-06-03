@@ -1,5 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/with.spec.ts', function () {
   it('works with static scope', function () {
@@ -59,7 +59,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    flush();
+    runTasks();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 
@@ -97,7 +97,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    flush();
+    runTasks();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 

@@ -14,7 +14,7 @@ import {
   resolve,
 } from '@aurelia/kernel';
 import {
-  flush,
+  runTasks,
   queueAsyncTask,
   Scope,
   Task,

@@ -4,7 +4,7 @@ import {
   DirtyChecker,
   Scope,
   BindingContext,
-  flush,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   Repeat,
@@ -588,7 +588,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         applyMutations(sut, mutations);
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
-        flush();
+        runTasks();
 
         assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
 
@@ -614,7 +614,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         applyMutations(sut, mutations);
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
-        flush();
+        runTasks();
 
         assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
 

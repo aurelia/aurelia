@@ -3,7 +3,7 @@ import { IContainer, inject, newInstanceForScope, resolve } from '@aurelia/kerne
 import { BindingMode, Aurelia, AuSlotsInfo, bindable, customElement, CustomElement, IAuSlotsInfo, IPlatform, ValueConverter } from '@aurelia/runtime-html';
 import { assert, createFixture, hJsx, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/au-slot.spec.tsx', function () {
   interface TestSetupContext {
@@ -256,7 +256,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const vm: MyElement = CustomElement.for<MyElement>(el).viewModel;
 
           vm.showS1 = true;
-          flush();
+          runTasks();
 
           assert.html.innerEqual(el, `static default <div>p11</div><div>p12</div> <div>p20</div><div>p21</div>`, 'my-element.innerHTML');
         },
@@ -287,7 +287,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
 
           vm1.showS1 = !vm1.showS1;
           vm2.showS1 = !vm2.showS1;
-          flush();
+          runTasks();
 
           assert.html.innerEqual(el1, `static default <div>p11</div>`, 'my-element.innerHTML');
           assert.html.innerEqual(el2, `static default <div>p22</div>`, 'my-element+my-element.innerHTML');
@@ -470,7 +470,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         { 'my-element': [`<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div>`, new AuSlotsInfo([])] },
         async function ({ app, host }) {
           app.people.push(new Person('Jane', 'Doe', []));
-          flush();
+          runTasks();
           assert.html.innerEqual(
             'my-element',
             `<h4>First Name</h4><h4>Last Name</h4> <div>John</div><div>Doe</div> <div>Max</div><div>Mustermann</div> <div>Jane</div><div>Doe</div>`,
@@ -1569,7 +1569,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
             assert.contains(tab3.classList, 'active');
 
             tab2.click();
-            flush();
+            runTasks();
             assert.notContains(tab1.classList, 'active');
             assert.contains(tab2.classList, 'active');
             assert.contains(tab3.classList, 'active');
@@ -1600,7 +1600,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           assert.strictEqual(input.value, "foo");
 
           vm.foo = "bar";
-          flush();
+          runTasks();
           assert.strictEqual(input.value, "bar");
         }
       );
@@ -1618,7 +1618,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         assert.strictEqual(input.value, app.people[0].firstName);
 
         app.people[0].firstName = "Jane";
-        flush();
+        runTasks();
         assert.strictEqual(input.value, "Jane");
       }
     );
@@ -1639,7 +1639,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [MyElementUser, createMyElement('<au-slot></au-slot>')],
         {},
         async function ({ host }) {
-          flush();
+          runTasks();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1671,7 +1671,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         [MyElementUser, MyElement],
         {},
         async function ({ host }) {
-          flush();
+          runTasks();
           const meu = host.querySelector('my-element-user');
           const me = host.querySelector('my-element');
           assert.html.innerEqual(meu, `<my-element><div>${fooValue}</div></my-element>`, 'my-element-user.innerHtml');
@@ -1807,7 +1807,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const input = host.querySelector('input');
           input.value = 'hello';
           input.dispatchEvent(new platform.CustomEvent('change'));
-          flush();
+          runTasks();
           assert.strictEqual(host.querySelector('div').textContent, 'hello');
         }
       );
@@ -1823,7 +1823,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const input = host.querySelector('input');
           input.value = 'hello';
           input.dispatchEvent(new platform.CustomEvent('change'));
-          flush();
+          runTasks();
           assert.strictEqual(host.querySelector('my-element').textContent, 'hello');
         }
       );
@@ -1844,7 +1844,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         },
         function ({ host }) {
           host.querySelector<HTMLElement>('mdc-tab').click();
-          flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('mdc-tab'), '<button>1Tab</button>');
         }
       );
@@ -1878,12 +1878,12 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
         },
         function ({ host }) {
           host.querySelector<HTMLElement>('#mdc-0').click();
-          flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
           assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>0Tab</button>');
 
           host.querySelector<HTMLElement>('#mdc-1').click();
-          flush();
+          runTasks();
           assert.html.innerEqual(host.querySelector('#mdc-0'), '<button>1Tab</button>');
           assert.html.innerEqual(host.querySelector('#mdc-1'), '<button>1Tab</button>');
         },
@@ -1923,7 +1923,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const [tab00, tab01, tab02, tab10, tab11, tab12] = Array.from(host.querySelectorAll<HTMLElement>('mdc-tab'));
 
           tab00.click();
-          flush();
+          runTasks();
           assert.html.innerEqual(tab00, '<button>1Tab</button>');
           assert.html.innerEqual(tab01, '<button>2Tab</button>');
           assert.html.innerEqual(tab02, '<button>3Tab</button>');
@@ -1932,7 +1932,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           assert.html.innerEqual(tab12, '<button>2Tab</button>');
 
           tab10.click();
-          flush();
+          runTasks();
           assert.html.innerEqual(tab00, '<button>1Tab</button>');
           assert.html.innerEqual(tab01, '<button>2Tab</button>');
           assert.html.innerEqual(tab02, '<button>3Tab</button>');
@@ -2019,7 +2019,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -2030,7 +2030,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 1);
           assert.equal(app.callCount, 0);
         },
@@ -2041,7 +2041,7 @@ describe('3-runtime-html/au-slot.spec.tsx', function () {
           const ce = host.querySelector('my-element');
           const button = ce.querySelector('button');
           button.click();
-          flush();
+          runTasks();
           assert.equal(CustomElement.for<MyElement>(ce).viewModel.callCount, 0);
           assert.equal(app.callCount, 1);
         },

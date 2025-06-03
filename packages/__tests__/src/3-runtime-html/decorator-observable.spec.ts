@@ -1,4 +1,4 @@
-import { observable, SetterObserver, IObservable, IObserverLocator, IObserver, flush } from '@aurelia/runtime';
+import { observable, SetterObserver, IObservable, IObserverLocator, IObserver, runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { noop, resolve } from '@aurelia/kernel';
 import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
@@ -144,7 +144,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 
-      flush();
+      runTasks();
       assert.strictEqual(testHost.textContent, 'hello');
 
       await tearDown();
@@ -166,12 +166,12 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '');
       component.v = 'v';
-      flush();
+      runTasks();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
       input.value = 'vv';
-      flush();
+      runTasks();
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 'vv');
       assert.strictEqual(changeCount, 2);
@@ -200,7 +200,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '', 'err1');
       component.v = 'v';
-      flush();
+      runTasks();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
@@ -210,7 +210,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      flush();
+      runTasks();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -220,7 +220,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      flush();
+      runTasks();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -229,7 +229,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      flush();
+      runTasks();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();
@@ -271,7 +271,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(input.value, '', 'err1');
 
       component.v = 'v';
-      flush();
+      runTasks();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
@@ -281,7 +281,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      flush();
+      runTasks();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -291,7 +291,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      flush();
+      runTasks();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -300,7 +300,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      flush();
+      runTasks();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();

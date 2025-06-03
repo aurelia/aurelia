@@ -11,7 +11,7 @@ import {
   CustomElementDefinition,
   PartialCustomElementDefinition,
 } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { HydrateElementInstruction } from '@aurelia/template-compiler';
 import {
   assert,
@@ -709,7 +709,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     assert.strictEqual(id, 1);
 
     vm.prop = true;
-    flush();
+    runTasks();
 
     assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
     assert.strictEqual(id, 2);

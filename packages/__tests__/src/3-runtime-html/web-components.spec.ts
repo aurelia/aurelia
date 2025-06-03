@@ -1,5 +1,5 @@
 import { CustomElement, INode } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { IWcElementRegistry } from '@aurelia/web-components';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -127,7 +127,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.textContent(appHost, 'hello world');
 
-      flush();
+      runTasks();
       assert.html.textContent(appHost, 'hello');
 
       await tearDown();
@@ -159,7 +159,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.innerEqual(p, '<div>hello world</div>');
 
-      flush();
+      runTasks();
       assert.html.innerEqual(p, '<div>hello</div>');
 
       await tearDown();
@@ -189,7 +189,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       el5.message = 'hello';
 
-      flush();
+      runTasks();
       assert.html.innerEqual(el5, '<div>hello</div>');
 
       await tearDown();
@@ -244,7 +244,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       myEl7.message = 'hello world';
       assert.html.textContent(myEl7, '');
-      flush();
+      runTasks();
       assert.html.textContent(myEl7, 'hello world');
       await tearDown();
     });

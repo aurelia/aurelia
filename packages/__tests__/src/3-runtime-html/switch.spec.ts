@@ -13,7 +13,7 @@ import {
 } from '@aurelia/kernel';
 import {
   Scope,
-  flush,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   AuSlot,
@@ -900,7 +900,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
         [],
         async (ctx) => {
           ctx.app.status = Status.delivered;
-          flush();
+          runTasks();
           assert.html.innerEqual(ctx.host, '<div> the curious case of delivered </div>', 'change innerHTML1');
         }
       );

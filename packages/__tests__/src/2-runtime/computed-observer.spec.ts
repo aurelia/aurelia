@@ -4,7 +4,7 @@ import {
   IObserverLocator,
   INodeObserverLocator,
   ComputedObserver,
-  flush,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   eachCartesianJoin,
@@ -146,32 +146,32 @@ describe('2-runtime/computed-observer.spec.ts', function () {
 
       if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
         instance.dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(1, 1);
         instance.dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 2);
       } else {
         instance._dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(1, 3);
         instance._dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 4);
       }
 
       instance._prop = propNewValue;
-      flush();
+      runTasks();
       verifyCalled(1, 5);
       instance._prop = propNewValue;
-      flush();
+      runTasks();
       verifyCalled(0, 6);
       if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         instance.prop = propNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 7);
         instance.prop = `${propNewValue}1`;
-        flush();
+        runTasks();
         verifyCalled(1, 8);
       }
 
@@ -180,20 +180,20 @@ describe('2-runtime/computed-observer.spec.ts', function () {
 
       if (Object.prototype.hasOwnProperty.call(depDescriptor, 'value') || Object.prototype.hasOwnProperty.call(depDescriptor, 'set')) {
         instance.dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 13);
       } else {
         instance._dep = depNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 14);
       }
 
       instance._prop = propNewValue;
-      flush();
+      runTasks();
       verifyCalled(0, 15);
       if (Object.prototype.hasOwnProperty.call(propDescriptor, 'set')) {
         instance.prop = propNewValue;
-        flush();
+        runTasks();
         verifyCalled(0, 16);
       }
     });
@@ -318,53 +318,53 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     let i = 0;
     for (const foo of [child1, child2, parent]) {
       foo.array1.push(i);
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.map1.set(i, i);
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.set1.add(i);
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.obj1['prop'] = 5;
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
 
     for (const foo of [child1, child2, parent]) {
       foo.array2.push(i);
-      flush();
+      runTasks();
       verifyCalled(0, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.map2.set(i, i);
-      flush();
+      runTasks();
       verifyCalled(0, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.set2.add(i);
-      flush();
+      runTasks();
       verifyCalled(0, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.obj2['prop'] = 5;
-      flush();
+      runTasks();
       verifyCalled(0, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.branch = 2;
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
     for (const foo of [child1, child2, parent]) {
       foo.sortFn = (a: number, b: number) => a - b;
-      flush();
+      runTasks();
       verifyCalled(1, ++i);
     }
   });
@@ -410,7 +410,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     assert.strictEqual(getterCallCount, 1);
 
     obj.prop1 = 2;
-    flush();
+    runTasks();
     assert.strictEqual(getterCallCount, 2);
     assert.strictEqual(obj.prop, 2);
     // shouldn't compute again
@@ -421,7 +421,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
     // array observation should be dropped last run
     // as it's not part of the getter
     arr.push(2);
-    flush();
+    runTasks();
     assert.strictEqual(getterCallCount, 2);
     assert.strictEqual(obj.prop, 2);
     // shouldn't compute again

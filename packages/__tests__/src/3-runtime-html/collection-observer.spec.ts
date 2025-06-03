@@ -1,5 +1,5 @@
 import { createFixture } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/collection-observer.spec.ts', function () {
   describe('map', function () {
@@ -9,17 +9,17 @@ describe('3-runtime-html/collection-observer.spec.ts', function () {
       assertText('Size: 0');
 
       component.map.set('a', 1);
-      flush();
+      runTasks();
       assertText('Size: 1');
 
       component.map.delete('a');
-      flush();
+      runTasks();
       assertText('Size: 0');
 
       component.map.set('a', 1);
-      flush();
+      runTasks();
       component.map.clear();
-      flush();
+      runTasks();
       assertText('Size: 0');
     });
   });
@@ -31,17 +31,17 @@ describe('3-runtime-html/collection-observer.spec.ts', function () {
       assertText('Size: 0');
 
       component.set.add('a');
-      flush();
+      runTasks();
       assertText('Size: 1');
 
       component.set.delete('a');
-      flush();
+      runTasks();
       assertText('Size: 0');
 
       component.set.add('a');
-      flush();
+      runTasks();
       component.set.clear();
-      flush();
+      runTasks();
       assertText('Size: 0');
     });
 

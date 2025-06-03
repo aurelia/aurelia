@@ -14,7 +14,7 @@ import {
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
@@ -312,7 +312,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         } else {
           component.value = (component.value as number || 0) + 1;
         }
-        flush();
+        runTasks();
         assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange?.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
         await tearDown();
       });
@@ -376,14 +376,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yesMsg = 'hello';
-        flush();
+        runTasks();
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
           [0, 1],
         );
 
         source.noMsg = 'hello';
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'hello');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -392,7 +392,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         source.yesMsg = 'yes';
         source.checked = true;
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -400,7 +400,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.noMsg = 'no1111';
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -478,14 +478,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yes2 = 'yes22';
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'no1--no2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
         );
         source.yes1 = 'yes11';
-        flush();
+        runTasks();
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
@@ -496,7 +496,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         source.yes1 = 'yes1';
 
         source.checked2 = true;
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'no1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -504,7 +504,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.checked1 = true;
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -512,7 +512,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.no1 = source.no2 = 'hello';
-        flush();
+        runTasks();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -530,11 +530,11 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assertText('hey ');
 
     component.id = '1';
-    flush();
+    runTasks();
     assertText('hey 1');
 
     component.id = null;
-    flush();
+    runTasks();
     assertText('hey ');
   });
 
@@ -565,12 +565,12 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     box1.checked = true;
     box1.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: ');
-    flush();
+    runTasks();
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
     box2.checked = true;
     box2.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
-    flush();
+    runTasks();
     assert.includes(appHost.textContent, 'Selected product IDs: 0,1');
 
     await tearDown();
@@ -620,7 +620,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     component.items = Array.from({ length: 10 }, (_, idx) => {
       return { value: idx + 11 };
     });
-    flush();
+    runTasks();
 
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 10);
@@ -629,7 +629,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
-    flush();
+    runTasks();
 
     divs.forEach((div, idx) => {
       assert.strictEqual(div.textContent, `$${idx + 11}`);
@@ -639,7 +639,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.strictEqual(appHost.textContent, component.items.map(item => `$${item.value}`).join(''));
 
     component.items = [];
-    flush();
+    runTasks();
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 0);
     assert.strictEqual(appHost.textContent, '');
@@ -675,7 +675,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.html.innerEqual(appHost, '<if>if foo</if>');
 
     component.show = false;
-    flush();
+    runTasks();
 
     assert.strictEqual(appHost.textContent, 'else foo');
     assert.html.innerEqual(appHost, '<else>else foo</else>');
@@ -701,7 +701,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       assert.strictEqual(progress.value, 0);
 
       component.progress = 1;
-      flush();
+      runTasks();
       assert.strictEqual(progress.value, 1);
 
       await tearDown();
@@ -721,7 +721,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(input.value, '0');
-      flush();
+      runTasks();
       assert.strictEqual(input.value, '1');
 
       await tearDown();
@@ -741,7 +741,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(textArea.value, '0');
-      flush();
+      runTasks();
       assert.strictEqual(textArea.value, '1');
 
       await tearDown();
@@ -766,7 +766,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       component.progress = 1;
       assert.strictEqual(textArea.getAttribute('href'), '#red');
-      flush();
+      runTasks();
       assert.strictEqual(textArea.getAttribute('href'), '#blue');
 
       await tearDown();
@@ -779,7 +779,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       assertAttr('div', 'data-id', '1,2');
       component.ids.push(3);
-      flush();
+      runTasks();
       assertAttr('div', 'data-id', '1,2,3');
     });
   });

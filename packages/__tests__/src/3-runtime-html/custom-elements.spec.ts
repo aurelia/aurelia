@@ -17,7 +17,7 @@ import {
 import { assert, createFixture } from '@aurelia/testing';
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { IContainer, resolve } from '@aurelia/kernel';
-import { IObserverLocator, observable, flush } from '@aurelia/runtime';
+import { IObserverLocator, observable, runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
   it('injects right aurelia instance', function () {
@@ -59,7 +59,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     nestedInputEl.value = 'aa bb';
     nestedInputEl.dispatchEvent(new ctx.CustomEvent('input', { bubbles: true }));
 
-    flush();
+    runTasks();
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
   });
 
@@ -287,7 +287,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
-    flush();
+    runTasks();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -335,7 +335,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
-    flush();
+    runTasks();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -728,7 +728,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual((component.el as HTMLElement)?.tagName, 'DIV');
       component.show = false;
-      flush();
+      runTasks();
       assert.strictEqual(component.el, null);
     });
 
@@ -775,7 +775,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertHtml('<div data-id="1">1</div>', { compact: true });
       assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['1']);
       component.add();
-      flush();
+      runTasks();
       assertHtml('<div data-id="2">2</div><div data-id="1">1</div>', { compact: true });
       assert.deepEqual(component.children.map(c => c.getAttribute('data-id')), ['2', '1']);
     });
@@ -830,7 +830,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assertText('hello world');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -854,7 +854,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assertText('hey');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -887,7 +887,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
-      flush();
+      runTasks();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
@@ -913,7 +913,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertText('hello world');
       assert.strictEqual(component.message, 'hello world');
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('hey world');
       assert.strictEqual(component.message, 'hey world');
     });
@@ -945,7 +945,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual(count, 0);
       component.value = 'helo';
-      flush();
+      runTasks();
       assert.strictEqual(count, 1);
     });
 
@@ -982,7 +982,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       );
 
       component.value = 'helo';
-      flush();
+      runTasks();
       assert.deepStrictEqual(calls, [
         ['message', 'hey', undefined],
         ['m', 'hey', undefined],
@@ -991,7 +991,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       calls.length = 0;
       component.v = 'hi';
-      flush();
+      runTasks();
       assert.deepStrictEqual(calls, [
         ['m', 'hi', 'hey']
       ]);

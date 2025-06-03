@@ -1,6 +1,6 @@
 import { AccessGlobalExpression, ExpressionParser } from '@aurelia/expression-parser';
 import { BindingBehavior, ValueConverter } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 const globalNames = [
@@ -120,7 +120,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
       assertText('1,2,2');
       component.num1 = 3;
-      flush();
+      runTasks();
       assertText('3,2,3');
 
       void stop(true);
@@ -141,7 +141,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
       assertText('[object Number]');
       component.value = '0';
-      flush();
+      runTasks();
       assertText('[object String]');
 
       void stop(true);
@@ -156,7 +156,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
       assertText('object');
       component.value = null;
-      flush();
+      runTasks();
       assertText('something else');
 
       void stop(true);
@@ -171,7 +171,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
       assertText('its NaN');
       component.value = 1;
-      flush();
+      runTasks();
       assertText('1');
 
       void stop(true);
@@ -186,7 +186,7 @@ describe('2-runtime/global-context.spec.ts', function () {
 
       assertText('infinite');
       component.value = 1;
-      flush();
+      runTasks();
       assertText('finite');
 
       void stop(true);

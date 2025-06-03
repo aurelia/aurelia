@@ -1,5 +1,5 @@
 import { ValueAttributeObserver } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 // eslint-disable-next-line mocha/no-skipped-tests
@@ -59,7 +59,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
 
               sut.setValue(valueBefore);
               // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-              flush();
+              runTasks();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
               assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
@@ -75,7 +75,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
 
               sut.setValue(valueAfter);
               // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-              flush();
+              runTasks();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
               assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {

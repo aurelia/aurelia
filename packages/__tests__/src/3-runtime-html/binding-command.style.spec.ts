@@ -1,6 +1,6 @@
 import { Constructable } from '@aurelia/kernel';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin, TestContext } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { StyleAttributePattern } from './attribute-pattern.js';
@@ -28,7 +28,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
     assertAttr('div', 'style', 'padding: 20px 15px 10px 5px;');
 
     component.paddings.splice(2);
-    flush();
+    runTasks();
     assertAttr('div', 'style', 'padding: 20px 15px;');
   });
 
@@ -76,7 +76,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -92,7 +92,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = '';
 
-        flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -108,7 +108,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
         component.value = ruleValue;
 
-        flush();
+        runTasks();
 
         for (let i = 0, ii = childEls.length; ii > i; ++i) {
           const child = childEls[i];
@@ -200,7 +200,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -216,7 +216,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = ruleValue;
 
-          flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];
@@ -236,7 +236,7 @@ describe('3-runtime-html/binding-command.style.spec.ts', function () {
 
           component.value = '';
 
-          flush();
+          runTasks();
 
           for (let i = 0; ii > i; ++i) {
             const el = els[i];

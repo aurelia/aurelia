@@ -2,7 +2,7 @@ import {
   Class,
   IContainer,
 } from '@aurelia/kernel';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import {
   BindingMode,
   Aurelia,
@@ -212,7 +212,7 @@ describe('3-runtime-html/integration.spec.ts', function () {
 
           const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           grandchildVm.value = 42;
-          flush();
+          runTasks();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -256,7 +256,7 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(childVm.value, 1);
 
           app.value = 42;
-          flush();
+          runTasks();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -300,7 +300,7 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(childVm.value, 1);
 
           grandchildVm.value = 42;
-          flush();
+          runTasks();
 
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
@@ -310,7 +310,7 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(app.value, 42);
 
           childVm.value = 24;
-          flush();
+          runTasks();
 
           assert.html.textContent(cgc, '24');
           assert.html.textContent(cc, '24');
@@ -346,13 +346,13 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(childVm.value, 1, 'child.value.1');
 
           childVm.value = 42;
-          flush();
+          runTasks();
           assert.strictEqual(app.value, 1, 'app.value.2');
           assert.html.textContent(cc, '42', 'cc.text.2');
           assert.html.textContent(cr, '1', 'cr.text.2');
 
           app.value = 24;
-          flush();
+          runTasks();
           assert.strictEqual(childVm.value, 24, 'child.value.3');
           assert.html.textContent(cc, '24', 'cc.text.3');
           assert.html.textContent(cr, '24', 'cr.text.3');
@@ -382,14 +382,14 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(app.value, 2, 'app.value.1');
 
           app.value = 24;
-          flush();
+          runTasks();
           const childVm = CustomElement.for<Child>(host.querySelector('child')).viewModel;
           assert.strictEqual(childVm.value, 2, 'child.value.2');
           assert.html.textContent(cc, '2', 'cc.text.2');
           assert.html.textContent(cr, '24', 'cr.text.2');
 
           childVm.value = 42;
-          flush();
+          runTasks();
           assert.strictEqual(app.value, 42, 'app.value.3');
           assert.html.textContent(cc, '42', 'cc.text.3');
           assert.html.textContent(cr, '42', 'cr.text.3');
@@ -430,14 +430,14 @@ describe('3-runtime-html/integration.spec.ts', function () {
           assert.strictEqual(childVm.value, 1);
 
           childVm.condition = true;
-          flush();
+          runTasks();
           const grandchildVm = CustomElement.for<GrandChild>(host.querySelector('grand-child')).viewModel;
           assert.strictEqual(grandchildVm.value, 1);
           const cgc = host.querySelector('#cgc');
           assert.html.textContent(cgc, '1');
 
           grandchildVm.value = 42;
-          flush();
+          runTasks();
           assert.html.textContent(cgc, '42');
           assert.html.textContent(cc, '42');
           assert.html.textContent(cr, '42');

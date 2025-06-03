@@ -7,7 +7,7 @@ import {
   LetBinding,
   PropertyBinding,
 } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import {
   assert,
   createContainer,
@@ -47,7 +47,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         Array.from({ length: 5 }).forEach((_, idx) => {
           source.name = `${idx}`;
-          flush();
+          runTasks();
           assert.strictEqual(target.name, `${idx}`);
         });
       });
@@ -89,36 +89,36 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         Array.from({ length: 5 }).forEach((_, idx) => {
           const $count = handleChangeCallCount;
           source.checked = !source.checked;
-          flush();
+          runTasks();
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);
           if (source.checked) {
             source.yesMessage = `yes ${idx}`;
-            flush();
+            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.noMessage = `no ${idx}`;
-            flush();
+            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             source.noMessage = 'no';
-            flush();
+            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             source.noMessage = `no ${idx}`;
-            flush();
+            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.yesMessage = `yes ${idx}`;
-            flush();
+            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back to normal for next assertion
             source.yesMessage = 'yes';
-            flush();
+            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
@@ -228,7 +228,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         `
         .build();
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('button', 'item count: 0');
     });
   });
@@ -242,7 +242,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         `
         .build();
       trigger.click('button');
-      flush();
+      runTasks();
       assertText('button', 'item at [1]: 0');
     });
 
@@ -259,7 +259,7 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
       const inputs = getAllBy('input');
       type(inputs[0], '3');
-      flush();
+      runTasks();
 
       assert.strictEqual(getAllBy('li')[0].textContent, 'item at 0: 3');
     });

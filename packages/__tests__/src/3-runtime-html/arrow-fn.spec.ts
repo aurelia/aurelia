@@ -1,5 +1,5 @@
 import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/arrow-fn.spec.ts', function () {
@@ -47,7 +47,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('1');
 
     component.items[0].v = 1;
-    flush();
+    runTasks();
     assertText('11');
   });
 
@@ -226,11 +226,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('2');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2,3');
 
       component.items.push(3);
-      flush();
+      runTasks();
       assertText('2,3,4');
     });
 
@@ -242,11 +242,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('2');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('23');
 
       component.items.push(3);
-      flush();
+      runTasks();
       assertText('234');
     });
 
@@ -258,11 +258,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('2');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2,3');
 
       component.items.push(3);
-      flush();
+      runTasks();
       assertText('2,3,4');
     });
 
@@ -274,11 +274,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2');
 
       component.items.push(3);
-      flush();
+      runTasks();
       assertText('2,3');
     });
 
@@ -298,11 +298,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -314,11 +314,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('false');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('true');
 
       component.items.splice(0);
-      flush();
+      runTasks();
       assertText('false');
     });
 
@@ -330,11 +330,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      runTasks();
       assertText('-1');
     });
 
@@ -346,11 +346,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      runTasks();
       assertText('-1');
     });
 
@@ -362,11 +362,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      runTasks();
       assertText('-1');
     });
 
@@ -378,11 +378,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2');
 
       component.items.splice(0);
-      flush();
+      runTasks();
       assertText('');
     });
 
@@ -394,11 +394,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push([2]);
-      flush();
+      runTasks();
       assertText('1,2');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -410,11 +410,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('2');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('2,3');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('2');
     });
 
@@ -426,11 +426,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1, 2');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -442,11 +442,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('3');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -458,11 +458,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('3');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -474,11 +474,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1,2');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -490,11 +490,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('true');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('false');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('true');
     });
 
@@ -506,11 +506,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('false');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('true');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('false');
     });
 
@@ -526,11 +526,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1,3,4');
 
       component.items.push(2);
-      flush();
+      runTasks();
       assertText('1,2,3,4');
 
       component.items.splice(1);
-      flush();
+      runTasks();
       assertText('1');
     });
 
@@ -542,11 +542,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1,3,4,5,');
 
       component.items.push({ id: 2 });
-      flush();
+      runTasks();
       assertText('1,2,3,4,5,');
 
       component.items.splice(2);
-      flush();
+      runTasks();
       assertText('4,5,');
     });
 

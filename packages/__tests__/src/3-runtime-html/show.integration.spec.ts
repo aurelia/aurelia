@@ -1,5 +1,5 @@
 import { Aurelia, customElement, ICustomElementViewModel, ICustomElementController } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 function createFixture() {
@@ -59,7 +59,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
       component.hide = true;
       component.assert(`started after mutating`);
 
-      flush();
+      runTasks();
       component.appliedShow = false;
       component.appliedHide = true;
       component.assert(`started after flushing dom writes`);
@@ -114,7 +114,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
       component.hide = true;
       component.assert(`started after mutating`);
 
-      flush();
+      runTasks();
       component.appliedShow = false;
       component.appliedHide = true;
       component.assert(`started after flushing dom writes`);
@@ -189,7 +189,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      flush();
+                      runTasks();
                       this.appliedShow = this.show;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }
@@ -231,7 +231,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.show = !component.show;
                   component.assert(`started after mutating (run ${run})`);
 
-                  flush();
+                  runTasks();
                   component.appliedShow = component.show;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -244,7 +244,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.show = !component.show;
                   component.assert(`started after mutating (run ${run})`);
 
-                  flush();
+                  runTasks();
                   component.appliedShow = component.show;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -300,7 +300,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      flush();
+                      runTasks();
                       this.appliedHide = this.hide;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }
@@ -342,7 +342,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.hide = !component.hide;
                   component.assert(`started after mutating (run ${run})`);
 
-                  flush();
+                  runTasks();
                   component.appliedHide = component.hide;
                   component.assert(`started after flushing dom writes (run ${run})`);
 
@@ -355,7 +355,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                   component.hide = !component.hide;
                   component.assert(`started after mutating (run ${run})`);
 
-                  flush();
+                  runTasks();
                   component.appliedHide = component.hide;
                   component.assert(`started after flushing dom writes (run ${run})`);
 

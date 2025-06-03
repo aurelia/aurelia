@@ -1,6 +1,6 @@
 import { Constructable, resolve } from '@aurelia/kernel';
 import { BindingMode, CustomAttribute, CustomElement, ICustomElementViewModel, INode, ValueConverter } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/spread.spec.ts', function () {
@@ -30,7 +30,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         ctx.type(appHost, 'input', 'hello');
         assert.strictEqual(component.message, 'hello');
         component.message = 'Aurelia';
-        flush();
+        runTasks();
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
       },
     });
@@ -64,7 +64,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertFn: ({ component, appHost }) => {
         assert.strictEqual(appHost.querySelector('input').value, 'Aurelia');
         component.message = 'hello';
-        flush();
+        runTasks();
         assert.strictEqual(appHost.querySelector('input').value, 'hello');
       },
     });
@@ -364,7 +364,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
 
       component.items[0].id = 3;
-      flush();
+      runTasks();
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
@@ -387,7 +387,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a--1</el><el>2--b--1</el>', { compact: true });
 
       component.items[0].id = 3;
-      flush();
+      runTasks();
       assertHtml('<el>3--a--1</el><el>2--b--1</el>', { compact: true });
     });
 
@@ -413,12 +413,12 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--</el>');
 
       component.item.class = 'a';
-      flush();
+      runTasks();
       assertHtml('<el>1--</el>');
 
       component.item = { id: 1, class: 'a' };
       assertHtml('<el>1--</el>');
-      flush();
+      runTasks();
       assertHtml('<el>1--a</el>');
     });
 
@@ -431,7 +431,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       const el = getBy('el');
       void stop();
       component.item.id = 2;
-      flush();
+      runTasks();
       assert.html.innerEqual(el, '');
     });
 
@@ -442,12 +442,12 @@ describe('3-runtime-html/spread.spec.ts', function () {
 
       assertHtml('<el>1--a</el>');
       component.item = { id: 2 };
-      flush();
+      runTasks();
       // --a is because content binding does not remove the old value
       // but the next assertion will make sure this is not observed
       assertHtml('<el>2--a</el>');
       component.item.class = 'b';
-      flush();
+      runTasks();
       assertHtml('<el>2--a</el>');
     });
 
@@ -470,7 +470,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
 
       component.items[0].id = 3;
-      flush();
+      runTasks();
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
@@ -485,7 +485,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
 
       component.items[0].id = 3;
-      flush();
+      runTasks();
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
@@ -548,7 +548,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
 
       assertHtml('<el>1--a</el>');
       component.items.push({ details: { id: 3, class: 'c' } });
-      flush();
+      runTasks();
       assertHtml('<el>1--a</el>');
     });
 
@@ -594,7 +594,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assert.strictEqual(classCount, 1);
 
       component.i = 1;
-      flush();
+      runTasks();
       // when child bindings of a spread binding are not re-bound, the count should not increase
       assert.strictEqual(idCount, 1);
       assert.strictEqual(classCount, 1);

@@ -1,4 +1,4 @@
-import { ProxyObservable, flush } from '@aurelia/runtime';
+import { ProxyObservable, runTasks } from '@aurelia/runtime';
 import {
   bindable,
   ComputedWatcher,
@@ -93,12 +93,12 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
-    flush();
+    runTasks();
     assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
-    flush();
+    runTasks();
     assert.strictEqual(appHost.textContent, '0413');
 
     void tearDown();
@@ -145,14 +145,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '');
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '3cp');
 
     void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '3cp');
   });
 
@@ -254,7 +254,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 1);
-      flush();
+      runTasks();
       // the observer internally updates immediately but the binding after flushing
       assert.strictEqual(component.child.logCallCount, 2);
 
@@ -280,7 +280,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
       component.prop++;
-      flush();
+      runTasks();
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
     });
@@ -382,7 +382,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 1);
-      flush();
+      runTasks();
       assert.strictEqual(component.child.logCallCount, 2);
 
       const bindings = component.$controller!.bindings;
@@ -459,13 +459,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
-    flush();
+    runTasks();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -485,7 +485,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
-    flush();
+    runTasks();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -544,13 +544,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 0);
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '0');
 
     component.delivered(1);
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '0');
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '1');
 
     void tearDown();
@@ -559,10 +559,10 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '1');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
-    flush();
+    runTasks();
     assert.strictEqual(textNode.textContent, '1');
   });
 

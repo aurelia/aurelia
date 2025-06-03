@@ -1,7 +1,7 @@
 import { callSyntax } from '@aurelia/compat-v1';
 import { Constructable } from '@aurelia/kernel';
 import { CustomAttribute, CustomElement } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/binding-command.call.spec.ts', function () {
@@ -12,7 +12,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       App: class { public a = 5; },
       assertFn: ({ appHost }) => {
         appHost.querySelector('div').click();
-        flush();
+        runTasks();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -22,7 +22,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       App: class { public a = 5; },
       assertFn: ({ appHost }) => {
         (appHost.querySelector('div') as any).onBla();
-        flush();
+        runTasks();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -38,7 +38,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       ],
       assertFn: ({ appHost, component }) => {
         (component as any).attr.value(6);
-        flush();
+        runTasks();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -54,7 +54,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
       ],
       assertFn: ({ appHost, component }) => {
         (component as any).attr.value(6);
-        flush();
+        runTasks();
         assert.visibleTextEqual(appHost.querySelector('div'), '6');
       },
     },
@@ -99,7 +99,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
 
     assertText('5 click me');
     trigger.click('button');
-    flush();
+    runTasks();
     assertText('1 click me');
   });
 
@@ -121,7 +121,7 @@ describe('3-runtime-html/binding-command.call.spec.ts', function () {
 
     assertText('5');
     trigger.click('el');
-    flush();
+    runTasks();
     assertText('1');
   });
 });

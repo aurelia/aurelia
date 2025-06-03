@@ -1,5 +1,5 @@
 import { toArray } from '@aurelia/kernel';
-import { DirtyCheckProperty, IDirtyChecker, flush } from '@aurelia/runtime';
+import { DirtyCheckProperty, IDirtyChecker, runTasks } from '@aurelia/runtime';
 import { assert, getVisibleText, eachCartesianJoin } from '@aurelia/testing';
 import { App, Product } from './app/app.js';
 import { Cards } from './app/molecules/cards/cards.js';
@@ -22,7 +22,7 @@ describe('integration/integration.spec.ts', function () {
 
     $it(`changes in bound VM properties are correctly reflected in the read-only-texts - ${method} - ${componentMode}`, function ({ host }) {
       ((host.querySelector('button#staticTextChanger') as unknown) as HTMLButtonElement).click();
-      flush();
+      runTasks();
 
       assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
       assert.html.textContent('read-only-text#text1', 'text1', 'incorrect text for read-only-text#text1', host);
@@ -59,11 +59,11 @@ describe('integration/integration.spec.ts', function () {
         text2 = 'world';
 
       vm.text4 = text1;
-      flush();
+      runTasks();
       assert.html.textContent(el, `interpolated: ${text1}${vm.text5}`, `incorrect text - change1`, host);
 
       vm.text5 = text2;
-      flush();
+      runTasks();
       assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
     }, { method, componentMode });
 
@@ -87,7 +87,7 @@ describe('integration/integration.spec.ts', function () {
       fromView.value = newInputs[3];
       fromView.dispatchEvent(new Event('change'));
 
-      flush();
+      runTasks();
 
       const vm = getViewModel<App>(host);
       assert.equal(vm.inputOneTime, 'input1');
@@ -104,7 +104,7 @@ describe('integration/integration.spec.ts', function () {
       vm.inputToView = newInputs[2];
       vm.inputFromView = newInputs[3];
 
-      flush();
+      runTasks();
 
       const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
       const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -131,14 +131,14 @@ describe('integration/integration.spec.ts', function () {
       twoWay.dispatchEvent(new Event('change'));
       fromView.value = newInputFv;
       fromView.dispatchEvent(new Event('change'));
-      flush();
+      runTasks();
 
       assert.notEqual(vm.inputBlrTw, newInputTw);
       assert.notEqual(vm.inputBlrFv, newInputFv);
 
       twoWay.dispatchEvent(new Event('blur'));
       fromView.dispatchEvent(new Event('blur'));
-      flush();
+      runTasks();
 
       assert.equal(vm.inputBlrTw, newInputTw);
       assert.equal(vm.inputBlrFv, newInputFv);
@@ -173,21 +173,21 @@ describe('integration/integration.spec.ts', function () {
 
       let index = calls.length;
       user.firstName = 'Jane';
-      flush();
+      runTasks();
       assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
       assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
       assert.greaterThan(calls.length, index);
 
       index = calls.length;
       user.age = 10;
-      flush();
+      runTasks();
       assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
       assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
       assert.greaterThan(calls.length, index);
 
       index = calls.length;
       user.lastName = 'Smith';
-      flush();
+      runTasks();
       assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
       assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
       assert.greaterThan(calls.length, index);
@@ -211,7 +211,7 @@ describe('integration/integration.spec.ts', function () {
       let index = calls.length;
       user.$role = 'Role2';
       user.$location = 'Country2';
-      flush();
+      runTasks();
       assert.html.textContent($userRole, 'Role2, Org1', 'incorrect text #user_role - role');
       assert.html.textContent($userLocation, 'City1, Country2', 'incorrect text #user_location - country');
       assert.greaterThan(calls.length, index);
@@ -228,7 +228,7 @@ describe('integration/integration.spec.ts', function () {
       index = calls.length;
       user.organization = 'Org2';
       user.city = 'City2';
-      flush();
+      runTasks();
       assert.html.textContent($userRole, 'Role2, Org2', 'incorrect text #user_role - role');
       assert.html.textContent($userLocation, 'City2, Country2', 'incorrect text #user_location - country');
       assert.greaterThan(calls.length, index);
@@ -314,7 +314,7 @@ describe('integration/integration.spec.ts', function () {
 
       // assert if the choice is changed in VM, it is propagated to view
       app.chosenContact1 = contactsArr[0][0];
-      flush();
+      runTasks();
       assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
       assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -322,7 +322,7 @@ describe('integration/integration.spec.ts', function () {
       const lastIndex = size - 1;
       const lastChoice = labels[lastIndex];
       lastChoice.click();
-      flush();
+      runTasks();
       assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
       assert.equal(app.chosenContact1, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
 
@@ -331,7 +331,7 @@ describe('integration/integration.spec.ts', function () {
       const newContacts = [[111, 'home2'], [222, 'work2']] as const;
       contacts.set(...newContacts[0]);
       contacts.set(...newContacts[1]);
-      flush();
+      runTasks();
       labels = toArray(rbl.querySelectorAll('label'));
       size = contacts.size;
       assert.equal(labels.length, size);
@@ -340,22 +340,22 @@ describe('integration/integration.spec.ts', function () {
 
       // change value of existing key - last
       contacts.set(222, 'work3');
-      flush();
+      runTasks();
       assert.html.textContent(rbl.querySelector('label:last-of-type'), 'work3', 'incorrect text');
       // change value of existing key - middle
       contacts.set(111, 'home3');
-      flush();
+      runTasks();
       assert.html.textContent(rbl.querySelector(`label:nth-of-type(${size - 1})`), 'home3', 'incorrect text');
 
       // delete single item
       contacts.delete(111);
-      flush();
+      runTasks();
       labels = toArray(rbl.querySelectorAll('label'));
       assert.equal(labels.length, size - 1);
 
       // clear map
       contacts.clear();
-      flush();
+      runTasks();
       labels = toArray(rbl.querySelectorAll('label'));
       assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
     }, { method, componentMode });
@@ -384,7 +384,7 @@ describe('integration/integration.spec.ts', function () {
 
       // assert if the choice is changed in VM, it is propagated to view
       app.chosenContact2 = contactsArr[0][0];
-      flush();
+      runTasks();
       assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
       assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -392,7 +392,7 @@ describe('integration/integration.spec.ts', function () {
       const lastIndex = size - 1;
       const lastChoice = labels[lastIndex];
       lastChoice.click();
-      flush();
+      runTasks();
       assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
       assert.equal(app.chosenContact2, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
     }, { method, componentMode });
@@ -419,7 +419,7 @@ describe('integration/integration.spec.ts', function () {
 
         // assert if the choice is changed in VM, it is propagated to view
         app[chosenProp] = contacts[1];
-        flush();
+        runTasks();
         assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
         assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -427,7 +427,7 @@ describe('integration/integration.spec.ts', function () {
         const lastIndex = size - 1;
         const lastChoice = labels[lastIndex];
         lastChoice.click();
-        flush();
+        runTasks();
         assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
         if (id.includes('matcher')) {
           assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
@@ -454,7 +454,7 @@ describe('integration/integration.spec.ts', function () {
 
         // assert if the choice is changed in VM, it is propagated to view
         app[chosenProp] = contacts[1];
-        flush();
+        runTasks();
         assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
         assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
 
@@ -462,7 +462,7 @@ describe('integration/integration.spec.ts', function () {
         const lastIndex = size - 1;
         const lastChoice = labels[lastIndex];
         lastChoice.click();
-        flush();
+        runTasks();
         assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
         assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
       }, { method, componentMode })
@@ -483,12 +483,12 @@ describe('integration/integration.spec.ts', function () {
 
       // assert if the choice is changed in VM, it is propagated to view
       app.likesCake = true;
-      flush();
+      runTasks();
       assert.equal(labels[1].querySelector('input').checked, true, `should have been checked for true`);
 
       // assert that when choice is changed from view, it is propagaetd to VM
       labels[2].click();
-      flush();
+      runTasks();
       assert.equal(labels[2].querySelector('input').checked, true, `should have been checked for false`);
       assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
     }, { method, componentMode });
@@ -501,11 +501,11 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(consent.checked, false, 'unchecked1');
 
       consent.click();
-      flush();
+      runTasks();
       assert.equal(app.hasAgreed, true, 'checked');
 
       app.hasAgreed = false;
-      flush();
+      runTasks();
       assert.equal(consent.checked, false, 'unchecked2');
     }, { method, componentMode });
 
@@ -522,14 +522,14 @@ describe('integration/integration.spec.ts', function () {
 
         // assert if the choice is changed in VM, it is propagated to view
         app[chosenProp].push(products[1]);
-        flush();
+        runTasks();
         assert.equal(inputs[0].checked, true, 'checked00');
         assert.equal(inputs[1].checked, true, 'checked1');
 
         // assert that when choice is changed from view, it is propagaetd to VM
         inputs[0].click();
         inputs[2].click();
-        flush();
+        runTasks();
         assert.equal(inputs[2].checked, true, 'checked2');
         const actual = app[chosenProp].sort((pa: Product, pb: Product) => pa.id - pb.id);
         if (id.includes('matcher')) {
@@ -549,7 +549,7 @@ describe('integration/integration.spec.ts', function () {
       // splice
       const newProduct1 = { id: 10, name: 'Mouse' };
       products.splice(0, 1, newProduct1);
-      flush();
+      runTasks();
       let inputs: HTMLInputElement[] = getInputs();
       assert.html.textContent(inputs[0].parentElement, `${newProduct1.id}-${newProduct1.name}`, 'incorrect label0');
       assert.equal(inputs[0].checked, false, 'unchecked0');
@@ -557,24 +557,24 @@ describe('integration/integration.spec.ts', function () {
       // push
       const newProduct2 = { id: 20, name: 'Keyboard' };
       products.push(newProduct2);
-      flush();
+      runTasks();
       inputs = getInputs();
       assert.html.textContent(inputs[products.length - 1].parentElement, `${newProduct2.id}-${newProduct2.name}`, 'incorrect label0');
 
       // pop
       products.pop();
-      flush();
+      runTasks();
       assert.equal(getInputs().length, products.length);
 
       // shift
       products.shift();
-      flush();
+      runTasks();
       assert.equal(getInputs().length, products.length);
 
       // unshift
       const newProducts = new Array(20).fill(0).map((_, i) => ({ id: i * 10, name: `foo${i + 1}` }));
       products.unshift(...newProducts);
-      flush();
+      runTasks();
       inputs = getInputs();
       for (let i = 0; i < 20; i++) {
         assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i + 1}`);
@@ -583,19 +583,19 @@ describe('integration/integration.spec.ts', function () {
 
       // sort
       products.sort((pa, pb) => (pa.name < pb.name ? -1 : 1));
-      flush();
+      runTasks();
       inputs = getInputs();
       assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
       // reverse
       products.reverse();
-      flush();
+      runTasks();
       inputs = getInputs();
       assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement as any, true)), products.map(p => `${p.id}-${p.name}`));
 
       // clear
       products.splice(0);
-      flush();
+      runTasks();
       inputs = getInputs();
       assert.equal(inputs.length, 0);
     }, { method, componentMode });
@@ -605,7 +605,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(app.somethingDone, false);
 
       (host.querySelector<HTMLButtonElement>('command button')).click();
-      flush();
+      runTasks();
       assert.equal(app.somethingDone, true);
     }, { method, componentMode });
 
@@ -632,7 +632,7 @@ describe('integration/integration.spec.ts', function () {
 
       // 10
       vm.a = true;
-      flush();
+      runTasks();
       assert.html.textContent(not, 'false', 'not2');
       assert.html.textContent(and, 'false', 'and2');
       assert.html.textContent(or, 'true', 'or2');
@@ -643,7 +643,7 @@ describe('integration/integration.spec.ts', function () {
 
       // 11
       vm.b = true;
-      flush();
+      runTasks();
       assert.html.textContent(and, 'true', 'and3');
       assert.html.textContent(or, 'true', 'or3');
       assert.html.textContent(xor, 'false', 'xor3');
@@ -653,7 +653,7 @@ describe('integration/integration.spec.ts', function () {
 
       // 01
       vm.a = false;
-      flush();
+      runTasks();
       assert.html.textContent(and, 'false', 'and4');
       assert.html.textContent(or, 'true', 'or4');
       assert.html.textContent(xor, 'true', 'xor4');
@@ -677,7 +677,7 @@ describe('integration/integration.spec.ts', function () {
 
       line.slope = 4;
       ec.a = 10;
-      flush();
+      runTasks();
       assert.html.textContent(ecYSq, getEcYsq(), 'ecysq2');
       assert.html.textContent(ecY, getEcY(), 'ecy2');
       assert.html.textContent(linex, getLinex(), 'linex2');
@@ -722,13 +722,13 @@ describe('integration/integration.spec.ts', function () {
 
         // assert if the choice is changed in VM, it is propagated to view
         app[chosenProp] = items[1].id;
-        flush();
+        runTasks();
         assert.equal(options[2].selected, true, 'option1');
 
         // assert that when choice is changed from view, it is propagaetd to VM
         [options[2].selected, options[3].selected] = [false, true];
         select.dispatchEvent(new Event('change'));
-        flush();
+        runTasks();
         if (title.includes('matcher')) {
           assert.deepEqual(app[chosenProp], items[2].id, 'selectedProp');
         } else {
@@ -776,14 +776,14 @@ describe('integration/integration.spec.ts', function () {
 
         // assert if the choice is changed in VM, it is propagated to view
         app[chosenProp].push(items[1].id);
-        flush();
+        runTasks();
         assert.equal(options[1].selected, true, 'option11');
         assert.equal(options[2].selected, true, 'option21');
 
         // assert that when choice is changed from view, it is propagaetd to VM
         options[3].selected = true;
         select.dispatchEvent(new Event('change'));
-        flush();
+        runTasks();
         assert.equal(options[1].selected, true, 'option13');
         assert.equal(options[2].selected, true, 'option23');
         assert.equal(options[3].selected, true, 'option33');
@@ -816,7 +816,7 @@ describe('integration/integration.spec.ts', function () {
     //       assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
 
     //       cards1[1].click();
-    //       flush();
+    //       runTasks();
 
     //       assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
     //       assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
@@ -845,7 +845,7 @@ describe('integration/integration.spec.ts', function () {
       cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
       cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
       cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
-      flush();
+      runTasks();
 
       const effectiveWidth = `${1 / window.devicePixelRatio}px`;
 
@@ -885,12 +885,12 @@ describe('integration/integration.spec.ts', function () {
       }
 
       heroes[0].imgSrc = undefined;
-      flush();
+      runTasks();
       assert.equal(images[0].src, '', `expected null img src`);
 
       const imgSrc = "foobar.jpg";
       heroes[0].imgSrc = imgSrc;
-      flush();
+      runTasks();
       assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
     }, { method, componentMode });
 
@@ -915,17 +915,17 @@ describe('integration/integration.spec.ts', function () {
 
       // self BB
       container.click();
-      flush();
+      runTasks();
       assert.notEqual(vm.random, prev, 'new random expected1');
       assertAttr();
 
       prev = vm.random;
       button.click();
-      flush();
+      runTasks();
       assert.equal(vm.random, prev, 'new random not expected');
 
       container.click();
-      flush();
+      runTasks();
       assert.notEqual(vm.random, prev, 'new random expected2');
       assertAttr();
     }, { method, componentMode });

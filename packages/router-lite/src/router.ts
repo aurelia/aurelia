@@ -13,7 +13,7 @@ import { type ViewportAgent } from './viewport-agent';
 import { INavigationOptions, NavigationOptions, type RouterOptions, IRouterOptions } from './options';
 import { isPartialViewportInstruction } from './validation';
 import { Events, debug, error, getMessage, trace } from './events';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 
 /** @internal */
 export const emptyQuery = Object.freeze(new URLSearchParams());

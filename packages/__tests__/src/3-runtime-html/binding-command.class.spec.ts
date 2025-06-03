@@ -1,5 +1,5 @@
 import { Aurelia, BindingMode, CustomElement, IPlatform } from '@aurelia/runtime-html';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 import { ClassAttributePattern } from './attribute-pattern.js';
 
@@ -83,7 +83,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = falsyValue;
 
-            flush();
+            runTasks();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -96,7 +96,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = truthyValue;
 
-            flush();
+            runTasks();
 
             for (let i = 0, ii = childEls.length; ii > i; ++i) {
               const el = childEls[i];
@@ -127,13 +127,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          flush();
+          runTasks();
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          flush();
+          runTasks();
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
           }
@@ -157,14 +157,14 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          flush();
+          runTasks();
           assert.contains(el.classList, 'base-class', 'Base class should always be present');
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          flush();
+          runTasks();
           assert.contains(el.classList, 'base-class', 'Base class should always be present');
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
@@ -189,13 +189,13 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
         [falsyValues, truthyValues],
         (falsyValue, truthyValue) => {
           component.value = truthyValue;
-          flush();
+          runTasks();
           for (const cls of classes) {
             assert.contains(el.classList, cls.toLowerCase(), `[${String(truthyValue)}]${el.className}.contains(${cls}) - truthy`);
           }
 
           component.value = falsyValue;
-          flush();
+          runTasks();
           for (const cls of classes) {
             assert.notContains(el.classList, cls.toLowerCase(), `[${String(falsyValue)}]${el.className}.contains(${cls}) - falsy`);
           }
@@ -258,7 +258,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
           (falsyValue, truthyValue) => {
             component.value = falsyValue;
 
-            flush();
+            runTasks();
 
             for (let i = 0, ii = els.length; ii > i; ++i) {
               const el = els[i];
@@ -271,7 +271,7 @@ describe('3-runtime-html/binding-command.class.spec.ts', function () {
 
             component.value = truthyValue;
 
-            flush();
+            runTasks();
 
             for (let i = 0, ii = els.length; ii > i; ++i) {
               const el = els[i];

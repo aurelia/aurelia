@@ -7,7 +7,7 @@ import {
   getCollectionObserver,
   Scope,
   yieldTasks,
-  flush,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   type BindingBehaviorInstance,
@@ -1555,19 +1555,19 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
       await startPromise;
 
       component.isEditing = true;
-      flush();
+      runTasks();
       const ceOne: CeOne = CustomElement.for<CeOne>(appHost.querySelector('ce-one')).viewModel;
       const validationController = ceOne.validationController;
       let result = await validationController.validate();
       assertInvalidResult(result, 1);
 
       component.isEditing = false;
-      flush();
+      runTasks();
       result = await validationController.validate();
       assert.strictEqual(result.valid, true, 'result.valid 2');
 
       component.isEditing = true;
-      flush();
+      runTasks();
       result = await validationController.validate();
       assertInvalidResult(result, 3);
 

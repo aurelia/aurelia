@@ -1,5 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
-import { flush } from '@aurelia/runtime';
+import { runTasks } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/input.spec.ts', function () {
@@ -21,7 +21,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    flush();
+    runTasks();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -53,7 +53,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       assert.doesNotThrow(() => {
         component.file = 'c:/my-file.txt';
-        flush();
+        runTasks();
       });
     });
 
@@ -84,7 +84,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      flush();
+      runTasks();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -131,7 +131,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      flush();
+      runTasks();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -155,7 +155,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    flush();
+    runTasks();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -231,15 +231,15 @@ describe('3-runtime-html/input.spec.ts', function () {
       );
 
       trigger('button', 'click');
-      flush();
+      runTasks();
       assertChecked('#green', true);
 
       trigger('button', 'click');
-      flush();
+      runTasks();
       assertChecked('#blue', true);
 
       trigger('button', 'click');
-      flush();
+      runTasks();
       assertChecked('#green', true);
     });
   });

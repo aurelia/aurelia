@@ -1,6 +1,6 @@
 import { DI, IPlatform, Registration } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { batch, DirtyChecker, flush, IObserverLocator, observable } from '@aurelia/runtime';
+import { batch, DirtyChecker, runTasks, IObserverLocator, observable } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/observation-glitches.spec.ts', function () {
@@ -50,12 +50,12 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
-      flush();
+      runTasks();
       assert.strictEqual(obj.tag, '[Banned]');
       assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      flush();
+      runTasks();
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
@@ -102,12 +102,12 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
-      flush();
+      runTasks();
       assert.strictEqual(obj.tag, '[Banned]');
       assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      flush();
+      runTasks();
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
@@ -163,12 +163,12 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
-      flush();
+      runTasks();
       assert.strictEqual(obj.tag, '[Banned]');
       assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      flush();
+      runTasks();
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
@@ -206,12 +206,12 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
-      flush();
+      runTasks();
       assert.strictEqual(obj.tag, '[Banned]');
       assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      flush();
+      runTasks();
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
@@ -391,7 +391,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
-        flush();
+        runTasks();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
@@ -402,7 +402,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         batch(() => {
           obj.firstName = '';
         });
-        flush();
+        runTasks();
         // shouldn't go to 2 because fullName should no longer have 'Sync' in it
         // first name change ->
         // 1. tag() runs again
@@ -456,7 +456,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
-        flush();
+        runTasks();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
@@ -467,7 +467,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         batch(() => {
           obj.firstName = '';
         });
-        flush();
+        runTasks();
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
@@ -525,7 +525,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
-        flush();
+        runTasks();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
@@ -536,7 +536,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         batch(() => {
           obj.firstName = '';
         });
-        flush();
+        runTasks();
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
@@ -576,7 +576,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
-        flush();
+        runTasks();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
@@ -587,7 +587,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         batch(() => {
           obj.firstName = '';
         });
-        flush();
+        runTasks();
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 

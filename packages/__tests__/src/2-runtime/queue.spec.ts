@@ -1,4 +1,4 @@
-import { flush, queueAsyncTask, queueTask, TaskAbortError, yieldTasks } from '@aurelia/runtime';
+import { runTasks, queueAsyncTask, queueTask, TaskAbortError, yieldTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
@@ -437,7 +437,7 @@ describe('2-runtime/queue.spec.ts', function () {
     const yieldPromise = yieldTasks().catch(e => { yieldError = e; });
 
     try {
-      flush();
+      runTasks();
     } catch (e) {
       flushError = e;
     }

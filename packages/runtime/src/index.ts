@@ -20,7 +20,7 @@ export {
 export {
   queueTask,
   queueAsyncTask,
-  flush,
+  runTasks,
   yieldTasks,
   Task,
   TaskAbortError,

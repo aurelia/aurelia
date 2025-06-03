@@ -1,4 +1,4 @@
-import { queueAsyncTask, queueTask, yieldTasks } from '@aurelia/runtime';
+import { flush, queueAsyncTask, queueTask, TaskAbortError, yieldTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
@@ -81,5 +81,455 @@ describe('2-runtime/queue.spec.ts', function () {
         assert.strictEqual(e.message, 'Task error', 'Expected task error to be thrown');
       }
     });
+  });
+
+  describe('mixed scenarios', function () {
+    it('yieldTasks correctly waits for tasks queued by async resolution of prior task', async function () {
+      const stack: string[] = [];
+      queueTask(() => {
+        stack.push('Sync1_Start');
+
+        queueAsyncTask(() => {
+          stack.push('Async2_SyncPart_Start');
+
+          return new Promise<void>(resolve => {
+            setTimeout(() => {
+              stack.push('Async2_AsyncPart_Resolving');
+
+              queueTask(() => {
+                stack.push('Sync3_From_Async2');
+              });
+
+              stack.push('Async2_AsyncPart_End');
+              resolve();
+            }, 0);
+          });
+        });
+
+        stack.push('Sync1_End');
+      });
+
+      await yieldTasks();
+
+      assert.deepStrictEqual(stack, [
+        'Sync1_Start',
+        'Sync1_End',
+        'Async2_SyncPart_Start',
+        'Async2_AsyncPart_Resolving',
+        'Async2_AsyncPart_End',
+        'Sync3_From_Async2'
+      ], 'stack mismatch');
+    });
+  });
+
+  it('yieldTasks rejects when one async task fails, while others complete', async function () {
+    const stack: string[] = [];
+    let yieldError: any = null;
+
+    const rejectingAsyncTask = queueAsyncTask(() => {
+      stack.push('RejectAsync_SyncPart_Start');
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          stack.push('RejectAsync_AsyncPart_Rejecting');
+
+          reject(new Error('AsyncFailure'));
+        }, 0);
+      });
+    });
+
+    queueTask(() => {
+      stack.push('SyncTask_Alongside');
+    });
+
+    const succeedingAsyncTask = queueAsyncTask(() => {
+      stack.push('SucceedAsync_SyncPart_Start');
+
+      return new Promise<string>(resolve => {
+        setTimeout(() => {
+          stack.push('SucceedAsync_AsyncPart_Resolving');
+
+          resolve('SuccessData');
+        }, 10);
+      });
+    });
+
+    try {
+      await yieldTasks();
+    } catch (e) {
+      yieldError = e;
+    }
+
+    assert.notEqual(yieldError, null, 'yieldTasks should have rejected');
+
+    if (yieldError instanceof AggregateError) {
+      assert.strictEqual(yieldError.errors[0].message, 'AsyncFailure', 'yieldTasks rejection message incorrect');
+    } else {
+      assert.strictEqual(yieldError.message, 'AsyncFailure', 'yieldTasks rejection message incorrect');
+    }
+
+    assert.deepStrictEqual(stack, [
+      'RejectAsync_SyncPart_Start',
+      'SyncTask_Alongside',
+      'SucceedAsync_SyncPart_Start',
+      'RejectAsync_AsyncPart_Rejecting',
+      'SucceedAsync_AsyncPart_Resolving'
+    ], 'stack mismatch');
+
+    assert.strictEqual(rejectingAsyncTask.status, 'canceled', 'rejecting task status should be canceled');
+    try {
+      await rejectingAsyncTask.result;
+      assert.fail('Rejecting task result should have rejected');
+    } catch (e: any) {
+      assert.strictEqual(e.message, 'AsyncFailure', 'rejecting task result error message incorrect');
+    }
+
+    assert.strictEqual(succeedingAsyncTask.status, 'completed', 'succeeding task status should be completed');
+    assert.strictEqual(await succeedingAsyncTask.result, 'SuccessData', 'succeeding task result data incorrect');
+  });
+
+  it('correctly handles pre-emptive cancellation of an async task', async function () {
+    const stack: string[] = [];
+
+    queueTask(() => {
+      stack.push('Sync1');
+    });
+
+    const taskToCancel = queueAsyncTask(() => {
+      stack.push('Async2_ToCancel');
+    });
+
+    queueTask(() => {
+      stack.push('Sync3');
+    });
+
+    const wasCancelled = taskToCancel.cancel();
+
+    await yieldTasks();
+
+    assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a pending task');
+    assert.strictEqual(taskToCancel.status, 'canceled', 'cancelled task status incorrect');
+
+    assert.deepStrictEqual(stack, [
+      'Sync1',
+      'Sync3',
+    ], 'stack mismatch');
+
+    try {
+      await taskToCancel.result;
+      assert.fail('Cancelled task result should have rejected');
+    } catch (e: any) {
+      assert.instanceOf(e, TaskAbortError, 'cancelled task should reject with TaskAbortError');
+    }
+  });
+
+  it('yieldTasks handles deeply nested mixed task queuing', async function () {
+    const stack: string[] = [];
+
+    queueTask(() => { // Level 1 Sync
+      stack.push('S1_Start');
+
+      queueAsyncTask(() => { // Level 2 Async
+        stack.push('A2_SyncPart');
+
+        return new Promise<void>(resolve_A2 => {
+          setTimeout(() => {
+            stack.push('A2_AsyncPart_Start');
+
+            queueTask(() => { // Level 3 Sync (from A2's async)
+              stack.push('S3_Start');
+
+              queueAsyncTask(() => { // Level 4 Async (from S3)
+                stack.push('A4_SyncPart');
+
+                return new Promise<void>(resolve_A4 => {
+                  setTimeout(() => {
+                    stack.push('A4_AsyncPart');
+
+                    resolve_A4();
+                  }, 0);
+                });
+              });
+
+              stack.push('S3_End');
+            });
+
+            stack.push('A2_AsyncPart_End');
+
+            resolve_A2();
+          }, 0);
+        });
+      });
+
+      stack.push('S1_End');
+    });
+
+    await yieldTasks();
+
+    assert.deepStrictEqual(stack, [
+      'S1_Start',
+      'S1_End',
+      'A2_SyncPart',
+      'A2_AsyncPart_Start',
+      'A2_AsyncPart_End',
+      'S3_Start',
+      'S3_End',
+      'A4_SyncPart',
+      'A4_AsyncPart'
+    ], 'stack mismatch');
+  });
+
+  it('correctly handles a synchronous error within a queueAsyncTask', async function () {
+    const stack: string[] = [];
+
+    const faultyAsyncTask = queueAsyncTask(() => {
+      stack.push('FaultyAsync_SyncPart_Start');
+
+      throw new Error('ErrorIn_FaultyAsync_SyncPart');
+    });
+
+    queueTask(() => {
+      stack.push('SyncTask_AfterFaulty');
+    });
+
+    const healthyAsyncTask = queueAsyncTask(async () =>{
+      stack.push('HealthyAsync_SyncPart_Start');
+
+      await Promise.resolve();
+
+      stack.push('HealthyAsync_AsyncPart_End');
+
+      return 'HealthySuccess';
+    });
+
+    let yieldError: Error | null = null;
+
+    try {
+      await yieldTasks();
+    } catch (e) {
+      yieldError = e;
+    }
+
+    assert.notEqual(yieldError, null);
+    assert.strictEqual(yieldError.message, 'ErrorIn_FaultyAsync_SyncPart');
+
+    assert.deepStrictEqual(stack, [
+      'FaultyAsync_SyncPart_Start',
+      'SyncTask_AfterFaulty',
+      'HealthyAsync_SyncPart_Start',
+      'HealthyAsync_AsyncPart_End',
+    ], 'stack mismatch');
+
+    assert.strictEqual(faultyAsyncTask.status, 'canceled');
+
+    await faultyAsyncTask.result.catch(e => {
+      assert.strictEqual(e.message, 'ErrorIn_FaultyAsync_SyncPart');
+    });
+
+    assert.strictEqual(healthyAsyncTask.status, 'completed');
+    assert.strictEqual(await healthyAsyncTask.result, 'HealthySuccess');
+  });
+
+  it('yieldTasks rejects with AggregateError for multiple queueTask errors', async function () {
+    const stack: string[] = [];
+    const error1 = new Error('SyncError1');
+    const error2 = new Error('SyncError2');
+
+    queueTask(() => {
+      stack.push('Sync1_Throws');
+      throw error1;
+    });
+
+    queueTask(() => {
+      stack.push('Sync2_Runs');
+    });
+
+    queueTask(() => {
+      stack.push('Sync3_Throws');
+      throw error2;
+    });
+
+    let yieldError: any = null;
+    try {
+      await yieldTasks();
+    } catch (e) {
+      yieldError = e;
+    }
+
+    assert.notEqual(yieldError, null, 'yieldTasks should have rejected');
+    assert.instanceOf(yieldError, AggregateError, 'yieldError should be an AggregateError');
+    assert.strictEqual(yieldError.errors.length, 2, 'AggregateError should contain 2 errors');
+    assert.strictEqual(yieldError.errors[0], error1, 'error1');
+    assert.strictEqual(yieldError.errors[1], error2, 'error2');
+
+    assert.deepStrictEqual(stack, [
+      'Sync1_Throws',
+      'Sync2_Runs',
+      'Sync3_Throws'
+    ], 'stack mismatch');
+  });
+
+  it('yieldTasks rejects with AggregateError for mixed sync and async rejections', async function () {
+    const stack: string[] = [];
+    const syncError = new Error('Mixed_SyncError');
+    const asyncError = new Error('Mixed_AsyncRejection');
+    let yieldError: any = null;
+
+    queueTask(() => {
+      stack.push('Sync1_Throws');
+      throw syncError;
+    });
+
+    const rejectingAsyncTask = queueAsyncTask(() => {
+      stack.push('Async2_SyncPart');
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          stack.push('Async2_AsyncPart_Rejecting');
+          reject(asyncError);
+        }, 0);
+      });
+    });
+
+    queueTask(() => {
+      stack.push('Sync3_Runs');
+    });
+
+    try {
+      await yieldTasks();
+    } catch (e) {
+      yieldError = e;
+    }
+
+    assert.notEqual(yieldError, null, 'yieldTasks should have rejected');
+    assert.instanceOf(yieldError, AggregateError, 'yieldError should be an AggregateError');
+    assert.strictEqual(yieldError.errors.length, 2, 'AggregateError should contain 2 errors');
+    assert.strictEqual(yieldError.errors[0], syncError, 'SyncError');
+    assert.strictEqual(yieldError.errors[1], asyncError, 'AsyncError');
+
+    assert.deepStrictEqual(stack, [
+      'Sync1_Throws',
+      'Async2_SyncPart',
+      'Sync3_Runs',
+      'Async2_AsyncPart_Rejecting'
+    ], 'stack mismatch');
+
+    assert.strictEqual(rejectingAsyncTask.status, 'canceled', 'RejectingAsyncTask status');
+    await rejectingAsyncTask.result.catch(e => {
+      assert.strictEqual(e, asyncError, 'RejectingAsyncTask result');
+    });
+  });
+
+  it('yieldTasks reflects errors even if a manual flush() also processes them', async function () {
+    const stack: string[] = [];
+    const error1 = new Error('ManualFlush_Error1');
+    let flushError: any = null;
+    let yieldError: any = null;
+
+    queueTask(() => {
+      stack.push('Sync1_ManualFlush_Throws');
+      throw error1;
+    });
+
+    queueTask(() => {
+      stack.push('Sync2_ManualFlush_Runs');
+    });
+
+    // Call yieldTasks before manual flush to ensure we are awaiting its promise.
+    const yieldPromise = yieldTasks().catch(e => { yieldError = e; });
+
+    try {
+      flush();
+    } catch (e) {
+      flushError = e;
+    }
+
+    await yieldPromise;
+
+    assert.notEqual(yieldError, null, 'yieldTasks should have rejected');
+    assert.strictEqual(yieldError, error1, 'yieldError should be the error from the task');
+
+    assert.notEqual(flushError, null, 'manual flush itself should have thrown');
+    assert.strictEqual(flushError, error1, 'manual flush should throw the task error directly if only one');
+
+    assert.deepStrictEqual(stack, [
+      'Sync1_ManualFlush_Throws',
+      'Sync2_ManualFlush_Runs'
+    ], 'stack mismatch');
+  });
+
+  it('yieldTasks catches tasks that are queued very late in a turn', async function () {
+    const stack: string[] = [];
+
+    let taskQueuedFromMicrotaskHasRun = false;
+
+    queueTask(() => {
+      stack.push('OuterTask_Start');
+
+      void Promise.resolve().then(() => {
+        stack.push('Microtask_QueueingNewTask');
+
+        queueTask(() => {
+          stack.push('InnerTask_FromMicrotask');
+
+          taskQueuedFromMicrotaskHasRun = true;
+        });
+      });
+
+      stack.push('OuterTask_End');
+    });
+
+    await yieldTasks();
+
+    assert.strictEqual(taskQueuedFromMicrotaskHasRun, true, 'Task queued from microtask should have run');
+    assert.deepStrictEqual(stack, [
+      'OuterTask_Start',
+      'OuterTask_End',
+      'Microtask_QueueingNewTask',
+      'InnerTask_FromMicrotask',
+    ], 'stack mismatch');
+  });
+
+  it('yieldTasks correctly uses a new promise after a previous one has resolved', async function () {
+    const stack: string[] = [];
+
+    // Phase 1
+    queueTask(() => {
+      stack.push('A');
+    });
+
+    await yieldTasks();
+
+    assert.deepStrictEqual(stack, [
+      'A',
+    ], 'Phase 1 stack mismatch');
+
+    assert.strictEqual(globalThis['__au_queue__'].yieldPromise, null, 'yieldPromise should be null after resolution');
+
+    stack.length = 0;
+
+    // Phase 2
+    queueTask(() => {
+      stack.push('B');
+    });
+
+    const asyncTaskC = queueAsyncTask(async () => {
+      stack.push('C_sync');
+
+      await Promise.resolve();
+
+      stack.push('C_async');
+    });
+
+    assert.strictEqual(globalThis['__au_queue__'].yieldPromise, null, 'yieldPromise should be null before tasks from phase 2 trigger a new one via flush');
+
+    await yieldTasks();
+
+    assert.deepStrictEqual(stack, [
+      'B',
+      'C_sync',
+      'C_async',
+    ], 'Phase 2 stack mismatch');
+
+    assert.strictEqual(globalThis['__au_queue__'].yieldPromise, null, 'yieldPromise should be null again');
+    assert.strictEqual(asyncTaskC.status, 'completed');
   });
 });

@@ -6,7 +6,7 @@ import {
 import {
   IRouteViewModel,
 } from '@aurelia/router-lite';
-import { yieldTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,
   CustomAttribute,
@@ -409,7 +409,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await yieldTasks();
+          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -421,7 +421,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -651,7 +651,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await yieldTasks();
+          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -664,7 +664,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -807,7 +807,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -829,7 +829,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
@@ -847,7 +847,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('resolved');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
         mgr.assertLog([
@@ -868,7 +868,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
@@ -889,7 +889,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2', 'phase#5.textContent');
         mgr.assertLog([
@@ -1364,7 +1364,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -1386,7 +1386,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
@@ -1412,7 +1412,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('resolved');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
         mgr.assertLog([
@@ -1457,7 +1457,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
@@ -1494,7 +1494,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2', 'phase#5.textContent');
         mgr.assertLog([
@@ -1689,7 +1689,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-reject');
@@ -1713,7 +1713,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
@@ -1731,7 +1731,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
         mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
@@ -1741,7 +1741,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
@@ -1772,13 +1772,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await yieldTasks();
+        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');
@@ -2003,7 +2003,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -2027,7 +2027,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
         mgr.assertLog([
@@ -2053,7 +2053,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
         mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
@@ -2063,7 +2063,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
         mgr.assertLog([
@@ -2115,13 +2115,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await yieldTasks();
+        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');
@@ -2320,7 +2320,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await yieldTasks();
+          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -2332,7 +2332,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
         assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -2484,7 +2484,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -2506,7 +2506,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
         mgr.assertLog([
@@ -2532,7 +2532,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('resolved');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2c', 'phase#3.textContent');
         mgr.assertLog([
@@ -2565,7 +2565,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
         mgr.assertLog([
@@ -2598,7 +2598,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c2c', 'phase#5.textContent');
         mgr.assertLog([
@@ -2790,7 +2790,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -2814,7 +2814,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#2: try to activate c-1 - should work
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
         mgr.assertLog([
@@ -2840,7 +2840,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         promiseManager.setMode('rejected');
         mgr.setPrefix('phase#3');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#3.textContent');
         mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
@@ -2850,7 +2850,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#4: try to activate c-1 - should work - JFF
         mgr.setPrefix('phase#4');
         rootVm.showC1 = true;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
         mgr.assertLog([
@@ -2895,13 +2895,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#5: try to activate c-2 with resolved promise - should work
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
-        await yieldTasks();
+        await tasksSettled();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await yieldTasks();
+        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');

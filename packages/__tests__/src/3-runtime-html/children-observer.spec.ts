@@ -1,4 +1,4 @@
-import { runTasks, yieldTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
@@ -98,7 +98,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await yieldTasks();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 4);
       assert.equal(viewModel.childrenChangedCallCount, 2);
@@ -125,7 +125,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await yieldTasks();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 2);
       assert.equal(viewModel.childrenChangedCallCount, 2);
@@ -155,7 +155,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await yieldTasks();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 2);
       assert.equal(viewModel.childrenChangedCallCount, 2);

@@ -1,4 +1,4 @@
-import { ComputedObserver, IDirtyChecker, IObserverLocator, runTasks, yieldTasks } from '@aurelia/runtime';
+import { ComputedObserver, IDirtyChecker, IObserverLocator, runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   Constructable,
 } from '@aurelia/kernel';
@@ -531,8 +531,8 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
     assert.strictEqual(queryBy('.red'), null);
 
     trigger.click('button');
-    await yieldTasks();
-    await yieldTasks();
+    await tasksSettled();
+    await tasksSettled();
 
     assert.notStrictEqual(queryBy('.red'), null);
     assert.notStrictEqual(queryBy('.has-errors'), null);

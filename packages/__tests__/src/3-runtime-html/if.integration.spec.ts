@@ -5,7 +5,7 @@ import {
   IPlatform,
   customElement,
 } from '@aurelia/runtime-html';
-import { runTasks, yieldTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   assert, createFixture
 } from '@aurelia/testing';
@@ -38,11 +38,11 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(callCount, 1);
 
       component.condition = false;
-      await yieldTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
-      await yieldTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       assert.strictEqual(callCount, 2);
 

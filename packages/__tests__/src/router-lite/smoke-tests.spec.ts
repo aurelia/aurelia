@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { runTasks, yieldTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 

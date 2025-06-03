@@ -13,16 +13,16 @@ let isAutoRun = false;
 // eslint-disable-next-line @typescript-eslint/ban-types
 const queue: (Task | Function)[] = [];
 let pendingAsyncCount = 0;
-let yieldPromise: Promise<void> | null = null;
+let settlePromise: Promise<void> | null = null;
 let taskErrors: unknown[] = [];
-let yieldPromiseResolve: (() => void) | null = null;
-let yieldPromiseReject: ((reason?: any) => void) | null = null;
+let settlePromiseResolve: (() => void) | null = null;
+let settlePromiseReject: ((reason?: any) => void) | null = null;
 
 Reflect.set(globalThis, '__au_queue__', {
   get queue() { return queue; },
   get pendingAsyncCount() { return pendingAsyncCount; },
   get runScheduled() { return runScheduled; },
-  get yieldPromise() { return yieldPromise; },
+  get settlePromise() { return settlePromise; },
   get taskErrors() { return taskErrors; },
 });
 
@@ -37,19 +37,19 @@ const requestRun = () => {
   }
 };
 
-const signalYield = () => {
-  if (yieldPromise && queue.length === 0 && pendingAsyncCount === 0) {
-    yieldPromise = null;
+const signalSettled = () => {
+  if (settlePromise && queue.length === 0 && pendingAsyncCount === 0) {
+    settlePromise = null;
     if (taskErrors.length > 0) {
       const errors = taskErrors;
       taskErrors = [];
       if (errors.length === 1) {
-        yieldPromiseReject!(errors[0]);
+        settlePromiseReject!(errors[0]);
       } else {
-        yieldPromiseReject!(new AggregateError(errors, 'One or more tasks failed.'));
+        settlePromiseReject!(new AggregateError(errors, 'One or more tasks failed.'));
       }
     } else {
-      yieldPromiseResolve!();
+      settlePromiseResolve!();
     }
   }
 };
@@ -57,9 +57,9 @@ const signalYield = () => {
 export const runTasks = () => {
   const isManualRun = !isAutoRun;
   isAutoRun = false;
-  yieldPromise ??= new Promise<void>((resolve, reject) => {
-    yieldPromiseResolve = resolve;
-    yieldPromiseReject = reject;
+  settlePromise ??= new Promise<void>((resolve, reject) => {
+    settlePromiseResolve = resolve;
+    settlePromiseReject = reject;
   });
 
   while (queue.length > 0) {
@@ -74,9 +74,9 @@ export const runTasks = () => {
       }
     }
   }
-  // Make a copy; this is for testing, signalYield will clear the array
+  // Make a copy; this is for testing, signalSettled will clear the array
   const errors = taskErrors.slice();
-  signalYield();
+  signalSettled();
   if (isManualRun && errors.length > 0) {
     if (errors.length === 1) {
       throw errors[0];
@@ -86,19 +86,19 @@ export const runTasks = () => {
   }
 };
 
-export const yieldTasks = async () => {
+export const tasksSettled = async () => {
   if (queue.length > 0 || pendingAsyncCount > 0) {
-    return yieldPromise ??= new Promise<void>((resolve, reject) => {
-      yieldPromiseResolve = resolve;
-      yieldPromiseReject = reject;
+    return settlePromise ??= new Promise<void>((resolve, reject) => {
+      settlePromiseResolve = resolve;
+      settlePromiseReject = reject;
     });
   }
   // Not strictly necessary but without this we need a lot of extra `await Promise.resolve()` in test code
   await resolvedPromise;
   if (queue.length > 0 || pendingAsyncCount > 0) {
-    return yieldPromise ??= new Promise<void>((resolve, reject) => {
-      yieldPromiseResolve = resolve;
-      yieldPromiseReject = reject;
+    return settlePromise ??= new Promise<void>((resolve, reject) => {
+      settlePromiseResolve = resolve;
+      settlePromiseReject = reject;
     });
   }
 };
@@ -178,7 +178,7 @@ export class Task<T = any> {
         taskErrors.push(err);
       }).finally(() => {
         --pendingAsyncCount;
-        signalYield();
+        signalSettled();
       });
     } else {
       this._status = tsCompleted;
@@ -194,7 +194,7 @@ export class Task<T = any> {
       }
       this._status = tsCanceled;
       this._reject(new TaskAbortError(this));
-      signalYield();
+      signalSettled();
       return true;
     }
     return false;

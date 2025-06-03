@@ -1,5 +1,5 @@
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
-import { runTasks, yieldTasks } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
@@ -529,16 +529,16 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         [El,]
       );
 
-      await yieldTasks();
+      await tasksSettled();
       assertText('Count: 1');
 
       component.show = true;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assertText('Count: 2');
 
       component.show = false;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assertText('Count: 1');
     });
@@ -561,12 +561,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       runTasks();
       assertText('Count: 0');
       component.i = 3;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assertText('Count: 3');
 
       component.i = 0;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assertText('Count: 0');
     });
@@ -595,7 +595,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       runTasks();
       assertText('inputs count: 1 | inputs count: 2');
       trigger.click('button');
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assertText('inputs count: 1 | inputs count: 3');
     });
@@ -621,12 +621,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
@@ -650,12 +650,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });
@@ -680,12 +680,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       );
 
       component.show = true;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2]]);
 
       component.show = false;
-      await yieldTasks(); // flush binding
+      await tasksSettled(); // flush binding
       await Promise.resolve(); // mutation observer tick
       assert.deepStrictEqual(calls, [['default', 2], ['default', 1]]);
     });

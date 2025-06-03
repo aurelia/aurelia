@@ -21,7 +21,7 @@ export {
   queueTask,
   queueAsyncTask,
   runTasks,
-  yieldTasks,
+  tasksSettled,
   Task,
   TaskAbortError,
 } from './queue';

@@ -15,7 +15,7 @@ import {
 } from '@aurelia/validation-html';
 import { Person } from '../../validation/_test-resources.js';
 import { TestFunction, TestExecutionContext, ToNumberValueConverter, createSpecFunction } from '../../util.js';
-import { yieldTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('validation-html/subscribers/validation-result-presenter-service.spec.ts', function () {
   describe('validation-result-presenter-service', function () {
@@ -114,7 +114,7 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
       handleValidationEventSpy.calls.splice(0);
       controllerValidateSpy.calls.splice(0);
       target.dispatchEvent(new ctx.Event(event));
-      await yieldTasks();
+      await tasksSettled();
       assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
       assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
     }

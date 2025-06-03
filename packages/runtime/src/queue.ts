@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/check-tag-names */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const tsPending = 'pending';
 const tsRunning = 'running';
@@ -54,6 +55,31 @@ const signalSettled = () => {
   }
 };
 
+/**
+ * @description Processes all currently pending tasks in the task queue.
+ *
+ * @remarks
+ * This function iterates through the task queue, executing each task:
+ * - Synchronous tasks (raw functions) are invoked directly.
+ * - Asynchronous tasks (instances of `Task`) have their `run()` method called,
+ * which initiates their async operation.
+ *
+ * `runTasks` is invoked automatically in a microtask after tasks are added via
+ * `queueTask` or `queueAsyncTask`. However, it can also be called manually
+ * to force immediate processing of the queue.
+ *
+ * If `runTasks` is called manually, and any tasks throw errors during their execution:
+ * - If a single task fails, that task's error is thrown directly by `runTasks`.
+ * - If multiple tasks fail, an `AggregateError` containing all encountered errors
+ * is thrown by `runTasks`.
+ *
+ * Regardless of how it's called, `runTasks` ensures that a promise is available,
+ * which `tasksSettled()` uses to allow awaiting the completion of all work.
+ * Any errors encountered are collected and will cause the promise returned by
+ * `tasksSettled()` to reject.
+ *
+ * @throws {Error|AggregateError} If invoked manually and one or more tasks fail during execution.
+ */
 export const runTasks = () => {
   const isManualRun = !isAutoRun;
   isAutoRun = false;
@@ -86,6 +112,41 @@ export const runTasks = () => {
   }
 };
 
+/**
+ * @description Returns a promise that resolves when the task queue is empty and all
+ * active asynchronous tasks (queued via `queueAsyncTask`) have completed,
+ * been canceled, or have otherwise settled.
+ *
+ * @remarks
+ * This is the primary API for awaiting the completion of all work scheduled through
+ * the task queue. It's essential for scenarios like testing or coordinating updates
+ * after a batch of operations.
+ *
+ * The promise will reject if any task executed since the last settlement
+ * (or the start of the current batch of work) has thrown an error, or if an
+ * asynchronous task's underlying promise has rejected.
+ * - If a single error occurred, the promise rejects with that error.
+ * - If multiple errors occurred, the promise rejects with an `AggregateError`
+ * containing all collected errors.
+ *
+ * @returns {Promise<void>} A promise that resolves when all tasks in the queue
+ * have settled, or rejects if any task encountered an error.
+ *
+ * @example
+ * ```typescript
+ * import { queueTask, queueAsyncTask, tasksSettled } from '@aurelia/runtime';
+ *
+ * queueTask(() => console.log('Sync task done'));
+ *
+ * queueAsyncTask(async () => {
+ *   await new Promise(r => setTimeout(r, 100));
+ *   console.log('Async task done');
+ * });
+ *
+ * await tasksSettled();
+ * console.log('All tasks have settled successfully');
+ * ```
+ */
 export const tasksSettled = async () => {
   if (queue.length > 0 || pendingAsyncCount > 0) {
     return settlePromise ??= new Promise<void>((resolve, reject) => {
@@ -103,11 +164,70 @@ export const tasksSettled = async () => {
   }
 };
 
+/**
+ * @description Enqueues a synchronous callback function to be executed on the next tick.
+ *
+ * @param {TaskCallback} callback - The synchronous function to be added to the queue.
+ * This function will be invoked by `runTasks` on the next tick.
+ *
+ * @remarks
+ * If the `callback` throws an error during its execution, this error is caught by the
+ * scheduler. It will then contribute to the rejection of the promise returned by
+ * `tasksSettled()`.
+ *
+ * @example
+ * ```typescript
+ * import { queueTask, tasksSettled } from '@aurelia/runtime';
+ *
+ * console.log('Before queueing task');
+ * queueTask(() => {
+ *   console.log('Synchronous task is executing');
+ * });
+ * console.log('Task queued');
+ *
+ * tasksSettled().then(() => console.log('Tasks settled'));
+ * // Expected output order:
+ * // Before queueing task.
+ * // Task queued.
+ * // Synchronous task is executing.
+ * // Tasks settled.
+ * ```
+ */
 export const queueTask = <T = any>(callback: TaskCallback<T>) => {
   requestRun();
   queue.push(callback);
 };
 
+/**
+ * @description Enqueues a callback function that can perform synchronous or asynchronous work.
+ *
+ * @template R The underlying value type of the task's `result` property. For instance, if the
+ * `callback` returns `Promise<string>`, then `R` will be `string`, and the `result` property
+ * of the task will be of type `Promise<string>`.
+ *
+ * @param {TaskCallback} callback - The function to be enqueued.
+ * This function will be invoked by `runTasks` on the next tick.
+ * If it returns a `Promise`, the scheduler waits for this promise to settle, which can be
+ * awaited via `tasksSettled()`
+ *
+ * @returns {Task<R>} A {@link Task} object that represents the lifecycle and result of the
+ * operation. This object provides:
+ * - `result`: A promise that resolves with the task's outcome or rejects if the task fails.
+ * - `status`: A string indicating the current state of the task ('pending', 'running', 'completed', 'canceled').
+ *
+ * @remarks
+ * Errors thrown synchronously within the `callback`, or rejections from a `Promise`
+ * returned by the `callback`, are caught by the scheduler. These errors will cause
+ * the `Task`'s `result` promise to reject and will also contribute to the
+ * rejection of the promise returned by `tasksSettled()`.
+ *
+ * The task can be canceled via its `cancel()` method before it starts running.
+ *
+ * @example
+ * ```typescript
+ * // TODO
+ * ```
+ */
 export const queueAsyncTask = <T = any>(callback: TaskCallback<T>) => {
   requestRun();
   const task = new Task<T>(callback);

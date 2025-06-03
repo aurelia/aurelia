@@ -6,48 +6,13 @@ import { IActivitySource, ActivitySource } from './activity-source';
 /**
  * Telemetry service interface
  */
-export const ITelemetryService = /*@__PURE__*/ DI.createInterface<ITelemetryService>('ITelemetryService');
-export interface ITelemetryService {
-  /**
-   * Creates a new telemetry meter for custom metrics
-   */
-  createMeter(name: string, version?: string): ITelemetryMeter;
-
-  /**
-   * Creates a new activity source for custom tracing
-   */
-  createActivitySource(name: string, version?: string): IActivitySource;
-
-  /**
-   * Gets an existing meter by name, or creates a new one
-   */
-  getMeter(name: string, version?: string): ITelemetryMeter;
-
-  /**
-   * Gets an existing activity source by name, or creates a new one
-   */
-  getActivitySource(name: string, version?: string): IActivitySource;
-
-  /**
-   * Lists all registered meters
-   */
-  getMeters(): readonly ITelemetryMeter[];
-
-  /**
-   * Lists all registered activity sources
-   */
-  getActivitySources(): readonly IActivitySource[];
-
-  /**
-   * Clears all telemetry data
-   */
-  clear(): void;
-}
+export const ITelemetryService = /*@__PURE__*/ DI.createInterface<ITelemetryService>('ITelemetryService', x => x.singleton(TelemetryService));
+export interface ITelemetryService extends TelemetryService { }
 
 /**
  * Telemetry service implementation
  */
-export class TelemetryService implements ITelemetryService, IDisposable {
+export class TelemetryService implements IDisposable {
   private readonly meters = new Map<string, ITelemetryMeter>();
   private readonly activitySources = new Map<string, IActivitySource>();
 

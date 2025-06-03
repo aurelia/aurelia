@@ -8,17 +8,8 @@ import { IInsightsConfiguration } from "./configuration";
  * Performance tracker service interface
  */
 export const IPerformanceTracker =
-  /*@__PURE__*/ DI.createInterface<IPerformanceTracker>("IPerformanceTracker");
-export interface IPerformanceTracker {
-  startMeasurement(name: string, metadata?: Record<string, unknown>): string;
-  endMeasurement(id: string): IPerformanceMeasurement | null;
-  addMeasurement(measurement: IPerformanceMeasurement): void;
-  addInstantMeasurement(name: string, metadata?: Record<string, unknown>): void;
-  getMeasurements(): readonly IPerformanceMeasurement[];
-  clear(): void;
-  isEnabled(): boolean;
-  debug(): void;
-}
+  /*@__PURE__*/ DI.createInterface<IPerformanceTracker>("IPerformanceTracker", x => x.singleton(PerformanceTracker));
+export interface IPerformanceTracker extends PerformanceTracker { }
 
 /**
  * Active measurement tracking

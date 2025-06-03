@@ -22,18 +22,8 @@ import { IPerformanceMeasurement, IPerformanceStats, IGroupedMeasurements } from
  * }
  * ```
  */
-export const IInsightsUtilities = /*@__PURE__*/DI.createInterface<IInsightsUtilities>('IInsightsUtilities');
-export interface IInsightsUtilities {
-  getMeasurements(): readonly IPerformanceMeasurement[];
-  clearMeasurements(): void;
-  groupMeasurementsByComponent(): IGroupedMeasurements;
-  getComponentStats(componentName: string): { [phase: string]: IPerformanceStats } | undefined;
-  getPhaseStats(componentName: string, phase: string): IPerformanceStats | undefined;
-  getSlowestComponents(limit?: number): { name: string; totalTime: number; phases: { [phase: string]: IPerformanceStats } }[];
-  getMostActiveComponents(limit?: number): { name: string; totalExecutions: number; phases: { [phase: string]: IPerformanceStats } }[];
-  logPerformanceSummary(): void;
-  exportPerformanceData(): string;
-}
+export const IInsightsUtilities = /*@__PURE__*/DI.createInterface<IInsightsUtilities>('IInsightsUtilities', x => x.singleton(InsightsUtilities));
+export interface IInsightsUtilities extends InsightsUtilities { }
 
 /**
  * Utility service for working with performance insights

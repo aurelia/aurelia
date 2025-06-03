@@ -193,7 +193,7 @@ export const tasksSettled = async () => {
  * // Tasks settled.
  * ```
  */
-export const queueTask = <T = any>(callback: TaskCallback<T>) => {
+export const queueTask = <R = any>(callback: TaskCallback<R>) => {
   requestRun();
   queue.push(callback);
 };
@@ -228,9 +228,9 @@ export const queueTask = <T = any>(callback: TaskCallback<T>) => {
  * // TODO
  * ```
  */
-export const queueAsyncTask = <T = any>(callback: TaskCallback<T>) => {
+export const queueAsyncTask = <R = any>(callback: TaskCallback<R>) => {
   requestRun();
-  const task = new Task<T>(callback);
+  const task = new Task<R>(callback);
   queue.push(task);
   return task;
 };
@@ -244,17 +244,17 @@ export class TaskAbortError<T = any> extends Error {
 type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 let id = 0;
 
-export class Task<T = any> {
+export class Task<R = any> {
   public readonly id: number = ++id;
 
   /** @internal */
-  private _resolve!: (value: UnwrapPromise<T>) => void;
+  private _resolve!: (value: UnwrapPromise<R>) => void;
   /** @internal */
   private _reject!: (reason?: any) => void;
 
   /** @internal */
-  private readonly _result: Promise<UnwrapPromise<T>>;
-  public get result(): Promise<UnwrapPromise<T>> {
+  private readonly _result: Promise<UnwrapPromise<R>>;
+  public get result(): Promise<UnwrapPromise<R>> {
     return this._result;
   }
 
@@ -264,8 +264,8 @@ export class Task<T = any> {
     return this._status;
   }
 
-  public constructor(public callback: TaskCallback<T>) {
-    this._result = new Promise<UnwrapPromise<T>>((resolve, reject) => {
+  public constructor(public callback: TaskCallback<R>) {
+    this._result = new Promise<UnwrapPromise<R>>((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
     });
@@ -302,7 +302,7 @@ export class Task<T = any> {
       });
     } else {
       this._status = tsCompleted;
-      this._resolve(ret as UnwrapPromise<T>);
+      this._resolve(ret as UnwrapPromise<R>);
     }
   }
 

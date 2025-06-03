@@ -434,7 +434,7 @@ describe('2-runtime/queue.spec.ts', function () {
     });
 
     // Call tasksSettled before manual flush to ensure we are awaiting its promise.
-    const settledPromise = tasksSettled().catch(e => { settledError = e; });
+    const settlePromise = tasksSettled().catch(e => { settledError = e; });
 
     try {
       runTasks();
@@ -442,7 +442,7 @@ describe('2-runtime/queue.spec.ts', function () {
       flushError = e;
     }
 
-    await settledPromise;
+    await settlePromise;
 
     assert.notEqual(settledError, null, 'tasksSettled should have rejected');
     assert.strictEqual(settledError, error1, 'settledError should be the error from the task');
@@ -502,7 +502,7 @@ describe('2-runtime/queue.spec.ts', function () {
       'A',
     ], 'Phase 1 stack mismatch');
 
-    assert.strictEqual(globalThis['__au_queue__'].settledPromise, null, 'settledPromise should be null after resolution');
+    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null after resolution');
 
     stack.length = 0;
 
@@ -519,7 +519,7 @@ describe('2-runtime/queue.spec.ts', function () {
       stack.push('C_async');
     });
 
-    assert.strictEqual(globalThis['__au_queue__'].settledPromise, null, 'settledPromise should be null before tasks from phase 2 trigger a new one via flush');
+    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null before tasks from phase 2 trigger a new one via flush');
 
     await tasksSettled();
 
@@ -529,7 +529,7 @@ describe('2-runtime/queue.spec.ts', function () {
       'C_async',
     ], 'Phase 2 stack mismatch');
 
-    assert.strictEqual(globalThis['__au_queue__'].settledPromise, null, 'settledPromise should be null again');
+    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null again');
     assert.strictEqual(asyncTaskC.status, 'completed');
   });
 });

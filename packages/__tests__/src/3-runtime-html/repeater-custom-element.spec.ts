@@ -1,5 +1,5 @@
 import { Class } from '@aurelia/kernel';
-import { flush, nextTick } from '@aurelia/runtime';
+import { flush, yieldTasks } from '@aurelia/runtime';
 import {
   BindingBehavior,
   customElement,
@@ -183,7 +183,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      // await nextTick();
+      // await yieldTasks();
       flush();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
@@ -206,7 +206,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -228,7 +228,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -250,7 +250,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -268,7 +268,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
     $it('repeater with custom element + inner bindable with different name than outer property, reversed - initialized property', async function ({ host }: TestExecutionContext<App>) {
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -286,7 +286,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count" text.bind="theText"></foo>`,
     };
     $it('repeater with custom element + inner bindable with same name as outer property, reversed - initialized property', async function ({ host }: TestExecutionContext<App>) {
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -470,7 +470,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
     $it('repeater with custom element', async function ({ host, app }: TestExecutionContext<App>) {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -491,7 +491,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -512,7 +512,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -533,7 +533,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.theText = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -554,7 +554,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       assert.strictEqual(host.textContent, '', `host.textContent`);
       app.count = 3;
       app.text = 'a';
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -572,7 +572,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
     $it('repeater with custom element + inner bindable with different name than outer property, reversed', async function ({ host }: TestExecutionContext<App>) {
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);
@@ -590,7 +590,7 @@ describe('3-runtime-html/repeater-custom-element.spec.ts', function () {
       template: `<foo repeat.for="i of count & keyed" text.bind="theText"></foo>`,
     };
     $it('repeater with custom element + inner bindable with same name as outer property, reversed', async function ({ host }: TestExecutionContext<App>) {
-      await nextTick();
+      await yieldTasks();
 
       assert.strictEqual(host.textContent, 'aaa', `host.textContent`);
     }, setup);

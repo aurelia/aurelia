@@ -54,8 +54,6 @@ const signalYield = () => {
   }
 };
 
-export const nextTick = () => resolvedPromise;
-
 export const flush = () => {
   const isManualFlush = !isAutoFlush;
   isAutoFlush = false;
@@ -96,7 +94,7 @@ export const yieldTasks = async () => {
     });
   }
   // Not strictly necessary but without this we need a lot of extra `await Promise.resolve()` in test code
-  await nextTick();
+  await resolvedPromise;
   if (queue.length > 0 || pendingAsyncCount > 0) {
     return yieldPromise ??= new Promise<void>((resolve, reject) => {
       yieldPromiseResolve = resolve;

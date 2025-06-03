@@ -18,7 +18,6 @@ export {
 } from './scope';
 
 export {
-  nextTick,
   queueTask,
   queueAsyncTask,
   flush,

@@ -6,7 +6,6 @@ import {
   IObserverLocator,
   getCollectionObserver,
   Scope,
-  nextTick,
   yieldTasks,
   flush,
 } from '@aurelia/runtime';

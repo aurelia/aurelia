@@ -1,11 +1,11 @@
-import { IContainer, IRegistry, Registration } from '@aurelia/kernel';
+import { IContainer, IRegistry } from '@aurelia/kernel';
 import { IInsightsConfigurationOptions } from './interfaces';
 import { createInsightsConfiguration } from './configuration';
-import { IPerformanceTracker, PerformanceTracker } from './performance-tracker';
-import { IInsightsUtilities, InsightsUtilities } from './utilities';
+import { IPerformanceTracker } from './performance-tracker';
+import { IInsightsUtilities } from './utilities';
 import { PerformanceLifecycleHooks } from './lifecycle-hooks';
 import { RouterLifecycleHooks } from './router-lifecycle-hooks';
-import { ITelemetryService, TelemetryService } from './telemetry-service';
+import { ITelemetryService } from './telemetry-service';
 
 /**
  * Aurelia Insights Plugin
@@ -35,13 +35,13 @@ export class InsightsPlugin {
         container.register(configRegistration);
 
         // Register the performance tracker
-        container.register(Registration.singleton(IPerformanceTracker, PerformanceTracker));
+        container.register(IPerformanceTracker);
 
         // Register the insights utilities
-        container.register(Registration.singleton(IInsightsUtilities, InsightsUtilities));
+        container.register(IInsightsUtilities);
 
         // Register the telemetry service for custom metrics and activities
-        container.register(Registration.singleton(ITelemetryService, TelemetryService));
+        container.register(ITelemetryService);
 
         // Register performance lifecycle hooks
         container.register(PerformanceLifecycleHooks);

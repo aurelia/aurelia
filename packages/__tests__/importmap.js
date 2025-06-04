@@ -5,6 +5,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'addons',
       'compat-v1',
       'dialog',
+      'insights',
       'platform',
       'platform-browser',
       'metadata',

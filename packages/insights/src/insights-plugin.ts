@@ -6,6 +6,7 @@ import { IInsightsUtilities } from './utilities';
 import { PerformanceLifecycleHooks } from './lifecycle-hooks';
 import { RouterLifecycleHooks } from './router-lifecycle-hooks';
 import { ITelemetryService } from './telemetry-service';
+import { PerformanceRepeat } from './performance-repeat';
 
 /**
  * Aurelia Insights Plugin
@@ -48,6 +49,15 @@ export class InsightsPlugin {
 
         // Register router lifecycle hooks
         container.register(RouterLifecycleHooks);
+        // Deregister the default repeat template controller and register our performance version
+        // The repeat key follows the pattern: "au:resource:custom-attribute:repeat"
+        const repeatResourceKey = 'au:resource:custom-attribute:repeat';
+        if (container.has(repeatResourceKey, false)) {
+          container.deregister(repeatResourceKey);
+        }
+
+        // Register our performance-tracking version of repeat template controller
+        container.register(PerformanceRepeat);
 
         return container;
       }

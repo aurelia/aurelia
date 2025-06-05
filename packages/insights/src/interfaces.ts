@@ -75,6 +75,46 @@ export interface IInsightsConfigurationOptions {
    * @default true
    */
   enableRouterTracking?: boolean;
+
+  /**
+   * Repeat template controller performance tracking configuration
+   */
+  repeatPerformance?: IRepeatPerformanceConfig;
+}
+
+/**
+ * Configuration options for repeat template controller performance tracking
+ */
+export interface IRepeatPerformanceConfig {
+  /**
+   * Whether to enable repeat performance tracking
+   * @default true
+   */
+  enabled?: boolean;
+
+  /**
+   * Threshold for detailed tracking. Collections larger than this will use summary tracking
+   * @default 100
+   */
+  detailedTrackingThreshold?: number;
+
+  /**
+   * Threshold for batch operations. Operations affecting more than this many items are considered large
+   * @default 10
+   */
+  batchOperationThreshold?: number;
+
+  /**
+   * Whether to track individual item operations for small collections
+   * @default true
+   */
+  trackIndividualOperations?: boolean;
+
+  /**
+   * Custom color for repeat performance measurements
+   * @default 'secondary'
+   */
+  color?: DevToolsColor;
 }
 
 /**

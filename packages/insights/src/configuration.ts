@@ -17,6 +17,11 @@ export const DEFAULT_INSIGHTS_CONFIGURATION: Required<IInsightsConfigurationOpti
   defaultColor: 'primary',
   filters: [],
   enableRouterTracking: true,
+  repeatPerformance: {
+    enabled: true,
+    detailedTrackingThreshold: 100,
+    batchOperationThreshold: 10
+  }
 };
 
 /**

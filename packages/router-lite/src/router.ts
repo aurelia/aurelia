@@ -1,7 +1,7 @@
 import { IContainer, ILogger, DI, IDisposable, onResolve, Writable, onResolveAll, Registration, resolve, isObjectOrFunction, isArray } from '@aurelia/kernel';
 import { CustomElement, CustomElementDefinition, IPlatform } from '@aurelia/runtime-html';
 
-import { createEagerInstruction, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
+import { createEagerInstructions, IRouteContext, RouteConfigContext, RouteContext } from './route-context';
 import { IRouterEvents, NavigationStartEvent, NavigationEndEvent, NavigationCancelEvent, ManagedState, AuNavId, RoutingTrigger, NavigationErrorEvent } from './router-events';
 import { ILocationManager } from './location-manager';
 import { resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -389,6 +389,7 @@ export class Router {
             container,
             this,
             rdConfigContext,
+            this._locationMgr
           ),
         );
         return routeContext;
@@ -436,20 +437,8 @@ export class Router {
   }
 
   public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
-
-    // convert to eager instructions
-    // this is also a sanity check for the instructions
-    if (!isArray(instructionOrInstructions)) instructionOrInstructions = [instructionOrInstructions];
-
-    const numInstr = (instructionOrInstructions as NavigationInstruction[]).length;
-    for (let i = 0; i < numInstr; ++i) {
-      const instr = createEagerInstruction((instructionOrInstructions as NavigationInstruction[])[i]);
-      if (instr == null) throw new Error(getMessage(Events.rtrIncompatiblePathGenerationInstr, instructionOrInstructions));
-      (instructionOrInstructions as NavigationInstruction[])[i] = instr;
-    }
-
     return onResolve(
-      this.createViewportInstructions(instructionOrInstructions, { context: context ?? this._ctx }, true),
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true),
       vit => vit.toUrl(true, this.options._urlParser)
     );
   }
@@ -460,46 +449,8 @@ export class Router {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;
-    if (context !== null) context = this._resolveContext(context);
-    let contextChanged = false;
-
-    if (!isArray(instructionOrInstructions)) {
-      instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
-    } else {
-      const len = (instructionOrInstructions as NavigationInstruction[]).length;
-      for (let i = 0; i < len; ++i) {
-        (instructionOrInstructions as NavigationInstruction[])[i] = processStringInstruction.call(this, (instructionOrInstructions as NavigationInstruction[])[i]);
-      }
-    }
-
-    const routerOptions = this.options;
-    return ViewportInstructionTree.create(
-      instructionOrInstructions,
-      routerOptions,
-      NavigationOptions.create(routerOptions, { ...options, context }),
-      this._ctx,
-      traverseChildren as true,
-    );
-
-    function processStringInstruction(this: Router, instr: NavigationInstruction): NavigationInstruction {
-      if (typeof instr === 'string') instr = this._locationMgr.removeBaseHref(instr);
-
-      const isVpInstr = isPartialViewportInstruction(instr);
-      let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
-      if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
-        while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
-          $instruction = ($instruction as string).slice(3);
-          if (!contextChanged) context = context!.parent;
-        }
-        contextChanged = true;
-      }
-      if (isVpInstr) {
-        (instr as Writable<IViewportInstruction>).component = $instruction;
-      } else {
-        instr = $instruction;
-      }
-      return instr;
-    }
+    if (context !== null) context = (options as Writable<INavigationOptions>).context = this._resolveContext(context);
+    return (context ?? this._$ctx)!.createViewportInstructions(instructionOrInstructions, options, traverseChildren as true);
   }
 
   /**

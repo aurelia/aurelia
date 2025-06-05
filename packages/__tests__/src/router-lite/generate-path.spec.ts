@@ -740,7 +740,7 @@ describe('router-lite/generate-path.spec.ts', function () {
         assert.fail('should not have generated a path');
       } catch (error) {
         assert.instanceOf(error, Error, 'Expected an error to be thrown');
-        assert.includes(error.message, 'AUR3272', 'Unexpected event ID.');
+        assert.includes(error.message, 'AUR3404', 'Unexpected event ID.');
       }
 
       await au.stop(true);
@@ -772,7 +772,7 @@ describe('router-lite/generate-path.spec.ts', function () {
         assert.fail('should not have generated a path');
       } catch (error) {
         assert.instanceOf(error, Error, 'Expected an error to be thrown');
-        assert.includes(error.message, 'AUR3272', 'Unexpected event ID.');
+        assert.includes(error.message, 'AUR3404', 'Unexpected event ID.');
       }
 
       await au.stop(true);

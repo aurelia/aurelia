@@ -11,6 +11,8 @@ import {
   emptyObject,
   emptyArray,
   MaybePromise,
+  isArray,
+  Writable,
 } from '@aurelia/kernel';
 import { type Endpoint, RecognizedRoute, RESIDUE, RouteRecognizer } from '@aurelia/route-recognizer';
 import {
@@ -44,6 +46,7 @@ import {
   NavigationOptions,
   IChildRouteConfig,
   Routeable,
+  INavigationOptions,
 } from './options';
 import { IViewport } from './resources/viewport';
 import { noRoutes, resolveCustomElementDefinition, resolveRouteConfiguration, RouteConfig, RouteType } from './route';
@@ -58,6 +61,7 @@ import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialV
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
 import { IObserverLocator, ISubscriber } from '@aurelia/runtime';
+import { ILocationManager } from './location-manager';
 
 export interface IRouteContext extends RouteContext { }
 export const IRouteContext = /*@__PURE__*/DI.createInterface<IRouteContext>('IRouteContext');
@@ -84,21 +88,33 @@ function isEagerInstruction(val: NavigationInstruction | EagerInstruction): val 
     ;
 }
 
-export function createEagerInstruction(val: NavigationInstruction): EagerInstruction | null {
-  let component: EagerInstruction['component'];
-  if (typeof val === 'string' || typeof val === 'function') {
-    component = val;
-    val = null!;
-  } else {
-    component = (val as EagerInstruction).component;
+export function createEagerInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]) {
+  if (!isArray(instructionOrInstructions)) instructionOrInstructions = [instructionOrInstructions];
+
+  const numInstr = (instructionOrInstructions as NavigationInstruction[]).length;
+  for (let i = 0; i < numInstr; ++i) {
+    const instr = core((instructionOrInstructions as NavigationInstruction[])[i]);
+    if (instr == null) throw new Error(getMessage(Events.instrIncompatiblePathGenerationInstr, instructionOrInstructions));
+    (instructionOrInstructions as NavigationInstruction[])[i] = instr;
   }
-  if (
-    component == null
-    || !allowedEagerComponentTypes.includes(typeof component)
-    || component instanceof Promise
-    || component instanceof NavigationStrategy
-  ) return null;
-  return { ...(val as object), component, params: (val as EagerInstruction)?.params ?? emptyObject };
+  return instructionOrInstructions as EagerInstruction[];
+
+  function core(val: NavigationInstruction): EagerInstruction | null {
+    let component: EagerInstruction['component'];
+    if (typeof val === 'string' || typeof val === 'function') {
+      component = val;
+      val = null!;
+    } else {
+      component = (val as EagerInstruction).component;
+    }
+    if (
+      component == null
+      || !allowedEagerComponentTypes.includes(typeof component)
+      || component instanceof Promise
+      || component instanceof NavigationStrategy
+    ) return null;
+    return { ...(val as object), component, params: (val as EagerInstruction)?.params ?? emptyObject };
+  }
 }
 
 /**
@@ -158,6 +174,7 @@ export class RouteContext {
     parentContainer: IContainer,
     private readonly _router: IRouter,
     public readonly routeConfigContext: IRouteConfigContext,
+    private readonly _locationMgr: ILocationManager
   ) {
     this._vpa = viewportAgent;
     if (parent === null) {
@@ -336,6 +353,53 @@ export class RouteContext {
 
       return componentAgent;
     });
+  }
+
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | undefined, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+    if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
+
+    let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
+    let contextChanged = false;
+
+    if (!isArray(instructionOrInstructions)) {
+      instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
+    } else {
+      const len = (instructionOrInstructions as NavigationInstruction[]).length;
+      for (let i = 0; i < len; ++i) {
+        (instructionOrInstructions as NavigationInstruction[])[i] = processStringInstruction.call(this, (instructionOrInstructions as NavigationInstruction[])[i]);
+      }
+    }
+
+    const routerOptions = this._router.options;
+    return ViewportInstructionTree.create(
+      instructionOrInstructions,
+      routerOptions,
+      NavigationOptions.create(routerOptions, { ...options, context }),
+      this.root,
+      traverseChildren as true,
+    );
+
+    function processStringInstruction(this: RouteContext, instr: NavigationInstruction): NavigationInstruction {
+      if (typeof instr === 'string') instr = this._locationMgr.removeBaseHref(instr);
+
+      const isVpInstr = isPartialViewportInstruction(instr);
+      let $instruction = isVpInstr ? (instr as IViewportInstruction).component : instr;
+      if (typeof $instruction === 'string' && $instruction.startsWith('../') && context !== null) {
+        while (($instruction as string).startsWith('../') && ((context?.parent ?? null) !== null || contextChanged)) {
+          $instruction = ($instruction as string).slice(3);
+          if (!contextChanged) context = context!.parent;
+        }
+        contextChanged = true;
+      }
+      if (isVpInstr) {
+        (instr as Writable<IViewportInstruction>).component = $instruction;
+      } else {
+        instr = $instruction;
+      }
+      return instr;
+    }
   }
 
   /** @internal */

@@ -157,6 +157,7 @@
         "TS_NODE_PROJECT": "${workspaceRoot}/packages/__tests__/tsconfig.json"
       },
       "args": [
+        "--bail",
         "--ui",
         "bdd",
         "--reporter",

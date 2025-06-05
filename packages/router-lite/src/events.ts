@@ -102,7 +102,6 @@ export const enum Events {
   rtrNextTr = 3269,
   rtrTrFailed = 3270,
   rtrNoCtx = 3271,
-  rtrIncompatiblePathGenerationInstr = 3272,
   // #endregion
   // #region viewport agent
   vpaCreated = 3300,
@@ -166,6 +165,7 @@ export const enum Events {
   instrNoFallback = 3401,
   instrUnknownRedirect = 3402,
   instrInvalidUrlComponentOperation = 3403,
+  instrIncompatiblePathGenerationInstr = 3404,
   // #endregion
   // #region navigation model
   nmNoEndpoint = 3450,
@@ -277,7 +277,6 @@ const eventMessageMap: Record<Events, string> = {
   [Events.rtrNextTr]: 'scheduling next transition: %s',
   [Events.rtrTrFailed]: 'Transition %s failed with error: %s',
   [Events.rtrNoCtx]: 'Root RouteContext is not set. Did you forget to register RouteConfiguration, or try to navigate before calling Aurelia.start()?',
-  [Events.rtrIncompatiblePathGenerationInstr]: 'The given instruction is not compatible for eagerly generating path: %s',
   // #endregion
 
   // #region viewport agent
@@ -343,6 +342,7 @@ const eventMessageMap: Record<Events, string> = {
   [Events.instrNoFallback]: 'Neither the route \'%s\' matched any configured route at \'%s\' nor a fallback is configured for the viewport \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
   [Events.instrUnknownRedirect]: '\'%s\' did not match any configured route or registered component name at \'%s\' - did you forget to add \'%s\' to the routes list of the route decorator of \'%s\'?',
   [Events.instrInvalidUrlComponentOperation]: 'Invalid instruction type %s for "toUrlComponent" operation. If you are seeing this error, then it is probably because of an internal bug. Please report it.',
+  [Events.instrIncompatiblePathGenerationInstr]: 'The given instruction is not compatible for eagerly generating path: %s',
   // #endregion
 
   // #region navigation model

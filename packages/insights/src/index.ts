@@ -8,6 +8,7 @@ export {
   IPerformanceFilter,
   IPerformanceStats,
   IGroupedMeasurements,
+} from './interfaces';
 
 // Configuration
 export {

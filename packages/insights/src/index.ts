@@ -21,6 +21,8 @@ export {
   TelemetryService,
 } from './telemetry-service';
 
+// Performance-enhanced components
+export { PerformanceRepeat } from './performance-repeat';
 
 // Plugin exports
 export { InsightsPlugin as default } from './insights-plugin';

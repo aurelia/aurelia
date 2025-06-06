@@ -38,6 +38,11 @@ export type DialogRenderOptionsStandard = {
    * A callback that is invoked when the dialog is hidden.
    */
   hide?: (dom: IDialogDom) => void | Promise<void>;
+  /**
+   * Specifies the types of user actions that can be used to close the <dialog> element
+   * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog#closedby
+   */
+  closedby?: 'any' | 'closerequest' | 'none';
 };
 
 export class DialogGlobalOptionsStandard implements IDialogGlobalSettings<DialogRenderOptionsStandard> {
@@ -63,11 +68,13 @@ export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRende
     const id = `d-${++DialogDomRendererStandard.id}`;
     const host = wrapper.appendChild(h('div'));
 
+    if (options.closedby) {
+      wrapper.setAttribute('closedby', options.closedby);
+    }
     wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    const dom = new DialogDomStandard(id, wrapper, host, controller, options);
-    return dom;
+    return new DialogDomStandard(id, wrapper, host, controller, options);
   }
 }
 
@@ -139,9 +146,6 @@ export class DialogDomStandard implements IDialogDom {
       this._options.hide?.(this),
       () => {
         this.root.removeEventListener('cancel', this);
-        // this close will trigger the 'close' event again
-        // but we already removed the event listener
-        // so it won't cause another handleEvent call
         this.root.close();
       }
     );
@@ -153,6 +157,12 @@ export class DialogDomStandard implements IDialogDom {
 
   /** @internal */
   public handleEvent(event: Event): void {
+    /**
+     * The cancel event fires on a <dialog> element when the user instructs the browser that they wish to dismiss the
+     * current open dialog. The browser fires this event when the user presses the Esc key.
+     *
+     * Prevent native dismiss and invoke controller cancel pipeline
+     */
     event.preventDefault();
     void this._controller.cancel();
   }

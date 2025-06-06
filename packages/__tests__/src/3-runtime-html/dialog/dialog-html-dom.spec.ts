@@ -3,7 +3,7 @@ import {
   DialogConfigurationStandard,
   DialogDomStandard,
   IDialogService,
-  DialogRenderOptionsStandard
+  DialogRenderOptionsStandard, IDialogSettings
 } from '@aurelia/dialog';
 import { IDisposable, resolve } from '@aurelia/kernel';
 import {
@@ -104,6 +104,27 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
 
     ((result.dialog as DialogController)['dom'] as DialogDomStandard).setOverlayStyle({ backgroundColor: 'blue' });
     assertHtml('<dialog data-dialog-id="d-3" open=""><style>[data-dialog-id="d-3"]::backdrop{background-color: blue;}</style><div>hey</div></dialog>');
+  });
+
+  it('renders <dialog> element with closedby option', async function () {
+    const { component, assertHtml } = createFixture(
+      '',
+      class {
+        host = resolve(INode) as HTMLElement;
+        dialogService = resolve(IDialogService);
+      },
+      [DialogConfigurationStandard]
+    );
+
+    await component.dialogService.open<DialogRenderOptionsStandard>({
+      host: component.host,
+      template: 'hey',
+      options: {
+        closedby: 'none',
+      }
+    });
+
+    assertHtml('<dialog closedby="none" data-dialog-id="d-4" open=""><div>hey</div></dialog>');
   });
 
   it('calls show/hide hooks on global options', async function () {

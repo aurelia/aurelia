@@ -16,7 +16,11 @@ export * from './utilities';
 // Telemetry
 export * from './telemetry-meter';
 export * from './activity-source';
-export * from './telemetry-service';
+export {
+  ITelemetryService,
+  TelemetryService,
+} from './telemetry-service';
+
 
 // Plugin exports
 export { InsightsPlugin as default } from './insights-plugin';

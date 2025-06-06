@@ -1,18 +1,12 @@
-import { DI, IDisposable, resolve } from '@aurelia/kernel';
+import { DI, resolve } from '@aurelia/kernel';
 import { IPerformanceTracker } from './performance-tracker';
 import { ITelemetryMeter, TelemetryMeter } from './telemetry-meter';
 import { IActivitySource, ActivitySource } from './activity-source';
 
-/**
- * Telemetry service interface
- */
-export const ITelemetryService = /*@__PURE__*/ DI.createInterface<ITelemetryService>('ITelemetryService', x => x.singleton(TelemetryService));
+export const ITelemetryService = /*@__PURE__*/DI.createInterface<ITelemetryService>('ITelemetryService', x => x.singleton(TelemetryService));
 export interface ITelemetryService extends TelemetryService { }
 
-/**
- * Telemetry service implementation
- */
-export class TelemetryService implements IDisposable {
+export class TelemetryService implements ITelemetryService {
   private readonly meters = new Map<string, ITelemetryMeter>();
   private readonly activitySources = new Map<string, IActivitySource>();
 

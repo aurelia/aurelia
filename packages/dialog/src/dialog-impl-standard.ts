@@ -84,8 +84,6 @@ export class DialogDomStandard implements IDialogDom {
   private readonly _options: DialogRenderOptionsStandard;
   /** @internal */
   private readonly _controller: IDialogController;
-  // only have this to fulfill the IDialogDom interface
-  public readonly overlay: HTMLElement | null = null;
 
   public constructor(
     public readonly root: HTMLDialogElement,

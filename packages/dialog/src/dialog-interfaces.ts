@@ -80,8 +80,9 @@ export interface IDialogDomRenderer<TOptions> {
  */
 export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement | null;
-  readonly root: HTMLElement;
+  /**
+   * Host element for the dialog content
+   */
   readonly contentHost: HTMLElement;
   /**
    * Called when the dialog should be shown. Application can use this for animations

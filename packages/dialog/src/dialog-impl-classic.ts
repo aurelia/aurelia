@@ -165,7 +165,7 @@ class DialogEventManagerClassic implements IDialogEventManager {
   private readonly ctrls: IDialogController[] = [];
   private readonly w = resolve(IWindow);
 
-  public add(controller: IDialogController, dom: IDialogDom): IDisposable {
+  public add(controller: IDialogController, dom: DialogDomClassic): IDisposable {
     if (this.ctrls.push(controller) === 1) {
       this.w.addEventListener('keydown', this);
     }

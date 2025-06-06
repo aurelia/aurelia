@@ -1,21 +1,31 @@
 // Core interfaces and types
-export * from './interfaces';
+export {
+  IInsightsConfigurationOptions,
+  IPerformanceMeasurement,
+  DevToolsColor,
+  RouterLifecycleHook,
+  IRepeatPerformanceConfig,
+  IPerformanceFilter,
+  IPerformanceStats,
+  IGroupedMeasurements,
 
 // Configuration
 export {
   IInsightsConfiguration,
   DEFAULT_INSIGHTS_CONFIGURATION,
   createInsightsConfiguration,
-  InsightsConfiguration
+  InsightsConfiguration,
 } from './configuration';
 
 // Performance tracking
-export * from './performance-tracker';
-export * from './utilities';
+export { IPerformanceTracker, PerformanceTracker } from './performance-tracker';
+export { IInsightsUtilities, InsightsUtilities } from './utilities';
 
 // Telemetry
-export * from './telemetry-meter';
-export * from './activity-source';
+export { ITelemetryMeter, TelemetryMeter, ICounter, IHistogram, IGauge } from './telemetry-meter';
+export { IActivitySource, IActivity, ActivitySource, withActivity } from './activity-source';
+export { ITelemetryService, TelemetryService } from './telemetry-service';
+
 export {
   ITelemetryService,
   TelemetryService,
@@ -25,6 +35,4 @@ export {
 export { PerformanceRepeat } from './performance-repeat';
 
 // Plugin exports
-export { InsightsPlugin as default } from './insights-plugin';
-export { InsightsPlugin } from './insights-plugin';
-export { InsightsConfiguration as InsightsPluginConfiguration } from './insights-plugin';
+export { InsightsPlugin as default, InsightsPlugin, InsightsConfiguration as InsightsPluginConfiguration } from './insights-plugin';

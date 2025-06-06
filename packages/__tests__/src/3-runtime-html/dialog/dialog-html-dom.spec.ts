@@ -55,7 +55,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       template: 'hey',
     });
 
-    assertHtml('<dialog data-dialog-id="d-1" open=""><div>hey</div></dialog>');
+    assertHtml('<dialog open=""><div>hey</div></dialog>');
   });
 
   it('renders <dialog> element with overlay', async function () {
@@ -76,7 +76,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       }
     });
 
-    assertHtml('<dialog data-dialog-id="d-2" open=""><div>hey</div></dialog>');
+    assertHtml('<dialog open=""><div>hey</div></dialog>');
   });
 
   it('sets overlay style', async function () {
@@ -97,13 +97,13 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       }
     });
 
-    assertHtml('<dialog data-dialog-id="d-3" open=""><div>hey</div></dialog>');
+    assertHtml('<dialog open=""><div>hey</div></dialog>');
 
     ((result.dialog as DialogController)['dom'] as DialogDomStandard).setOverlayStyle('background: red;');
-    assertHtml('<dialog data-dialog-id="d-3" open=""><style>[data-dialog-id="d-3"]::backdrop{background: red;}</style><div>hey</div></dialog>');
+    assertHtml('<dialog open=""><style>:modal::backdrop{background: red;}</style><div>hey</div></dialog>');
 
     ((result.dialog as DialogController)['dom'] as DialogDomStandard).setOverlayStyle({ backgroundColor: 'blue' });
-    assertHtml('<dialog data-dialog-id="d-3" open=""><style>[data-dialog-id="d-3"]::backdrop{background-color: blue;}</style><div>hey</div></dialog>');
+    assertHtml('<dialog open=""><style>:modal::backdrop{background-color: blue;}</style><div>hey</div></dialog>');
   });
 
   it('renders <dialog> element with closedby option', async function () {
@@ -124,7 +124,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
       }
     });
 
-    assertHtml('<dialog closedby="none" data-dialog-id="d-4" open=""><div>hey</div></dialog>');
+    assertHtml('<dialog closedby="none" open=""><div>hey</div></dialog>');
   });
 
   it('calls show/hide hooks on global options', async function () {

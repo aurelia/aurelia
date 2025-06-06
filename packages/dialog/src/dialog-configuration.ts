@@ -6,7 +6,7 @@ import { DialogGlobalSettingsClassic, DialogDomRendererClassic, DialogRenderOpti
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
-import { DialogDomRendererStandard, DialogGlobalOptionsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
+import { DialogDomRendererStandard, DialogGlobalSettingsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 
 export type DialogConfigurationProvider<T> = (settings: IDialogGlobalSettings<T>) => void | Promise<unknown>;
 
@@ -59,7 +59,7 @@ export const DialogConfigurationClassic = /*@__PURE__*/createDialogConfiguration
  */
 export const DialogConfigurationStandard = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsStandard>(noop, [
   DialogService,
-  DialogGlobalOptionsStandard,
+  DialogGlobalSettingsStandard,
   DialogDomRendererStandard,
 ]);
 

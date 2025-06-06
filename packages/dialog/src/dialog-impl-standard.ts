@@ -45,7 +45,7 @@ export type DialogRenderOptionsStandard = {
   closedby?: 'any' | 'closerequest' | 'none';
 };
 
-export class DialogGlobalOptionsStandard implements IDialogGlobalSettings<DialogRenderOptionsStandard> {
+export class DialogGlobalSettingsStandard implements IDialogGlobalSettings<DialogRenderOptionsStandard> {
   public static register(container: IContainer): void {
     container.register(singletonRegistration(IDialogGlobalSettings, this));
   }
@@ -59,22 +59,19 @@ export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRende
     container.register(singletonRegistration(IDialogDomRenderer, this));
   }
 
-  private static id = 0;
   private readonly p = resolve(IPlatform);
 
   public render(dialogHost: HTMLElement, controller: IDialogController, options: DialogRenderOptionsStandard = {}): IDialogDom {
     const h = (name: string) => this.p.document.createElement(name);
     const wrapper = h('dialog') as HTMLDialogElement;
-    const id = `d-${++DialogDomRendererStandard.id}`;
     const host = wrapper.appendChild(h('div'));
 
     if (options.closedby) {
       wrapper.setAttribute('closedby', options.closedby);
     }
-    wrapper.setAttribute('data-dialog-id', id);
     dialogHost.appendChild(wrapper);
 
-    return new DialogDomStandard(id, wrapper, host, controller, options);
+    return new DialogDomStandard(wrapper, host, controller, options);
   }
 }
 
@@ -91,7 +88,6 @@ export class DialogDomStandard implements IDialogDom {
   public readonly overlay: HTMLElement | null = null;
 
   public constructor(
-    public readonly id: string,
     public readonly root: HTMLDialogElement,
     public readonly contentHost: HTMLElement,
     controller: IDialogController,
@@ -120,7 +116,7 @@ export class DialogDomStandard implements IDialogDom {
     } else {
       Object.assign(styleParser.style, css);
     }
-    el.textContent = `[data-dialog-id="${this.id}"]::backdrop{${styleParser.style.cssText}}`;
+    el.textContent = `:modal::backdrop{${styleParser.style.cssText}}`;
   }
 
   public show() {

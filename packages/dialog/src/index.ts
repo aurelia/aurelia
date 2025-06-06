@@ -55,7 +55,8 @@ export {
 } from './dialog-impl-classic';
 
 export {
-  DialogDomRendererStandard,
   DialogDomStandard,
+  DialogDomRendererStandard,
+  DialogGlobalSettingsStandard,
   type DialogRenderOptionsStandard,
 } from './dialog-impl-standard';

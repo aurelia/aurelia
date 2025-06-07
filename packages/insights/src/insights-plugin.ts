@@ -6,6 +6,7 @@ import { IInsightsUtilities } from './utilities';
 import { PerformanceLifecycleHooks } from './lifecycle-hooks';
 import { RouterLifecycleHooks } from './router-lifecycle-hooks';
 import { ITelemetryService } from './telemetry-service';
+import { TelemetryDashboard, MetricGauge, MetricChart } from './components';
 import { PerformanceRepeat } from './performance-repeat';
 
 /**
@@ -49,6 +50,14 @@ export class InsightsPlugin {
 
         // Register router lifecycle hooks
         container.register(RouterLifecycleHooks);
+
+        // Register visualization components globally
+        container.register(
+          TelemetryDashboard,
+          MetricGauge,
+          MetricChart
+        );
+
         // Deregister the default repeat template controller and register our performance version
         // The repeat key follows the pattern: "au:resource:custom-attribute:repeat"
         const repeatResourceKey = 'au:resource:custom-attribute:repeat';

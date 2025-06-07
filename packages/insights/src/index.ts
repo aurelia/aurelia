@@ -27,10 +27,16 @@ export { ITelemetryMeter, TelemetryMeter, ICounter, IHistogram, IGauge } from '.
 export { IActivitySource, IActivity, ActivitySource, withActivity } from './activity-source';
 export { ITelemetryService, TelemetryService } from './telemetry-service';
 
+// Visualization components
 export {
-  ITelemetryService,
-  TelemetryService,
-} from './telemetry-service';
+  IDashboardStats,
+  IGaugeData,
+  IChartDataPoint,
+  IChartData,
+  TelemetryDashboard,
+  MetricGauge,
+  MetricChart,
+} from './components';
 
 // Performance-enhanced components
 export { PerformanceRepeat } from './performance-repeat';

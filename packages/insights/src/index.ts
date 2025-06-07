@@ -41,5 +41,7 @@ export {
 // Performance-enhanced components
 export { PerformanceRepeat } from './performance-repeat';
 
+export { applyListenerBindingPatch } from './patches/listener-binding-patch';
+
 // Plugin exports
 export { InsightsPlugin as default, InsightsPlugin, InsightsConfiguration as InsightsPluginConfiguration } from './insights-plugin';

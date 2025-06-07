@@ -8,6 +8,7 @@ import { RouterLifecycleHooks } from './router-lifecycle-hooks';
 import { ITelemetryService } from './telemetry-service';
 import { TelemetryDashboard, MetricGauge, MetricChart } from './components';
 import { PerformanceRepeat } from './performance-repeat';
+import { applyListenerBindingPatch } from './patches/listener-binding-patch';
 
 /**
  * Aurelia Insights Plugin
@@ -67,6 +68,9 @@ export class InsightsPlugin {
 
         // Register our performance-tracking version of repeat template controller
         container.register(PerformanceRepeat);
+
+        // Apply framework patches
+        applyListenerBindingPatch(container);
 
         return container;
       }

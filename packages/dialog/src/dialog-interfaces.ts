@@ -94,7 +94,6 @@ export interface IDialogDom extends IDisposable {
   hide?(): void | Promise<void>;
 }
 
-/* tslint:disable:max-line-length */
 /**
  * The promised returned from a dialog composition.
  */
@@ -107,10 +106,6 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
     onrejected?: (reason: unknown) => TResult2 | Promise<TResult2>
   ): Promise<TResult1 | TResult2>;
 }
-/* tslint:enable:max-line-length */
-
-export type DialogActionKey = 'Escape' | 'Enter';
-export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export type IDialogSettings<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -135,7 +130,7 @@ export type IDialogSettings<
   template?: string | Element | Promise<string | Element> | (() => string | Element | Promise<string | Element>);
 
   /**
-   * Data to be passed to the "activate" hook on the view model.
+   * Data to be passed to the "activate" hook on the component.
    */
   model?: TModel;
 
@@ -167,18 +162,13 @@ export type IDialogLoadedSettings<TRenderOptions extends object = object, TModel
   renderer?: IDialogDomRenderer<TRenderOptions>;
 };
 
-export type IDialogGlobalSettings<TOptions> = {
-  /**
-   * When set to true conveys a cancellation as a rejection.
-   */
-  rejectOnCancel?: boolean;
-  /**
-   * The rendering configuration for the dialog. Different renderers may have different configuration options.
-   */
-  options: TOptions;
-};
+export type IDialogGlobalSettings = Pick<IDialogSettings, 'rejectOnCancel'>;
 
-export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings<object>>('IDialogGlobalSettings');
+export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
+
+export type IDialogGlobalOptions = Record<string, unknown>;
+
+export const IDialogGlobalOptions = /*@__PURE__*/createInterface<IDialogGlobalOptions>('IDialogGlobalOptions');
 
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;

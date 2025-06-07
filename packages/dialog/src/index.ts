@@ -20,6 +20,7 @@ export {
   type IDialogSettings,
   type IDialogLoadedSettings,
   IDialogGlobalSettings,
+  IDialogGlobalOptions,
 
   // implementable
   type IDialogCustomElementViewModel,
@@ -47,7 +48,7 @@ export {
 export {
   DialogDomClassic,
   DialogDomRendererClassic,
-  DialogGlobalSettingsClassic,
+  DialogGlobalOptionsClassic,
   type DialogRenderOptionsClassic,
   type DialogActionKey,
   type DialogMouseEventType,
@@ -57,6 +58,6 @@ export {
 export {
   DialogDomStandard,
   DialogDomRendererStandard,
-  DialogGlobalSettingsStandard,
+  DialogGlobalOptionsStandard,
   type DialogRenderOptionsStandard,
 } from './dialog-impl-standard';

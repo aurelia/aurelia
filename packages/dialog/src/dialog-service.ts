@@ -8,6 +8,7 @@ import {
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
+  IDialogGlobalOptions,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
@@ -49,7 +50,8 @@ export class DialogService implements IDialogService {
   private readonly dlgs: IDialogController[] = [];
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
-  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings) as IDialogGlobalSettings<unknown>;
+  /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
+  /** @internal */ private readonly _defaultOptions = resolve(IDialogGlobalOptions);
 
   /**
    * Opens a new dialog.
@@ -70,7 +72,7 @@ export class DialogService implements IDialogService {
    */
   public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from(this._defaultSettings, settings);
+      const $settings = DialogSettings.from(this._defaultSettings, this._defaultOptions, settings);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -140,12 +142,12 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from<T>(baseSettings: Partial<IDialogGlobalSettings<T>>, settings: IDialogSettings): DialogSettings {
+  public static from<T>(baseSettings: IDialogGlobalSettings, baseOptions: IDialogGlobalOptions, settings: IDialogSettings): DialogSettings {
     const finalSettings = Object.assign(
       new DialogSettings(),
       baseSettings,
       settings,
-      { options: { ...baseSettings.options, ...settings.options ?? {} }
+      { options: { ...baseOptions, ...settings.options ?? {} }
     });
 
     if (finalSettings.component == null && finalSettings.template == null) {

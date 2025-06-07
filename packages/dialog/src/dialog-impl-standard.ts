@@ -3,7 +3,7 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogController,
-  IDialogGlobalSettings,
+  IDialogGlobalOptions,
 } from './dialog-interfaces';
 
 import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
@@ -45,13 +45,12 @@ export type DialogRenderOptionsStandard = {
   closedby?: 'any' | 'closerequest' | 'none';
 };
 
-export class DialogGlobalSettingsStandard implements IDialogGlobalSettings<DialogRenderOptionsStandard> {
+export class DialogGlobalOptionsStandard implements DialogRenderOptionsStandard {
   public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalSettings, this));
+    container.register(singletonRegistration(IDialogGlobalOptions, this));
   }
 
-  public options: DialogRenderOptionsStandard = {};
-  public rejectOnCancel = false;
+  public modal = true;
 }
 
 export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {

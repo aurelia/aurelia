@@ -23,7 +23,7 @@ There are three main interfaces of the Dialog plugin, which includes:
 
 * `IDialogService`: an interface used by applications
 * `IDialogDomRenderer`: an interface used for rendering dialog dom (which implements interface `IDialogDom`)
-* `IDialogGlobalSettings`: an interface for specifying default options for all dialog rendering
+* `IDialogGlobalOptions`: an interface for specifying default options for all dialog rendering
 
 Aurelia provides some out of the box implementations for the mentioned above interfaces. They are `DialogConfigurationStandard` and `DialogConfigurationClassic`.
 An example usage of the `DialogConfigurationStandard is as follow:
@@ -57,7 +57,9 @@ import { DialogConfigurationStandard } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
 Aurelia
-  .register(DialogConfigurationStandard.customize(({ options }) => {
+  .register(DialogConfigurationStandard.customize((settings, options) => {
+    // treat dialog cancelation as promise rejection
+    settings.rejectOnCancel = true;
     // default enter animation for all dialogs
     options.show = (dom) => dom.root.animate(...);
     // default exit animation for all dialogs
@@ -74,7 +76,9 @@ import { DialogConfigurationClassic } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
 Aurelia
-  .register(DialogConfigurationClassic.customize(({ options }) => {
+  .register(DialogConfigurationClassic.customize((settings,  options) => {
+    // treat dialog cancelation as promise rejection
+    settings.rejectOnCancel = true;
     // change the default behavior to not dismiss the dialog when clicking on the overlay
     options.overlayDismiss = false;
     // any more
@@ -103,7 +107,7 @@ Aurelia
       // all custom implementations
       MyDialogService,
       MyDialogRenderer,
-      MyDialogGlobalSettings,
+      MyDialogGlobalOptions,
     ]
   ))
   .app(MyApp)
@@ -117,7 +121,7 @@ import { DialogConfiguration, DialogService } from '@aurelia/dialog';
 
 Aurelia
   .register(DialogConfiguration.customize(
-    settings => {
+    ((settings, options) => {
 
     }, [
       // use default dialog service
@@ -125,7 +129,7 @@ Aurelia
       // BYO dialog dom renderer
       MyDialogRenderer,
       // use default dialog global settings
-      MyDialogGlobalSettings,
+      MyDialogGlobalOptions,
     ]
   ))
   .app(MyApp)
@@ -151,7 +155,7 @@ Normally, the global settings would be changed during the app startup/or before,
 
         ```ts
         Aurelia
-          .reigster(DialogConfigurationStandard.customize(({ options }) => {
+          .reigster(DialogConfigurationStandard.customize((settings, options) => {
             options.modal = true;
             options.show = (dom) => dom.root.animate(...);
             options.hide = (dom) => dom.root.animate(...);
@@ -167,7 +171,7 @@ Normally, the global settings would be changed during the app startup/or before,
 
             ```typescript
             Aurelia
-              .register(DialogConfigurationClassic.customize(({ options }) => {
+              .register(DialogConfigurationClassic.customize((settings, options) => {
                 options.lock = true;
                 options.startingZIndex = 5;
                 options.keyboard = true;
@@ -223,11 +227,12 @@ Beside the main settings above, each renderer may require different set of optio
     * **overlayStyle**: a css string or a css style declaration for styling the overlay. This is only effective when `modal` option is true. The overlay can also be styled from the dialog dom for this renderer.
     * **show**: can be given a callback that will run when the dialog is shown
     * **hide**: can be given a callback that will run when the dialog is hidden
+    * **closedby**: specifies the types of user actions that can be used to close the &lt;dialog&gt; element
 
     The default global settings has the following values:
-    * `modal` is false
+    * `modal` is true
     * `rejectOnCancel` is false
-  
+
 2. For the classic implementation:
     * `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
     * `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
@@ -653,7 +658,7 @@ There are two ways to use your own dialog renderer: register your own default di
       render(dialogHost: Element, controller: IDialogController, options: unknown): IDialogDom;
     }
     ```
-    
+
     {% hint style="info" %}
     the `options` object will be the combination of the global `options` and the `options` from the `dialogService.open()`
     {% endhint %}

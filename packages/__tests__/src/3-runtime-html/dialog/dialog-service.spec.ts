@@ -9,9 +9,10 @@ import {
   IDialogService,
   IDialogSettings,
   IDialogGlobalSettings,
+  IDialogGlobalOptions,
   DialogConfiguration,
   DialogConfigurationClassic,
-  DialogGlobalSettingsClassic,
+  DialogGlobalOptionsClassic,
   DialogCancelError,
   IDialogDom,
   IDialogController,
@@ -52,7 +53,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       }
       assert.notStrictEqual(error, void 0);
       // assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
-      assert.includes((error as Error).message, 'AUR0009:InterfaceSymbol<IDialogGlobalSettings>');
+      assert.includes((error as Error).message, 'AUR0009:InterfaceSymbol<IDialogGlobalOptions>');
     });
 
     it('reuses previous registration', async function () {
@@ -61,9 +62,9 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         '',
         class App { },
         [
-          DialogConfigurationClassic.customize(settings => {
+          DialogConfigurationClassic.customize((_, options) => {
             customized = true;
-            assert.instanceOf(settings, DialogGlobalSettingsClassic);
+            assert.instanceOf(options, DialogGlobalOptionsClassic);
           })
         ]
       );
@@ -242,7 +243,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             ...overrideSettings,
             component: () => Object.create(null),
           });
-          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings).options, ...overrideSettings.options };
+          const expectedSettings = { ...ctx.container.get(IDialogGlobalOptions), ...overrideSettings.options };
           const actualOptions = { ...controller.settings.options as object };
           // delete actualSettings.component;
           assert.deepStrictEqual(actualOptions, expectedSettings);
@@ -877,7 +878,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'sets correct zindex from global settings',
         afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
-          (container.get(IDialogGlobalSettings) as IDialogGlobalSettings<DialogRenderOptionsClassic>).options.startingZIndex = 1;
+          (container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic).startingZIndex = 1;
           await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
             host: appHost
@@ -889,7 +890,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'lets zindex from open override global settings',
         afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
-          (container.get(IDialogGlobalSettings) as IDialogGlobalSettings<DialogRenderOptionsClassic>).options.startingZIndex = 1;
+          (container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic).startingZIndex = 1;
           await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
             host: appHost,
@@ -1026,7 +1027,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ container }, dialogService) => {
           const calls: string[] = [];
 
-          Object.assign(container.get(IDialogGlobalSettings).options, {
+          Object.assign(container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic, {
             show(_dom: IDialogDom) { },
             hide(_dom: IDialogDom) { calls.push('hide'); },
           });

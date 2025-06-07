@@ -1,14 +1,14 @@
 import { IContainer, IRegistry, noop } from '@aurelia/kernel';
 import { AppTask } from '@aurelia/runtime-html';
 
-import { IDialogGlobalSettings } from './dialog-interfaces';
-import { DialogGlobalSettingsClassic, DialogDomRendererClassic, DialogRenderOptionsClassic } from './dialog-impl-classic';
+import { IDialogGlobalOptions, IDialogGlobalSettings } from './dialog-interfaces';
+import { DialogDomRendererClassic, DialogGlobalOptionsClassic, DialogRenderOptionsClassic } from './dialog-impl-classic';
+import { DialogDomRendererStandard, DialogGlobalOptionsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 import { DialogService } from './dialog-service';
 import { singletonRegistration } from './utilities-di';
 import { ErrorNames, createMappedError } from './errors';
-import { DialogDomRendererStandard, DialogGlobalSettingsStandard, DialogRenderOptionsStandard } from './dialog-impl-standard';
 
-export type DialogConfigurationProvider<T> = (settings: IDialogGlobalSettings<T>) => void | Promise<unknown>;
+export type DialogConfigurationProvider<T> = (settings: IDialogGlobalSettings, options: T) => void | Promise<unknown>;
 
 export interface DialogConfiguration<T> extends IRegistry {
   settingsProvider: DialogConfigurationProvider<T>;
@@ -20,13 +20,22 @@ function createDialogConfiguration<T>(settingsProvider: DialogConfigurationProvi
   return {
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(
+      DialogGlobalSettings,
       ...registrations,
-      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings) as IDialogGlobalSettings<T>) as void)
+      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings), ctn.get(IDialogGlobalOptions) as T) as void)
     ),
     customize(cb: DialogConfigurationProvider<T>, regs?: IRegistry[]) {
       return createDialogConfiguration(cb, regs ?? registrations);
     },
   };
+}
+
+export class DialogGlobalSettings implements IDialogGlobalSettings {
+  public static register(container: IContainer): void {
+    container.register(singletonRegistration(IDialogGlobalSettings, this));
+  }
+
+  public rejectOnCancel = false;
 }
 
 /**
@@ -39,9 +48,9 @@ DialogConfiguration.customize(settings => {
  */
 export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => {
   throw createMappedError(ErrorNames.dialog_no_empty_default_configuration);
-}, [class NoopDialogGlobalSettings {
+}, [class NoopDialogGlobalOptions {
   public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalSettings, this));
+    container.register(singletonRegistration(IDialogGlobalOptions, this));
   }
 }]);
 
@@ -50,7 +59,7 @@ export const DialogConfiguration = /*@__PURE__*/createDialogConfiguration(() => 
  */
 export const DialogConfigurationClassic = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsClassic>(noop, [
   DialogService,
-  DialogGlobalSettingsClassic,
+  DialogGlobalOptionsClassic,
   DialogDomRendererClassic,
 ]);
 
@@ -59,29 +68,27 @@ export const DialogConfigurationClassic = /*@__PURE__*/createDialogConfiguration
  */
 export const DialogConfigurationStandard = /*@__PURE__*/createDialogConfiguration<DialogRenderOptionsStandard>(noop, [
   DialogService,
-  DialogGlobalSettingsStandard,
+  DialogGlobalOptionsStandard,
   DialogDomRendererStandard,
 ]);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function testTypes() {
   return [
-    DialogConfigurationStandard.customize(settings => {
-      settings.options.hide = () => {/*  */};
-      settings.options = {
-        modal: false,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        abc: 'xyz',
-      };
+    DialogConfigurationStandard.customize((settings, options) => {
+      settings.rejectOnCancel = true;
+      options.hide = () => {/*  */};
+      options.modal = false;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      options.abc = 'xyz';
     }),
-    DialogConfigurationClassic.customize(settings => {
-      settings.options = {
-        lock: true,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        modal: 'abc'
-      };
+    DialogConfigurationClassic.customize((settings, options) => {
+      settings.rejectOnCancel = true;
+      options.lock = true;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      options.modal = 'abc';
     }),
   ];
 }

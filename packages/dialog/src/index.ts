@@ -43,6 +43,7 @@ export {
   DialogConfigurationClassic,
   DialogConfigurationStandard,
   type DialogConfigurationProvider,
+  createDialogConfiguration,
 } from './dialog-configuration';
 
 export {

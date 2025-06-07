@@ -16,7 +16,7 @@ export interface DialogConfiguration<T> extends IRegistry {
   customize(cb: DialogConfigurationProvider<T>, registrations?: IRegistry[]): DialogConfiguration<T>;
 }
 
-function createDialogConfiguration<T>(settingsProvider: DialogConfigurationProvider<T>, registrations: IRegistry[]): DialogConfiguration<T> {
+export function createDialogConfiguration<T>(settingsProvider: DialogConfigurationProvider<T>, registrations: IRegistry[]): DialogConfiguration<T> {
   return {
     settingsProvider: settingsProvider,
     register: (ctn: IContainer) => ctn.register(

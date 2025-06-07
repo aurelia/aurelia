@@ -177,7 +177,113 @@ export class InsightsUtilities implements IInsightsUtilities {
   }
 
   /**
-   * Logs a performance summary to the console
+   * Groups listener binding measurements by event type and target
+   */
+  public groupMeasurementsByEventType(): Record<string, Record<string, IPerformanceStats>> {
+    const measurements = this.getMeasurements();
+    const grouped: Record<string, Record<string, IPerformanceStats>> = {};
+
+    for (const measurement of measurements) {
+      const metadata = measurement.metadata;
+      if (!this.isValidListenerMeasurement(metadata)) {
+        continue;
+      }
+
+      const eventType = this.extractEventType(metadata!);
+      const target = this.extractTarget(metadata!);
+
+      if (!eventType || !target) {
+        continue;
+      }
+
+      // Initialize event type if needed
+      if (!(eventType in grouped)) {
+        grouped[eventType] = {};
+      }
+
+      // Initialize target if needed
+      if (!(target in grouped[eventType])) {
+        grouped[eventType][target] = {
+          total: 0,
+          count: 0,
+          average: 0,
+          min: Infinity,
+          max: -Infinity,
+          measurements: []
+        };
+      }
+
+      const stats = grouped[eventType][target];
+      const duration = measurement.duration ?? 0;
+
+      stats.total += duration;
+      stats.count += 1;
+      stats.min = Math.min(stats.min, duration);
+      stats.max = Math.max(stats.max, duration);
+      (stats.measurements as IPerformanceMeasurement[]).push(measurement);
+    }
+
+    // Calculate averages
+    for (const eventType in grouped) {
+      for (const target in grouped[eventType]) {
+        const stats = grouped[eventType][target];
+        stats.average = stats.count > 0 ? stats.total / stats.count : 0;
+      }
+    }
+
+    return grouped;
+  }
+
+  /**
+   * Gets the slowest event handlers by total time
+   */
+  public getSlowestEventHandlers(limit: number = 10): { eventType: string; target: string; totalTime: number; stats: IPerformanceStats }[] {
+    const grouped = this.groupMeasurementsByEventType();
+    const results: { eventType: string; target: string; totalTime: number; stats: IPerformanceStats }[] = [];
+
+    for (const eventType in grouped) {
+      for (const target in grouped[eventType]) {
+        const stats = grouped[eventType][target];
+        results.push({
+          eventType,
+          target,
+          totalTime: stats.total,
+          stats
+        });
+      }
+    }
+
+    return results
+      .sort((a, b) => b.totalTime - a.totalTime)
+      .slice(0, limit);
+  }
+
+  /**
+   * Gets the most triggered event handlers
+   */
+  public getMostTriggeredEventHandlers(limit: number = 10): { eventType: string; target: string; totalTriggers: number; stats: IPerformanceStats }[] {
+    const grouped = this.groupMeasurementsByEventType();
+    const results: { eventType: string; target: string; totalTriggers: number; stats: IPerformanceStats }[] = [];
+
+    for (const eventType in grouped) {
+      for (const target in grouped[eventType]) {
+        const stats = grouped[eventType][target];
+        results.push({
+          eventType,
+          target,
+          totalTriggers: stats.count,
+          stats
+        });
+      }
+    }
+
+    return results
+      .sort((a, b) => b.totalTriggers - a.totalTriggers)
+      .slice(0, limit);
+  }
+
+  /**
+   * Logs a complete performance summary including both components and event handlers
    */
   public logPerformanceSummary(): void {
     if (!this.config.enabled) {
@@ -186,19 +292,25 @@ export class InsightsUtilities implements IInsightsUtilities {
       return;
     }
 
-    const grouped = this.groupMeasurementsByComponent();
-    const slowest = this.getSlowestComponents(5);
-    const mostActive = this.getMostActiveComponents(5);
+    const componentGrouped = this.groupMeasurementsByComponent();
+    const eventGrouped = this.groupMeasurementsByEventType();
+    const slowestComponents = this.getSlowestComponents(5);
+    const mostActiveComponents = this.getMostActiveComponents(5);
+    const slowestEventHandlers = this.getSlowestEventHandlers(5);
+    const mostTriggeredEventHandlers = this.getMostTriggeredEventHandlers(5);
 
     // eslint-disable-next-line no-console
     console.group('🔍 Aurelia Performance Insights');
 
     // eslint-disable-next-line no-console
     console.group('📊 Overview');
-    const totalComponents = Object.keys(grouped).length;
+    const totalComponents = Object.keys(componentGrouped).length;
+    const totalEventTypes = Object.keys(eventGrouped).length;
     const totalMeasurements = this.getMeasurements().length;
     // eslint-disable-next-line no-console
     console.log(`Total Components: ${totalComponents}`);
+    // eslint-disable-next-line no-console
+    console.log(`Total Event Types: ${totalEventTypes}`);
     // eslint-disable-next-line no-console
     console.log(`Total Measurements: ${totalMeasurements}`);
     // eslint-disable-next-line no-console
@@ -206,10 +318,10 @@ export class InsightsUtilities implements IInsightsUtilities {
     // eslint-disable-next-line no-console
     console.groupEnd();
 
-    if (slowest.length > 0) {
+    if (slowestComponents.length > 0) {
       // eslint-disable-next-line no-console
       console.group('🐌 Slowest Components (by total time)');
-      slowest.forEach((item, index) => {
+      slowestComponents.forEach((item, index) => {
         // eslint-disable-next-line no-console
         console.log(`${index + 1}. ${item.name}: ${item.totalTime.toFixed(2)}ms`);
       });
@@ -217,12 +329,34 @@ export class InsightsUtilities implements IInsightsUtilities {
       console.groupEnd();
     }
 
-    if (mostActive.length > 0) {
+    if (mostActiveComponents.length > 0) {
       // eslint-disable-next-line no-console
       console.group('🔥 Most Active Components (by execution count)');
-      mostActive.forEach((item, index) => {
+      mostActiveComponents.forEach((item, index) => {
         // eslint-disable-next-line no-console
         console.log(`${index + 1}. ${item.name}: ${item.totalExecutions} executions`);
+      });
+      // eslint-disable-next-line no-console
+      console.groupEnd();
+    }
+
+    if (slowestEventHandlers.length > 0) {
+      // eslint-disable-next-line no-console
+      console.group('🎯 Slowest Event Handlers (by total time)');
+      slowestEventHandlers.forEach((item, index) => {
+        // eslint-disable-next-line no-console
+        console.log(`${index + 1}. ${item.eventType} on ${item.target}: ${item.totalTime.toFixed(2)}ms`);
+      });
+      // eslint-disable-next-line no-console
+      console.groupEnd();
+    }
+
+    if (mostTriggeredEventHandlers.length > 0) {
+      // eslint-disable-next-line no-console
+      console.group('⚡ Most Triggered Event Handlers');
+      mostTriggeredEventHandlers.forEach((item, index) => {
+        // eslint-disable-next-line no-console
+        console.log(`${index + 1}. ${item.eventType} on ${item.target}: ${item.totalTriggers} triggers`);
       });
       // eslint-disable-next-line no-console
       console.groupEnd();
@@ -245,9 +379,16 @@ export class InsightsUtilities implements IInsightsUtilities {
         filtersApplied: this.config.filters?.length ?? 0
       },
       measurements: this.getMeasurements(),
-      grouped: this.groupMeasurementsByComponent(),
-      slowest: this.getSlowestComponents(),
-      mostActive: this.getMostActiveComponents()
+      components: {
+        grouped: this.groupMeasurementsByComponent(),
+        slowest: this.getSlowestComponents(),
+        mostActive: this.getMostActiveComponents()
+      },
+      eventHandlers: {
+        grouped: this.groupMeasurementsByEventType(),
+        slowest: this.getSlowestEventHandlers(),
+        mostTriggered: this.getMostTriggeredEventHandlers()
+      }
     };
 
     return JSON.stringify(data, null, 2);
@@ -281,6 +422,37 @@ export class InsightsUtilities implements IInsightsUtilities {
     const phase = metadata.phase;
     return typeof phase === 'string' && phase.trim() !== ''
       ? phase.trim()
+      : null;
+  }
+
+  /**
+   * Validates if a measurement has valid listener binding metadata
+   */
+  private isValidListenerMeasurement(metadata: Record<string, unknown> | undefined): boolean {
+    return metadata != null
+      && typeof metadata.eventType === 'string'
+      && typeof metadata.target === 'string'
+      && metadata.eventType.trim() !== ''
+      && metadata.target.trim() !== '';
+  }
+
+  /**
+   * Safely extracts event type from metadata
+   */
+  private extractEventType(metadata: Record<string, unknown>): string | null {
+    const eventType = metadata.eventType;
+    return typeof eventType === 'string' && eventType.trim() !== ''
+      ? eventType.trim()
+      : null;
+  }
+
+  /**
+   * Safely extracts target from metadata
+   */
+  private extractTarget(metadata: Record<string, unknown>): string | null {
+    const target = metadata.target;
+    return typeof target === 'string' && target.trim() !== ''
+      ? target.trim()
       : null;
   }
 }

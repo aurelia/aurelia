@@ -966,6 +966,7 @@ workflows:
             - e2e_router_lite
             - e2e_router
             - e2e_i18n
+            - request_publish_dev
           from: master
           to: develop
           channel: dev
@@ -979,6 +980,7 @@ workflows:
           channel: dev
           dist_file_name: merge_and_dist_topic
           requires:
+            - request_publish_dev
             - build_release
 
       - request_publish_dev:
@@ -992,7 +994,6 @@ workflows:
           branch: develop
           swap: true
           requires:
-            - request_publish_dev
             - merge_and_dist_master
 
 

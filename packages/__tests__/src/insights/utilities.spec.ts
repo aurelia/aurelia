@@ -744,9 +744,11 @@ describe('insights/utilities.spec.ts', function () {
       assert.notStrictEqual(parsed.timestamp, undefined);
       assert.notStrictEqual(parsed.config, undefined);
       assert.notStrictEqual(parsed.measurements, undefined);
-      assert.notStrictEqual(parsed.grouped, undefined);
-      assert.notStrictEqual(parsed.slowest, undefined);
-      assert.notStrictEqual(parsed.mostActive, undefined);
+      assert.notStrictEqual(parsed.components, undefined);
+      assert.notStrictEqual(parsed.components.grouped, undefined);
+      assert.notStrictEqual(parsed.components.slowest, undefined);
+      assert.notStrictEqual(parsed.components.mostActive, undefined);
+      assert.notStrictEqual(parsed.eventHandlers, undefined);
     });
 
     it('should include configuration in export', function () {

@@ -159,13 +159,7 @@ describe('2-runtime/queue.spec.ts', function () {
       settledError = e;
     }
 
-    assert.notEqual(settledError, null, 'tasksSettled should have rejected');
-
-    if (settledError instanceof AggregateError) {
-      assert.strictEqual(settledError.errors[0].message, 'AsyncFailure', 'tasksSettled rejection message incorrect');
-    } else {
-      assert.strictEqual(settledError.message, 'AsyncFailure', 'tasksSettled rejection message incorrect');
-    }
+    assert.strictEqual(settledError?.message, 'AsyncFailure', 'tasksSettled rejection message incorrect');
 
     assert.deepStrictEqual(stack, [
       'RejectAsync_SyncPart_Start',
@@ -309,8 +303,7 @@ describe('2-runtime/queue.spec.ts', function () {
       settledError = e;
     }
 
-    assert.notEqual(settledError, null);
-    assert.strictEqual(settledError.message, 'ErrorIn_FaultyAsync_SyncPart');
+    assert.strictEqual(settledError?.message, 'ErrorIn_FaultyAsync_SyncPart');
 
     assert.deepStrictEqual(stack, [
       'FaultyAsync_SyncPart_Start',
@@ -355,7 +348,6 @@ describe('2-runtime/queue.spec.ts', function () {
       settledError = e;
     }
 
-    assert.notEqual(settledError, null, 'tasksSettled should have rejected');
     assert.instanceOf(settledError, AggregateError, 'settledError should be an AggregateError');
     assert.strictEqual(settledError.errors.length, 2, 'AggregateError should contain 2 errors');
     assert.strictEqual(settledError.errors[0], error1, 'error1');
@@ -399,7 +391,6 @@ describe('2-runtime/queue.spec.ts', function () {
       settledError = e;
     }
 
-    assert.notEqual(settledError, null, 'tasksSettled should have rejected');
     assert.instanceOf(settledError, AggregateError, 'settledError should be an AggregateError');
     assert.strictEqual(settledError.errors.length, 2, 'AggregateError should contain 2 errors');
     assert.strictEqual(settledError.errors[0], syncError, 'SyncError');
@@ -444,10 +435,7 @@ describe('2-runtime/queue.spec.ts', function () {
 
     await settlePromise;
 
-    assert.notEqual(settledError, null, 'tasksSettled should have rejected');
     assert.strictEqual(settledError, error1, 'settledError should be the error from the task');
-
-    assert.notEqual(flushError, null, 'manual flush itself should have thrown');
     assert.strictEqual(flushError, error1, 'manual flush should throw the task error directly if only one');
 
     assert.deepStrictEqual(stack, [

@@ -4,7 +4,7 @@ import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe.only('router-lite/generate-path.spec.ts', function () {
+describe('router-lite/generate-path.spec.ts', function () {
   describe('router', function () {
     abstract class AbstractVm implements IRouteViewModel {
       public readonly routeContext: IRouteContext = resolve(IRouteContext);
@@ -828,7 +828,7 @@ describe.only('router-lite/generate-path.spec.ts', function () {
     });
   });
 
-  describe.only('route-context', function () {
+  describe('route-context', function () {
     abstract class AbstractVm implements IRouteViewModel {
       public readonly routeContext: IRouteContext = resolve(IRouteContext);
       public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
@@ -920,7 +920,7 @@ describe.only('router-lite/generate-path.spec.ts', function () {
       @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
       class Root { }
 
-      const { host, au, container, rootVm } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
+      const { host, au, container } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
       const router = container.get(IRouter);
       const platform = container.get(IPlatform);
       const domQueue = platform.domQueue;
@@ -932,12 +932,12 @@ describe.only('router-lite/generate-path.spec.ts', function () {
 
       assert.html.textContent(host, 'p1 c1', 'init');
 
-      // #region round#1
+      // #region round#1 - create rooted path via relative path
       let expected = 'p2/c2';
-      let p1El = host.querySelector('p-1')!;
-      let p1 = CustomElement.for<P1>(p1El).viewModel;
-      let c1El = host.querySelector('c-1')!;
-      let c1 = CustomElement.for<C1>(c1El).viewModel;
+      const p1El = host.querySelector('p-1')!;
+      const p1 = CustomElement.for<P1>(p1El).viewModel;
+      const c1El = host.querySelector('c-1')!;
+      const c1 = CustomElement.for<C1>(c1El).viewModel;
 
       let path = await p1.generateRelativePath({ component: '../p2', children: [{ component: C2 }] });
       assert.strictEqual(path, expected, 'round#1 - p1.generateRelativePath({ component: \'../p2\', children: [{ component: C2 }] })');
@@ -946,13 +946,95 @@ describe.only('router-lite/generate-path.spec.ts', function () {
       assert.strictEqual(path, expected, 'round#1 - c1.generateRelativePath({ component: \'../../p2\', children: [{ component: C2 }] })');
       // #endregion
 
-      // #region round#2
+      // #region round#2 - create a relative path
       expected = 'foo/1';
       path = await p1.generateRelativePath({ component: C3, params: { id: 1 } });
       assert.strictEqual(path, expected, 'round#2 - p1.generateRelativePath({ component: C3, params: { id: 1 } })');
 
       path = await c1.generateRelativePath({ component: '../c3', params: { id: 1 } });
       assert.strictEqual(path, expected, 'round#2 - c1.generateRelativePath({ component: \'../c3\', params: { id: 1 } })');
+
+      let anchor = p1El.querySelector('a')!;
+      p1.route = expected;
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p1 c3 1', 'round#2 - click on link');
+      // #endregion
+
+      // #region round#3 - relative path to grandchild without parameter
+      // arrange - go to p2/c2
+      await router.load('p2/c2');
+      assert.html.textContent(host, 'p2 c2', 'round#3 - load(\'p2/c2\')');
+
+      expected = 'fizz/2/3/gc1';
+      let p2El = host.querySelector('p-2')!;
+      let p2 = CustomElement.for<P2>(p2El).viewModel;
+
+      path = await p2.generateRelativePath({ component: C4, params: { id3: 2, id4: 3 }, children: [GC1] });
+      assert.strictEqual(path, expected, 'round#3 - p2.generateRelativePath({ component: C4, params: { id3: 2, id4: 3 }, children: [GC1] })');
+
+      // path = await p2.generateRelativePath({ component: 'c4', params: { id3: 2, id4: 3 }, children: ['gc1'] });
+      // assert.strictEqual(path, expected, 'round#3 - p2.generateRelativePath({ component: \'c4\', params: { id3: 2, id4: 3 }, children: [GC1] })');
+
+      anchor = p2El.querySelector('a')!;
+      p2.route = expected;
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p2 c4 2 3 gc1', 'round#3 - click on link');
+      // #endregion
+
+      // reset to p2/c2
+      await router.load('p2/c2');
+      assert.html.textContent(host, 'p2 c2', 'round#3 - reset - load(\'p2/c2\')');
+
+      // #region round#4 - relative path to grandchild with parameter - anchor at child with root context
+      expected = 'p2/fizz/2/3/gc2/4';
+      p2El = host.querySelector('p-2')!;
+      p2 = CustomElement.for<P2>(p2El).viewModel;
+      let c2El = host.querySelector('c-2')!;
+      let c2 = CustomElement.for<C2>(c2El).viewModel;
+
+      path = await c2.generateRelativePath({ component: '../../p2', children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] }] });
+      assert.strictEqual(path, expected, 'round#4 - c2.generateRelativePath({ component: \'../p2\', children: [{ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] }] })');
+
+      path = await c2.generateRelativePath({ component: '../../p2', children: [{ component: 'c4', params: { id3: 2, id4: 3 }, children: [{ component: 'gc2', params: { id: 4 } }] }] });
+      assert.strictEqual(path, expected, 'round#4 - c2.generateRelativePath({ component: \'../p2\', children: [{ component: \'c4\', params: { id3: 2, id4: 3 }, children: [{ component: \'gc2\', params: { id: 4 } }] }] })');
+
+      anchor = c2El.querySelector('a')!;
+      c2.route = expected;
+      c2.context = null; // root context
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p2 c4 2 3 gc2 4', 'round#4 - click on link');
+      // #endregion
+
+      // reset to p2/c2
+      await router.load('p2/c2');
+      assert.html.textContent(host, 'p2 c2', 'round#4 - reset - load(\'p2/c2\')');
+
+      // #region round#5 - relative path to grandchild with parameter - anchor at child with parent context
+      expected = 'fizz/2/3/gc2/4';
+      p2El = host.querySelector('p-2')!;
+      p2 = CustomElement.for<P2>(p2El).viewModel;
+      c2El = host.querySelector('c-2')!;
+      c2 = CustomElement.for<C2>(c2El).viewModel;
+
+      path = await c2.generateRelativePath({ component: '../c4', params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] });
+      assert.strictEqual(path, expected, 'round#5 - c2.generateRelativePath({ component: \'../c4\', params: { id3: 2, id4: 3 }, children: [{ component: GC2, params: { id: 4 } }] })');
+
+      path = await p2.generateRelativePath({ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: 'gc2', params: { id: 4 } }] });
+      assert.strictEqual(path, expected, 'round#5 - p2.generateRelativePath({ component: C4, params: { id3: 2, id4: 3 }, children: [{ component: \'gc2\', params: { id: 4 } }] })');
+
+      anchor = c2El.querySelector('a')!;
+      c2.route = expected;
+      c2.context = p2.routeContext;
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p2 c4 2 3 gc2 4', 'round#5 - click on link');
       // #endregion
 
       await au.stop(true);

@@ -834,6 +834,9 @@ describe('router-lite/generate-path.spec.ts', function () {
       public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
         return this.routeContext.generateRelativePath(instructionOrInstructions);
       }
+      public generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
+        return (this.routeContext as any).generateRootedPath(instructionOrInstructions);
+      }
 
       protected params: Params;
       protected query: string;
@@ -843,7 +846,7 @@ describe('router-lite/generate-path.spec.ts', function () {
       }
     }
 
-    it('multi-level hierarchy', async function () {
+    it('relative path generation with multi-level hierarchy', async function () {
       @route('gc1')
       @customElement({ name: 'gc-1', template: 'gc1' })
       class GC1 extends AbstractVm { }
@@ -1039,5 +1042,144 @@ describe('router-lite/generate-path.spec.ts', function () {
 
       await au.stop(true);
     });
+
+    it('rooted path generation with multi-level hierarchy', async function () {
+      @route('gc1')
+      @customElement({ name: 'gc-1', template: 'gc1 <a load="route.bind: route; context.bind: context"></a>' })
+      class GC1 extends AbstractVm {
+        public route: string;
+        public context: IRouteContext = null;
+      }
+
+      @route({ id: 'gc2', path: 'gc2/:id' })
+      @customElement({ name: 'gc-2', template: 'gc2 ${params.id} ${query}' })
+      class GC2 extends AbstractVm { }
+
+      @route({ id: 'c1', path: 'c1' })
+      @customElement({ name: 'c-1', template: 'c1 <a load="route.bind: route; context.bind: context"></a>' })
+      class C1 extends AbstractVm {
+        public route: string;
+        public context: IRouteContext = null;
+      }
+
+      @route({ id: 'c2', path: 'c2' })
+      @customElement({ name: 'c-2', template: 'c2 <a load="route.bind: route; context.bind: context"></a>' })
+      class C2 extends AbstractVm {
+        public route: string;
+        public context: IRouteContext = null;
+      }
+
+      @route({ id: 'c3', path: 'foo/:id' })
+      @customElement({ name: 'c-3', template: 'c3 ${params.id}' })
+      class C3 extends AbstractVm { }
+
+      @route({ id: 'c4', path: ['bar/:id1/:id2', 'fizz/:id3/:id4?', 'buzz/:id5/*rest'], routes: [GC1, GC2] })
+      @customElement({
+        name: 'c-4', template: `c4
+      <template switch.bind="view">
+        <template case="v1">${'${params.id1}'} ${'${params.id2}'}</template>
+        <template case="v2">${'${params.id3}'} ${'${params.id4}'}</template>
+        <template case="v3">${'${params.id5}'} ${'${params.rest}'}</template>
+      </template>
+      <au-viewport></au-viewport>` })
+      class C4 extends AbstractVm {
+        private view: 'v1' | 'v2' | 'v3';
+        public async loading(params: Params, _next: RouteNode, _current: RouteNode | null): Promise<void> {
+          await super.loading(params, _next, _current);
+          this.view = params.id1 != null
+            ? 'v1'
+            : params.id3 != null
+              ? 'v2'
+              : 'v3';
+        }
+      }
+
+      @route({ routes: [C1, C3] })
+      @customElement({ name: 'p-1', template: 'p1 <au-viewport></au-viewport>' })
+      class P1 extends AbstractVm {
+        public route: string;
+      }
+
+      @route({ routes: [C2, C4] })
+      @customElement({ name: 'p-2', template: 'p2 <au-viewport></au-viewport>' })
+      class P2 extends AbstractVm {
+        public route: string;
+      }
+
+      @route({
+        routes: [
+          { id: 'p1', path: 'p1', component: P1 },
+          { id: 'p2', path: 'p2', component: P2 },
+        ]
+      })
+      @customElement({ name: 'ro-ot', template: '<au-viewport></au-viewport>' })
+      class Root { }
+
+      const { host, au, container } = await start({ appRoot: Root, registrations: [C1, C2, C3, C4, P1, P2] });
+      const router = container.get(IRouter);
+      const platform = container.get(IPlatform);
+      const domQueue = platform.domQueue;
+      const taskQueue = platform.taskQueue;
+      const $yield = () => Promise.all([
+        domQueue.yield(),
+        taskQueue.yield(),
+      ]);
+
+      // we intentionally avoid empty paths for this test, otherwise the path generation will result in empty parent paths.
+      await router.load('p1/c1');
+      assert.html.textContent(host, 'p1 c1', 'init');
+
+      // #region round#1 - the rooted path to sibling route at child level
+      let expected = 'p1/foo/1';
+      const p1El = host.querySelector('p-1')!;
+      const p1 = CustomElement.for<P1>(p1El).viewModel;
+      const c1El = host.querySelector('c-1')!;
+      const c1 = CustomElement.for<C1>(c1El).viewModel;
+
+      let path = await p1.generateRootedPath({ component: C3, params: { id: 1 } });
+      assert.strictEqual(path, expected, 'round#1 - p1.generateRootedPath({ component: C3 })');
+
+      path = await c1.generateRootedPath({ component: '../c3', params: { id: 1 } });
+      assert.strictEqual(path, expected, 'round#1 - c1.generateRootedPath({ component: \'../c3\', params: { id: 1 } })');
+
+      let anchor = c1El.querySelector('a')!;
+      c1.route = expected;
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p1 c3 1', 'round#1 - click on link');
+      // #endregion
+
+      // #region round#2 - the rooted path to sibling route at grandchild level
+
+      // go to grandchild
+      await router.load('p2/bar/2/3/gc1');
+      assert.html.textContent(host, 'p2 c4 2 3 gc1', 'round#2 - load(\'p2/bar/2/3/gc1\')');
+
+      expected = 'p2/bar/2/3/gc2/4';
+      // const p2El = host.querySelector('p-2')!;
+      // const p2 = CustomElement.for<P2>(p2El).viewModel;
+      const c4El = host.querySelector('c-4')!;
+      const c4 = CustomElement.for<C4>(c4El).viewModel;
+      const gc1El = host.querySelector('gc-1')!;
+      const gc1 = CustomElement.for<GC1>(gc1El).viewModel;
+
+      path = await c4.generateRootedPath({ component: GC2, params: { id: 4 } });
+      assert.strictEqual(path, expected, 'round#2 - c4.generateRootedPath({ component: GC2, params: { id: 4 } })');
+
+      path = await gc1.generateRootedPath({ component: '../gc2', params: { id: 4 } });
+      assert.strictEqual(path, expected, 'round#2 - gc1.generateRootedPath({ component: \'../gc2\', params: { id: 4 } })');
+
+      anchor = gc1El.querySelector('a')!;
+      gc1.route = expected;
+      await $yield();
+      anchor.click();
+      await $yield();
+      assert.html.textContent(host, 'p2 c4 2 3 gc2 4', 'round#2 - click on link');
+      // #endregion
+
+      await au.stop(true);
+    });
+
   });
 });

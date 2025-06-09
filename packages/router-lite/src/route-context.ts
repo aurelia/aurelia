@@ -355,6 +355,29 @@ export class RouteContext {
     });
   }
 
+  public generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
+    return onResolve(
+      this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
+      vit => {
+        const relativePath = vit.toUrl(true, this._router.options._urlParser);
+
+        // Compute the parent path
+        let parentPath = '';
+        const parentSegments: string[] = [];
+        let ctx: RouteContext = vit.options.context as RouteContext;
+        while (!ctx.isRoot) {
+          const seg = ctx.vpa?._currNode?.instruction?.toUrlComponent(false);
+          if ((seg?.length ?? 0) !== 0) parentSegments.unshift(seg!);
+          ctx = ctx.parent!;
+        }
+        parentPath = parentSegments.join('/');
+
+        // Combine parent path and relative path
+        return parentPath.length === 0 ? relativePath : `${parentPath}/${relativePath}`;
+      }
+    );
+  }
+
   public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),

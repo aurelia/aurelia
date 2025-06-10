@@ -475,8 +475,6 @@ export class RouteRecognizer<T> {
   }
 
   private $recognize(path: string): RecognizedRoute<T> | null {
-    path = decodeURI(path);
-
     if (!path.startsWith('/')) {
       path = `/${path}`;
     }

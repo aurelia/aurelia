@@ -1,5 +1,5 @@
 import { Aurelia, customElement, ICustomElementViewModel, ICustomElementController } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
 function createFixture() {
@@ -189,7 +189,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      await tasksSettled();
+                      runTasks();
                       this.appliedShow = this.show;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }
@@ -300,7 +300,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         this.assert(`attached after mutating (run ${run})`);
                       }
 
-                      await tasksSettled();
+                      runTasks();
                       this.appliedHide = this.hide;
                       this.assert(`attached after flushing dom writes (run ${run})`);
                     }

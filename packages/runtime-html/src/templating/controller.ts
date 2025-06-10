@@ -18,6 +18,7 @@ import { IExpressionParser, IsBindingBehavior, AccessScopeExpression } from '@au
 import {
   ICoercionConfiguration,
   IObserverLocator,
+  queueTask,
   Scope,
 } from '@aurelia/runtime';
 import { convertToRenderLocation } from '../dom';
@@ -1227,16 +1228,16 @@ function createObservers(
   const queueCallback = hasAggregatedCallbacks
     ? (() => {
         let changes: Record<string, { newValue: unknown; oldValue: unknown }> = {};
-        let promise: Promise<void> | void = void 0;
+        let isQueued = false;
         let changeCount = 0;
-        const resolvedPromise = Promise.resolve();
         const callPropertiesChanged = () => {
-          if (promise == null) {
-            promise = resolvedPromise.then(() => {
+          if (!isQueued) {
+            isQueued = true;
+            queueTask(() => {
+              isQueued = false;
               const $changes = changes;
               changes = {};
               changeCount = 0;
-              promise = void 0;
               if (controller.isBound) {
                 instance.propertiesChanged?.($changes);
                 if (changeCount > 0) {

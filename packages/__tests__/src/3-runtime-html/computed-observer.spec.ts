@@ -532,7 +532,6 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
     trigger.click('button');
     await tasksSettled();
-    await tasksSettled();
 
     assert.notStrictEqual(queryBy('.red'), null);
     assert.notStrictEqual(queryBy('.has-errors'), null);

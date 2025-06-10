@@ -1773,6 +1773,7 @@ describe('3-runtime-html/switch.spec.ts', function () {
       .build().started;
   });
 
+  // Note: This is just an unrolled test for debugging purposes (useful for future refactoring of the tests)
   for (const config of [
     new Config(false, false, noop),
     new Config(true, false, noop),

@@ -1481,7 +1481,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               getDeactivationSequenceFor($resolve ? fhost : rhost),
             );
 
-            // Test only fails on node (investigate at some point?)
+            // TODO: Test only fails on node (investigate at some point?)
             if (!isNode()) {
               yield new TestData(
                 `works with binding behavior - longer running promise - ${$resolve ? 'fulfilled' : 'rejected'}`,

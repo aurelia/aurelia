@@ -245,7 +245,7 @@ export class TranslationBinding implements IBinding {
       }
     }
 
-    if (accessorUpdateTasks.length > 0 || shouldQueueContent) {
+    if ((accessorUpdateTasks.length > 0 || shouldQueueContent) && !this._isQueued) {
       this._isQueued = true;
       queueTask(() => {
         this._isQueued = false;
@@ -257,7 +257,6 @@ export class TranslationBinding implements IBinding {
         }
       });
     }
-    this._isQueued = false;
   }
 
   /** @internal */

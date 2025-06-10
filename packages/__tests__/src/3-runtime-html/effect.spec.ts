@@ -385,6 +385,8 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
         assert.strictEqual(cancelled, 0);
         obj.a = 2;
+        assert.strictEqual(v, 1);
+        assert.strictEqual(cancelled, 0);
         await tasksSettled();
         assert.strictEqual(v, 2);
         assert.strictEqual(cancelled, 1);

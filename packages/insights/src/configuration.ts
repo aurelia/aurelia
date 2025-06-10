@@ -12,6 +12,7 @@ export interface IInsightsConfiguration extends IInsightsConfigurationOptions {}
  */
 export const DEFAULT_INSIGHTS_CONFIGURATION: Required<IInsightsConfigurationOptions> = {
   enabled: true,
+  trackingMode: 'devtools-only',
   trackName: 'Aurelia',
   trackGroup: 'Framework',
   defaultColor: 'primary',
@@ -21,6 +22,12 @@ export const DEFAULT_INSIGHTS_CONFIGURATION: Required<IInsightsConfigurationOpti
     enabled: true,
     detailedTrackingThreshold: 100,
     batchOperationThreshold: 10
+  },
+  testModeConfig: {
+    enableThresholds: true,
+    thresholds: {},
+    collectDetailedMetadata: true,
+    autoExport: false
   }
 };
 

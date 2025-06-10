@@ -8,6 +8,11 @@ export type DevToolsColor =
   | 'error';
 
 /**
+ * Performance tracking modes
+ */
+export type PerformanceTrackingMode = 'devtools-only' | 'test-mode' | 'both';
+
+/**
  * Router lifecycle hook names
  */
 export type RouterLifecycleHook = 'loading';
@@ -49,6 +54,15 @@ export interface IInsightsConfigurationOptions {
   enabled?: boolean;
 
   /**
+   * Performance tracking mode
+   * - 'devtools-only': Only use browser performance API for DevTools integration
+   * - 'test-mode': Only collect internal measurements for testing (no browser API)
+   * - 'both': Use both browser performance API and internal measurements
+   * @default 'devtools-only'
+   */
+  trackingMode?: PerformanceTrackingMode;
+
+  /**
    * Default track name for Aurelia insights
    * @default 'Aurelia'
    */
@@ -80,6 +94,11 @@ export interface IInsightsConfigurationOptions {
    * Repeat template controller performance tracking configuration
    */
   repeatPerformance?: IRepeatPerformanceConfig;
+
+  /**
+   * Test mode configuration
+   */
+  testModeConfig?: ITestModeConfig;
 }
 
 /**
@@ -153,5 +172,129 @@ export interface IPerformanceStats {
 export interface IGroupedMeasurements {
   [componentName: string]: {
     [phase: string]: IPerformanceStats;
+  };
+}
+
+/**
+ * Test mode configuration options
+ */
+export interface ITestModeConfig {
+  /**
+   * Whether to enable performance thresholds
+   * @default true
+   */
+  enableThresholds?: boolean;
+
+  /**
+   * Default performance thresholds in milliseconds
+   */
+  thresholds?: Record<string, number>;
+
+  /**
+   * Whether to collect detailed metadata in test mode
+   * @default true
+   */
+  collectDetailedMetadata?: boolean;
+
+  /**
+   * Whether to automatically export performance data
+   * @default false
+   */
+  autoExport?: boolean;
+
+  /**
+   * Export callback for performance data
+   */
+  exportCallback?: (data: IPerformanceTestData) => void;
+}
+
+/**
+ * Performance test data for regression testing
+ */
+export interface IPerformanceTestData {
+  /**
+   * Test run timestamp
+   */
+  timestamp: number;
+
+  /**
+   * Test run identifier
+   */
+  runId: string;
+
+  /**
+   * Environment information
+   */
+  environment: {
+    userAgent?: string;
+    platform?: string;
+    testFramework?: string;
+  };
+
+  /**
+   * Performance measurements
+   */
+  measurements: readonly IPerformanceMeasurement[];
+
+  /**
+   * Performance statistics
+   */
+  statistics: {
+    total: number;
+    averageDuration: number;
+    slowestComponents: {
+      name: string;
+      totalTime: number;
+      phases: Record<string, IPerformanceStats>;
+    }[];
+    thresholdViolations: {
+      name: string;
+      threshold: number;
+      actual: number;
+      violation: number;
+    }[];
+  };
+}
+
+/**
+ * Performance regression test result
+ */
+export interface IPerformanceRegressionResult {
+  /**
+   * Whether the test passed (no regressions detected)
+   */
+  passed: boolean;
+
+  /**
+   * Detected regressions
+   */
+  regressions: {
+    component: string;
+    phase: string;
+    baseline: number;
+    current: number;
+    regression: number;
+    threshold: number;
+  }[];
+
+  /**
+   * Performance improvements
+   */
+  improvements: {
+    component: string;
+    phase: string;
+    baseline: number;
+    current: number;
+    improvement: number;
+  }[];
+
+  /**
+   * Test summary
+   */
+  summary: {
+    totalMeasurements: number;
+    regressionsCount: number;
+    improvementsCount: number;
+    averageChange: number;
   };
 }

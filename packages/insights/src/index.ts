@@ -8,6 +8,10 @@ export {
   IPerformanceFilter,
   IPerformanceStats,
   IGroupedMeasurements,
+  PerformanceTrackingMode,
+  ITestModeConfig,
+  IPerformanceTestData,
+  IPerformanceRegressionResult,
 } from './interfaces';
 
 // Configuration
@@ -42,6 +46,13 @@ export {
 export { PerformanceRepeat } from './performance-repeat';
 
 export { applyListenerBindingPatch } from './patches/listener-binding-patch';
+
+// Test helpers for performance regression testing
+export {
+  PerformanceTestHelper,
+  createPerformanceTestHelper,
+  createMochaPerformanceTest,
+} from './test-helpers';
 
 // Plugin exports
 export { InsightsPlugin as default, InsightsPlugin, InsightsConfiguration as InsightsPluginConfiguration } from './insights-plugin';

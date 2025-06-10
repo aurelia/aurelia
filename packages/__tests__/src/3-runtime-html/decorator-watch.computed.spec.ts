@@ -1,4 +1,4 @@
-import { ProxyObservable, runTasks } from '@aurelia/runtime';
+import { ProxyObservable, tasksSettled } from '@aurelia/runtime';
 import {
   bindable,
   ComputedWatcher,
@@ -93,12 +93,12 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(appHost.textContent, '0413');
 
     void tearDown();
@@ -145,14 +145,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '');
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '3cp');
 
     void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '3cp');
   });
 
@@ -240,9 +240,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         }
       }
 
-      const { component, startPromise, tearDown } = createFixture('<child component.ref="child" prop.bind=prop>', App, [Child]);
+      const { component, tearDown } = await createFixture('<child component.ref="child" prop.bind=prop>', App, [Child]).started;
 
-      await startPromise;
       assert.strictEqual(appBindingCallCount, 1);
       assert.strictEqual(appBoundCallCount, 1);
       assert.strictEqual(appUnbindingCallCount, 0);
@@ -254,7 +253,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 1);
-      runTasks();
+      await tasksSettled();
       // the observer internally updates immediately but the binding after flushing
       assert.strictEqual(component.child.logCallCount, 2);
 
@@ -280,7 +279,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
       component.prop++;
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
     });
@@ -368,9 +367,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         }
       }
 
-      const { component, startPromise, tearDown } = createFixture('<div child.bind="prop" child.ref="child">', App, [Child]);
+      const { component, tearDown } = await createFixture('<div child.bind="prop" child.ref="child">', App, [Child]).started;
 
-      await startPromise;
       assert.strictEqual(appBindingCallCount, 1);
       assert.strictEqual(appBoundCallCount, 1);
       assert.strictEqual(appUnbindingCallCount, 0);
@@ -382,7 +380,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
       assert.strictEqual(component.child.logCallCount, 1);
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(component.child.logCallCount, 2);
 
       const bindings = component.$controller!.bindings;
@@ -459,13 +457,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -485,7 +483,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -544,13 +542,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 0);
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '0');
 
     component.delivered(1);
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '0');
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
 
     void tearDown();
@@ -559,10 +557,10 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
   });
 
@@ -843,9 +841,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -883,9 +880,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -924,9 +920,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1171,8 +1166,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1193,8 +1187,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, tearDown, startPromise } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1216,8 +1209,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 2);
         await tearDown();
         disposed?.(component, ctx, 2);

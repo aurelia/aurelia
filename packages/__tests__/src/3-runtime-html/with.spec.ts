@@ -1,5 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/with.spec.ts', function () {
   it('works with static scope', async function () {
@@ -37,7 +37,7 @@ describe('3-runtime-html/with.spec.ts', function () {
       <input value.bind="name">
       <input value.bind="address">
     </div>`;
-    const { appHost, startPromise, tearDown } = createFixture(
+    const { appHost, tearDown } = await createFixture(
       template,
       class App {
         public contracts = [{
@@ -48,9 +48,7 @@ describe('3-runtime-html/with.spec.ts', function () {
           address: 'address-2'
         }];
       }
-    );
-
-    await startPromise;
+    ).started;
 
     const buttons = Array.from(appHost.querySelectorAll('button'));
     const [input1, input2] = Array.from(appHost.querySelectorAll('input'));
@@ -59,7 +57,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 
@@ -74,7 +72,7 @@ describe('3-runtime-html/with.spec.ts', function () {
       <input value.bind="address">
       <span data-name=\${name} data-address.attr="address" ref="$parent.span">\${name}</span>
     </div>`;
-    const { appHost, component, startPromise, tearDown } = createFixture(
+    const { appHost, component, tearDown } = await createFixture(
       template,
       class App {
         public span: HTMLSpanElement;
@@ -86,9 +84,7 @@ describe('3-runtime-html/with.spec.ts', function () {
           address: 'address-2'
         }];
       }
-    );
-
-    await startPromise;
+    ).started;
 
     const buttons = Array.from(appHost.querySelectorAll('button'));
     const [input1, input2] = Array.from(appHost.querySelectorAll('input'));
@@ -97,7 +93,7 @@ describe('3-runtime-html/with.spec.ts', function () {
     assert.strictEqual(input2.value, '');
 
     buttons[0].click();
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(input1.value, 'name-1');
     assert.strictEqual(input2.value, 'address-1');
 

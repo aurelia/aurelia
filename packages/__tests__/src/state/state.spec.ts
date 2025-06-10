@@ -1,5 +1,5 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { StateDefaultConfiguration, fromState } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
@@ -126,7 +126,7 @@ describe('state/state.spec.ts', function () {
 
     assert.strictEqual(getBy('input').value, '123--');
     component.value = '';
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(getBy('input').value, '123');
   });
 
@@ -230,7 +230,7 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -244,7 +244,7 @@ describe('state/state.spec.ts', function () {
 
       assertText('center', '123');
       trigger('button', 'click');
-      runTasks();
+      await tasksSettled();
       assertText('center', '456');
     });
   });
@@ -267,7 +267,7 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -292,11 +292,11 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
 
       trigger.click('button');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '');
     });
 
@@ -312,7 +312,7 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '1');
     });
 
@@ -328,7 +328,7 @@ describe('state/state.spec.ts', function () {
         .build();
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
@@ -353,11 +353,11 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
 
       await resolveAfter(10);
@@ -566,7 +566,7 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 

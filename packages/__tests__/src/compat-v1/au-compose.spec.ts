@@ -1,6 +1,6 @@
 import { disableComposeCompat, enableComposeCompat } from '@aurelia/compat-v1';
 import { CustomElement } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 // only smoke tests here, enough to assert the most basic behaviors/expectation
@@ -48,7 +48,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
         component.message = 'hello';
 
         assertText('hello world');
-        runTasks();
+        await tasksSettled();
         assertText('hello');
 
         await tearDown();
@@ -72,7 +72,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
           }
         );
 
-        runTasks();
+        await tasksSettled();
         assertText('Aurelia!!');
 
         await tearDown();

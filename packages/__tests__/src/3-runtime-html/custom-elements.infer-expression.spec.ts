@@ -1,5 +1,5 @@
 import { resolve } from '@aurelia/kernel';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
@@ -10,7 +10,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    runTasks();
+    await tasksSettled();
     assertHtml('<div>ahh</div>');
   });
 
@@ -20,7 +20,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    runTasks();
+    await tasksSettled();
     assertHtml('<div>hey</div>');
   });
 
@@ -30,7 +30,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     });
     assertHtml('<div>hey</div>');
     component.textcontent = 'ahh';
-    runTasks();
+    await tasksSettled();
     assertHtml('<div>ahh</div>');
   });
 
@@ -51,7 +51,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     type('input', 'you');
     assert.strictEqual(component.value, 'you');
     component.value = 'ahh';
-    runTasks();
+    await tasksSettled();
     assertValue('input', 'you');
   });
 

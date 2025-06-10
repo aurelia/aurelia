@@ -1,4 +1,4 @@
-import { observable, SetterObserver, IObservable, IObserverLocator, IObserver, runTasks } from '@aurelia/runtime';
+import { observable, SetterObserver, IObservable, IObserverLocator, IObserver, tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 import { noop, resolve } from '@aurelia/kernel';
 import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
@@ -136,15 +136,14 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           $div = div;
         }
       }
-      const { component, testHost, tearDown, startPromise } = createFixture(`<div ref="div"></div>\${div.tagName}`, App);
-      await startPromise;
+      const { component, testHost, tearDown } = await createFixture(`<div ref="div"></div>\${div.tagName}`, App).started;
 
       assert.notDeepStrictEqual($div, noValue);
 
       assert.strictEqual(testHost.textContent, 'DIV');
       component.div = { tagName: 'hello' };
 
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(testHost.textContent, 'hello');
 
       await tearDown();
@@ -159,19 +158,17 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           changeCount++;
         }
       }
-      const { ctx, component, testHost, tearDown, startPromise }
-        = createFixture('<input value.bind="v">', App);
-      await startPromise;
+      const { ctx, component, testHost, tearDown } = await createFixture('<input value.bind="v">', App).started;
 
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '');
       component.v = 'v';
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(changeCount, 1);
       assert.strictEqual(input.value, 'v');
 
       input.value = 'vv';
-      runTasks();
+      await tasksSettled();
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 'vv');
       assert.strictEqual(changeCount, 2);
@@ -194,13 +191,12 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
           changeCount++;
         }
       }
-      const { ctx, component, testHost, tearDown, startPromise } = createFixture('<input value.bind="v">', App);
-      await startPromise;
+      const { ctx, component, testHost, tearDown } = await createFixture('<input value.bind="v">', App).started;
 
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '', 'err1');
       component.v = 'v';
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
@@ -210,7 +206,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      runTasks();
+      await tasksSettled();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -220,7 +216,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -229,7 +225,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();
@@ -251,8 +247,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
         component,
         testHost,
         tearDown,
-        startPromise
-      } = createFixture(
+      } = await createFixture(
         '<input value.bind="v | two">',
         App,
         [ValueConverter.define('two', class {
@@ -265,13 +260,12 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
             return v;
           }
         })]
-      );
-      await startPromise;
+      ).started;
       const input = testHost.querySelector('input')!;
       assert.strictEqual(input.value, '', 'err1');
 
       component.v = 'v';
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(component.v, 0, 'err2');
       assert.strictEqual(changeCount, 1, 'err3');
       assert.strictEqual(input.value, '0', 'err4');
@@ -281,7 +275,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err7');
       assert.strictEqual(changeCount, 1, 'err8');
       assert.strictEqual(input.value, 'vv', 'err9');
-      runTasks();
+      await tasksSettled();
       // for this assignment, the component.v still 0
       // so there was no change, and it's not propagated back to the input
       assert.strictEqual(input.value, 'vv', 'err10');
@@ -291,7 +285,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       assert.strictEqual(component.v, 0, 'err12');
       assert.strictEqual(changeCount, 1, 'err13');
       assert.strictEqual(input.value, 'vv', 'err14');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.value, 'vv', 'err15');
       assert.strictEqual(component.v, 0, 'err16');
 
@@ -300,7 +294,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
       input.dispatchEvent(new ctx.CustomEvent('input'));
       assert.strictEqual(component.v, 1, 'err17');
       assert.strictEqual(changeCount, 2, 'err18');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.value, '1', 'err19');
 
       await tearDown();

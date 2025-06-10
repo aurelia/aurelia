@@ -4,7 +4,7 @@ import { AppTask, CustomElement, NodeObserverLocator } from '@aurelia/runtime-ht
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { IAttrMapper } from '@aurelia/template-compiler';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
   if (isNode()) {
@@ -67,7 +67,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
     assert.strictEqual(component.option, '2');
 
     component.option = '3';
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(selectEl.value, '3');
 
     await tearDown();

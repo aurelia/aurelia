@@ -1,5 +1,5 @@
 import { Constructable } from '@aurelia/kernel';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { PLATFORM, assert, eachCartesianJoin, TestContext, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 
@@ -272,7 +272,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
           assert.equal(component.hasFocus, true, 'window@blur');
 
           component.selectedOption = '2';
-          runTasks();
+          await tasksSettled();
           assert.equal(doc.activeElement, focusable);
           assert.equal(component.hasFocus, true, 'select@change');
         }

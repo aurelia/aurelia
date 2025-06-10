@@ -7,7 +7,6 @@ import {
   getCollectionObserver,
   Scope,
   tasksSettled,
-  runTasks,
 } from '@aurelia/runtime';
 import {
   type BindingBehaviorInstance,
@@ -1464,13 +1463,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         }
       }
 
-      const { startPromise, stop, component } = createFixture(
+      const { stop, component } = await createFixture(
         '<input id="target-name" type="text" value.two-way="person.name & validate:undefined:controller"><input id="target-age" type="text" value.two-way="person.age & validate:undefined:controller">',
         App,
         [ValidationHtmlConfiguration]
-      );
-
-      await startPromise;
+      ).started;
 
       const controller = component.controller;
 
@@ -1547,27 +1544,26 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         public model: Model = { someProperty: 1 };
       }
 
-      const { startPromise, stop, component, appHost } = createFixture(
+      const { stop, component, appHost } = await createFixture(
         `<ce-one if.bind="isEditing" model.bind></ce-one>`,
         AppRoot,
         [ValidationHtmlConfiguration, CeOne]
-      );
-      await startPromise;
+      ).started;
 
       component.isEditing = true;
-      runTasks();
+      await tasksSettled();
       const ceOne: CeOne = CustomElement.for<CeOne>(appHost.querySelector('ce-one')).viewModel;
       const validationController = ceOne.validationController;
       let result = await validationController.validate();
       assertInvalidResult(result, 1);
 
       component.isEditing = false;
-      runTasks();
+      await tasksSettled();
       result = await validationController.validate();
       assert.strictEqual(result.valid, true, 'result.valid 2');
 
       component.isEditing = true;
-      runTasks();
+      await tasksSettled();
       result = await validationController.validate();
       assertInvalidResult(result, 3);
 
@@ -1632,7 +1628,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         }
       }
 
-      const { startPromise, stop, component } = createFixture(
+      const { stop, component } = await createFixture(
         `<div repeat.for="item of lineItems" style="display: flex; flex-direction: row;">
   \${item.editor}
   <au-compose component.bind="item.editor" model.bind="item.model"></au-compose>
@@ -1640,8 +1636,7 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
 </div>`,
         MyApp,
         [ValidationHtmlConfiguration, Editor1, Editor2]
-      );
-      await startPromise;
+      ).started;
       const validationController = component.validationController;
       assert.strictEqual(validationController.bindings.size, 0, 'validationController.bindings.size 1');
 
@@ -1724,12 +1719,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
         }
       }
 
-      const { startPromise, stop, component, platform } = createFixture(
+      const { stop, component, platform } = await createFixture(
         `<input repeat.for="field of fields" value.two-way="person[field] & validate"></input><input value.two-way="person[addressField][line1Field] & validate"></input>`,
         MyApp,
         [ValidationHtmlConfiguration]
-      );
-      await startPromise;
+      ).started;
       const domQueue = platform.domQueue;
 
       // round #1
@@ -1795,12 +1789,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     }
 
     it('replaced binding source validates', async function () {
-      const { startPromise, stop, component, platform } = createFixture(
+      const { stop, component, platform } = await createFixture(
         `<input value.two-way="person.name & validate"></input>`,
         MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
-      );
-      await startPromise;
+      ).started;
       const domQueue = platform.domQueue;
 
       // round #1
@@ -1853,12 +1846,11 @@ describe('validation-html/validate-binding-behavior.spec.ts', function () {
     });
 
     it('replaced binding source invalidates cached property info', async function () {
-      const { startPromise, stop, component, platform } = createFixture(
+      const { stop, component, platform } = await createFixture(
         `<input value.two-way="person.name & validate"></input>`,
         MyAppReplaceableSource,
         [ValidationHtmlConfiguration]
-      );
-      await startPromise;
+      ).started;
       const domQueue = platform.domQueue;
       const controller = component.validationController;
 

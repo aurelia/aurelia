@@ -7,7 +7,7 @@ import {
   IRenderLocation,
   bindable,
 } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { ICompositionController } from '@aurelia/runtime-html/dist/types/resources/custom-elements/au-compose';
 import {
   assert,
@@ -34,20 +34,19 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     // and the composition happens again.
     // Instead of the bindings getting notified by the changes in the view model
     it('works with dynamic view + interpolation', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         `<au-compose template="<div>\${message}</div>">`,
         class App {
           public message = 'hello world';
         }
-      );
+      ).started;
 
-      await startPromise;
       assert.strictEqual(appHost.textContent, 'hello world');
 
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, 'hello world');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -56,21 +55,20 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('works with view string from view model', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         '<au-compose template.bind="view">',
         class App {
           public message = 'hello world';
           public view = `<div>\${message}</div>`;
         }
-      );
+      ).started;
 
-      await startPromise;
       assert.strictEqual(appHost.textContent, 'hello world');
 
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, 'hello world');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -79,27 +77,26 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('understands non-inherit scope config', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         '<au-compose template.bind="view" scope-behavior="scoped" composition.bind="composition">',
         class App {
           message = 'hello world';
           view = `<div>\${message}</div>`;
           composition: ICompositionController;
         }
-      );
+      ).started;
 
-      await startPromise;
       assert.strictEqual(appHost.textContent, '');
 
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, '');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, '');
 
       component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -108,7 +105,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     it('understands view promise', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         '<au-compose template.bind="getView()" scope-behavior="scoped" composition.bind="composition">',
         class App {
           message = 'hello world';
@@ -119,20 +116,19 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
             return Promise.resolve(this.view);
           }
         }
-      );
+      ).started;
 
-      await startPromise;
       assert.strictEqual(appHost.textContent, '');
 
       component.message = 'hello';
 
       assert.strictEqual(appHost.textContent, '');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, '');
 
       component.composition.controller.scope.bindingContext['message'] = 'hello';
       assert.strictEqual(appHost.textContent, '');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, 'hello');
 
       await tearDown();
@@ -150,10 +146,10 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         }
       );
 
-      assert.throws(
-        () => {
+      await assert.rejects(
+        async () => {
           component.behavior = 'scope';
-          runTasks();
+          await tasksSettled();
         },
         'Invalid scope behavior'
       );
@@ -176,7 +172,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       );
 
       assert.strictEqual(appHost.textContent, 'hello world');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(appHost.textContent, 'Aurelia!!');
 
       await tearDown();
@@ -313,7 +309,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       models1.push(model);
       component.model = model;
 
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(constructorCallCount, 1);
       assert.strictEqual(models2.length, 2);
       assert.deepStrictEqual(models1, models2);
@@ -376,7 +372,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       });
 
       component.items = 3;
-      runTasks();
+      await tasksSettled();
       divs = Array.from(appHost.querySelectorAll('div'));
       assert.strictEqual(divs.length, 3);
       divs.forEach((div, i) => {
@@ -387,7 +383,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
   describe('multi au-compose', function () {
     it('composes au-compose', async function () {
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost, tearDown } = await createFixture(
         `<au-compose repeat.for="i of 5" template.bind="getView()">`,
         class App {
           public getMessage(i: number) {
@@ -400,9 +396,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
             return `<div>div \${i}: \${getMessage(i)}</div>`;
           }
         }
-      );
-
-      await startPromise;
+      ).started;
 
       const divs = Array.from(appHost.querySelectorAll('div'));
       assert.strictEqual(divs.length, 5);
@@ -479,7 +473,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(child.node, childElHost);
 
       component.El = Parent;
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
       const parentElHost = appHost.querySelector('parent');
@@ -549,7 +543,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><h1><div>Hello</div></h1><!--au-end-->');
 
       component.i = 1;
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(host, appHost.querySelector('h2'));
       assertHtml('<!--au-start--><h2><div>Hello</div></h2><!--au-end-->');
     });
@@ -602,7 +596,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     it('composes non-custom element mutiple times', async function () {
       const models: unknown[] = [];
-      const { appHost, component, startPromise, tearDown } = createFixture(
+      const { appHost, component, tearDown } = await createFixture(
         `<au-compose component.bind="{ activate }" template.bind="view" model.bind="{ index: 0 }" containerless>`,
         class App {
           public activate = (model: unknown) => {
@@ -610,16 +604,14 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           };
           public view = '<div>Hello world</div>';
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.deepStrictEqual(models, [{ index: 0 }]);
       assert.visibleTextEqual(appHost, 'Hello world');
       assert.html.innerEqual(appHost, '<div>Hello world</div>');
 
       component.view = '<b>Hello</b>';
-      runTasks();
+      await tasksSettled();
       assert.html.innerEqual(appHost, '<b>Hello</b>');
       assert.deepStrictEqual(models, [{ index: 0 }, { index: 0 }]);
       assert.visibleTextEqual(appHost, 'Hello');
@@ -635,14 +627,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       })
       class El { }
 
-      const { appHost, startPromise, tearDown } = createFixture(
+      const { appHost, tearDown } = await createFixture(
         `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = El;
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.visibleTextEqual(appHost, 'Hello world from El');
       assert.html.innerEqual(appHost, '<el><div>Hello world from El</div></el>');
@@ -663,20 +653,18 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       })
       class Parent { }
 
-      const { appHost, component, startPromise, tearDown } = createFixture(
+      const { appHost, component, tearDown } = await createFixture(
         `<au-compose component.bind="El" model.bind="{ index: 0 }" containerless>`,
         class App {
           public El = Child;
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.visibleTextEqual(appHost, 'Hello world from Child');
       assert.html.innerEqual(appHost, '<child><div>Hello world from Child</div></child>');
 
       component.El = Parent;
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
 
@@ -696,32 +684,30 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       })
       class Parent { }
 
-      const { appHost, component, startPromise, tearDown } = createFixture(
+      const { appHost, component, tearDown } = await createFixture(
         `<au-compose component.bind="El" template.bind="view" model.bind="{ index: 0 }">`,
         class App {
           public message = 'app';
           public El: unknown = { message: 'POJO' };
           public view = `<div>Hello world from \${message}</div>`;
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.visibleTextEqual(appHost, 'Hello world from POJO');
       assert.html.innerEqual(appHost, '<div>Hello world from POJO</div>');
 
       component.El = Parent;
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello world from Parent');
       assert.html.innerEqual(appHost, '<parent><div>Hello world from Parent</div></parent>');
 
       component.El = { message: 'POJO2' };
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello world from POJO2');
       assert.html.innerEqual(appHost, '<div>Hello world from POJO2</div>');
 
       component.El = Child;
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello world from Child');
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><child><div>Hello world from Child</div></child><!--au-end-->');
 
@@ -742,7 +728,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       component.El = { text: 'Hello 22' };
       component.El = { text: 'Hello 33' };
-      runTasks();
+      await tasksSettled();
       assert.visibleTextEqual(appHost, 'Hello 33');
       assert.html.innerEqual(appHost, '<div>Hello 33</div>');
     });
@@ -792,7 +778,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<div>Hello world from POJO</div>', { compact: true });
 
       component.El = 'my-el';
-      runTasks();
+      await tasksSettled();
       assertHtml('<my-el>Hello world from ce</my-el>', { compact: true });
     });
 
@@ -820,7 +806,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<parent><child>Hello world from child 1</child></parent>', { compact: true });
 
       component.parent.c = 'child';
-      runTasks();
+      await tasksSettled();
       assertHtml('<parent><child>Hello world from child 2</child></parent>', { compact: true });
     });
   });
@@ -829,7 +815,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     it('works with [multiple successive updates] + [activate<Promise>]', async function () {
       const baseTimeout = 75;
       let timeout = baseTimeout;
-      const { appHost, component, startPromise, stop } = createFixture(
+      const { appHost, component, stop } = await createFixture(
         `\${message}<au-compose component.bind="{ activate, value: i }" template.bind="view" composing.bind="pendingPromise" containerless>`,
         class App {
           i = 0;
@@ -847,9 +833,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
             return new Promise(r => setTimeout(r, Math.random() * timeout--));
           };
         }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.strictEqual(appHost.textContent, 'hello world0');
 
@@ -860,7 +844,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         timeout--;
         assert.strictEqual(appHost.textContent, 'hello world0');
       }
-      runTasks();
+      await tasksSettled();
       await component.pendingPromise;
       assert.strictEqual(appHost.textContent, `hello world38`);
       assert.html.innerEqual(appHost, 'hello world<div>38</div>');
@@ -905,7 +889,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         return new Promise(r => setTimeout(r, Math.random() * timeout--));
       }
     });
-    const { appHost, component, startPromise, tearDown } = createFixture(
+    const { appHost, component, tearDown } = await createFixture(
       `\${message}<au-compose component.bind="vm" model.bind="message" composing.bind="pendingPromise" containerless>`,
       class App {
         public i = 0;
@@ -915,9 +899,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
         pendingPromise: void | Promise<void>;
       }
-    );
-
-    await startPromise;
+    ).started;
 
     assert.strictEqual(appHost.textContent, 'hello worldhello world 1');
 
@@ -925,7 +907,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     component.vm = El1;
     component.vm = El2;
 
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(appHost.textContent, `hello worldhello world 1`);
     // in the interim before a composition is completely disposed, on the fly host created will be in the doc
     assert.html.innerEqual(appHost, 'hello world<el1><div>hello world 1</div></el1><el2></el2>');
@@ -995,7 +977,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         lifecyclesCalls.push('2.unbinding');
       }
     });
-    const { appHost, component, startPromise, tearDown } = createFixture(
+    const { appHost, component, tearDown } = await createFixture(
       `\${message}<au-compose component.bind="vm" model.bind="message" composing.bind="pendingPromise" containerless>`,
       class App {
         i = 0;
@@ -1004,9 +986,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         vm: any = El1;
         pendingPromise: Promise<void>;
       }
-    );
-
-    await startPromise;
+    ).started;
 
     assert.deepStrictEqual(lifecyclesCalls, [
       '1.activate',
@@ -1018,13 +998,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
     // 1.1
     component.vm = El2;
-    runTasks();
+    await tasksSettled();
     // 1.2
     component.vm = El1;
-    runTasks();
+    await tasksSettled();
     // 1.3
     component.vm = El2;
-    runTasks();
+    await tasksSettled();
 
     assert.deepStrictEqual(lifecyclesCalls, [
       '1.activate',
@@ -1075,15 +1055,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       name: 'el1',
       template: `<p><au-slot>`
     }, class Element1 {});
-    const { appHost, startPromise, tearDown } = createFixture(
+    const { appHost, tearDown } = await createFixture(
       `<au-compose component.bind="vm"><input value.bind="message" au-slot>`,
       class App {
         public message = 'Aurelia';
         public vm: any = El1;
       }
-    );
-
-    await startPromise;
+    ).started;
 
     assert.strictEqual((appHost.querySelector('p input') as HTMLInputElement).value, 'Aurelia');
 
@@ -1095,15 +1073,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       name: 'el1',
       template: `<p><au-slot>`
     }, class Element1 {});
-    const { appHost, startPromise } = createFixture(
+    const { appHost } = await createFixture(
       `<au-compose repeat.for="i of 3" component.bind="vm"><input value.to-view="message + i" au-slot>`,
       class App {
         public message = 'Aurelia';
         public vm: any = El1;
       }
-    );
-
-    await startPromise;
+    ).started;
 
     assert.deepStrictEqual(
       Array.from(appHost.querySelectorAll('p input')).map((i: HTMLInputElement) => i.value),
@@ -1125,7 +1101,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
           return new Promise(r => setTimeout(r, 50));
         }
       });
-      const { component, startPromise } = createFixture(
+      const { component } = await createFixture(
         `<au-compose repeat.for="vm of components" component.bind="vm">`,
         class App {
           public message = 'Aurelia';
@@ -1140,9 +1116,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
             this.components.pop();
           }
         }
-      );
-
-      await startPromise;
+      ).started;
 
       component.render();
       await new Promise(r => setTimeout(r, 100));
@@ -1170,7 +1144,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
-      runTasks();
+      await tasksSettled();
       // when there's no template it'll just add a render location for the composition
       // and doesn't do anything beside that
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
@@ -1190,7 +1164,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><button>click me</button><!--au-end--><!--au-end-->');
 
       component.comp = {};
-      runTasks();
+      await tasksSettled();
       // when there's no template it'll just add a render location for the composition
       // and doesn't do anything beside that
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
@@ -1238,12 +1212,11 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         @bindable() message: any;
       }
 
-      const { assertText, assertHtml } = createFixture('<au-compose component.bind="comp" message.bind="msg">', class {
+      const { assertText, assertHtml } = await createFixture('<au-compose component.bind="comp" message.bind="msg">', class {
         comp = El;
         msg = 'hello world';
-      });
+      }).started;
 
-      runTasks();
       assertText('hello world');
       assertHtml('<!--au-start--><el>hello world</el><!--au-end-->');
     });
@@ -1257,12 +1230,11 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         @bindable() message: any;
       }
 
-      const { assertText, assertHtml } = createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
+      const { assertText, assertHtml } = await createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
         comp = El;
         msg = 'hello world';
-      });
+      }).started;
 
-      runTasks();
       assertText('hello world');
       // .bind on id.bind causes the value to be set during .bind
       // which is after class attr, which is during rendering (composition)
@@ -1292,17 +1264,16 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         @bindable id: any;
       }
 
-      const { component, assertText, assertHtml } = createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
+      const { component, assertText, assertHtml } = await createFixture('<au-compose component.bind="comp" id.bind="1" message.bind="msg" class="el">', class {
         comp: any = El1;
         msg = 'hello world';
-      });
+      }).started;
 
-      runTasks();
       assertText('hello world');
       assert.strictEqual(el1MessageCount, 0);
 
       component.comp = El2;
-      runTasks();
+      await tasksSettled();
       assertText('1 hey there hello world');
       assertHtml('<!--au-start--><el-2 class="el">1 hey there hello world</el-2><!--au-end-->');
       // all bindings to old vm were unbound
@@ -1317,14 +1288,14 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       assertHtml('<!--au-start--><b></b><!--au-end-->');
       component.i = 1;
-      runTasks();
+      await tasksSettled();
 
       assertHtml('<!--au-start--><a download="true"></a><!--au-end-->');
     });
 
     // surrogate is not supported on non custom element composition
     // eslint-disable-next-line mocha/no-skipped-tests
-    it.skip('binds attributes with right scope on non custom element composition tag change', function () {
+    it.skip('binds attributes with right scope on non custom element composition tag change', async function () {
       const { component, assertHtml } = createFixture('<au-compose tag.bind="i ? `a` : `b`" component.bind="{ d: download }" template.bind="view">', class {
         i = 0;
         download = true;

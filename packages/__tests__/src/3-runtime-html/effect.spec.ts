@@ -1,4 +1,4 @@
-import { runTasks, IObservation, observable } from '@aurelia/runtime';
+import { tasksSettled, IObservation, observable } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/effect.spec.ts', function () {
@@ -52,11 +52,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
   });
 
   it('runs effect with @observable', async function () {
-    const { ctx, component, startPromise, tearDown } = createFixture('<div ref="div"></div>', class App {
+    const { ctx, component, tearDown } = await createFixture('<div ref="div"></div>', class App {
       public div: HTMLDivElement;
-    });
-
-    await startPromise;
+    }).started;
 
     class MouseTracker {
       @observable()
@@ -67,7 +65,6 @@ describe('3-runtime-html/effect.spec.ts', function () {
       }
     }
 
-    runTasks();
     assert.instanceOf(component.div, ctx.Element);
 
     let runCount = 0;
@@ -98,11 +95,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
   });
 
   it('does not track @observable accessed outside of effect', async function () {
-    const { ctx, component, startPromise, tearDown } = createFixture('<div ref="div"></div>', class App {
+    const { ctx, component, tearDown } = await createFixture('<div ref="div"></div>', class App {
       public div: HTMLDivElement;
-    });
-
-    await startPromise;
+    }).started;
 
     class MouseTracker {
       @observable()
@@ -144,11 +139,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
   });
 
   it('does not track @observable accessed inside a promise inside an effect', async function () {
-    const { ctx, component, startPromise, tearDown } = createFixture('<div ref="div"></div>', class App {
+    const { ctx, component, tearDown } = await createFixture('<div ref="div"></div>', class App {
       public div: HTMLDivElement;
-    });
-
-    await startPromise;
+    }).started;
 
     class MouseTracker {
       @observable()
@@ -201,11 +194,9 @@ describe('3-runtime-html/effect.spec.ts', function () {
   });
 
   it('runs recursive effect with @observable', async function () {
-    const { ctx, component, startPromise, tearDown } = createFixture('<div ref="div"></div>', class App {
+    const { ctx, component, tearDown } = await createFixture('<div ref="div"></div>', class App {
       public div: HTMLDivElement;
-    });
-
-    await startPromise;
+    }).started;
 
     class MouseTracker {
       @observable()
@@ -252,13 +243,12 @@ describe('3-runtime-html/effect.spec.ts', function () {
   });
 
   it('runs recursive effect with @observable until max', async function () {
-    const { ctx, component, startPromise, tearDown } = createFixture(
+    const { ctx, component, tearDown } = await createFixture(
       '<div ref="div"></div>',
       class App {
         public div: HTMLDivElement;
-      });
-
-    await startPromise;
+      }
+    ).started;
 
     class MouseTracker {
       @observable()
@@ -380,7 +370,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
 
         tearDown();
         obj.a = 2;
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(v, 2);
       });
 
@@ -395,7 +385,7 @@ describe('3-runtime-html/effect.spec.ts', function () {
         assert.strictEqual(v, 1);
         assert.strictEqual(cancelled, 0);
         obj.a = 2;
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(v, 2);
         assert.strictEqual(cancelled, 1);
       });

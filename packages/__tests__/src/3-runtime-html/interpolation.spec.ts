@@ -14,7 +14,7 @@ import {
   IPlatform,
   ValueConverter,
 } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { resolve } from '@aurelia/kernel';
 
 type CaseType = {
@@ -312,7 +312,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         } else {
           component.value = (component.value as number || 0) + 1;
         }
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(appHost.textContent, (x.expectedValueAfterChange?.toString()) || (x.expected as number + 1).toString(), `host.textContent`);
         await tearDown();
       });
@@ -376,14 +376,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yesMsg = 'hello';
-        runTasks();
+        await tasksSettled();
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
           [0, 1],
         );
 
         source.noMsg = 'hello';
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'hello');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -392,7 +392,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         source.yesMsg = 'yes';
         source.checked = true;
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -400,7 +400,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.noMsg = 'no1111';
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'yes');
         assert.deepStrictEqual(
           [handleChangeCallCount, updateTargetCallCount],
@@ -478,14 +478,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         // inactive branch of conditional shouldn't call handleChange
         source.yes2 = 'yes22';
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'no1--no2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
         );
         source.yes1 = 'yes11';
-        runTasks();
+        await tasksSettled();
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
           [0, 0, 1],
@@ -496,7 +496,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         source.yes1 = 'yes1';
 
         source.checked2 = true;
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'no1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -504,7 +504,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.checked1 = true;
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -512,7 +512,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
 
         source.no1 = source.no2 = 'hello';
-        runTasks();
+        await tasksSettled();
         assert.strictEqual(target.value, 'yes1--yes2');
         assert.deepStrictEqual(
           [handleChange1CallCount, handleChange2CallCount, updateTargetCallCount],
@@ -530,16 +530,16 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assertText('hey ');
 
     component.id = '1';
-    runTasks();
+    await tasksSettled();
     assertText('hey 1');
 
     component.id = null;
-    runTasks();
+    await tasksSettled();
     assertText('hey ');
   });
 
   it('observes and updates when bound with array', async function () {
-    const { tearDown, appHost, ctx, startPromise } = createFixture(
+    const { tearDown, appHost, ctx } = await createFixture(
       `<label repeat.for="product of products">
       <input
         type="checkbox"
@@ -555,9 +555,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
         public selectedProductIds = [];
       }
-    );
-
-    await startPromise;
+    ).started;
 
     assert.includes(appHost.textContent, 'Selected product IDs: ');
 
@@ -565,19 +563,19 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     box1.checked = true;
     box1.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: ');
-    runTasks();
+    await tasksSettled();
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
     box2.checked = true;
     box2.dispatchEvent(new ctx.CustomEvent('change'));
     assert.includes(appHost.textContent, 'Selected product IDs: 0');
-    runTasks();
+    await tasksSettled();
     assert.includes(appHost.textContent, 'Selected product IDs: 0,1');
 
     await tearDown();
   });
 
   it('[Repeat] interpolates expression with value converter that returns HTML nodes', async function () {
-    const { tearDown, appHost, component, startPromise } = createFixture(
+    const { tearDown, appHost, component } = await createFixture(
       `<template><div repeat.for="item of items">\${item.value | $}</div></template>`,
       class App {
         public items = Array.from({ length: 10 }, (_, idx) => {
@@ -605,8 +603,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           }
         })
       ]
-    );
-    await startPromise;
+    ).started;
 
     let divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 10);
@@ -620,7 +617,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     component.items = Array.from({ length: 10 }, (_, idx) => {
       return { value: idx + 11 };
     });
-    runTasks();
+    await tasksSettled();
 
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 10);
@@ -629,7 +626,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
-    runTasks();
+    await tasksSettled();
 
     divs.forEach((div, idx) => {
       assert.strictEqual(div.textContent, `$${idx + 11}`);
@@ -639,7 +636,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.strictEqual(appHost.textContent, component.items.map(item => `$${item.value}`).join(''));
 
     component.items = [];
-    runTasks();
+    await tasksSettled();
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 0);
     assert.strictEqual(appHost.textContent, '');
@@ -675,7 +672,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.html.innerEqual(appHost, '<if>if foo</if>');
 
     component.show = false;
-    runTasks();
+    await tasksSettled();
 
     assert.strictEqual(appHost.textContent, 'else foo');
     assert.html.innerEqual(appHost, '<else>else foo</else>');
@@ -689,66 +686,63 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
   describe('3-runtime/interpolation.spec.ts -- interpolation -- attributes', function () {
     it('interpolates on value attr of <progress/>', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         `<progress value="\${progress}">`,
         class App {
           public progress = 0;
         },
-      );
+      ).started;
 
-      await startPromise;
       const progress = appHost.querySelector('progress');
       assert.strictEqual(progress.value, 0);
 
       component.progress = 1;
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(progress.value, 1);
 
       await tearDown();
     });
 
     it('interpolates value attr of <input />', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         `<input value="\${progress}">`,
         class App {
           public progress = 0;
         },
-      );
+      ).started;
 
-      await startPromise;
       const input = appHost.querySelector('input');
       assert.strictEqual(input.value, '0');
 
       component.progress = 1;
       assert.strictEqual(input.value, '0');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.value, '1');
 
       await tearDown();
     });
 
     it('interpolates value attr of <textarea />', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         `<textarea value="\${progress}">`,
         class App {
           public progress = 0;
         },
-      );
+      ).started;
 
-      await startPromise;
       const textArea = appHost.querySelector('textarea');
       assert.strictEqual(textArea.value, '0');
 
       component.progress = 1;
       assert.strictEqual(textArea.value, '0');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(textArea.value, '1');
 
       await tearDown();
     });
 
     it('interpolates the xlint:href attr of <use />', async function () {
-      const { component, appHost, startPromise, tearDown } = createFixture(
+      const { component, appHost, tearDown } = await createFixture(
         `<svg>
         <circle id="blue" cx="5" cy="5" r="40" stroke="blue"/>
         <circle id="red" cx="5" cy="5" r="40" stroke="red"/>
@@ -758,15 +752,14 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
           public progress = 0;
         },
         [SVGAnalyzer],
-      );
+      ).started;
 
-      await startPromise;
       const textArea = appHost.querySelector('use');
       assert.strictEqual(textArea.getAttribute('href'), '#red');
 
       component.progress = 1;
       assert.strictEqual(textArea.getAttribute('href'), '#red');
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(textArea.getAttribute('href'), '#blue');
 
       await tearDown();
@@ -779,7 +772,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
 
       assertAttr('div', 'data-id', '1,2');
       component.ids.push(3);
-      runTasks();
+      await tasksSettled();
       assertAttr('div', 'data-id', '1,2,3');
     });
   });

@@ -1,5 +1,5 @@
 import { CustomElement, customElement, slotted } from '@aurelia/runtime-html';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
@@ -33,13 +33,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div></div>',
         class App {},
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 1');
     });
 
@@ -52,14 +51,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div', '1') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         // projecting 3 divs to 2 different slots
         '<el><div au-slot="1"></div><div></div><div></div>',
         class App {},
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 1');
     });
 
@@ -77,13 +75,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><div></div>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(call, 1);
     });
 
@@ -103,13 +100,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><div></div>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(call, 1);
     });
 
@@ -127,13 +123,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><div></div>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(call, 0);
     });
 
@@ -151,13 +146,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><input>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(call, 0);
     });
 
@@ -171,13 +165,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div') divs2;
       }
 
-      const { component: { el: { divs, divs2 } } } = createFixture(
+      const { component: { el: { divs, divs2 } } } = await createFixture(
         '<el component.ref="el"><div>',
         class App { el: El; },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(divs.length, 1);
       assert.strictEqual(divs2.length, 1);
     });
@@ -192,13 +185,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div, p') divAndPs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div></div><p>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 1 2');
     });
 
@@ -221,13 +213,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><div></div><p>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.deepStrictEqual([call1, call2], [1, 1]);
     });
 
@@ -241,13 +232,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div, p') divAndPs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div repeat.for="i of 3"></div><p repeat.for="i of 3">',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 3 6');
     });
 
@@ -260,14 +250,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('$all') nodes;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el>text<div></div><p></p><!--ha-->',
         class App { },
         [El,]
-      );
+      ).started;
 
       // comments are filtered out by projection slot change notifier
-      runTasks();
       assertText('Count: 3 text');
     });
 
@@ -280,13 +269,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el>text<div></div><p>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 2 text');
     });
 
@@ -299,14 +287,13 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div', '*') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         // projecting 3 divs to 2 different slots
         '<el><div au-slot="1"></div><div></div><div></div>',
         class App {},
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 3');
     });
 
@@ -319,13 +306,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div', '*') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div au-slot="1"></div>',
         class App {},
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 1');
     });
 
@@ -344,13 +330,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div', '*') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<parent><div></div>',
         class App {},
         [Parent, El]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 1');
     });
 
@@ -369,13 +354,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('div', '*') divs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<parent>',
         class App {},
         [Parent, El]
-      );
+      ).started;
 
-      runTasks();
       assertText('div count: 1');
     });
 
@@ -394,13 +378,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input', '1') inputs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<parent>',
         class App {},
         [Parent, El]
-      );
+      ).started;
 
-      runTasks();
       assertText('inputs count: 2');
     });
 
@@ -413,13 +396,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input') inputs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><input></el> | <el><input><input>',
         class App {},
         [El]
-      );
+      ).started;
 
-      runTasks();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -437,13 +419,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input') inputs;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<parent>',
         class App {},
         [Parent, El]
-      );
+      ).started;
 
-      runTasks();
       assertText('inputs count: 1 | inputs count: 2');
     });
 
@@ -459,13 +440,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         nodes;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div au-slot=1>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 1');
     });
 
@@ -478,13 +458,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted() nodes;
       }
 
-      const { assertText } = createFixture(
+      const { assertText } = await createFixture(
         '<el><div>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 3');
     });
 
@@ -502,13 +481,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         }
       }
 
-      createFixture(
+      await createFixture(
         '<el><div>',
         class App { },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assert.strictEqual(call, 0);
     });
   });
@@ -523,13 +501,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component } = createFixture(
+      const { assertText, component } = await createFixture(
         '<el><div if.bind="show"></div><p>',
         class App { show = false; },
         [El,]
-      );
+      ).started;
 
-      await tasksSettled();
       assertText('Count: 1');
 
       component.show = true;
@@ -552,13 +529,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('*') nodes;
       }
 
-      const { assertText, component } = createFixture(
+      const { assertText, component } = await createFixture(
         '<el><div repeat.for="_ of i">',
         class App { i = 0; },
         [El,]
-      );
+      ).started;
 
-      runTasks();
       assertText('Count: 0');
       component.i = 3;
       await tasksSettled(); // flush binding
@@ -586,13 +562,12 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
         @slotted('input') inputs;
       }
 
-      const { assertText, trigger } = createFixture(
+      const { assertText, trigger } = await createFixture(
         '<parent>',
         class App {},
         [Parent, El]
-      );
+      ).started;
 
-      runTasks();
       assertText('inputs count: 1 | inputs count: 2');
       trigger.click('button');
       await tasksSettled(); // flush binding

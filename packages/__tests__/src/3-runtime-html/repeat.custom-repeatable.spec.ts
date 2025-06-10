@@ -1,11 +1,10 @@
 import { Registration } from '@aurelia/kernel';
-import { runTasks } from '@aurelia/runtime';
 import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
   it('repeats an html collection', async function () {
-    const { assertText } = createFixture(
+    const { assertText } = await createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
       class {
         items: any[];
@@ -25,14 +24,13 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
         static $au = { type: 'value-converter', name: 'nodeName' };
         toView = v => v.nodeName;
       }]
-    );
+    ).started;
 
-    runTasks();
     assertText('hey 0--#text');
   });
 
   it('repeats an html collection using the default array like handler', async function () {
-    const { assertText } = createFixture(
+    const { assertText } = await createFixture(
       '<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>',
       class {
         items: any[];
@@ -45,9 +43,8 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
         static $au = { type: 'value-converter', name: 'nodeName' };
         toView = v => v.nodeName;
       }]
-    );
+    ).started;
 
-    runTasks();
     assertText('hey 0--#text');
   });
 

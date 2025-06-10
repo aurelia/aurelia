@@ -5,7 +5,7 @@ import {
   ValueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   assert,
   createFixture,
@@ -397,11 +397,11 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
       try {
         mutate(component.items, component);
-        runTasks();
+        await tasksSettled();
 
         assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 
-        void au.stop();
+        await au.stop();
       } catch (ex) {
         if (!mutationWillThrow) {
           try {

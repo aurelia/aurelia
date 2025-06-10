@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { batch, runTasks, tasksSettled } from '@aurelia/runtime';
+import { batch, tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement, ICustomElementViewModel } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from "@aurelia/testing";
 
@@ -1137,7 +1137,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 2-b ');
 
       component.items = secondList;
-      runTasks();
+      await tasksSettled();
 
       assertText('1-aa 2-bb ');
     });
@@ -1162,7 +1162,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 2-b 3-c ');
 
       component.items = updatedList;
-      runTasks();
+      await tasksSettled();
 
       assertText('2-bb 3-c ');
     });
@@ -1187,7 +1187,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 2-b ');
 
       component.items = updatedList;
-      runTasks();
+      await tasksSettled();
 
       assertText('1-a 1.5-new 2-b ');
     });
@@ -1217,7 +1217,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assert.strictEqual(focusInput.value, 'Y');
 
       component.items = reorderedList;
-      runTasks();
+      await tasksSettled();
 
       focusInput = getAllBy('input')[2];
       assert.strictEqual(doc.activeElement, focusInput);
@@ -1243,7 +1243,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
         { partId: 2, data: 'Item2' },
         { partId: 3, data: 'Item3-new' },
       ];
-      runTasks();
+      await tasksSettled();
 
       assertText('Item1-updated Item2 Item3-new ');
     });

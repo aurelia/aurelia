@@ -1,5 +1,5 @@
 import { assert, createFixture } from '@aurelia/testing';
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/input.spec.ts', function () {
@@ -21,7 +21,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -51,9 +51,9 @@ describe('3-runtime-html/input.spec.ts', function () {
         }
       );
 
-      assert.doesNotThrow(() => {
+      await assert.doesNotReject(async () => {
         component.file = 'c:/my-file.txt';
-        runTasks();
+        await tasksSettled();
       });
     });
 
@@ -84,7 +84,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -131,7 +131,7 @@ describe('3-runtime-html/input.spec.ts', function () {
 
       // then bogus value
       comp.count = 'abc' as any;
-      runTasks();
+      await tasksSettled();
       assert.strictEqual(input.valueAsNumber, NaN);
       // input.valueAsNumber observer does not propagate the value back
       // this may result in some GH issues
@@ -155,7 +155,7 @@ describe('3-runtime-html/input.spec.ts', function () {
     assert.strictEqual(component.message, 'world');
 
     component.message = 'hello world';
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(input.value, 'hello world');
   });
 
@@ -231,15 +231,15 @@ describe('3-runtime-html/input.spec.ts', function () {
       );
 
       trigger('button', 'click');
-      runTasks();
+      await tasksSettled();
       assertChecked('#green', true);
 
       trigger('button', 'click');
-      runTasks();
+      await tasksSettled();
       assertChecked('#blue', true);
 
       trigger('button', 'click');
-      runTasks();
+      await tasksSettled();
       assertChecked('#green', true);
     });
   });

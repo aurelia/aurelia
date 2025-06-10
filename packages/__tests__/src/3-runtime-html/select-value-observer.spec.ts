@@ -1,4 +1,4 @@
-import { runTasks } from '@aurelia/runtime';
+import { tasksSettled } from '@aurelia/runtime';
 import { SelectValueObserver } from '@aurelia/runtime-html';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 
@@ -261,7 +261,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
   });
 
   it('handles source change', async function () {
-    const { ctx, startPromise, component, tearDown } = createFixture(
+    const { ctx, component, tearDown } = await createFixture(
       `<h3>Select Product</h3>
       <select value.bind="selectedProductId" ref="selectEl">
         <option model.bind="null">Choose...</option>
@@ -285,15 +285,14 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
           this.selectedProductId = null;
         }
       }
-    );
-    await startPromise;
+    ).started;
 
     component.selectEl.selectedIndex = 2;
     component.selectEl.dispatchEvent(new ctx.CustomEvent('change'));
     assert.strictEqual(component.selectedProductId, 1);
 
     component.clear();
-    runTasks();
+    await tasksSettled();
     assert.strictEqual(component.selectEl.selectedIndex, 0);
 
     await tearDown();

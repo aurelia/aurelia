@@ -989,6 +989,16 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
         ['message', 'helo', 'hey']
       ]);
 
+      // TODO: verify this
+      // assert.deepStrictEqual(calls, [
+      //   ['message', 'helo', 'hey'],
+      //   // this last argument is wrong, it should be hello
+      //   // but because it doesn't eagerly observe the getter
+      //   // so the computed observer of `m` still has the original value assigned during binding phase
+      //   // leaving this like this for now, since it doesnt need to commit to observation early, also for the old value
+      //   ['m', 'hi', 'hey']
+      // ]);
+
       calls.length = 0;
       component.v = 'hi';
       await tasksSettled();

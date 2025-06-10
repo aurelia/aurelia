@@ -228,10 +228,28 @@ export const queueTask = <R = any>(callback: TaskCallback<R>) => {
  * // TODO
  * ```
  */
-export const queueAsyncTask = <R = any>(callback: TaskCallback<R>) => {
-  requestRun();
-  const task = new Task<R>(callback);
-  queue.push(task);
+export const queueAsyncTask = <R = any>(callback: TaskCallback<R>, options?: { delay?: number }) => {
+  const task = new Task<R>(callback, options?.delay);
+
+  if (task.delay != null && task.delay > 0) {
+    ++pendingAsyncCount;
+    task._timerId = setTimeout(() => {
+      --pendingAsyncCount;
+      task._timerId = undefined;
+
+      if (task.status === tsCanceled) {
+        signalSettled(true);
+        return;
+      }
+
+      queue.push(task);
+      requestRun();
+    }, task.delay);
+  } else {
+    queue.push(task);
+    requestRun();
+  }
+
   return task;
 };
 
@@ -246,6 +264,9 @@ let id = 0;
 
 export class Task<R = any> {
   public readonly id: number = ++id;
+
+  /** @internal */
+  public _timerId?: number;
 
   /** @internal */
   private _resolve!: (value: UnwrapPromise<R>) => void;
@@ -264,7 +285,10 @@ export class Task<R = any> {
     return this._status;
   }
 
-  public constructor(public callback: TaskCallback<R>) {
+  public constructor(
+    public callback: TaskCallback<R>,
+    public delay?: number,
+  ) {
     this._result = new Promise<UnwrapPromise<R>>((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -307,15 +331,25 @@ export class Task<R = any> {
   }
 
   public cancel(): boolean {
-    if (this._status === tsPending) {
-      const idx = queue.indexOf(this);
-      if (idx > -1) {
-        queue.splice(idx, 1);
-      }
+    if (this._timerId !== undefined) {
+      clearTimeout(this._timerId);
+      --pendingAsyncCount;
+      this._timerId = undefined;
       this._status = tsCanceled;
       this._reject(new TaskAbortError(this));
       signalSettled(true);
       return true;
+    }
+
+    if (this._status === tsPending) {
+      const idx = queue.indexOf(this);
+      if (idx > -1) {
+        queue.splice(idx, 1);
+        this._status = tsCanceled;
+        this._reject(new TaskAbortError(this));
+        signalSettled(true);
+        return true;
+      }
     }
     return false;
   }

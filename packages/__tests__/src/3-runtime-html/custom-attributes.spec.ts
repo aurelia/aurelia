@@ -772,7 +772,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.throws(() => resolve(class Abc {}));
     });
 
-    it('works with resolve and inheritance', function () {
+    it('works with resolve and inheritance', async function () {
       class Base { au = resolve(IAurelia); }
       @customAttribute('attr')
       class Attr extends Base {}
@@ -786,7 +786,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
   });
 
   describe('getter/[setter] bindable', function () {
-    it('works in basic scenario', function () {
+    it('works in basic scenario', async function () {
       const { assertText } = createFixture(
         `<div my-attr="hi">`,
         class App {},
@@ -809,7 +809,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assertText('hi');
     });
 
-    it('works with readonly bindable + [from-view]', function () {
+    it('works with readonly bindable + [from-view]', async function () {
       const { assertText } = createFixture(
         '<div my-attr.from-view="message">${message}',
         class App {
@@ -831,7 +831,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assertText('2+');
     });
 
-    it('works with coercer bindable', function () {
+    it('works with coercer bindable', async function () {
       let setCount = 0;
       const values = [];
       @customAttribute('my-attr')
@@ -865,7 +865,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.deepStrictEqual(values, [1, 2]);
     });
 
-    it('works with array based computed bindable', function () {
+    it('works with array based computed bindable', async function () {
       const MyAttr = CustomAttribute.define({
         name: 'my-attr',
         bindables: ['message']
@@ -914,7 +914,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     }
 
-    it('creates new container for factory when containerStrategy is "new"', function () {
+    it('creates new container for factory when containerStrategy is "new"', async function () {
 
       @customAttribute('my-attr')
       class MyAttr {
@@ -951,7 +951,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.deepStrictEqual(examples, []);
     });
 
-    it('new container strategy does not get affected by nesting', function () {
+    it('new container strategy does not get affected by nesting', async function () {
       @customElement('my-ce')
       class MyCe {
         e = resolve(IExample);
@@ -1004,17 +1004,17 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       }
     });
 
-    it('finds closest custom attribute using string', function () {
+    it('finds closest custom attribute using string', async function () {
       const { assertText } = createFixture(`<div foo="1"><div baz="2"></div></div>`, class App {}, [Foo, Baz]);
       assertText('1');
     });
 
-    it('finds closest custom attribute using view model constructor', function () {
+    it('finds closest custom attribute using view model constructor', async function () {
       const { assertText } = createFixture(`<div foo="1"><div bar="2"></div></div>`, class App {}, [Foo, Bar]);
       assertText('1');
     });
 
-    it('returns null if no controller for the name can be found', function () {
+    it('returns null if no controller for the name can be found', async function () {
       const { assertText } = createFixture(
         // Bar is not on an child element that hosts Foo
       `
@@ -1025,7 +1025,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assertText('2 3', { compact: true });
     });
 
-    it('finds closest custom attribute when nested multiple dom layers', function () {
+    it('finds closest custom attribute when nested multiple dom layers', async function () {
       const { assertText } = createFixture(`
         <div foo="1">
           <center>
@@ -1040,7 +1040,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assertText('1 1', { compact: true });
     });
 
-    it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', function () {
+    it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', async function () {
       const { assertText } = createFixture(`
         <div foo="1">
           <center>
@@ -1057,7 +1057,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assertText('3 1', { compact: true });
     });
 
-    it('throws when theres no attribute definition associated with the type', function () {
+    it('throws when theres no attribute definition associated with the type', async function () {
       const { appHost } = createFixture('');
       assert.throws(() => CustomAttribute.closest(appHost, class NotAttr {}));
     });

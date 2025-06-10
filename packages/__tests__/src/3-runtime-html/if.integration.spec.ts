@@ -211,7 +211,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.visibleTextEqual(appHost, '');
     });
 
-    it('works with interpolation as only child of <template>', function () {
+    it('works with interpolation as only child of <template>', async function () {
       const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">${name}</template>',
         { on: false, name: 'a' }
@@ -228,7 +228,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('');
     });
 
-    it('works with interpolation + leading + trailing text inside template', function () {
+    it('works with interpolation + leading + trailing text inside template', async function () {
       const { assertText, component, tearDown } = createFixture(
         '<div><template if.bind="on">hey ${name}</template>',
         { on: false, name: 'a' }
@@ -245,7 +245,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assertText('');
     });
 
-    it('works with interpolation as only child of <template> + else', function () {
+    it('works with interpolation as only child of <template> + else', async function () {
       const { assertText, component, tearDown } = createFixture(
         '<template if.bind="on">${name}</template><template else>${name + 1}</template>',
         { on: false, name: 'a' }

@@ -46,7 +46,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
         for (const valueBefore of [...nullValues, ...validValues]) {
           for (const valueAfter of [...nullValues, ...validValues]) {
 
-            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, async function () {
 
               const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
 
@@ -124,7 +124,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
         for (const valueAfter of [...nullValues, ...validValues]) {
           for (const event of ['change', 'input']) {
 
-            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
+            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, async function () {
 
               const { ctx, sut, el, subscriber } = createFixture();
 

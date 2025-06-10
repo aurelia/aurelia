@@ -4,7 +4,7 @@ import { CustomAttribute, INode } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () {
-  it('auto infers binding expression with .bind', function () {
+  it('auto infers binding expression with .bind', async function () {
     const { assertHtml, component } = createFixture('<div textcontent.bind>', {
       textcontent: 'hey'
     });
@@ -14,7 +14,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertHtml('<div>ahh</div>');
   });
 
-  it('auto infers binding expression with .one-time', function () {
+  it('auto infers binding expression with .one-time', async function () {
     const { assertHtml, component } = createFixture('<div textcontent.one-time>', {
       textcontent: 'hey'
     });
@@ -24,7 +24,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertHtml('<div>hey</div>');
   });
 
-  it('auto infers binding expression with .to-view', function () {
+  it('auto infers binding expression with .to-view', async function () {
     const { assertHtml, component } = createFixture('<div textcontent.to-view>', {
       textcontent: 'hey'
     });
@@ -34,7 +34,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertHtml('<div>ahh</div>');
   });
 
-  it('auto infers binding expression with .two-way', function () {
+  it('auto infers binding expression with .two-way', async function () {
     const { assertValue, type, component } = createFixture('<input value.two-way>', {
       value: 'hey'
     });
@@ -43,7 +43,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assert.strictEqual(component.value, 'you');
   });
 
-  it('auto infers binding expression with .from-view', function () {
+  it('auto infers binding expression with .from-view', async function () {
     const { assertValue, type, component } = createFixture('<input value.from-view>', {
       value: 'hey'
     });
@@ -55,7 +55,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertValue('input', 'you');
   });
 
-  it('auto infers binding expression with .attr', function () {
+  it('auto infers binding expression with .attr', async function () {
     const { assertHtml } = createFixture('<div hey-there.attr>', {
       'hey-there': 1,
       'heyThere': 2,
@@ -63,7 +63,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertHtml('<div hey-there="2"></div>');
   });
 
-  it('does not use mapped attribute name when inferring binding expression', function () {
+  it('does not use mapped attribute name when inferring binding expression', async function () {
     const { assertHtml } = createFixture('<input minlength.bind>', {
       minLength: 0,
       minlength: 1,
@@ -71,7 +71,7 @@ describe('3-runtime-html/custom-elements.infer-expression.spec.ts', function () 
     assertHtml('<input minlength="1">');
   });
 
-  it('infers expression with custom attribute', function () {
+  it('infers expression with custom attribute', async function () {
     const { assertHtml } = createFixture('<div square.bind foo-bar.bind>', {
       square: 2,
       fooBar: 3,

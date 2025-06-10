@@ -18,7 +18,7 @@ import { isNode } from '../util.js';
 
 describe('3-runtime-html/au-compose.spec.ts', function () {
   describe('view', function () {
-    it('works with literal string', function () {
+    it('works with literal string', async function () {
       const { appHost, stop } = createFixture(
         '<au-compose template="<div>hello world</div>">'
       );
@@ -140,7 +140,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.textContent, '');
     });
 
-    it('throws on invalid scope-behavior value', function () {
+    it('throws on invalid scope-behavior value', async function () {
       const { component } = createFixture(
         '<au-compose template.bind="view" scope-behavior.bind="behavior">',
         class App {
@@ -238,7 +238,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.querySelector('input'), null);
     });
 
-    it('passes model to activate method', function () {
+    it('passes model to activate method', async function () {
       const models: unknown[] = [];
       const model = { a: 1, b: Symbol() };
       createFixture(
@@ -285,7 +285,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(attachedCallCount, 1);
     });
 
-    it('does not re-compose when only model is updated', function () {
+    it('does not re-compose when only model is updated', async function () {
       let constructorCallCount = 0;
       let model = { a: 1, b: Symbol() };
       const models1: unknown[] = [model];
@@ -321,7 +321,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   });
 
   describe('integration with repeat', function () {
-    it('works with repeat in view only composition', function () {
+    it('works with repeat in view only composition', async function () {
       const { appHost } = createFixture(
         `<au-compose repeat.for="i of 5" template.bind="getView()">`,
         class App {
@@ -341,7 +341,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       });
     });
 
-    it('works with repeat in literal object composition', function () {
+    it('works with repeat in literal object composition', async function () {
       const models: unknown[] = [];
       createFixture(
         `<au-compose repeat.for="i of 5" component.bind="{ activate }" model.bind="{ index: i }">`,
@@ -421,7 +421,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   // they may change and should the tests.
   // The tests below shouldn't dictate the direction of <au-compose/>
   describe('host/renderlocation injection', function () {
-    it('injects newly created host when composing custom element', function () {
+    it('injects newly created host when composing custom element', async function () {
       @customElement({
         name: 'el',
         template: '<div>Hello world from El</div>'
@@ -445,7 +445,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(el.node, appHost.querySelector('el'));
     });
 
-    it('injects newly created host when composing different custom element', function () {
+    it('injects newly created host when composing different custom element', async function () {
       @customElement({
         name: 'child',
         template: '<div>Hello world from Child</div>'
@@ -487,7 +487,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(parent.node, parentElHost);
     });
 
-    it('injects render location when composing POJO classes with <au-compose containerless/>', function () {
+    it('injects render location when composing POJO classes with <au-compose containerless/>', async function () {
       let loc: IRenderLocation;
       class El {
         public static inject = [IRenderLocation];
@@ -508,7 +508,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><!--au-start--><div>Hello</div><!--au-end--><!--au-end-->');
     });
 
-    it('injects newly created element when composing POJO with tag bindable', function () {
+    it('injects newly created element when composing POJO with tag bindable', async function () {
       let host: INode;
       class El {
         constructor() {
@@ -528,7 +528,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><p><div>Hello</div></p><!--au-end-->');
     });
 
-    it('injects different host for POJO when tag binding changes', function () {
+    it('injects different host for POJO when tag binding changes', async function () {
       let host: INode;
       class El {
         constructor() {
@@ -554,7 +554,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><h2><div>Hello</div></h2><!--au-end-->');
     });
 
-    it('ignores tag binding change when composing custom element', function () {
+    it('ignores tag binding change when composing custom element', async function () {
       let compositionCount = 0;
       @customElement({
         name: 'el',
@@ -584,7 +584,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   });
 
   describe('composition scenarios', function () {
-    it('calls activate with the right model', function () {
+    it('calls activate with the right model', async function () {
       const models: unknown[] = [];
       const { appHost } = createFixture(
         `<au-compose component.bind="{ activate }" template="<div>Hello world</div>" model.bind="{ index: 0 }" containerless>`,
@@ -729,7 +729,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '');
     });
 
-    it('discards stale composition', function () {
+    it('discards stale composition', async function () {
       const { appHost, component } = createFixture(
         `<au-compose component.bind="El" template.bind="\`<div>$\\{text}</div>\`" model.bind="{ index: 0 }">`,
         class App {
@@ -747,13 +747,13 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.html.innerEqual(appHost, '<div>Hello 33</div>');
     });
 
-    it('composes string as component', function () {
+    it('composes string as component', async function () {
       const { assertHtml } = createFixture('<au-compose component="el">', class {}, [CustomElement.define({ name: 'el', template: 'from string' })]);
 
       assertHtml('<el>from string</el>', { compact: true });
     });
 
-    it('throws when component name is specified but cannot be found', function () {
+    it('throws when component name is specified but cannot be found', async function () {
       assert.throws(() => createFixture('<au-compose component="el">'));
     });
 
@@ -767,7 +767,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<el>from string</el>', { compact: true });
     });
 
-    it('does not find element beside local or global registries', function () {
+    it('does not find element beside local or global registries', async function () {
       @customElement({ name: 'el1', template: '<au-compose component="el2">' })
       class El1 {}
       @customElement({ name: 'el2', template: 'el2 <el1>' })
@@ -778,7 +778,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.throws(() => createFixture('<el3></el3>', class {}, [El1, El3]));
     });
 
-    it('switches POJO -> string', function () {
+    it('switches POJO -> string', async function () {
       const { assertHtml, component } = createFixture(
         `<au-compose component.bind="El" template.bind="view" model.bind="{ index: 0 }">`,
         class App {
@@ -796,7 +796,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<my-el>Hello world from ce</my-el>', { compact: true });
     });
 
-    it('switches from CE -> string (in local registry)', function () {
+    it('switches from CE -> string (in local registry)', async function () {
 
       @customElement({ name: 'child', template: 'Hello world from child ${id}' })
       class Child {
@@ -1156,7 +1156,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   }
 
   describe('containerless', function () {
-    it('composes containerless', function () {
+    it('composes containerless', async function () {
       const { appHost, component } = createFixture(
         '<au-compose component.bind="comp">',
         class {
@@ -1176,7 +1176,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(appHost.innerHTML, '<!--au-start--><!--au-start--><!--au-end--><!--au-end-->');
     });
 
-    it('composes containerless inside a containerless <au-compose>', function () {
+    it('composes containerless inside a containerless <au-compose>', async function () {
       const { appHost, component } = createFixture(
         '<au-compose component.bind="comp" containerless>',
         class {
@@ -1198,7 +1198,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   });
 
   describe('pass through props', function () {
-    it('passes plain attributes', function () {
+    it('passes plain attributes', async function () {
         @customElement('el')
         class El {}
 
@@ -1210,14 +1210,14 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
         assertAttr('el', 'style', 'width: 20%;');
     });
 
-    it('transfers attrs when composing non custom element', function () {
+    it('transfers attrs when composing non custom element', async function () {
       const { assertAttr } = createFixture('<au-compose style="width: 20%" tag="p" component.bind="{}">', class {
       });
 
       assertAttr('p', 'style', 'width: 20%;');
     });
 
-    it('passes through ref binding', function () {
+    it('passes through ref binding', async function () {
       @customElement('el')
       class El {}
 
@@ -1229,7 +1229,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.instanceOf(component.el, El);
     });
 
-    it('passes through attribute as bindable', function () {
+    it('passes through attribute as bindable', async function () {
       @customElement({
         name: 'el',
         template: '${message}'
@@ -1248,7 +1248,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><el>hello world</el><!--au-end-->');
     });
 
-    it('passes through combination of normal and bindable attrs', function () {
+    it('passes through combination of normal and bindable attrs', async function () {
       @customElement({
         name: 'el',
         template: '${message}'
@@ -1269,7 +1269,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('<!--au-start--><el class="el" id="1">hello world</el><!--au-end-->');
     });
 
-    it('switches & cleans up after switching custom element view model', function () {
+    it('switches & cleans up after switching custom element view model', async function () {
       let el1MessageCount = 0;
       @customElement({
         name: 'el-1',
@@ -1309,7 +1309,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(el1MessageCount, 0);
     });
 
-    it('spreads the right attribute on non-custom-element composition tag change', function () {
+    it('spreads the right attribute on non-custom-element composition tag change', async function () {
       const { component, assertHtml } = createFixture('<au-compose tag.bind="i ? `a` : `b`" component.bind="{ }" download.bind="download">', class {
         i = 0;
         download = true;
@@ -1338,7 +1338,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
     });
 
     if (!isNode()) {
-      it('does not pass through when no tag is specified in non custom element composition', function () {
+      it('does not pass through when no tag is specified in non custom element composition', async function () {
         let i = 0;
         let hostEl: HTMLElement;
         const originalCreateElement = document.createElement;
@@ -1367,7 +1367,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       });
     }
 
-    it('passes attributes into ...$attrs', function () {
+    it('passes attributes into ...$attrs', async function () {
       @customElement({
         name: 'my-input',
         capture: true,
@@ -1383,7 +1383,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertValue('input', 'hello world');
     });
 
-    it('passes ...$attrs on <au-compose>', function () {
+    it('passes ...$attrs on <au-compose>', async function () {
       @customElement({
         name: 'my-input',
         capture: true,
@@ -1409,7 +1409,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assert.strictEqual(component.message, 'hey');
     });
 
-    it('transfers through ...$attrs', function () {
+    it('transfers through ...$attrs', async function () {
       @customElement({
         name: 'my-input',
         capture: true,
@@ -1445,7 +1445,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
   });
 
   describe('comparison with normal rendering', function () {
-    it('renders similar output', function () {
+    it('renders similar output', async function () {
       @customElement({
         name: 'my-el',
         template: '<p>hey ${v}</p>'
@@ -1474,7 +1474,7 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertHtml('#d3', '<my-el style="width: 20%;"><p>hey aurelia</p></my-el>', { compact: true });
     });
 
-    it('renders similar output for containerless element', function () {
+    it('renders similar output for containerless element', async function () {
       @customElement({
         name: 'my-el',
         template: '<p>hey ${v}</p>',

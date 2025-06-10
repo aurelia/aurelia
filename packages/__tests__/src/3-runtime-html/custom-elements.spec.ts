@@ -20,12 +20,12 @@ import { IContainer, resolve } from '@aurelia/kernel';
 import { IObserverLocator, observable, runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/custom-elements.spec.ts', function () {
-  it('injects right aurelia instance', function () {
+  it('injects right aurelia instance', async function () {
     const { component: { au, au1 } } = createFixture(``, class { au = resolve(Aurelia); au1 = resolve(IAurelia); });
     assert.strictEqual(au, au1);
   });
 
-  it('works with multiple layers of change propagation & <input/>', function () {
+  it('works with multiple layers of change propagation & <input/>', async function () {
     const { ctx, appHost } = createFixture(
       `<input value.bind="first_name | properCase">
       <form-input value.two-way="first_name | properCase"></form-input>`,
@@ -63,7 +63,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.strictEqual(nestedInputEl.value, 'Aa Bb');
   });
 
-  it('renders containerless per element via "containerless" attribute', function () {
+  it('renders containerless per element via "containerless" attribute', async function () {
     const { appHost } = createFixture(
       `<my-el containerless message="hello world">`,
       class App {},
@@ -77,7 +77,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assert.visibleTextEqual(appHost, 'hello world');
   });
 
-  it('renders element with @customElement({ containerness: true })', function () {
+  it('renders element with @customElement({ containerness: true })', async function () {
     const { assertText } = createFixture(
       `<my-el message="hello world">`,
       class App {},
@@ -92,7 +92,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assertText('hello world');
   });
 
-  it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', function () {
+  it('renders elements with both "containerless" attribute and @customElement({ containerless: true })', async function () {
     const { assertText } = createFixture(
       `<my-el containerless message="hello world">`,
       class App {},
@@ -107,7 +107,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assertText('hello world');
   });
 
-  it('renders elements with template controller and containerless attribute on it', function () {
+  it('renders elements with template controller and containerless attribute on it', async function () {
     const { assertText } = createFixture(
       `<my-el if.bind="true" containerless message="hello world">`,
       class App {},
@@ -121,7 +121,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     assertText('hello world');
   });
 
-  it('works with multi layer reactive changes', function () {
+  it('works with multi layer reactive changes', async function () {
     @customElement({
       name: 'text-toggler',
       template: '<textarea value.bind="value">',
@@ -152,7 +152,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     trigger('button', 'click');
   });
 
-  it('handles recursive changes with the right order', function () {
+  it('handles recursive changes with the right order', async function () {
 
     @customElement('')
     class MyApp {
@@ -246,7 +246,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   // https://github.com/aurelia/aurelia/issues/2022
-  it('calls change handler callback after propagating changes with @bindable', function () {
+  it('calls change handler callback after propagating changes with @bindable', async function () {
     const logs = [];
     @customElement('outer-component')
     class OuterComponent {
@@ -292,7 +292,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   // https://github.com/aurelia/aurelia/issues/2022
-  it('calls [propertyChanged] callback after propagating changes with @bindable', function () {
+  it('calls [propertyChanged] callback after propagating changes with @bindable', async function () {
     const logs = [];
     @customElement('outer-component')
     class OuterComponent {
@@ -340,7 +340,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   describe('surrogates', function () {
-    it('renders normal bindings before other bindings', function () {
+    it('renders normal bindings before other bindings', async function () {
       let i = 0;
       const { assertAttr } = createFixture(
         '<el>',
@@ -366,7 +366,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   describe('event', function () {
-    it('works with multi dot event name for trigger', function () {
+    it('works with multi dot event name for trigger', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button bs.open-modal.trigger="clicked()"></button>',
@@ -376,7 +376,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with multi dot event name for delegate', function () {
+    it('works with multi dot event name for delegate', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button bs.open-modal.delegate="clicked()"></button>',
@@ -387,7 +387,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with multi dot event name for capture', function () {
+    it('works with multi dot event name for capture', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button bs.open-modal.capture="clicked()"></button>',
@@ -397,7 +397,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with mouse event modifier + middle click', function () {
+    it('works with mouse event modifier + middle click', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button click.trigger:middle="clicked()"></button>',
@@ -409,7 +409,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with capture event + modifier', function () {
+    it('works with capture event + modifier', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button click.capture:middle="clicked()"></button>',
@@ -421,7 +421,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with mouse event modifier + right click', function () {
+    it('works with mouse event modifier + right click', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button click.trigger:right="clicked()"></button>',
@@ -433,7 +433,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with mouse event modifier + prevent + stop', function () {
+    it('works with mouse event modifier + prevent + stop', async function () {
       let clicked = 0;
       let prevented = false;
       let stopped = false;
@@ -456,7 +456,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(stopped, true);
     });
 
-    it('works with multiple event modifiers', function () {
+    it('works with multiple event modifiers', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button click.trigger:right+ctrl="clicked()"></button>',
@@ -468,7 +468,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('calls preventDefault() when event modifier "prevent" is used', function () {
+    it('calls preventDefault() when event modifier "prevent" is used', async function () {
       let clicked = 0;
       let prevented = false;
 
@@ -486,7 +486,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(prevented, true);
     });
 
-    it('calls stopPropagation() when event modifier "stop" is used', function () {
+    it('calls stopPropagation() when event modifier "stop" is used', async function () {
       let clicked = 0;
       let stopped = false;
 
@@ -504,7 +504,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(stopped, true);
     });
 
-    it('works with keyboard modifier', function () {
+    it('works with keyboard modifier', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button keydown.trigger:enter="enter()"></button>',
@@ -516,7 +516,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('works with multiple keyboard modifiers', function () {
+    it('works with multiple keyboard modifiers', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button keydown.trigger:enter+ctrl+shift="enter()"></button>',
@@ -528,7 +528,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('works with shorthand event syntax', function () {
+    it('works with shorthand event syntax', async function () {
       let clicked = 0;
       const { trigger } = createFixture(
         '<button @click:right="clicked()"></button>',
@@ -541,7 +541,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(clicked, 1);
     });
 
-    it('works with shorthand keyboard event + multiple modifiers', function () {
+    it('works with shorthand keyboard event + multiple modifiers', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button @keydown:enter+ctrl+shift="enter()"></button>',
@@ -554,7 +554,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('works with keycode for upper key by default', function () {
+    it('works with keycode for upper key by default', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button keydown.trigger:ctrl+107="enter()"></button>',
@@ -564,7 +564,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('works with custom keyboard mapping', function () {
+    it('works with custom keyboard mapping', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button keydown.trigger:ctrl+upperK="enter()"></button>',
@@ -579,7 +579,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 1);
     });
 
-    it('does not work without keyboard mapping for custom modifier', function () {
+    it('does not work without keyboard mapping for custom modifier', async function () {
       let entered = 0;
       const { trigger } = createFixture(
         '<button keydown.trigger:ctrl+super_k="enter()"></button>',
@@ -592,7 +592,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(entered, 0);
     });
 
-    it('works with prevent and stop together with other combo', function () {
+    it('works with prevent and stop together with other combo', async function () {
       let entered = 0;
       let prevented = false;
       let stopped = false;
@@ -617,7 +617,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(stopped, true);
     });
 
-    it('allows prevent modifier on events that are not mouse or key', function () {
+    it('allows prevent modifier on events that are not mouse or key', async function () {
       let prevented = false;
       let stopped = false;
       const { trigger } = createFixture(
@@ -636,7 +636,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(stopped, true);
     });
 
-    it('does not alter dispatchEvent working', function () {
+    it('does not alter dispatchEvent working', async function () {
       const { ctx, getBy } = createFixture(
         '<div some-event.trigger="handleEvent($event)"><center>',
         {
@@ -657,7 +657,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(isProceeded2, true);
     });
 
-    it('does not calls prevent default on actionless form submission', function () {
+    it('does not calls prevent default on actionless form submission', async function () {
       let e: SubmitEvent;
       const { trigger } = createFixture('<div submit.trigger="onSubmit($event)"><form><button>', {
         onSubmit: (_e: SubmitEvent) => {
@@ -671,7 +671,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(e?.defaultPrevented, true);
     });
 
-    it('allows actionless form submission when allowActionlessForm is set to true', function () {
+    it('allows actionless form submission when allowActionlessForm is set to true', async function () {
       let e: SubmitEvent;
       const { testHost, trigger } = createFixture(
         '<div submit.trigger="onSubmit($event)"><form><button>',
@@ -697,7 +697,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   describe('ref', function () {
-    it('updates ref when key changes', function () {
+    it('updates ref when key changes', async function () {
       const { component } = createFixture(
         `<div ref="$this[key]"></div>`,
         class {
@@ -717,7 +717,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       );
     });
 
-    it('sets ref to null when unbound', function () {
+    it('sets ref to null when unbound', async function () {
       const { component } = createFixture(
         `<div if.bind="show" ref="el">`,
         class {
@@ -732,7 +732,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(component.el, null);
     });
 
-    it('does not update ref if the value has been changed before unbind', function () {
+    it('does not update ref if the value has been changed before unbind', async function () {
       const { component } = createFixture(
         `<div if.bind="show" ref="el">`,
         class {
@@ -747,7 +747,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(component.el, 1);
     });
 
-    it('does not throw when binding to a null object', function () {
+    it('does not throw when binding to a null object', async function () {
       const { component } = createFixture(
         `<div if.bind="show" ref="els.div">`,
         class {
@@ -758,7 +758,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.equal(component.els, null);
     });
 
-    it('updates ref when property key changes GH #2106', function () {
+    it('updates ref when property key changes GH #2106', async function () {
       const { component, assertHtml } = createFixture(
         `<div repeat.for="item of items"
           data-id.bind="item.id"
@@ -786,7 +786,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.throws(() => resolve(class Abc {}));
     });
 
-    it('works basic', function () {
+    it('works basic', async function () {
       const { au, component } = createFixture(
         '',
         class App { au = resolve(IAurelia); }
@@ -794,7 +794,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(au, component.au);
     });
 
-    it('works with inheritance', function () {
+    it('works with inheritance', async function () {
       class Base { au = resolve(IAurelia); }
       @customElement('el')
       class El extends Base {}
@@ -808,7 +808,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
   });
 
   describe('getter bindable', function () {
-    it('works in basic scenario', function () {
+    it('works in basic scenario', async function () {
       const { assertText, trigger } = createFixture(
         `<my-el component.ref=el message="hello world">`,
         class App {},
@@ -834,7 +834,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertText('1');
     });
 
-    it('works with readonly bindable', function () {
+    it('works with readonly bindable', async function () {
       const { assertText, trigger } = createFixture(
         `<my-el component.ref=el message.from-view="message">`,
         class App {
@@ -858,7 +858,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assertText('1');
     });
 
-    it('works with coercer bindable', function () {
+    it('works with coercer bindable', async function () {
       let setCount = 0;
       const values = [];
       @customElement('my-el')
@@ -892,7 +892,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.deepStrictEqual(values, [1, 2]);
     });
 
-    it('works with array based computed bindable', function () {
+    it('works with array based computed bindable', async function () {
       const { component, assertText, trigger } = createFixture(
         `<my-el component.ref=el message.from-view="message">`,
         class App {
@@ -918,7 +918,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(component.message, 'hey world');
     });
 
-    it('works with change handler', function () {
+    it('works with change handler', async function () {
       let count = 0;
       @customElement({ name: 'my-el', template: '' })
       class MyEl {
@@ -949,7 +949,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(count, 1);
     });
 
-    it('works with all change handler', function () {
+    it('works with all change handler', async function () {
       const calls: any[][] = [];
       @customElement({ name: 'my-el', template: '' })
       class MyEl {
@@ -1325,7 +1325,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
     });
   });
 
-  it('throws when trying to create a custom element with a node associated with another element', function () {
+  it('throws when trying to create a custom element with a node associated with another element', async function () {
 
     let i = 0;
     class App {

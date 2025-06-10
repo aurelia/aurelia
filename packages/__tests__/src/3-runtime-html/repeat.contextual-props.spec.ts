@@ -366,7 +366,7 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
       ? it.only(_title, fn)
       : it(_title, fn);
 
-    suit(title, function (): Promise<void> {
+    suit(title, async function (): Promise<void> {
       // const ctx = TestContext.create();
 
       let au: Aurelia;

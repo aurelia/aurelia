@@ -44,7 +44,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
       });
     });
 
-    it('invokes focus when there is **NO** tabindex attribute', function () {
+    it('invokes focus when there is **NO** tabindex attribute', async function () {
       let callCount = 0;
       PLATFORM.window.HTMLDivElement.prototype.focus = function () {
         callCount++;
@@ -85,7 +85,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
     }
     for (const [desc, template] of specs) {
       describe(`with ${desc}`, function () {
-        it('Works in basic scenario', function () {
+        it('Works in basic scenario', async function () {
           const { testHost, component, ctx } = createFixture(
             `<template>
               ${template}
@@ -145,7 +145,7 @@ describe('3-runtime-html/focus.spec.ts', function () {
           const isFocusable = ceProp && (typeof ceProp.tabIndex !== 'undefined' || ceProp.contentEditable);
           const ceName = `ce-${Math.random().toString().slice(-6)}`;
 
-          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, function () {
+          it(`works with ${isFocusable ? 'focusable' : ''} custom element ${ceName}, #shadowRoot: ${shadowMode}`, async function () {
             const { testHost, start, component, ctx } = createFixture<IApp>(
               `<template><${ceName} focus.two-way=hasFocus></${ceName}></template>`,
               class App {

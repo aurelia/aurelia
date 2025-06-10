@@ -1120,7 +1120,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
   });
 
   describe('keyed mode with in-place updates', function () {
-    it('replace array instance with updated items with same key', function () {
+    it('replace array instance with updated items with same key', async function () {
       const firstList = [
         { key: '1', data: 'a' },
         { key: '2', data: 'b' },
@@ -1142,7 +1142,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-aa 2-bb ');
     });
 
-    it('replaces array with one removed item, one updated item', function () {
+    it('replaces array with one removed item, one updated item', async function () {
       const initialList = [
         { key: '1', data: 'a' },
         { key: '2', data: 'b' },
@@ -1167,7 +1167,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('2-bb 3-c ');
     });
 
-    it('inserts new item in between existing items with stable keys', function () {
+    it('inserts new item in between existing items with stable keys', async function () {
       const initialList = [
         { key: '1', data: 'a' },
         { key: '2', data: 'b' },
@@ -1192,7 +1192,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assertText('1-a 1.5-new 2-b ');
     });
 
-    it('retains focus when items are reordered and updated', function () {
+    it('retains focus when items are reordered and updated', async function () {
       const initialList = [
         { key: 'a', data: 'X' },
         { key: 'b', data: 'Y' },
@@ -1224,7 +1224,7 @@ describe("3-runtime-html/repeat.keyed.array.spec.ts", function () {
       assert.strictEqual(focusInput.value, 'YY');
     });
 
-    it('works with expression-based keys', function () {
+    it('works with expression-based keys', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items; key.bind: computeKey(i)">\${i.data} </div>`,
         class {

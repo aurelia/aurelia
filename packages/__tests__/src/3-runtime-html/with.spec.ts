@@ -2,7 +2,7 @@ import { assert, createFixture } from '@aurelia/testing';
 import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/with.spec.ts', function () {
-  it('works with static scope', function () {
+  it('works with static scope', async function () {
     const template = `Application name: \${name}
     <div with.bind="contract">
       Contact name: <input value.bind="name">

@@ -11,7 +11,7 @@ import {
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
-  it('typings work', function () {
+  it('typings work', async function () {
     const symbolMethod = Symbol();
     @watch<App>(app => app.col.has(Symbol), 5)
     @watch<App>(app => app.col.has(Symbol), 'someMethod')
@@ -49,7 +49,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   });
 
   for (const methodName of [Symbol('method'), 'bla', 5]) {
-    it(`validates method "${String(methodName)}" not found when decorating on class`, function () {
+    it(`validates method "${String(methodName)}" not found when decorating on class`, async function () {
       assert.throws(
         () => {
           @watch('..', methodName as any)
@@ -63,14 +63,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     });
   }
 
-  it('throws on @watch usage on static method', function () {
+  it('throws on @watch usage on static method', async function () {
     assert.throws(() => class App {
       @watch('')
       static method() {}
     }, /AUR0774/);
   });
 
-  it('works in basic scenario', function () {
+  it('works in basic scenario', async function () {
     let callCount = 0;
     class App {
       public person = {
@@ -104,7 +104,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     void tearDown();
   });
 
-  it('watches deep', function () {
+  it('watches deep', async function () {
     let callCount = 0;
     class App {
       public person = {
@@ -412,7 +412,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     });
   });
 
-  it('observes collection', function () {
+  it('observes collection', async function () {
     let callCount = 0;
 
     class PostOffice {
@@ -496,7 +496,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     assert.strictEqual(appHost.textContent, '');
   });
 
-  it('observes chain lighting', function () {
+  it('observes chain lighting', async function () {
     let callCount = 0;
 
     class PostOffice {
@@ -1532,7 +1532,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     return JSON.stringify(d);
   }
 
-  it('initialises once for each instance', function () {
+  it('initialises once for each instance', async function () {
     const logs = [];
     @customElement({
       name: 'my-button',

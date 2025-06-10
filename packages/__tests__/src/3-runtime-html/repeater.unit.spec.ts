@@ -525,7 +525,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs],
     (duplicateOperationSpec, bindSpec) => {
-      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, function () {
+      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, async function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
         const { items: $items, mutations } = bindSpec;
 

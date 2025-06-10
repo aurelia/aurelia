@@ -327,7 +327,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     });
 
     describe('volatile expressions', function () {
-      it('handles single', function () {
+      it('handles single', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const interpolation = new Interpolation(
@@ -408,7 +408,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
         );
       });
 
-      it('handles multiple', function () {
+      it('handles multiple', async function () {
         const container = createContainer();
         const observerLocator = createObserverLocator(container);
         const interpolation = new Interpolation(
@@ -522,7 +522,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     });
   });
 
-  it('works with strict mode', function () {
+  it('works with strict mode', async function () {
     const { assertText, component } = createFixture(
       'hey ${id}',
       CustomElement.define({ name: 'app' }, class { id = undefined; })
@@ -772,7 +772,7 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       await tearDown();
     });
 
-    it('updates binding when array is part of an interpolation', function () {
+    it('updates binding when array is part of an interpolation', async function () {
       const { component, assertAttr } = createFixture('<div data-id="${ids}">', class {
         ids = [1, 2];
       });

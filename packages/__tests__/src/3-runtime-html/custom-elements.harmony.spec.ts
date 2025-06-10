@@ -359,7 +359,7 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
     });
   });
 
-  it('gives priority to custom element bindable over custom attribute with the same name', function () {
+  it('gives priority to custom element bindable over custom attribute with the same name', async function () {
     const { assertStyles } = createFixture(
       `<square size.bind="width"></square>`,
       { width: 10 },

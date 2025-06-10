@@ -151,7 +151,7 @@ describe('3-runtime-html/signaler.integration.spec.ts', function () {
     }
   });
 
-  it('takes signal from multiple value converters', function () {
+  it('takes signal from multiple value converters', async function () {
     let addCount = 0;
     let minusCount = 0;
     const { assertText, container } = createFixture

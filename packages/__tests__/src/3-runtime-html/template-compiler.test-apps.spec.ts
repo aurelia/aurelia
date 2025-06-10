@@ -194,7 +194,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     );
   }
 
-  it('understands local recursive element', function () {
+  it('understands local recursive element', async function () {
     @customElement({
       name: 'child',
       template: '${v}<child if.bind="v > 0" v.bind="v - 1">'

@@ -17,7 +17,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         .get(IObserverLocator);
     });
 
-    it('handles glitches', function () {
+    it('handles glitches', async function () {
       let i1 = 0;
       let i2 = 0;
       let i3 = 0;
@@ -59,7 +59,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles nested dependencies glitches', function () {
+    it('handles nested dependencies glitches', async function () {
       // in this test, fullName depends on firstName, but is not directly a dependency of tag
       // in other word, `fullName` is an indirect dependency of `tag`
       // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -111,7 +111,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles many layers of nested dependencies glitches', function () {
+    it('handles many layers of nested dependencies glitches', async function () {
       // in this test, fullName depends on firstName, but is not directly a dependency of tag
       // in other word, `fullName` is an indirect dependency of `tag`
       // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -172,7 +172,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles @observable decorator glitches', function () {
+    it('handles @observable decorator glitches', async function () {
       let i1 = 0;
       let i2 = 0;
       let i3 = 0;
@@ -215,7 +215,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles array index related glitches', function () {
+    it('handles array index related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -249,7 +249,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles array length related glitches', function () {
+    it('handles array length related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -283,7 +283,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles map size related glitches', function () {
+    it('handles map size related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -317,7 +317,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles set size related glitches', function () {
+    it('handles set size related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -356,7 +356,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
     describe('with batch()', function () {
 
-      it('handles glitches', function () {
+      it('handles glitches', async function () {
         let i1 = 0;
         let i2 = 0;
         let i3 = 0;
@@ -411,7 +411,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles nested dependencies glitches', function () {
+      it('handles nested dependencies glitches', async function () {
         // in this test, fullName depends on firstName, but is not directly a dependency of tag
         // in other word, `fullName` is an indirect dependency of `tag`
         // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -471,7 +471,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles many layers of nested dependencies glitches', function () {
+      it('handles many layers of nested dependencies glitches', async function () {
         // in this test, fullName depends on firstName, but is not directly a dependency of tag
         // in other word, `fullName` is an indirect dependency of `tag`
         // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -540,7 +540,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles @observable decorator glitches', function () {
+      it('handles @observable decorator glitches', async function () {
         let i1 = 0;
         let i2 = 0;
         let i3 = 0;
@@ -591,7 +591,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles array index related glitches', function () {
+      it('handles array index related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -627,7 +627,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles array length related glitches', function () {
+      it('handles array length related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -661,7 +661,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles map size related glitches', function () {
+      it('handles map size related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -695,7 +695,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles set size related glitches', function () {
+      it('handles set size related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';

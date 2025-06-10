@@ -26,7 +26,7 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
-  it('understands shorthand syntax', function () {
+  it('understands shorthand syntax', async function () {
     const state = { value: '1' };
     const { assertValue } = createFixture
       .html`<input value.state>`

@@ -13,14 +13,14 @@ describe('integration/integration.spec.ts', function () {
     ['app', 'enhance'] as ['app' , 'enhance'],
     [ComponentMode.class, ComponentMode.instance,],
   ], function (method, componentMode) {
-    $it(`has some readonly texts with different binding modes - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`has some readonly texts with different binding modes - ${method} - ${componentMode}`, async function ({ host }) {
       for (let i = 0; i < 4; i++) {
         const selector = `read-only-text#text${i}`;
         assert.html.textContent(selector, `text${i}`, `incorrect text for ${selector}`, host);
       }
     }, { method, componentMode });
 
-    $it(`changes in bound VM properties are correctly reflected in the read-only-texts - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`changes in bound VM properties are correctly reflected in the read-only-texts - ${method} - ${componentMode}`, async function ({ host }) {
       ((host.querySelector('button#staticTextChanger') as unknown) as HTMLButtonElement).click();
       runTasks();
 
@@ -30,7 +30,7 @@ describe('integration/integration.spec.ts', function () {
       assert.html.textContent('read-only-text#text3', 'newText3', 'incorrect text for read-only-text#text3', host);
     }, { method, componentMode });
 
-    $it(`has some textual inputs with different binding modes - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`has some textual inputs with different binding modes - ${method} - ${componentMode}`, async function ({ host }) {
       const _static: HTMLInputElement = host.querySelector('#input-static input');
       const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
       const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
@@ -50,7 +50,7 @@ describe('integration/integration.spec.ts', function () {
       assert.html.value(blurredInputFv, '');
     }, { method, componentMode });
 
-    $it(`binds interpolated string to read-only-texts - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`binds interpolated string to read-only-texts - ${method} - ${componentMode}`, async function ({ host }) {
       const el = host.querySelector('#interpolated-text');
       const vm = getViewModel<App>(host);
       assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`);
@@ -67,7 +67,7 @@ describe('integration/integration.spec.ts', function () {
       assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
     }, { method, componentMode });
 
-    $it(`changes in the text-input are reflected correctly as per binding mode - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`changes in the text-input are reflected correctly as per binding mode - ${method} - ${componentMode}`, async function ({ host }) {
       const oneTime: HTMLInputElement = host.querySelector('#input-one-time input');
       const twoWay: HTMLInputElement = host.querySelector('#input-two-way input');
       const toView: HTMLInputElement = host.querySelector('#input-to-view input');
@@ -96,7 +96,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(vm.inputFromView, newInputs[3]);
     }, { method, componentMode });
 
-    $it(`changes in the vm property are reflected in text-inputs correctly as per binding mode - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`changes in the vm property are reflected in text-inputs correctly as per binding mode - ${method} - ${componentMode}`, async function ({ host }) {
       const newInputs = new Array(4).fill(0).map((_, i) => `new input ${i + 1}`);
       const vm = getViewModel<App>(host);
       vm.inputOneTime = newInputs[0];
@@ -117,7 +117,7 @@ describe('integration/integration.spec.ts', function () {
       assert.html.value(fromView, '');
     }, { method, componentMode });
 
-    $it(`changes in the text-input are reflected correctly according to update-trigger event - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`changes in the text-input are reflected correctly according to update-trigger event - ${method} - ${componentMode}`, async function ({ host }) {
       const twoWay: HTMLInputElement = host.querySelector('#blurred-input-two-way input');
       const fromView: HTMLInputElement = host.querySelector('#blurred-input-from-view input');
 
@@ -153,7 +153,7 @@ describe('integration/integration.spec.ts', function () {
       assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
     }, { method, componentMode });
 
-    $it(`uses a user preference control that 'computes' the full name of the user correctly - static - ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
+    $it(`uses a user preference control that 'computes' the full name of the user correctly - static - ${method} - ${componentMode}`, async function ({ host, ctx, callCollection: { calls } }) {
       const appVm = getViewModel<App>(host);
       const { user } = appVm;
 
@@ -193,7 +193,7 @@ describe('integration/integration.spec.ts', function () {
       assert.greaterThan(calls.length, index);
     }, { method, componentMode });
 
-    $it(`uses a user preference control that 'computes' the organization of the user correctly ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
+    $it(`uses a user preference control that 'computes' the organization of the user correctly ${method} - ${componentMode}`, async function ({ host, ctx, callCollection: { calls } }) {
       const { user } = getViewModel<App>(host);
 
       const userPref = host.querySelector('user-preference');
@@ -241,7 +241,7 @@ describe('integration/integration.spec.ts', function () {
       );
     }, { method, componentMode });
 
-    $it(`uses a user preference control gets dirty checked for non-configurable property - ${method} - ${componentMode}`, function ({ host, ctx: { container } }) {
+    $it(`uses a user preference control gets dirty checked for non-configurable property - ${method} - ${componentMode}`, async function ({ host, ctx: { container } }) {
       const { user } = getViewModel<App>(host);
       const userPref = host.querySelector('user-preference');
       const indeterminate = userPref.querySelector('#indeterminate');
@@ -290,7 +290,7 @@ describe('integration/integration.spec.ts', function () {
       // assert.equal(flushSpy.calls.length, 1);
     }, { method, componentMode });
 
-    $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model - ${method} - ${componentMode}`, async function ({ host }) {
       const app = getViewModel<App>(host);
       const contacts = app.contacts1;
       const contactsArr = Array.from(contacts);
@@ -360,7 +360,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
     }, { method, componentMode });
 
-    $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked - ${method} - ${componentMode}`, async function ({ host }) {
       const app = getViewModel<App>(host);
       const contacts = app.contacts2;
       const contactsArr = Array.from(contacts);
@@ -402,7 +402,7 @@ describe('integration/integration.spec.ts', function () {
       { id: 'rbl-obj-array-matcher', collProp: 'contacts4' as const, chosenProp: 'chosenContact4' as const },
       { id: 'rbl-obj-array-matcher-order', collProp: 'contacts5' as const, chosenProp: 'chosenContact5' as const }
     ].map(({ id, collProp, chosenProp }) =>
-      $it(`binds an object array to radio-button-list - ${id} - ${method} - ${componentMode}`, function ({ host }) {
+      $it(`binds an object array to radio-button-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
         const app = getViewModel<App>(host);
         const contacts = app[collProp];
         const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -438,7 +438,7 @@ describe('integration/integration.spec.ts', function () {
     );
 
     [{ id: 'rbl-string-array', collProp: 'contacts6' as const, chosenProp: 'chosenContact6' as const }, { id: 'rbl-string-array-order', collProp: 'contacts7' as const, chosenProp: 'chosenContact7' as const }].map(({ id, collProp, chosenProp }) =>
-      $it(`binds a string array to radio-button-list - ${id} - ${method} - ${componentMode}`, function ({ host }) {
+      $it(`binds a string array to radio-button-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
         const app = getViewModel<App>(host);
         const contacts = app[collProp];
         const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -468,7 +468,7 @@ describe('integration/integration.spec.ts', function () {
       }, { method, componentMode })
     );
 
-    $it(`uses a tri-state-boolean - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`uses a tri-state-boolean - ${method} - ${componentMode}`, async function ({ host }) {
       const app = getViewModel<App>(host);
       const tsb = host.querySelector(`tri-state-boolean`);
       const labels = toArray(tsb.querySelectorAll('label'));
@@ -493,7 +493,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
     }, { method, componentMode });
 
-    $it(`uses a checkbox to bind boolean consent property - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`uses a checkbox to bind boolean consent property - ${method} - ${componentMode}`, async function ({ host }) {
       const app = getViewModel<App>(host);
       assert.equal(app.hasAgreed, undefined);
 
@@ -510,7 +510,7 @@ describe('integration/integration.spec.ts', function () {
     }, { method, componentMode });
 
     [{ id: 'cbl-obj-array', collProp: 'products1' as const, chosenProp: 'chosenProducts1' as const }, { id: 'cbl-obj-array-matcher', collProp: 'products2' as const, chosenProp: 'chosenProducts2' as const }].map(({ id, collProp, chosenProp }) =>
-      $it(`binds an object array to checkbox-list - ${id} - ${method} - ${componentMode}`, function ({ host }) {
+      $it(`binds an object array to checkbox-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
         const app = getViewModel<App>(host);
         const products = app[collProp];
         const inputs: HTMLInputElement[] = toArray(host.querySelectorAll(`checkbox-list #${id} label input[type=checkbox]`));
@@ -540,7 +540,7 @@ describe('integration/integration.spec.ts', function () {
         }
       }, { method, componentMode })
     );
-    $it(`changes in array are reflected in checkbox-list - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`changes in array are reflected in checkbox-list - ${method} - ${componentMode}`, async function ({ host }) {
       const getInputs = () => toArray(host.querySelectorAll<HTMLInputElement>(`checkbox-list #cbl-obj-array label input[type=checkbox]`));
       const app = getViewModel<App>(host);
       const products = app.products1;
@@ -600,7 +600,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(inputs.length, 0);
     }, { method, componentMode });
 
-    $it(`binds an action to the command - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`binds an action to the command - ${method} - ${componentMode}`, async function ({ host }) {
       const app = getViewModel<App>(host);
       assert.equal(app.somethingDone, false);
 
@@ -609,7 +609,7 @@ describe('integration/integration.spec.ts', function () {
       assert.equal(app.somethingDone, true);
     }, { method, componentMode });
 
-    $it(`uses a let-demo - ${method} - ${componentMode}`, function ({ host }) {
+    $it(`uses a let-demo - ${method} - ${componentMode}`, async function ({ host }) {
       const demo = host.querySelector('let-demo');
       const vm = getViewModel<LetDemo>(demo);
 
@@ -709,7 +709,7 @@ describe('integration/integration.spec.ts', function () {
         chosenProp: 'selectedItem4' as const
       }
     ].map(({ id, title, collProp, chosenProp }) =>
-      $it(`${title} - ${method} - ${componentMode}`, function ({ host }) {
+      $it(`${title} - ${method} - ${componentMode}`, async function ({ host }) {
         const app = getViewModel<App>(host);
         const items = app[collProp];
         const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);
@@ -763,7 +763,7 @@ describe('integration/integration.spec.ts', function () {
         chosenProp: 'selectedItems4' as const
       }
     ].map(({ id, title, collProp, chosenProp }) =>
-      $it(`${title} - ${method} - ${componentMode}`, function ({ host }) {
+      $it(`${title} - ${method} - ${componentMode}`, async function ({ host }) {
         const app = getViewModel<App>(host);
         const items = app[collProp];
         const select: HTMLSelectElement = host.querySelector(`select-dropdown select#select${id}`);

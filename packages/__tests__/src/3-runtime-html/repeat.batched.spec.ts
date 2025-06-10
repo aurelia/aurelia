@@ -3,7 +3,7 @@ import { createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.batched.spec.ts", function () {
   describe('tests that failed before batched array mutation fixes', function () {
-    it('combined remove and sort', function () {
+    it('combined remove and sort', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [1, 2, 3, 4]; }
@@ -16,7 +16,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
   });
 
   describe('additional tests', function () {
-    it('sort descending and remove [2, 3]', function () {
+    it('sort descending and remove [2, 3]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [1, 2, 3, 4]; }
@@ -27,7 +27,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('41');
     });
 
-    it('sort descending and remove [2, 4, 5]', function () {
+    it('sort descending and remove [2, 4, 5]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [1, 2, 3, 4, 5]; }
@@ -38,7 +38,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('53');
     });
 
-    it('sort ascending and add [1, 2]', function () {
+    it('sort ascending and add [1, 2]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [3, 4, 5]; }
@@ -49,7 +49,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('1532');
     });
 
-    it('remove duplicates [3] and sort remaining', function () {
+    it('remove duplicates [3] and sort remaining', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [2, 2, 3, 3, 4, 4]; }
@@ -60,7 +60,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('42');
     });
 
-    it('sort ascending and remove [5, 7]', function () {
+    it('sort ascending and remove [5, 7]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [7, 5, 9, 1]; }
@@ -71,7 +71,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('91');
     });
 
-    it('shuffle without sort or remove', function () {
+    it('shuffle without sort or remove', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [1, 2, 3, 4]; }
@@ -82,7 +82,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('3142');
     });
 
-    it('sort and replace [4, 5] with [2, 3]', function () {
+    it('sort and replace [4, 5] with [2, 3]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [4, 5, 6]; }
@@ -93,7 +93,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('236');
     });
 
-    it('sort ascending and remove [4, 5]', function () {
+    it('sort ascending and remove [4, 5]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [5, 4, 3, 2, 1]; }
@@ -104,7 +104,7 @@ describe("3-runtime-html/repeat.batched.spec.ts", function () {
       assertText('123');
     });
 
-    it('complete replacement with [1, 2, 3]', function () {
+    it('complete replacement with [1, 2, 3]', async function () {
       const { assertText, component } = createFixture(
         `<div repeat.for="i of items">\${i}</div>`,
         class { items = [8, 9, 10]; }

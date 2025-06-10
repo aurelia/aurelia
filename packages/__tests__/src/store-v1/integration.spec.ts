@@ -70,11 +70,11 @@ describe("store-v1/integration.spec.ts", function () {
     await tearDown();
   });
 
-  it("should throw if no initial state was provided", function () {
+  it("should throw if no initial state was provided", async function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     class App { }
 
-    return assert.rejects(() => createFixture({ component: App, initialState: null }));
+    await assert.rejects(() => createFixture({ component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {

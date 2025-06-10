@@ -88,7 +88,7 @@ describe('validation-html/validation-controller.spec.ts', function () {
     }
     const $it = createSpecFunction(runTest);
 
-    $it('injection of validation controller is done properly', function ({ host }) {
+    $it('injection of validation controller is done properly', async function ({ host }) {
       const vcRootEl: HTMLElement = host.querySelector('vc-root');
       const vcRootVm: VcRoot = CustomElement.for(vcRootEl).viewModel as any;
 

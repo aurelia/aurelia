@@ -4,7 +4,7 @@ import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
   describe('intitial rendering', function () {
-    it('assigns value', function () {
+    it('assigns value', async function () {
       @customElement({
         name: 'el',
         template: '<au-slot>'
@@ -24,7 +24,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(el.divs.length, 1);
     });
 
-    it('assigns only projected content', function () {
+    it('assigns only projected content', async function () {
       @customElement({
         name: 'el',
         template: '<div>div count: ${divs.length}</div><au-slot>'
@@ -43,7 +43,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 1');
     });
 
-    it('assigns only projected content from matching slot', function () {
+    it('assigns only projected content from matching slot', async function () {
       @customElement({
         name: 'el',
         template: '<div>div count: ${divs.length}</div><au-slot></au-slot><au-slot name="1">'
@@ -63,7 +63,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 1');
     });
 
-    it('calls change handler', function () {
+    it('calls change handler', async function () {
       let call = 0;
       @customElement({
         name: 'el',
@@ -87,7 +87,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(call, 1);
     });
 
-    it('calls specified change handler', function () {
+    it('calls specified change handler', async function () {
       let call = 0;
       @customElement({
         name: 'el',
@@ -113,7 +113,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(call, 1);
     });
 
-    it('does not call change handler if theres no slot', function () {
+    it('does not call change handler if theres no slot', async function () {
       let call = 0;
       @customElement({
         name: 'el',
@@ -137,7 +137,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(call, 0);
     });
 
-    it('does not call change handler there are no matching nodes', function () {
+    it('does not call change handler there are no matching nodes', async function () {
       let call = 0;
       @customElement({
         name: 'el',
@@ -161,7 +161,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(call, 0);
     });
 
-    it('assigns to multiple @slotted properties with same queries', function () {
+    it('assigns to multiple @slotted properties with same queries', async function () {
       @customElement({
         name: 'el',
         template: '<au-slot>'
@@ -182,7 +182,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.strictEqual(divs2.length, 1);
     });
 
-    it('assigns to multiple slotted properties with overlapping queries', function () {
+    it('assigns to multiple slotted properties with overlapping queries', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${divs.length} ${divAndPs.length}<au-slot>'
@@ -202,7 +202,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 1 2');
     });
 
-    it('calls change handler of multiple slotted props with overlapping queries', function () {
+    it('calls change handler of multiple slotted props with overlapping queries', async function () {
       let call1 = 0;
       let call2 = 0;
       @customElement({
@@ -231,7 +231,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assert.deepStrictEqual([call1, call2], [1, 1]);
     });
 
-    it('assigns nodes rendered by repeat', function () {
+    it('assigns nodes rendered by repeat', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${divs.length} ${divAndPs.length}<au-slot>'
@@ -251,7 +251,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 3 6');
     });
 
-    it('assigns all nodes with $all', function () {
+    it('assigns all nodes with $all', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${nodes.length} <au-slot>'
@@ -271,7 +271,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 3 text');
     });
 
-    it('assigns all elements with *', function () {
+    it('assigns all elements with *', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${nodes.length} <au-slot>'
@@ -310,7 +310,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 3');
     });
 
-    it('assigns when more slots are generated in fallback of a slot', function () {
+    it('assigns when more slots are generated in fallback of a slot', async function () {
       @customElement({
         name: 'el',
         template: 'div count: ${divs.length}<au-slot><au-slot name="1">'
@@ -329,7 +329,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 1');
     });
 
-    it('assigns when projection contains slot', function () {
+    it('assigns when projection contains slot', async function () {
       @customElement({
         name: 'parent',
         template: '<el><au-slot>'
@@ -354,7 +354,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 1');
     });
 
-    it('assigns when projection fallbacks', function () {
+    it('assigns when projection fallbacks', async function () {
       @customElement({
         name: 'parent',
         template: '<el><au-slot><div>'
@@ -379,7 +379,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('div count: 1');
     });
 
-    it('assigns when projection fallbacks multiple slot', function () {
+    it('assigns when projection fallbacks multiple slot', async function () {
       @customElement({
         name: 'parent',
         template: '<el><au-slot au-slot=1><input><input>'
@@ -404,7 +404,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('inputs count: 2');
     });
 
-    it('assigns values independently to different elements at root level', function () {
+    it('assigns values independently to different elements at root level', async function () {
       @customElement({
         name: 'el',
         template: 'inputs count: ${inputs.length}<au-slot></au-slot><div>'
@@ -423,7 +423,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('inputs count: 1 | inputs count: 2');
     });
 
-    it('assigns values independently to different elements in a custom element', function () {
+    it('assigns values independently to different elements in a custom element', async function () {
       @customElement({
         name: 'parent',
         template: '<el><input></el> | <el><input><input>'
@@ -447,7 +447,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('inputs count: 1 | inputs count: 2');
     });
 
-    it('assigns all node with custom slot name from definition object', function () {
+    it('assigns all node with custom slot name from definition object', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${nodes.length}<au-slot name=1>'
@@ -469,7 +469,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 1');
     });
 
-    it('assigns on dynamically generated <au-slot>', function () {
+    it('assigns on dynamically generated <au-slot>', async function () {
       @customElement({
         name: 'el',
         template: 'Count: ${nodes.length}<au-slot repeat.for="i of 3">'
@@ -488,7 +488,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
       assertText('Count: 3');
     });
 
-    it('does not call slotchange inititially', function () {
+    it('does not call slotchange inititially', async function () {
       let call = 0;
       @customElement({
         name: 'el',
@@ -692,7 +692,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
   });
 
   describe('with shadow dom', function () {
-    it('works with shadow dom on', function () {
+    it('works with shadow dom on', async function () {
       const { assertTextContain } = createFixture(
         `<modal-basic>
           <div au-slot=test>from \${$host.msg}</div>
@@ -711,7 +711,7 @@ describe('3-runtime-html/au-slot.slotted.spec.ts', function () {
     });
   });
 
-  it('does not interfere with direct text child in shadow dom', function () {
+  it('does not interfere with direct text child in shadow dom', async function () {
     const { assertTextContain } = createFixture(
       `<modal-basic>
         hi <div au-slot=test>from \${$host.msg}</div>

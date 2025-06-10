@@ -11,7 +11,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
   // todo: define the spec how it should behave for:
   // [INTEGRATION] tests needed:  <select 2 way /> <radio 2 way />
 
-  it('initializes with TS', function () {
+  it('initializes with TS', async function () {
     let callCount = 0;
     class Test {
       @observable
@@ -33,7 +33,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(instance.value, newValue);
   });
 
-  it('should not call valueChanged when property is assigned the same value', function () {
+  it('should not call valueChanged when property is assigned the same value', async function () {
     let callCount = 0;
     class Test {
       @observable
@@ -51,7 +51,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(callCount, 0);
   });
 
-  it('initialize with Babel property decorator', function () {
+  it('initialize with Babel property decorator', async function () {
     let callCount = 0;
     class Test {
       public value: any;
@@ -102,7 +102,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     assert.strictEqual(callCount, 1);
   });
 
-  it('should call customHandler when changing the property', function () {
+  it('should call customHandler when changing the property', async function () {
     let callCount = 0;
     class Test {
       @observable({ callback: 'customHandler' })
@@ -307,7 +307,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
     });
   });
 
-  it('handle recursive changes', function () {
+  it('handle recursive changes', async function () {
 
     @customElement('')
     class MyApp {
@@ -403,7 +403,7 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
   });
 
   // https://github.com/aurelia/aurelia/issues/2022
-  it('calls change handler callback after propagating changes', function () {
+  it('calls change handler callback after propagating changes', async function () {
     const logs = [];
 
     createFixture(

@@ -358,7 +358,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                 const propValue = checkedBefore ? checkedValue : uncheckedValue;
                 const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                   // const expectedPropValue = propValue === undefined ? null : propValue;
                   // const expectedNewValue = newValue === undefined ? null : newValue;
@@ -430,7 +430,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
       for (const checkedBefore of [true, false]) {
         for (const checkedAfter of [true, false]) {
           for (const event of ['change', 'input']) {
-            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
               const { ctx, sut, el, subscriber } = createFixture();
 
@@ -506,7 +506,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         for (const checkedBefore of ['A', 'B', 'C', null, undefined]) {
           for (const checkedAfter of ['A', 'B', 'C', null, undefined]) {
 
-            it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, async function () {
 
               // const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
               // const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
@@ -616,7 +616,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         for (const checkedAfter of ['A', 'B', 'C']) {
           for (const event of ['change', 'input']) {
 
-            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
               const { ctx, sutA, sutB, sutC, elA, elB, elC } = createFixture();
 
@@ -692,7 +692,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                     const propValue = checkedBefore ? checkedValue : uncheckedValue;
                     const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                       // const changeCountBefore = 1;
                       // const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
@@ -758,7 +758,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 
             const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
 
-            it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, async function () {
 
               const array = [];
 
@@ -826,7 +826,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
             for (const checkedAfter of [true, false]) {
               for (const event of ['change', 'input']) {
 
-                it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+                it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
                   const { ctx, sut, el, subscriber } = createFixture(value, prop);
                   const checkboxValue = prop === 'model'
@@ -940,7 +940,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                     const propValue = checkedBefore ? checkedValue : uncheckedValue;
                     const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                       const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
 

@@ -11,7 +11,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
     // eslint-disable-next-line mocha/no-skipped-tests
     $it.todo = <T>(title: string, _args: ISpreadTestCase<T>) => it.skip(title);
 
-    it('throws when using spread at the root level (no scope)', function () {
+    it('throws when using spread at the root level (no scope)', async function () {
       assert.throws(() => createFixture('<div ...$attrs>'));
     });
 
@@ -275,7 +275,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
         },
       });
 
-      it('spreads custom attribute into custom element bindable', function () {
+      it('spreads custom attribute into custom element bindable', async function () {
         const Child = CustomElement.define({ name: 'child', template: '${id}--${size}', bindables: ['id', 'size'] }, class Child {});
         const El = CustomElement.define({ name: 'el', template: '<child ...$attrs>', dependencies: [Child], capture: true }, class El {});
         const Size = CustomAttribute.define('size', class {
@@ -342,7 +342,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       bindables: ['id', 'class'],
     });
 
-    it('throws when trying to using invalid spread', function () {
+    it('throws when trying to using invalid spread', async function () {
       assert.throws(() => createFixture('<div ...$bindables="">'));
       assert.throws(() => createFixture('<div $bindables.spread="">'));
       assert.throws(() => createFixture('<div ...$element="">'));
@@ -353,7 +353,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assert.throws(() => createFixture('<div ...="">'));
     });
 
-    it('spreads with ... syntax', function () {
+    it('spreads with ... syntax', async function () {
       const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...item>', {
         items: [
           { id: 1, class: 'a' },
@@ -368,15 +368,15 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
-    it('does not throw when expression returns null/undefined', function () {
+    it('does not throw when expression returns null/undefined', async function () {
       assert.doesNotThrow(() => createFixture('<el ...null $bindables.spread="null" ...$bindables="null">', {}, [El]));
     });
 
-    it('does not throw when expression returns a primitive', function () {
+    it('does not throw when expression returns a primitive', async function () {
       assert.doesNotThrow(() => createFixture('<el $bindables.spread="1" ...$bindables="1" ...1>', {}, [El]));
     });
 
-    it('does not affect non bindable properties', function () {
+    it('does not affect non bindable properties', async function () {
       const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...item>', {
         items: [
           { id: 1, class: 'a', prop: 'alien' },
@@ -391,7 +391,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>3--a--1</el><el>2--b--1</el>', { compact: true });
     });
 
-    it('does not try to match attribute config of a bindable', function () {
+    it('does not try to match attribute config of a bindable', async function () {
       const { assertHtml } = createFixture('<el repeat.for="item of items" ...item>', {
         items: [
           { 'my-id': 1, class: 'a' },
@@ -405,7 +405,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>--a</el><el>--b</el>', { compact: true });
     });
 
-    it('does not create more binding than what is available in the object', function () {
+    it('does not create more binding than what is available in the object', async function () {
       const { assertHtml, component } = createFixture('<el ...$bindables="item">', {
         item: { id: 1 } as any,
       }, [El]);
@@ -422,7 +422,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
-    it('stops observing when unbound', function () {
+    it('stops observing when unbound', async function () {
       const { assertHtml, component, stop, getBy } = createFixture('<el ...$bindables="item">', {
         item: { id: 1 } as any,
       }, [El]);
@@ -435,7 +435,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assert.html.innerEqual(el, '');
     });
 
-    it('stops observing when given a new object with fewer properties', function () {
+    it('stops observing when given a new object with fewer properties', async function () {
       const { assertHtml, component } = createFixture('<el ...item>', {
         item: { id: 1, class: 'a' } as any,
       }, [El]);
@@ -451,7 +451,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>2--a</el>');
     });
 
-    it('ignores usage of $bindables without command', function () {
+    it('ignores usage of $bindables without command', async function () {
       const { assertHtml } = createFixture('<el $bindables="item">', {
         item: { id: 1, class: 'a' },
       }, [El]);
@@ -459,7 +459,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>--</el>');
     });
 
-    it('spreads with literal object expression', function () {
+    it('spreads with literal object expression', async function () {
       const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...$bindables="{ id: item.id, class: item.class }">', {
         items: [
           { id: 1, class: 'a' },
@@ -474,7 +474,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
-    it('spreads with ...$bindables= syntax', function () {
+    it('spreads with ...$bindables= syntax', async function () {
       const { assertHtml, component } = createFixture('<el repeat.for="item of items" ...$bindables="item">', {
         items: [
           { id: 1, class: 'a' },
@@ -489,7 +489,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>3--a</el><el>2--b</el>', { compact: true });
     });
 
-    it('spreads with $bindables.spread= syntax', function () {
+    it('spreads with $bindables.spread= syntax', async function () {
       const { assertHtml } = createFixture('<el repeat.for="item of items" $bindables.spread="item">', {
         items: [
           { id: 1, class: 'a' },
@@ -500,7 +500,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
     });
 
-    it('creates binding in the order in the template (before)', function () {
+    it('creates binding in the order in the template (before)', async function () {
       const { assertHtml } = createFixture('<el id.bind="3" ...item>', {
         item: { id: 1, class: 'a' },
       }, [El]);
@@ -508,7 +508,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
-    it('creates binding in the order in the template (after)', function () {
+    it('creates binding in the order in the template (after)', async function () {
       const { assertHtml } = createFixture('<el ...item id.bind="3">', {
         item: { id: 1, class: 'a' },
       }, [El]);
@@ -516,7 +516,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>3--a</el>');
     });
 
-    it('spreads with member access expression using shorthand syntax', function () {
+    it('spreads with member access expression using shorthand syntax', async function () {
       const { assertHtml } = createFixture('<el repeat.for="item of items" ...item.details>', {
         items: [
           { details: { id: 1, class: 'a' } },
@@ -527,7 +527,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el><el>2--b</el>', { compact: true });
     });
 
-    it('spreads with keyed access expression using shorthand syntax', function () {
+    it('spreads with keyed access expression using shorthand syntax', async function () {
       const { assertHtml } = createFixture('<el ...items[0].details>', {
         items: [
           { details: { id: 1, class: 'a' } },
@@ -538,7 +538,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
-    it('works with collection mutation', function () {
+    it('works with collection mutation', async function () {
       const { assertHtml, component } = createFixture('<el ...items[0].details>', {
         items: [
           { details: { id: 1, class: 'a' } },
@@ -552,7 +552,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
-    it('cannot be transferred by ...$attrs', function () {
+    it('cannot be transferred by ...$attrs', async function () {
       const ElWithAttrs = CustomElement.define({
         name: 'el-with-attrs',
         template: '<el ...$attrs>',
@@ -564,7 +564,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el-with-attrs><el>--</el></el-with-attrs>');
     });
 
-    it('does not cause child property bindings to be bound again when the new evaluation returns the same object', function () {
+    it('does not cause child property bindings to be bound again when the new evaluation returns the same object', async function () {
       let id = 0;
       let idCount = 0;
       let classValue = 'a';
@@ -601,7 +601,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el>1--a</el>');
     });
 
-    it('works with $attr when used before ...$attrs on the same element', function () {
+    it('works with $attr when used before ...$attrs on the same element', async function () {
       const ElWithAttrs = CustomElement.define({
         name: 'el-with-attrs',
         template: '<el ...item ...$attrs>',
@@ -616,7 +616,7 @@ describe('3-runtime-html/spread.spec.ts', function () {
       assertHtml('<el-with-attrs><el>1--b</el></el-with-attrs>');
     });
 
-    it('works with $attr when used after $attrs on the same element', function () {
+    it('works with $attr when used after $attrs on the same element', async function () {
       const ElWithAttrs = CustomElement.define({
         name: 'el-with-attrs',
         template: '<el ...$attrs ...item>',

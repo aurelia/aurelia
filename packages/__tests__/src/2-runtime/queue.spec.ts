@@ -39,6 +39,29 @@ describe('2-runtime/queue.spec.ts', function () {
         assert.strictEqual(true, false, `Expected no error to be thrown. error: ${e}`);
       }
     });
+
+    it('can be awaited with an ordinary tick (even if nested)', async function () {
+      const stack: string[] = [];
+      queueTask(() => {
+        stack.push('Sync1');
+
+        queueTask(() => {
+          stack.push('Sync2');
+
+          queueTask(() => {
+            stack.push('Sync3');
+          });
+        });
+      });
+
+      await Promise.resolve();
+
+      assert.deepStrictEqual(stack, [
+        'Sync1',
+        'Sync2',
+        'Sync3',
+      ], 'stack mismatch');
+    });
   });
 
   describe('queueAsyncTask', function () {

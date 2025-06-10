@@ -50,7 +50,8 @@ import {
 } from '../util.js';
 
 describe('3-runtime-html/promise.spec.ts', function () {
-  it.skip('shows content as per promise status - non-template promise-host - fulfilled (unrolled)', async function () {
+  // Note: This is just an unrolled test for debugging purposes (useful for future refactoring of the tests)
+  it('shows content as per promise status - non-template promise-host - fulfilled (unrolled)', async function () {
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
     ctx.doc.body.appendChild(host);

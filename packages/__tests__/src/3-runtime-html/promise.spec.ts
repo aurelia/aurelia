@@ -131,7 +131,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
     app!.resolve(42);
     await tasksSettled();
-    await tasksSettled();
 
     assert.html.innerEqual(host, `<div> <fulfilled-host>resolved with 42</fulfilled-host> </div>`);
 
@@ -614,13 +613,10 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                // one tick to call back the fulfill delegate, and queue task
-                await tasksSettled();
-                // on the next tick wait the queued task
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('resolved with 42', 'f')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
-              }
+              },
             );
           }
           {
@@ -636,7 +632,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, `<div> ${wrap('rejected with foo-bar', 'r')} </div>`);
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -656,9 +651,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                // one tick to call back the fulfill delegate, and queue task
-                await tasksSettled();
-                // on the next tick wait the queued task
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
@@ -678,7 +670,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -765,7 +756,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
               resolve(84);
               await tasksSettled();
-              await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -791,7 +781,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await tasksSettled();
               await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -851,7 +840,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
               resolve(84);
               await tasksSettled();
-              await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('resolved with 84', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -877,7 +865,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
 
               reject(new Error('foo-bar'));
-              await tasksSettled();
               await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -912,6 +899,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               ctx.app.promise = Promise.resolve(42);
               await tasksSettled();
+              // TODO: figure out (and document) why two calls are necessary
               await tasksSettled();
 
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
@@ -930,6 +918,7 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.clear();
               ctx.app.promise = Promise.reject(new Error('foo-bar'));
               await tasksSettled();
+              // TODO: figure out (and document) why two calls are necessary
               await tasksSettled();
 
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
@@ -955,7 +944,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
 
               resolve(42);
               await tasksSettled();
-              await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
             }
@@ -978,7 +966,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               ctx.assertCallSet([]);
 
               reject(new Error('foo-bar'));
-              await tasksSettled();
               await tasksSettled();
               assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
               ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -1013,7 +1000,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -1032,7 +1018,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
@@ -1060,7 +1045,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(fhost)]);
               }
@@ -1079,7 +1063,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
@@ -1107,7 +1090,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet(getDeactivationSequenceFor(phost));
               }
@@ -1126,7 +1108,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor(rhost)]);
@@ -1153,7 +1134,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
@@ -1172,7 +1152,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet([]);
@@ -1199,7 +1178,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, '');
                 ctx.assertCallSet([]);
               }
@@ -1218,7 +1196,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet(getActivationSequenceFor(rhost));
@@ -1246,7 +1223,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                 ctx.clear();
                 resolve(42);
                 await tasksSettled();
-                await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('resolved with 42', 'f'));
                 ctx.assertCallSet(getActivationSequenceFor(fhost));
               }
@@ -1265,7 +1241,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error('foo-bar'));
-                await tasksSettled();
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, wrap('rejected with foo-bar', 'r'));
                 ctx.assertCallSet(getActivationSequenceFor(rhost));
@@ -1316,9 +1291,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 resolve(42);
-                // one tick to call back the fulfill delegate, and queue task
-                await tasksSettled();
-                // on the next tick wait the queued task
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, '<fulfilled-host1>resolved</fulfilled-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('fulfilled-host1')]);
@@ -1344,9 +1316,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
               async (ctx) => {
                 ctx.clear();
                 reject(new Error());
-                // one tick to call back the fulfill delegate, and queue task
-                await tasksSettled();
-                // on the next tick wait the queued task
                 await tasksSettled();
                 assert.html.innerEqual(ctx.host, '<rejected-host1>rejected</rejected-host1>');
                 ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor('rejected-host1')]);
@@ -1585,9 +1554,6 @@ describe('3-runtime-html/promise.spec.ts', function () {
                   } else {
                     reject(new Error('foo-bar'));
                   }
-                  // one tick to call back the fulfill delegate, and queue task
-                  await tasksSettled();
-                  // on the next tick wait the queued task
                   await tasksSettled();
                   assert.html.innerEqual(ctx.host, `${staticPart} ${$resolve ? wrap('resolved with 42', 'f') : wrap('rejected with foo-bar', 'r')}`);
                   ctx.assertCallSet([...getDeactivationSequenceFor(phost), ...getActivationSequenceFor($resolve ? fhost : rhost)]);

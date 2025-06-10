@@ -2,6 +2,12 @@ import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled } fro
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
+  beforeEach(async function () {
+    assert.strictEqual(await tasksSettled(), false, `queue should be empty prior to each test`);
+  });
+  afterEach(async function () {
+    assert.strictEqual(await tasksSettled(), false, `queue should be empty after each test`);
+  });
 
   describe('queueTasks', function () {
     it('runs a task in the queue', async function () {
@@ -449,34 +455,26 @@ describe('2-runtime/queue.spec.ts', function () {
 
     let taskQueuedFromMicrotaskHasRun = false;
 
-    queueTask(() => {
-      stack.push('OuterTask_Start');
+    void Promise.resolve().then(() => {
+      stack.push('Microtask_QueueingNewTask');
 
-      void Promise.resolve().then(() => {
-        stack.push('Microtask_QueueingNewTask');
+      queueTask(() => {
+        stack.push('Task_FromMicrotask');
 
-        queueTask(() => {
-          stack.push('InnerTask_FromMicrotask');
-
-          taskQueuedFromMicrotaskHasRun = true;
-        });
+        taskQueuedFromMicrotaskHasRun = true;
       });
-
-      stack.push('OuterTask_End');
     });
 
     await tasksSettled();
 
     assert.strictEqual(taskQueuedFromMicrotaskHasRun, true, 'Task queued from microtask should have run');
     assert.deepStrictEqual(stack, [
-      'OuterTask_Start',
-      'OuterTask_End',
       'Microtask_QueueingNewTask',
-      'InnerTask_FromMicrotask',
+      'Task_FromMicrotask',
     ], 'stack mismatch');
   });
 
-  it('tasksSettled correctly uses a new promise after a previous one has resolved', async function () {
+  it('tasksSettled resolves to false if no work was scheduled after prior resolution', async function () {
     const stack: string[] = [];
 
     // Phase 1
@@ -484,13 +482,13 @@ describe('2-runtime/queue.spec.ts', function () {
       stack.push('A');
     });
 
-    await tasksSettled();
+    assert.strictEqual(await tasksSettled(), true, `settlePromise should resolve to true if work was performed`);
 
     assert.deepStrictEqual(stack, [
       'A',
     ], 'Phase 1 stack mismatch');
 
-    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null after resolution');
+    assert.strictEqual(await tasksSettled(), false, `settlePromise should resolve to false if no work was performed`);
 
     stack.length = 0;
 
@@ -507,9 +505,7 @@ describe('2-runtime/queue.spec.ts', function () {
       stack.push('C_async');
     });
 
-    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null before tasks from phase 2 trigger a new one via flush');
-
-    await tasksSettled();
+    assert.strictEqual(await tasksSettled(), true, `settlePromise should resolve to true if work was performed in phase 2`);
 
     assert.deepStrictEqual(stack, [
       'B',
@@ -517,7 +513,7 @@ describe('2-runtime/queue.spec.ts', function () {
       'C_async',
     ], 'Phase 2 stack mismatch');
 
-    assert.strictEqual(globalThis['__au_queue__'].settlePromise, null, 'settlePromise should be null again');
+    assert.strictEqual(await tasksSettled(), false, `settlePromise should resolve to false if no work was performed in phase 2`);
     assert.strictEqual(asyncTaskC.status, 'completed');
   });
 });

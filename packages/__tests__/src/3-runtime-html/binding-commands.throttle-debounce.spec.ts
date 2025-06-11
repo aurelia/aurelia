@@ -275,7 +275,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(receiver.value, '3');
     });
 
-    it.skip('works with twoWay bindings to other components', async function () {
+    it('works with twoWay bindings to other components', async function () {
       @customElement({
         name: 'au-receiver',
         template: null,
@@ -303,6 +303,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       const receiver = component.receiver;
       component.value = '1';
+      runTasks();
 
       assert.strictEqual(component.value, '1');
       assert.strictEqual(receiver.value, '1');
@@ -315,6 +316,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(receiver.value, '2', `receiver keeps change 2`);
 
       component.value = '3';
+      runTasks();
 
       assert.strictEqual(component.value, '3');
       assert.strictEqual(receiver.value, '3');
@@ -540,7 +542,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(receiver.value, '3', 'target value pre #3 + wait(10) (total wait 30 > 25)');
     });
 
-    it.skip('works with [twoWay] bindings to other components', async function () {
+    it('works with [twoWay] bindings to other components', async function () {
       @customElement({
         name: 'au-receiver',
         template: null,
@@ -559,15 +561,20 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       const receiver = component.receiver;
       component.value = '1';
+      runTasks();
 
       assert.strictEqual(receiver.value, '1');
       assert.strictEqual(component.value, '1');
 
       receiver.value = '2';
+      runTasks();
+
       assert.strictEqual(receiver.value, '2', `receiver keeps change 2`);
       assert.strictEqual(component.value, '2', 'change 2 propagated immediately to component');
 
       receiver.value = '3';
+      runTasks();
+
       assert.strictEqual(receiver.value, '3', `receiver keeps change 3`);
       assert.strictEqual(component.value, '2', 'change 3 throttled');
 
@@ -577,6 +584,7 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(component.value, '2', 'change 3 still throttled after 20ms');
 
       receiver.value = '4';
+      runTasks();
 
       assert.strictEqual(receiver.value, '4', `receiver keeps change 4`);
       assert.strictEqual(component.value, '2', 'change 4 still throttled after 20ms');
@@ -592,11 +600,15 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       // in the next block, verify that on the fly target->source throttled update
       // will be discarded when source is updated while the throttle task is queued
       receiver.value = '5';
+      runTasks();
+
       assert.strictEqual(receiver.value, '5', 'receiver keeps change 5');
       assert.strictEqual(component.value, '5', 'change 5 propagated immediately to component');
 
       // target -> source
       receiver.value = '6';
+      runTasks();
+
       assert.strictEqual(receiver.value, '6', `receiver keeps change 6`);
       assert.strictEqual(component.value, '5', 'change 6 throttled');
 
@@ -606,6 +618,8 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       // source -> target | should discard previously queued value
       component.value = '7';
+      runTasks();
+
       assert.strictEqual(receiver.value, '7', 'receiver takes change 7');
       assert.strictEqual(component.value, '7', 'change 7(from source)');
 

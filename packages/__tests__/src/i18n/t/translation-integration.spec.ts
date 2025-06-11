@@ -322,6 +322,28 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, 'span', translation.simple.text);
     }, { component: App });
   }
+  {
+    @customElement({ name: 'app', template: `<span if.bind='obj.condition'><span t.bind='obj.key'></span></span>` })
+    class App {
+      public obj: { key: string; condition: boolean } = { key: 'simple.text', condition: true };
+
+      public changeCondition() {
+        this.obj = { key: 'simple.text', condition: false };
+      }
+    }
+    $it('does not throw AUR0203 when handleChange is called after unbind in if.bind/t.bind scenario', function ({ host, app, ctx, en: translation }: I18nIntegrationTestContext<App>) {
+      assertTextContent(host, 'span > span', translation.simple.text, 'initial rendering');
+
+      app.changeCondition();
+      ctx.platform.domQueue.flush();
+      assert.equal((host as Element).querySelector('span > span'), null, 'inner span removed after unbind');
+
+      assert.doesNotThrow(() => {
+            app.obj.key = 'simple.attr';
+            ctx.platform.domQueue.flush();
+        }, 'AUR0203 error should not be thrown');
+    }, { component: App });
+  }
 
   describe('translation can be manipulated by using t-params', function () {
     {

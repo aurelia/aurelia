@@ -549,6 +549,44 @@ describe('i18n/t/translation-integration.spec.ts', function () {
             assertTextContent(host, 'span', translation.simple.text);
         }, { component: App });
     }
+    {
+        let App = (() => {
+            let _classDecorators = [customElement({ name: 'app', template: `<span if.bind='obj.condition'><span t.bind='obj.key'></span></span>` })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            var App = _classThis = class {
+                constructor() {
+                    this.obj = { key: 'simple.text', condition: true };
+                }
+                changeCondition() {
+                    this.obj = { key: 'simple.text', condition: false };
+                }
+            };
+            __setFunctionName(_classThis, "App");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                App = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return App = _classThis;
+        })();
+        $it('does not throw AUR0203 when handleChange is called after unbind in if.bind/t.bind scenario', function ({ host, app, ctx, en: translation }) {
+            assertTextContent(host, 'span > span', translation.simple.text, 'initial rendering');
+            assert.doesNotThrow(() => {
+                app.changeCondition();
+                ctx.platform.domQueue.flush();
+                app.obj.key = 'simple.attr';
+                ctx.platform.domQueue.flush();
+            }, 'AUR0203 error should not be thrown');
+            assert.equal(host.querySelector('span > span'), null, 'inner span removed after unbind');
+            app.obj.condition = true;
+            ctx.platform.domQueue.flush();
+            assertTextContent(host, 'span > span', translation.simple.attr, 'final rendering');
+        }, { component: App });
+    }
     describe('translation can be manipulated by using t-params', function () {
         {
             let App = (() => {

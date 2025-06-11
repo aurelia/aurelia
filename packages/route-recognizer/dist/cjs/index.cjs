@@ -361,7 +361,6 @@ class RouteRecognizer {
         return s;
     }
     $recognize(t) {
-        t = decodeURI(t);
         if (!t.startsWith("/")) {
             t = `/${t}`;
         }

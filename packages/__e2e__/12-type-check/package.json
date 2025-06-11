@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.1.0-dev.202505250554",
+  "version": "2.1.0-dev.202506111803",
   "port": 9012,
   "scripts": {
     "dev": "webpack serve",
@@ -17,15 +17,15 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202505250554",
-    "@aurelia/metadata": "2.1.0-dev.202505250554",
-    "@aurelia/route-recognizer": "2.1.0-dev.202505250554",
-    "@aurelia/runtime-html": "2.1.0-dev.202505250554",
-    "@aurelia/runtime": "2.1.0-dev.202505250554",
-    "aurelia": "2.1.0-dev.202505250554"
+    "@aurelia/kernel": "2.1.0-dev.202506111803",
+    "@aurelia/metadata": "2.1.0-dev.202506111803",
+    "@aurelia/route-recognizer": "2.1.0-dev.202506111803",
+    "@aurelia/runtime-html": "2.1.0-dev.202506111803",
+    "@aurelia/runtime": "2.1.0-dev.202506111803",
+    "aurelia": "2.1.0-dev.202506111803"
   },
   "devDependencies": {
-    "@aurelia/webpack-loader": "2.1.0-dev.202505250554",
+    "@aurelia/webpack-loader": "2.1.0-dev.202506111803",
     "@playwright/test": "1.39.0",
     "@types/node": "^20.16.10",
     "array-flatten": "^3.0.0",

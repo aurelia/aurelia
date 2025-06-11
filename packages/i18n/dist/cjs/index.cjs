@@ -470,6 +470,9 @@ class TranslationBinding {
         this.isBound = false;
     }
     handleChange(t, n) {
+        if (!this.isBound) {
+            return;
+        }
         this.obs.version++;
         this.F = i.astEvaluate(this.ast, this.s, this, this);
         this.obs.clear();

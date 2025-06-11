@@ -2121,5 +2121,85 @@ describe('router-lite/resources/load.spec.ts', function () {
         assert.html.textContent(host, 'nf');
         await au.stop(true);
     });
+    {
+        class TestData {
+            constructor(name, routeParam) {
+                this.name = name;
+                this.routeParam = routeParam;
+                this.encodedRouteParam = encodeURIComponent(routeParam);
+            }
+        }
+        const testData = [
+            new TestData('with /', 'foo/bar'),
+            new TestData('with %', 'foo%bar'),
+            new TestData('with ?', 'foo?bar'),
+            new TestData('with #', 'foo#bar'),
+            new TestData('with &', 'foo&bar'),
+            new TestData('with emoji', 'foo😀bar'),
+        ];
+        const numTestData = testData.length;
+        for (const useHash of [true, false]) {
+            for (let i = 0; i < numTestData; ++i) {
+                const { name, routeParam, encodedRouteParam } = testData[i];
+                it(`decodes route parameters correctly - ${name} - with hash: ${useHash}`, async function () {
+                    let P1 = (() => {
+                        let _classDecorators = [route('p1/*rest'), customElement({ name: 'p-1', template: `p1 \${rest}` })];
+                        let _classDescriptor;
+                        let _classExtraInitializers = [];
+                        let _classThis;
+                        var P1 = _classThis = class {
+                            loading(params, _next, _current) {
+                                this.rest = params.rest;
+                            }
+                        };
+                        __setFunctionName(_classThis, "P1");
+                        (() => {
+                            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                            P1 = _classThis = _classDescriptor.value;
+                            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                            __runInitializers(_classThis, _classExtraInitializers);
+                        })();
+                        return P1 = _classThis;
+                    })();
+                    let Root = (() => {
+                        let _classDecorators = [route({ routes: [P1] }), customElement({ name: 'ro-ot', template: '<a load.bind="route"></a><au-viewport></au-viewport>' })];
+                        let _classDescriptor;
+                        let _classExtraInitializers = [];
+                        let _classThis;
+                        var Root = _classThis = class {
+                            constructor() {
+                                this.route = `p1/${encodedRouteParam}`;
+                            }
+                        };
+                        __setFunctionName(_classThis, "Root");
+                        (() => {
+                            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                            Root = _classThis = _classDescriptor.value;
+                            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                            __runInitializers(_classThis, _classExtraInitializers);
+                        })();
+                        return Root = _classThis;
+                    })();
+                    const { au, host, container, rootVm } = await start({ appRoot: Root, registrations: [P1], useHash });
+                    const queue = container.get(IPlatform).domQueue;
+                    const anchor = host.querySelector('a');
+                    anchor.click();
+                    await queue.yield();
+                    assert.html.textContent(host, `p1 ${routeParam}`, 'round#1');
+                    // change route
+                    const { routeParam: nextRouteParam, encodedRouteParam: nextEncodedRouteParam } = testData[(i + 1) % numTestData];
+                    const nextRoute = rootVm.route = `p1/${nextEncodedRouteParam}`;
+                    await queue.yield();
+                    assert.strictEqual(anchor.getAttribute('href').endsWith(nextRoute), true, 'round#2 - href');
+                    anchor.click();
+                    await queue.yield();
+                    assert.html.textContent(host, `p1 ${nextRouteParam}`, 'round#2');
+                    await au.stop(true);
+                });
+            }
+        }
+    }
 });
 //# sourceMappingURL=load.spec.js.map

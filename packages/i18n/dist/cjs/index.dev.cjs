@@ -509,6 +509,9 @@ class TranslationBinding {
         this.isBound = false;
     }
     handleChange(_newValue, _previousValue) {
+        if (!this.isBound) {
+            return;
+        }
         this.obs.version++;
         this._keyExpression = runtime.astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();

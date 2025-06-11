@@ -137,14 +137,14 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
     });
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) return;
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     const v = this._value = astEvaluate(
       this.ast,

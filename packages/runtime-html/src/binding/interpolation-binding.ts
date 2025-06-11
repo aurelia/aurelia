@@ -100,18 +100,18 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
     this._targetObserver.setValue(result, target, targetProperty);
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) return;
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
     const partBindings = this.partBindings;
     const ii = partBindings.length;
     let i = 0;
     for (; ii > i; ++i) {
-      partBindings[i].bind(_scope);
+      partBindings[i].bind(scope);
     }
     this.updateTarget();
     this.isBound = true;

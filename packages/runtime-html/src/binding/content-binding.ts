@@ -83,7 +83,7 @@ export class ContentBinding implements IBinding, ISubscriber, ICollectionSubscri
   }
 
   public updateTarget(value: unknown): void {
-    const { target } = this;
+    const target = this.target;
     const oldValue = this._value;
     this._value = value;
     if (this._needsRemoveNode) {

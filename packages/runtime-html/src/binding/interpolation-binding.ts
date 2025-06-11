@@ -78,7 +78,10 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
   }
 
   public updateTarget(): void {
-    const { partBindings, ast, target, targetProperty } = this;
+    const partBindings = this.partBindings;
+    const ast = this.ast;
+    const target = this.target;
+    const targetProperty = this.targetProperty;
     const staticParts = ast.parts;
     const ii = partBindings.length;
     let result = '';

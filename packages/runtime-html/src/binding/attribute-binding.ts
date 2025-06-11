@@ -104,7 +104,9 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public updateTarget(value: unknown): void {
-    const { target, targetAttribute, targetProperty } = this;
+    const target = this.target;
+    const targetAttribute = this.targetAttribute;
+    const targetProperty = this.targetProperty;
     switch (targetAttribute) {
       case 'class':
         if (this._isMulti) {

@@ -89,6 +89,85 @@ You can use these operators to safely handle null or undefined values:
 
 This helps avoid lengthy if-statements or ternary checks in your view model when dealing with potentially undefined data.
 
+## HTMLElement interpolation
+
+Aurelia supports passing HTMLElement objects directly to template interpolations. This allows you to dynamically create and insert DOM elements into your templates at runtime.
+
+### Creating elements with `document.createElement()`
+
+You can create DOM elements in your view model and bind them directly:
+
+{% code title="my-app.ts" %}
+```typescript
+export class MyApp {
+  content = document.createElement('button');
+
+  constructor() {
+    this.content.textContent = 'Click me!';
+    this.content.addEventListener('click', () => {
+      alert('Button clicked!');
+    });
+  }
+}
+```
+{% endcode %}
+
+{% code title="my-app.html" %}
+```html
+<div>${content}</div>
+```
+{% endcode %}
+
+The button element will be directly inserted into the div, maintaining all its properties and event listeners.
+
+### Parsing HTML strings
+
+You can also parse HTML strings and render the resulting elements:
+
+{% code title="my-app.ts" %}
+```typescript
+export class MyApp {
+  content = Document.parseHTMLUnsafe('<button>Parsed Button</button>').documentElement;
+}
+```
+{% endcode %}
+
+{% code title="my-app.html" %}
+```html
+<div>${content}</div>
+```
+{% endcode %}
+
+{% hint style="warning" %}
+When using `Document.parseHTMLUnsafe()`, be cautious about the source of your HTML strings to avoid XSS vulnerabilities. Only use this with trusted content.
+{% endhint %}
+
+### Dynamic element creation
+
+This feature is particularly useful for dynamic content scenarios:
+
+{% code title="my-app.ts" %}
+```typescript
+export class MyApp {
+  elements: HTMLElement[] = [];
+
+  addElement() {
+    const newElement = document.createElement('span');
+    newElement.textContent = `Element ${this.elements.length + 1}`;
+    newElement.style.color = 'blue';
+    this.elements.push(newElement);
+  }
+}
+```
+{% endcode %}
+
+{% code title="my-app.html" %}
+```html
+<button click.trigger="addElement()">Add Element</button>
+<div repeat.for="element of elements">${element}</div>
+```
+{% endcode %}
+
 ## Notes on syntax
 
 While template interpolation is powerful, there are a few limitations to keep in mind:

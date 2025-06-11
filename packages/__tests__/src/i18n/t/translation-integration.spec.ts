@@ -333,15 +333,16 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     }
     $it('does not throw AUR0203 when handleChange is called after unbind in if.bind/t.bind scenario', function ({ host, app, ctx, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span > span', translation.simple.text, 'initial rendering');
-
-      app.changeCondition();
-      ctx.platform.domQueue.flush();
-      assert.equal((host as Element).querySelector('span > span'), null, 'inner span removed after unbind');
-
       assert.doesNotThrow(() => {
-            app.obj.key = 'simple.attr';
-            ctx.platform.domQueue.flush();
-        }, 'AUR0203 error should not be thrown');
+        app.changeCondition();
+        ctx.platform.domQueue.flush();
+        app.obj.key = 'simple.attr';
+        ctx.platform.domQueue.flush();
+      }, 'AUR0203 error should not be thrown');
+      assert.equal((host as Element).querySelector('span > span'), null, 'inner span removed after unbind');
+      app.obj.condition = true;
+      ctx.platform.domQueue.flush();
+      assertTextContent(host, 'span > span', translation.simple.attr, 'final rendering');
     }, { component: App });
   }
 

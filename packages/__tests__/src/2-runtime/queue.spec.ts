@@ -539,4 +539,121 @@ describe('2-runtime/queue.spec.ts', function () {
     assert.strictEqual(await tasksSettled(), false, `settlePromise should resolve to false if no work was performed in phase 2`);
     assert.strictEqual(asyncTaskC.status, 'completed');
   });
+
+  describe('delay parameter', function () {
+    it('waits for the specified delay before executing the task', async function () {
+      const stack: string[] = [];
+      const delay = 20;
+      const startTime = performance.now();
+
+      stack.push('start');
+
+      const delayedTask = queueAsyncTask(() => {
+        stack.push('delayed_task');
+        const endTime = performance.now();
+        assert.strictEqual(delayedTask.status, 'running', `Delayed task should have status 'running'`);
+        assert.greaterThan(endTime - startTime, delay, 'Task ran before the delay completed');
+      }, { delay });
+
+      assert.strictEqual(delayedTask.status, 'pending', `Delayed task should have status 'pending'`);
+
+      await tasksSettled();
+
+      stack.push('end');
+
+      assert.deepStrictEqual(stack, [
+        'start',
+        'delayed_task',
+        'end'
+      ], 'stack mismatch');
+
+      assert.strictEqual(delayedTask.status, 'completed', `Delayed task should have status 'completed'`);
+    });
+
+    it('executes non-delayed tasks before delayed tasks', async function () {
+      const stack: string[] = [];
+
+      queueAsyncTask(() => {
+        stack.push('A_delayed_1ms');
+      }, { delay: 1 });
+
+      queueAsyncTask(() => {
+        stack.push('B_async');
+      });
+
+      queueTask(() => {
+        stack.push('C_sync');
+      });
+
+      await tasksSettled();
+
+      assert.deepStrictEqual(stack, [
+        'B_async',
+        'C_sync',
+        'A_delayed_1ms'
+      ], 'stack mismatch');
+    });
+
+    it('can cancel a delayed task before it starts executing', async function () {
+      const stack: string[] = [];
+
+      const taskToCancel = queueAsyncTask(() => {
+        stack.push('should_not_run');
+      }, { delay: 20 });
+
+      const taskToRun = queueAsyncTask(() => {
+        stack.push('A_delayed_1ms');
+      }, { delay: 1 });
+
+      await new Promise(resolve => setTimeout(resolve, 1));
+
+      assert.strictEqual(taskToRun.status, 'completed', `1ms delayed task should have status 'completed'`);
+
+      const wasCancelled = taskToCancel.cancel();
+
+      await tasksSettled();
+
+      assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a delayed task');
+      assert.strictEqual(taskToCancel.status, 'canceled', `20ms delayed task should have status 'canceled'`);
+
+      try {
+        await taskToCancel.result;
+        assert.fail('Canceled task result should have rejected');
+      } catch (e: any) {
+        assert.instanceOf(e, TaskAbortError, 'Canceled task should reject with TaskAbortError');
+      }
+
+      assert.deepStrictEqual(stack, [
+        'A_delayed_1ms'
+      ], 'stack mismatch');
+    });
+
+    it('treats delay: 0 and delay: null as a non-delayed task', async function () {
+      const stack: string[] = [];
+
+      const taskA = queueAsyncTask(() => {
+        stack.push('A_zero_delay');
+      }, { delay: 0 });
+
+      const taskB = queueAsyncTask(() => {
+        stack.push('B_null_delay');
+      }, { delay: null });
+
+      queueTask(() => {
+        stack.push('C_sync');
+      });
+
+      await tasksSettled();
+
+      assert.deepStrictEqual(stack, [
+        'A_zero_delay',
+        'B_null_delay',
+        'C_sync'
+      ], 'stack mismatch');
+
+      assert.strictEqual(taskA.status, 'completed', `Task with delay: 0 should have status 'completed'`);
+      assert.strictEqual(taskB.status, 'completed', `Task with delay: null should have status 'completed'`);
+    });
+
+  });
 });

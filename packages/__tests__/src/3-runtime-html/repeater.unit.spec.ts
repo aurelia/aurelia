@@ -4,6 +4,7 @@ import {
   DirtyChecker,
   Scope,
   BindingContext,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   Repeat,
@@ -88,7 +89,6 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   interface BindSpec extends Spec {
     items: unknown[];
     mutations: MutationSpec[];
-    flush: boolean;
   }
 
   function applyMutations(sut: Repeat, specs: MutationSpec[]): void {
@@ -148,342 +148,342 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   ];
 
   const bindSpecs: BindSpec[] = [
-    { t: '01', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '01', items: ['a', 'b', 'c'], mutations: [
       { op: 'assign', newItems: ['d', 'e', 'f'] }
     ] },
-    { t: '02', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '02', items: ['a', 'b', 'c'], mutations: [
       { op: 'assign', newItems: ['a', 'b', 'c'] }
     ] },
-    { t: '03', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '03', items: ['a', 'b', 'c'], mutations: [
       { op: 'assign', newItems: ['a', 'b', 'c'] },
       { op: 'assign', newItems: ['d', 'e', 'f'] }
     ] },
-    { t: '04', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '04', items: ['a', 'b', 'c'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '05', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '05', items: ['a', 'b', 'c'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] },
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '06', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '06', items: ['a', 'b', 'c'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] },
       { op: 'assign', newItems: [] },
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '07', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '07', items: ['a', 'b', 'c'], mutations: [
       { op: 'unshift', items: ['d', 'e', 'f'] }
     ] },
-    { t: '08', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '08', items: ['a', 'b', 'c'], mutations: [
       { op: 'pop', count: 1 }
     ] },
-    { t: '09', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '09', items: ['a', 'b', 'c'], mutations: [
       { op: 'pop', count: 3 }
     ] },
-    { t: '10', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '10', items: ['a', 'b', 'c'], mutations: [
       { op: 'shift', count: 1 }
     ] },
-    { t: '11', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '11', items: ['a', 'b', 'c'], mutations: [
       { op: 'shift', count: 3 }
     ] },
-    { t: '12', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '12', items: ['a', 'b', 'c'], mutations: [
       { op: 'pop', count: 1 },
       { op: 'shift', count: 1 }
     ] },
-    { t: '13', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '13', items: ['a', 'b', 'c'], mutations: [
       { op: 'splice', start: 0, deleteCount: 1, items: ['a'] }
     ] },
-    { t: '15', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '15', items: ['a', 'b', 'c'], mutations: [
       { op: 'splice', start: 0, deleteCount: 1, items: ['b'] }
     ] },
-    { t: '16', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '16', items: ['a', 'b', 'c'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] }
     ] },
-    { t: '17', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '17', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] }
     ] },
-    { t: '18', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '18', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: ['z'] }
     ] },
-    { t: '19', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '19', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: [] }
     ] },
-    { t: '20', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '20', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: ['z'] }
     ] },
-    { t: '21', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '21', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: ['y', 'z'] }
     ] },
-    { t: '22', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '22', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: ['x', 'y', 'z'] }
     ] },
-    { t: '23', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '23', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 3, items: [] }
     ] },
-    { t: '24', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '24', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 3, items: ['z'] }
     ] },
-    { t: '25', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '25', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 3, items: ['y', 'z'] }
     ] },
-    { t: '26', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '26', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 3, items: ['x', 'y', 'z'] }
     ] },
-    { t: '27', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '27', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 1, items: [] }
     ] },
-    { t: '28', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '28', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 1, items: ['z'] }
     ] },
-    { t: '29', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '29', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 2, items: [] }
     ] },
-    { t: '30', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '30', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 2, items: ['z'] }
     ] },
-    { t: '31', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '31', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 2, items: ['y', 'z'] }
     ] },
-    { t: '32', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '32', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 2, items: ['x', 'y', 'z'] }
     ] },
-    { t: '33', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '33', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 3, items: [] }
     ] },
-    { t: '34', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '34', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 3, items: ['z'] }
     ] },
-    { t: '35', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '35', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 3, items: ['y', 'z'] }
     ] },
-    { t: '36', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '36', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 2, deleteCount: 3, items: ['x', 'y', 'z'] }
     ] },
-    { t: '37', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '37', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 1 }
     ] },
-    { t: '38', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '38', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 2 }
     ] },
-    { t: '39', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '39', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 3 }
     ] },
-    { t: '40', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '40', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 1 },
       { op: 'push', items: ['g'] }
     ] },
-    { t: '41', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '41', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 2 },
       { op: 'push', items: ['g'] }
     ] },
-    { t: '42', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '42', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'push', items: ['g'] }
     ] },
-    { t: '43', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '43', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 1 },
       { op: 'push', items: ['g', 'h'] }
     ] },
-    { t: '44', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '44', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 2 },
       { op: 'push', items: ['g', 'h'] }
     ] },
-    { t: '45', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '45', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'push', items: ['g', 'h'] }
     ] },
-    { t: '46', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '46', items: ['a', 'b', 'c'], mutations: [
       { op: 'reverse' }
     ] },
-    { t: '47', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '47', items: ['a', 'b', 'c'], mutations: [
       { op: 'reverse' },
       { op: 'reverse' }
     ] },
-    { t: '48', items: ['a', 'b', 'c'], flush: true, mutations: [
-      { op: 'reverse' },
-      { op: 'reverse' },
-      { op: 'reverse' }
-    ] },
-    { t: '49', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
-      { op: 'reverse' }
-    ] },
-    { t: '50', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
-      { op: 'reverse' },
-      { op: 'reverse' }
-    ] },
-    { t: '51', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '48', items: ['a', 'b', 'c'], mutations: [
       { op: 'reverse' },
       { op: 'reverse' },
       { op: 'reverse' }
     ] },
-    { t: '52', items: ['c', 'b', 'a'], flush: true, mutations: [
+    { t: '49', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
+      { op: 'reverse' }
+    ] },
+    { t: '50', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
+      { op: 'reverse' },
+      { op: 'reverse' }
+    ] },
+    { t: '51', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
+      { op: 'reverse' },
+      { op: 'reverse' },
+      { op: 'reverse' }
+    ] },
+    { t: '52', items: ['c', 'b', 'a'], mutations: [
       { op: 'sort' }
     ] },
-    { t: '53', items: ['c', 'b', 'a'], flush: true, mutations: [
+    { t: '53', items: ['c', 'b', 'a'], mutations: [
       { op: 'sort' },
       { op: 'reverse' },
       { op: 'sort' }
     ] },
-    { t: '54', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '54', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
     ] },
-    { t: '55', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '55', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
     ] },
-    { t: '56', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '56', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
     ] },
-    { t: '57', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '57', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
     ] },
-    { t: '58', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '58', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
     ] },
-    { t: '59', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '59', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'reverse' },
     ] },
-    { t: '60', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '60', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
       { op: 'reverse' },
     ] },
-    { t: '61', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '61', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 2, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'reverse' },
     ] },
-    { t: '62', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '62', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
       { op: 'reverse' },
     ] },
-    { t: '63', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '63', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
       { op: 'reverse' },
     ] },
-    { t: '64', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '64', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'reverse' },
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
     ] },
-    { t: '65', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '65', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'reverse' },
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
     ] },
-    { t: '66', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '66', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'reverse' },
       { op: 'splice', start: 1, deleteCount: 2, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
     ] },
-    { t: '67', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '67', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'reverse' },
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
     ] },
-    { t: '68', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '68', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'reverse' },
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 2, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
     ] },
-    { t: '69', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '69', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'assign', newItems: [] }
     ] },
-    { t: '70', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '70', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'assign', newItems: ['d', 'e', 'f'] }
     ] },
-    { t: '71', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '71', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '72', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '72', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '73', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '73', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] },
       { op: 'shift', count: 3 }
     ] },
-    { t: '74', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '74', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'push', items: ['d', 'e', 'f'] },
       { op: 'pop', count: 3 },
     ] },
-    { t: '75', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '75', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'push', items: ['d', 'e', 'f'] },
       { op: 'shift', count: 3 },
       { op: 'pop', count: 3 },
     ] },
-    { t: '76', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], flush: true, mutations: [
+    { t: '76', items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'pop', count: 3 },
       { op: 'push', items: ['d', 'e', 'f'] }
     ] },
-    { t: '77', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '77', items: ['a', 'b', 'c'], mutations: [
       { op: 'unshift', items: ['d', 'e', 'f'] },
       { op: 'assign', newItems: [] },
       { op: 'unshift', items: ['g', 'h', 'i'] }
     ] },
-    { t: '78', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '78', items: ['a', 'b', 'c'], mutations: [
       { op: 'pop', count: 1 },
       { op: 'assign', newItems: ['d', 'e', 'f'] },
       { op: 'pop', count: 1 }
     ] },
-    { t: '79', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '79', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'pop', count: 3 },
       { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
       { op: 'pop', count: 3 }
     ] },
-    { t: '80', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '80', items: ['a', 'b', 'c'], mutations: [
       { op: 'shift', count: 1 },
       { op: 'assign', newItems: ['d', 'e', 'f'] },
       { op: 'shift', count: 1 }
     ] },
-    { t: '81', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '81', items: ['a', 'b', 'c'], mutations: [
       { op: 'shift', count: 3 },
       { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
       { op: 'shift', count: 3 },
     ] },
-    { t: '82', items: ['a', 'b', 'c'], flush: true, mutations: [
+    { t: '82', items: ['a', 'b', 'c'], mutations: [
       { op: 'pop', count: 1 },
       { op: 'shift', count: 1 },
       { op: 'assign', newItems: ['d', 'e', 'f', 'g', 'h', 'i'] },
       { op: 'pop', count: 1 },
       { op: 'shift', count: 1 }
     ] },
-    { t: '83', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '83', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'assign', newItems: [] },
       { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
       { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
     ] },
-    { t: '84', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '84', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
       { op: 'assign', newItems: [] },
       { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
     ] },
-    { t: '85', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '85', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
       { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
       { op: 'assign', newItems: [] },
     ] },
-    { t: '86', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '86', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'push', items: ['g', 'h', 'i', 'j', 'k', 'l'] },
       { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] },
       { op: 'assign', newItems: ['c', 'd', 'e'] },
     ] },
-    { t: '87', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '87', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
@@ -494,7 +494,7 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
       { op: 'push', items: ['m', 'n', 'o', 'p', 'q', 'r'] }
     ] },
-    { t: '88', items: ['a', 'b', 'c', 'd', 'e', 'f'], flush: true, mutations: [
+    { t: '88', items: ['a', 'b', 'c', 'd', 'e', 'f'], mutations: [
       { op: 'splice', start: 1, deleteCount: 1, items: [] },
       { op: 'splice', start: 3, deleteCount: 1, items: [] },
       { op: 'splice', start: 5, deleteCount: 1, items: [] },
@@ -525,9 +525,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
   eachCartesianJoin(
     [duplicateOperationSpecs, bindSpecs],
     (duplicateOperationSpec, bindSpec) => {
-      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, function () {
+      it(`verify repeat behavior - duplicateOperationSpec ${duplicateOperationSpec.t}, bindSpec ${bindSpec.t}`, async function () {
         const { activateTwice, deactivateTwice } = duplicateOperationSpec;
-        const { items: $items, flush, mutations } = bindSpec;
+        const { items: $items, mutations } = bindSpec;
 
         const items = $items.slice();
 
@@ -588,19 +588,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         applyMutations(sut, mutations);
         const expectedText2 = sut.items ? sut.items.join('') : '';
 
-        if (flush) {
-          PLATFORM.domQueue.flush();
+        runTasks();
 
-          assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
-        } else {
-          const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
-
-          if (assign) {
-            assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #4');
-          } else {
-            assert.strictEqual(host.textContent, expectedText1, 'host.textContent #5');
-          }
-        }
+        assert.strictEqual(host.textContent, expectedText2, 'host.textContent #3');
 
         runDeactivateLifecycle(sut);
         if (deactivateTwice) {
@@ -624,19 +614,9 @@ describe(`3-runtime-html/repeater.unit.spec.ts`, function () {
         applyMutations(sut, mutations);
         const expectedText4 = sut.items ? sut.items.join('') : '';
 
-        if (flush) {
-          PLATFORM.domQueue.flush();
+        runTasks();
 
-          assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
-        } else {
-          const assign = mutations.find(m => m.op === 'assign') as AssignSpec;
-
-          if (assign) {
-            assert.strictEqual(host.textContent, assign.newItems.join(''), 'host.textContent #10');
-          } else {
-            assert.strictEqual(host.textContent, expectedText3, 'host.textContent #11');
-          }
-        }
+        assert.strictEqual(host.textContent, expectedText4, 'host.textContent #9');
 
         runDeactivateLifecycle(sut);
         if (deactivateTwice) {

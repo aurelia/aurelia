@@ -11,6 +11,7 @@ import {
   CustomElementDefinition,
   PartialCustomElementDefinition,
 } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { HydrateElementInstruction } from '@aurelia/template-compiler';
 import {
   assert,
@@ -326,7 +327,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       }
     }
     for (const { template, verifyDefinition, expectedContent } of getLocalTemplateTestData()) {
-      it(template, function () {
+      it(template, async function () {
         const { container, sut } = $$createFixture();
         sut.resolveResources = false;
         const definition = sut.compile({ name: 'lorem-ipsum', template }, container);
@@ -350,13 +351,13 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       });
     }
 
-    it('throws error if a root template is a local template', function () {
+    it('throws error if a root template is a local template', async function () {
       const template = `<template as-custom-element="foo-bar">I have local root!</template>`;
       const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The root cannot be a local template itself.');
     });
 
-    it('throws error if the custom element has only local templates', function () {
+    it('throws error if the custom element has only local templates', async function () {
       const template = `
       <template as-custom-element="foo-bar">Does this work?</template>
       <template as-custom-element="fiz-baz">Of course not!</template>
@@ -365,25 +366,25 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The custom element does not have any content other than local template(s).');
     });
 
-    it('throws error if a local template is not under root', function () {
+    it('throws error if a local template is not under root', async function () {
       const template = `<div><template as-custom-element="foo-bar">Can I hide here?</template></div>`;
       const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Local templates needs to be defined directly under root.');
     });
 
-    it('throws error if a local template does not have name', function () {
+    it('throws error if a local template does not have name', async function () {
       const template = `<template as-custom-element="">foo-bar</template><div></div>`;
       const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The value of "as-custom-element" attribute cannot be empty for local template');
     });
 
-    it('throws error if a duplicate local templates are found', function () {
+    it('throws error if a duplicate local templates are found', async function () {
       const template = `<template as-custom-element="foo-bar">foo-bar1</template><template as-custom-element="foo-bar">foo-bar2</template><div></div>`;
       const { container, sut } = $$createFixture();
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Duplicate definition of the local template named foo-bar');
     });
 
-    it('throws error if bindable is not under root', function () {
+    it('throws error if bindable is not under root', async function () {
       const template = `<template as-custom-element="foo-bar">
         <div>
           <bindable name="prop"></bindable>
@@ -394,7 +395,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'Bindable properties of local templates needs to be defined directly under root.');
     });
 
-    it('throws error if bindable property is missing', function () {
+    it('throws error if bindable property is missing', async function () {
       const template = `<template as-custom-element="foo-bar">
         <bindable attribute="prop"></bindable>
       </template>
@@ -403,7 +404,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       assert.throws(() => sut.compile({ name: 'lorem-ipsum', template }, container), 'The attribute \'property\' is missing in <bindable attribute="prop"></bindable>');
     });
 
-    it('throws error if duplicate bindable properties are found', function () {
+    it('throws error if duplicate bindable properties are found', async function () {
       const template = `<template as-custom-element="foo-bar">
         <bindable name="prop" attribute="bar"></bindable>
         <bindable name="prop" attribute="baz"></bindable>
@@ -416,7 +417,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       );
     });
 
-    it('throws error if duplicate bindable attributes are found', function () {
+    it('throws error if duplicate bindable attributes are found', async function () {
       const template = `<template as-custom-element="foo-bar">
         <bindable name="prop1" attribute="bar"></bindable>
         <bindable name="prop2" attribute="bar"></bindable>
@@ -430,7 +431,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     });
 
     for (const attr of ['if.bind="true"', 'if.bind="false"', 'else', 'repeat.for="item of items"', 'with.bind="{a:1}"', 'switch.bind="cond"', 'case="case1"']) {
-      it(`throws error if local-template surrogate has template controller - ${attr}`, function () {
+      it(`throws error if local-template surrogate has template controller - ${attr}`, async function () {
         const template = `<template as-custom-element="foo-bar" ${attr}>
         <bindable name="prop1" attribute="bar"></bindable>
       </template>
@@ -445,7 +446,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
       });
     }
 
-    it('warns if bindable element has more attributes other than the allowed', function () {
+    it('warns if bindable element has more attributes other than the allowed', async function () {
       const template = `<template as-custom-element="foo-bar">
         <bindable name="prop" unknown-attr who-cares="no one"></bindable>
       </template>
@@ -708,7 +709,7 @@ describe('3-runtime-html/template-compiler.local-templates.spec.ts', function ()
     assert.strictEqual(id, 1);
 
     vm.prop = true;
-    ctx.platform.domQueue.flush();
+    runTasks();
 
     assert.html.textContent(host, 'my-app-content my-le-content my-app-content my-le-content');
     assert.strictEqual(id, 2);

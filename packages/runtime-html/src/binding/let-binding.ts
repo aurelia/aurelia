@@ -78,10 +78,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.obs.version++;
     this._value = astEvaluate(this.ast, this._scope!, this, this);
     this.obs.clear();
@@ -92,18 +89,15 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     this.handleChange();
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
-    this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext) as IIndexable;
+    this._scope = scope;
+    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     this._value = astEvaluate(this.ast, this._scope, this, this);
     this.updateTarget();

@@ -1,7 +1,5 @@
 export {
   // enums
-  type DialogActionKey,
-  type DialogMouseEventType,
   type DialogDeactivationStatuses,
 
   // main interfaces
@@ -9,8 +7,6 @@ export {
   IDialogController,
   IDialogDomRenderer,
   IDialogDom,
-  IDialogDomAnimator,
-  IDialogEventManager,
 
   // dialog results
   DialogCloseResult,
@@ -24,6 +20,7 @@ export {
   type IDialogSettings,
   type IDialogLoadedSettings,
   IDialogGlobalSettings,
+  IDialogGlobalOptions,
 
   // implementable
   type IDialogCustomElementViewModel,
@@ -43,16 +40,25 @@ export {
 } from './dialog-service';
 export {
   DialogConfiguration,
-  DialogDefaultConfiguration,
+  DialogConfigurationClassic,
+  DialogConfigurationStandard,
   type DialogConfigurationProvider,
+  createDialogConfiguration,
 } from './dialog-configuration';
 
 export {
-  DefaultDialogDom,
-  DefaultDialogDomRenderer,
-  DefaultDialogGlobalSettings,
-} from './dialog-default-impl';
+  DialogDomClassic,
+  DialogDomRendererClassic,
+  DialogGlobalOptionsClassic,
+  type DialogRenderOptionsClassic,
+  type DialogActionKey,
+  type DialogMouseEventType,
+  type IDialogEventManager,
+} from './dialog-impl-classic';
 
 export {
-  DefaultDialogEventManager,
-} from './dialog-event-manager';
+  DialogDomStandard,
+  DialogDomRendererStandard,
+  DialogGlobalOptionsStandard,
+  type DialogRenderOptionsStandard,
+} from './dialog-impl-standard';

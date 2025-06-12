@@ -355,6 +355,9 @@ export class RouteContext {
     });
   }
 
+  /**
+   * Generates a path that is rooted to the application.
+   */
   public generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
@@ -378,16 +381,19 @@ export class RouteContext {
     );
   }
 
-  public generateRelativePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string> {
+  /**
+   * Generates a path that is relative to the this context.
+   */
+  public generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), null, true),
       vit => vit.toUrl(true, this._router.options._urlParser)
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? this) as IRouteContext | null;
@@ -396,9 +402,9 @@ export class RouteContext {
     if (!isArray(instructionOrInstructions)) {
       instructionOrInstructions = processStringInstruction.call(this, instructionOrInstructions);
     } else {
-      const len = (instructionOrInstructions as NavigationInstruction[]).length;
+      const len = instructionOrInstructions.length;
       for (let i = 0; i < len; ++i) {
-        (instructionOrInstructions as NavigationInstruction[])[i] = processStringInstruction.call(this, (instructionOrInstructions as NavigationInstruction[])[i]);
+        instructionOrInstructions[i] = processStringInstruction.call(this, instructionOrInstructions[i]);
       }
     }
 
@@ -506,6 +512,7 @@ export class RouteConfigContext {
    */
   public readonly _friendlyPath: string;
 
+  /** @internal */
   private readonly _navigationModel: NavigationModel | null;
   public get navigationModel(): INavigationModel | null {
     return this._navigationModel;

@@ -435,16 +435,22 @@ export class Router {
     );
   }
 
-  public generatePath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
+  /**
+   * Generate a path from the provided instructions.
+   *
+   * @param instructionOrInstructions - The navigation instruction(s) to generate the path for.
+   * @param context - The context to use for relative navigation. If not provided, the root context is used.
+   */
+  public generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string> {
     return onResolve(
       this.createViewportInstructions(createEagerInstructions(instructionOrInstructions), { context: context ?? this._ctx }, true),
       vit => vit.toUrl(true, this.options._urlParser)
     );
   }
 
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
-  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+  public createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren?: boolean): ViewportInstructionTree | Promise<ViewportInstructionTree> {
     if (instructionOrInstructions instanceof ViewportInstructionTree) return instructionOrInstructions;
 
     let context: IRouteContext | null = (options?.context ?? null) as IRouteContext | null;

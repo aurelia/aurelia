@@ -311,7 +311,7 @@ export class ViewportInstructionTree {
           }
         );
       }
-      return onResolve(onResolveAll(Promise.all(promises)), () => new ViewportInstructionTree(options as NavigationOptions, false, children, query, (options as NavigationOptions).fragment));
+      return onResolve(onResolveAll(...promises), () => new ViewportInstructionTree(options as NavigationOptions, false, children, query, (options as NavigationOptions).fragment));
     }
 
     if (typeof instructionOrInstructions === 'string') {

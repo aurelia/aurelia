@@ -188,6 +188,9 @@ export class TranslationBinding implements IBinding {
   }
 
   public handleChange(_newValue: string | i18next.TOptions, _previousValue: string | i18next.TOptions): void {
+    if (!this.isBound) {
+        return;
+    }
     this.obs.version++;
     this._keyExpression = astEvaluate(this.ast, this._scope, this, this) as string;
     this.obs.clear();

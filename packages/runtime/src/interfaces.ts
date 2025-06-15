@@ -27,7 +27,7 @@ export interface IDirtySubscriber {
  * Interface of a subscriber or property change handler
  */
 export interface ISubscriber<TValue = unknown> extends Partial<IDirtySubscriber> {
-  handleChange(newValue: TValue, previousValue: TValue): void | Promise<void>;
+  handleChange(newValue: TValue, previousValue: TValue): void;
 }
 
 /**

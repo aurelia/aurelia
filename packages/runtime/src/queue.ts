@@ -259,7 +259,6 @@ export class TaskAbortError<T = any> extends Error {
   }
 }
 
-type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 let id = 0;
 
 export class Task<R = any> {
@@ -269,13 +268,13 @@ export class Task<R = any> {
   public _timerId?: number;
 
   /** @internal */
-  private _resolve!: (value: UnwrapPromise<R>) => void;
+  private _resolve!: (value: Awaited<R>) => void;
   /** @internal */
   private _reject!: (reason?: any) => void;
 
   /** @internal */
-  private readonly _result: Promise<UnwrapPromise<R>>;
-  public get result(): Promise<UnwrapPromise<R>> {
+  private readonly _result: Promise<Awaited<R>>;
+  public get result(): Promise<Awaited<R>> {
     return this._result;
   }
 
@@ -289,7 +288,7 @@ export class Task<R = any> {
     public callback: TaskCallback<R>,
     public delay?: number,
   ) {
-    this._result = new Promise<UnwrapPromise<R>>((resolve, reject) => {
+    this._result = new Promise<Awaited<R>>((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
     });
@@ -326,7 +325,7 @@ export class Task<R = any> {
       });
     } else {
       this._status = tsCompleted;
-      this._resolve(ret as UnwrapPromise<R>);
+      this._resolve(ret as Awaited<R>);
     }
   }
 

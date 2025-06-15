@@ -1262,7 +1262,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       assert.strictEqual(changes, void 0);
       component.prop = 2;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
@@ -1287,12 +1286,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       assert.strictEqual(changes, void 0);
       component.prop = 2;
-      await tasksSettled();
       component.prop = 3;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
-      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
+      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 1 } });
     });
 
     it('does not call aggregated callback again after first call if there is no new changes', async function () {
@@ -1315,7 +1312,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       await Promise.resolve();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
@@ -1347,14 +1343,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
 
       assert.strictEqual(changes, void 0);
       component.prop = 2;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
-      assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
-
-      changes = void 0;
-      await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
+      assert.strictEqual(await tasksSettled(), false, 'should have no new tasks after the first flush cycle');
     });
 
     it('does not call aggregated callback after unbind', async function () {
@@ -1375,14 +1367,12 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       );
 
       component.prop = 2;
-      await tasksSettled();
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
 
       changes = void 0;
       await stop(true);
       component.prop = 3;
-      await tasksSettled();
       await Promise.resolve();
       assert.deepStrictEqual(changes, void 0);
     });
@@ -1405,8 +1395,9 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      component.prop = 2;
       component.show = false;
+      await Promise.resolve();
+      component.prop = 2;
       await Promise.resolve();
       assert.deepStrictEqual(changes, void 0);
     });
@@ -1460,10 +1451,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       assert.strictEqual(propChangedCallCount, 0);
       component.prop = 2;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
-      assert.strictEqual(propChangedCallCount, 1);
+      assert.strictEqual(propChangedCallCount, 0);
       await Promise.resolve();
+      assert.strictEqual(propChangedCallCount, 1);
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
     });
 
@@ -1498,10 +1489,9 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(propChangedCallCount, 0);
       assert.strictEqual(propertyChangedCallCount, 0);
       component.prop = 2;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
-      assert.strictEqual(propChangedCallCount, 1);
-      assert.strictEqual(propertyChangedCallCount, 1);
+      assert.strictEqual(propChangedCallCount, 0);
+      assert.strictEqual(propertyChangedCallCount, 0);
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
       assert.strictEqual(propChangedCallCount, 1);
@@ -1532,7 +1522,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       component.prop1 = 2;
       component.prop2 = 3;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(
@@ -1568,7 +1557,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(changes, void 0);
       component.prop1 = 2;
       component.prop2 = 3;
-      await tasksSettled();
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
       assert.deepStrictEqual(

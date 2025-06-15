@@ -1,4 +1,4 @@
-import { ProxyObservable } from '@aurelia/runtime';
+import { ProxyObservable, tasksSettled } from '@aurelia/runtime';
 import {
   bindable,
   ComputedWatcher,
@@ -11,7 +11,7 @@ import {
 import { assert, createFixture, TestContext } from '@aurelia/testing';
 
 describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
-  it('typings work', function () {
+  it('typings work', async function () {
     const symbolMethod = Symbol();
     @watch<App>(app => app.col.has(Symbol), 5)
     @watch<App>(app => app.col.has(Symbol), 'someMethod')
@@ -49,7 +49,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   });
 
   for (const methodName of [Symbol('method'), 'bla', 5]) {
-    it(`validates method "${String(methodName)}" not found when decorating on class`, function () {
+    it(`validates method "${String(methodName)}" not found when decorating on class`, async function () {
       assert.throws(
         () => {
           @watch('..', methodName as any)
@@ -63,14 +63,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     });
   }
 
-  it('throws on @watch usage on static method', function () {
+  it('throws on @watch usage on static method', async function () {
     assert.throws(() => class App {
       @watch('')
       static method() {}
     }, /AUR0774/);
   });
 
-  it('works in basic scenario', function () {
+  it('works in basic scenario', async function () {
     let callCount = 0;
     class App {
       public person = {
@@ -87,24 +87,24 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         this.name = phoneValue;
       }
     }
-    const { ctx, component, appHost, tearDown } = createFixture(`\${name}`, App);
+    const { component, appHost, tearDown } = createFixture(`\${name}`, App);
 
     // with TS, initialization of class field are in constructor
     assert.strictEqual(callCount, 0);
     component.person.first = 'bi ';
     assert.strictEqual(callCount, 0);
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(appHost.textContent, '');
     component.person.phone = '0413';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(appHost.textContent, '');
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(appHost.textContent, '0413');
 
     void tearDown();
   });
 
-  it('watches deep', function () {
+  it('watches deep', async function () {
     let callCount = 0;
     class App {
       public person = {
@@ -134,7 +134,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         this.name = strName;
       }
     }
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${name}</div>`, App);
+    const { component, appHost, tearDown } = createFixture(`<div>\${name}</div>`, App);
 
     const textNode = appHost.querySelector('div');
 
@@ -145,14 +145,14 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.person.addresses[1].strName = '3cp';
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '');
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '3cp');
 
     void tearDown();
 
     component.person.addresses[1].strName = 'Chunpeng Huo';
     assert.strictEqual(textNode.textContent, '3cp');
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '3cp');
   });
 
@@ -240,9 +240,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         }
       }
 
-      const { component, startPromise, tearDown } = createFixture('<child component.ref="child" prop.bind=prop>', App, [Child]);
+      const { component, tearDown } = await createFixture('<child component.ref="child" prop.bind=prop>', App, [Child]).started;
 
-      await startPromise;
       assert.strictEqual(appBindingCallCount, 1);
       assert.strictEqual(appBoundCallCount, 1);
       assert.strictEqual(appUnbindingCallCount, 0);
@@ -253,6 +252,9 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.child.logCallCount, 1);
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
+      assert.strictEqual(component.child.logCallCount, 1);
+      await tasksSettled();
+      // the observer internally updates immediately but the binding after flushing
       assert.strictEqual(component.child.logCallCount, 2);
 
       const bindings = component.$controller!.bindings;
@@ -277,6 +279,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
       component.prop++;
+      await tasksSettled();
       assert.strictEqual(component.logCallCount, 3);
       assert.strictEqual(child.logCallCount, 3);
     });
@@ -364,9 +367,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         }
       }
 
-      const { component, startPromise, tearDown } = createFixture('<div child.bind="prop" child.ref="child">', App, [Child]);
+      const { component, tearDown } = await createFixture('<div child.bind="prop" child.ref="child">', App, [Child]).started;
 
-      await startPromise;
       assert.strictEqual(appBindingCallCount, 1);
       assert.strictEqual(appBoundCallCount, 1);
       assert.strictEqual(appUnbindingCallCount, 0);
@@ -377,6 +379,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       assert.strictEqual(component.child.logCallCount, 1);
       component.prop++;
       assert.strictEqual(component.logCallCount, 2);
+      assert.strictEqual(component.child.logCallCount, 1);
+      await tasksSettled();
       assert.strictEqual(component.child.logCallCount, 2);
 
       const bindings = component.$controller!.bindings;
@@ -406,7 +410,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     });
   });
 
-  it('observes collection', function () {
+  it('observes collection', async function () {
     let callCount = 0;
 
     class PostOffice {
@@ -445,7 +449,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       }
     }
 
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+    const { component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
 
     const textNode = appHost.querySelector('div');
     assert.strictEqual(callCount, 0);
@@ -453,13 +457,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 1);
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
 
     component.delivered(1);
     assert.strictEqual(callCount, 2);
     assert.strictEqual(textNode.textContent, json([{ id: 2, name: 'toy', delivered: true }]));
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -479,7 +483,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         { id: 2, name: 'toy', delivered: true }
       ])
     );
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(
       textNode.textContent,
       json([
@@ -490,7 +494,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     assert.strictEqual(appHost.textContent, '');
   });
 
-  it('observes chain lighting', function () {
+  it('observes chain lighting', async function () {
     let callCount = 0;
 
     class PostOffice {
@@ -530,7 +534,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
       }
     }
 
-    const { ctx, component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
+    const { component, appHost, tearDown } = createFixture(`<div>\${deliveries}</div>`, PostOffice);
 
     const textNode = appHost.querySelector('div');
     assert.strictEqual(callCount, 0);
@@ -538,13 +542,13 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
 
     component.newDelivery({ id: 4, name: 'cookware', delivered: false });
     assert.strictEqual(callCount, 0);
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '0');
 
     component.delivered(1);
     assert.strictEqual(callCount, 1);
     assert.strictEqual(textNode.textContent, '0');
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
 
     void tearDown();
@@ -553,10 +557,10 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     component.delivered(3);
     assert.strictEqual(textNode.textContent, '1');
     assert.strictEqual(callCount, 1);
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
     component.newDelivery({ id: 6, name: 'box', delivered: true });
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.strictEqual(textNode.textContent, '1');
   });
 
@@ -837,9 +841,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -877,9 +880,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -918,9 +920,8 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { component, ctx, startPromise, tearDown } = createFixture('', App);
+        const { component, ctx, tearDown } = await createFixture('', App).started;
 
-        await startPromise;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1165,8 +1166,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1187,8 +1187,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, tearDown, startPromise } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 1);
         await tearDown();
         disposed?.(component, ctx, 1);
@@ -1210,8 +1209,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
           }
         }
 
-        const { ctx, component, startPromise, tearDown } = createFixture('', App);
-        await startPromise;
+        const { ctx, component, tearDown } = await createFixture('', App).started;
         created(component, ctx, 2);
         await tearDown();
         disposed?.(component, ctx, 2);
@@ -1526,7 +1524,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     return JSON.stringify(d);
   }
 
-  it('initialises once for each instance', function () {
+  it('initialises once for each instance', async function () {
     const logs = [];
     @customElement({
       name: 'my-button',

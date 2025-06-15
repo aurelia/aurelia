@@ -1,6 +1,6 @@
 import { DI, IPlatform, Registration } from '@aurelia/kernel';
 import { BrowserPlatform } from '@aurelia/platform-browser';
-import { batch, DirtyChecker, IObserverLocator, observable } from '@aurelia/runtime';
+import { batch, DirtyChecker, tasksSettled, IObserverLocator, observable } from '@aurelia/runtime';
 import { assert } from '@aurelia/testing';
 
 describe('3-runtime-html/observation-glitches.spec.ts', function () {
@@ -17,7 +17,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         .get(IObserverLocator);
     });
 
-    it('handles glitches', function () {
+    it('handles glitches', async function () {
       let i1 = 0;
       let i2 = 0;
       let i3 = 0;
@@ -50,18 +50,16 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      await tasksSettled();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      await tasksSettled();
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles nested dependencies glitches', function () {
+    it('handles nested dependencies glitches', async function () {
       // in this test, fullName depends on firstName, but is not directly a dependency of tag
       // in other word, `fullName` is an indirect dependency of `tag`
       // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -104,18 +102,16 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      await tasksSettled();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      await tasksSettled();
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles many layers of nested dependencies glitches', function () {
+    it('handles many layers of nested dependencies glitches', async function () {
       // in this test, fullName depends on firstName, but is not directly a dependency of tag
       // in other word, `fullName` is an indirect dependency of `tag`
       // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -167,18 +163,16 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      await tasksSettled();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      await tasksSettled();
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles @observable decorator glitches', function () {
+    it('handles @observable decorator glitches', async function () {
       let i1 = 0;
       let i2 = 0;
       let i3 = 0;
@@ -212,18 +206,16 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
       obj.firstName = 'Sync';
       obj.lastName = 'Last';
+      await tasksSettled();
       assert.strictEqual(obj.tag, '[Banned]');
-      assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+      assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
       obj.firstName = '';
-      // first name change ->
-      // 1. tag() runs again
-      // 2. fullname() runs again
-      //  2.1 tag() runs again
-      assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+      await tasksSettled();
+      assert.deepEqual([i1, i2, i3], [1, 1, 2]);
     });
 
-    it('handles array index related glitches', function () {
+    it('handles array index related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -257,7 +249,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles array length related glitches', function () {
+    it('handles array length related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -291,7 +283,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles map size related glitches', function () {
+    it('handles map size related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -325,7 +317,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       ]);
     });
 
-    it('handles set size related glitches', function () {
+    it('handles set size related glitches', async function () {
       class NameTag {
         firstName = '';
         lastName = '';
@@ -364,7 +356,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
 
     describe('with batch()', function () {
 
-      it('handles glitches', function () {
+      it('handles glitches', async function () {
         let i1 = 0;
         let i2 = 0;
         let i3 = 0;
@@ -399,25 +391,27 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        await tasksSettled();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
+        await tasksSettled();
         // shouldn't go to 2 because fullName should no longer have 'Sync' in it
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles nested dependencies glitches', function () {
+      it('handles nested dependencies glitches', async function () {
         // in this test, fullName depends on firstName, but is not directly a dependency of tag
         // in other word, `fullName` is an indirect dependency of `tag`
         // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -462,24 +456,22 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        await tasksSettled();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        // first name change ->
-        // 1. tag() runs again
-        // 2. fullname() runs again
-        //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        await tasksSettled();
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles many layers of nested dependencies glitches', function () {
+      it('handles many layers of nested dependencies glitches', async function () {
         // in this test, fullName depends on firstName, but is not directly a dependency of tag
         // in other word, `fullName` is an indirect dependency of `tag`
         // though it also depends on firstName, so this test is to ensure that regardless of the position of the dependency in the chain,
@@ -533,24 +525,22 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        await tasksSettled();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        // first name change ->
-        // 1. tag() runs again
-        // 2. fullname() runs again
-        //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        await tasksSettled();
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles @observable decorator glitches', function () {
+      it('handles @observable decorator glitches', async function () {
         let i1 = 0;
         let i2 = 0;
         let i3 = 0;
@@ -586,20 +576,22 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
           obj.firstName = 'Sync';
           obj.lastName = 'Last';
         });
+        await tasksSettled();
         assert.strictEqual(obj.tag, '[Banned]');
         // first name change ->
         // 1. tag() runs again
         // 2. fullname() runs again
         //  2.1 tag() runs again
-        assert.deepEqual([i1, i2, i3], [1, 2, 0]);
+        assert.deepEqual([i1, i2, i3], [1, 1, 0]);
 
         batch(() => {
           obj.firstName = '';
         });
-        assert.deepEqual([i1, i2, i3], [1, 2, 2]);
+        await tasksSettled();
+        assert.deepEqual([i1, i2, i3], [1, 1, 2]);
       });
 
-      it('handles array index related glitches', function () {
+      it('handles array index related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -635,7 +627,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles array length related glitches', function () {
+      it('handles array length related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -669,7 +661,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles map size related glitches', function () {
+      it('handles map size related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';
@@ -703,7 +695,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         ]);
       });
 
-      it('handles set size related glitches', function () {
+      it('handles set size related glitches', async function () {
         class NameTag {
           firstName = '';
           lastName = '';

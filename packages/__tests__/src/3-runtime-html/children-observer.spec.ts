@@ -1,10 +1,11 @@
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { children, CustomElement, PartialChildrenDefinition, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert, createFixture } from '@aurelia/testing';
 import { IContainer } from '@aurelia/kernel';
 
 describe('3-runtime-html/children-observer.spec.ts', function () {
 
-  it('throws on invalid query', function () {
+  it('throws on invalid query', async function () {
     @customElement({
       name: 'el',
       template: '<au-slot>'
@@ -97,7 +98,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await Promise.resolve();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 4);
       assert.equal(viewModel.childrenChangedCallCount, 2);
@@ -124,7 +125,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await Promise.resolve();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 2);
       assert.equal(viewModel.childrenChangedCallCount, 2);
@@ -154,7 +155,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       hostViewModel.oneCount = 2;
       hostViewModel.twoCount = 2;
 
-      await Promise.resolve();
+      await tasksSettled();
 
       assert.equal(viewModel.children.length, 2);
       assert.equal(viewModel.childrenChangedCallCount, 2);
@@ -175,7 +176,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       class El {
         @children('div') nodes: any[];
       }
-      const { flush, assertText } = createFixture(
+      const { assertText } = createFixture(
         '<e-l ref=el><div repeat.for="i of items">',
         class App {
           items = 3;
@@ -184,7 +185,7 @@ describe('3-runtime-html/children-observer.spec.ts', function () {
       );
 
       await Promise.resolve();
-      flush();
+      runTasks();
 
       assertText('child count: 3');
     });

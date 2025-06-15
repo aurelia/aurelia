@@ -3,7 +3,7 @@ import { rtSafeString, rtDef } from './utilities';
 import { currentConnectable } from './connectable-switcher';
 
 import { areEqual, emptyObject, isFunction, type Constructable, type IIndexable } from '@aurelia/kernel';
-import type { InterceptorFunc, IObservable, ISubscribable } from './interfaces';
+import type { InterceptorFunc, IObservable } from './interfaces';
 import type { ObservableGetter } from './observer-locator';
 import type { SetterObserver } from './setter-observer';
 import { subscriberCollection } from './subscriber-collection';
@@ -113,14 +113,7 @@ export const observable = /*@__PURE__*/(() => {
       const $set = config.set;
       const observableGetter: ObservableGetter = function (this: IObservable) {
         const notifier = getNotifier(this, property, callback, initialValue, $set);
-        const connectable = currentConnectable();
-        if (connectable) {
-          (connectable as typeof connectable & {
-            obs: {
-              add(observer: ISubscribable): void;
-            };
-          }).obs.add(notifier);
-        }
+        currentConnectable()?.subscribeTo(notifier);
         return notifier.getValue();
       };
       observableGetter.getObserver = function (obj: IObservable) {

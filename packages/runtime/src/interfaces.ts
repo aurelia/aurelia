@@ -16,6 +16,7 @@ export type InterceptorFunc<TInput = unknown, TOutput = unknown> = (value: TInpu
 export interface IConnectable {
   observe(obj: object, key: PropertyKey): void;
   observeCollection(obj: Collection): void;
+  subscribeTo(subscribable: ISubscribable | ICollectionSubscribable): void;
 }
 
 export interface IDirtySubscriber {

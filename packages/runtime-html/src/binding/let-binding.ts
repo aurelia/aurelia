@@ -10,6 +10,7 @@ import {
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
+  queueTask,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
@@ -35,6 +36,9 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   /** @internal */
   public _scope?: Scope = void 0;
+
+  /** @internal */
+  private _isQueued: boolean = false;
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
@@ -79,10 +83,18 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public handleChange(): void {
     if (!this.isBound) return;
-    this.obs.version++;
-    this._value = astEvaluate(this.ast, this._scope!, this, this);
-    this.obs.clear();
-    this.updateTarget();
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      this.obs.version++;
+      this._value = astEvaluate(this.ast, this._scope!, this, this);
+      this.obs.clear();
+      this.updateTarget();
+    });
   }
 
   public handleCollectionChange(): void {

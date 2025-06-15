@@ -461,6 +461,11 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
 
       ctx.container.get(ISignaler).dispatchSignal('hurry');
 
+      assert.strictEqual(a, 1);
+      assert.strictEqual(aCount, 1);
+
+      await tasksSettled();
+
       assert.strictEqual(a, 3);
       assert.strictEqual(aCount, 2);
     });
@@ -492,6 +497,11 @@ describe('3-runtime-html/binding-commands.throttle-debounce.spec.ts', function (
       assert.strictEqual(aCount, 1);
 
       ctx.container.get(ISignaler).dispatchSignal('running');
+
+      assert.strictEqual(a, 1);
+      assert.strictEqual(aCount, 1);
+
+      await tasksSettled();
 
       assert.strictEqual(a, 3);
       assert.strictEqual(aCount, 2);

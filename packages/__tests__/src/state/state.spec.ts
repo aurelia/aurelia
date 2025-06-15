@@ -319,7 +319,7 @@ describe('state/state.spec.ts', function () {
     it('works with debounce', async function () {
       const state = { text: '1' };
       const { getBy, trigger } = createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:1">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:5">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, { type, v }: { type: string; v: string }) =>
@@ -328,7 +328,7 @@ describe('state/state.spec.ts', function () {
         .build();
 
       trigger('input', 'input');
-      await tasksSettled();
+      await resolveAfter(1);
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
@@ -339,7 +339,7 @@ describe('state/state.spec.ts', function () {
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:1">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:5">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, { type, v }: { type: string; v: string }) => {
@@ -357,7 +357,7 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '11');
 
       trigger('input', 'input');
-      await tasksSettled();
+      await resolveAfter(1);
       assert.strictEqual(getBy('input').value, '11');
 
       await resolveAfter(10);

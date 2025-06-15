@@ -47,7 +47,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
     /** @internal */ private readonly _ctx: IRouteContext,
     /** @internal */ private readonly _routerOptions: RouterOptions,
   ) {
-    this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx._friendlyPath}>`);
+    this._logger = _controller.container.get(ILogger).scopeTo(`ComponentAgent<${_ctx.routeConfigContext._friendlyPath}>`);
 
     if (__DEV__) trace(this._logger, Events.caCreated);
 
@@ -175,7 +175,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return hook.canLoad(this._instance, next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
           }
           b._pop();
           res();
@@ -194,7 +194,7 @@ export class ComponentAgent<T extends IRouteViewModel = IRouteViewModel> {
           return this._instance.canLoad!(next.params, next, this._routeNode);
         }, ret => {
           if (tr.guardsResult === true && ret != null && ret !== true) {
-            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, void 0, rootCtx);
+            tr.guardsResult = ret === false ? false : ViewportInstructionTree.create(ret, this._routerOptions, null, rootCtx);
           }
           b._pop();
         });

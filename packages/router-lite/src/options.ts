@@ -1,8 +1,8 @@
 import { DI } from '@aurelia/kernel';
 import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent, ViewportInstructionTree } from './instructions';
+import type { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
-import type { IRouteContext } from './route-context';
 import { IUrlParser, fragmentUrlParser, pathUrlParser } from './url-parser';
 
 export type HistoryStrategy = 'none' | 'replace' | 'push';

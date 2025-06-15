@@ -42,7 +42,7 @@ import { resolve } from 'aurelia';
 import { INavigationModel, IRouteContext } from '@aurelia/router-lite';
 
 export class NavBar {
-  private readonly navModel: INavigationModel = resolve(IRouteContext).navigationModel;
+  private readonly navModel: INavigationModel = resolve(IRouteContext).routeConfigContext.navigationModel;
 
   public async binding() {
     await this.navModel.resolve()
@@ -139,7 +139,7 @@ You see this in action in the example below.
 ## Disabling navigation model
 
 If you are not creating a menu using the navigation model, you can also deactivate the navigation model by setting `false` to the `useNavigationModel` [router option](./router-configuration.md).
-Doing so, will set the `IRouteContext#navigationModel` to `null` and skip further processing.
+Doing so, will set the `IRouteConfigContext#navigationModel` to `null` and skip further processing.
 
 ## Combining `ICurrentRoute` with the navigation model
 
@@ -151,7 +151,7 @@ import { resolve } from '@aurelia/kernel';
 
 export class NavBar {
   // same as regular usage of navigation model
-  private readonly navModel: INavigationModel = resolve(IRouteContext).navigationModel;
+  private readonly navModel: INavigationModel = resolve(IRouteContext).routeConfigContext.navigationModel;
   private readonly currentRoute = resolve(ICurrentRoute);
 
   public async binding() {

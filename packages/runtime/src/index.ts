@@ -25,6 +25,7 @@ export {
   Task,
   TaskAbortError,
   type TaskStatus,
+  trackWork,
 } from './queue';
 
 export {

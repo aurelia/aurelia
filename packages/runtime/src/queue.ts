@@ -11,8 +11,7 @@ const resolvedPromise = Promise.resolve();
 let runScheduled = false;
 let isAutoRun = false;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const queue: (Task | Function)[] = [];
+const queue: (Task | (() => unknown))[] = [];
 let pendingAsyncCount = 0;
 let settlePromise: Promise<boolean> | null = null;
 let taskErrors: unknown[] = [];
@@ -87,7 +86,7 @@ export const runTasks = () => {
       task.run();
     } else {
       try {
-        task();
+        trackWork(task());
       } catch (err) {
         taskErrors.push(err);
       }
@@ -353,3 +352,21 @@ export class Task<R = any> {
     return false;
   }
 }
+
+export const trackWork = (promise: unknown): void => {
+  if (!(promise instanceof Promise)) return;
+
+  ++pendingAsyncCount;
+
+  settlePromise ??= new Promise<boolean>((resolve, reject) => {
+    settlePromiseResolve = resolve;
+    settlePromiseReject = reject;
+  });
+
+  promise.catch(err => {
+    taskErrors.push(err);
+  }).finally(() => {
+    --pendingAsyncCount;
+    signalSettled(true);
+  });
+};

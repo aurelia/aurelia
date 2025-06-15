@@ -20,6 +20,7 @@ import {
   IObserverLocator,
   queueTask,
   Scope,
+  trackWork,
 } from '@aurelia/runtime';
 import { convertToRenderLocation } from '../dom';
 import { refs } from '../dom.node';
@@ -1273,8 +1274,8 @@ function createObservers(
     ) {
       const callback = (newValue: unknown, oldValue: unknown) => {
         if (controller.isBound) {
-          (instance[handler] as AnyFunction)?.(newValue, oldValue);
-          instance.propertyChanged?.(name, newValue, oldValue);
+          trackWork((instance[handler] as AnyFunction)?.(newValue, oldValue));
+          trackWork(instance.propertyChanged?.(name, newValue, oldValue));
           queueCallback(name, newValue, oldValue);
         }
       };

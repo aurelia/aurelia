@@ -5933,7 +5933,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
         it('respects custom buildTitle', async function () {
             const { host, au, container } = await start((tr) => {
                 const root = tr.routeTree.root;
-                return `${root.context.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
+                return `${root.context.routeConfigContext.config.title} - ${root.children.map(c => c.title).join(' - ')}`;
             });
             assert.strictEqual(container.get(IPlatform).document.title, 'base - B');
             const vmb = CustomElement.for(host.querySelector('vm-b')).viewModel;
@@ -6284,7 +6284,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
                 var NavBar = _classThis = class {
                     constructor() {
                         this.node = resolve(INode);
-                        this.navModel = resolve(IRouteContext).navigationModel;
+                        this.navModel = resolve(IRouteContext).routeConfigContext.navigationModel;
                     }
                     binding(_initiator, _parent) {
                         if (hasAsyncRouteConfig)
@@ -10483,7 +10483,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
                     let _classThis;
                     var C1 = _classThis = class {
                         constructor() {
-                            this.parent = resolve(IRouteContext).parent.component.name;
+                            this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
                         }
                     };
                     __setFunctionName(_classThis, "C1");
@@ -10577,7 +10577,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
                     let _classThis;
                     var C1 = _classThis = class {
                         constructor() {
-                            this.parent = resolve(IRouteContext).parent.component.name;
+                            this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
                         }
                     };
                     __setFunctionName(_classThis, "C1");
@@ -10673,7 +10673,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
                     constructor() {
                         this.instanceId = ++C1.instanceId;
                         this.activationId = 0;
-                        this.parent = resolve(IRouteContext).parent.component.name;
+                        this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
                     }
                     canLoad(params) {
                         this.activationId = ++C1.activationId;
@@ -10780,7 +10780,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
                 let _classThis;
                 var C1 = _classThis = class {
                     constructor() {
-                        this.parent = resolve(IRouteContext).parent.component.name;
+                        this.parent = resolve(IRouteContext).parent.routeConfigContext.component.name;
                     }
                 };
                 __setFunctionName(_classThis, "C1");

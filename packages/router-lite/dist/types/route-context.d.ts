@@ -2,23 +2,26 @@ import { type IContainer } from '@aurelia/kernel';
 import { RecognizedRoute } from '@aurelia/route-recognizer';
 import { CustomElementDefinition, PartialCustomElementDefinition } from '@aurelia/runtime-html';
 import { IRouteViewModel } from './component-agent';
-import { IExtendedViewportInstruction, NavigationInstruction, Params, ViewportInstruction } from './instructions';
-import { IChildRouteConfig } from './options';
+import { IExtendedViewportInstruction, NavigationInstruction, Params, ViewportInstruction, ViewportInstructionTree } from './instructions';
+import { IChildRouteConfig, INavigationOptions } from './options';
 import { RouteConfig, RouteType } from './route';
 import type { RouteNode } from './route-tree';
 import { IRouter } from './router';
 import { ViewportAgent } from './viewport-agent';
+import { ILocationManager } from './location-manager';
 export interface IRouteContext extends RouteContext {
 }
 export declare const IRouteContext: import("@aurelia/kernel").InterfaceSymbol<IRouteContext>;
 type PathGenerationResult = {
     vi: ViewportInstruction;
-    query: Params;
+    query: Record<string, string | string[]>;
 };
 type EagerInstruction = {
     component: string | RouteConfig | PartialCustomElementDefinition | IRouteViewModel | IChildRouteConfig | RouteType;
     params: Params;
+    children?: EagerInstruction[];
 };
+export declare function createEagerInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): EagerInstruction[];
 /**
  * Holds the information of a component in the context of a specific container.
  *
@@ -30,21 +33,11 @@ type EagerInstruction = {
  */
 export declare class RouteContext {
     readonly parent: IRouteContext | null;
-    readonly component: CustomElementDefinition;
-    readonly config: RouteConfig;
     private readonly _router;
+    readonly routeConfigContext: IRouteConfigContext;
+    private readonly _locationMgr;
     readonly root: IRouteContext;
     get isRoot(): boolean;
-    /**
-     * The path from the root RouteContext up to this one.
-     */
-    readonly path: readonly IRouteContext[];
-    get depth(): number;
-    /**
-     * The (fully resolved) configured child routes of this context's `RouteConfig`
-     */
-    readonly childRoutes: (RouteConfig | Promise<RouteConfig>)[];
-    get allResolved(): Promise<void> | null;
     get node(): RouteNode;
     /**
      * The viewport hosting the component associated with this RouteContext.
@@ -52,9 +45,7 @@ export declare class RouteContext {
      */
     get vpa(): ViewportAgent;
     readonly container: IContainer;
-    private readonly _navigationModel;
-    get navigationModel(): INavigationModel | null;
-    constructor(viewportAgent: ViewportAgent | null, parent: IRouteContext | null, component: CustomElementDefinition, config: RouteConfig, parentContainer: IContainer, _router: IRouter);
+    constructor(viewportAgent: ViewportAgent | null, parent: IRouteContext | null, parentContainer: IContainer, _router: IRouter, routeConfigContext: IRouteConfigContext, _locationMgr: ILocationManager);
     /**
      * Create a new `RouteContext` and register it in the provided container.
      *
@@ -67,13 +58,48 @@ export declare class RouteContext {
     dispose(): void;
     getAvailableViewportAgents(): readonly ViewportAgent[];
     getFallbackViewportAgent(name: string): ViewportAgent | null;
-    recognize(path: string, searchAncestor?: boolean): $RecognizedRoute | null;
+    /**
+     * Generates a path that is rooted to the application.
+     */
+    generateRootedPath(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[]): string | Promise<string>;
+    /**
+     * Generates a path that is relative to the this context.
+     */
+    generateRelativePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[]): string | Promise<string>;
+    createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
+    createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
+    toString(): string;
+}
+export interface IRouteConfigContext extends RouteConfigContext {
+}
+export declare class RouteConfigContext {
+    readonly parent: IRouteConfigContext | null;
+    readonly component: CustomElementDefinition;
+    readonly config: RouteConfig;
+    private readonly _router;
+    readonly container: IContainer;
+    readonly root: IRouteConfigContext;
+    get isRoot(): boolean;
+    /**
+     * The path from the root RouteContext up to this one.
+     */
+    readonly path: readonly IRouteConfigContext[];
+    get depth(): number;
+    get navigationModel(): INavigationModel | null;
+    /**
+     * The (fully resolved) configured child routes of this context's `RouteConfig`
+     */
+    readonly childRoutes: (RouteConfig | Promise<RouteConfig>)[];
+    get allResolved(): Promise<void> | null;
+    constructor(parent: IRouteConfigContext | null, component: CustomElementDefinition, config: RouteConfig, parentContainer: IContainer, _router: IRouter);
     _generateViewportInstruction(instruction: {
         component: string;
         params: Params;
     }): PathGenerationResult | null;
     _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction): PathGenerationResult | null;
-    toString(): string;
+    _generateViewportInstruction(instruction: NavigationInstruction | EagerInstruction | IExtendedViewportInstruction, traverseChildren: true): PathGenerationResult | Promise<PathGenerationResult> | null;
+    recognize(path: string, searchAncestor?: boolean): $RecognizedRoute | null;
+    dispose(): void;
 }
 export declare class $RecognizedRoute {
     readonly route: RecognizedRoute<RouteConfig | Promise<RouteConfig>>;

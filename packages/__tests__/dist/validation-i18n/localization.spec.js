@@ -142,6 +142,8 @@ describe('validation-i18n/localization.spec.ts', function () {
                     }
                 };
                 options.initOptions.fallbackLng = false;
+                if (defaultNS != null)
+                    options.initOptions.fallbackNS = false;
             }), toCustomize
                 ? ValidationI18nConfiguration
                     .customize((opts) => {

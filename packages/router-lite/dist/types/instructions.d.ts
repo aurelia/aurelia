@@ -89,7 +89,8 @@ export declare class ViewportInstructionTree {
     readonly queryParams: Readonly<URLSearchParams>;
     readonly fragment: string | null;
     constructor(options: NavigationOptions, isAbsolute: boolean, children: ViewportInstruction[], queryParams: Readonly<URLSearchParams>, fragment: string | null);
-    static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], routerOptions: RouterOptions, options?: INavigationOptions | NavigationOptions, rootCtx?: IRouteContext | null): ViewportInstructionTree;
+    static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], routerOptions: RouterOptions, options: INavigationOptions | NavigationOptions | null, rootCtx: IRouteContext | null): ViewportInstructionTree;
+    static create(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], routerOptions: RouterOptions, options: INavigationOptions | NavigationOptions | null, rootCtx: IRouteContext | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
     equals(other: ViewportInstructionTree): boolean;
     toUrl(isFinalInstruction: boolean, parser: IUrlParser): string;
     toPath(): string;

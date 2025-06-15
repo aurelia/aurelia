@@ -1,7 +1,7 @@
 import type { IViewportInstruction, Params, RouteContextLike, RouteableComponent, ViewportInstructionTree } from './instructions';
+import type { IRouteContext } from './route-context';
 import type { RouteNode } from './route-tree';
 import type { Transition } from './router';
-import type { IRouteContext } from './route-context';
 export type HistoryStrategy = 'none' | 'replace' | 'push';
 export type ValueOrFunc<T extends string> = T | ((instructions: ViewportInstructionTree) => T);
 export declare const IRouterOptions: import("@aurelia/kernel").InterfaceSymbol<Readonly<RouterOptions>>;

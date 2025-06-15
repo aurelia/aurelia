@@ -1,6 +1,6 @@
 import { IContainer } from '@aurelia/kernel';
 import { CustomElementDefinition } from '@aurelia/runtime-html';
-import { IRouteContext } from './route-context';
+import { IRouteContext, RouteConfigContext } from './route-context';
 import { ManagedState, RoutingTrigger } from './router-events';
 import { RouteConfig, RouteType } from './route';
 import { IRouteViewModel } from './component-agent';
@@ -112,6 +112,7 @@ export declare class Router {
     load(viewportInstruction: IViewportInstruction, options?: INavigationOptions): boolean | Promise<boolean>;
     load(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): boolean | Promise<boolean>;
     isActive(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], context: RouteContextLike): boolean;
+    private readonly _routeConfigLookup;
     private readonly _vpaLookup;
     /**
      * Retrieve the RouteContext, which contains statically configured routes combined with the customElement metadata associated with a type.
@@ -124,7 +125,16 @@ export declare class Router {
      *
      */
     getRouteContext(viewportAgent: ViewportAgent | null, componentDefinition: CustomElementDefinition, componentInstance: IRouteViewModel | null, container: IContainer, parentRouteConfig: RouteConfig | null, parentContext: IRouteContext | null, $rdConfig: RouteConfig | null): IRouteContext | Promise<IRouteContext>;
-    createViewportInstructions(instructionOrInstructions: NavigationInstruction | readonly NavigationInstruction[], options?: INavigationOptions): ViewportInstructionTree;
+    getRouteConfigContext($rdConfig: RouteConfig | null, componentDefinition: CustomElementDefinition, componentInstance: IRouteViewModel | null, container: IContainer, parentRouteConfig: RouteConfig | null, parentRouteConfigContext: RouteConfigContext | null): RouteConfigContext | Promise<RouteConfigContext>;
+    /**
+     * Generate a path from the provided instructions.
+     *
+     * @param instructionOrInstructions - The navigation instruction(s) to generate the path for.
+     * @param context - The context to use for relative navigation. If not provided, the root context is used.
+     */
+    generatePath(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], context?: RouteContextLike): string | Promise<string>;
+    createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null): ViewportInstructionTree;
+    createViewportInstructions(instructionOrInstructions: NavigationInstruction | NavigationInstruction[], options: INavigationOptions | null, traverseChildren: true): ViewportInstructionTree | Promise<ViewportInstructionTree>;
     updateTitle(tr?: Transition): string;
 }
 //# sourceMappingURL=router.d.ts.map

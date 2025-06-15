@@ -25,8 +25,6 @@ export class RefBinding implements IBinding, ISubscriber, ICollectionSubscriber 
     mixinAstEvaluator(RefBinding);
   });
 
-  public get $kind() { return 'Ref' as const; }
-
   public isBound: boolean = false;
 
   /** @internal */

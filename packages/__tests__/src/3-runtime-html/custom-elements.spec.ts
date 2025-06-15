@@ -1145,11 +1145,9 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       component.a = 2;
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
-      assert.deepStrictEqual(changes, { a: { newValue: 2, oldValue: 1 } });
-
-      changes = void 0;
-      await Promise.resolve();
+      // propertiesChanged runs from within a task, which then triggers a new change. Both changes are handled within the same flush cycle
       assert.deepStrictEqual(changes, { a: { newValue: 3, oldValue: 2 } });
+      assert.strictEqual(await tasksSettled(), false, 'should have no new tasks after the first flush cycle');
     });
 
     it('does not call aggregated callback if component is unbound before next tick', async function () {

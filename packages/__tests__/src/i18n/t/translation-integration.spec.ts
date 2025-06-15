@@ -1,7 +1,7 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
 import { ISignaler, Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
-import { tasksSettled } from '@aurelia/runtime';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
@@ -336,13 +336,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, 'span > span', translation.simple.text, 'initial rendering');
       assert.doesNotThrow(() => {
         app.changeCondition();
-        ctx.platform.domQueue.flush();
+        runTasks();
         app.obj.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        runTasks();
       }, 'AUR0203 error should not be thrown');
       assert.equal((host as Element).querySelector('span > span'), null, 'inner span removed after unbind');
       app.obj.condition = true;
-      ctx.platform.domQueue.flush();
+      runTasks();
       assertTextContent(host, 'span > span', translation.simple.attr, 'final rendering');
     }, { component: App });
   }
@@ -1495,7 +1495,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       await runTest(
         async function ({ platform, host, container }) {
-          await platform.taskQueue.queueTask(delta => {
+          await platform.taskQueue.queueTask(async delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             await tasksSettled();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
@@ -1609,7 +1609,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       await runTest(
         async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
-          await platform.taskQueue.queueTask(delta => {
+          await platform.taskQueue.queueTask(async delta => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
             await tasksSettled();
             assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);

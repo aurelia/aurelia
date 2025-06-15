@@ -142,6 +142,41 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     });
   });
 
+  describe('configuration', function () {
+    it('accepts item-height configuration', function () {
+      createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items; item-height: 30" style="height: 30px">${item}</div>'),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      // With item height 30px and viewport 600px, minViews = 20, rendered views = 40, bottom buffer = (100-40)*30 = 1800
+      assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - (600 / 30) * 2) * 30]);
+    });
+
+    it('accepts buffer-size configuration', function () {
+      createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items; buffer-size: 4" style="height: 50px">${item}</div>'),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      // Default itemHeight = 50, viewport 600 => minViews = 12; buffer-size 4 => views = 48, bottom = (100-48)*50
+      assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - (600 / 50) * 4) * 50]);
+    });
+
+    it('accepts multiple configuration values', function () {
+      createFixture(
+        createScrollerTemplate('<div virtual-repeat.for="item of items; item-height: 40; buffer-size: 3; min-views: 5" style="height: 40px">${item}</div>'),
+        class App { items = createItems(); },
+        virtualRepeatDeps
+      );
+
+      // With explicit itemHeight 40, minViews=5, buffer=3 => 15 rendered views, bottom buffer=(100-15)*40
+      assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - 15) * 40]);
+    });
+  });
+
   function createScrollerTemplate(content: string, styles?: { height?: number | string; padding?: number | string; border?: number | string; boxSizing?: string }) {
     let {
       height = 600,

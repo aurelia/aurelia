@@ -24,6 +24,7 @@ import {
   IInstruction,
   HydrateTemplateController,
   IteratorBindingInstruction,
+  MultiAttrInstruction,
 } from '@aurelia/template-compiler';
 import {
   unwrapExpression,
@@ -86,6 +87,10 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   private dom: IVirtualRepeatDom = null!;
   private scrollerObserver: IScrollerObserver | null = null;
 
+  /** @internal */ private readonly _configuredItemHeight?: number;
+  /** @internal */ private readonly _configuredBufferSize?: number;
+  /** @internal */ private readonly _configuredMinViews?: number;
+
   public readonly location = resolve(IRenderLocation);
   public readonly instruction = resolve(IInstruction) as HydrateTemplateController;
   public readonly parent = resolve(IController) as IHydratedComponentController;
@@ -102,6 +107,47 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     this._obsMediator = new CollectionObservationMediator(this, () => hasWrapExpression ? this._handleInnerCollectionChange() : this._handleCollectionChange());
     this.local = (forOf.declaration as BindingIdentifier).name;
     this.taskQueue = resolve(IPlatform).domQueue;
+
+    const extraProps = (iteratorInstruction.props ?? []);
+    for (const p of extraProps) {
+      if (p == null) continue;
+      // Combine the primary pair (p.to : p.value) and any additional pairs embedded in value
+      const initialText = `${p.to}:${p.value}`;
+      const pairs = initialText.split(';');
+      for (const pair of pairs) {
+        const [rawKey, rawVal] = pair.split(':');
+        if (!rawKey || rawVal === void 0) continue;
+        const key = rawKey.trim();
+        const valueStr = rawVal.trim();
+        const valNum = Number(valueStr);
+        switch (key) {
+          case 'itemHeight':
+          case 'item-height': {
+            if (!Number.isNaN(valNum) && valNum > 0) {
+              this._configuredItemHeight = valNum;
+            }
+            break;
+          }
+          case 'bufferSize':
+          case 'buffer-size': {
+            if (!Number.isNaN(valNum) && valNum > 0) {
+              this._configuredBufferSize = valNum;
+            }
+            break;
+          }
+          case 'minViews':
+          case 'min-views': {
+            if (!Number.isNaN(valNum) && valNum > 0) {
+              this._configuredMinViews = valNum;
+            }
+            break;
+          }
+          default:
+            // ignore unknown keys
+            break;
+        }
+      }
+    }
   }
 
   /**
@@ -141,25 +187,27 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       throw new Error('AURxxxx: Invalid calculation state. Virtual repeater has no items.');
     }
     const firstView = this._createAndActivateFirstView();
-    const itemHeight = calcOuterHeight(firstView.nodes.firstChild as HTMLElement);
+    const itemHeight = this._configuredItemHeight ?? calcOuterHeight(firstView.nodes.firstChild as HTMLElement);
     const scrollerInfo = this.scrollerObserver!.getValue();
-    const calculation = this._calculate(scrollerInfo, this.collectionStrategy!.count, itemHeight);
 
-    if (calculation.signals & SizingSignals.reset) {
+    const baseCalc = this._calculate(scrollerInfo, this.collectionStrategy!.count, itemHeight);
+
+    if (baseCalc.signals & SizingSignals.reset) {
       this._resetCalculation();
-      return calculation;
+      return baseCalc;
     }
-    if ((calculation.signals & SizingSignals.has_sizing) === 0) {
+    if ((baseCalc.signals & SizingSignals.has_sizing) === 0) {
       this._resetCalculation();
-      // when sizing calculation fails
-      // dirty check?
-      return calculation;
+      return baseCalc; // early exit when sizing failed
     }
+
+    const minViews = this._configuredMinViews ?? baseCalc.minViews;
 
     this.itemHeight = itemHeight;
-    this.minViewsRequired = calculation.minViews;
+    this.minViewsRequired = minViews;
     this._needInitCalculation = false;
-    return calculation;
+    // return a new calc instance reflecting possibly overridden minViews
+    return Calculation.from(baseCalc.signals, minViews);
   }
 
   /**
@@ -222,7 +270,8 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
     // only ensure there's enough views
     // don't activate yet
-    const maxViewsRequired = this.minViewsRequired * 2;
+    const bufferMultiplier = this._configuredBufferSize ?? 2;
+    const maxViewsRequired = this.minViewsRequired * bufferMultiplier;
     const realViewCount = Math.min(maxViewsRequired, itemCount);
     if (currViewCount > maxViewsRequired) {
       while (currViewCount > maxViewsRequired) {

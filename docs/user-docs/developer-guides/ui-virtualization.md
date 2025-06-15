@@ -26,6 +26,26 @@ Aurelia
 
 Simply bind an array to `virtual-repeat` like you would with the standard `repeat`. The repeated rows are expected to have equal height throughout the list, and one item per row.
 
+### Configuration options
+
+`virtual-repeat` supports several optional, **kebab-cased** configuration properties that can be appended after the `for` statement, separated by semicolons (`;`).
+
+| Option | Description | Example |
+| ------ | ----------- | ------- |
+| `item-height` | Explicit pixel height for each repeated item. Overrides the automatic first-item measurement. | `item-height: 40` |
+| `buffer-size` | Multiplier that determines how many extra view sets are kept rendered above and below the viewport. Default is `2`. | `buffer-size: 3` |
+| `min-views` | Overrides the auto-calculated minimum number of views needed to fill the viewport. Useful when the container height is dynamic but known ahead of time. | `min-views: 10` |
+
+The full syntax mirrors normal repeater multi-attribute support, e.g.:
+
+```html
+<div virtual-repeat.for="row of rows; item-height: 40; buffer-size: 3; min-views: 5">
+  ${row}
+</div>
+```
+
+You may mix and match any combination of the options. Names can be written in camelCase (`itemHeight`) or kebab-case (`item-height`).
+
 ### div
 ```html
 <template>
@@ -95,7 +115,6 @@ An error will be thrown if no ancestor element with style `overflow: scroll` is 
 
 ## Tobe implemented feature list
 
-- [ ] ability to configure height & many aspects of the virtual repeat
 - [ ] infinite scroll
 - [ ] horizontal scrolling
 - [ ] variable height

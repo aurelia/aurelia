@@ -570,9 +570,12 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
       assertText('Hello world from El');
       assertHtml('<!--au-start--><el><div>Hello world from El</div></el><!--au-end-->');
       // initial binding 1 + initial composition 1
+      assert.strictEqual(compositionCount, 1);
+      await tasksSettled();
       assert.strictEqual(compositionCount, 2);
 
       component.i = 1;
+      await tasksSettled();
       assert.strictEqual(compositionCount, 2);
     });
   });

@@ -24,6 +24,7 @@ export {
   tasksSettled,
   Task,
   TaskAbortError,
+  type TaskStatus,
 } from './queue';
 
 export {

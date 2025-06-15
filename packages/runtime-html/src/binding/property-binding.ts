@@ -107,6 +107,7 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
     }
   }
 
+  /** @internal */
   private _handleChange() {
     this.obs.version++;
     const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);

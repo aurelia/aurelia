@@ -136,12 +136,12 @@ propertiesChanged({ firstName, lastName }) {
 }
 ```
 
-For the order of callback when there' multiple callbacks involved, refer the following example:
+For the order of callbacks when there are multiple callbacks involved, refer to the following example:
 If we have a component class that looks like this:
 ```ts
 class MyComponent {
   @bindable prop = 0
-  
+
   propChanged() { console.log('prop changed'); }
 
   propertyChanged(name) { console.log(`property "${name}" changed`) }
@@ -164,6 +164,8 @@ property "prop" changed
 after assign
 changes are, { prop: { newValue: 1, oldValue: 0 } }
 ```
+
+**Note**: The individual change callback (`propChanged`) and `propertyChanged` execute immediately when the property is set, while `propertiesChanged` is deferred and executes asynchronously in the next tick.
 
 ## Configuring bindable properties
 
@@ -200,17 +202,17 @@ Bindable properties support many different binding modes determining the directi
 
 ### One way binding
 
-By default, bindable properties will be one-way binding. This means values flow into your component but not back out of it (hence the name, one way).
+By default, bindable properties will be one-way binding (also known as `toView`). This means values flow into your component but not back out of it (hence the name, one way).
 
 {% hint style="info" %}
-Bindable properties without an `mode` explicitly set will be `one-way` by default. You can also explicitly specify the binding mode.
+Bindable properties without a `mode` explicitly set will be `toView` (one-way) by default. You can also explicitly specify the binding mode.
 {% endhint %}
 
 ```typescript
 import { bindable, BindingMode } from 'aurelia';
 
 export class Loader {
-    @bindable({ mode: BindingMode.oneWay })
+    @bindable({ mode: BindingMode.toView })
 }
 ```
 
@@ -627,7 +629,7 @@ export class NameTag {
 with template:
 
 ```html
-<b>${fist.toUpperCase()}</b> ${last}
+<b>${first.toUpperCase()}</b> ${last}
 ```
 and its usage template:
 
@@ -857,13 +859,15 @@ Aurelia conventions enable the setting of `capture` metadata from the template v
 
 ### Attribute filtering
 
-Sometimes it is desirable to capture only certain attributes on a custom element. Aurelia supports this via 2nd form of the custom element `capture` value: a function that takes 1 parameter, which is the attribute name, and returns a boolean to indicate whether it should be captured.
+Sometimes it is desirable to capture only certain attributes on a custom element. Aurelia supports this via a function form of the custom element `capture` value: a function that takes 1 parameter (the attribute name) and returns a boolean to indicate whether it should be captured.
 
 ```typescript
 @customElement({
-  capture: attr => attr !== 'class'
+  capture: attr => attr !== 'class'  // Captures all attributes except 'class'
 })
 ```
+
+**Note**: When using a capture filter function, you cannot use the standalone `@capture` decorator. You must specify the filter function within the `@customElement` decorator's `capture` property.
 
 ### How it works
 

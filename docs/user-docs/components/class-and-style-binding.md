@@ -1,454 +1,684 @@
 ---
 description: >-
-  Styling components using CSS, CSS pre and post-processors as well as working
-  with web components.
+  Master the art of dynamic styling in Aurelia 2. Learn everything from basic class toggling to advanced CSS custom properties, plus component styling strategies that will make your apps both beautiful and maintainable.
 ---
 
-# Styling Components in Aurelia 2
+# Class and Style Binding in Aurelia 2
 
-Aurelia 2 simplifies the process of styling components, supporting a variety of CSS flavors and encapsulation methods. Whether you prefer raw CSS, PostCSS, SASS, or Stylus, Aurelia 2 streamlines their integration into your components. Ultimately, all styles compile into standard CSS that browsers can interpret.
+Dynamic styling is a fundamental aspect of modern web applications, and Aurelia 2 provides powerful, flexible mechanisms for binding CSS classes and styles to your elements. Whether you need to toggle an active state, implement a theming system, or create responsive layouts, Aurelia's binding system makes these tasks straightforward and maintainable.
 
-## Style Conventions
+This comprehensive guide covers everything from basic class toggling to advanced styling techniques, giving you the knowledge and tools to implement any styling requirement in your Aurelia 2 applications.
 
-Aurelia 2 automatically imports styles for custom elements based on file naming conventions. For instance, if you have a custom element named `my-component`, Aurelia 2 looks for a corresponding stylesheet named `my-component.css`.
+## Basic Class Binding
 
-### Example: Automatic Style Import
+The most common use case for dynamic styling is conditionally applying CSS classes based on component state.
 
-Consider the following file structure:
+### Single Class Binding: The `.class` Syntax
 
-- `my-component.ts`: The TypeScript file defining the `MyComponent` class.
-- `my-component.css`: The stylesheet containing styles for `MyComponent`.
-- `my-component.html`: The HTML template for `MyComponent`.
+The `.class` binding is the foundation of dynamic styling in Aurelia. The syntax is straightforward:
 
-Aurelia 2's convention-based approach eliminates the need to explicitly import the CSS file. When you run your application, Aurelia 2 automatically detects and applies the styles.
+```html
+<button submit.class="isFormValid">Submit Form</button>
+<div loading.class="isLoading">Content here...</div>
+<nav-item active.class="isCurrentPage">Home</nav-item>
+```
 
-{% tabs %}
-{% tab title="my-component.ts" %}
 ```typescript
 export class MyComponent {
-  // Component logic goes here
+  isFormValid = false;
+  isLoading = true;
+  isCurrentPage = false;
+
+  // When isFormValid becomes true, the 'submit' class gets added
+  // When isLoading is false, the 'loading' class gets removed
 }
 ```
-{% endtab %}
 
-{% tab title="my-component.css" %}
-```css
-.my-class {
-  color: blue;
-  background-color: lightgrey;
-  padding: 10px;
-  border-radius: 5px;
-}
-```
-{% endtab %}
-
-{% tab title="my-component.html" %}
-```html
-<template>
-  <p class="my-class">Stylized content here!</p>
-</template>
-```
-{% endtab %}
-{% endtabs %}
-
-When `MyComponent` is used in the application, the associated styles are automatically applied, giving the paragraph text a blue color and a light grey background with padding and rounded corners.
-
-## Shadow DOM
-
-The Shadow DOM API, part of the Web Components standard, provides encapsulation by hiding the component's internal DOM and styles from the rest of the application. Aurelia 2 offers several options for working with Shadow DOM:
-
-1. **Global Shadow DOM**: By default, encapsulates all components in your application.
-2. **Configured Shadow DOM**: Use the `useShadowDOM` decorator to opt-in per component.
-3. **Global opt-out Shadow DOM**: Enable Shadow DOM globally but disable it for specific components.
+**How it works**: The syntax is `className.class="booleanExpression"`. When the expression is truthy, the class is added. When it's falsy, the class is removed.
 
 {% hint style="info" %}
-If your application uses CSS frameworks like Bootstrap, which rely on global styles, consider how Shadow DOM encapsulation may affect their behavior. The following sections guide managing global and shared styles.
+**Note**: You can use any valid CSS class name, including ones with special characters like `my-awesome-class.class="isAwesome"` or Unicode characters like `✓.class="isComplete"`.
 {% endhint %}
 
-### Enabling Shadow DOM
+### Multiple Classes: Comma-Separated Syntax
 
-To enable Shadow DOM after the initial setup, configure it in the `main.ts` file:
+When you need to toggle multiple related classes together, you can use comma-separated class names:
 
-{% code title="main.ts" %}
-```typescript
-import Aurelia, { StyleConfiguration } from 'aurelia';
-import { MyApp } from './my-app';
-
-Aurelia
-  .register(StyleConfiguration.shadowDOM({
-    // Configuration options here
-  }))
-  .app(MyApp)
-  .start();
+```html
+<div alert,alert-danger,fade-in,shake.class="hasError">
+  Error message content
+</div>
 ```
-{% endcode %}
 
-The `StyleConfiguration` class from Aurelia allows you to specify how styles are applied, including options for Shadow DOM.
+```typescript
+export class ErrorComponent {
+  hasError = false;
 
-### Webpack Configuration for Shadow DOM
+  triggerError() {
+    this.hasError = true; // All four classes get added at once!
+  }
 
-When using Webpack, ensure the following rule is included in the Webpack configuration:
-
-{% code title="webpack.config.js" %}
-```javascript
-{
-  test: /[/\\]src[/\\].+\.html$/i,
-  use: {
-    loader: '@aurelia/webpack-loader',
-    options: {
-      defaultShadowOptions: { mode: 'open' }
-    }
-  },
-  exclude: /node_modules/
+  clearError() {
+    this.hasError = false; // All four classes get removed together
+  }
 }
 ```
-{% endcode %}
 
-This rule ensures that HTML files within your `src` directory are processed correctly to work with Shadow DOM.
+**Important**: No spaces around the commas! The parser expects `class1,class2,class3`, not `class1, class2, class3`.
 
-### Global Shared Styles
+## Style Binding
 
-In the Shadow DOM, styles are scoped to their components and don't leak to the global scope. To apply global styles across all components, use the `sharedStyles` property in the Shadow DOM configuration.
+Aurelia provides multiple approaches for binding CSS styles, from individual properties to complex style objects.
 
-#### Example: Using Bootstrap Globally
+### Single Style Properties
 
-{% code title="main.ts" %}
-```typescript
-import Aurelia, { StyleConfiguration } from 'aurelia';
-import { MyApp } from './my-app';
-import bootstrap from 'bootstrap/dist/css/bootstrap.css';
+To bind individual CSS properties dynamically, use the `.style` syntax:
 
-Aurelia
-  .register(StyleConfiguration.shadowDOM({
-    sharedStyles: [bootstrap] // Apply Bootstrap styles to all components
-  }))
-  .app(MyApp)
-  .start();
+```html
+<div background-color.style="themeColor">Themed content</div>
+<progress width.style="progressPercentage + '%'">Loading...</progress>
+<aside opacity.style="sidebarVisible ? '1' : '0.3'">Sidebar</aside>
 ```
-{% endcode %}
 
-The `sharedStyles` property accepts an array, allowing you to include multiple shared stylesheets.
+```typescript
+export class ThemedComponent {
+  themeColor = '#3498db';
+  progressPercentage = 75;
+  sidebarVisible = true;
+}
+```
 
-### Opting In to Shadow DOM with `useShadowDOM`
+### Alternative Style Syntax
 
-The `useShadowDOM` decorator, imported from Aurelia, lets you enable Shadow DOM on a per-component basis. Without configuration options, it defaults to `open` mode.
+Aurelia supports two equivalent syntaxes for style binding:
 
-#### Example: Enabling Shadow DOM on a Component
+```html
+<!-- These do exactly the same thing! -->
+<div background-color.style="myColor"></div>
+<div style.background-color="myColor"></div>
 
-{% code title="my-component.ts" %}
+<!-- Works with any CSS property -->
+<div font-size.style="textSize"></div>
+<div style.font-size="textSize"></div>
+```
+
+Use whichever feels more natural to you. Some developers prefer the first syntax because it reads like "set the background-color style to myColor", while others prefer the second because it's more similar to traditional CSS.
+
+### CSS Custom Properties
+
+Aurelia fully supports CSS custom properties (CSS variables), enabling powerful theming capabilities:
+
+```html
+<div --primary-color.style="brandColor">
+  <p style="color: var(--primary-color)">Branded text!</p>
+</div>
+
+<!-- Or with the alternative syntax -->
+<div style.--primary-color="brandColor">
+  <p style="color: var(--primary-color)">Same result!</p>
+</div>
+```
+
+```typescript
+export class ThemeManager {
+  brandColor = '#e74c3c';
+
+  switchToDarkMode() {
+    this.brandColor = '#34495e';
+  }
+}
+```
+
+### Vendor Prefixes
+
+Aurelia supports vendor-prefixed CSS properties for cross-browser compatibility:
+
+```html
+<div -webkit-user-select.style="userSelectValue">Non-selectable content</div>
+<div style.-webkit-user-select="userSelectValue">Alternative syntax</div>
+```
+
+### The `!important` Declaration
+
+Aurelia automatically handles the `!important` CSS declaration when included in style values:
+
+```typescript
+export class ImportantComponent {
+  criticalColor = 'red!important';
+
+  // Aurelia automatically:
+  // 1. Strips the !important from the value
+  // 2. Sets the CSS property priority correctly
+  // 3. Applies the style with proper priority
+}
+```
+
+## Advanced Class Binding Techniques
+
+Advanced class binding techniques provide greater flexibility for complex styling scenarios.
+
+### String-Based Class Binding
+
+For scenarios requiring more flexibility than boolean toggling, you can bind class strings directly:
+
+```html
+<div class.bind="dynamicClasses">Content with dynamic classes</div>
+<div class="base-class ${additionalClasses}">Mixed static and dynamic</div>
+```
+
+```typescript
+export class FlexibleComponent {
+  dynamicClasses = 'btn btn-primary active';
+  additionalClasses = 'fade-in hover-effect';
+
+  updateClasses() {
+    this.dynamicClasses = `btn btn-${this.isSuccess ? 'success' : 'danger'}`;
+  }
+}
+```
+
+**When to use what**:
+- `.class` syntax: When you need boolean toggling of specific classes
+- `class.bind`: When you need to build class strings dynamically
+- Template interpolation: When you want to mix static and dynamic classes
+
+## Advanced Style Binding
+
+Advanced style binding techniques enable sophisticated styling patterns and better code organization.
+
+### Object-Based Style Binding
+
+For complex styling scenarios, bind an entire style object:
+
+```html
+<div style.bind="cardStyles">Beautifully styled card</div>
+```
+
+```typescript
+export class StylishComponent {
+  cardStyles = {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e1e1e1',
+    borderRadius: '8px',
+    padding: '16px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+  };
+
+  switchToNightMode() {
+    this.cardStyles = {
+      ...this.cardStyles,
+      backgroundColor: '#2d3748',
+      color: '#ffffff',
+      borderColor: '#4a5568'
+    };
+  }
+}
+```
+
+### String Interpolation
+
+Combine static and dynamic styles using template interpolation:
+
+```html
+<div style="padding: 16px; background: ${bgColor}; transform: scale(${scale})">
+  Combined static and dynamic styles
+</div>
+```
+
+```typescript
+export class HybridComponent {
+  bgColor = 'linear-gradient(45deg, #3498db, #2ecc71)';
+  scale = 1.0;
+
+  animateIn() {
+    this.scale = 1.1;
+  }
+}
+```
+
+### Computed Style Properties
+
+Create dynamic styles based on component state:
+
+```typescript
+export class ComputedStyleComponent {
+  progress = 0.7;
+  theme = 'light';
+
+  get progressBarStyles() {
+    return {
+      width: `${this.progress * 100}%`,
+      backgroundColor: this.theme === 'dark' ? '#3498db' : '#2ecc71',
+      transition: 'all 0.3s ease'
+    };
+  }
+}
+```
+
+```html
+<div class="progress-container">
+  <div class="progress-bar" style.bind="progressBarStyles"></div>
+</div>
+```
+
+## Component Styling Strategies
+
+Beyond template bindings, Aurelia provides several approaches for styling components themselves.
+
+### Convention-Based Styling
+
+Aurelia automatically imports stylesheets that match your component names:
+
+```
+my-awesome-component.ts    (component logic)
+my-awesome-component.html  (template)
+my-awesome-component.css   (styles - automatically imported!)
+```
+
+This means you can focus on writing CSS without worrying about imports:
+
+```css
+/* my-awesome-component.css */
+:host {
+  display: block;
+  padding: 16px;
+}
+
+.content {
+  background: linear-gradient(45deg, #3498db, #2ecc71);
+  border-radius: 8px;
+}
+```
+
+### Shadow DOM
+
+For complete style isolation, use Shadow DOM:
+
 ```typescript
 import { useShadowDOM } from 'aurelia';
 
 @useShadowDOM()
-export class MyComponent {
-  // Component logic with Shadow DOM enabled
+export class IsolatedComponent {
+  // Styles are completely encapsulated
 }
 ```
-{% endcode %}
 
-You can specify the Shadow DOM mode (`open` or `closed`) as a configuration option. The `open` mode allows JavaScript to access the component's DOM through the `shadowRoot` property, while `closed` mode restricts this access.
+**Shadow DOM Configuration Options**:
 
-#### Example: Specifying Shadow DOM Mode
-
-{% code title="my-component.ts" %}
 ```typescript
-import { useShadowDOM } from 'aurelia';
+// Open mode (default) - JavaScript can access shadowRoot
+@useShadowDOM({ mode: 'open' })
+export class OpenComponent { }
 
+// Closed mode - shadowRoot is not accessible
 @useShadowDOM({ mode: 'closed' })
-export class MyComponent {
-  // Component logic with Shadow DOM in 'closed' mode
-}
-```
-{% endcode %}
+export class ClosedComponent { }
 
-### Disabling Shadow DOM
-
-The `useShadowDOM` decorator also allows disabling Shadow DOM for a specific component by passing `false`.
-
-#### Example: Disabling Shadow DOM for a Component
-
-{% code title="my-component.ts" %}
-```typescript
-import { useShadowDOM } from 'aurelia';
-
+// Disable Shadow DOM for a specific component
 @useShadowDOM(false)
-export class MyComponent {
-  // Component logic without Shadow DOM
-}
+export class NoShadowComponent { }
 ```
-{% endcode %}
 
 ### Shadow DOM Special Selectors
 
-Shadow DOM introduces special selectors that offer additional styling capabilities. These selectors are part of the CSS Scoping Module specification.
+Shadow DOM provides special CSS selectors for enhanced styling control:
 
-#### :host
-
-The `:host` selector targets the custom element itself, not its children. You can use the `:host()` function to apply styles based on the host element's classes or attributes.
-
-#### Example: Styling the Host Element
-
-{% code title="app-header.css" %}
 ```css
+/* Style the component host element */
 :host {
   display: block;
-  border: 1px solid #000;
+  border: 1px solid #e1e1e1;
 }
 
+/* Style the host when it has a specific class */
 :host(.active) {
-  background-color: #f0f0f0;
+  background-color: #f8f9fa;
+}
+
+/* Style the host based on ancestor context */
+:host-context(.dark-theme) {
+  background-color: #2d3748;
+  color: #ffffff;
+}
+
+/* Style slotted content */
+::slotted(.special-content) {
+  font-weight: bold;
+  color: #3498db;
 }
 ```
-{% endcode %}
 
-In this example, all `app-header` elements have a solid border, and those with the `active` class have a grey background.
+### Global Shared Styles in Shadow DOM
 
-#### :host-context
+To share styles across Shadow DOM components, configure shared styles in your application:
 
-The `:host-context` selector styles the custom element based on its context within the document.
+```typescript
+// main.ts
+import Aurelia, { StyleConfiguration } from 'aurelia';
+import { MyApp } from './my-app';
+import bootstrap from 'bootstrap/dist/css/bootstrap.css';
+import customTheme from './theme.css';
 
-#### Example: Styling Based on Context
+Aurelia
+  .register(StyleConfiguration.shadowDOM({
+    sharedStyles: [bootstrap, customTheme]
+  }))
+  .app(MyApp)
+  .start();
+```
 
-{% code title="app-header.css" %}
+### CSS Modules
+
+CSS Modules provide an alternative to Shadow DOM for scoped styling:
+
 ```css
-:host-context(.dark-mode) {
-  color: white;
-  background-color: #333;
-}
-```
-{% endcode %}
-
-Here, `app-header` elements will have white text on a dark background inside an element with the `dark-mode` class.
-
-## CSS Modules
-
-When Shadow DOM does not meet your needs, CSS Modules balance style encapsulation and global accessibility. CSS Modules transform class names into unique identifiers, preventing style collisions.
-
-### Webpack Configuration for CSS Modules
-
-To use CSS Modules, include the following loader configuration in your Webpack setup:
-
-{% code title="webpack.config.js" %}
-```javascript
-{
-  test: /\.css$/i,
-  use: [
-    'style-loader',
-    {
-      loader: 'css-loader',
-      options: {
-        modules: true
-      }
-    }
-  ],
-  exclude: /node_modules/
-}
-```
-{% endcode %}
-
-This rule processes CSS files, enabling CSS module functionality.
-
-### Example: Using CSS Modules in Components
-
-Define your styles, and reference the class names in your HTML templates. Webpack will handle the conversion to unique class names.
-
-{% code title="my-component.module.css" %}
-```css
+/* my-component.module.css */
 .title {
   font-size: 24px;
   color: #333;
 }
-```
-{% endcode %}
 
-{% code title="my-component.html" %}
+.button {
+  composes: title; /* Inherit styles from title */
+  background-color: #3498db;
+  padding: 8px 16px;
+}
+```
+
 ```html
-<template>
-  <h1 class="title">Hello, Aurelia!</h1>
-</template>
+<!-- Webpack transforms class names to unique identifiers -->
+<h1 class="title">My Title</h1>
+<button class="button">Click Me</button>
 ```
-{% endcode %}
 
-After processing, the `title` class may be transformed to a unique identifier like `title_1a2b3c`.
+## Real-World Examples and Patterns
 
-### CSS Modules' Special Selectors
+The following examples demonstrate practical applications of class and style binding techniques in common scenarios.
 
-CSS Modules support the `:global` selector for styling global elements without transformation.
+### Responsive Design with Dynamic Classes
 
-#### Example: Using Global Selectors
+```typescript
+export class ResponsiveComponent {
+  screenSize = 'desktop';
 
-{% code title="my-component.module.css" %}
-```css
-:global(.button-primary) {
-  background-color: #007bff;
-  color: white;
-}
-```
-{% endcode %}
-
-This style will apply globally to elements with the `button-primary` class, maintaining the class name without transformation.
-
-## Advanced Shadow DOM Usage
-
-Shadow DOM encapsulates a component's styles, preventing them from leaking into the global scope. Aurelia 2 offers granular control over Shadow DOM usage, including global and per-component configuration.
-
-### Example: Styling Slotted Content
-
-When using Shadow DOM, you can style content passed into slots using the `::slotted()` pseudo-element.
-
-{% code title="tab-panel.css" %}
-```css
-::slotted(.tab-content) {
-  padding: 15px;
-  border: 1px solid #ddd;
-}
-```
-{% endcode %}
-
-{% code title="tab-panel.html" %}
-```html
-<template>
-  <slot name="tab-content"></slot>
-</template>
-```
-{% endcode %}
-
-In this example, content assigned to the `tab-content` slot will receive padding and a border. At the same time, the encapsulation ensures that these styles don't affect other elements outside the `tab-panel` component.
-
-### Example: Theming with CSS Variables
-
-CSS variables can be used within Shadow DOM to create themeable components:
-
-{% code title="button-group.css" %}
-```css
-:host {
-  --button-bg-color: #eee;
-  --button-text-color: #333;
-}
-
-button {
-  background-color: var(--button-bg-color);
-  color: var(--button-text-color);
-}
-```
-{% endcode %}
-
-{% code title="button-group.html" %}
-```html
-<template>
-  <button><slot></slot></button>
-</template>
-```
-{% endcode %}
-
-Users of the `button-group` component can then define these variables at a higher level to theme the buttons consistently across the application.
-
-### Example: Scoped Animations in Shadow DOM
-
-Animations can be defined within Shadow DOM to ensure they are scoped to the component:
-
-{% code title="animated-banner.css" %}
-```css
-@keyframes slide-in {
-  from {
-    transform: translateX(-100%);
+  get responsiveClasses() {
+    return {
+      'mobile-layout': this.screenSize === 'mobile',
+      'tablet-layout': this.screenSize === 'tablet',
+      'desktop-layout': this.screenSize === 'desktop'
+    };
   }
-  to {
-    transform: translateX(0);
+
+  @listener('resize', window)
+  updateScreenSize() {
+    const width = window.innerWidth;
+    if (width < 768) {
+      this.screenSize = 'mobile';
+    } else if (width < 1024) {
+      this.screenSize = 'tablet';
+    } else {
+      this.screenSize = 'desktop';
+    }
   }
 }
-
-.banner {
-  animation: slide-in 1s ease-out forwards;
-}
 ```
-{% endcode %}
 
-{% code title="animated-banner.html" %}
 ```html
-<template>
-  <div class="banner">Welcome to Aurelia!</div>
-</template>
+<div class.bind="responsiveClasses">
+  <header class="header ${screenSize === 'mobile' ? 'mobile-header' : ''}">
+    <!-- Responsive header -->
+  </header>
+</div>
 ```
-{% endcode %}
 
-The `slide-in` animation is encapsulated within the `animated-banner` component, preventing it from conflicting with any other animations defined in the global scope.
+### Theme System with CSS Variables
 
-## CSS Modules: Advanced Techniques
+```typescript
+export class ThemeManager {
+  currentTheme = 'light';
 
-CSS Modules provide a powerful way to locally scope class names, avoiding global conflicts. With Aurelia 2, you can leverage CSS Modules to create maintainable, conflict-free styles.
+  get themeVariables() {
+    const themes = {
+      light: {
+        '--primary-color': '#3498db',
+        '--background-color': '#ffffff',
+        '--text-color': '#333333'
+      },
+      dark: {
+        '--primary-color': '#2ecc71',
+        '--background-color': '#2d3748',
+        '--text-color': '#ffffff'
+      }
+    };
 
-### Example: Composing CSS Module Classes
+    return themes[this.currentTheme];
+  }
 
-CSS Modules support composing classes from other modules, promoting reusability.
-
-{% code title="styles.css" %}
-```css
-.baseButton {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.primaryButton {
-  composes: baseButton;
-  background-color: #007bff;
-  color: white;
+  toggleTheme() {
+    this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+  }
 }
 ```
-{% endcode %}
 
-{% code title="my-component.html" %}
 ```html
-<template>
-  <button class="primaryButton">Click Me</button>
-</template>
+<div style.bind="themeVariables" class="theme-container">
+  <button
+    style="background: var(--primary-color); color: var(--text-color)"
+    click.delegate="toggleTheme()">
+    Toggle Theme
+  </button>
+</div>
 ```
-{% endcode %}
 
-In this example, `primaryButton` composes the `baseButton` styles, adding its own background and text color. CSS Modules ensures that these class names are unique to avoid styling conflicts.
+### Loading States with Animations
 
-### Example: Theming with CSS Modules
+```typescript
+export class LoadingComponent {
+  isLoading = false;
+  loadingProgress = 0;
 
-CSS Modules can also facilitate theming by exporting and importing variables.
+  async loadData() {
+    this.isLoading = true;
+    this.loadingProgress = 0;
 
-{% code title="theme.css" %}
-```css
-:export {
-  primaryColor: #007bff;
-  secondaryColor: #6c757d;
+    // Simulate loading with progress
+    const interval = setInterval(() => {
+      this.loadingProgress += 10;
+      if (this.loadingProgress >= 100) {
+        clearInterval(interval);
+        this.isLoading = false;
+      }
+    }, 100);
+  }
+
+  get progressBarStyle() {
+    return {
+      width: `${this.loadingProgress}%`,
+      transition: 'width 0.1s ease'
+    };
+  }
+}
 }
 ```
-{% endcode %}
 
-{% code title="button.css" %}
-```css
-@value primaryColor, secondaryColor from "./theme.css";
-
-.primaryButton {
-  background-color: primaryColor;
-  color: white;
-}
-
-.secondaryButton {
-  background-color: secondaryColor;
-  color: white;
-}
-```
-{% endcode %}
-
-{% code title="my-component.html" %}
 ```html
-<template>
-  <button class="primaryButton">Primary</button>
-  <button class="secondaryButton">Secondary</button>
-</template>
+<div loading.class="isLoading">
+  <div class="progress-container" show.bind="isLoading">
+    <div class="progress-bar" style.bind="progressBarStyle"></div>
+  </div>
+
+  <div class="content" hide.bind="isLoading">
+    <!-- Your actual content -->
+  </div>
+</div>
 ```
-{% endcode %}
 
-By defining and exporting theme variables in `theme.css`, they can be imported and used in other CSS Modules to ensure consistent theming across the application.
+### Complex Form Validation Styling
 
-## Additional Resources
+```typescript
+export class ValidationForm {
+  email = '';
+  password = '';
 
-For more guidance on class and style bindings in Aurelia applications, please take a look at the [CSS classes and styling section](.. templates/class-and-style-bindings.md). This section covers strategies for dynamically working with classes and inline styles.
+  get emailValidation() {
+    return {
+      isEmpty: !this.email,
+      isInvalid: this.email && !this.isValidEmail(this.email),
+      isValid: this.email && this.isValidEmail(this.email)
+    };
+  }
+
+  get passwordValidation() {
+    return {
+      isEmpty: !this.password,
+      isTooShort: this.password && this.password.length < 8,
+      isValid: this.password && this.password.length >= 8
+    };
+  }
+
+  isValidEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+}
+```
+
+```html
+<form>
+  <div class="field">
+    <input
+      type="email"
+      value.bind="email"
+      empty.class="emailValidation.isEmpty"
+      invalid.class="emailValidation.isInvalid"
+      valid.class="emailValidation.isValid">
+
+    <span
+      class="error-message"
+      show.bind="emailValidation.isInvalid">
+      Please enter a valid email
+    </span>
+
+    <span
+      class="success-indicator"
+      show.bind="emailValidation.isValid">
+      ✓
+    </span>
+  </div>
+</form>
+```
+
+## Performance Tips and Best Practices
+
+### Do's and Don'ts
+
+**✅ DO:**
+- Use `.class` for simple boolean toggling
+- Use CSS custom properties for theming
+- Prefer computed getters for complex style calculations
+- Use Shadow DOM for true component isolation
+- Cache complex style objects when possible
+
+**❌ DON'T:**
+- Inline complex style calculations in templates
+- Use string concatenation for class names when `.class` will do
+- Forget about CSS specificity when using `!important`
+- Mix too many styling approaches in one component
+
+### Performance Optimization
+
+```typescript
+export class OptimizedComponent {
+  private _cachedStyles: any = null;
+  private _lastTheme: string = '';
+
+  // Cache expensive style calculations
+  get expensiveStyles() {
+    if (this._cachedStyles && this._lastTheme === this.currentTheme) {
+      return this._cachedStyles;
+    }
+
+    this._cachedStyles = this.calculateComplexStyles();
+    this._lastTheme = this.currentTheme;
+    return this._cachedStyles;
+  }
+
+  private calculateComplexStyles() {
+    // Your expensive calculations here
+    return { /* styles */ };
+  }
+}
+```
+
+## Troubleshooting Common Issues
+
+### "My styles aren't updating!"
+
+**Problem**: Styles don't change when data changes.
+**Solution**: Make sure you're using proper binding syntax and that your properties are observable.
+
+```typescript
+// ❌ This won't trigger updates
+export class BadComponent {
+  styles = { color: 'red' };
+
+  changeColor() {
+    this.styles.color = 'blue'; // Mutation won't be detected
+  }
+}
+
+// ✅ This will work
+export class GoodComponent {
+  styles = { color: 'red' };
+
+  changeColor() {
+    this.styles = { ...this.styles, color: 'blue' }; // New object
+  }
+}
+```
+
+### "My CSS classes have weird names!"
+
+**Problem**: Using CSS Modules and seeing transformed class names.
+**Solution**: This is expected behavior! CSS Modules transform class names to ensure uniqueness.
+
+### "Shadow DOM is blocking my global styles!"
+
+**Problem**: Global CSS frameworks aren't working inside Shadow DOM components.
+**Solution**: Configure shared styles in your app startup.
+
+## Migration and Compatibility
+
+### Coming from Aurelia 1?
+
+The syntax is mostly the same, with some improvements:
+
+```html
+<!-- Aurelia 1 & 2 (still works) -->
+<div class.bind="myClasses"></div>
+
+<!-- Aurelia 2 (new!) -->
+<div loading,spinner,active.class="isLoading"></div>
+```
+
+### Browser Support
+
+All binding features work in modern browsers. For older browsers:
+- CSS custom properties require a polyfill for IE11
+- Shadow DOM requires a polyfill for older browsers
+- CSS Modules work everywhere (they're processed at build time)
+
+## Summary
+
+This guide has covered the complete range of class and style binding capabilities in Aurelia 2. Key takeaways include:
+
+1. **Basic class binding** - Use `.class` syntax for simple boolean toggling
+2. **Multiple class binding** - Leverage comma-separated syntax for related classes
+3. **Style property binding** - Apply individual CSS properties with `.style` syntax
+4. **Advanced techniques** - Implement complex styling with objects, interpolation, and CSS variables
+5. **Component styling** - Choose appropriate encapsulation strategies for your use case
+
+These techniques provide the foundation for building maintainable, dynamic user interfaces that respond effectively to application state changes.
+
+---
+
+**Additional Resources**: For more information on binding syntax, see the [template syntax guide](../templates/template-syntax/). To understand when styles are applied, refer to the [component lifecycles](./component-lifecycles.md) documentation.

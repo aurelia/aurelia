@@ -339,7 +339,7 @@ describe('state/state.spec.ts', function () {
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:5">`
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:10">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, { type, v }: { type: string; v: string }) => {
@@ -360,7 +360,7 @@ describe('state/state.spec.ts', function () {
       await resolveAfter(1);
       assert.strictEqual(getBy('input').value, '11');
 
-      await resolveAfter(10);
+      await resolveAfter(20);
       assert.strictEqual(actionCallCount, 2);
       assert.strictEqual(getBy('input').value, '1111');
     });

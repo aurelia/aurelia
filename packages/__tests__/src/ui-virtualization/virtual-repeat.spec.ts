@@ -1,5 +1,5 @@
 import { createFixture, assert } from '@aurelia/testing';
-import { DefaultVirtualizationConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
+import { DefaultVirtualizationConfiguration, VirtualRepeat, VIRTUAL_REPEAT_NEAR_BOTTOM, VIRTUAL_REPEAT_NEAR_TOP, type IVirtualRepeatNearBottomEvent, type IVirtualRepeatNearTopEvent } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
@@ -174,6 +174,68 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
 
       // With explicit itemHeight 40, minViews=5, buffer=3 => 15 rendered views, bottom buffer=(100-15)*40
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (100 - 15) * 40]);
+    });
+  });
+
+  describe('infinite scroll', function () {
+    it('triggers near-bottom event when scrolling to the end', function (done) {
+      const { scrollBy, flush } = createFixture(
+        `<div
+          id="scroller"
+          style="box-sizing: border-box; height: 600px; border: 0px solid black; padding: 0px; overflow: auto;"
+          ${VIRTUAL_REPEAT_NEAR_BOTTOM}.trigger="nearBottom($event)"
+        >
+          <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
+        </div>`,
+        class App {
+          public items = createItems(100);
+          private fired = false;
+          public nearBottom(event: IVirtualRepeatNearBottomEvent) {
+            if (this.fired) { return; }
+            this.fired = true;
+            assert.ok(event.detail.lastVisibleIndex >= 0, 'event should contain lastVisibleIndex');
+            assert.ok(event.detail.itemCount === 100, 'event should contain correct itemCount');
+            assert.ok(true, 'near-bottom event triggered');
+            done();
+          }
+        },
+        virtualRepeatDeps
+      );
+
+      // scroll to bottom
+      scrollBy('#scroller', 5000);
+      flush();
+    });
+
+    it('triggers near-top event when scrolling back to top', function (done) {
+      const { scrollBy, flush } = createFixture(
+        `<div
+          id="scroller"
+          style="box-sizing: border-box; height: 600px; border: 0px solid black; padding: 0px; overflow: auto;"
+          ${VIRTUAL_REPEAT_NEAR_TOP}.trigger="nearTop($event)"
+        >
+          <div virtual-repeat.for="item of items" style="height: 50px">\${item.name}</div>
+        </div>`,
+        class App {
+          public items = createItems(100);
+          private fired = false;
+          public nearTop(event: IVirtualRepeatNearTopEvent) {
+            if (this.fired) { return; }
+            this.fired = true;
+            assert.ok(event.detail.firstVisibleIndex >= 0, 'event should contain firstVisibleIndex');
+            assert.ok(event.detail.itemCount === 100, 'event should contain correct itemCount');
+            assert.ok(true, 'near-top event triggered');
+            done();
+          }
+        },
+        virtualRepeatDeps
+      );
+
+      scrollBy('#scroller', 5000);
+      flush();
+
+      scrollBy('#scroller', -5000);
+      flush();
     });
   });
 

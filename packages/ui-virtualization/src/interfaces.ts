@@ -5,11 +5,14 @@ import type {
   IndexMap,
 } from '@aurelia/runtime';
 import type {
+  IController,
   IRenderLocation, ISyntheticView,
 } from '@aurelia/runtime-html';
 
 export interface IVirtualRepeater<T extends Collection = Collection> extends IScrollerSubscriber {
   readonly items: T | undefined | null;
+  readonly location: IRenderLocation;
+  readonly $controller?: IController;
 
   getViews(): readonly ISyntheticView[];
   getDistances(): [top: number, bottom: number];
@@ -97,4 +100,28 @@ export interface ICollectionStrategy<T extends Collection = Collection> {
 
 export interface ICollectionStrategySubscriber<T extends Collection = Collection> {
   handleCollectionMutation(collection: T, indexMap: IndexMap): void;
+}
+
+export const VIRTUAL_REPEAT_NEAR_TOP = 'near-top';
+export const VIRTUAL_REPEAT_NEAR_BOTTOM = 'near-bottom';
+
+export interface IVirtualRepeatNearTopEvent extends CustomEvent {
+  readonly type: 'near-top';
+  readonly detail: {
+    readonly firstVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+
+export interface IVirtualRepeatNearBottomEvent extends CustomEvent {
+  readonly type: 'near-bottom';
+  readonly detail: {
+    readonly lastVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+
+export interface IVirtualRepeatEventCallbacks {
+  'near-top'?: (event: IVirtualRepeatNearTopEvent) => void;
+  'near-bottom'?: (event: IVirtualRepeatNearBottomEvent) => void;
 }

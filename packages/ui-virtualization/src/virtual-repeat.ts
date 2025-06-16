@@ -24,7 +24,6 @@ import {
   IInstruction,
   HydrateTemplateController,
   IteratorBindingInstruction,
-  MultiAttrInstruction,
 } from '@aurelia/template-compiler';
 import {
   unwrapExpression,
@@ -33,6 +32,8 @@ import {
   ICollectionStrategyLocator,
   IDomRenderer,
   IScrollerObsererLocator,
+  VIRTUAL_REPEAT_NEAR_BOTTOM,
+  VIRTUAL_REPEAT_NEAR_TOP,
 } from "./interfaces";
 import type {
   ICollectionStrategy,
@@ -485,11 +486,23 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
     if (isScrollingDown) {
       if (collectionStrategy.isNearBottom(currFirstIndex + (viewCount - 1))) {
-        // console.log('getting more item when scrolling down');
+        repeatDom.scroller.dispatchEvent(new CustomEvent(VIRTUAL_REPEAT_NEAR_BOTTOM, {
+          bubbles: true,
+          detail: {
+            lastVisibleIndex: currFirstIndex + (viewCount - 1),
+            itemCount: collectionSize
+          }
+        }));
       }
     } else {
       if (collectionStrategy.isNearTop(views[0].scope.overrideContext['$index'] as number)) {
-        // console.log('getting more item when scrolling up');
+        repeatDom.scroller.dispatchEvent(new CustomEvent(VIRTUAL_REPEAT_NEAR_TOP, {
+          bubbles: true,
+          detail: {
+            firstVisibleIndex: views[0].scope.overrideContext['$index'] as number,
+            itemCount: collectionSize
+          }
+        }));
       }
     }
 

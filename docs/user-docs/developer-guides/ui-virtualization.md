@@ -1,4 +1,3 @@
-
 ## Installation
 
 {% hint style="info" %}
@@ -45,6 +44,122 @@ The full syntax mirrors normal repeater multi-attribute support, e.g.:
 ```
 
 You may mix and match any combination of the options. Names can be written in camelCase (`itemHeight`) or kebab-case (`item-height`).
+
+## Infinite Scroll
+
+The virtual repeat supports infinite scroll functionality through event-based callbacks. When the user scrolls near the top or bottom of the list, events are dispatched that you can handle to load more data.
+
+### Event Types
+
+The virtual repeat dispatches two events:
+
+- `near-top`: Fired when scrolling approaches the beginning of the list
+- `near-bottom`: Fired when scrolling approaches the end of the list
+
+Both events include useful information in their `detail` property:
+
+```typescript
+interface IVirtualRepeatNearTopEvent extends CustomEvent {
+  readonly type: 'near-top';
+  readonly detail: {
+    readonly firstVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+
+interface IVirtualRepeatNearBottomEvent extends CustomEvent {
+  readonly type: 'near-bottom';
+  readonly detail: {
+    readonly lastVisibleIndex: number;
+    readonly itemCount: number;
+  };
+}
+```
+
+### Usage Example
+
+```html
+<template>
+  <div
+    style="height: 400px; overflow: auto;"
+    near-bottom.trigger="loadMoreItems($event)"
+    near-top.trigger="loadPreviousItems($event)"
+  >
+    <div virtual-repeat.for="item of items" style="height: 50px;">
+      ${item.name}
+    </div>
+  </div>
+</template>
+```
+
+```typescript
+import {
+  IVirtualRepeatNearBottomEvent,
+  IVirtualRepeatNearTopEvent
+} from '@aurelia/ui-virtualization';
+
+export class InfiniteScrollList {
+  public items: Item[] = [];
+  private loading = false;
+
+  public async loadMoreItems(event: IVirtualRepeatNearBottomEvent) {
+    if (this.loading) return;
+
+    this.loading = true;
+    try {
+      const { lastVisibleIndex, itemCount } = event.detail;
+      const newItems = await this.dataService.loadMore(itemCount);
+      this.items.push(...newItems);
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  public async loadPreviousItems(event: IVirtualRepeatNearTopEvent) {
+    if (this.loading) return;
+
+    this.loading = true;
+    try {
+      const { firstVisibleIndex, itemCount } = event.detail;
+      const previousItems = await this.dataService.loadPrevious(firstVisibleIndex);
+      this.items.unshift(...previousItems);
+    } finally {
+      this.loading = false;
+    }
+  }
+}
+```
+
+### Best Practices for Infinite Scroll
+
+1. **Prevent Multiple Requests**: Use a loading flag to prevent multiple simultaneous requests
+2. **Handle Errors**: Implement proper error handling for failed data loads
+3. **Loading Indicators**: Show loading states to improve user experience
+4. **Debouncing**: Consider debouncing rapid scroll events if needed
+
+```typescript
+export class InfiniteScrollList {
+  public items: Item[] = [];
+  public isLoadingMore = false;
+  public isLoadingPrevious = false;
+
+  public async loadMoreItems(event: IVirtualRepeatNearBottomEvent) {
+    if (this.isLoadingMore) return;
+
+    this.isLoadingMore = true;
+    try {
+      const newItems = await this.dataService.loadMore();
+      this.items.push(...newItems);
+    } catch (error) {
+      this.logger.error('Failed to load more items', error);
+    } finally {
+      this.isLoadingMore = false;
+    }
+  }
+}
+```
+
+## Basic Examples
 
 ### div
 ```html
@@ -113,9 +228,8 @@ An error will be thrown if no ancestor element with style `overflow: scroll` is 
   ```
   4. Similar to (3), virtualization requires appropriate removing and inserting visible items, so not all views will have their lifecycle invoked repeatedly. Rather, their binding contexts will be updated accordingly when the virtual repeat reuses the view and view model. To work around this, you can have your components work in a reactive way, which is natural in an Aurelia application. An example is to handle changes in change handler callback.
 
-## Tobe implemented feature list
+## To be implemented feature list
 
-- [ ] infinite scroll
 - [ ] horizontal scrolling
 - [ ] variable height
 - [ ] scrolling direction

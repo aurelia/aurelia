@@ -9,6 +9,11 @@ export {
   type IScrollerSubscriber,
   type IVirtualRepeatDom,
   type IVirtualRepeater,
+  VIRTUAL_REPEAT_NEAR_TOP,
+  VIRTUAL_REPEAT_NEAR_BOTTOM,
+  type IVirtualRepeatNearTopEvent,
+  type IVirtualRepeatNearBottomEvent,
+  type IVirtualRepeatEventCallbacks,
 } from './interfaces';
 
 export {

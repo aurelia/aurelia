@@ -15,7 +15,7 @@ export class DefaultDomRenderer implements IDomRenderer {
     protected p: IPlatform,
   ) { }
 
-  public render(target: HTMLElement | IRenderLocation): IVirtualRepeatDom {
+  public render(target: HTMLElement | IRenderLocation, layout: 'vertical' | 'horizontal' = 'vertical'): IVirtualRepeatDom {
     const doc = this.p.document;
     const parent = target.parentNode as Element;
     // Todo: should this ever happen?
@@ -29,15 +29,15 @@ export class DefaultDomRenderer implements IDomRenderer {
       case 'TFOOT':
       case 'TABLE':
         bufferEls = insertBefore(doc, 'tr', target);
-        return new TableDom(parent.closest('table')!, target, bufferEls[0], bufferEls[1]);
+        return new TableDom(parent.closest('table')!, target, bufferEls[0], bufferEls[1], layout);
       case 'UL':
       case 'OL':
         // less chance of disturbing CSS of UL/OL
         bufferEls = insertBefore(doc, 'div', target);
-        return new ListDom(parent as HTMLOListElement, target, bufferEls[0], bufferEls[1]);
+        return new ListDom(parent as HTMLOListElement, target, bufferEls[0], bufferEls[1], layout);
       default:
         bufferEls = insertBefore(doc, 'div', target);
-        return new DefaultDom(target, bufferEls[0], bufferEls[1]);
+        return new DefaultDom(target, bufferEls[0], bufferEls[1], layout);
     }
   }
 }
@@ -49,6 +49,7 @@ class DefaultDom implements IVirtualRepeatDom {
     public readonly anchor: HTMLElement | IRenderLocation,
     public readonly top: HTMLElement,
     public readonly bottom: HTMLElement,
+    public readonly layout: 'vertical' | 'horizontal',
   ) { }
 
   public get scroller(): HTMLElement {
@@ -60,8 +61,23 @@ class DefaultDom implements IVirtualRepeatDom {
   }
 
   public update(top: number, bot: number): void {
-    this.top.style.height = `${this.tH = top}px`;
-    this.bottom.style.height = `${this.bH = bot}px`;
+    if (this.layout === 'horizontal') {
+      this.top.style.width = `${this.tH = top}px`;
+      this.bottom.style.width = `${this.bH = bot}px`;
+      // Reset height and set display to inline-block for horizontal layout
+      this.top.style.height = '100%';
+      this.bottom.style.height = '100%';
+      this.top.style.display = 'inline-block';
+      this.bottom.style.display = 'inline-block';
+    } else {
+      this.top.style.height = `${this.tH = top}px`;
+      this.bottom.style.height = `${this.bH = bot}px`;
+      // Reset width for vertical layout
+      this.top.style.width = '';
+      this.bottom.style.width = '';
+      this.top.style.display = '';
+      this.bottom.style.display = '';
+    }
   }
 
   public dispose(): void {
@@ -76,8 +92,9 @@ class ListDom extends DefaultDom {
     anchor: HTMLElement | IRenderLocation,
     top: HTMLElement,
     bottom: HTMLElement,
+    layout: 'vertical' | 'horizontal',
   ) {
-    super(anchor, top, bottom);
+    super(anchor, top, bottom, layout);
   }
 
   public get scroller(): HTMLElement {
@@ -91,8 +108,9 @@ class TableDom extends DefaultDom {
     anchor: HTMLElement | IRenderLocation,
     top: HTMLElement,
     bottom: HTMLElement,
+    layout: 'vertical' | 'horizontal',
   ) {
-    super(anchor, top, bottom);
+    super(anchor, top, bottom, layout);
   }
 
   public get scroller(): HTMLElement {

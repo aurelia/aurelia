@@ -20,13 +20,14 @@ export interface IVirtualRepeater<T extends Collection = Collection> extends ISc
 
 export const IDomRenderer = /*@__PURE__*/DI.createInterface<IDomRenderer>('IDomRenderer');
 export interface IDomRenderer {
-  render(target: HTMLElement | IRenderLocation): IVirtualRepeatDom;
+  render(target: HTMLElement | IRenderLocation, layout?: 'vertical' | 'horizontal'): IVirtualRepeatDom;
 }
 
 export interface IVirtualRepeatDom extends IDisposable {
   readonly anchor: HTMLElement | IRenderLocation;
   readonly top: HTMLElement;
   readonly bottom: HTMLElement;
+  readonly layout: 'vertical' | 'horizontal';
 
   readonly scroller: HTMLElement;
 
@@ -55,11 +56,14 @@ export interface IScrollerSubscriber {
  * Capturing:
  * - current scroll height
  * - current scroll top
+ * - current scroll left
  * - real height
+ * - real width
  */
 export interface IScrollerInfo {
   readonly scroller: HTMLElement;
   readonly scrollTop: number;
+  readonly scrollLeft: number;
   readonly width: number;
   readonly height: number;
 }

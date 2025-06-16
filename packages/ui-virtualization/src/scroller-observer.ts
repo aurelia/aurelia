@@ -72,7 +72,7 @@ export class ScrollerObserver implements IScrollerObserver {
   public getValue(): IScrollerInfo {
     const scroller = this.scroller;
     const rect = scroller.getBoundingClientRect();
-    return new ScrollerInfo(scroller, scroller.scrollTop, rect.width, rect.height);
+    return new ScrollerInfo(scroller, scroller.scrollTop, scroller.scrollLeft, rect.width, rect.height);
   }
 
   /** @internal */
@@ -131,6 +131,7 @@ class ScrollerInfo implements IScrollerInfo {
   public constructor(
     public readonly scroller: HTMLElement,
     public readonly scrollTop: number,
+    public readonly scrollLeft: number,
     public readonly width: number,
     public readonly height: number,
   ) { }

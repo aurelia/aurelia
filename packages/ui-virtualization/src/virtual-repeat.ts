@@ -43,10 +43,11 @@ import type {
   IVirtualRepeatDom,
   IVirtualRepeater
 } from "./interfaces";
-import { calcOuterHeight, calcScrollerViewportHeight, getDistanceToScroller } from "./utilities-dom";
+import { calcOuterHeight, calcOuterWidth, calcScrollerViewportHeight, calcScrollerViewportWidth, getDistanceToScroller, getHorizontalDistanceToScroller } from "./utilities-dom";
 
 const noScrollInfo: IScrollerInfo = {
   height: 0,
+  scrollLeft: 0,
   scrollTop: 0,
   scroller: null!,
   width: 0
@@ -83,14 +84,25 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
   /** @internal */ private _needInitCalculation = true;
   private itemHeight = 0;
+  private itemWidth = 0;
   private minViewsRequired = 0;
   private collectionStrategy?: ICollectionStrategy;
   private dom: IVirtualRepeatDom = null!;
   private scrollerObserver: IScrollerObserver | null = null;
 
   /** @internal */ private readonly _configuredItemHeight?: number;
+  /** @internal */ private readonly _configuredItemWidth?: number;
   /** @internal */ private readonly _configuredBufferSize?: number;
   /** @internal */ private readonly _configuredMinViews?: number;
+  /** @internal */ private readonly _configuredLayout: 'vertical' | 'horizontal' = 'vertical';
+  /** @internal */ private readonly _configuredVariableHeight: boolean = false;
+  /** @internal */ private readonly _configuredVariableWidth: boolean = false;
+
+  // Variable sizing support
+  /** @internal */ private readonly _itemHeights: number[] = [];
+  /** @internal */ private readonly _itemWidths: number[] = [];
+  /** @internal */ private _cumulativeHeights: number[] = [];
+  /** @internal */ private _cumulativeWidths: number[] = [];
 
   public readonly location = resolve(IRenderLocation);
   public readonly instruction = resolve(IInstruction) as HydrateTemplateController;
@@ -129,6 +141,13 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
             }
             break;
           }
+          case 'itemWidth':
+          case 'item-width': {
+            if (!Number.isNaN(valNum) && valNum > 0) {
+              this._configuredItemWidth = valNum;
+            }
+            break;
+          }
           case 'bufferSize':
           case 'buffer-size': {
             if (!Number.isNaN(valNum) && valNum > 0) {
@@ -140,6 +159,26 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
           case 'min-views': {
             if (!Number.isNaN(valNum) && valNum > 0) {
               this._configuredMinViews = valNum;
+            }
+            break;
+          }
+          case 'layout': {
+            if (valueStr === 'horizontal' || valueStr === 'vertical') {
+              (this as any)._configuredLayout = valueStr;
+            }
+            break;
+          }
+          case 'variableHeight':
+          case 'variable-height': {
+            if (valueStr === 'true' || valueStr === '1') {
+              (this as any)._configuredVariableHeight = true;
+            }
+            break;
+          }
+          case 'variableWidth':
+          case 'variable-width': {
+            if (valueStr === 'true' || valueStr === '1') {
+              (this as any)._configuredVariableWidth = true;
             }
             break;
           }
@@ -155,7 +194,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    * @internal
    */
   public attaching(): void {
-    this.dom = this._domRenderer.render(this.location);
+    this.dom = this._domRenderer.render(this.location, this._configuredLayout);
     (this.scrollerObserver = this.scrollerObserverLocator.getObserver(this.dom.scroller)).subscribe(this);
 
     // todo: merge the obs mediator into collection strategy
@@ -188,10 +227,14 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       throw new Error('AURxxxx: Invalid calculation state. Virtual repeater has no items.');
     }
     const firstView = this._createAndActivateFirstView();
-    const itemHeight = this._configuredItemHeight ?? calcOuterHeight(firstView.nodes.firstChild as HTMLElement);
+    const firstElement = firstView.nodes.firstChild as HTMLElement;
+
+    const isHorizontal = this._configuredLayout === 'horizontal';
+    const itemHeight = this._configuredItemHeight ?? calcOuterHeight(firstElement);
+    const itemWidth = this._configuredItemWidth ?? calcOuterWidth(firstElement);
     const scrollerInfo = this.scrollerObserver!.getValue();
 
-    const baseCalc = this._calculate(scrollerInfo, this.collectionStrategy!.count, itemHeight);
+    const baseCalc = this._calculate(scrollerInfo, this.collectionStrategy!.count, itemHeight, itemWidth, isHorizontal);
 
     if (baseCalc.signals & SizingSignals.reset) {
       this._resetCalculation();
@@ -204,7 +247,13 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
 
     const minViews = this._configuredMinViews ?? baseCalc.minViews;
 
+    // For variable sizing, measure the first item to initialize the arrays
+    if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+      this._measureAndStoreItemSize(firstView, 0);
+    }
+
     this.itemHeight = itemHeight;
+    this.itemWidth = itemWidth;
     this.minViewsRequired = minViews;
     this._needInitCalculation = false;
     // return a new calc instance reflecting possibly overridden minViews
@@ -214,14 +263,21 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   /**
    * @internal
    */
-  private _calculate(scrollerInfo: IScrollerInfo, itemCount: number, itemHeight: number): ICalculation {
+  private _calculate(scrollerInfo: IScrollerInfo, itemCount: number, itemHeight: number, itemWidth: number, isHorizontal: boolean): ICalculation {
     if (itemCount === 0) {
       return Calculation.reset;
     }
-    if (itemHeight === 0) {
+
+    const itemSize = isHorizontal ? itemWidth : itemHeight;
+    if (itemSize === 0) {
       return Calculation.none;
     }
-    const minViewsRequired = Math.ceil(calcScrollerViewportHeight(scrollerInfo.scroller) / itemHeight);
+
+    const viewportSize = isHorizontal
+      ? calcScrollerViewportWidth(scrollerInfo.scroller)
+      : calcScrollerViewportHeight(scrollerInfo.scroller);
+
+    const minViewsRequired = Math.ceil(viewportSize / itemSize);
     return Calculation.from(SizingSignals.has_sizing, minViewsRequired);
   }
 
@@ -232,7 +288,104 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     this._needInitCalculation = true;
     this.minViewsRequired = 0;
     this.itemHeight = 0;
+    this.itemWidth = 0;
     this.dom.update(0, 0);
+
+    // Reset variable sizing data
+    this._itemHeights.length = 0;
+    this._itemWidths.length = 0;
+    this._cumulativeHeights = [];
+    this._cumulativeWidths = [];
+  }
+
+  /**
+   * @internal
+   */
+  private _measureAndStoreItemSize(view: ISyntheticView, index: number): void {
+    const element = view.nodes.firstChild as HTMLElement;
+    if (!element) return;
+
+    const height = calcOuterHeight(element);
+    const width = calcOuterWidth(element);
+
+    // Store the measured sizes
+    this._itemHeights[index] = height;
+    this._itemWidths[index] = width;
+  }
+
+  /**
+   * @internal
+   */
+  private _buildCumulativeSizes(itemCount: number): void {
+    // Build cumulative heights
+    this._cumulativeHeights = new Array(itemCount);
+    let cumulativeHeight = 0;
+    for (let i = 0; i < itemCount; i++) {
+      const height = this._itemHeights[i] ?? this.itemHeight;
+      cumulativeHeight += height;
+      this._cumulativeHeights[i] = cumulativeHeight;
+    }
+
+    // Build cumulative widths
+    this._cumulativeWidths = new Array(itemCount);
+    let cumulativeWidth = 0;
+    for (let i = 0; i < itemCount; i++) {
+      const width = this._itemWidths[i] ?? this.itemWidth;
+      cumulativeWidth += width;
+      this._cumulativeWidths[i] = cumulativeWidth;
+    }
+  }
+
+  /**
+   * @internal
+   */
+  private _findIndexByPosition(position: number, isHorizontal: boolean): number {
+    const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
+
+    if (cumulative.length === 0) {
+      // Fallback to fixed sizing
+      const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
+      return itemSize > 0 ? Math.floor(position / itemSize) : 0;
+    }
+
+    // Binary search to find the index
+    let left = 0;
+    let right = cumulative.length - 1;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      const cumulativeSize = cumulative[mid];
+      const prevCumulativeSize = mid > 0 ? cumulative[mid - 1] : 0;
+
+      if (position >= prevCumulativeSize && position < cumulativeSize) {
+        return mid;
+      } else if (position < prevCumulativeSize) {
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
+    }
+
+    return Math.max(0, Math.min(left, cumulative.length - 1));
+  }
+
+  /**
+   * @internal
+   */
+  private _getPositionForIndex(index: number, isHorizontal: boolean): number {
+    const cumulative = isHorizontal ? this._cumulativeWidths : this._cumulativeHeights;
+
+    if (cumulative.length === 0 || index === 0) {
+      return 0;
+    }
+
+    if (index >= cumulative.length) {
+      // Fallback for out-of-bounds
+      const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
+      return index * itemSize;
+    }
+
+    return index > 0 ? cumulative[index - 1] : 0;
   }
 
   /** @internal */
@@ -296,7 +449,9 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     for (i = currViewCount; i < realViewCount; i++) {
       views.push(this._factory.create());
     }
+    const isHorizontal = this._configuredLayout === 'horizontal';
     const itemHeight = this.itemHeight;
+    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
     const local = this.local;
     const {
       firstIndex,
@@ -330,12 +485,33 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         enhanceOverrideContext(scope.overrideContext);
         void view.activate(repeatController, repeatController, scope);
       }
+
+      // Measure item size for variable sizing
+      if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+        this._measureAndStoreItemSize(view, idx);
+      }
     }
 
-    this.dom.update(
-      topCount * itemHeight,
-      botCount * itemHeight
-    );
+    // Build cumulative sizes for variable sizing after measuring items
+    if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+      this._buildCumulativeSizes(itemCount);
+    }
+
+    // Calculate buffer sizes
+    let topBufferSize = 0;
+    let botBufferSize = 0;
+
+    if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+      // Variable sizing: calculate actual cumulative sizes
+      topBufferSize = this._getPositionForIndex(topCount, isHorizontal);
+      botBufferSize = this._getPositionForIndex(itemCount - firstIndex - realViewCount, isHorizontal);
+    } else {
+      // Fixed sizing: use multiplication
+      topBufferSize = topCount * itemSize;
+      botBufferSize = botCount * itemSize;
+    }
+
+    this.dom.update(topBufferSize, botBufferSize);
   }
 
   /** @internal */
@@ -362,12 +538,71 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     return real_scroll_top;
   }
 
+  /**
+   * Similar to _calcRealScrollTop but for horizontal scrolling
+   *
+   * @internal
+   */
+  private _calcRealScrollLeft(scrollerInfo: IScrollerInfo) {
+    const scroller_scroll_left = scrollerInfo.scrollLeft;
+    const left_buffer_distance = getHorizontalDistanceToScroller(this.dom.top, scrollerInfo.scroller);
+    const real_scroll_left = Math.max(0, scroller_scroll_left === 0
+      ? 0
+      : (scroller_scroll_left - left_buffer_distance));
+    return real_scroll_left;
+  }
+
   /** @internal */
   private measureBuffer(scrollerInfo: IScrollerInfo, viewCount: number, collectionSize: number, itemHeight: number): IBufferCalculation {
-    const real_scroll_top = this._calcRealScrollTop(scrollerInfo);
-    let first_index_after_scroll_adjustment = real_scroll_top === 0
+    const isHorizontal = this._configuredLayout === 'horizontal';
+    const isVariableSizing = isHorizontal ? this._configuredVariableWidth : this._configuredVariableHeight;
+
+    if (isVariableSizing && (isHorizontal ? this._cumulativeWidths.length > 0 : this._cumulativeHeights.length > 0)) {
+      return this._measureBufferVariable(scrollerInfo, viewCount, collectionSize, isHorizontal);
+    } else {
+      return this._measureBufferFixed(scrollerInfo, viewCount, collectionSize, itemHeight, isHorizontal);
+    }
+  }
+
+  /** @internal */
+  private _measureBufferFixed(scrollerInfo: IScrollerInfo, viewCount: number, collectionSize: number, itemHeight: number, isHorizontal: boolean): IBufferCalculation {
+    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
+    const realScroll = isHorizontal
+      ? this._calcRealScrollLeft(scrollerInfo)
+      : this._calcRealScrollTop(scrollerInfo);
+
+    let first_index_after_scroll_adjustment = realScroll === 0
       ? 0
-      : Math.floor(real_scroll_top / itemHeight);
+      : Math.floor(realScroll / itemSize);
+
+    // if first index after scroll adjustment doesn't fit with number of possible view
+    // it means the scroller has been too far down to the bottom and nolonger suitable to start from this index
+    // rollback until all views fit into new collection, or until has enough collection item to render
+    if (first_index_after_scroll_adjustment + viewCount >= collectionSize) {
+      first_index_after_scroll_adjustment = Math.max(0, collectionSize - viewCount);
+    }
+    const top_buffer_item_count_after_scroll_adjustment = first_index_after_scroll_adjustment;
+    const bot_buffer_item_count_after_scroll_adjustment = Math.max(
+      0,
+      collectionSize - top_buffer_item_count_after_scroll_adjustment - viewCount
+    );
+
+    return {
+      firstIndex: first_index_after_scroll_adjustment,
+      topCount: top_buffer_item_count_after_scroll_adjustment,
+      botCount: bot_buffer_item_count_after_scroll_adjustment,
+    };
+  }
+
+  /** @internal */
+  private _measureBufferVariable(scrollerInfo: IScrollerInfo, viewCount: number, collectionSize: number, isHorizontal: boolean): IBufferCalculation {
+    const realScroll = isHorizontal
+      ? this._calcRealScrollLeft(scrollerInfo)
+      : this._calcRealScrollTop(scrollerInfo);
+
+    let first_index_after_scroll_adjustment = realScroll === 0
+      ? 0
+      : this._findIndexByPosition(realScroll, isHorizontal);
 
     // if first index after scroll adjustment doesn't fit with number of possible view
     // it means the scroller has been too far down to the bottom and nolonger suitable to start from this index
@@ -392,7 +627,9 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
     const task = this.task;
     this.task = this.taskQueue.queueTask(() => {
       this.task = null;
-      if (this.views.length > 0 && this.itemHeight > 0) {
+      const isHorizontal = this._configuredLayout === 'horizontal';
+      const itemSize = isHorizontal ? this.itemWidth : this.itemHeight;
+      if (this.views.length > 0 && itemSize > 0) {
         this._initCalculation();
         this.handleScroll(scrollerInfo);
       }
@@ -404,7 +641,9 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
   private handleScroll(scrollerInfo: IScrollerInfo): void {
     const prevScrollerInfo = this._currScrollerInfo;
     const local = this.local;
+    const isHorizontal = this._configuredLayout === 'horizontal';
     const itemHeight = this.itemHeight;
+    const itemSize = isHorizontal ? this.itemWidth : itemHeight;
     const repeatDom = this.dom;
     const views = this.views;
     const collectionStrategy = this.collectionStrategy!;
@@ -417,8 +656,10 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       botCount: botCount1
     } = this.measureBuffer(scrollerInfo, viewCount, collectionSize, itemHeight);
     // const isScrolling = $isScrolling(prevScrollerInfo, scrollerInfo);
-    const isScrollingDown = scrollerInfo.scrollTop > prevScrollerInfo.scrollTop;
-    const isJumping = isScrollingDown
+    const isScrollingForward = isHorizontal
+      ? scrollerInfo.scrollLeft > prevScrollerInfo.scrollLeft
+      : scrollerInfo.scrollTop > prevScrollerInfo.scrollTop;
+    const isJumping = isScrollingForward
       ? currFirstIndex >= prevFirstIndex + viewCount
       : currFirstIndex + viewCount <= prevFirstIndex;
     this._currScrollerInfo = scrollerInfo;
@@ -454,7 +695,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
         scope.overrideContext.$index = idx;
         scope.overrideContext.$length = collectionSize;
       }
-    } else if (isScrollingDown) {
+    } else if (isScrollingForward) {
       viewsToMoveCount = currFirstIndex - prevFirstIndex;
       while (viewsToMoveCount > 0) {
         view = views.shift()!;
@@ -484,7 +725,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       }
     }
 
-    if (isScrollingDown) {
+    if (isScrollingForward) {
       if (collectionStrategy.isNearBottom(currFirstIndex + (viewCount - 1))) {
         repeatDom.scroller.dispatchEvent(new CustomEvent(VIRTUAL_REPEAT_NEAR_BOTTOM, {
           bubbles: true,
@@ -506,10 +747,21 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
       }
     }
 
-    repeatDom.update(
-      topCount1 * itemHeight,
-      botCount1 * itemHeight,
-    );
+    // Calculate buffer sizes for DOM update
+    let topBufferSize = 0;
+    let botBufferSize = 0;
+
+    if ((isHorizontal && this._configuredVariableWidth) || (!isHorizontal && this._configuredVariableHeight)) {
+      // Variable sizing: calculate actual cumulative sizes
+      topBufferSize = this._getPositionForIndex(topCount1, isHorizontal);
+      botBufferSize = this._getPositionForIndex(botCount1, isHorizontal);
+    } else {
+      // Fixed sizing: use multiplication
+      topBufferSize = topCount1 * itemSize;
+      botBufferSize = botCount1 * itemSize;
+    }
+
+    repeatDom.update(topBufferSize, botBufferSize);
   }
 
   public getDistances(): [top: number, bottom: number] {

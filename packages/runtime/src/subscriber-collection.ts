@@ -11,7 +11,6 @@ import type {
 } from './interfaces';
 import { addValueBatch, batching } from './subscriber-batch';
 import { Class, Constructable } from '@aurelia/kernel';
-import { trackWork } from './queue';
 
 export type IAnySubscriber = ISubscriber | ICollectionSubscriber;
 
@@ -102,7 +101,7 @@ export const subscriberCollection = /*@__PURE__*/(() => {
        * however this is accounted for via $isBound and similar flags on the subscriber objects)
        */
       for (const sub of this._subs.slice(0) as ISubscriber[]) {
-        trackWork(sub.handleChange(val, oldVal));
+        sub.handleChange(val, oldVal);
       }
     }
 

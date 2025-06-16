@@ -86,7 +86,7 @@ export const runTasks = () => {
       task.run();
     } else {
       try {
-        trackWork(task());
+        task();
       } catch (err) {
         taskErrors.push(err);
       }
@@ -352,21 +352,3 @@ export class Task<R = any> {
     return false;
   }
 }
-
-export const trackWork = (promise: unknown): void => {
-  if (!(promise instanceof Promise)) return;
-
-  ++pendingAsyncCount;
-
-  settlePromise ??= new Promise<boolean>((resolve, reject) => {
-    settlePromiseResolve = resolve;
-    settlePromiseReject = reject;
-  });
-
-  promise.catch(err => {
-    taskErrors.push(err);
-  }).finally(() => {
-    --pendingAsyncCount;
-    signalSettled(true);
-  });
-};

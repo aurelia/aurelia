@@ -790,10 +790,8 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('when the key expression changed - multi-interpolation', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const currText = translation.simple.text;
         assertTextContent(host, `span`, currText);
-        app.obj = { base: 'simple', key: '.attr' };
-        // TODO: below only works when flushing in-between
-        // app.obj.base = 'simple';
-        // app.obj.key = '.attr';
+        app.obj.base = 'simple';
+        app.obj.key = '.attr';
         await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
@@ -994,13 +992,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('should support params', async function ({ app, host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
-        assert.strictEqual(
-          app.cm.message,
-          en.itemWithCount_other.replace('{{count}}', '10'),
-          '<CustomMessage/> message prop should have been updated immediately'
-        );
+        assert.strictEqual(app.cm.message, en.itemWithCount_other.replace('{{count}}', '0'), '<CustomMessage/> message prop should not yet have been updated immediately');
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
         await tasksSettled();
+        assert.strictEqual(app.cm.message, en.itemWithCount_other.replace('{{count}}', '10'), '<CustomMessage/> message prop have been updated');
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1035,13 +1030,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       $it('should support params', async function ({ app, host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
-        assert.strictEqual(
-          app.cm.someMessage,
-          en.itemWithCount_other.replace('{{count}}', '10'),
-          '<camel-ce/> message prop should have been updated immediately'
-        );
+        assert.strictEqual(app.cm.someMessage, en.itemWithCount_other.replace('{{count}}', '0'), '<camel-ce/> message prop should not yet have been updated');
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
         await tasksSettled();
+        assert.strictEqual(app.cm.someMessage, en.itemWithCount_other.replace('{{count}}', '10'), '<camel-ce/> message prop should have been updated');
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }

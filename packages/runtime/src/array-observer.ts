@@ -457,9 +457,6 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     public doNotCache: boolean = true;
     public value: unknown;
 
-    /** @internal */
-    private _isQueued = false;
-
     public constructor(
       public readonly owner: ArrayObserverImpl,
       public readonly index: number
@@ -490,15 +487,9 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     }
 
     public handleDirty() {
-      if (this._isQueued) return;
-      this._isQueued = true;
-
-      queueTask(() => {
-        this._isQueued = false;
-        if (this.value !== this.getValue()) {
-          this.subs.notifyDirty();
-        }
-      });
+      if (this.value !== this.getValue()) {
+        this.subs.notifyDirty();
+      }
     }
 
     /**

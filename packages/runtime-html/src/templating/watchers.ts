@@ -5,6 +5,7 @@ import {
   ConnectableSwitcher,
   ProxyObservable,
   astEvaluate,
+  queueTask,
 } from '@aurelia/runtime';
 import { mixinAstEvaluator } from '../binding/binding-utils';
 
@@ -35,8 +36,8 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
 
   public isBound: boolean = false;
 
-  // todo: maybe use a counter allow recursive call to a certain level
-  private running: boolean = false;
+  /** @internal */
+  private _isQueued: boolean = false;
 
   /** @internal */
   private _value: unknown = void 0;
@@ -73,44 +74,43 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
   }
 
   public bind(): void {
-    if (this.isBound) {
-      return;
-    }
+    if (this.isBound) return;
     this.compute();
     this.isBound = true;
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this.obs.clearAll();
   }
 
   private run(): void {
-    if (!this.isBound || this.running) {
-      return;
-    }
-    const obj = this.obj;
-    const oldValue = this._value;
-    const newValue = this.compute();
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
 
-    if (!areEqual(newValue, oldValue)) {
-      // should optionally queue
-      this._callback.call(obj, newValue, oldValue, obj);
-    }
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      const obj = this.obj;
+      const oldValue = this._value;
+      const newValue = this.compute();
+
+      if (!areEqual(newValue, oldValue)) {
+        this._callback.call(obj, newValue, oldValue, obj);
+      }
+    });
   }
 
   private compute(): unknown {
-    this.running = true;
     this.obs.version++;
     try {
       enter(this);
       return this._value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
     } finally {
       this.obs.clear();
-      this.running = false;
       exit(this);
     }
   }
@@ -125,6 +125,10 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   }
 
   public isBound: boolean = false;
+
+  /** @internal */
+  private _isQueued: boolean = false;
+
   /**
    * @internal
    */
@@ -159,26 +163,32 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   }
 
   public handleChange(value: unknown): void {
-    const expr = this._expression;
-    const obj = this.obj;
-    const oldValue = this._value;
-    const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
-    if (!canOptimize) {
-      this.obs.version++;
-      value = astEvaluate(expr, this.scope, this, this);
-      this.obs.clear();
-    }
-    if (!areEqual(value, oldValue)) {
-      this._value = value;
-      // should optionally queue for batch synchronous
-      this._callback.call(obj, value, oldValue, obj);
-    }
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
+
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
+
+      const expr = this._expression;
+      const obj = this.obj;
+      const oldValue = this._value;
+      const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
+      if (!canOptimize) {
+        this.obs.version++;
+        value = astEvaluate(expr, this.scope, this, this);
+        this.obs.clear();
+      }
+      if (!areEqual(value, oldValue)) {
+        this._value = value;
+        this._callback.call(obj, value, oldValue, obj);
+      }
+    });
   }
 
   public bind(): void {
-    if (this.isBound) {
-      return;
-    }
+    if (this.isBound) return;
     this.obs.version++;
     this._value = astEvaluate(this._expression, this.scope, this, this);
     this.obs.clear();
@@ -186,9 +196,7 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     this.obs.clearAll();
     this._value = void 0;

@@ -9,6 +9,7 @@ import {
   INode,
   Aurelia,
 } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import {
   assert,
   TestContext,
@@ -328,7 +329,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
       assertFn: (ctx, host, comp: { renderDiv: boolean }) => {
         assert.strictEqual(host.querySelector('input').value, '', 'should have been empty initially');
         comp.renderDiv = true;
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(host.querySelector('input').value, ctx.createElement('div').toString());
       }
     },
@@ -378,6 +379,7 @@ describe('3-runtime-html/template-compiler.ref.spec.ts', function () {
       assertFn: (ctx, host, comp: { div: HTMLDivElement; shouldRenderRepeat: boolean; divSetterCount: number }) => {
         assert.strictEqual(comp.divSetterCount, 0, 'shoulda called setter 0 times');
         comp.shouldRenderRepeat = true;
+        runTasks();
         assert.strictEqual(comp.divSetterCount, 10, 'shoulda called setter 10 times');
       },
       assertFnAfterDestroy: (

@@ -3,9 +3,9 @@ import {
   copyIndexMap,
   ICollectionSubscriber,
   IndexMap,
-  batch,
   Collection,
   getCollectionObserver,
+  runTasks,
 } from '@aurelia/runtime';
 import {
   assert,
@@ -155,9 +155,8 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       sut.subscribe(s);
 
       try {
-        batch(() => {
-          fn(arr);
-        });
+        fn(arr);
+        runTasks();
       } catch (ex) {
         console.log(ex);
       }
@@ -177,9 +176,8 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       const sut = getCollectionObserver(arr);
       sut.subscribe(s);
 
-      batch(() => {
-        fn(arr);
-      });
+      fn(arr);
+      runTasks();
 
       assert.strictEqual(s.collectionChanges.length, 0);
     }
@@ -481,37 +479,6 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
         }, [0, -2, -2, 2, -2, -2], [3, 1], [4, 2]);
       });
     });
-
-    it('works with double nested batch', function () {
-      const arr = [1, 2, 3];
-      const o = getCollectionObserver(arr);
-      let map: IndexMap;
-      let callCount = 0;
-      o.subscribe({
-        handleCollectionChange(_collection, indexMap) {
-          map = indexMap;
-          callCount++;
-        },
-      });
-      batch(() => {
-        arr.splice(1, 1, 5);
-        assert.deepStrictEqual(arr, [1, 5, 3]);
-        batch(() => {
-          arr.splice(0, 1, 7);
-        });
-        assert.strictEqual(callCount, 1);
-        assert.deepStrictEqual(arr, [7, 5, 3]);
-        assert.deepStrictEqual(
-          map,
-          Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })
-        );
-      });
-      assert.strictEqual(callCount, 2);
-      assert.deepStrictEqual(
-        map,
-        Object.assign([-2, -2, 2], { deletedIndices: [1, 0], deletedItems: [2, 1], isIndexMap: true })
-      );
-    });
   });
 
   describe('should allow unsubscribing for batched notification', function () {
@@ -521,9 +488,8 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       sut = getCollectionObserver(arr);
       sut.subscribe(s);
       sut.unsubscribe(s);
-      batch(() => {
-        arr.push(1);
-      });
+      arr.push(1);
+      runTasks();
       assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
@@ -533,7 +499,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       const s = new SpySubscriber();
       const arr = [];
       sut = getCollectionObserver(arr);
-      batch(() => { /* do nothing */ });
+      runTasks();
       assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
@@ -545,9 +511,8 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       const sut = getCollectionObserver(arr);
       sut.subscribe(s);
 
-      batch(() => {
-        fn(arr);
-      });
+      fn(arr);
+      runTasks();
 
       assert.deepStrictEqual(copy, arr);
     }
@@ -1407,6 +1372,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       sut = getCollectionObserver(arr);
       sut.subscribe(s);
       arr.push(1);
+      runTasks();
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
         new CollectionChangeSet(0, copyIndexMap([-2]))
@@ -1419,6 +1385,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       sut = getCollectionObserver(arr);
       sut.subscribe(s);
       arr.push(1, 2);
+      runTasks();
       assert.deepStrictEqual(
         s.collectionChanges.pop(),
         new CollectionChangeSet(0, copyIndexMap([-2, -2]))
@@ -1434,6 +1401,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
       sut.subscribe(s);
       sut.unsubscribe(s);
       arr.push(1);
+      runTasks();
       assert.strictEqual(s.collectionChanges.length, 0);
     });
   });
@@ -1501,6 +1469,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
               expectedResult = expectedArr.push(...newItems);
               actualResult = arr.push(...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(actualResult, expectedResult);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1522,6 +1491,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
             } else {
               arr.push(...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1559,6 +1529,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
               expectedResult = expectedArr.unshift(...newItems);
               actualResult = arr.unshift(...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(actualResult, expectedResult);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1579,6 +1550,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
             } else {
               arr.unshift(...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1607,6 +1579,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.pop();
             actualResult = arr.pop();
+            runTasks();
             assert.strictEqual(actualResult, expectedResult, `actualResult`);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1621,6 +1594,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           let i = 0;
           while (i < repeat) {
             arr.pop();
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1649,6 +1623,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.shift();
             actualResult = arr.shift();
+            runTasks();
             assert.strictEqual(actualResult, expectedResult, `actualResult`);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1663,6 +1638,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           let i = 0;
           while (i < repeat) {
             arr.shift();
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1714,6 +1690,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
               expectedResult = expectedArr.splice(start, deleteCount, ...newItems);
               actualResult = arr.splice(start, deleteCount, ...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(actualResult, expectedResult);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1738,6 +1715,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
             } else {
               arr.splice(start, deleteCount, ...newItems);
             }
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1766,6 +1744,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           while (i < repeat) {
             expectedResult = expectedArr.reverse();
             actualResult = arr.reverse();
+            runTasks();
             assert.deepStrictEqual(actualResult, expectedResult);
             assert.deepStrictEqual(arr, expectedArr);
             i++;
@@ -1780,6 +1759,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
           let i = 0;
           while (i < repeat) {
             arr.reverse();
+            runTasks();
             assert.deepStrictEqual(copy, arr);
             i++;
           }
@@ -1821,6 +1801,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
               sut = getCollectionObserver(arr);
               const expectedResult = expectedArr.sort(compareFn);
               const actualResult = arr.sort(compareFn);
+              runTasks();
               assert.strictEqual(expectedResult, expectedArr, `expectedResult`);
               assert.strictEqual(actualResult, arr, `actualResult`);
               try {
@@ -1850,6 +1831,7 @@ describe(`2-runtime/array-observer.spec.ts`, function () {
               sut = getCollectionObserver(arr);
               sut.subscribe(new SynchronizingCollectionSubscriber(copy, arr));
               arr.sort(compareFn);
+              runTasks();
               assert.deepStrictEqual(copy, arr);
             });
           }

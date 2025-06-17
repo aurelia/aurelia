@@ -3,6 +3,7 @@ import {
 } from '@aurelia/kernel';
 import {
   IObserver,
+  runTasks
 } from '@aurelia/runtime';
 import {
   CustomElement,
@@ -34,16 +35,18 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push(0);
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'after push(0), 1st checkbox should be checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0, 'after unticking 1st checkbox, selected length should be 0');
 
         component.selected.push(10);
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'After push(10), no checkbox should be checked');
 
         component.selected = Array.from({ length: 10 }, (_, i) => i);
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'after assigning new array, all checkboxes should be checked');
       }
     },
@@ -60,16 +63,18 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add(0);
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add(10);
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(Array.from({ length: 10 }, (_, i) => i));
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -86,16 +91,18 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.set(0, true);
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 1);
 
         component.selected.set(10, true);
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from({ length: 10 }, (_, i) => [i, true]));
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set(), all checked');
       }
     },
@@ -117,16 +124,18 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.push({ name: 'item 0', value: 0 });
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.length, 0);
 
         component.selected.push({ name: 'item 10', value: 10 });
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = createItems(10);
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new [], all checked');
       }
     },
@@ -148,16 +157,18 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all checkbox NOT checked');
 
         component.selected.add({ name: 'item 0', value: 0 });
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
         assert.strictEqual(component.selected.size, 0);
 
         component.selected.add({ name: 'item 10', value: 10 });
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Set(createItems(10));
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Set, all checked');
       }
     },
@@ -180,6 +191,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 
         const firstItemValue = { name: 'item 0', value: 0 };
         component.selected.set(firstItemValue, true);
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true, 'first input is checked');
 
         simulateStateChange(ctx, inputEls[0], false);
@@ -187,10 +199,11 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(component.selected.get(firstItemValue), false);
 
         component.selected.set({ name: 'item 10', value: 10 }, true);
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all not checked');
 
         component.selected = new Map(Array.from(createItems(10), item => [item, true]));
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => el.checked), true, 'new Map, all checked');
       }
     },
@@ -212,19 +225,19 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         assert.strictEqual(inputEls.every(el => !el.checked), true, 'all radio NOT checked');
 
         component.selected = createItems(1)[0];
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls[0].checked, true);
 
         simulateStateChange(ctx, inputEls[1], true);
         assert.deepEqual(component.selected, createItems(2)[1]);
 
         component.selected = { name: 'item 10', value: 10 };
-        ctx.platform.domQueue.flush();
+        runTasks();
         assert.strictEqual(inputEls.every(el => !el.checked), true);
 
         for (let i = 0; 10 > i; ++i) {
           component.selected = { name: `item ${i}`, value: i };
-          ctx.platform.domQueue.flush();
+          runTasks();
           assert.strictEqual(inputEls[i].checked, true);
         }
       }
@@ -357,7 +370,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                 const propValue = checkedBefore ? checkedValue : uncheckedValue;
                 const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                   // const expectedPropValue = propValue === undefined ? null : propValue;
                   // const expectedNewValue = newValue === undefined ? null : newValue;
@@ -429,7 +442,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
       for (const checkedBefore of [true, false]) {
         for (const checkedAfter of [true, false]) {
           for (const event of ['change', 'input']) {
-            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
               const { ctx, sut, el, subscriber } = createFixture();
 
@@ -505,7 +518,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         for (const checkedBefore of ['A', 'B', 'C', null, undefined]) {
           for (const checkedAfter of ['A', 'B', 'C', null, undefined]) {
 
-            it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}`, async function () {
 
               // const expectedPropValue = checkedBefore === undefined ? null : checkedBefore;
               // const expectedNewValue = checkedAfter === undefined ? null : checkedAfter;
@@ -615,7 +628,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
         for (const checkedAfter of ['A', 'B', 'C']) {
           for (const event of ['change', 'input']) {
 
-            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+            it(_`checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
               const { ctx, sutA, sutB, sutC, elA, elB, elC } = createFixture();
 
@@ -691,7 +704,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                     const propValue = checkedBefore ? checkedValue : uncheckedValue;
                     const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                       // const changeCountBefore = 1;
                       // const changeCountAfter = checkedBefore !== checkedAfter ? 1 : 0;
@@ -757,7 +770,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
 
             const valueCanBeChecked = prop === 'model' || (typeof value !== 'number' && value != null);
 
-            it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}`, async function () {
 
               const array = [];
 
@@ -769,9 +782,11 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
               assert.strictEqual(sut.getValue(), array, 'sut.getValue() 1');
 
               array.push(value);
+              runTasks();
               assert.strictEqual(el.checked, valueCanBeChecked, 'el.checked 2');
 
               array.pop();
+              runTasks();
               assert.strictEqual(el.checked, false, 'el.checked 3');
 
               if (hasSubscriber) {
@@ -825,7 +840,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
             for (const checkedAfter of [true, false]) {
               for (const event of ['change', 'input']) {
 
-                it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, function () {
+                it(_`${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, event=${event}`, async function () {
 
                   const { ctx, sut, el, subscriber } = createFixture(value, prop);
                   const checkboxValue = prop === 'model'
@@ -939,7 +954,7 @@ describe('3-runtime-html/checked-observer.spec.ts', function () {
                     const propValue = checkedBefore ? checkedValue : uncheckedValue;
                     const newValue = checkedAfter ? checkedValue : uncheckedValue;
 
-                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, function () {
+                    it(_`hasSubscriber=${hasSubscriber}, ${prop}=${value}, checkedBefore=${checkedBefore}, checkedAfter=${checkedAfter}, propValue=${propValue}, newValue=${newValue}`, async function () {
 
                       const { ctx, sut, el, subscriber, valueOrModelObserver } = createFixture(hasSubscriber, value, prop);
 

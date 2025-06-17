@@ -5,10 +5,10 @@ import {
   ValueConverter,
   Aurelia,
 } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   assert,
   createFixture,
-  TestContext
 } from '@aurelia/testing';
 
 describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
@@ -366,19 +366,18 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
       ? it.only(_title, fn)
       : it(_title, fn);
 
-    suit(title, function (): Promise<void> {
+    suit(title, async function (): Promise<void> {
       // const ctx = TestContext.create();
 
       let au: Aurelia;
       let component: Root;
-      let ctx: TestContext;
       // let body: HTMLElement;
       let host: HTMLElement;
 
       try {
         // au.app({ host, component: App });
         // await au.start();
-        ({ component, au, ctx, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
+        ({ component, au, appHost: host } = createFixture(template, Root, [IdentityValueConverter, CloneValueConverter]));
         assert.strictEqual(host.textContent, expectation(component.items, component), `#before mutation`);
       } catch (ex) {
         if (testWillThrow) {
@@ -398,11 +397,11 @@ describe(`3-runtime-html/repeat.contextual-props.spec.ts`, function () {
 
       try {
         mutate(component.items, component);
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
 
         assert.strictEqual(host.textContent, expectation(component.items, component), `#after mutation`);
 
-        void au.stop();
+        await au.stop();
       } catch (ex) {
         if (!mutationWillThrow) {
           try {

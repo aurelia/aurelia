@@ -36,8 +36,7 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.dialog_not_all_dialogs_closed]: `Failured to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
   [ErrorNames.dialog_settings_invalid]: `Invalid Dialog Settings. You must provide either "component" or "template" or both.`,
   [ErrorNames.dialog_no_empty_default_configuration]: `Invalid dialog configuration. ` +
-    'Specify the implementations for <IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-    'or use the DialogConfigurationClassic export.',
+    'Specify default renderer or use the DialogConfigurationStandard/DialogConfigurationClassic export.',
   [ErrorNames.dialog_activation_rejected]: 'Dialog activation rejected',
   [ErrorNames.dialog_cancellation_rejected]:  'Dialog cancellation rejected',
   [ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting]: 'Dialog cancelled with a rejection on cancel',

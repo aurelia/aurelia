@@ -8,7 +8,6 @@ import {
   IDialogController,
   IDialogGlobalSettings,
   IDialogLoadedSettings,
-  IDialogGlobalOptions,
 } from './dialog-interfaces';
 import { DialogController } from './dialog-controller';
 import { instanceRegistration, singletonRegistration } from './utilities-di';
@@ -51,7 +50,6 @@ export class DialogService implements IDialogService {
 
   /** @internal */ private readonly _ctn = resolve(IContainer);
   /** @internal */ private readonly _defaultSettings = resolve(IDialogGlobalSettings);
-  /** @internal */ private readonly _defaultOptions = resolve(IDialogGlobalOptions);
 
   /**
    * Opens a new dialog.
@@ -72,7 +70,7 @@ export class DialogService implements IDialogService {
    */
   public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from(this._defaultSettings, this._defaultOptions, settings);
+      const $settings = DialogSettings.from<TOptions>(this._defaultSettings, settings);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -142,12 +140,12 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from<T>(baseSettings: IDialogGlobalSettings, baseOptions: IDialogGlobalOptions, settings: IDialogSettings): DialogSettings {
+  public static from<T>(baseSettings: IDialogGlobalSettings<T>, settings: IDialogSettings<T>): DialogSettings {
     const finalSettings = Object.assign(
       new DialogSettings(),
       baseSettings,
       settings,
-      { options: { ...baseOptions, ...settings.options ?? {} }
+      { options: { ...baseSettings.options ?? {}, ...settings.options ?? {} }
     });
 
     if (finalSettings.component == null && finalSettings.template == null) {

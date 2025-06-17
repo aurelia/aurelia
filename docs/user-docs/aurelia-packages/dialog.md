@@ -57,13 +57,13 @@ import { DialogConfigurationStandard } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
 Aurelia
-  .register(DialogConfigurationStandard.customize((settings, options) => {
+  .register(DialogConfigurationStandard.customize((settings) => {
     // treat dialog cancelation as promise rejection
     settings.rejectOnCancel = true;
     // default enter animation for all dialogs
-    options.show = (dom) => dom.root.animate(...);
+    settings.options.show = (dom) => dom.root.animate(...);
     // default exit animation for all dialogs
-    options.hide = (dom) => dom.root.animate(...);
+    settings.options.hide = (dom) => dom.root.animate(...);
   })
   .app(MyApp)
   .start();
@@ -76,16 +76,16 @@ import { DialogConfigurationClassic } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
 Aurelia
-  .register(DialogConfigurationClassic.customize((settings,  options) => {
+  .register(DialogConfigurationClassic.customize((settings) => {
     // treat dialog cancelation as promise rejection
     settings.rejectOnCancel = true;
     // change the default behavior to not dismiss the dialog when clicking on the overlay
-    options.overlayDismiss = false;
+    settings.options.overlayDismiss = false;
     // any more
     // default enter animation for all dialogs
-    options.show = (dom) => dom.root.animate(...);
+    settings.options.show = (dom) => dom.root.animate(...);
     // default exit animation for all dialogs
-    options.hide = (dom) => dom.root.animate(...);
+    settings.options.hide = (dom) => dom.root.animate(...);
   })
   .app(MyApp)
   .start();
@@ -99,39 +99,9 @@ If it's desirable to change some of the default implementations, we can **instea
 import { DialogConfiguration } from '@aurelia/dialog';
 
 Aurelia
-  .register(DialogConfiguration.customize(
-    settings => {
-      // customize settings here if needed
-    },
-    [
-      // all custom implementations
-      MyDialogService,
-      MyDialogRenderer,
-      MyDialogGlobalOptions,
-    ]
-  ))
-  .app(MyApp)
-  .start();
-```
-
-If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
-
-```typescript
-import { DialogConfiguration, DialogService } from '@aurelia/dialog';
-
-Aurelia
-  .register(DialogConfiguration.customize(
-    ((settings, options) => {
-
-    }, [
-      // use default dialog service
-      DialogService,
-      // BYO dialog dom renderer
-      MyDialogRenderer,
-      // use default dialog global settings
-      MyDialogGlobalOptions,
-    ]
-  ))
+  .register(DialogConfiguration.customize(settings => {
+    // customize settings here if needed
+  }))
   .app(MyApp)
   .start();
 ```
@@ -155,10 +125,10 @@ Normally, the global settings would be changed during the app startup/or before,
 
         ```ts
         Aurelia
-          .reigster(DialogConfigurationStandard.customize((settings, options) => {
-            options.modal = true;
-            options.show = (dom) => dom.root.animate(...);
-            options.hide = (dom) => dom.root.animate(...);
+          .reigster(DialogConfigurationStandard.customize((settings) => {
+            settings.options.modal = true;
+            settings.options.show = (dom) => dom.root.animate(...);
+            settings.options.hide = (dom) => dom.root.animate(...);
           }))
           .app(MyApp)
           .start();
@@ -171,10 +141,10 @@ Normally, the global settings would be changed during the app startup/or before,
 
             ```typescript
             Aurelia
-              .register(DialogConfigurationClassic.customize((settings, options) => {
-                options.lock = true;
-                options.startingZIndex = 5;
-                options.keyboard = true;
+              .register(DialogConfigurationClassic.customize((settings) => {
+                settings.options.lock = true;
+                settings.options.startingZIndex = 5;
+                settings.options.keyboard = true;
               }))
               .app(MyApp)
               .start();
@@ -218,6 +188,7 @@ The main settings that are available in the `open` method of the dialog service:
 * `renderer` allows providing a custom renderer to be used, instead of the pre-registered one. This allows a single dialog service to be able to use multiple renderers for different purposes: default for modals, and a different one for notifications, alert etc...
 * `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
 * `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
+* `options` options passed to the renderer.
 
 #### Render options
 

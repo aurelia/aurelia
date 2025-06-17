@@ -2,7 +2,6 @@ import { IPlatform, IWindow } from '@aurelia/runtime-html';
 import {
   IDialogDomRenderer,
   IDialogDom,
-  IDialogGlobalOptions,
   IDialogController,
 } from './dialog-interfaces';
 
@@ -57,15 +56,6 @@ export type DialogRenderOptionsClassic = {
 
 export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
-
-export class DialogGlobalOptionsClassic implements DialogRenderOptionsClassic {
-  public static register(container: IContainer) {
-    singletonRegistration(IDialogGlobalOptions, this).register(container);
-  }
-
-  public lock = true;
-  public startingZIndex = 1000;
-}
 
 export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRenderOptionsClassic> {
   public static register(container: IContainer) {

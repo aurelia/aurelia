@@ -4,7 +4,7 @@ import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
 import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
- * The dialog service for composing view & view model into a dialog
+ * The dialog service for composing template and component into a dialog
  */
 export const IDialogService = /*@__PURE__*/createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
@@ -16,7 +16,7 @@ export interface IDialogService {
    * @returns Promise A promise that settles when the dialog is closed.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  open<TOptions, TModel = any, TVm extends object = any>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise;
+  open<TOptions, TModel = any, TComponent extends object = any>(settings: IDialogSettings<TOptions, TModel, TComponent>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -52,7 +52,7 @@ function testTypes(d: IDialogService) {
 }
 
 /**
- * The controller asscociated with every dialog view model
+ * The controller associated with every dialog component
  */
 export const IDialogController = /*@__PURE__*/createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
@@ -109,23 +109,23 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
 
 export type IDialogSettings<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  TRenderOptions = any,
+  TOptions = any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TModel = any,
-  TVm extends object = object,
+  TComponent extends object = object,
 > = {
   /**
    * A custom renderer for the dialog.
    */
-  renderer?: IDialogDomRenderer<TRenderOptions>;
+  renderer?: Constructable<IDialogDomRenderer<TOptions>> | object;
 
   /**
-   * The view model url, constructor or instance for the dialog.
+   * The component url, constructor or instance for the dialog.
    */
-  component?: CustomElementType<Constructable<TVm>> | Constructable<TVm> | (() => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>));
+  component?: CustomElementType<Constructable<TComponent>> | Constructable<TComponent> | (() => (Constructable<TComponent> | TComponent | Promise<TComponent | Constructable<TComponent>>));
 
   /**
-   * The view url or view strategy to override the default view location convention.
+   * The template url or template strategy to override the default template location convention.
    */
   template?: string | Element | Promise<string | Element> | (() => string | Element | Promise<string | Element>);
 
@@ -148,7 +148,7 @@ export type IDialogSettings<
   /**
    * The rendering configuration for the dialog. Different renderers may have different configuration options.
    */
-  options?: TRenderOptions;
+  options?: TOptions;
 
   /**
    * When set to true conveys a cancellation as a rejection.
@@ -156,20 +156,23 @@ export type IDialogSettings<
   rejectOnCancel?: boolean;
 };
 
-export type IDialogLoadedSettings<TRenderOptions extends object = object, TModel extends object = object> = Omit<IDialogSettings<TRenderOptions, TModel>, 'component' | 'template'> & {
+export type IDialogLoadedSettings<TOptions extends object = object, TModel extends object = object> = Omit<IDialogSettings<TOptions, TModel>, 'component' | 'template' | 'renderer'> & {
   component?: Constructable<TModel> | TModel;
   template?: string | Element;
-  renderer?: IDialogDomRenderer<TRenderOptions>;
+  renderer: Constructable<IDialogDomRenderer<TOptions>> | object;
 };
 
-export type IDialogGlobalSettings = Pick<IDialogSettings, 'rejectOnCancel'>;
+/**
+ * Global configuration for the dialog plugin
+ */
+export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings<any>>('IDialogGlobalSettings');
+export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'rejectOnCancel' | 'renderer'> & {
+  options: TOptions;
+};
 
-export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
-
-export type IDialogGlobalOptions = Record<string, unknown>;
-
-export const IDialogGlobalOptions = /*@__PURE__*/createInterface<IDialogGlobalOptions>('IDialogGlobalOptions');
-
+/**
+ * Base dialog error interface
+ */
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;
   value?: T;

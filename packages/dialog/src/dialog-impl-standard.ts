@@ -3,7 +3,6 @@ import {
   IDialogDomRenderer,
   IDialogDom,
   IDialogController,
-  IDialogGlobalOptions,
 } from './dialog-interfaces';
 
 import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
@@ -19,14 +18,13 @@ export type DialogRenderOptionsStandard = {
    * Note that this depends on the renderer,
    * Some renderers may not support this feature.
    *
-   * Readmore on the modal behavior of dialogs on MDN
+   * Read more on the modal behavior of dialogs on MDN
    * https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement#opening_a_modal_dialog
    */
   modal?: boolean;
 
   /**
-   * A css string for all the overlay styles or a property based css configuration
-   * for the overlay of the dialog.
+   * A CSS string for all the overlay styles or a property-based CSS configuration for the overlay of the dialog.
    */
   overlayStyle?: string | Partial<CSSStyleDeclaration>;
 
@@ -40,18 +38,10 @@ export type DialogRenderOptionsStandard = {
   hide?: (dom: IDialogDom) => void | Promise<void>;
   /**
    * Specifies the types of user actions that can be used to close the <dialog> element
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog#closedby
+   * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog#closedby
    */
   closedby?: 'any' | 'closerequest' | 'none';
 };
-
-export class DialogGlobalOptionsStandard implements DialogRenderOptionsStandard {
-  public static register(container: IContainer): void {
-    container.register(singletonRegistration(IDialogGlobalOptions, this));
-  }
-
-  public modal = true;
-}
 
 export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {
   public static register(container: IContainer) {

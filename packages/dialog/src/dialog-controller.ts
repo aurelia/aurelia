@@ -75,10 +75,18 @@ export class DialogController implements IDialogController {
       model,
       template,
       rejectOnCancel,
-      renderer = container.get(IDialogDomRenderer),
+      renderer,
     } = settings;
+
+    if (isFunction(renderer)) {
+      container.register(renderer);
+    } else {
+      instanceRegistration(IDialogDomRenderer, renderer).register(container);
+    }
+
+    const resolvedRenderer = container.get(IDialogDomRenderer);
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = renderer.render(dialogTargetHost, this, settings.options);
+    const dom = this.dom = resolvedRenderer.render(dialogTargetHost, this, settings.options);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;
@@ -90,7 +98,7 @@ export class DialogController implements IDialogController {
     // <body>
     //   <my-app>
     //   <au-dialog-container>
-    // when it's different, needs to ensure delegate bindings work
+    // when it's different, need to ensure delegate bindings work
     if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
       container.register(instanceRegistration(IEventTarget, dialogTargetHost));
     }

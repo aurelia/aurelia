@@ -1,5 +1,5 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
-import { noop, resolve } from '@aurelia/kernel';
+import { resolve } from '@aurelia/kernel';
 import {
   INode,
   customElement,
@@ -9,10 +9,8 @@ import {
   IDialogService,
   IDialogSettings,
   IDialogGlobalSettings,
-  IDialogGlobalOptions,
   DialogConfiguration,
   DialogConfigurationClassic,
-  DialogGlobalOptionsClassic,
   DialogCancelError,
   IDialogDom,
   IDialogController,
@@ -41,41 +39,6 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       assert.notStrictEqual(error, void 0);
       // assert.includes((error as Error).message, 'Invalid dialog configuration.');
       assert.includes((error as Error).message, 'AUR0904');
-    });
-
-    it('throws when customize without any implementation', async function () {
-      let error: unknown = void 0;
-      try {
-        const { startPromise } = createFixture('', class App { }, [DialogConfiguration.customize(noop, [])]);
-        await startPromise;
-      } catch (err) {
-        error = err;
-      }
-      assert.notStrictEqual(error, void 0);
-      // assert.includes((error as Error).message, 'Attempted to jitRegister an interface: IDialogGlobalSettings');
-      assert.includes((error as Error).message, 'AUR0009:InterfaceSymbol<IDialogGlobalOptions>');
-    });
-
-    it('reuses previous registration', async function () {
-      let customized = false;
-      const { ctx, startPromise } = createFixture(
-        '',
-        class App { },
-        [
-          DialogConfigurationClassic.customize((_, options) => {
-            customized = true;
-            assert.instanceOf(options, DialogGlobalOptionsClassic);
-          })
-        ]
-      );
-
-      await startPromise;
-      const dialogService = ctx.container.get(IDialogService);
-      await dialogService.open<DialogRenderOptionsClassic>({
-        component: () => ({}),
-        template: () => '<div>Hello world</div>'
-      });
-      assert.strictEqual(customized, true);
     });
 
     it('allows injection of both IDialogService and DialogService', function () {
@@ -231,7 +194,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'should create new settings by merging the default options and the provided ones',
         afterStarted: async ({ ctx }, dialogService) => {
-          const overrideSettings: IDialogSettings<any, any, DialogRenderOptionsClassic> = {
+          const overrideSettings: IDialogSettings<DialogRenderOptionsClassic> = {
             rejectOnCancel: true,
             options: {
               lock: true,
@@ -243,7 +206,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
             ...overrideSettings,
             component: () => Object.create(null),
           });
-          const expectedSettings = { ...ctx.container.get(IDialogGlobalOptions), ...overrideSettings.options };
+          const expectedSettings = { ...ctx.container.get(IDialogGlobalSettings).options, ...overrideSettings.options };
           const actualOptions = { ...controller.settings.options as object };
           // delete actualSettings.component;
           assert.deepStrictEqual(actualOptions, expectedSettings);
@@ -878,7 +841,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'sets correct zindex from global settings',
         afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
-          (container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic).startingZIndex = 1;
+          (container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic).startingZIndex = 1;
           await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
             host: appHost
@@ -890,7 +853,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
       {
         title: 'lets zindex from open override global settings',
         afterStarted: async ({ container, appHost, assertStyles }, dialogService) => {
-          (container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic).startingZIndex = 1;
+          (container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic).startingZIndex = 1;
           await dialogService.open<DialogRenderOptionsClassic>({
             template: 'hello',
             host: appHost,
@@ -1027,7 +990,7 @@ describe('3-runtime-html/dialog/dialog-service.spec.ts', function () {
         afterStarted: async ({ container }, dialogService) => {
           const calls: string[] = [];
 
-          Object.assign(container.get(IDialogGlobalOptions) as DialogRenderOptionsClassic, {
+          Object.assign(container.get(IDialogGlobalSettings).options as DialogRenderOptionsClassic, {
             show(_dom: IDialogDom) { },
             hide(_dom: IDialogDom) { calls.push('hide'); },
           });

@@ -1,6 +1,7 @@
 import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
   if (isNode()) {
@@ -104,6 +105,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       );
 
       component.items.splice(0, 10);
+      await tasksSettled();
       await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
 
@@ -120,6 +122,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       );
 
       component.items.splice(90, 10);
+      await tasksSettled();
       await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];
@@ -135,6 +138,7 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
       );
 
       component.items.splice(10, 10);
+      await tasksSettled();
       await platform.domQueue.yield();
       assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
       const virtualRepeat = virtualRepeats[0];

@@ -413,25 +413,58 @@ describe('3-runtime-html/decorator-observable.spec.ts', function () {
 
         // trigger point here
         attached() {
+          logs.push(`attached`);
+          logs.push(`prop1: ${this.prop1}`);
+          logs.push(`prop2: ${this.prop2}`);
+          logs.push(`prop3: ${this.prop3}`);
           this.prop1 = 2;
         }
 
         prop1Changed() {
+          logs.push(`prop1Changed`);
+          logs.push(`prop1: ${this.prop1}`);
+          logs.push(`prop2: ${this.prop2}`);
+          logs.push(`prop3: ${this.prop3}`);
           this.prop2 = 2;
         }
 
         prop2Changed() {
+          logs.push(`prop2Changed`);
+          logs.push(`prop1: ${this.prop1}`);
+          logs.push(`prop2: ${this.prop2}`);
           logs.push(`prop3: ${this.prop3}`);
         }
 
         @watch('prop1')
         handleProp1Changed() {
+          logs.push(`handleProp1Changed`);
           this.prop3 = 3;
+          logs.push(`prop1: ${this.prop1}`);
+          logs.push(`prop2: ${this.prop2}`);
+          logs.push(`prop3: ${this.prop3}`);
         }
       }
     );
 
-    assert.deepStrictEqual(logs, ['prop3: 3']);
+    await tasksSettled();
+    assert.deepStrictEqual(logs, [
+      'attached',
+      'prop1: 1',
+      'prop2: 1',
+      'prop3: 0',
+      'prop1Changed',
+      'prop1: 2',
+      'prop2: 1',
+      'prop3: 0',
+      'prop2Changed',
+      'prop1: 2',
+      'prop2: 2',
+      'prop3: 0',
+      'handleProp1Changed',
+      'prop1: 2',
+      'prop2: 2',
+      'prop3: 3',
+    ]);
   });
 
 });

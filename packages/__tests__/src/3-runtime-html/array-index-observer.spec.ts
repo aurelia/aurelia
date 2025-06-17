@@ -141,14 +141,15 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
             const newValue = `00-${idx}`;
             inputEl.value = newValue;
             inputEl.dispatchEvent(new ctx.CustomEvent('input'));
+            runTasks();
 
             assert.strictEqual(component.itemNames[idx], newValue);
-            assert.strictEqual(component.items[idx].name, oldValue);
+            assert.strictEqual(component.items[idx].name, newValue);
           });
 
           const dirtyChecker = ctx.container.get(IDirtyChecker);
           assert.strictEqual(dirtyChecker['tracked'].length, 0);
-        }
+        },
       },
       {
         title: 'works in basic one way scenario without dirty checking',
@@ -231,10 +232,12 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
     assert.strictEqual(indexZeroObserver.getValue(), 5);
     arr.splice(0, 1, 4);
     assert.strictEqual(indexZeroObserver.getValue(), 4);
+    assert.strictEqual(callcount, 0);
+    runTasks();
     assert.strictEqual(callcount, 1);
 
     indexZeroObserver.setValue(0);
-    assert.strictEqual(callcount, 2);
+    assert.strictEqual(callcount, 1);
     assert.strictEqual(arr[0], 0);
 
     indexZeroObserver.unsubscribe(indexZeroSubscriber);

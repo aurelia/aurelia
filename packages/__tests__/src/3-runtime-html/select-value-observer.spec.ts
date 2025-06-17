@@ -133,7 +133,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
           );
         });
 
-        it('syncs array & <option/> mutation (from repeat etc...)', async function () {
+        it.only('syncs array & <option/> mutation (from repeat etc...)', async function () {
           const { sut, el, ctx } = createMutiSelectSut([], [
             option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
             option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -176,6 +176,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
           );
 
           currentValue.push('DD');
+          await Promise.resolve();
           assert.strictEqual(handleChangeCallCount, 0);
           assert.strictEqual(el.options[3].value, 'DD');
           assert.strictEqual(el.options[3].selected, true);

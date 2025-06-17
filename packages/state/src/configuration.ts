@@ -51,7 +51,7 @@ const createConfiguration = <T>(
               store.registerMiddleware(middlewareReg.middleware, middlewareReg.placement, middlewareReg.settings);
             }
           }
-          
+
           const devTools = container.get(IDevToolsExtension);
           if (options.devToolsOptions?.disable !== true && devTools != null) {
             store.connectDevTools(options.devToolsOptions ?? {});

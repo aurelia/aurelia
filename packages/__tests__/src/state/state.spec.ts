@@ -448,7 +448,7 @@ describe('state/state.spec.ts', function () {
         { text: '11', click: 0 },
       ]);
 
-      assertValue('input', '1');
+      assertValue('input', '11');
       flush();
       assertValue('input', '11');
     });

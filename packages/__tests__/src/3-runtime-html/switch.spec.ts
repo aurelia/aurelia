@@ -797,9 +797,9 @@ describe('3-runtime-html/switch.spec.ts', function () {
             $switch,
             () => { ctx.app.statuses.push(ctx.app.status = Status.delivered); },
             wrap('Processing.'),
-            [1, 1, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-1')]
+            [1, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-1'), 1]
           );
-        }
+        },
       );
 
       const fallThroughTemplate = `
@@ -2012,13 +2012,13 @@ describe('3-runtime-html/switch.spec.ts', function () {
       // ];
       const expectedLog3 = [
         `Case-#${cases[0]['id']}.isMatch()`,
-        `Case-#${cases[0]['id']}.isMatch()`,
         'default-case-host-1.detaching',
         'default-case-host-1.unbinding',
         'case-host-1.binding',
         'case-host-1.bound',
         'case-host-1.attaching',
         'case-host-1.attached',
+        `Case-#${cases[0]['id']}.isMatch()`,
       ];
       assert.deepStrictEqual(log.log, expectedLog3, 'change3');
 

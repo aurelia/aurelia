@@ -244,6 +244,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       });
 
       tags.push('a');
+      await tasksSettled();
       assert.deepEqual(changeSnapshots, [
         [1, '[Badge] a']
       ]);
@@ -278,6 +279,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       });
 
       tags.push('a');
+      await tasksSettled();
       assert.deepEqual(changeSnapshots, [
         [1, '[Badge] a']
       ]);
@@ -312,6 +314,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       });
 
       tags.set('a', 'b');
+      await tasksSettled();
       assert.deepEqual(changeSnapshots, [
         [1, '[Badge] b']
       ]);
@@ -346,6 +349,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
       });
 
       tags.add('a');
+      await tasksSettled();
       assert.deepEqual(changeSnapshots, [
         [1, '[Badge] a']
       ]);
@@ -622,6 +626,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         batch(() => {
           tags.push('a');
         });
+        await tasksSettled();
         assert.deepEqual(changeSnapshots, [
           [1, '[Badge] a']
         ]);
@@ -656,6 +661,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         });
 
         tags.push('a');
+        await tasksSettled();
         assert.deepEqual(changeSnapshots, [
           [1, '[Badge] a']
         ]);
@@ -690,6 +696,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         });
 
         tags.set('a', 'b');
+        await tasksSettled();
         assert.deepEqual(changeSnapshots, [
           [1, '[Badge] b']
         ]);
@@ -724,6 +731,7 @@ describe('3-runtime-html/observation-glitches.spec.ts', function () {
         });
 
         tags.add('a');
+        await tasksSettled();
         assert.deepEqual(changeSnapshots, [
           [1, '[Badge] a']
         ]);

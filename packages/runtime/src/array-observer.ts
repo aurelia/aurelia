@@ -8,6 +8,7 @@ import {
   type IndexMap,
   type ISubscriber,
   atObserver,
+  hasChanges,
 } from './interfaces';
 import {
   CollectionLengthObserver,
@@ -16,8 +17,8 @@ import {
   subscriberCollection,
 } from './subscriber-collection';
 import { rtDef, rtDefineHiddenProp, rtDefineMetadata, rtGetMetadata } from './utilities';
-import { addCollectionBatch, batching } from './subscriber-batch';
 import { type IIndexable, isFunction } from '@aurelia/kernel';
+import { queueTask } from './queue';
 
 export interface ArrayObserver extends ICollectionObserver<'array'>, ICollectionSubscriberCollection {
   getIndexObserver(index: number): ArrayIndexObserver;
@@ -330,7 +331,7 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
           $sort.call(this, compareFn);
           return this;
         }
-        let len = this.length;
+        const len = this.length;
         if (len < 2) {
           return this;
         }
@@ -346,19 +347,7 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
           compareFn = sortCompare;
         }
         quickSort(this, o.indexMap, 0, i, compareFn);
-        // todo(fred): it shouldn't notify if the sort produce a stable array:
-        //             where every item has the same index before/after
-        //             though this is inefficient we loop a few times like this
-        let shouldNotify = false;
-        for (i = 0, len = o.indexMap.length; len > i; ++i) {
-          if (o.indexMap[i] !== i) {
-            shouldNotify = true;
-            break;
-          }
-        }
-        if (shouldNotify || batching) {
-          o.notify();
-        }
+        o.notify();
         return this;
       }
     };
@@ -408,6 +397,9 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     private readonly indexObservers: Record<string | number, ArrayIndexObserverImpl | undefined>;
     private lenObs?: CollectionLengthObserver;
 
+    /** @internal */
+    private _isQueued = false;
+
     public constructor(array: unknown[]) {
 
       if (!enableArrayObservationCalled) {
@@ -425,20 +417,23 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     }
 
     public notify(): void {
-      const subs = this.subs;
-      subs.notifyDirty();
+      if (this._isQueued) return;
+      this._isQueued = true;
 
-      const indexMap = this.indexMap;
-      if (batching) {
-        addCollectionBatch(subs, this.collection, indexMap);
-        return;
-      }
+      queueTask(() => {
+        this._isQueued = false;
+        const indexMap = this.indexMap;
+        if (!hasChanges(indexMap)) return;
 
-      const arr = this.collection;
-      const length = arr.length;
+        const arr = this.collection;
+        const length = arr.length;
 
-      this.indexMap = createIndexMap(length);
-      subs.notifyCollection(arr, indexMap);
+        const subs = this.subs;
+        subs.notifyDirty();
+
+        this.indexMap = createIndexMap(length);
+        subs.notifyCollection(arr, indexMap);
+      });
     }
 
     public getLengthObserver(): CollectionLengthObserver {
@@ -461,6 +456,9 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
 
     public doNotCache: boolean = true;
     public value: unknown;
+
+    /** @internal */
+    private _isQueued = false;
 
     public constructor(
       public readonly owner: ArrayObserverImpl,
@@ -492,9 +490,15 @@ export const getArrayObserver = /*@__PURE__*/ (() => {
     }
 
     public handleDirty() {
-      if (this.value !== this.getValue()) {
-        this.subs.notifyDirty();
-      }
+      if (this._isQueued) return;
+      this._isQueued = true;
+
+      queueTask(() => {
+        this._isQueued = false;
+        if (this.value !== this.getValue()) {
+          this.subs.notifyDirty();
+        }
+      });
     }
 
     /**

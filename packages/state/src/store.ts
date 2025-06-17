@@ -1,5 +1,5 @@
 import { all, IContainer, ILogger, isPromise, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
-import { IActionHandler, IState, IStore, IStoreSubscriber } from './interfaces';
+import { IActionHandler, IState, IStore, IStoreSubscriber, IStateMiddleware, MiddlewarePlacement, IMiddlewareSettings } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
 export class Store<T extends object, TAction = unknown> implements IStore<T> {
@@ -15,6 +15,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   /** @internal */ private readonly _subs = new Set<IStoreSubscriber<T>>();
   /** @internal */ private readonly _logger: ILogger;
   /** @internal */ private readonly _handlers: readonly IActionHandler<T>[];
+  /** @internal */ private readonly _middlewares = new Map<IStateMiddleware<T>, IMiddlewareSettings>();
   /** @internal */ private _dispatching = false;
   /** @internal */ private readonly _dispatchQueues: TAction[] = [];
   /** @internal */ private readonly _getDevTools: () => IDevToolsExtension;
@@ -46,6 +47,16 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     this._subs.delete(subscriber);
   }
 
+  public registerMiddleware<S = any>(middleware: IStateMiddleware<T, S>, placement: MiddlewarePlacement, settings?: S): void {
+    this._middlewares.set(middleware, { placement, settings });
+  }
+
+  public unregisterMiddleware(middleware: IStateMiddleware<T>): void {
+    if (this._middlewares.has(middleware)) {
+      this._middlewares.delete(middleware);
+    }
+  }
+
   /** @internal */
   private _setState(state: T): void {
     const prevState = this._state;
@@ -58,6 +69,42 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return new Proxy(this._state, new StateProxyHandler(this, this._logger));
     }
     return this._state;
+  }
+
+  /** @internal */
+  private _executeMiddlewares(state: T, placement: MiddlewarePlacement, action: unknown): T | Promise<T | false> {
+    const middlewares = Array.from(this._middlewares.entries())
+      .filter(([_, settings]) => settings.placement === placement);
+
+    if (middlewares.length === 0) {
+      return state;
+    }
+
+    return this._executeMiddlewaresAsync(state, middlewares, action);
+  }
+
+  /** @internal */
+  private async _executeMiddlewaresAsync(state: T, middlewares: [IStateMiddleware<T>, IMiddlewareSettings][], action: unknown): Promise<T | false> {
+    let currentState: T = state;
+
+    for (const [middleware, settings] of middlewares) {
+      try {
+        const middlewareResult = await middleware(currentState, action, settings.settings);
+
+        if (middlewareResult === false) {
+          return false;
+        }
+
+        if (middlewareResult !== undefined && middlewareResult !== null) {
+          currentState = middlewareResult as T;
+        }
+      } catch (error) {
+        this._logger.error(`Middleware execution failed: ${error}`);
+        // Continue with current state on error
+      }
+    }
+
+    return currentState;
   }
 
   /** @internal */
@@ -80,31 +127,80 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return onResolve($state, s => {
         const $$action = this._dispatchQueues.shift()!;
         if ($$action != null) {
-          return onResolve(this._handleAction<T>(this._handlers, s, $$action), state => {
-            this._setState(state);
-            return afterDispatch(state);
+          // Execute before middlewares
+          const beforeResult = this._executeMiddlewares(s, MiddlewarePlacement.Before, $$action);
+
+          return onResolve(beforeResult, beforeState => {
+            if (beforeState === false) {
+              this._dispatching = false;
+              return;
+            }
+
+            return onResolve(this._handleAction<T>(this._handlers, beforeState, $$action), handlerState => {
+              // Execute after middlewares
+              const afterResult = this._executeMiddlewares(handlerState, MiddlewarePlacement.After, $$action);
+
+              return onResolve(afterResult, finalState => {
+                if (finalState === false) {
+                  this._dispatching = false;
+                  return;
+                }
+
+                this._setState(finalState);
+                return afterDispatch(finalState);
+              });
+            });
           });
         } else {
           this._dispatching = false;
         }
       });
     };
-    const newState = this._handleAction<T>(this._handlers, this._state, action);
 
-    if (isPromise(newState)) {
-      return newState.then($state => {
-        this._setState($state);
+    // Execute before middlewares
+    const beforeResult = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, action);
 
-        return afterDispatch(this._state);
-      }, ex => {
+    return onResolve(beforeResult, beforeState => {
+      if (beforeState === false) {
         this._dispatching = false;
-        throw ex;
-      });
-    } else {
-      this._setState(newState);
+        return;
+      }
 
-      return afterDispatch(this._state);
-    }
+      const newState = this._handleAction<T>(this._handlers, beforeState, action);
+
+      if (isPromise(newState)) {
+        return newState.then($state => {
+          // Execute after middlewares
+          const afterResult = this._executeMiddlewares($state, MiddlewarePlacement.After, action);
+
+          return onResolve(afterResult, finalState => {
+            if (finalState === false) {
+              this._dispatching = false;
+              return;
+            }
+
+            this._setState(finalState);
+            return afterDispatch(this._state);
+          });
+        }, ex => {
+          this._dispatching = false;
+          throw ex;
+        });
+      } else {
+        // Execute after middlewares
+        const afterResult = this._executeMiddlewares(newState, MiddlewarePlacement.After, action);
+
+        return onResolve(afterResult, finalState => {
+          if (finalState === false) {
+            this._dispatching = false;
+            return;
+          }
+
+          this._setState(finalState);
+          return afterDispatch(this._state);
+        });
+      }
+    });
   }
 
   /* istanbul ignore next */
@@ -119,7 +215,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     const devTools = extension.connect(options);
     devTools.init(this._initialState);
     devTools.subscribe((message) => {
-      this._logger.info('DevTools sent a message:', message);
+      this._logger.info(`DevTools sent a message: ${JSON.stringify(message)}`);
       const payload: IDevToolsPayload = typeof message.payload === 'string'
         ? tryParseJson(message.payload)
         : message.payload;

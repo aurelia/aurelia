@@ -86,7 +86,24 @@ Aurelia
   .start();
 ```
 
-The above imports the `StateDefaultConfiguration` object from the plugin and then calls `init`, passing the initial state object for your application.
+The above imports the `StateDefaultConfiguration` object from the plugin and then calls `init`, passing the initial state object and action handlers for your application.
+
+For advanced use cases, you can also provide middleware as a third parameter:
+
+```typescript
+import { loggingMiddleware } from './middleware';
+
+Aurelia
+  .register(
+    StateDefaultConfiguration.init(
+      initialState,
+      [keywordsHandler],
+      [loggingMiddleware] // Optional middleware array
+    )
+  )
+  .app(MyApp)
+  .start();
+```
 
 {% hint style="info" %}
 If you are familiar with Redux, you'll find this plugin familiar. The most obvious difference will be around the action handler (similar to reducer in Redux) function signature.
@@ -152,6 +169,292 @@ As mentioned at the start of this guide, action handlers are the way to handle m
 Action handlers can be either synchronous or asynchronous. An application may have one or more action handlers, and if one action handler is asynchronous, a promise will be returned for the `dispatch` call.
 
 An action handler should return the existing state (first parameters) if the action is unnecessary.
+
+## Middleware
+
+Middleware provides a powerful way to intercept and process actions before they reach your action handlers. This is particularly useful for cross-cutting concerns such as logging, validation, authentication, error handling, and performance monitoring.
+
+### What is middleware?
+
+Middleware functions are executed in sequence before actions are processed by action handlers. Each middleware function receives the current state, the action being dispatched, and a `next` function to continue the middleware chain. Middleware can:
+
+- Log actions for debugging and auditing
+- Validate actions before processing
+- Transform or modify actions
+- Handle authentication and authorization
+- Implement caching strategies
+- Monitor performance
+- Handle errors gracefully
+
+### Creating middleware
+
+A middleware function has the following signature:
+
+```ts
+type Middleware<TState, TAction> = (
+  state: TState,
+  action: TAction,
+  next: () => TState | Promise<TState>
+) => TState | Promise<TState>;
+```
+
+Here's a simple logging middleware example:
+
+```ts
+export const loggingMiddleware = (state, action, next) => {
+  console.log('Action dispatched:', action);
+  const newState = next();
+  console.log('New state:', newState);
+  return newState;
+};
+```
+
+### Registering middleware
+
+Middleware is registered during the state plugin configuration by passing an array of middleware functions to the `init` method:
+
+```typescript
+import Aurelia from 'aurelia';
+import { StateDefaultConfiguration } from '@aurelia/state';
+
+import { initialState } from './initialstate';
+import { keywordsHandler } from './action-handlers';
+import { loggingMiddleware, validationMiddleware } from './middleware';
+
+Aurelia
+  .register(
+    StateDefaultConfiguration.init(
+      initialState,
+      [keywordsHandler],
+      [loggingMiddleware, validationMiddleware] // Middleware array
+    )
+  )
+  .app(MyApp)
+  .start();
+```
+
+### Middleware execution order
+
+Middleware functions are executed in the order they are registered. Each middleware must call `next()` to continue the chain, or the execution will stop at that middleware.
+
+```ts
+// First middleware
+const firstMiddleware = (state, action, next) => {
+  console.log('First middleware - before');
+  const result = next();
+  console.log('First middleware - after');
+  return result;
+};
+
+// Second middleware
+const secondMiddleware = (state, action, next) => {
+  console.log('Second middleware - before');
+  const result = next();
+  console.log('Second middleware - after');
+  return result;
+};
+
+// Output order:
+// First middleware - before
+// Second middleware - before  
+// [Action handlers execute]
+// Second middleware - after
+// First middleware - after
+```
+
+### Asynchronous middleware
+
+Middleware functions can be asynchronous and work seamlessly with both synchronous and asynchronous action handlers:
+
+```ts
+export const asyncLoggingMiddleware = async (state, action, next) => {
+  console.log('Action started:', action.type);
+  const startTime = Date.now();
+  
+  try {
+    const newState = await next();
+    const duration = Date.now() - startTime;
+    console.log(`Action completed in ${duration}ms`);
+    return newState;
+  } catch (error) {
+    console.error('Action failed:', error);
+    throw error;
+  }
+};
+```
+
+### Common middleware patterns
+
+#### 1. Validation middleware
+
+```ts
+export const validationMiddleware = (state, action, next) => {
+  // Validate action structure
+  if (!action.type) {
+    throw new Error('Action must have a type property');
+  }
+  
+  // Validate specific action types
+  if (action.type === 'updateUser' && !action.payload?.id) {
+    throw new Error('updateUser action must include user id');
+  }
+  
+  return next();
+};
+```
+
+#### 2. Authentication middleware
+
+```ts
+export const authMiddleware = (state, action, next) => {
+  const protectedActions = ['deleteUser', 'updateSettings', 'createPost'];
+  
+  if (protectedActions.includes(action.type) && !state.user?.isAuthenticated) {
+    throw new Error('Authentication required for this action');
+  }
+  
+  return next();
+};
+```
+
+#### 3. Caching middleware
+
+```ts
+const cache = new Map();
+
+export const cachingMiddleware = (state, action, next) => {
+  // Only cache read operations
+  if (!action.type.startsWith('fetch')) {
+    return next();
+  }
+  
+  const cacheKey = JSON.stringify(action);
+  
+  if (cache.has(cacheKey)) {
+    console.log('Cache hit for:', action.type);
+    return cache.get(cacheKey);
+  }
+  
+  const result = next();
+  cache.set(cacheKey, result);
+  console.log('Cache miss for:', action.type);
+  
+  return result;
+};
+```
+
+#### 4. Error handling middleware
+
+```ts
+export const errorHandlingMiddleware = (state, action, next) => {
+  try {
+    return next();
+  } catch (error) {
+    console.error('Action failed:', action.type, error);
+    
+    // You could dispatch an error action here
+    // or modify state to include error information
+    return {
+      ...state,
+      error: {
+        message: error.message,
+        action: action.type,
+        timestamp: new Date().toISOString()
+      }
+    };
+  }
+};
+```
+
+#### 5. Performance monitoring middleware
+
+```ts
+export const performanceMiddleware = (state, action, next) => {
+  const startTime = performance.now();
+  
+  const result = next();
+  
+  const endTime = performance.now();
+  const duration = endTime - startTime;
+  
+  if (duration > 100) { // Log slow actions
+    console.warn(`Slow action detected: ${action.type} took ${duration.toFixed(2)}ms`);
+  }
+  
+  return result;
+};
+```
+
+### Conditional middleware execution
+
+Middleware can conditionally execute based on action types or state conditions:
+
+```ts
+export const conditionalMiddleware = (state, action, next) => {
+  // Only process specific action types
+  if (action.type === 'sensitiveOperation') {
+    console.log('Processing sensitive operation');
+    // Additional validation or logging here
+  }
+  
+  // Always continue the chain
+  return next();
+};
+```
+
+### Middleware with dependency injection
+
+Middleware can use Aurelia's dependency injection system:
+
+```ts
+import { ILogger } from 'aurelia';
+
+export const createLoggingMiddleware = (logger: ILogger) => {
+  return (state, action, next) => {
+    logger.info('Action dispatched', action);
+    const result = next();
+    logger.info('State updated', { action: action.type });
+    return result;
+  };
+};
+
+// In your configuration:
+const logger = container.get(ILogger);
+const loggingMiddleware = createLoggingMiddleware(logger);
+```
+
+### Best practices for middleware
+
+1. **Keep middleware focused**: Each middleware should have a single responsibility
+2. **Always call next()**: Unless you intentionally want to stop the chain
+3. **Handle errors appropriately**: Use try-catch blocks for robust error handling
+4. **Consider performance**: Avoid heavy computations in frequently executed middleware
+5. **Use TypeScript**: Leverage type safety for better development experience
+6. **Order matters**: Register middleware in the correct execution order
+7. **Test thoroughly**: Write tests for both synchronous and asynchronous scenarios
+
+### Debugging middleware
+
+When troubleshooting middleware issues, you can add debug middleware to log the middleware chain execution:
+
+```ts
+export const debugMiddleware = (state, action, next) => {
+  console.group(`Middleware Debug: ${action.type}`);
+  console.log('Current state:', state);
+  console.log('Action:', action);
+  
+  try {
+    const result = next();
+    console.log('Result state:', result);
+    console.groupEnd();
+    return result;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    console.groupEnd();
+    throw error;
+  }
+};
+```
 
 ## Example of type declaration for application stores
 

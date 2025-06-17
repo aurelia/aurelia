@@ -1,5 +1,5 @@
 import { IContainer, Registration } from '@aurelia/kernel';
-import { IActionHandler, IState, IStore } from './interfaces';
+import { IActionHandler, IState, IStore, IStateMiddleware, MiddlewarePlacement } from './interfaces';
 import { ActionHandler } from './action-handler';
 import { Store } from './store';
 import { StateBindingBehavior } from './state-binding-behavior';
@@ -24,6 +24,12 @@ const standardRegistrations = [
   Store,
 ];
 
+export interface IMiddlewareRegistration<T = any, S = any> {
+  middleware: IStateMiddleware<T, S>;
+  placement: MiddlewarePlacement;
+  settings?: S;
+}
+
 const createConfiguration = <T>(
   initialState: T,
   actionHandlers: IActionHandler<T>[],
@@ -38,6 +44,14 @@ const createConfiguration = <T>(
         /* istanbul ignore next */
         AppTask.creating(IContainer, container => {
           const store = container.get(IStore);
+
+          // Register middlewares if provided
+          if (options.middlewares) {
+            for (const middlewareReg of options.middlewares) {
+              store.registerMiddleware(middlewareReg.middleware, middlewareReg.placement, middlewareReg.settings);
+            }
+          }
+          
           const devTools = container.get(IDevToolsExtension);
           if (options.devToolsOptions?.disable !== true && devTools != null) {
             store.connectDevTools(options.devToolsOptions ?? {});
@@ -66,6 +80,7 @@ export interface IStateConfiguration {
 
 export interface IStateConfigurationOptions {
   devToolsOptions?: IDevToolsOptions;
+  middlewares?: IMiddlewareRegistration[];
 }
 
 export interface IConfigurationInit {

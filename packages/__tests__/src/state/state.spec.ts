@@ -1,5 +1,5 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
-import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement, createSelector } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -1046,6 +1046,137 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(finalState.counter, 1);
       assert.strictEqual(finalState.modified, true);
     });
+  });
+  describe('createSelector', function () {
+    it('memoizes results based on dependencies', function () {
+      interface S { items: number[]; flag: boolean; }
+      const items = [1, 2, 3];
+      let computeCalls = 0;
+      const total = createSelector(
+        (s: S) => s.items,
+        i => { computeCalls++; return i.reduce((a, b) => a + b, 0); }
+      );
+
+      const s1: S = { items, flag: true };
+      assert.strictEqual(total(s1), 6);
+      assert.strictEqual(computeCalls, 1);
+
+      const s2: S = { items, flag: false };
+      assert.strictEqual(total(s2), 6);
+      assert.strictEqual(computeCalls, 1);
+
+      const s3: S = { items: [1, 2, 3, 4], flag: false };
+      assert.strictEqual(total(s3), 10);
+      assert.strictEqual(computeCalls, 2);
+    });
+
+    it('memoizes when single selector is provided', function () {
+      interface S {
+        flag: boolean;
+      }
+      let calls = 0;
+      const selectFlag = createSelector((s: S) => { calls++; return s.flag; });
+
+      const s: S = { flag: true };
+      assert.strictEqual(selectFlag(s), true);
+      selectFlag(s);
+      assert.strictEqual(calls, 1);
+    });
+  });
+
+  it('works with the fromState decorator', async function () {
+    interface S { items: number[]; flag: boolean; }
+    let computeCalls = 0;
+    const selectTotal = createSelector(
+      (s: S) => s.items,
+      items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
+    );
+
+    @customElement({ name: 'my-el', template: `\${total}` })
+    class MyEl {
+      @fromState<S>(selectTotal)
+      total: number;
+    }
+
+    const state: S = { items: [1, 2, 3], flag: false };
+    const { trigger, assertText, flush } = await createFixture
+      .html`
+        <my-el></my-el>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+      .deps(
+        MyEl,
+        StateDefaultConfiguration.init(state, (s, a: { type: 'toggle' | 'add'; value?: number }) => {
+          if (a.type === 'toggle') { return { ...s, flag: !s.flag }; }
+          if (a.type === 'add') { return { ...s, items: [...s.items, a.value!] }; }
+          return s;
+        })
+      )
+      .build().started;
+
+    assertText('my-el', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#flag', 'click');
+    flush();
+    assertText('my-el', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#add', 'click');
+    flush();
+    assertText('my-el', '10');
+    assert.strictEqual(computeCalls, 2);
+  });
+
+  it('shares memoized results across components', async function () {
+    interface S { items: number[]; flag: boolean; }
+    let computeCalls = 0;
+    const selectTotal = createSelector(
+      (s: S) => s.items,
+      items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
+    );
+
+    @customElement({ name: 'el-a', template: `\${total}` })
+    class ElA { @fromState<S>(selectTotal) total: number; }
+
+    @customElement({ name: 'el-b', template: `\${total}` })
+    class ElB { @fromState<S>(selectTotal) total: number; }
+
+    const state: S = { items: [1, 2, 3], flag: false };
+    const { trigger, assertText, flush } = await createFixture
+      .html`
+        <el-a></el-a>
+        <el-b></el-b>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+      .deps(
+        ElA,
+        ElB,
+        StateDefaultConfiguration.init(state, (s, a: { type: 'toggle' | 'add'; value?: number }) => {
+          if (a.type === 'toggle') { return { ...s, flag: !s.flag }; }
+          if (a.type === 'add') { return { ...s, items: [...s.items, a.value!] }; }
+          return s;
+        })
+      )
+      .build().started;
+
+    assertText('el-a', '6');
+    assertText('el-b', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#flag', 'click');
+    flush();
+    assertText('el-a', '6');
+    assertText('el-b', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#add', 'click');
+    flush();
+    assertText('el-a', '10');
+    assertText('el-b', '10');
+    assert.strictEqual(computeCalls, 2);
   });
 
 });

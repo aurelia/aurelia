@@ -72,7 +72,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   }
 
   /** @internal */
-  private _executeMiddlewares(state: T, placement: MiddlewarePlacement, action: unknown): T | Promise<T | false> {
+  private _executeMiddlewares(state: T, placement: MiddlewarePlacement, action: unknown): T | false {
     const middlewares = Array.from(this._middlewares.entries())
       .filter(([_, settings]) => settings.placement === placement);
 
@@ -80,16 +80,17 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return state;
     }
 
-    return this._executeMiddlewaresAsync(state, middlewares, action);
-  }
-
-  /** @internal */
-  private async _executeMiddlewaresAsync(state: T, middlewares: [IStateMiddleware<T>, IMiddlewareSettings][], action: unknown): Promise<T | false> {
     let currentState: T = state;
 
     for (const [middleware, settings] of middlewares) {
       try {
-        const middlewareResult = await middleware(currentState, action, settings.settings);
+        const middlewareResult = middleware(currentState, action, settings.settings);
+
+        // If middleware returns a promise, log a warning and continue with current state
+        if (isPromise(middlewareResult)) {
+          this._logger.warn('Async middleware is not supported. Middleware result will be ignored.');
+          continue;
+        }
 
         if (middlewareResult === false) {
           return false;
@@ -108,11 +109,14 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   }
 
   /** @internal */
-  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T | Promise<T>, $action: unknown): T | Promise<T> {
+  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T, $action: unknown): T | Promise<T> {
+    let currentState: T | Promise<T> = $state;
+
     for (const handler of handlers) {
-      $state = onResolve($state, $state => handler($state, $action));
+      currentState = onResolve(currentState, state => handler(state, $action));
     }
-    return onResolve($state, s => s);
+
+    return currentState;
   }
 
   public dispatch(action: TAction): void | Promise<void> {
@@ -123,87 +127,65 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
 
     this._dispatching = true;
 
-    const afterDispatch = ($state: T | Promise<T>): void | Promise<void> => {
-      return onResolve($state, s => {
-        const $$action = this._dispatchQueues.shift()!;
-        if ($$action != null) {
-          // Use current state instead of stale parameter to avoid race conditions
-          const currentState = this._state;
+    const processAction = (actionToProcess: TAction): void | Promise<void> => {
+      // Execute before middlewares (synchronous only)
+      const beforeState = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, actionToProcess);
 
-          // Execute before middlewares
-          const beforeResult = this._executeMiddlewares(currentState, MiddlewarePlacement.Before, $$action);
+      if (beforeState === false) {
+        // Process next action in queue
+        const nextAction = this._dispatchQueues.shift();
+        if (nextAction != null) {
+          return processAction(nextAction);
+        } else {
+          this._dispatching = false;
+          return;
+        }
+      }
 
-          return onResolve(beforeResult, beforeState => {
-            if (beforeState === false) {
-              this._dispatching = false;
-              return;
-            }
+      // Execute action handlers
+      const handlerResult = this._handleAction(this._handlers, beforeState, actionToProcess);
 
-            return onResolve(this._handleAction<T>(this._handlers, beforeState, $$action), handlerState => {
-              // Execute after middlewares
-              const afterResult = this._executeMiddlewares(handlerState, MiddlewarePlacement.After, $$action);
+      if (isPromise(handlerResult)) {
+        // If action handlers return a promise, handle it asynchronously
+        return handlerResult.then(newState => {
+          // Execute after middlewares (synchronous only)
+          const afterState = this._executeMiddlewares(newState, MiddlewarePlacement.After, actionToProcess);
 
-              return onResolve(afterResult, finalState => {
-                if (finalState === false) {
-                  this._dispatching = false;
-                  return;
-                }
+          if (afterState !== false) {
+            this._setState(afterState);
+          }
 
-                this._setState(finalState);
-                return afterDispatch(finalState);
-              });
-            });
-          });
+          // Process next action in queue after updating state
+          const nextAction = this._dispatchQueues.shift();
+          if (nextAction != null) {
+            return processAction(nextAction);
+          } else {
+            this._dispatching = false;
+          }
+        }).catch(error => {
+          this._dispatching = false;
+          this._logger.error(`Action handler failed: ${error}`);
+          throw error;
+        });
+      } else {
+        // Synchronous action handlers
+        const afterState = this._executeMiddlewares(handlerResult, MiddlewarePlacement.After, actionToProcess);
+
+        if (afterState !== false) {
+          this._setState(afterState);
+        }
+
+        // Process next action in queue after updating state
+        const nextAction = this._dispatchQueues.shift();
+        if (nextAction != null) {
+          return processAction(nextAction);
         } else {
           this._dispatching = false;
         }
-      });
+      }
     };
 
-    // Execute before middlewares
-    const beforeResult = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, action);
-
-    return onResolve(beforeResult, beforeState => {
-      if (beforeState === false) {
-        this._dispatching = false;
-        return;
-      }
-
-      const newState = this._handleAction<T>(this._handlers, beforeState, action);
-
-      if (isPromise(newState)) {
-        return newState.then($state => {
-          // Execute after middlewares
-          const afterResult = this._executeMiddlewares($state, MiddlewarePlacement.After, action);
-
-          return onResolve(afterResult, finalState => {
-            if (finalState === false) {
-              this._dispatching = false;
-              return;
-            }
-
-            this._setState(finalState);
-            return afterDispatch(this._state);
-          });
-        }, ex => {
-          this._dispatching = false;
-          throw ex;
-        });
-      } else {
-        // Execute after middlewares
-        const afterResult = this._executeMiddlewares(newState, MiddlewarePlacement.After, action);
-
-        return onResolve(afterResult, finalState => {
-          if (finalState === false) {
-            this._dispatching = false;
-            return;
-          }
-
-          this._setState(finalState);
-          return afterDispatch(this._state);
-        });
-      }
-    });
+    return processAction(action);
   }
 
   /* istanbul ignore next */

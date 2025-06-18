@@ -9,7 +9,7 @@ import {
   DialogCancelError,
   DialogCloseError,
 } from './dialog-interfaces';
-import { instanceRegistration } from './utilities-di';
+import { instanceRegistration, singletonRegistration } from './utilities-di';
 
 import type {
   DialogDeactivationStatuses,
@@ -78,13 +78,13 @@ export class DialogController implements IDialogController {
       renderer,
     } = settings;
 
-    if (isFunction(renderer)) {
-      container.register(renderer);
-    } else {
-      instanceRegistration(IDialogDomRenderer, renderer).register(container);
-    }
+    // if (isFunction(renderer)) {
+    //   singletonRegistration(IDialogDomRenderer, renderer).register(container);
+    // } else {
+    //   instanceRegistration(IDialogDomRenderer, renderer).register(container);
+    // }
 
-    const resolvedRenderer = container.get(IDialogDomRenderer);
+    const resolvedRenderer = isFunction(renderer) ? container.invoke(renderer) : renderer;
     const dialogTargetHost = settings.host ?? this.p.document.body;
     const dom = this.dom = resolvedRenderer.render(dialogTargetHost, this, settings.options);
     const rootEventTarget = container.has(IEventTarget, true)

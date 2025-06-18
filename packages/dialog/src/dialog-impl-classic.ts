@@ -58,14 +58,14 @@ export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRenderOptionsClassic> {
-  public static register(container: IContainer) {
-    container.register(singletonRegistration(IDialogDomRenderer, this));
-    container.register(singletonRegistration(IDialogEventManager, DialogEventManagerClassic));
-  }
+  // public static register(container: IContainer) {
+  //   container.register(singletonRegistration(IDialogDomRenderer, this));
+  //   container.register(singletonRegistration(IDialogEventManager, DialogEventManagerClassic));
+  // }
 
   private readonly p = resolve(IPlatform);
   /** @internal */
-  private readonly _eventManager = resolve(IDialogEventManager);
+  private readonly _eventManager = resolve(DialogEventManagerClassic);
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
@@ -143,9 +143,9 @@ export interface IDialogEventManager {
 }
 
 class DialogEventManagerClassic implements IDialogEventManager {
-  public static register(container: IContainer) {
-    singletonRegistration(IDialogEventManager, this).register(container);
-  }
+  // public static register(container: IContainer) {
+  //   singletonRegistration(IDialogEventManager, this).register(container);
+  // }
 
   private readonly ctrls: IDialogController[] = [];
   private readonly w = resolve(IWindow);

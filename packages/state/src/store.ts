@@ -1,4 +1,4 @@
-import { all, IContainer, ILogger, isPromise, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
+import { all, IContainer, ILogger, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber, IStateMiddleware, MiddlewarePlacement, IMiddlewareSettings } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
@@ -72,7 +72,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
   }
 
   /** @internal */
-  private _executeMiddlewares(state: T, placement: MiddlewarePlacement, action: unknown): T | false {
+  private _executeMiddlewares(state: T, placement: MiddlewarePlacement, action: unknown): T | false | Promise<T | false> {
     const middlewares = Array.from(this._middlewares.entries())
       .filter(([_, settings]) => settings.placement === placement);
 
@@ -80,36 +80,50 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return state;
     }
 
-    let currentState: T = state;
+    // Chain the middleware execution using `onResolve` so that each middleware
+    // receives the resolved state from the previous middleware, regardless of
+    // whether that result is synchronous or asynchronous.
+    let result: T | false | Promise<T | false> = state;
 
     for (const [middleware, settings] of middlewares) {
-      try {
-        const middlewareResult = middleware(currentState, action, settings.settings);
-
-        // If middleware returns a promise, log a warning and continue with current state
-        if (isPromise(middlewareResult)) {
-          this._logger.warn('Async middleware is not supported. Middleware result will be ignored.');
-          continue;
-        }
-
-        if (middlewareResult === false) {
+      result = onResolve(result as any, async (currentStateOrFlag: T | false) => {
+        // If a previous middleware signalled blocking, keep propagating the flag.
+        if (currentStateOrFlag === false) {
           return false;
         }
 
-        if (middlewareResult !== undefined && middlewareResult !== null) {
-          currentState = middlewareResult as T;
+        const currentState = currentStateOrFlag as T;
+
+        let middlewareResult: T | undefined | false | void | Promise<T | undefined | false | void>;
+        try {
+          middlewareResult = middleware(currentState, action, settings.settings);
+        } catch (error) {
+          this._logger.error(`Middleware execution failed: ${error}`);
+          return currentState;
         }
-      } catch (error) {
-        this._logger.error(`Middleware execution failed: ${error}`);
-        // Continue with current state on error
-      }
+
+        // Await middleware result if it is a promise to support async middleware.
+        const resolved = await middlewareResult;
+
+        if (resolved === false) {
+          return false;
+        }
+
+        if (resolved !== undefined && resolved !== null) {
+          return resolved as T;
+        }
+
+        // If the middleware did not return a value, propagate the current state.
+        return currentState;
+      });
     }
 
-    return currentState;
+    return result;
   }
 
   /** @internal */
-  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T, $action: unknown): T | Promise<T> {
+  private _handleAction<T>(handlers: readonly IActionHandler<T>[], $state: T | Promise<T>, $action: unknown): T | Promise<T> {
+    // Ensure we work with either promise or value uniformly
     let currentState: T | Promise<T> = $state;
 
     for (const handler of handlers) {
@@ -128,64 +142,52 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     this._dispatching = true;
 
     const processAction = (actionToProcess: TAction): void | Promise<void> => {
-      // Execute before middlewares (synchronous only)
-      const beforeState = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, actionToProcess);
-
-      if (beforeState === false) {
-        // Process next action in queue
+      const finalize = (): void | Promise<void> => {
         const nextAction = this._dispatchQueues.shift();
         if (nextAction != null) {
           return processAction(nextAction);
         } else {
           this._dispatching = false;
-          return;
         }
-      }
+      };
 
-      // Execute action handlers
-      const handlerResult = this._handleAction(this._handlers, beforeState, actionToProcess);
+      const beforeStateOrPromise = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, actionToProcess);
 
-      if (isPromise(handlerResult)) {
-        // If action handlers return a promise, handle it asynchronously
-        return handlerResult.then(newState => {
-          // Execute after middlewares (synchronous only)
-          const afterState = this._executeMiddlewares(newState, MiddlewarePlacement.After, actionToProcess);
+      const afterBefore = onResolve(beforeStateOrPromise as any, (beforeState: T | false) => {
+        if (beforeState === false) {
+          return finalize();
+        }
 
-          if (afterState !== false) {
-            this._setState(afterState);
-          }
+        const handlerResult = this._handleAction(this._handlers, beforeState as T, actionToProcess);
 
-          // Process next action in queue after updating state
-          const nextAction = this._dispatchQueues.shift();
-          if (nextAction != null) {
-            return processAction(nextAction);
-          } else {
-            this._dispatching = false;
-          }
-        }).catch(error => {
-          this._dispatching = false;
-          this._logger.error(`Action handler failed: ${error}`);
-          throw error;
+        const afterHandler = onResolve(handlerResult as any, (newState: T) => {
+          const afterStateOrPromise = this._executeMiddlewares(newState, MiddlewarePlacement.After, actionToProcess);
+
+          return onResolve(afterStateOrPromise as any, (afterState: T | false) => {
+            if (afterState !== false) {
+              this._setState(afterState as T);
+            }
+            return finalize();
+          });
         });
-      } else {
-        // Synchronous action handlers
-        const afterState = this._executeMiddlewares(handlerResult, MiddlewarePlacement.After, actionToProcess);
 
-        if (afterState !== false) {
-          this._setState(afterState);
-        }
+        return afterHandler;
+      });
 
-        // Process next action in queue after updating state
-        const nextAction = this._dispatchQueues.shift();
-        if (nextAction != null) {
-          return processAction(nextAction);
-        } else {
-          this._dispatching = false;
-        }
-      }
+      return afterBefore;
     };
 
-    return processAction(action);
+    const result = processAction(action);
+
+    if (result instanceof Promise) {
+      return result.catch(error => {
+        this._dispatching = false;
+        this._logger.error(`Action or middleware failed: ${error}`);
+        throw error;
+      });
+    }
+
+    return result;
   }
 
   /* istanbul ignore next */

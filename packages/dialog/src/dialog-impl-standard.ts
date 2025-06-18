@@ -4,9 +4,7 @@ import {
   IDialogDom,
   IDialogController,
 } from './dialog-interfaces';
-
-import { IContainer, isString, onResolve, resolve } from '@aurelia/kernel';
-import { singletonRegistration } from './utilities-di';
+import { isString, onResolve, resolve } from '@aurelia/kernel';
 import { createMappedError, ErrorNames } from './errors';
 
 export type DialogRenderOptionsStandard = {
@@ -44,10 +42,6 @@ export type DialogRenderOptionsStandard = {
 };
 
 export class DialogDomRendererStandard implements IDialogDomRenderer<DialogRenderOptionsStandard> {
-  public static register(container: IContainer) {
-    container.register(singletonRegistration(IDialogDomRenderer, this));
-  }
-
   private readonly p = resolve(IPlatform);
 
   public render(dialogHost: HTMLElement, controller: IDialogController, options: DialogRenderOptionsStandard = {}): IDialogDom {

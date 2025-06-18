@@ -2,14 +2,13 @@ import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition, registerHostNode } from '@aurelia/runtime-html';
 import {
   IDialogController,
-  IDialogDomRenderer,
   IDialogDom,
   DialogOpenResult,
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
 } from './dialog-interfaces';
-import { instanceRegistration, singletonRegistration } from './utilities-di';
+import { instanceRegistration } from './utilities-di';
 
 import type {
   DialogDeactivationStatuses,
@@ -34,12 +33,7 @@ export class DialogController implements IDialogController {
   /** @internal */
   private _reject!: (reason: unknown) => void;
 
-  // /** @internal */
-  // private _disposeHandler: IDisposable | undefined = void 0;
-
-  /**
-   * @internal
-   */
+  /** @internal */
   private _closingPromise: Promise<DialogCloseResult> | undefined;
 
   /**
@@ -77,12 +71,6 @@ export class DialogController implements IDialogController {
       rejectOnCancel,
       renderer,
     } = settings;
-
-    // if (isFunction(renderer)) {
-    //   singletonRegistration(IDialogDomRenderer, renderer).register(container);
-    // } else {
-    //   instanceRegistration(IDialogDomRenderer, renderer).register(container);
-    // }
 
     const resolvedRenderer = isFunction(renderer) ? container.invoke(renderer) : renderer;
     const dialogTargetHost = settings.host ?? this.p.document.body;
@@ -132,7 +120,6 @@ export class DialogController implements IDialogController {
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
-            // this._disposeHandler = eventManager.add(this, dom);
             return onResolve(dom.show?.(),
               () => DialogOpenResult.create(false, this)
             );
@@ -172,7 +159,6 @@ export class DialogController implements IDialogController {
               () => onResolve(controller.deactivate(controller, null),
                 () => {
                   dom.dispose();
-                  // this._disposeHandler?.dispose();
                   if (!rejectOnCancel && status !== 'error') {
                     this._resolve(dialogResult);
                   } else {

@@ -4,9 +4,8 @@ import {
   IDialogDom,
   IDialogController,
 } from './dialog-interfaces';
-
-import { IContainer, IDisposable, onResolve, resolve } from '@aurelia/kernel';
-import { createInterface, singletonRegistration } from './utilities-di';
+import { IDisposable, onResolve, resolve } from '@aurelia/kernel';
+import { createInterface } from './utilities-di';
 
 export type DialogRenderOptionsClassic = {
   /**
@@ -58,11 +57,6 @@ export type DialogActionKey = 'Escape' | 'Enter';
 export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 
 export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRenderOptionsClassic> {
-  // public static register(container: IContainer) {
-  //   container.register(singletonRegistration(IDialogDomRenderer, this));
-  //   container.register(singletonRegistration(IDialogEventManager, DialogEventManagerClassic));
-  // }
-
   private readonly p = resolve(IPlatform);
   /** @internal */
   private readonly _eventManager = resolve(DialogEventManagerClassic);

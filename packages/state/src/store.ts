@@ -127,8 +127,11 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return onResolve($state, s => {
         const $$action = this._dispatchQueues.shift()!;
         if ($$action != null) {
+          // Use current state instead of stale parameter to avoid race conditions
+          const currentState = this._state;
+
           // Execute before middlewares
-          const beforeResult = this._executeMiddlewares(s, MiddlewarePlacement.Before, $$action);
+          const beforeResult = this._executeMiddlewares(currentState, MiddlewarePlacement.Before, $$action);
 
           return onResolve(beforeResult, beforeState => {
             if (beforeState === false) {

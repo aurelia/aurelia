@@ -117,7 +117,7 @@ export type IDialogSettings<
   /**
    * A custom renderer for the dialog.
    */
-  renderer?: Constructable<IDialogDomRenderer<TOptions>> | object;
+  renderer?: Constructable<IDialogDomRenderer<TOptions>> | IDialogDomRenderer<TOptions>;
 
   /**
    * The component url, constructor or instance for the dialog.
@@ -159,7 +159,7 @@ export type IDialogSettings<
 export type IDialogLoadedSettings<TOptions extends object = object, TModel extends object = object> = Omit<IDialogSettings<TOptions, TModel>, 'component' | 'template' | 'renderer'> & {
   component?: Constructable<TModel> | TModel;
   template?: string | Element;
-  renderer: Constructable<IDialogDomRenderer<TOptions>> | object;
+  renderer: Constructable<IDialogDomRenderer<TOptions>> | IDialogDomRenderer<TOptions>;
 };
 
 /**

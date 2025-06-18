@@ -135,9 +135,9 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
         host = resolve(INode) as HTMLElement;
         dialogService = resolve(IDialogService);
       },
-      [DialogConfigurationStandard.customize((settings) => {
-        settings.options.show = () => { i = 1; };
-        settings.options.hide = () => { i = 2; };
+      [DialogConfigurationStandard.customize(({ options }) => {
+        options.show = () => { i = 1; };
+        options.hide = () => { i = 2; };
       })]
     );
     const result = await component.dialogService.open({

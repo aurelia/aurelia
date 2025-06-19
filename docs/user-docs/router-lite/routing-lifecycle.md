@@ -248,6 +248,26 @@ export class ChildOne implements IRouteViewModel {
 
 {% embed url="https://stackblitz.com/edit/router-lite-loading-title?ctl=1&embed=1&file=src/main.ts" %}
 
+### Accessing parent route parameters
+
+If a child component needs to inspect parameters defined by its parent route, inject `IRouteContext` and use its `parent` property inside the `loading` hook.
+
+```ts
+import { resolve } from 'aurelia';
+import { IRouteContext, type Params } from '@aurelia/router-lite';
+
+export class ChildTwo {
+  private readonly ctx = resolve(IRouteContext);
+
+  loading(params: Params) {
+    console.log('child params', params);
+    console.log('parent params', this.ctx.parent?.params);
+  }
+}
+```
+
+See [Customize the routing context](./navigating.md#customize-the-routing-context) for more on working with `IRouteContext`.
+
 ## `canUnload`
 
 The `canUnload` method is called when a user attempts to leave a routed view.

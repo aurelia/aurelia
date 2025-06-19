@@ -53,7 +53,7 @@ export class ViewportAgent {
     public readonly hostController: ICustomElementController,
     ctx: IRouteContext,
   ) {
-    this._logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx._friendlyPath}>`);
+    this._logger = ctx.container.get(ILogger).scopeTo(`ViewportAgent<${ctx.routeConfigContext._friendlyPath}>`);
 
     if (__DEV__) trace(this._logger, Events.vpaCreated);
   }
@@ -299,7 +299,7 @@ export class ViewportAgent {
           b1._push();
           const ctx = next.context;
           void onResolve(
-            ctx.allResolved,
+            ctx.routeConfigContext.allResolved,
             () => onResolve(
               onResolve(
                 onResolveAll(
@@ -620,7 +620,7 @@ export class ViewportAgent {
     tr._run(() => {
       b._push();
       const ctx = next.context;
-      return onResolve(ctx.allResolved, () => {
+      return onResolve(ctx.routeConfigContext.allResolved, () => {
         const existingChildren = next.children.slice();
         return onResolve(
           onResolveAll(...next
@@ -704,7 +704,7 @@ export class ViewportAgent {
       this._$plan = 'replace';
     } else {
       // Component is the same, so determine plan based on config and/or convention
-      this._$plan = next.context.config._getTransitionPlan(cur, next, options.transitionPlan);
+      this._$plan = next.context.routeConfigContext.config._getTransitionPlan(cur, next, options.transitionPlan);
     }
 
     if (__DEV__) trace(this._logger, Events.vpaScheduleUpdate, this);

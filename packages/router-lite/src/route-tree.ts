@@ -155,7 +155,7 @@ export class RouteNode {
   }
 
   public contains(instructions: ViewportInstructionTree, matchEndpoint: boolean = false): boolean {
-    if (this.context === instructions.options.context) {
+    if (this.context.routeConfigContext === (instructions.options.context as IRouteContext).routeConfigContext) {
       const nodeChildren = this.children;
       const instructionChildren = instructions.children;
       for (let i = 0, ii = nodeChildren.length; i < ii; ++i) {
@@ -212,7 +212,7 @@ export class RouteNode {
   }
 
   public computeAbsolutePath(): string {
-    if (this.context.isRoot) {
+    if (this.context.routeConfigContext.isRoot) {
       return '';
     }
     const parentPath = this.context.parent!.node.computeAbsolutePath();
@@ -274,12 +274,12 @@ export class RouteNode {
   public toString(): string {
     const props: string[] = [];
 
-    const component = this.context?.config._getComponentName() ?? '';
+    const component = this.context?.routeConfigContext.config._getComponentName() ?? '';
     if (component.length > 0) {
       props.push(`c:'${component}'`);
     }
 
-    const path = this.context?.config.path ?? '';
+    const path = this.context?.routeConfigContext.config.path ?? '';
     if (path.length > 0) {
       props.push(`path:'${path}'`);
     }
@@ -297,7 +297,7 @@ export class RouteNode {
       }).join(',')}`);
     }
 
-    return `RN(ctx:'${this.context?._friendlyPath}',${props.join(',')})`;
+    return `RN(ctx:'${this.context?.routeConfigContext._friendlyPath}',${props.join(',')})`;
   }
 }
 
@@ -337,7 +337,7 @@ export class RouteTree {
   }
 
   /** @internal */
-  public _mergeQuery(other: Params): void {
+  public _mergeQuery(other: Record<string, string | string[]>): void {
     (this as Writable<RouteTree>).queryParams = Object.freeze(mergeURLSearchParams(this.queryParams, other, true));
   }
 
@@ -377,7 +377,7 @@ export function createAndAppendNodes(
           // However, when that's not the case, then we perhaps try to lookup the route-id.
           // This is another early termination.
           if (vi.children.length === 0) {
-            const result = ctx._generateViewportInstruction(vi);
+            const result = ctx.routeConfigContext._generateViewportInstruction(vi);
             if (result !== null) {
               node._tree._mergeQuery(result.query);
               const newVi = result.vi;
@@ -409,7 +409,7 @@ export function createAndAppendNodes(
             }
           }
 
-          rr = ctx.recognize(path);
+          rr = ctx.routeConfigContext.recognize(path);
           log.trace('createNode recognized route: %s', rr);
           const residue = rr?.residue ?? null;
           log.trace('createNode residue:', residue);
@@ -418,7 +418,7 @@ export function createAndAppendNodes(
           // Therefore the path matches the configured empty route and puts the whole path into residue.
           if (rr === null || residue === path) {
             // check if a route-id is used
-            const eagerResult = ctx._generateViewportInstruction({
+            const eagerResult = ctx.routeConfigContext._generateViewportInstruction({
               component: vi.component.value,
               params: vi.params ?? emptyObject,
               open: vi.open,
@@ -444,25 +444,25 @@ export function createAndAppendNodes(
             const vpa = ctx.getFallbackViewportAgent(vp);
             const fallback = vpa !== null
               ? vpa.viewport._getFallback(vi, node, ctx)
-              : ctx.config._getFallback(vi, node, ctx);
-            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx._friendlyPath, vp, name, ctx.component.name));
+              : ctx.routeConfigContext.config._getFallback(vi, node, ctx);
+            if (fallback === null) throw new UnknownRouteError(getMessage(Events.instrNoFallback, name, ctx.routeConfigContext._friendlyPath, vp, name, ctx.routeConfigContext.component.name));
 
             if (typeof fallback === 'string') {
               // fallback: id -> route -> CEDefn (Route configuration)
               // look for a route first
               log.trace(`Fallback is set to '${fallback}'. Looking for a recognized route.`);
-              const rd = (ctx.childRoutes as RouteConfig[]).find(x => x.id === fallback);
+              const rd = (ctx.routeConfigContext.childRoutes as RouteConfig[]).find(x => x.id === fallback);
               if (rd !== void 0) return appendNode(log, node, createFallbackNode(log, rd, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>));
 
               log.trace(`No route configuration for the fallback '${fallback}' is found; trying to recognize the route.`);
-              const rr = ctx.recognize(fallback, true);
+              const rr = ctx.routeConfigContext.recognize(fallback, true);
               if (rr !== null && rr.residue !== fallback) return appendNode(log, node, createConfiguredNode(log, node, vi as ViewportInstruction<ITypedNavigationInstruction_ResolvedComponent>, rr, null));
             }
 
             // fallback is not recognized as a configured route; treat as CE and look for a route configuration.
             log.trace(`The fallback '${fallback}' is not recognized as a route; treating as custom element name.`);
             return onResolve(
-              resolveRouteConfiguration(fallback, false, ctx.config, null, ctx),
+              resolveRouteConfiguration(fallback, false, ctx.routeConfigContext.config, null, ctx.routeConfigContext),
               rc => appendNode(log, node, createFallbackNode(log, rc, node, vi as ViewportInstruction<ITypedNavigationInstruction_string>))
             );
           }
@@ -496,9 +496,9 @@ export function createAndAppendNodes(
     case NavigationInstructionType.CustomElementDefinition: {
       const rc = node.context;
       return onResolve(
-        (resolveCustomElementDefinition(vi.component.value, rc) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
+        (resolveCustomElementDefinition(vi.component.value, rc.routeConfigContext) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
-          const { vi: newVi, query } = rc._generateViewportInstruction({
+          const { vi: newVi, query } = rc.routeConfigContext._generateViewportInstruction({
             component: ced,
             params: vi.params ?? emptyObject,
             open: vi.open,
@@ -537,7 +537,7 @@ function createConfiguredNode(
       const viWithVp = (vi.viewport?.length ?? 0) > 0;
       const vpName: string = (viWithVp ? vi.viewport : $handler.viewport)!;
       return onResolve(
-        (resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
+        (resolveCustomElementDefinition($handler._getComponent(vi, ctx, node, rr.route), ctx.routeConfigContext) as [instruction: ITypedNavigationInstruction_Component, ceDef: CustomElementDefinition | Promise<CustomElementDefinition>])[1],
         ced => {
 
           const vpa = ctx._resolveViewportAgent(new ViewportRequest(
@@ -550,7 +550,7 @@ function createConfiguredNode(
           }
           const router = ctx.container.get(IRouter);
           return onResolve(
-            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.config, ctx, $handler),
+            router.getRouteContext(vpa, ced, null, vpa.hostController.container, ctx.routeConfigContext.config, ctx, $handler),
             childCtx => {
 
               log.trace('createConfiguredNode setting the context node');
@@ -657,8 +657,8 @@ function createConfiguredNode(
 
     const newPath = newSegs.filter(Boolean).join('/');
 
-    const redirRR = ctx.recognize(newPath);
-    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx._friendlyPath, newPath, ctx.component.name));
+    const redirRR = ctx.routeConfigContext.recognize(newPath);
+    if (redirRR === null) throw new UnknownRouteError(getMessage(Events.instrUnknownRedirect, newPath, ctx.routeConfigContext._friendlyPath, newPath, ctx.routeConfigContext.component.name));
 
     return createConfiguredNode(
       log,

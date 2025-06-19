@@ -103,8 +103,6 @@ Aurelia
   .register(DialogConfiguration.customize(
     settings => {
       // customize settings here if needed
-    }, class MyDefaultGlobalDialogSettings {
-      // ...
     }))
   .app(MyApp)
   .start();

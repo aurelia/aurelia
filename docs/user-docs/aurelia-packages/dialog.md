@@ -19,14 +19,15 @@ This article covers the dialog plugin for Aurelia. This plugin is created for sh
 
 ## Installing The Plugin
 
-There are three main interfaces of the Dialog plugin, which includes:
+There are two main interfaces of the dialog plugin, which includes:
 
-* `IDialogService`: an interface used by applications
-* `IDialogDomRenderer`: an interface used for rendering dialog dom (which implements interface `IDialogDom`)
-* `IDialogGlobalOptions`: an interface for specifying default options for all dialog rendering
+* `IDialogService`: an interface mainly used by application components
+* `IDialogGlobalOptions`: an interface for specifying default options for all dialog rendering.
+    This is the interface that is used to configure/retrieve information about default renderer, options, etc...
+    for dialogs.
 
 Aurelia provides some out of the box implementations for the mentioned above interfaces. They are `DialogConfigurationStandard` and `DialogConfigurationClassic`.
-An example usage of the `DialogConfigurationStandard is as follow:
+An example usage of the `DialogConfigurationStandard` is as follow:
 
 ```typescript
 import { DialogConfigurationStandard } from '@aurelia/dialog';
@@ -99,9 +100,12 @@ If it's desirable to change some of the default implementations, we can **instea
 import { DialogConfiguration } from '@aurelia/dialog';
 
 Aurelia
-  .register(DialogConfiguration.customize(settings => {
-    // customize settings here if needed
-  }))
+  .register(DialogConfiguration.customize(
+    settings => {
+      // customize settings here if needed
+    }, class MyDefaultGlobalDialogSettings {
+      // ...
+    }))
   .app(MyApp)
   .start();
 ```
@@ -110,7 +114,7 @@ Aurelia
 
 ### The Dialog Settings
 
-There are two levels where dialog behavior can be configured:
+There are two levels where dialog behaviors can be configured:
 
 * Global level via `IDialogGlobalSettings`
 * Single dialog level via dialog service `.open()` call, or the property `settings` on a dialog controller.
@@ -139,7 +143,7 @@ Normally, the global settings would be changed during the app startup/or before,
         * have starting CSS `z-index` of 5
         *   if not locked, closable by hitting the `ESC` key
 
-            ```typescript
+            ```ts
             Aurelia
               .register(DialogConfigurationClassic.customize((settings) => {
                 settings.options.lock = true;

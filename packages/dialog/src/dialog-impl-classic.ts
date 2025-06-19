@@ -46,11 +46,11 @@ export type DialogRenderOptionsClassic = {
   /**
    * A callback that is invoked when the dialog is shown.
    */
-  show?: (dom: IDialogDom) => void | Promise<void>;
+  show?: (dom: DialogDomClassic) => void | Promise<void>;
   /**
    * A callback that is invoked when the dialog is hidden.
    */
-  hide?: (dom: IDialogDom) => void | Promise<void>;
+  hide?: (dom: DialogDomClassic) => void | Promise<void>;
 };
 
 export type DialogActionKey = 'Escape' | 'Enter';

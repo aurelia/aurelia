@@ -29,11 +29,11 @@ export type DialogRenderOptionsStandard = {
   /**
    * A callback that is invoked when the dialog is shown.
    */
-  show?: (dom: IDialogDom) => void | Promise<void>;
+  show?: (dom: DialogDomStandard) => void | Promise<void>;
   /**
    * A callback that is invoked when the dialog is hidden.
    */
-  hide?: (dom: IDialogDom) => void | Promise<void>;
+  hide?: (dom: DialogDomStandard) => void | Promise<void>;
   /**
    * Specifies the types of user actions that can be used to close the <dialog> element
    * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog#closedby

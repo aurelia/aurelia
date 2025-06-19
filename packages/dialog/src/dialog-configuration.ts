@@ -74,6 +74,9 @@ function testTypes() {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       settings.options.abc = 'xyz';
+
+      settings.options.show = dom => dom.root.showModal();
+      settings.options.hide = dom => dom.root.close();
     }),
     DialogConfigurationClassic.customize((settings) => {
       settings.rejectOnCancel = true;
@@ -81,6 +84,17 @@ function testTypes() {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
       settings.options.modal = 'abc';
+
+      settings.options.show = dom => dom.root.classList.add('show');
+      settings.options.hide = dom => dom.root.classList.remove('show');
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      settings.options.show = dom => dom.root.showModal();
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      settings.options.hide = dom => dom.root.showModal();
     }),
   ];
 }

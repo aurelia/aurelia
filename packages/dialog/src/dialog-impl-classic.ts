@@ -63,7 +63,7 @@ export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRender
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
-  private readonly hostCss = 'margin:auto;';
+  private readonly hostCss = 'position:relative;margin:auto;';
 
   public render(dialogHost: HTMLElement, controller: IDialogController, options?: DialogRenderOptionsClassic): IDialogDom {
     const doc = this.p.document;

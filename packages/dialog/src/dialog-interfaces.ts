@@ -165,6 +165,7 @@ export type IDialogLoadedSettings<TOptions extends object = object, TModel exten
 /**
  * Global configuration for the dialog plugin
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings<any>>('IDialogGlobalSettings');
 export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'rejectOnCancel' | 'renderer'> & {
   options: TOptions;

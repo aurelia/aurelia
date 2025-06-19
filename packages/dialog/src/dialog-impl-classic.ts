@@ -59,7 +59,7 @@ export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
 export class DialogDomRendererClassic implements IDialogDomRenderer<DialogRenderOptionsClassic> {
   private readonly p = resolve(IPlatform);
   /** @internal */
-  private readonly _eventManager = resolve(DialogEventManagerClassic);
+  private readonly _eventManager = resolve(IDialogEventManager);
 
   private readonly overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
   private readonly wrapperCss = `${this.overlayCss} display:flex;`;
@@ -121,7 +121,7 @@ export class DialogDomClassic implements IDialogDom {
   }
 }
 
-const IDialogEventManager = /*@__PURE__*/createInterface<IDialogEventManager>('IDialogEventManager');
+const IDialogEventManager = /*@__PURE__*/createInterface<IDialogEventManager>('IDialogEventManager', x => x.singleton(DialogEventManagerClassic));
 /**
  * An interface for managing the events of dialogs
  */
@@ -137,10 +137,6 @@ export interface IDialogEventManager {
 }
 
 class DialogEventManagerClassic implements IDialogEventManager {
-  // public static register(container: IContainer) {
-  //   singletonRegistration(IDialogEventManager, this).register(container);
-  // }
-
   private readonly ctrls: IDialogController[] = [];
   private readonly w = resolve(IWindow);
 

@@ -20,7 +20,7 @@ export function createDialogConfiguration<T>(settingsProvider: DialogConfigurati
     register: (ctn: IContainer) => ctn.register(
       singletonRegistration(IDialogGlobalSettings, defaults),
       DialogService,
-      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)) as void)
+      AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)))
     ),
     customize(cb: DialogConfigurationProvider<T>) {
       return createDialogConfiguration(cb, defaults);

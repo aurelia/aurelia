@@ -5,6 +5,7 @@
     { "path": "aurelia" },
     { "path": "addons" },
     { "path": "fetch-client" },
+    { "path": "insights" },
     { "path": "kernel" },
     { "path": "metadata" },
     { "path": "platform" },

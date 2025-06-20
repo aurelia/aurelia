@@ -122,6 +122,7 @@ const validToolingPackages =  [
   'parcel-transformer',
   'vite-plugin',
   'webpack-loader',
+  'webpack-plugin',
   'http-server',
   'au',
 ];

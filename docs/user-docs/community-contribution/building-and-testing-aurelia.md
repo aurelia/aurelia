@@ -68,6 +68,6 @@ npm run dev -- --test conventions
 
 2. Fixing a webpack loader bug, sp run all the load tests and rebuild webpack loader code on change
 ```
-npm run dev -- --dev webpack-loader --test loader
+npm run dev -- --dev webpack-plugin --test loader
 ```
 

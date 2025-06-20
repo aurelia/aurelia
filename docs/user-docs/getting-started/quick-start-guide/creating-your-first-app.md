@@ -6,7 +6,7 @@ description: >-
 
 # Creating your first app
 
-There are various ways that you can set up an Aurelia project, including everything from adding a simple script tag to your HTML page to creating a custom [Webpack](https://github.com/aurelia/aurelia/tree/master/packages/webpack-loader) configuration. One of the easiest and most powerful ways to get started is by using [the `makes` tool.](https://github.com/aurelia/new)
+There are various ways that you can set up an Aurelia project, including everything from adding a simple script tag to your HTML page to creating a custom [Webpack](https://github.com/aurelia/aurelia/tree/master/packages-tooling/webpack-plugin) configuration. One of the easiest and most powerful ways to get started is by using [the `makes` tool.](https://github.com/aurelia/new)
 
 Before you run `makes`, you will need a recent version of Node.js installed on your machine. If you do not have Node.js, you can [get it here.](https://nodejs.org/en/) Please ensure that Node.js is up-to-date if you already have it installed.
 

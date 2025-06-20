@@ -1,0 +1,58 @@
+{
+  "name": "@aurelia/webpack-plugin",
+  "version": "2.0.0-beta.24",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
+  "exports": {
+    "types": "./dist/types/index.d.ts",
+    "require": "./dist/cjs/index.cjs",
+    "import": "./dist/esm/index.mjs"
+  },
+  "types": "dist/types/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://aurelia.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aurelia/aurelia.git",
+    "directory": "packages-tooling/webpack-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/aurelia/aurelia/issues"
+  },
+  "keywords": [
+    "aurelia",
+    "webpack-plugin"
+  ],
+  "files": [
+    "dist",
+    "src/**/*.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint --cache --ext .js,.ts src/",
+    "lint:ci": "eslint --ext .js,.ts --quiet --report-unused-disable-directives src/",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "publish:dev": "npm publish --tag dev",
+    "publish:latest": "npm publish --tag latest",
+    "rollup": "rollup -c",
+    "postrollup": "tsc --emitDeclarationOnly",
+    "build:packages-tooling": "npm run rollup"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@aurelia/plugin-conventions": "2.0.0-beta.24"
+  },
+  "devDependencies": {
+    "@types/webpack": "^4.41.40",
+    "typescript": "5.4.2",
+    "webpack-sources": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=20.16.0"
+  }
+}

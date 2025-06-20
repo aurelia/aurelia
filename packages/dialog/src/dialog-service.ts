@@ -1,5 +1,5 @@
-import { isFunction, isPromise, IContainer, Registration, onResolve, onResolveAll, resolve } from '@aurelia/kernel';
-import { AppTask } from '@aurelia/runtime-html';
+import { isFunction, IContainer, Registration, onResolve, onResolveAll, resolve, Constructable } from '@aurelia/kernel';
+import { AppTask, CustomElement } from '@aurelia/runtime-html';
 
 import {
   DialogCloseResult,
@@ -68,9 +68,9 @@ export class DialogService implements IDialogService {
    * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
    * ```
    */
-  public open(settings: IDialogSettings): DialogOpenPromise {
+  public open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise {
     return asDialogOpenPromise(new Promise<DialogOpenResult>(resolve => {
-      const $settings = DialogSettings.from(this._defaultSettings, settings);
+      const $settings = DialogSettings.from<TOptions>(this._defaultSettings, settings);
       const container = $settings.container ?? this._ctn.createChild();
 
       resolve(onResolve(
@@ -121,7 +121,10 @@ export class DialogService implements IDialogService {
         })
       )
       .then(unclosedControllers =>
-        unclosedControllers.filter(unclosed => !!unclosed)
+        // something wrong with TS
+        // it's unable to recognize that the null values are filtered out already
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        unclosedControllers.filter(unclosed => !!unclosed) as IDialogController[]
       );
   }
 
@@ -137,46 +140,40 @@ export class DialogService implements IDialogService {
 interface DialogSettings<T extends object = object> extends IDialogSettings<T> {}
 class DialogSettings<T extends object = object> implements IDialogSettings<T> {
 
-  public static from(...srcs: Partial<IDialogSettings>[]): DialogSettings {
-    return (Object.assign(new DialogSettings(), ...srcs) as DialogSettings)
-      ._validate()
-      ._normalize();
+  public static from<T>(baseSettings: IDialogGlobalSettings<T>, settings: IDialogSettings<T>): DialogSettings {
+    const finalSettings = Object.assign(
+      new DialogSettings(),
+      baseSettings,
+      settings,
+      { options: { ...baseSettings.options ?? {}, ...settings.options ?? {} }
+    });
+
+    if (finalSettings.component == null && finalSettings.template == null) {
+      throw createMappedError(ErrorNames.dialog_settings_invalid);
+    }
+
+    return finalSettings;
   }
 
   public load(): IDialogLoadedSettings | Promise<IDialogLoadedSettings> {
     const loaded = this as IDialogLoadedSettings;
     const cmp = this.component;
     const template = this.template;
-    const maybePromise = onResolveAll(...[
+    const maybePromise = onResolveAll(
       cmp == null
         ? void 0
-        : onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
+        : onResolve(
+            CustomElement.isType(cmp)
+              ? cmp
+              : (cmp as Exclude<typeof cmp, Constructable>)(),
+            // (cmp as Exclude<typeof cmp, Constructable>)(),
+            loadedCmp => { loaded.component = loadedCmp; }
+          ),
       isFunction(template)
         ? onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
         : void 0
-    ]);
-    return isPromise(maybePromise)
-      ? maybePromise.then(() => loaded)
-      : loaded;
-  }
-
-  /** @internal */
-  private _validate(): this {
-    if (this.component == null && this.template == null) {
-      throw createMappedError(ErrorNames.dialog_settings_invalid);
-    }
-    return this;
-  }
-
-  /** @internal */
-  private _normalize(): DialogSettings {
-    if (this.keyboard == null) {
-      this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
-    }
-    if (typeof this.overlayDismiss !== 'boolean') {
-      this.overlayDismiss = !this.lock;
-    }
-    return this;
+    );
+    return onResolve(maybePromise, () => loaded);
   }
 }
 

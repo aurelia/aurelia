@@ -248,6 +248,7 @@ jobs:
             - packages-tooling/ts-jest/node_modules
             - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
+            - packages-tooling/webpack-plugin/node_modules
 
   build_and_cache:
     executor: docker_circleci

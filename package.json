@@ -35,6 +35,7 @@
     "packages-tooling/plugin-conventions",
     "packages-tooling/vite-plugin",
     "packages-tooling/webpack-loader",
+    "packages-tooling/webpack-plugin",
     "packages-tooling/babel-jest",
     "packages-tooling/ts-jest",
     "packages-tooling/parcel-transformer",

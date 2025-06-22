@@ -20,6 +20,7 @@ import { IBinding, fromView, oneTime, toView } from './interfaces-bindings';
 import type { IServiceLocator } from '@aurelia/kernel';
 import type { BindingMode, IBindingController } from './interfaces-bindings';
 import { createMappedError, ErrorNames } from '../errors';
+import { atLayout } from '../utilities';
 import { type IsBindingBehavior, ForOfStatement } from '@aurelia/expression-parser';
 import { activating } from '../templating/controller';
 
@@ -91,10 +92,8 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
   public handleChange(): void {
     if (!this.isBound) return;
 
-    // update synchronously during bind lifecycle, for the developer this means that a property update during `binding` or `bound` will be reflected in `attaching` / `attached`, etc.
-    if (this._controller.state === activating) {
-      this._handleChange();
-    } else {
+    const shouldQueue = this._controller.state !== activating && (this._targetObserver!.type & atLayout) > 0;
+    if (shouldQueue) {
       if (this._isQueued) return;
       this._isQueued = true;
 
@@ -104,6 +103,8 @@ export class PropertyBinding implements IBinding, ISubscriber, ICollectionSubscr
 
         this._handleChange();
       });
+    } else {
+      this._handleChange();
     }
   }
 

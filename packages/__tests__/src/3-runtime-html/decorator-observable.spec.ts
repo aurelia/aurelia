@@ -4,6 +4,13 @@ import { noop, resolve } from '@aurelia/kernel';
 import { ValueConverter, customElement, watch } from '@aurelia/runtime-html';
 
 describe('3-runtime-html/decorator-observable.spec.ts', function () {
+  beforeEach(async function () {
+    assert.strictEqual(await tasksSettled(), false, `queue should be empty prior to each test`);
+  });
+  afterEach(async function () {
+    assert.strictEqual(await tasksSettled(), false, `queue should be empty after each test`);
+  });
+
   const oldValue = 'old';
   const newValue = 'new';
 

@@ -47,7 +47,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         Array.from({ length: 5 }).forEach((_, idx) => {
           source.name = `${idx}`;
-          runTasks();
           assert.strictEqual(target.name, `${idx}`);
         });
       });
@@ -89,36 +88,29 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         Array.from({ length: 5 }).forEach((_, idx) => {
           const $count = handleChangeCallCount;
           source.checked = !source.checked;
-          runTasks();
           assert.strictEqual(target.value, source.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);
           if (source.checked) {
             source.yesMessage = `yes ${idx}`;
-            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.noMessage = `no ${idx}`;
-            runTasks();
             assert.strictEqual(target.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             source.noMessage = 'no';
-            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             source.noMessage = `no ${idx}`;
-            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             source.yesMessage = `yes ${idx}`;
-            runTasks();
             assert.strictEqual(target.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back to normal for next assertion
             source.yesMessage = 'yes';
-            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });
@@ -149,7 +141,6 @@ describe('2-runtime/ast.integration.spec.ts', function () {
 
         Array.from({ length: 5 }).forEach((_, idx) => {
           oc.name = `${idx}`;
-          runTasks();
           assert.strictEqual(source.value, `${idx}`);
         });
       });
@@ -190,36 +181,29 @@ describe('2-runtime/ast.integration.spec.ts', function () {
         Array.from({ length: 5 }).forEach((_, idx) => {
           const $count = handleChangeCallCount;
           oc.checked = !oc.checked;
-          runTasks();
           assert.strictEqual(source.value, oc.checked ? 'yes' : 'no');
           assert.strictEqual(handleChangeCallCount, $count + 1);
           if (oc.checked) {
             oc.yesMessage = `yes ${idx}`;
-            runTasks();
             assert.strictEqual(source.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             oc.noMessage = `no ${idx}`;
-            runTasks();
             assert.strictEqual(source.value, `yes ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             oc.noMessage = 'no';
-            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           } else {
             oc.noMessage = `no ${idx}`;
-            runTasks();
             assert.strictEqual(source.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // assert the binding has dropped the old observers of the inactive branch in conditional
             oc.yesMessage = `no ${idx}`;
-            runTasks();
             assert.strictEqual(source.value, `no ${idx}`);
             assert.strictEqual(handleChangeCallCount, $count + 2);
             // revert it back for next assertion
             oc.yesMessage = 'yes';
-            runTasks();
             assert.strictEqual(handleChangeCallCount, $count + 2);
           }
         });

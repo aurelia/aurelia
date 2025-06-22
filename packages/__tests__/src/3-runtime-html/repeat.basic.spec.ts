@@ -1,4 +1,3 @@
-import { runTasks } from '@aurelia/runtime';
 import { createFixture } from "@aurelia/testing";
 
 describe("3-runtime-html/repeat.basic.spec.ts", function () {
@@ -9,7 +8,6 @@ describe("3-runtime-html/repeat.basic.spec.ts", function () {
     );
     assertText('10');
     items.sort();
-    runTasks();
     assertText('01');
   });
 
@@ -20,7 +18,6 @@ describe("3-runtime-html/repeat.basic.spec.ts", function () {
     );
     assertText('01');
     items.sort();
-    runTasks();
     assertText('01');
   });
 
@@ -31,7 +28,6 @@ describe("3-runtime-html/repeat.basic.spec.ts", function () {
     );
     assertText('021');
     items.sort();
-    runTasks();
     assertText('012');
   });
 });

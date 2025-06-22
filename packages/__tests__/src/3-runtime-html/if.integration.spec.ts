@@ -37,11 +37,9 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(callCount, 1);
 
       component.condition = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       assert.strictEqual(callCount, 2);
 
@@ -69,11 +67,9 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         assert.strictEqual(callCount, 1);
 
         component.condition = false;
-        await tasksSettled();
         assert.visibleTextEqual(appHost, '');
 
         component.condition = true;
-        await tasksSettled();
         assert.visibleTextEqual(appHost, 'hello');
         assert.strictEqual(callCount, 2);
 
@@ -101,17 +97,14 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
       assert.strictEqual(callCount, 1);
 
       component.condition = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'world');
       assert.strictEqual(callCount, 2);
 
       component.condition = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       assert.strictEqual(callCount, 3);
 
       component.condition = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'world');
       assert.strictEqual(callCount, 4);
 
@@ -140,21 +133,17 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 2);
 
       component.condition = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 
@@ -183,21 +172,17 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
 
       // change to false
       component.condition2 = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello');
       // then true again
       component.condition2 = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       // wouldn't create another view
       assert.strictEqual(callCount, 3);
 
       component.condition = false;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, '');
 
       component.condition = true;
-      await tasksSettled();
       assert.visibleTextEqual(appHost, 'hello span');
       assert.strictEqual(callCount, 4);
 

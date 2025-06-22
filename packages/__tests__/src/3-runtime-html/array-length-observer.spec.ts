@@ -66,15 +66,12 @@ describe('3-runtime-html/array-length-observer.spec.ts', function () {
     assertText('123');
 
     type('input', '2');
-    runTasks();
     assertText('12');
 
     type('input', '3');
-    runTasks();
     assertText('12');
 
     type('input', '1');
-    runTasks();
     assertText('1');
   });
 });

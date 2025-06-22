@@ -1,5 +1,5 @@
 import { CollectionSizeObserver } from './collection-length-observer';
-import { atObserver, createIndexMap, hasChanges } from './interfaces';
+import { atObserver, createIndexMap } from './interfaces';
 import { subscriberCollection } from './subscriber-collection';
 import { rtDefineHiddenProp } from './utilities';
 
@@ -9,7 +9,7 @@ import type {
   ICollectionObserver,
   ICollectionSubscriberCollection,
 } from './interfaces';
-import { queueTask } from './queue';
+import { addCollectionBatch, batching } from './subscriber-batch';
 
 export interface MapObserver extends ICollectionObserver<'map'>, ICollectionSubscriberCollection { }
 
@@ -133,9 +133,6 @@ export const getMapObserver = /*@__PURE__*/ (() => {
     public type: AccessorType = atObserver;
     private lenObs?: CollectionSizeObserver;
 
-    /** @internal */
-    private _isQueued = false;
-
     public constructor(map: Map<unknown, unknown>) {
       this.collection = map;
       this.indexMap = createIndexMap(map.size);
@@ -143,22 +140,20 @@ export const getMapObserver = /*@__PURE__*/ (() => {
     }
 
     public notify(): void {
-      if (this._isQueued) return;
-      this._isQueued = true;
+      const subs = this.subs;
+      subs.notifyDirty();
 
-      queueTask(() => {
-        this._isQueued = false;
-        const indexMap = this.indexMap;
-        if (!hasChanges(indexMap)) return;
+      const indexMap = this.indexMap;
+      if (batching) {
+        addCollectionBatch(subs, this.collection, indexMap);
+        return;
+      }
 
-        const map = this.collection;
-        const size = map.size;
-        const subs = this.subs;
-        subs.notifyDirty();
+      const map = this.collection;
+      const size = map.size;
 
-        this.indexMap = createIndexMap(size);
-        subs.notifyCollection(map, indexMap);
-      });
+      this.indexMap = createIndexMap(size);
+      subs.notifyCollection(map, indexMap);
     }
 
     public getLengthObserver(): CollectionSizeObserver {

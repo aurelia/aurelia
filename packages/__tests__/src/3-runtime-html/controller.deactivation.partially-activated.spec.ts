@@ -218,7 +218,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
     protected $unbinding(_vm: IRouteViewModel, _initiator: IHydratedController, _parent: IHydratedController): void | Promise<void> {/* noop */ }
   }
 
-  for (const hook of ['binding', 'bound', 'attaching', 'attached'] as unknown as ['binding', 'bound', 'attaching', 'attached']) {
+  for (const hook of ['binding', 'bound', 'attaching', 'attached'] as const) {
     describe(`activation aborted by error from ${hook}`, function () {
       it(`Aurelia instance can be deactivated  - root`, async function () {
         class Root extends TestVM {
@@ -409,7 +409,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -421,7 +420,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await tasksSettled();
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -651,7 +649,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -664,7 +661,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await tasksSettled();
         assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -807,7 +803,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -922,7 +917,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         }
 
         assert.strictEqual(error, null, 'stop');
-
         mgr.assertLog([
           'stop.c-2.detaching.enter',
           'stop.c-2.detaching.leave',
@@ -1128,7 +1122,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -1324,6 +1317,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'stop.Local.c-2.detaching.leave',
           'stop.c-2.detaching.enter',
           'stop.c-2.detaching.leave',
+
           'stop.Global.else.detaching.enter',
           'stop.Global.else.detaching.leave',
           'stop.Global.app.detaching.enter',
@@ -1347,6 +1341,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
           'stop.Global.app.unbinding.leave',
           'stop.app.unbinding.enter',
           'stop.app.unbinding.leave',
+
           'stop.app.dispose.enter',
           'stop.app.dispose.leave',
           'stop.c-1.dispose.enter',
@@ -1458,7 +1453,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-reject');
@@ -1546,12 +1540,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
+        // Wait for the promises in the lifecycle hooks
+        await Promise.resolve();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');
@@ -1776,7 +1771,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -1891,12 +1885,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
+        // Wait for the promises in the lifecycle hooks
+        await Promise.resolve();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');
@@ -2095,7 +2090,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#1');
         try {
           rootVm.showC1 = false;
-          await tasksSettled();
           assert.fail('expected error');
         } catch (e) {
           assert.instanceOf(e, Error, 'swap');
@@ -2107,7 +2101,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
 
         mgr.setPrefix('phase#2');
         rootVm.showC1 = true;
-        await tasksSettled();
         assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
 
         mgr.assertLog(getErredDeactivationLog(), 'phase#2');
@@ -2259,7 +2252,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog(false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -2571,7 +2563,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         // phase#1: try to activate c-2 with long-running promise
         mgr.setPrefix('phase#1');
         rootVm.showC1 = false;
-        await tasksSettled();
 
         const expectedLog = getPendingActivationLog('phase#1', false);
         mgr.assertLog(expectedLog, 'phase#1 - pre-resolve');
@@ -2681,12 +2672,13 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
         mgr.setPrefix('phase#5');
         rootVm.showC1 = false;
         await tasksSettled();
+        // Wait for the promises in the lifecycle hooks
+        await Promise.resolve();
 
         assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#5.textContent');
         mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
         /** clear pending promise from if as it cannot handle a activation rejection by itself */
         ifVm['pending'] = void 0;
-        await tasksSettled();
 
         // stop
         mgr.setPrefix('stop');

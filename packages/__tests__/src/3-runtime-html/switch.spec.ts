@@ -797,9 +797,9 @@ describe('3-runtime-html/switch.spec.ts', function () {
             $switch,
             () => { ctx.app.statuses.push(ctx.app.status = Status.delivered); },
             wrap('Processing.'),
-            [1, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-1'), 1]
+            [1, 2, 3, ...getDeactivationSequenceFor('default-case-host-1'), ...getActivationSequenceFor('case-host-3'), 1, ...getDeactivationSequenceFor('case-host-3'), ...getActivationSequenceFor('case-host-1')]
           );
-        },
+        }
       );
 
       const fallThroughTemplate = `
@@ -1991,34 +1991,23 @@ describe('3-runtime-html/switch.spec.ts', function () {
       await wait($switch);
       await new Promise(resolve => setTimeout(resolve, 100));
       assert.html.innerEqual(host, `<case-host>Processing.</case-host>`, `change3 innerHTML`);
-      // WAS:
-      // const expectedLog3 = [
-      //   `Case-#${cases[0]['id']}.isMatch()`,
-      //   `Case-#${cases[1]['id']}.isMatch()`,
-      //   `Case-#${cases[2]['id']}.isMatch()`,
-      //   'default-case-host-1.detaching',
-      //   'default-case-host-1.unbinding',
-      //   'case-host-3.binding',
-      //   'case-host-3.bound',
-      //   'case-host-3.attaching',
-      //   'case-host-3.attached',
-      //   `Case-#${cases[0]['id']}.isMatch()`,
-      //   'case-host-3.detaching',
-      //   'case-host-3.unbinding',
-      //   'case-host-1.binding',
-      //   'case-host-1.bound',
-      //   'case-host-1.attaching',
-      //   'case-host-1.attached',
-      // ];
       const expectedLog3 = [
         `Case-#${cases[0]['id']}.isMatch()`,
+        `Case-#${cases[1]['id']}.isMatch()`,
+        `Case-#${cases[2]['id']}.isMatch()`,
         'default-case-host-1.detaching',
         'default-case-host-1.unbinding',
+        'case-host-3.binding',
+        'case-host-3.bound',
+        'case-host-3.attaching',
+        'case-host-3.attached',
+        `Case-#${cases[0]['id']}.isMatch()`,
+        'case-host-3.detaching',
+        'case-host-3.unbinding',
         'case-host-1.binding',
         'case-host-1.bound',
         'case-host-1.attaching',
         'case-host-1.attached',
-        `Case-#${cases[0]['id']}.isMatch()`,
       ];
       assert.deepStrictEqual(log.log, expectedLog3, 'change3');
 

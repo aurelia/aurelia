@@ -5,7 +5,7 @@ import { IContainer } from '@aurelia/kernel';
 
 describe('3-runtime-html/children-observer.spec.ts', function () {
 
-  it('throws on invalid query', async function () {
+  it('throws on invalid query', function () {
     @customElement({
       name: 'el',
       template: '<au-slot>'

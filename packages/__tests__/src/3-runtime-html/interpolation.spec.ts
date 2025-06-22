@@ -617,7 +617,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     component.items = Array.from({ length: 10 }, (_, idx) => {
       return { value: idx + 11 };
     });
-    await tasksSettled();
 
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 10);
@@ -626,7 +625,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       const b = div.querySelector('b');
       assert.strictEqual(b.textContent, String(idx + 11));
     });
-    await tasksSettled();
 
     divs.forEach((div, idx) => {
       assert.strictEqual(div.textContent, `$${idx + 11}`);
@@ -636,7 +634,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.strictEqual(appHost.textContent, component.items.map(item => `$${item.value}`).join(''));
 
     component.items = [];
-    await tasksSettled();
     divs = Array.from(appHost.querySelectorAll('div'));
     assert.strictEqual(divs.length, 0);
     assert.strictEqual(appHost.textContent, '');
@@ -672,7 +669,6 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
     assert.html.innerEqual(appHost, '<if>if foo</if>');
 
     component.show = false;
-    await tasksSettled();
 
     assert.strictEqual(appHost.textContent, 'else foo');
     assert.html.innerEqual(appHost, '<else>else foo</else>');

@@ -1,9 +1,9 @@
 import { IIndexable } from '@aurelia/kernel';
 import { CollectionSizeObserver } from './collection-length-observer';
-import { atObserver, createIndexMap, hasChanges, type AccessorType, type ICollectionObserver, type ICollectionSubscriberCollection } from './interfaces';
+import { atObserver, createIndexMap, type AccessorType, type ICollectionObserver, type ICollectionSubscriberCollection } from './interfaces';
+import { addCollectionBatch, batching } from './subscriber-batch';
 import { subscriberCollection } from './subscriber-collection';
 import { rtDefineHiddenProp } from './utilities';
-import { queueTask } from './queue';
 
 export interface SetObserver extends ICollectionObserver<'set'>, ICollectionSubscriberCollection { }
 
@@ -106,9 +106,6 @@ export const getSetObserver = /*@__PURE__*/ (() => {
     public type: AccessorType = atObserver;
     private lenObs?: CollectionSizeObserver;
 
-    /** @internal */
-    private _isQueued = false;
-
     public constructor(observedSet: Set<unknown>) {
       this.collection = observedSet;
       this.indexMap = createIndexMap(observedSet.size);
@@ -116,23 +113,20 @@ export const getSetObserver = /*@__PURE__*/ (() => {
     }
 
     public notify(): void {
-      if (this._isQueued) return;
-      this._isQueued = true;
+      const subs = this.subs;
+      subs.notifyDirty();
 
-      queueTask(() => {
-        this._isQueued = false;
-        const indexMap = this.indexMap;
-        if (!hasChanges(indexMap)) return;
+      const indexMap = this.indexMap;
+      if (batching) {
+        addCollectionBatch(subs, this.collection, indexMap);
+        return;
+      }
 
-        const set = this.collection;
-        const size = set.size;
+      const set = this.collection;
+      const size = set.size;
 
-        const subs = this.subs;
-        subs.notifyDirty();
-
-        this.indexMap = createIndexMap(size);
-        subs.notifyCollection(set, indexMap);
-      });
+      this.indexMap = createIndexMap(size);
+      subs.notifyCollection(set, indexMap);
     }
 
     public getLengthObserver(): CollectionSizeObserver {

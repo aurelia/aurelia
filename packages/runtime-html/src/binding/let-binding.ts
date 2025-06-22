@@ -10,7 +10,6 @@ import {
   astEvaluate,
   astUnbind,
   type IAstEvaluator,
-  queueTask,
 } from '@aurelia/runtime';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 
@@ -36,9 +35,6 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   /** @internal */
   public _scope?: Scope = void 0;
-
-  /** @internal */
-  private _isQueued: boolean = false;
 
   public target: (IObservable & IIndexable) | null = null;
   /** @internal */
@@ -83,33 +79,25 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public handleChange(): void {
     if (!this.isBound) return;
-    if (this._isQueued) return;
-    this._isQueued = true;
-
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
-
-      this.obs.version++;
-      this._value = astEvaluate(this.ast, this._scope!, this, this);
-      this.obs.clear();
-      this.updateTarget();
-    });
+    this.obs.version++;
+    this._value = astEvaluate(this.ast, this._scope!, this, this);
+    this.obs.clear();
+    this.updateTarget();
   }
 
   public handleCollectionChange(): void {
     this.handleChange();
   }
 
-  public bind(scope: Scope): void {
+  public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === scope) return;
+      if (this._scope === _scope) return;
       this.unbind();
     }
-    this._scope = scope;
-    this.target = (this._toBindingContext ? scope.bindingContext : scope.overrideContext) as IIndexable;
+    this._scope = _scope;
+    this.target = (this._toBindingContext ? _scope.bindingContext : _scope.overrideContext) as IIndexable;
 
-    astBind(this.ast, scope, this);
+    astBind(this.ast, _scope, this);
 
     this._value = astEvaluate(this.ast, this._scope, this, this);
     this.updateTarget();
@@ -118,10 +106,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);

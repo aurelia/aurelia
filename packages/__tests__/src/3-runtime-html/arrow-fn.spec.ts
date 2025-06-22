@@ -5,7 +5,7 @@ import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/arrow-fn.spec.ts', function () {
 
   // leave this test at the top - if any tests below this one fail for unknown reasons, then corrupted parser state may not be properly recovered
-  it('corrupt the parser state to ensure its correctly reset afterwards', async function () {
+  it('corrupt the parser state to ensure its correctly reset afterwards', function () {
     let err: Error;
     try {
       createFixture
@@ -17,21 +17,21 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assert.match(err.message, /AUR0167/);
   });
 
-  it('works with IIFE', async function () {
+  it('works with IIFE', function () {
     const { assertText } = createFixture
       .html`\${(a => a)(1)}`
       .build();
     assertText('1');
   });
 
-  it('works with paren wrapping {}', async function () {
+  it('works with paren wrapping {}', function () {
     const { assertText } = createFixture
       .html`\${(((e) => ({ a: e.v }))({ v: 1 })).a}`
       .build();
     assertText('1');
   });
 
-  it('can sort number array', async function () {
+  it('can sort number array', function () {
     const { assertText } = createFixture
       .html`<div repeat.for='i of items.sort((a, b) => a - b)'>\${i}</div>`
       .component({ items: [5, 7, 6] })
@@ -39,7 +39,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('567');
   });
 
-  it('can observe property accessed in each parameter', async function () {
+  it('can observe property accessed in each parameter', function () {
     const { component, assertText } = createFixture
       .component({ items: [{ v: 0 }, { v: 1 }] })
       .html`<div repeat.for='i of items.filter(i => i.v > 0)'>\${i.v}</div>`
@@ -47,11 +47,10 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('1');
 
     component.items[0].v = 1;
-    await tasksSettled();
     assertText('11');
   });
 
-  it('can reduce number array', async function () {
+  it('can reduce number array', function () {
     const { assertText } = createFixture
       .html`\${items.reduce((sum, x) => sum + x, 0)}`
       .component({ items: [3, 4] })
@@ -59,21 +58,21 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('7');
   });
 
-  it('can call nested arrow inline', async function () {
+  it('can call nested arrow inline', function () {
     const { assertText } = createFixture
       .html`\${(a => b => a + b)(1)(2)}`
       .build();
     assertText('3');
   });
 
-  it('can call arrow inline with rest', async function () {
+  it('can call arrow inline with rest', function () {
     const { assertText } = createFixture
       .html`\${((...args) => args[0] + args[1] + args[2])(1, 2, 3)}`
       .build();
     assertText('6');
   });
 
-  it('can flatMap nested fn', async function () {
+  it('can flatMap nested fn', function () {
     const { assertText } = createFixture
         .component({
           items: [
@@ -86,7 +85,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it('can flatMap nested fn and access parent scope', async function () {
+  it('can flatMap nested fn and access parent scope', function () {
     const { assertText } = createFixture
         .component({
           items: [
@@ -99,7 +98,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('a1-b1-c1-a2-b2-c2-');
   });
 
-  it('can access the correct scope via $this', async function () {
+  it('can access the correct scope via $this', function () {
     const { assertText } = createFixture
       .html`\${(a => $this.a)('2')}`
       .component({ a: '1' })
@@ -107,7 +106,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('1');
   });
 
-  it('can access the correct scope via $this in nested arrow', async function () {
+  it('can access the correct scope via $this in nested arrow', function () {
     const { assertText } = createFixture
       .html`\${(a => a => $this.a)('3')('2')}`
       .component({ a: '1' })
@@ -115,7 +114,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('1');
   });
 
-  it('can access the correct scope via $parent', async function () {
+  it('can access the correct scope via $parent', function () {
     const { assertText } = createFixture
       .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => $parent.a)('5')}</div></div></div>`
       .component({ a: '1' })
@@ -123,7 +122,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('3');
   });
 
-  it('can access the correct scope via $parent in nested arrow', async function () {
+  it('can access the correct scope via $parent in nested arrow', function () {
     const { assertText } = createFixture
       .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => a => $parent.a)('6')('5')}</div></div></div>`
       .component({ a: '1' })
@@ -131,7 +130,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('3');
   });
 
-  it('can access the correct scope via $parent.$parent in nested arrow', async function () {
+  it('can access the correct scope via $parent.$parent in nested arrow', function () {
     const { assertText } = createFixture
       .html`<div with.bind='{a:2}'><div with.bind='{a:3}'><div with.bind='{a:4}'>\${(a => a => $parent.$parent.a)('6')('5')}</div></div></div>`
       .component({ a: '1' })
@@ -139,7 +138,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('2');
   });
 
-  it('works with attribute binding + binding command', async function () {
+  it('works with attribute binding + binding command', function () {
     const { getBy } = createFixture
       .component({ getValue: v => `light${v}` })
       .html`<div square.bind='v => getValue(v)'>`
@@ -158,7 +157,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assert.strictEqual(getBy('div').getAttribute('data-color'), 'lightred');
   });
 
-  it('works with attribute multi binding syntax', async function () {
+  it('works with attribute multi binding syntax', function () {
     const { getBy } = createFixture
       .component({
         getValue: v => `light${v}`,
@@ -184,7 +183,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assert.strictEqual(getBy('div').getAttribute('data-color-dark'), 'darkgreen');
   });
 
-  it('works with event', async function () {
+  it('works with event', function () {
     let i = 0;
     const { getBy } = createFixture
       .html`<button click.trigger='() => clicked()'>`
@@ -195,7 +194,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assert.strictEqual(i, 1);
   });
 
-  it('works with binding behavior', async function () {
+  it('works with binding behavior', function () {
     const { assertText } = createFixture
       .html`<div repeat.for='i of items.sort((a, b) => a - b) & log'>\${i}</div>`
       .component({ items: [5, 7, 6] })
@@ -204,7 +203,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
     assertText('567');
   });
 
-  it('works with value converter', async function () {
+  it('works with value converter', function () {
     const { assertText } = createFixture
       .html`<div repeat.for='i of items.sort((a, b) => a - b) | identity'>\${i}</div>`
       .component({ items: [5, 7, 6] })
@@ -534,7 +533,7 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1');
     });
 
-    it('observes on repeat + .slice().sort', async function () {
+    it('observes on repeat + .slice().sort', function () {
       const { component, assertText } = createFixture
         .component({ items: [{ id: 4, }, { id: 5, }, { id: 3, }, { id: 1 }] })
         .html`<div repeat.for='i of items.slice(0).sort((a, b) => a.id - b.id)'>\${i.id},`
@@ -542,11 +541,9 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1,3,4,5,');
 
       component.items.push({ id: 2 });
-      await tasksSettled();
       assertText('1,2,3,4,5,');
 
       component.items.splice(2);
-      await tasksSettled();
       assertText('4,5,');
     });
 

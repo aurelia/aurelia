@@ -8,7 +8,6 @@ import type {
   ISubscriber,
   ISubscriberCollection,
 } from './interfaces';
-import { queueTask } from './queue';
 
 export interface SetterObserver extends ISubscriberCollection {}
 
@@ -28,8 +27,6 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
   private _value: unknown = void 0;
   /** @internal */
   private _observing: boolean = false;
-  /** @internal */
-  private _isQueued: boolean = false;
 
   /** @internal */
   private _callback?: (newValue: unknown, oldValue: unknown) => void = void 0;
@@ -66,14 +63,11 @@ export class SetterObserver implements IObserver, ISubscriberCollection {
       this.subs.notifyDirty();
       this.subs.notify(newValue, oldValue);
 
-      if (!this._isQueued && this._callback) {
-        this._isQueued = true;
-        queueTask(() => {
-        this._isQueued = false;
-          if (!areEqual(this._value, oldValue)) {
-            this._callback?.(this._value, oldValue);
-          }
-        });
+      // only call the callback if _value is the same with newValue
+      // which means if during subs.notify() the value of this observer is changed
+      // then it's the job of that setValue() to call the callback
+      if (areEqual(newValue, this._value)) {
+        this._callback?.(newValue, oldValue);
       }
     } else {
       // If subscribe() has been called, the target property descriptor is replaced by these getter/setter methods,

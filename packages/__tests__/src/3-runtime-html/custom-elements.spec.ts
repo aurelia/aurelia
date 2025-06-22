@@ -287,7 +287,6 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
-    await tasksSettled();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -335,7 +334,6 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       [OuterComponent, InnerComponent]
     );
 
-    await tasksSettled();
     assert.deepStrictEqual(logs, ['prop1: 2']);
   });
 
@@ -728,7 +726,6 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual((component.el as HTMLElement)?.tagName, 'DIV');
       component.show = false;
-      await tasksSettled();
       assert.strictEqual(component.el, null);
     });
 
@@ -887,7 +884,6 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
-      await tasksSettled();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
@@ -945,6 +941,7 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
 
       assert.strictEqual(count, 0);
       component.value = 'helo';
+      assert.strictEqual(count, 0);
       await tasksSettled();
       assert.strictEqual(count, 1);
     });
@@ -984,26 +981,15 @@ describe('3-runtime-html/custom-elements.spec.ts', function () {
       component.value = 'helo';
       await tasksSettled();
       assert.deepStrictEqual(calls, [
-        ['message', 'hey', undefined],
-        ['m', 'hey', undefined],
-        ['message', 'helo', 'hey']
+        ['message', 'helo', undefined],
+        ['m', 'helo', undefined]
       ]);
-
-      // TODO: verify this
-      // assert.deepStrictEqual(calls, [
-      //   ['message', 'helo', 'hey'],
-      //   // this last argument is wrong, it should be hello
-      //   // but because it doesn't eagerly observe the getter
-      //   // so the computed observer of `m` still has the original value assigned during binding phase
-      //   // leaving this like this for now, since it doesnt need to commit to observation early, also for the old value
-      //   ['m', 'hi', 'hey']
-      // ]);
 
       calls.length = 0;
       component.v = 'hi';
       await tasksSettled();
       assert.deepStrictEqual(calls, [
-        ['m', 'hi', 'hey']
+        ['m', 'hi', 'helo']
       ]);
     });
   });

@@ -1,7 +1,6 @@
 import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
 import {
   observable,
-  runTasks,
   tasksSettled,
 } from '@aurelia/runtime';
 import {
@@ -260,7 +259,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo="prop"></div>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
-      await tasksSettled();
       assert.strictEqual(fooVm.propChangedCallCount, 1);
       await tearDown();
     });
@@ -269,7 +267,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest('<div foo.bind="prop"></foo>');
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
-      await tasksSettled();
       assert.strictEqual(fooVm.propChangedCallCount, 1);
       await tearDown();
     });
@@ -278,7 +275,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo="\${prop}"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0);
       fooVm.prop = '5';
-      await tasksSettled();
       assert.strictEqual(fooVm.propChangedCallCount, 1);
       await tearDown();
     });
@@ -287,7 +283,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       const { fooVm, tearDown } = setupChangeHandlerTest(`<div foo.two-way="prop"></foo>`);
       assert.strictEqual(fooVm.propChangedCallCount, 0, '#1 should have had 0 calls at start');
       fooVm.prop = '5';
-      await tasksSettled();
       assert.strictEqual(fooVm.propChangedCallCount, 1, '#2 shoulda had 1 call after mutation');
       await tearDown();
     });
@@ -412,7 +407,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
           });
 
           foos.forEach((fooVm, idx) => {
-            runTasks();
             assert.strictEqual(fooVm.propChangedCallCount, callCounts[idx][0], `#3 callCounts[${idx}][0]`);
             assert.strictEqual(fooVm.propertyChangedCallCount, callCounts[idx][1], `#4 callCounts[${idx}][1]`);
 
@@ -449,14 +443,12 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         const rootVm = options.au.root.controller.viewModel;
         // changing source value should trigger the change handler
         rootVm['prop'] = 5;
-        await tasksSettled();
         assert.strictEqual(foo1Vm.propChangedCallCount, 1, '#3 Foo1 propChanged()');
         assert.strictEqual(foo1Vm.propertyChangedCallCount, 1, '#3 Foo1 propChanged()');
         assert.strictEqual(foo1Vm.prop, 5);
 
         // manually setting the value in the view model should also trigger the change handler
         foo1Vm.prop = 6;
-        await tasksSettled();
         assert.strictEqual(foo1Vm.propChangedCallCount, 2, '#4 Foo1 propChanged()');
         assert.strictEqual(foo1Vm.propertyChangedCallCount, 2, '#4 Foo1 propChanged()');
         assert.strictEqual(foo1Vm.prop, 6);
@@ -692,22 +684,21 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         const rootVm = options.au.root.controller.viewModel as any;
         const foo1Vm = CustomAttribute.for(fooEl, 'foo1').viewModel as Foo1;
 
-        await tasksSettled();
         assert.strictEqual(foo1Vm.prop, 'prop', '#1 <-> Foo1 initial');
         assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
         assert.strictEqual(options.appHost.textContent, 'prop');
 
         rootVm.prop = 5;
-        await tasksSettled();
         assert.strictEqual(foo1Vm.prop, '5', '#2 <-> RootVm.prop << 5');
         assert.strictEqual(rootVm.prop, '5', '#2 <-> RootVm.prop << 5');
+        await tasksSettled();
         assert.strictEqual(options.appHost.textContent, '5');
 
         const date = new Date();
         foo1Vm.prop = date;
-        await tasksSettled();
         assert.strictEqual(foo1Vm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
         assert.strictEqual(rootVm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
+        await tasksSettled();
         assert.strictEqual(options.appHost.textContent, date.toString());
 
         await options.tearDown();
@@ -738,29 +729,28 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         const rootVm = options.au.root.controller.viewModel as any;
         const foo5Vm = CustomAttribute.for(fooEl, 'foo5').viewModel as Foo5;
 
-        await tasksSettled();
         assert.strictEqual(foo5Vm.prop, NaN, '#1 <-> Foo1 initial');
         assert.strictEqual(rootVm.prop, 'prop', '#1 <-> RootVm initial');
         assert.strictEqual(options.appHost.textContent, 'prop');
 
         rootVm.prop = 5;
-        await tasksSettled();
         assert.strictEqual(foo5Vm.prop, 5, '#2 <-> RootVm.prop << 5 -> foo5Vm');
         assert.strictEqual((foo5Vm as any).$observers.prop.getValue(), 5, '#2 Foo5.$observer.prop.getValue()');
         assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
+        await tasksSettled();
         assert.strictEqual(options.appHost.textContent, '5');
 
         const date = new Date();
         foo5Vm.prop = date;
-        await tasksSettled();
         assert.strictEqual(foo5Vm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
         assert.strictEqual(rootVm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
+        await tasksSettled();
         assert.strictEqual(options.appHost.textContent, date.getTime().toString());
 
         rootVm.prop = NaN;
-        await tasksSettled();
         assert.strictEqual(Object.is(foo5Vm.prop, NaN), true, '#1 <-> Foo1 initial');
         assert.strictEqual(Object.is(rootVm.prop, NaN), true, '#1 <-> RootVm initial');
+        await tasksSettled();
         assert.strictEqual(options.appHost.textContent, 'NaN');
 
         await options.tearDown();
@@ -861,7 +851,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(setCount, 1);
       assert.deepStrictEqual(values, [1]);
       component.value = '2';
-      await tasksSettled();
       assert.strictEqual(setCount, 2);
       assert.deepStrictEqual(values, [1, 2]);
     });
@@ -1289,7 +1278,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       component.prop = 3;
       assert.strictEqual(changes, void 0);
       await Promise.resolve();
-      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 1 } });
+      assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
     });
 
     it('does not call aggregated callback again after first call if there is no new changes', async function () {
@@ -1309,7 +1298,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      await Promise.resolve();
       assert.strictEqual(changes, void 0);
       component.prop = 2;
       assert.strictEqual(changes, void 0);
@@ -1395,9 +1383,8 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         }]
       );
 
-      component.show = false;
-      await Promise.resolve();
       component.prop = 2;
+      component.show = false;
       await Promise.resolve();
       assert.deepStrictEqual(changes, void 0);
     });
@@ -1452,9 +1439,8 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(propChangedCallCount, 0);
       component.prop = 2;
       assert.strictEqual(changes, void 0);
-      assert.strictEqual(propChangedCallCount, 0);
-      await Promise.resolve();
       assert.strictEqual(propChangedCallCount, 1);
+      await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
     });
 
@@ -1490,8 +1476,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
       assert.strictEqual(propertyChangedCallCount, 0);
       component.prop = 2;
       assert.strictEqual(changes, void 0);
-      assert.strictEqual(propChangedCallCount, 0);
-      assert.strictEqual(propertyChangedCallCount, 0);
       await Promise.resolve();
       assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
       assert.strictEqual(propChangedCallCount, 1);

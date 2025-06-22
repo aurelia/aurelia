@@ -1,7 +1,7 @@
 import { Constructable, EventAggregator, IContainer, ILogger } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 import { IObserverLocator } from '@aurelia/runtime';
-import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig, PartialCustomElementDefinition } from '@aurelia/runtime-html';
+import { CustomElement, Aurelia, IPlatform, type ICustomElementViewModel, CustomElementDefinition, IAppRootConfig, PartialCustomElementDefinition, registerHostNode } from '@aurelia/runtime-html';
 import { assert } from './assert';
 import { hJsx } from './h';
 import { TestContext } from './test-context';
@@ -73,6 +73,8 @@ export function createFixture<T extends object>(
       'Consider using a different class, or context as it will likely cause surprises in tests.'
     );
   }
+
+  registerHostNode(container, host);
   const component = container.get(App);
 
   let startPromise: Promise<void> | void = void 0;

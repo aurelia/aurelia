@@ -295,7 +295,7 @@ jobs:
             - packages/platform/dist
             - packages/platform-browser/dist
             - packages/route-recognizer/dist
-            - packages/router/dist
+            - packages/router-direct/dist
             - packages/router-lite/dist
             - packages/expression-parser/dist
             - packages/runtime/dist

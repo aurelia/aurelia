@@ -63,7 +63,7 @@ jobs:
             packages/platform/dist
             packages/platform-browser/dist
             packages/route-recognizer/dist
-            packages/router/dist
+            packages/router-direct/dist
             packages/router-lite/dist
             packages/runtime/dist
             packages/runtime-html/dist
@@ -104,7 +104,7 @@ jobs:
       #     key: ${{ runner.os }}-build-deps-${{ hashFiles('**/package-lock.json') }}
       #     restore-keys: |
       #       ${{ runner.os }}-build-deps-
-      
+
       # - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
       #   name: Missing deps, reinstalling the state of node modules
       #   run: npm install

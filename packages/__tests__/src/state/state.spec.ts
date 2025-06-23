@@ -411,7 +411,7 @@ describe('state/state.spec.ts', function () {
       let started = 0;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue, platform } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
         `
@@ -447,11 +447,12 @@ describe('state/state.spec.ts', function () {
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
       ]);
-
+      
       await resolveAfter(1);
       assertValue('input', '11');
       await resolveAfter(1);
       flush();
+      
       assertValue('input', '11');
     });
 

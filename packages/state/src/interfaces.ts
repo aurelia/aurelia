@@ -8,10 +8,7 @@ export type IActionHandler<T = any> = (state: T, action: unknown) => T | Promise
 export const IStateMiddleware = /*@__PURE__*/createInterface<IStateMiddleware>('IStateMiddleware');
 export type IStateMiddleware<T = any, S = any> = (state: T, action: unknown, settings: S) => T | undefined | false | void | Promise<T | undefined | false | void>;
 
-export enum MiddlewarePlacement {
-  Before = 'before',
-  After = 'after'
-}
+export type MiddlewarePlacement = 'before' | 'after';
 
 export interface IMiddlewareSettings {
   placement: MiddlewarePlacement;

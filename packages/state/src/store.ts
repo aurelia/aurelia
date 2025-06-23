@@ -151,7 +151,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         }
       };
 
-      const beforeStateOrPromise = this._executeMiddlewares(this._state, MiddlewarePlacement.Before, actionToProcess);
+      const beforeStateOrPromise = this._executeMiddlewares(this._state, 'before', actionToProcess);
 
       const afterBefore = onResolve(beforeStateOrPromise as any, (beforeState: T | false) => {
         if (beforeState === false) {
@@ -161,7 +161,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         const handlerResult = this._handleAction(this._handlers, beforeState as T, actionToProcess);
 
         const afterHandler = onResolve(handlerResult as any, (newState: T) => {
-          const afterStateOrPromise = this._executeMiddlewares(newState, MiddlewarePlacement.After, actionToProcess);
+          const afterStateOrPromise = this._executeMiddlewares(newState, 'after', actionToProcess);
 
           return onResolve(afterStateOrPromise as any, (afterState: T | false) => {
             if (afterState !== false) {

@@ -622,7 +622,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: beforeMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: beforeMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -656,7 +656,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: afterMiddleware, placement: MiddlewarePlacement.After }
+              { middleware: afterMiddleware, placement: 'after' }
             ]
           },
           actionHandler
@@ -687,7 +687,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: beforeMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: beforeMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -719,7 +719,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: blockingMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: blockingMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -754,7 +754,7 @@ describe('state/state.spec.ts', function () {
       const store = ctx.container.get(Store);
 
       // Register middleware
-      store.registerMiddleware(middleware, MiddlewarePlacement.Before);
+      store.registerMiddleware(middleware, 'before');
       await store.dispatch({ type: 'increment' });
 
       assert.strictEqual(logs.length, 1);
@@ -792,8 +792,8 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: errorMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: normalMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: errorMiddleware, placement: 'before' },
+              { middleware: normalMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -829,7 +829,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: asyncMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: asyncMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -875,9 +875,9 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: asyncMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: syncMiddleware2, placement: MiddlewarePlacement.Before }
+              { middleware: syncMiddleware, placement: 'before' },
+              { middleware: asyncMiddleware, placement: 'before' },
+              { middleware: syncMiddleware2, placement: 'before' }
             ]
           },
           actionHandler
@@ -919,8 +919,8 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: errorMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: normalMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: errorMiddleware, placement: 'before' },
+              { middleware: normalMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -955,7 +955,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncBlockingMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: syncBlockingMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -990,7 +990,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncAfterMiddleware, placement: MiddlewarePlacement.After }
+              { middleware: syncAfterMiddleware, placement: 'after' }
             ]
           },
           actionHandler
@@ -1031,8 +1031,8 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncMiddleware1, placement: MiddlewarePlacement.Before },
-              { middleware: syncMiddleware2, placement: MiddlewarePlacement.Before }
+              { middleware: syncMiddleware1, placement: 'before' },
+              { middleware: syncMiddleware2, placement: 'before' }
             ]
           },
           actionHandler

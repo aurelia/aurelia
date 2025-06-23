@@ -86,13 +86,13 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     let result: T | false | Promise<T | false> = state;
 
     for (const [middleware, settings] of middlewares) {
-      result = onResolve(result as any, async (currentStateOrFlag: T | false) => {
+      result = onResolve(result, async (currentStateOrFlag: T | false) => {
         // If a previous middleware signalled blocking, keep propagating the flag.
         if (currentStateOrFlag === false) {
           return false;
         }
 
-        const currentState = currentStateOrFlag as T;
+        const currentState = currentStateOrFlag;
 
         let middlewareResult: T | undefined | false | void | Promise<T | undefined | false | void>;
         try {
@@ -110,7 +110,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         }
 
         if (resolved != null) {
-          return resolved as T;
+          return resolved;
         }
 
         // If the middleware did not return a value, propagate the current state.
@@ -151,21 +151,21 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         }
       };
 
-      const beforeStateOrPromise = this._executeMiddlewares(this._state, 'before', actionToProcess);
+      const middlewareResultBefore = this._executeMiddlewares(this._state, 'before', actionToProcess);
 
-      const afterBefore = onResolve(beforeStateOrPromise as any, (beforeState: T | false) => {
+      const afterBefore = onResolve(middlewareResultBefore, (beforeState: T | false) => {
         if (beforeState === false) {
           return finalize();
         }
 
-        const handlerResult = this._handleAction(this._handlers, beforeState as T, actionToProcess);
+        const handlerResult = this._handleAction(this._handlers, beforeState, actionToProcess);
 
-        const afterHandler = onResolve(handlerResult as any, (newState: T) => {
-          const afterStateOrPromise = this._executeMiddlewares(newState, 'after', actionToProcess);
+        const afterHandler = onResolve(handlerResult, (newState: T) => {
+          const middlewareResultAfter = this._executeMiddlewares(newState, 'after', actionToProcess);
 
-          return onResolve(afterStateOrPromise as any, (afterState: T | false) => {
+          return onResolve(middlewareResultAfter, (afterState: T | false) => {
             if (afterState !== false) {
-              this._setState(afterState as T);
+              this._setState(afterState);
             }
             return finalize();
           });

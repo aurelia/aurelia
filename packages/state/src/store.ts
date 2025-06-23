@@ -109,7 +109,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
           return false;
         }
 
-        if (resolved !== undefined && resolved !== null) {
+        if (resolved != null) {
           return resolved as T;
         }
 

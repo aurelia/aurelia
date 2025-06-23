@@ -5,7 +5,7 @@ import { createFixture } from './_shared/create-fixture.js';
 
 const define = (CustomElement as any).define;
 
-describe('router/viewport-content.spec.ts', function () {
+describe('router-direct/viewport-content.spec.ts', function () {
   function $setup(_dependencies: any[] = []) {
     const ctx = TestContext.create();
     const container = ctx.container;

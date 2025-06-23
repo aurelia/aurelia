@@ -4,7 +4,7 @@ import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 
-describe('router/history-navigations.spec.ts', function () {
+describe('router-direct/history-navigations.spec.ts', function () {
   // something wrong with jsdom and our wrapper code
   // in node it hangs
   if (isNode()) {

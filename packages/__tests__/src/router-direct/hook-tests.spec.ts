@@ -22,7 +22,7 @@
 
 // import { TestRouterConfiguration } from './_shared/configuration.js';
 
-describe('router/hook-tests.spec.ts', function () {
+describe('router-direct/hook-tests.spec.ts', function () {
   // eslint-disable-next-line
   it.skip('todo(jurgen): re-enable with better assertions');
 //   function join(sep: string, ...parts: string[]): string {

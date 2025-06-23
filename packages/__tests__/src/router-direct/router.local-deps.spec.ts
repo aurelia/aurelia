@@ -2,7 +2,7 @@ import { IRouter, RouterConfiguration } from '@aurelia/router-direct';
 import { Aurelia, CustomElement, IPlatform } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext, assert } from '@aurelia/testing';
 
-describe('router/router.local-deps.spec.ts', function () {
+describe('router-direct/router.local-deps.spec.ts', function () {
   this.timeout(5000);
 
   async function $setup(dependencies: any[] = []) {

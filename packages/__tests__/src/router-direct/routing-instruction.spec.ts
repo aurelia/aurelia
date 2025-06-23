@@ -15,7 +15,7 @@ function clearUnparsed(instructions: RoutingInstruction | RoutingInstruction[]) 
   }
 }
 
-describe('router/routing-instruction.spec.ts', function () {
+describe('router-direct/routing-instruction.spec.ts', function () {
   async function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;

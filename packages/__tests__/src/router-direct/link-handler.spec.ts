@@ -3,7 +3,7 @@ import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
 
-describe('router/link-handler.spec.ts', function () {
+describe('router-direct/link-handler.spec.ts', function () {
   // something wrong with jsdom and our wrapper code
   // in node it hangs
   if (isNode()) {

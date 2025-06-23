@@ -3,7 +3,7 @@ import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('router/router.spec.ts', function () {
+describe('router-direct/router.spec.ts', function () {
   function getModifiedRouter(container: IContainer) {
     const router = container.get(IRouter) as IRouter;
     const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();

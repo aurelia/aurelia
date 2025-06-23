@@ -2,7 +2,7 @@ import { IRouter, RouterConfiguration, RoutingInstruction } from '@aurelia/route
 import { CustomElement, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 
-describe('router/instruction-parser.spec.ts', function () {
+describe('router-direct/instruction-parser.spec.ts', function () {
   async function createFixture() {
     const ctx = TestContext.create();
     const container = ctx.container;

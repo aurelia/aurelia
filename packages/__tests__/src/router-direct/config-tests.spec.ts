@@ -106,7 +106,7 @@ export abstract class SimpleActivityTrackingVMBase {
   }
 }
 
-describe('router/config-tests.spec.ts', function () {
+describe('router-direct/config-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     const deferUntils: DeferralJuncture[] = [
       'none',

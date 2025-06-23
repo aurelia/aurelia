@@ -964,7 +964,7 @@ workflows:
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
-            - e2e_router
+            - e2e_router_direct
             - e2e_i18n
             - request_publish_dev
           from: master
@@ -1128,7 +1128,7 @@ workflows:
             - e2e_hmr_vite
             - e2e_hmr_webpack
             - e2e_router_lite
-            - e2e_router
+            - e2e_router_direct
             - e2e_i18n
           from: $CIRCLE_TAG
           to: release

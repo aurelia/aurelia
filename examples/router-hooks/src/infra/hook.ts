@@ -1,4 +1,4 @@
-import { Navigation, Parameters, RoutingInstruction } from '@aurelia/router';
+import { Navigation, Parameters, RoutingInstruction } from '@aurelia/router-direct';
 import { lifecycleHooks } from '@aurelia/runtime-html';
 
 @lifecycleHooks()

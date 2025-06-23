@@ -1,4 +1,4 @@
-import { Runner, Step } from '@aurelia/router';
+import { Runner, Step } from '@aurelia/router-direct';
 import { assert } from '@aurelia/testing';
 
 const createTimedPromise = (value, time: number, previousValue?, reject = false): Promise<unknown> => {

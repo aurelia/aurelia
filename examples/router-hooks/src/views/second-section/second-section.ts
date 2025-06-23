@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
 import template from './second-section.html';
-import { IRoute, IRouteableComponent } from '@aurelia/router';
+import { IRoute, IRouteableComponent } from '@aurelia/router-direct';
 
 @customElement({
   name: 'second-section',

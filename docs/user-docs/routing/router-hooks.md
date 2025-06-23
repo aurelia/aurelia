@@ -16,12 +16,12 @@ If you worked with Aurelia 1, you might know these by their previous name: route
 
 ```typescript
 import Aurelia, { lifecycleHooks } from 'aurelia';
-import { Parameters, Navigation, RouterConfiguration, RoutingInstruction } from '@aurelia/router';
+import { Parameters, Navigation, RouterConfiguration, RoutingInstruction } from '@aurelia/router-direct';
 
 @lifecycleHooks()
 class NoopAuthHandler {
-    canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation) { 
-        return true; 
+    canLoad(viewModel, params: Parameters, instruction: RoutingInstruction, navigation: Navigation) {
+        return true;
     }
 }
 
@@ -50,7 +50,7 @@ While lifecycle hooks are indeed their own thing independent of the components y
 This is the contract for ordinary route lifecycle hooks for components:
 
 ```typescript
-import { Parameters, IRouteableComponent, Navigation, RoutingInstruction } from '@aurelia/router';
+import { Parameters, IRouteableComponent, Navigation, RoutingInstruction } from '@aurelia/router-direct';
 
 class MyComponent implements IRouteableComponent {
   canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
@@ -63,8 +63,8 @@ class MyComponent implements IRouteableComponent {
 And this is the contract for shared lifecycle hooks
 
 ```typescript
-import { lifecycleHooks } from 'aurelia'; 
-import { Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
+import { lifecycleHooks } from 'aurelia';
+import { Parameters, Navigation, RoutingInstruction } from '@aurelia/router-direct';
 
 @lifecycleHooks()
 class MySharedHooks {
@@ -85,7 +85,7 @@ When dealing with route hooks, you might only want to apply those to specific co
 To do this, we can specify our route hook as a dependency in the component via the `static dependencies` property, which takes an array of one or more dependencies.
 
 ```typescript
-import { IRouteableComponent } from "@aurelia/router";
+import { IRouteableComponent } from "@aurelia/router-direct";
 import { AuthHook } from './route-hook';
 
 export class SettingsPage implements IRouteableComponent {

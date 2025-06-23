@@ -1,4 +1,4 @@
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import Aurelia /*, { StyleConfiguration }*/ from 'aurelia';
 import { TheHook } from './infra/hook';
 import { TheSecondHook } from './infra/second-hook';

@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
 import template from './starter-page.html';
-import { IRoute, IRouteableComponent, Parameters } from '@aurelia/router';
+import { IRoute, IRouteableComponent, Parameters } from '@aurelia/router-direct';
 
 @customElement({
   name: 'starter-page',

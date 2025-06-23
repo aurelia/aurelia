@@ -79,7 +79,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="2.0.0-beta.13"></a>
 # 2.0.0-beta.13 (2024-03-15)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.12"></a>
 # 2.0.0-beta.12 (2024-03-02)
@@ -111,17 +111,17 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="2.0.0-beta.9"></a>
 # 2.0.0-beta.9 (2023-12-12)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.8"></a>
 # 2.0.0-beta.8 (2023-07-24)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.7"></a>
 # 2.0.0-beta.7 (2023-06-16)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.6"></a>
 # 2.0.0-beta.6 (2023-05-21)
@@ -133,22 +133,22 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 <a name="2.0.0-beta.5"></a>
 # 2.0.0-beta.5 (2023-04-27)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.4"></a>
 # 2.0.0-beta.4 (2023-04-13)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.3"></a>
 # 2.0.0-beta.3 (2023-03-24)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.2"></a>
 # 2.0.0-beta.2 (2023-02-26)
 
-**Note:** Version bump only for package @aurelia/router
+**Note:** Version bump only for package @aurelia/router-direct
 
 <a name="2.0.0-beta.1"></a>
 # 2.0.0-beta.1 (2023-01-12)

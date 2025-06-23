@@ -54,7 +54,7 @@
 ## Getting to know Aurelia
 
 * Routing
-  * @aurelia/router
+  * @aurelia/router-direct
     * [Getting Started](routing/getting-started.md)
     * [Creating Routes](routing/creating-routes.md)
     * [Routing Lifecycle](routing/routing-lifecycle.md)

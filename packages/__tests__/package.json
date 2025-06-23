@@ -55,7 +55,7 @@
     "@aurelia/platform": "2.0.0-beta.24",
     "@aurelia/platform-browser": "2.0.0-beta.24",
     "@aurelia/route-recognizer": "2.0.0-beta.24",
-    "@aurelia/router": "2.0.0-beta.24",
+    "@aurelia/router-direct": "2.0.0-beta.24",
     "@aurelia/router-lite": "2.0.0-beta.24",
     "@aurelia/runtime": "2.0.0-beta.24",
     "@aurelia/template-compiler": "2.0.0-beta.24",

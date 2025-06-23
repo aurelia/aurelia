@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
 import template from './my-app.html';
-import { IRoute, IRouteableComponent } from '@aurelia/router';
+import { IRoute, IRouteableComponent } from '@aurelia/router-direct';
 
 @customElement({
   name: 'my-app',

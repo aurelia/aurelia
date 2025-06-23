@@ -17,7 +17,7 @@ To listen to these events, you subscribe to them using the event aggregator like
 
 ```typescript
 import { IEventAggregator, resolve } from 'aurelia';
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     readonly ea: IEventAggregator = resolve(IEventAggregator);

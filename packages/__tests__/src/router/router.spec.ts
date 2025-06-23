@@ -1,5 +1,5 @@
 import { IContainer } from '@aurelia/kernel';
-import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router';
+import { IRouter, RouterConfiguration, routes, Viewport } from '@aurelia/router-direct';
 import { CustomElement, customElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 

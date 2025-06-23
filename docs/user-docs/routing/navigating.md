@@ -14,7 +14,7 @@ To use the `load` method, you have first to inject the router into your componen
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+import { IRouter, IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     private router: IRouter = resolve(IRouter);
@@ -27,7 +27,7 @@ The `load` method can accept a simple string value allowing you to navigate to a
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+import { IRouter, IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     private router: IRouter = resolve(IRouter);
@@ -42,7 +42,7 @@ You could also use the string value method to pass parameter values and do somet
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+import { IRouter, IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     private router: IRouter = resolve(IRouter);
@@ -67,7 +67,7 @@ These option values can be specified as follows and when needed:
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter, IRouteableComponent } from '@aurelia/router';
+import { IRouter, IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     private router: IRouter = resolve(IRouter);

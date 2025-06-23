@@ -1,4 +1,4 @@
-import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation } from '@aurelia/router';
+import { RoutingHook, RoutingInstruction, RouterConfiguration, IRouter, Navigation } from '@aurelia/router-direct';
 import { assert, TestContext } from '@aurelia/testing';
 import { CustomElement, IPlatform, Aurelia } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';

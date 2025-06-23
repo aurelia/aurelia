@@ -1,5 +1,5 @@
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import { AnimationHooks } from './animation-hooks';
 import { MyApp } from './my-app';
 import { Fallback } from './fallback';

@@ -15,7 +15,7 @@ Inside your routable components which implement the `IRouteableComponent` interf
 If you are working with components you are rendering, implementing `IRouteableComponent` will ensure that your code editor provides you with intellisense to make working with these lifecycle hooks easier.
 
 ```typescript
-import { IRouteableComponent, Parameters, Navigation, RoutingInstruction } from '@aurelia/router';
+import { IRouteableComponent, Parameters, Navigation, RoutingInstruction } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
     canLoad(params: Parameters, instruction: RoutingInstruction, navigation: Navigation);
@@ -38,7 +38,7 @@ The `canLoad` method allows you to determine if the component should be loaded o
 When working with the `canLoad` method, you can use promises to delay loading the view until a promise and/or promises have been resolved. The component would be loaded if we were to return `true` from this method.
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyProduct implements IRouteableComponent {
     canLoad(params: Parameters) {
@@ -52,7 +52,7 @@ export class MyProduct implements IRouteableComponent {
 If you wanted to load data from an API, you could make the `canLoad` method async, which would make it a promise-based method. You would be awaiting an actual API call of some kind in place of `....load data`
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyProduct implements IRouteableComponent {
     async canLoad(params: Parameters) {
@@ -68,7 +68,7 @@ Unlike other async methods, if the promise does not resolve, the component will 
 Not only can we allow or disallow the component to be loaded, but we can also redirect it. If you want to redirect to the root route, return a string with an `/` inside it. You can return a route ID, route path match or navigation instruction from inside this callback to redirect.
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyProduct implements IRouteableComponent {
     canLoad(params: Parameters) {
@@ -78,7 +78,7 @@ export class MyProduct implements IRouteableComponent {
 ```
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyProduct implements IRouteableComponent {
     canLoad(params: Parameters) {
@@ -88,7 +88,7 @@ export class MyProduct implements IRouteableComponent {
 ```
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyProduct implements IRouteableComponent {
     canLoad(params: Parameters) {
@@ -136,7 +136,7 @@ If the component you are loading absolutely requires the data to exist on the se
 From the inside  `canLoad` you can redirect the user elsewhere or return false to throw an error.
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyComponent implements IRouteableComponent {
     async canLoad(params: Parameters) {
@@ -148,7 +148,7 @@ export class MyComponent implements IRouteableComponent {
 Similarly, if you still want the view to load, even if we can't get the data, you would use the `loading`lifecycle callback.
 
 ```typescript
-import { IRouteableComponent, Parameters } from "@aurelia/router";
+import { IRouteableComponent, Parameters } from "@aurelia/router-direct";
 
 export class MyComponent implements IRouteableComponent {
     async loading(params: Parameters) {
@@ -170,7 +170,7 @@ The `activeNavigation` property contains quite a few properties but most notably
 We can get information about the current route by accessing the `activeComponents` array and determining the active component. Still, it is possible that more than one component will be in this array. An easier way is to get the route instruction on the `canLoad` and `loading` lifecycle methods.
 
 ```typescript
-import { IRouteableComponent, IRouter, Navigation, Parameters, RoutingInstruction } from '@aurelia/router';
+import { IRouteableComponent, IRouter, Navigation, Parameters, RoutingInstruction } from '@aurelia/router-direct';
 
 loading(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation): void | Promise<void> {
     console.log(instruction.endpoint.instance.getContent().instruction);
@@ -196,7 +196,7 @@ While you would often set the title of a route in your route configuration objec
 You can achieve this from within the `canLoad` and `load` methods in your component. By setting the `next.title` property, you can override or transform the title.
 
 ```typescript
-import { IRouteableComponent, Parameters, RoutingInstruction, Navigation } from "@aurelia/router";
+import { IRouteableComponent, Parameters, RoutingInstruction, Navigation } from "@aurelia/router-direct";
 
 export class ProductPage implements IRouteableComponent {
   loading(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation) {

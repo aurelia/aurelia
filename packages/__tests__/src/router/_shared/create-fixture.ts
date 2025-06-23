@@ -1,6 +1,6 @@
 import { Constructable, LogLevel, Registration, ILogConfig, LoggerConfiguration, DI, ConsoleSink } from '@aurelia/kernel';
 import { Aurelia } from '@aurelia/runtime-html';
-import { RouterConfiguration, IRouter, IRouterOptions, NavigationState } from '@aurelia/router';
+import { RouterConfiguration, IRouter, IRouterOptions, NavigationState } from '@aurelia/router-direct';
 import { TestContext } from '@aurelia/testing';
 
 import { IHIAConfig, IHookInvocationAggregator } from './hook-invocation-tracker.js';

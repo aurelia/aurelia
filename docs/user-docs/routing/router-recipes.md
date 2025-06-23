@@ -7,7 +7,7 @@ While the docs do a great job explaining the intricacies of the router, sometime
 A component that is loaded as part of a route definition. The `IRouteableComponent`
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router-direct';
 
 export class MyComponent implements IRouteableComponent {
 
@@ -101,7 +101,7 @@ export class MyApp {
 Inside components displayed by routes, the best place is to load data inside `canLoad` or `load` hooks. If your view depends on the data being loaded (like a product detail page), use `canLoad` otherwise, use `load`. The first argument is any parameters passed through the route.
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router-direct';
 
 export class ViewProduct implements IRouteableComponent {
     async canLoad(params) {
@@ -115,7 +115,7 @@ export class ViewProduct implements IRouteableComponent {
 Using the `canLoad` lifecycle hook, we can redirect users. In the following example, we redirect a user to a `/products` route. You would have this wrapped in a check to determine if the component loads or if the user is redirected away.
 
 ```typescript
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router-direct';
 
 export class ViewProduct implements IRouteableComponent {
     async canLoad(params) {

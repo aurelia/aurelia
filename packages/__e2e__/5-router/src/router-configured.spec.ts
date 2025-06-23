@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import { test, expect, type Page } from '@playwright/test';
 import { addCoverage } from '../../playwright-coverage';
-import type { IRouter } from '@aurelia/router';
+import type { IRouter } from '@aurelia/router-direct';
 
 test.describe('router', () => {
 

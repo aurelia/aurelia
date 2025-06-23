@@ -1,8 +1,8 @@
 # Getting started
 
 {% hint style="info" %}
-Please note that in Aurelia2 there are two routers, namely [`@aurelia/router`](../routing/getting-started.md) and `@aurelia/router-lite` (this one).
-The router-lite one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router`. Choose your router depending on your need.
+Please note that in Aurelia2 there are two routers, namely [`@aurelia/router-direct`](../routing/getting-started.md) and `@aurelia/router-lite` (this one).
+The router-lite one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router-direct`. Choose your router depending on your need.
 {% endhint %}
 
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.

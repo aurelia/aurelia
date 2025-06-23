@@ -25,7 +25,7 @@
     "packages/web-components",
     "packages/route-recognizer",
     "packages/router-lite",
-    "packages/router",
+    "packages/router-direct",
     "packages/testing",
     "packages/addons",
     "packages/aurelia",

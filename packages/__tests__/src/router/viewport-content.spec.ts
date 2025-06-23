@@ -1,4 +1,4 @@
-import { IRouter, ViewportContent, RoutingInstruction, Viewport } from '@aurelia/router';
+import { IRouter, ViewportContent, RoutingInstruction, Viewport } from '@aurelia/router-direct';
 import { CustomElement } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { createFixture } from './_shared/create-fixture.js';

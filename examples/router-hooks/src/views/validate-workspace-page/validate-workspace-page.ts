@@ -1,6 +1,6 @@
 import { customElement } from '@aurelia/runtime-html';
 import template from './validate-workspace-page.html';
-import { IRouteableComponent, IRouter } from '@aurelia/router';
+import { IRouteableComponent, IRouter } from '@aurelia/router-direct';
 import { inject } from 'aurelia';
 
 @customElement({

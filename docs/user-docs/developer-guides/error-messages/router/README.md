@@ -1,10 +1,10 @@
 ---
-description: Errors 2000 to 2018 are @aurelia/router package related errors.
+description: Errors 2000 to 2018 are @aurelia/router-direct package related errors.
 ---
 
 # 2000 to 2018
 
-Please see below a reference to each [@aurelia/router](https://github.com/aurelia/aurelia/tree/master/packages/router) package related error with explanations and resources for debugging and solving.
+Please see below a reference to each [@aurelia/router-direct](https://github.com/aurelia/aurelia/tree/master/packages/router) package related error with explanations and resources for debugging and solving.
 
 * [AUR2000](aur2000.md)
 * [AUR2001](aur2001.md)

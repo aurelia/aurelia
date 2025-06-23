@@ -275,7 +275,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor': ['aurelia'],
-          'router': ['@aurelia/router', '@aurelia/router-lite']
+          'router': ['@aurelia/router-direct', '@aurelia/router-lite']
         }
       }
     }

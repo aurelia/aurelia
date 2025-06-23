@@ -1,4 +1,4 @@
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 import { resolve } from 'aurelia';
 
 export class App {

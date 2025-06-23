@@ -1,5 +1,5 @@
 import { customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouterOptions, route, Routes, routes } from '@aurelia/router';
+import { IRouterOptions, route, Routes, routes } from '@aurelia/router-direct';
 import { assert } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';

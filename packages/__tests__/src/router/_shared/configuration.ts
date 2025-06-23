@@ -1,5 +1,5 @@
 import { ConsoleSink, IContainer, IRegistry, LogLevel, LoggerConfiguration, Registration } from '@aurelia/kernel';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 import { AppTask, IHistory, ILocation } from '@aurelia/runtime-html';
 import { MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 

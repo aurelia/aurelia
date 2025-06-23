@@ -38,7 +38,7 @@ Parameters are supplied to `canLoad` and `loading` router lifecycle callbacks as
 Named required parameters that are prefixed with a colon. `:productId` when used in a path, a named required parameter might look like this:
 
 ```typescript
-import { IRouteableComponent, IRoute } from '@aurelia/router';
+import { IRouteableComponent, IRoute } from '@aurelia/router-direct';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -57,7 +57,7 @@ This named parameter is denoted by the colon prefix and is called `productId` wh
 Named optional parameters. Like required parameters, they are prefixed with a colon but end with a question mark.
 
 ```typescript
-import { IRouteableComponent, IRoute } from '@aurelia/router';
+import { IRouteableComponent, IRoute } from '@aurelia/router-direct';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -78,7 +78,7 @@ Using optional name parameters is convenient for routes where different things c
 Wildcard parameters. Unlike required and optional parameters, wildcard parameters are not prefixed with a colon, instead using an asterisk. The asterisk works as a catch-all, capturing everything provided after it.
 
 ```typescript
-import { IRouteableComponent, IRoute } from '@aurelia/router';
+import { IRouteableComponent, IRoute } from '@aurelia/router-direct';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -130,7 +130,7 @@ When creating routes, it is important to note that the `component` property can 
 If you are working with the Aurelia application generated using `npx makes aurelia` you would already have a `my-app.ts` file to place your routes in. It's the main component of the scaffolded Aurelia application.
 
 ```typescript
-import { IRouteableComponent, IRoute } from '@aurelia/router';
+import { IRouteableComponent, IRoute } from '@aurelia/router-direct';
 import { HomePage } from './components/home-page';
 
 export class MyApp implements IRouteableComponent {
@@ -151,7 +151,7 @@ As you will learn towards the end of this section, inline import statements allo
 If you have a lot of routes, the static property might be preferable from a cleanliness perspective.
 
 ```typescript
-import { IRouteableComponent, IRoute } from '@aurelia/router';
+import { IRouteableComponent, IRoute } from '@aurelia/router-direct';
 
 export class MyApp implements IRouteableComponent {
   static routes: IRoute[] = [
@@ -173,7 +173,7 @@ If you have more than a few routes, it might be best practice to write them in a
 The syntax for routes stays the same using the decorator. Just how they have defined changes slightly.
 
 ```typescript
-import { IRouteableComponent, routes } from '@aurelia/router';
+import { IRouteableComponent, routes } from '@aurelia/router-direct';
 
 @routes([
     {
@@ -213,7 +213,7 @@ We add a route in our top-level `my-app.ts` component where we added routes in o
 ```typescript
 import { DashboardHome } from './dashboard-home';
 
-import { IRouteableComponent } from '@aurelia/router';
+import { IRouteableComponent } from '@aurelia/router-direct';
 
 export class DashboardPage implements IRouteableComponent {
     static routes = [
@@ -242,7 +242,7 @@ Lastly, let's create our default dashboard component for the landing page.
 {% code title="dashboard-home.ts" %}
 ```typescript
 export class DashboardHome {
-    
+
 }
 ```
 {% endcode %}

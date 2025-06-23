@@ -1,4 +1,4 @@
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import { RouterConfiguration as RouterLiteConfiguration } from '@aurelia/router-lite';
 import Aurelia from 'aurelia';
 import { P1 } from './p-1';

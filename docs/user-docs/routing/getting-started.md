@@ -1,6 +1,6 @@
 ---
 description: >-
-  Learn how to work with the @aurelia/router package to implement routing in
+  Learn how to work with the @aurelia/router-direct package to implement routing in
   your Aurelia applications.
 ---
 
@@ -15,11 +15,11 @@ If you are looking for details on configuring the router (set titles, handle unk
 {% endhint %}
 
 {% hint style="danger" %}
-Currently, two routers ship with Aurelia: router lite and core router. This section refers to the core router package that lives in `@aurelia/router` — please see the warning note below on a caveat some developers encounter when working with the router.
+Currently, two routers ship with Aurelia: router lite and core router. This section refers to the core router package that lives in `@aurelia/router-direct` — please see the warning note below on a caveat some developers encounter when working with the router.
 {% endhint %}
 
 {% hint style="warning" %}
-**Before you go any further:** Please ensure you are importing from the `@aurelia/router` package. Sometimes import extensions will autocomplete your imports and import from the `aurelia` package, which currently exports the lite router. Eventually, the `aurelia` package will export the `@aurelia/router` package, but it currently does not. We have noticed, in many instances, that using the incorrect router imports is why routing is not working.
+**Before you go any further:** Please ensure you are importing from the `@aurelia/router-direct` package. Sometimes import extensions will autocomplete your imports and import from the `aurelia` package, which currently exports the lite router. Eventually, the `aurelia` package will export the `@aurelia/router-direct` package, but it currently does not. We have noticed, in many instances, that using the incorrect router imports is why routing is not working.
 {% endhint %}
 
 ## A quick introduction to routing
@@ -39,7 +39,7 @@ To use the router, we have to register it with Aurelia. We do this inside of `ma
 import Aurelia from 'aurelia';
 
 // Our router configuration import to register the Router with Aurelia's DI
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 
 import { MyApp } from './my-app';
 
@@ -51,7 +51,7 @@ Aurelia
 {% endcode %}
 
 {% hint style="warning" %}
-Once again, it bears repeating. Please make sure your router imports are being imported from ``@aurelia/router in your `main.ts` file, but also in other parts of your Aurelia application as well.``
+Once again, it bears repeating. Please make sure your router imports are being imported from ``@aurelia/router-direct in your `main.ts` file, but also in other parts of your Aurelia application as well.``
 {% endhint %}
 
 Now, we create our routes. We'll do this inside  `my-app.ts` and use the `static routes` property. Please note that there is also a `@routes` decorator, which is detailed inside the [Creating Routes](creating-routes.md) section.
@@ -128,11 +128,11 @@ The title can be set for the overall application. By default, the title uses the
 
 ```typescript
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router'; 
+import { RouterConfiguration } from '@aurelia/router-direct';
 
 Aurelia
   .register(
-    RouterConfiguration.customize({ 
+    RouterConfiguration.customize({
       title: '${componentTitles}${appTitleSeparator}My App'
     }))
   .app(component)
@@ -151,11 +151,11 @@ Are you trying to set the title using the Aurelia i18n package? Visit the sectio
 
 {% code title="main.ts" %}
 ```typescript
-import { RouterConfiguration, RoutingInstruction, Navigation } from '@aurelia/router';
+import { RouterConfiguration, RoutingInstruction, Navigation } from '@aurelia/router-direct';
 import { Aurelia } from 'aurelia';
 
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import { MyApp } from './my-app';
 
 Aurelia
@@ -181,7 +181,7 @@ We are performing the configuration inside of the `main.ts` file, which is the d
 
 ```typescript
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router'; 
+import { RouterConfiguration } from '@aurelia/router-direct';
 
 Aurelia
   .register(RouterConfiguration.customize({ useUrlFragmentHash: false }))
@@ -225,7 +225,7 @@ Or, you can set `useHref` to `false` and only ever use the `load` attribute for 
 
 ```typescript
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router'; 
+import { RouterConfiguration } from '@aurelia/router-direct';
 
 Aurelia
   .register(RouterConfiguration.customize({
@@ -278,9 +278,9 @@ By using the `fallback` property on the `customize` method when we register the 
 
 ```typescript
 import Aurelia from 'aurelia';
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import { MyApp } from './my-app';
-import { MissingPage } from './missing-page'; 
+import { MissingPage } from './missing-page';
 
 Aurelia
   .register(RouterConfiguration.customize({

@@ -13,7 +13,7 @@ import {
   RoutingInstruction,
   Navigation,
   IRouterOptions,
-} from '@aurelia/router';
+} from '@aurelia/router-direct';
 import {
   customElement,
   CustomElement,

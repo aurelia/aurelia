@@ -51,7 +51,7 @@ Let's go into `main.ts` and configure Aurelia to use routing. Import the `Router
 We also configure the router to use push-state routing instead of the hash-based router. This gives us cleaner URLs.
 
 <pre class="language-typescript" data-title="main.ts"><code class="lang-typescript">import Aurelia from 'aurelia';
-<strong>import { RouterConfiguration } from '@aurelia/router';
+<strong>import { RouterConfiguration } from '@aurelia/router-direct';
 </strong>import { MyApp } from './my-app';
 
 Aurelia
@@ -246,7 +246,7 @@ When we created our routes in `my-app.ts` you might recall we created a recipe d
 ```typescript
 import { resolve } from 'aurelia';
 import { HttpClient } from '@aurelia/fetch-client';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 
 export class RecipeDetail {
   private http: HttpClient = new HttpClient();

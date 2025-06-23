@@ -22,7 +22,7 @@ In this example, we have the main viewport for our main content, and another vie
 Routes will load in the default viewport element if there are one or more viewports. However, routes can be told to load into a specific viewport.
 
 ```typescript
-import { IRouteableComponent, routes } from '@aurelia/router';
+import { IRouteableComponent, routes } from '@aurelia/router-direct';
 
 @routes([
     {

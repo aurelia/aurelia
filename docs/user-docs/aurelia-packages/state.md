@@ -425,7 +425,7 @@ export const performanceAfterMiddleware = (state, action) => {
 Middleware can accept custom settings through the third parameter:
 
 ```ts
-export const createLoggingMiddleware = (state, action, settings) => {
+export const loggingMiddleware = (state, action, settings) => {
   const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
 
   if (logLevel === 'debug') {
@@ -441,7 +441,37 @@ export const createLoggingMiddleware = (state, action, settings) => {
 // Register with settings
 middlewares: [
   {
-    middleware: createLoggingMiddleware,
+    middleware: loggingMiddleware,
+    placement: MiddlewarePlacement.Before,
+    settings: { logLevel: 'debug', prefix: '[APP]' }
+  }
+]
+```
+
+### Middleware factory pattern
+
+For more advanced scenarios, you can create factory functions that return middleware:
+
+```ts
+export const createLoggingMiddleware = (actionTypeFilter) => (state, action, settings) => {
+  const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
+
+  if (!actionTypeFilter || action.type === actionTypeFilter) {
+    if (logLevel === 'debug') {
+      console.debug(`${prefix} Action:`, action);
+      console.debug(`${prefix} State:`, state);
+    } else {
+      console.log(`${prefix} ${action.type}`);
+    }
+  }
+
+  return state;
+};
+
+// Register factory-created middleware
+middlewares: [
+  {
+    middleware: createLoggingMiddleware('updateUser'),
     placement: MiddlewarePlacement.Before,
     settings: { logLevel: 'debug', prefix: '[APP]' }
   }

@@ -18,7 +18,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'state',
       'store-v1',
       'i18n',
-      'router',
+      'router-direct',
       'router-lite',
       'testing',
       'ui-virtualization',

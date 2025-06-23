@@ -40,6 +40,9 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
   private _isQueued: boolean = false;
 
   /** @internal */
+  private _computeDepth: number = 0;
+
+  /** @internal */
   private _value: unknown = void 0;
   public get value(): unknown {
     return this._value;
@@ -89,6 +92,9 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     if (!this.isBound) return;
     if (this._isQueued) return;
     this._isQueued = true;
+    if (this._computeDepth > 100) {
+      throw new Error(`Possible infinitely recursive side-effect detected in a watcher.`);
+    }
 
     queueTask(() => {
       this._isQueued = false;
@@ -96,10 +102,14 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
 
       const obj = this.obj;
       const oldValue = this._value;
+      ++this._computeDepth;
       const newValue = this.compute();
 
       if (!areEqual(newValue, oldValue)) {
         this._callback.call(obj, newValue, oldValue, obj);
+      }
+      if (!this._isQueued) {
+        this._computeDepth = 0;
       }
     });
   }

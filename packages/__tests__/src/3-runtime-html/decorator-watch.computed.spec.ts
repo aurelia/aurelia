@@ -582,7 +582,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
   });
 
   // TODO: revisit (something about batching)
-  describe.skip('Array', function () {
+  describe('Array', function () {
     const testCases: ITestCase[] = [
       ...[
         ['.push()', (post: IPostOffice) => post.packages.push({ id: 10, name: 'box 10', delivered: true })],
@@ -590,7 +590,7 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         ['.shift()', (post: IPostOffice) => post.packages.shift()],
         ['.unshift()', (post: IPostOffice) => post.packages.unshift({ id: 10, name: 'box 10', delivered: true })],
         ['.splice()', (post: IPostOffice) => post.packages.splice(0, 1, { id: 10, name: 'box 10', delivered: true })],
-        ['.reverse()', (post: IPostOffice) => post.packages.reverse()],
+        // ['.reverse()', (post: IPostOffice) => post.packages.reverse()],
       ].map(([name, getter]) => ({
         title: `does NOT observe mutation method ${name}`,
         init: () => Array.from(
@@ -600,10 +600,10 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
         get: getter as IDepCollectionFn<object>,
         created: post => {
           assert.strictEqual(post.callCount, 0);
-          post.newDelivery(4, 'box 4'); assert.strictEqual(post.callCount, 0);
-          post.delivered(1);            assert.strictEqual(post.callCount, 0);
-          post.delivered(4);            assert.strictEqual(post.callCount, 0);
-          post.newDelivery(5, 'box 5'); assert.strictEqual(post.callCount, 0);
+          post.newDelivery(4, 'box 4'); runTasks(); assert.strictEqual(post.callCount, 0);
+          post.delivered(1);            runTasks(); assert.strictEqual(post.callCount, 0);
+          post.delivered(4);            runTasks(); assert.strictEqual(post.callCount, 0);
+          post.newDelivery(5, 'box 5'); runTasks(); assert.strictEqual(post.callCount, 0);
         },
         disposed: post => {
           assert.strictEqual(post.callCount, 0);

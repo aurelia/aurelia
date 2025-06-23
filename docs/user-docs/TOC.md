@@ -55,16 +55,16 @@
 
 * Routing
   * @aurelia/router-direct
-    * [Getting Started](routing/getting-started.md)
-    * [Creating Routes](routing/creating-routes.md)
-    * [Routing Lifecycle](routing/routing-lifecycle.md)
-    * [Viewports](routing/viewports.md)
-    * [Navigating](routing/navigating.md)
-    * [Route hooks](routing/router-hooks.md)
-    * [Router animation](routing/router-animation.md)
-    * [Route Events](routing/route-events.md)
-    * [Router Tutorial](routing/router-tutorial.md)
-    * [Router Recipes](routing/router-recipes.md)
+    * [Getting Started](router-direct/getting-started.md)
+    * [Creating Routes](router-direct/creating-routes.md)
+    * [Routing Lifecycle](router-direct/routing-lifecycle.md)
+    * [Viewports](router-direct/viewports.md)
+    * [Navigating](router-direct/navigating.md)
+    * [Route hooks](router-direct/router-hooks.md)
+    * [Router animation](router-direct/router-animation.md)
+    * [Route Events](router-direct/route-events.md)
+    * [Router Tutorial](router-direct/router-tutorial.md)
+    * [Router Recipes](router-direct/router-recipes.md)
   * @aurelia/router-lite
     * [Getting started](router-lite/getting-started.md)
     * [Router configuration](router-lite/router-configuration.md)

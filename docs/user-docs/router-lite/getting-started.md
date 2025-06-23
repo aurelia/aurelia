@@ -1,7 +1,7 @@
 # Getting started
 
 {% hint style="info" %}
-Please note that in Aurelia2 there are two routers, namely [`@aurelia/router-direct`](../routing/getting-started.md) and `@aurelia/router-lite` (this one).
+Please note that in Aurelia2 there are two routers, namely [`@aurelia/router-direct`](../router-direct/getting-started.md) and `@aurelia/router-lite` (this one).
 The router-lite one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router-direct`. Choose your router depending on your need.
 {% endhint %}
 

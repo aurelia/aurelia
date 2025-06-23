@@ -79,8 +79,18 @@ export const runTasks = () => {
     settlePromiseReject = reject;
   });
 
+  let extraTaskCount = -queue.length;
+
   const isEmpty = queue.length === 0;
   while (queue.length > 0) {
+    if (++extraTaskCount > 10000) {
+      const error = new Error(`Potential deadlock detected. More than 10000 extra tasks were queued from within tasks.`);
+      queue.length = 0;
+      settlePromiseReject?.(error);
+      settlePromise = null;
+      throw error;
+    }
+
     const task = queue.shift()!;
     if (task instanceof Task) {
       task.run();

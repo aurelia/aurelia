@@ -856,8 +856,8 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router
-          path: "packages/__e2e__/5-router"
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:
@@ -1080,8 +1080,8 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router
-          path: "packages/__e2e__/5-router"
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:

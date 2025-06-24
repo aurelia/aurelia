@@ -47,6 +47,7 @@ export class ComputedObserver<T extends object> implements
   /** @internal */
   private _value: unknown = void 0;
 
+  /** @internal */
   private _notified = false;
 
   // todo: maybe use a counter allow recursive call to a certain level

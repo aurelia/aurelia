@@ -1,5 +1,5 @@
 import { Aurelia, CustomElement, customElement, ICustomElementController } from '@aurelia/runtime-html';
-import { IRouteConfig, IRouter, IRouteViewModel, route, Route, RouteConfig, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouteConfig, IRouter, IRouteViewModel, route, Route, RouteConfig, RouteNode, RouterConfiguration } from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { IHookInvocationAggregator, IHIAConfig, HookName } from './_shared/hook-invocation-tracker.js';
@@ -80,7 +80,7 @@ export abstract class SimpleActivityTrackingVMBase {
   }
 }
 
-describe('router-lite/config-tests.spec.ts', function () {
+describe('router/config-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     const componentSpecs: IComponentSpec[] = [
       {

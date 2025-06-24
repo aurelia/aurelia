@@ -22,13 +22,13 @@ import {
   Registration,
   resolve,
 } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, IRouteViewModel, IViewportInstruction, NavigationInstruction, Params, route, RouteNode, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomElement, customElement, IHydratedController, ILifecycleHooks, lifecycleHooks } from '@aurelia/runtime-html';
 import { assert, TestContext } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/lifecycle-hooks.spec.ts', function () {
+describe('router/lifecycle-hooks.spec.ts', function () {
   const IKnownScopes = DI.createInterface<string[]>();
   class EventLog implements ISink {
     public readonly log: string[] = [];

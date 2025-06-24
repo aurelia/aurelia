@@ -1,9 +1,9 @@
-import { IRouter, IRouteViewModel, Params, route, Router, ViewportCustomElement } from '@aurelia/router-lite';
+import { IRouter, IRouteViewModel, Params, route, Router, ViewportCustomElement } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
-describe('router-lite/resources/viewport.spec.ts', function () {
+describe('router/resources/viewport.spec.ts', function () {
 
   function assertText(vps: Element[], expected: string[]) {
     for (let i = 0; i < expected.length; i++) {

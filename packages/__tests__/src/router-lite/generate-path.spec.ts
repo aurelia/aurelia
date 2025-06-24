@@ -1,10 +1,10 @@
 import { resolve } from '@aurelia/kernel';
-import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router-lite';
+import { IRouteContext, IRouter, IRouteViewModel, NavigationInstruction, NavigationStrategy, Params, route, RouteContext, RouteNode } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/generate-path.spec.ts', function () {
+describe('router/generate-path.spec.ts', function () {
   describe('router', function () {
     abstract class AbstractVm implements IRouteViewModel {
       public readonly routeContext: IRouteContext = resolve(IRouteContext);

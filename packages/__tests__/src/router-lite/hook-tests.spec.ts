@@ -20,7 +20,7 @@ import {
   Routeable,
   IRouteViewModel,
   IRouteConfig,
-} from '@aurelia/router-lite';
+} from '@aurelia/router';
 import { assert, TestContext } from '@aurelia/testing';
 
 import { TestRouterConfiguration } from './_shared/configuration.js';
@@ -529,7 +529,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe('router-lite/hook-tests.spec.ts', function () {
+describe('router/hook-tests.spec.ts', function () {
   describe('monomorphic timings', function () {
     for (const ticks of [
       0,

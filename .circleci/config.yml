@@ -296,7 +296,7 @@ jobs:
             - packages/platform-browser/dist
             - packages/route-recognizer/dist
             - packages/router-direct/dist
-            - packages/router-lite/dist
+            - packages/router/dist
             - packages/expression-parser/dist
             - packages/runtime/dist
             - packages/template-compiler/dist
@@ -845,13 +845,13 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
+          path: "packages/__e2e__/6-router"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
+          path: "packages/__e2e__/10-router-none-history-with-hash"
           requires:
             - build_release
       - e2e_test:
@@ -1069,13 +1069,13 @@ workflows:
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
+          path: "packages/__e2e__/6-router"
           requires:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
           name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
+          path: "packages/__e2e__/10-router-none-history-with-hash"
           requires:
             - build_release
       - e2e_test:

@@ -1,10 +1,10 @@
 import { resolve } from '@aurelia/kernel';
-import { IRouter, IRouteViewModel, ITypedNavigationInstruction_string, NavigationStrategy, Params, route, RouteNode } from '@aurelia/router-lite';
+import { IRouter, IRouteViewModel, ITypedNavigationInstruction_string, NavigationStrategy, Params, route, RouteNode } from '@aurelia/router';
 import { CustomElement, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/navigation-strategy.spec.ts', function () {
+describe('router/navigation-strategy.spec.ts', function () {
   @customElement({ name: 'c-1', template: 'c1' })
   class C1 { }
 

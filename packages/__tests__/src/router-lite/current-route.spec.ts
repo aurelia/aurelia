@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 import { resolve } from '@aurelia/kernel';
-import { ICurrentRoute, IRouteViewModel, IRouter, ParameterInformation, Params, RouteConfig, route } from '@aurelia/router-lite';
+import { ICurrentRoute, IRouteViewModel, IRouter, ParameterInformation, Params, RouteConfig, route } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/current-route.spec.ts', function () {
+describe('router/current-route.spec.ts', function () {
 
   const emptyParams = Object.create(null) as Params;
   function assertCurrentRoute(actual: ICurrentRoute, expected: Partial<ICurrentRoute>, messagePrefix: string = '') {

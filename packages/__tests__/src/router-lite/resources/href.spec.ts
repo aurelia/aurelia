@@ -1,9 +1,9 @@
-import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router-lite';
+import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
 import { customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 
-describe('router-lite/resources/href.spec.ts', function () {
+describe('router/resources/href.spec.ts', function () {
 
   it('allow navigating to route defined in parent context using ../ prefix', async function () {
     @customElement({ name: 'pro-duct', template: `product \${id} <a href="../products"></a>` })

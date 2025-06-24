@@ -12,11 +12,11 @@ import {
   NavigationOptions,
   RouterOptions,
   pathUrlParser,
-} from '@aurelia/router-lite';
+} from '@aurelia/router';
 
 const terminal = ['?', '#', '/', '+', '(', ')', '@', '!', '=', ',', '&', '\'', '~', ';'];
 
-describe('router-lite/ast.spec.ts', function () {
+describe('router/ast.spec.ts', function () {
   const specs: Record<string, [RouteExpression, string]> = {};
 
   const emptyQuerystring: Readonly<URLSearchParams> = Object.freeze(new URLSearchParams());

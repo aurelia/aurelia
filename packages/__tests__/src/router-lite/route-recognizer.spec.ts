@@ -2,7 +2,7 @@ import { Writable } from '@aurelia/kernel';
 import { ConfigurableRoute, Endpoint, RecognizedRoute, RouteRecognizer, Parameter, RESIDUE } from '@aurelia/route-recognizer';
 import { assert } from '@aurelia/testing';
 
-describe('router-lite/route-recognizer.spec.ts', function () {
+describe('router/route-recognizer.spec.ts', function () {
 
   interface RecognizeSpec {
     routes: [string, Parameter[]][];

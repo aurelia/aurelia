@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "aurelia": "2.0.0-beta.24",
-    "@aurelia/router-lite": "2.0.0-beta.24",
+    "@aurelia/router": "2.0.0-beta.24",
     "@aurelia/router-direct": "2.0.0-beta.24"
   },
   "devDependencies": {

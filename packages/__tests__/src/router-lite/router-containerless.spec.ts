@@ -1,9 +1,9 @@
-import { route } from '@aurelia/router-lite';
+import { route } from '@aurelia/router';
 import { containerless, customElement, IPlatform } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/router-containerless.spec.ts', function () {
+describe('router/router-containerless.spec.ts', function () {
   it('does not render container when the routable component has @containerless', async function () {
 
     @containerless()

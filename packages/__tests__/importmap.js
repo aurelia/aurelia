@@ -19,7 +19,7 @@ document.write(`<script type="importmap">${JSON.stringify({
       'store-v1',
       'i18n',
       'router-direct',
-      'router-lite',
+      'router',
       'testing',
       'ui-virtualization',
       'validation',

@@ -1,6 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
-import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router-lite';
+import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
 import { getLocationChangeHandlerRegistration, TestRouterConfiguration } from './_shared/configuration.js';
@@ -80,7 +80,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe('router-lite/smoke-tests.spec.ts', function () {
+describe('router/smoke-tests.spec.ts', function () {
   @customElement({ name: 'a01', template: `a01${vp(0)}` })
   class A01 { }
   @customElement({ name: 'a02', template: `a02${vp(0)}` })
@@ -7591,7 +7591,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
    * Use case:
    *
    * ```ts
-   * import { route } from '@aurelia/router-lite';
+   * import { route } from '@aurelia/router';
    * import * about from './about.html'; // <-- loaded via convention plugin
    * @route({
    *   routes: [
@@ -7659,7 +7659,7 @@ describe('router-lite/smoke-tests.spec.ts', function () {
    * Use case:
    *
    * ```ts
-   * import { route } from '@aurelia/router-lite';
+   * import { route } from '@aurelia/router';
    * import * about from './about.html'; // <-- loaded via convention plugin
    * @route({
    *   routes: [

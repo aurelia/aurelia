@@ -1,10 +1,10 @@
-import { route } from '@aurelia/router-lite';
+import { route } from '@aurelia/router';
 import { customElement } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { createFixture } from './_shared/create-fixture.js';
 import { IHIAConfig } from './_shared/hook-invocation-tracker.js';
 
-describe('router-lite/external.spec.ts', function () {
+describe('router/external.spec.ts', function () {
   for (const useUrlFragmentHash of [true, false])
   for (const attr of ['external', 'data-external']) {
     it(`recognizes "${attr}" attribute - useUrlFragmentHash: ${useUrlFragmentHash}`, async function () {

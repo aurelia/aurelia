@@ -1,6 +1,6 @@
 import { Writable } from '@aurelia/kernel';
 import { ICustomElementController, IHydratedController, IHydratedParentController } from '@aurelia/runtime-html';
-import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router-lite';
+import { Params, RouteNode, NavigationInstruction, IRouteViewModel } from '@aurelia/router';
 import { IHookInvocationAggregator } from './hook-invocation-tracker.js';
 import { IHookSpec, hookSpecsMap } from './hook-spec.js';
 

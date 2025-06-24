@@ -1,10 +1,10 @@
 import { Class, DI, IDisposable, LogLevel, noop, resolve } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, Params, pathUrlParser, RouterConfiguration, route } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, Params, pathUrlParser, RouterConfiguration, route } from '@aurelia/router';
 import { AppTask, Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { TestRouterConfiguration } from './_shared/configuration.js';
 
-describe('router-lite/events.spec.ts', function () {
+describe('router/events.spec.ts', function () {
   type RouterTestStartOptions<TAppRoot> = {
     appRoot: Class<TAppRoot>;
     registrations?: any[];

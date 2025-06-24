@@ -1,12 +1,12 @@
 import { IPlatform, resolve } from '@aurelia/kernel';
-import { IRouter, IRouterEvents, route } from '@aurelia/router-lite';
+import { IRouter, IRouterEvents, route } from '@aurelia/router';
 import { customElement, IHistory, IWindow } from '@aurelia/runtime-html';
 import { assert } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { getLocationChangeHandlerRegistration } from './_shared/configuration.js';
 import { start } from './_shared/create-fixture.js';
 
-describe('router-lite/location-manager.spec.ts', function () {
+describe('router/location-manager.spec.ts', function () {
   if (isNode()) {
     return;
   }

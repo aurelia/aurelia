@@ -1,10 +1,10 @@
-import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router-lite';
+import { IRouteContext, IRouteViewModel, Params, route, RouteNode } from '@aurelia/router';
 import { CustomElement, customElement, ILocation, IPlatform } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation } from '@aurelia/testing';
 import { start } from '../_shared/create-fixture.js';
 import { resolve } from '@aurelia/kernel';
 
-describe('router-lite/resources/load.spec.ts', function () {
+describe('router/resources/load.spec.ts', function () {
 
   function assertAnchors(anchors: HTMLAnchorElement[] | NodeListOf<HTMLAnchorElement>, expected: { href: string; active?: boolean }[], message: string = '', assertActive: boolean = true): void {
     const len = anchors.length;

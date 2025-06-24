@@ -17,9 +17,11 @@ describe('webpack-plugin', function () {
   it('transforms html file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -32,14 +34,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('transforms html file in shadowDOM mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -53,14 +58,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('transforms html file in CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.html content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -74,14 +82,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('transforms html file in shadowDOM mode ignoring CSSModule mode', function (done) {
     const content = 'content';
     const expected = 'processed {"mode":"open"} src/foo-bar.html content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -95,14 +106,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('transforms js file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.js content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -115,14 +129,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('transforms ts file', function (done) {
     const content = 'content';
     const expected = 'processed src/foo-bar.ts content';
+    let i = 0;
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -135,14 +152,17 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 
   it('bypass other file', function (done) {
     const content = 'content';
+    let i = 0;
     // const notExpected = 'processed src/foo-bar.css content';
 
     const context = {
       async: () => function (err, code, map) {
+        i++;
         if (err) {
           done(err);
           return;
@@ -155,5 +175,6 @@ describe('webpack-plugin', function () {
     };
 
     loader.call(context, content, preprocess);
+    assert.strictEqual(i, 1);
   });
 });

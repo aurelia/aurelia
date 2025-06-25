@@ -1,4 +1,5 @@
 import { ISyntheticView } from '@aurelia/runtime-html';
+import { createMappedError, ErrorNames } from './errors';
 
 /**
  * Walk up the DOM tree and determine what element will be scroller for an element
@@ -13,7 +14,7 @@ export const getScrollerElement = (element: Node): HTMLElement => {
     }
     current = current.parentNode as HTMLElement;
   }
-  throw new Error('Unable to find a scroller');
+  throw createMappedError(ErrorNames.scroller_element_not_found);
 };
 
 /**

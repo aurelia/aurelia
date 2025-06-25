@@ -28,6 +28,7 @@ import {
 import {
   unwrapExpression,
 } from "./utilities-repeat";
+import { createMappedError, ErrorNames } from './errors';
 import {
   ICollectionStrategyLocator,
   IDomRenderer,
@@ -195,6 +196,11 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    */
   public attaching(): void {
     this.dom = this._domRenderer.render(this.location, this._configuredLayout);
+    const parentTag = (this.dom.anchor.parentNode as Element).tagName;
+    if (this._configuredLayout === 'horizontal'
+        && (parentTag === 'TBODY' || parentTag === 'THEAD' || parentTag === 'TFOOT' || parentTag === 'TABLE')) {
+      throw createMappedError(ErrorNames.virtual_repeat_horizontal_in_table);
+    }
     (this.scrollerObserver = this.scrollerObserverLocator.getObserver(this.dom.scroller)).subscribe(this);
 
     // todo: merge the obs mediator into collection strategy
@@ -224,7 +230,7 @@ export class VirtualRepeat implements IScrollerSubscriber, IVirtualRepeater {
    */
   private _initCalculation(): Calculation {
     if (!(this.collectionStrategy!.count > 0)) {
-      throw new Error('AURxxxx: Invalid calculation state. Virtual repeater has no items.');
+      throw createMappedError(ErrorNames.virtual_repeat_invalid_calculation_state);
     }
     const firstView = this._createAndActivateFirstView();
     const firstElement = firstView.nodes.firstChild as HTMLElement;

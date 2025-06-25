@@ -2,6 +2,7 @@ import { IPlatform, IRenderLocation } from '@aurelia/runtime-html';
 import { IContainer, Registration } from '@aurelia/kernel';
 import { IVirtualRepeatDom, IDomRenderer } from './interfaces';
 import { getScrollerElement } from './utilities-dom';
+import { createMappedError, ErrorNames } from './errors';
 
 export class DefaultDomRenderer implements IDomRenderer {
   /** @internal */
@@ -20,7 +21,7 @@ export class DefaultDomRenderer implements IDomRenderer {
     const parent = target.parentNode as Element;
     // Todo: should this ever happen?
     if (parent === null) {
-      throw new Error('Invalid render target');
+      throw createMappedError(ErrorNames.invalid_render_target);
     }
     let bufferEls: [HTMLElement, HTMLElement];
     switch (parent.tagName) {

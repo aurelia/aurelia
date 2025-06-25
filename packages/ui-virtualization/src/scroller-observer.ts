@@ -1,6 +1,7 @@
 import { IPlatform } from "@aurelia/runtime-html";
 import { IContainer, Registration } from "@aurelia/kernel";
 import { IScrollerInfo, IScrollerObsererLocator, IScrollerObserver, IScrollerSubscriber } from "./interfaces";
+import { createMappedError, ErrorNames } from './errors';
 
 export class ScrollerObserverLocator implements IScrollerObsererLocator {
   public static get inject() {
@@ -66,7 +67,7 @@ export class ScrollerObserver implements IScrollerObserver {
   }
 
   public setValue(): void {
-    throw new Error('scroller info is readonly');
+    throw createMappedError(ErrorNames.scroller_info_readonly);
   }
 
   public getValue(): IScrollerInfo {

@@ -39,7 +39,6 @@ export default function au(options: {
         'aurelia',
         'fetch-client',
         'router',
-        'router',
         'kernel',
         'metadata',
         'i18n',

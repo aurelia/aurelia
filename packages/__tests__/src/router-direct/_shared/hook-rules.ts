@@ -9,11 +9,7 @@ export const removeHooks: HookName[] = ['detaching', 'unbinding', 'dispose'];
 export function verifyRules(invocations: string[], swapStrategy: SwapStrategy, phase: string, root: string, from: string, to: string): boolean {
   const {
     viewports,
-    topViewport,
     fromViewports,
-    toViewports,
-    underlyingFrom,
-    underlyingTo,
   } = getViewports(root, from, to);
 
   invocations = invocations.filter(invocation => invocation.startsWith(`${phase}:`));

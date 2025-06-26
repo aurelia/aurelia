@@ -405,7 +405,7 @@ export class Navigator {
     };
     // ...and save it in the right place.
     if (push) {
-      return this.options?.store?.pushNavigatorState(state);
+      return this.options.store.pushNavigatorState(state);
     } else {
       return this.options.store.replaceNavigatorState(state);
     }

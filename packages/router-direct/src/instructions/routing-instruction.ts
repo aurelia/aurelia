@@ -181,7 +181,7 @@ export class RoutingInstruction {
           newInstruction.nextScopeInstructions = RoutingInstruction.from(context, viewportComponent.children);
         }
         instructions.push(newInstruction);
-      } else if (typeof instruction === 'object' && instruction !== null) {
+      } else if (typeof instruction === 'object') { // due to the previous checks, this is guaranteed to be non-null
         const type = CustomElement.define(instruction);
         instructions.push(RoutingInstruction.create(type) as RoutingInstruction);
       } else {

@@ -47,8 +47,9 @@ export function translateOptions(routerOptionsSpec: IRouterOptionsSpec): IRouter
     }
   } else {
     switch (routerOptionsSpec.deferUntil) {
-      case 'load-hooks':
+      case 'load-hooks': // deepscan-disable-line SWITCH_CASE_FALL_THROUGH
         syncStates.push('loaded', 'unloaded', 'routed');
+      // eslint-disable-next-line no-fallthrough
       case 'guard-hooks':
         syncStates.push('guardedLoad', 'guarded');
     }

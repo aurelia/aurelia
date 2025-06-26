@@ -185,7 +185,7 @@ export class ViewportScope extends Endpoint {
   }
 
   public acceptSegment(segment: string): boolean {
-    if (segment === null && segment === void 0 || segment.length === 0) {
+    if (segment == null || segment.length === 0) {
       return true;
     }
     if (segment === RoutingInstruction.clear(this.router)

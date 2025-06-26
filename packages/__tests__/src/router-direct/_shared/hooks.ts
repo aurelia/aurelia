@@ -1,6 +1,5 @@
 import { assert } from '@aurelia/testing';
 import { HookName } from './hook-invocation-tracker.js';
-import { TransitionComponent } from './component.js';
 import { Transition } from './transition.js';
 import { TransitionViewport } from './transition-viewport.js';
 
@@ -32,20 +31,7 @@ export function* getStopHooks(root: string, p: string, c: string = '', c3 = '', 
   if (c4) { yield* prepend('stop', c4, 'unbinding'); }
 }
 
-function removeIndex(transitions: (string | TransitionComponent)[], index: number): number {
-  // First top transition, then add transition(s) and then remove transition(s)
-  return index = index === 0 ? 0 : index + transitions.length - 1;
-}
-
-function appendViewports(viewports, hooks) {
-  for (let i = 0; i < viewports.length; i++) {
-    if (hooks[i] !== void 0) {
-      viewports[i].hooks.push(...hooks[i].hooks);
-    }
-  }
-}
-
-function getViewports(transitions: Transition[], forceParallel: boolean): {
+function getViewports(transitions: Transition[]): {
   viewports: TransitionViewport[];
   topViewports: TransitionViewport[];
   addViewports: TransitionViewport[];
@@ -104,39 +90,6 @@ function getViewports(transitions: Transition[], forceParallel: boolean): {
   };
 }
 
-function getTypedViewports(viewports: TransitionViewport[]): {
-  viewports: TransitionViewport[];
-  topViewports: TransitionViewport[];
-  addViewports: TransitionViewport[];
-  removeViewports: TransitionViewport[];
-  underlyingAdd: TransitionViewport[];
-  underlyingRemove: TransitionViewport[];
-  topFrom: TransitionViewport;
-  topTo: TransitionViewport;
-
-} {
-  const topViewports = viewports.filter(viewport => viewport.isTop);
-  const addViewports = viewports.filter(viewport => !viewport.to.isEmpty);
-  const removeViewports = viewports.filter(viewport => viewport.to.isEmpty);
-  const underlyingAdd = addViewports.filter(viewport => !viewport.isTop);
-  const underlyingRemove = removeViewports.filter(viewport => !viewport.isTop);
-  // Viewports are removed bottom-up so reverse order
-  removeViewports.reverse();
-  const topFrom = topViewports.filter(viewport => !viewport.from.isEmpty)?.[0];
-  const topTo = topViewports.filter(viewport => !viewport.to.isEmpty)?.[0];
-
-  return {
-    viewports,
-    topViewports,
-    addViewports,
-    removeViewports,
-    underlyingAdd,
-    underlyingRemove,
-    topFrom,
-    topTo,
-  };
-}
-
 export function getHooks(deferUntil, swapStrategy, phase, ...siblingTransitions) {
   const siblingHooks: string[][] = siblingTransitions.map(sibling => getNonSiblingHooks(deferUntil, swapStrategy, phase, sibling));
 
@@ -189,10 +142,9 @@ export function getNonSiblingHooks(deferUntil, swapStrategy, phase, transitionCo
     addViewports,
     removeViewports,
     underlyingAdd,
-    underlyingRemove,
     topFrom,
     topTo,
-  } = getViewports(transitions, false /* swapStrategy.includes('parallel') && deferUntil !== 'none' */);
+  } = getViewports(transitions /* swapStrategy.includes('parallel') && deferUntil !== 'none' */);
 
   // // Remove hooks are added to the viewport that's first processed (in the tests)
   // let hookViewport: TransitionViewport;
@@ -646,7 +598,7 @@ export function getInterweaved(...viewports: TransitionViewport[] | string[][]) 
       } else {
         let value = list.shift();
         hooks.push(value);
-        while (value && list?.[0]) {
+        while (value && list[0]) {
           value = list.shift();
           hooks.push(value);
         }
@@ -654,27 +606,6 @@ export function getInterweaved(...viewports: TransitionViewport[] | string[][]) 
     }
   }
   return hooks;
-}
-
-function getInterweavedViewports(...viewportLists: TransitionViewport[][]) {
-  const viewports: TransitionViewport[] = [];
-
-  while (viewportLists.length > 0) {
-    for (let i = 0, ii = viewportLists.length; i < ii; ++i) {
-      const list = viewportLists[i];
-      if (list.length === 0) {
-        viewportLists.splice(i, 1);
-        --i;
-        --ii;
-      } else {
-        const viewport = list.shift();
-        if (viewport !== void 0) {
-          viewports.push(viewport);
-        }
-      }
-    }
-  }
-  return viewports;
 }
 
 export function getPrepended(prefix: string, component: string, ...hooks: (HookName | '')[]) {
@@ -1017,8 +948,6 @@ export function* getParentChildHooks(deferUntil, swapStrategy, componentKind, ph
       break;
   }
 }
-
-function* getNothing() { /* return nothing */ }
 
 export function assertHooks(actual: any, expected: any): void {
   try {

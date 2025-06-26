@@ -21,12 +21,3 @@ export const TestRouterConfiguration = {
     };
   },
 };
-
-function getModifiedRouter(container) {
-  const router = container.get(IRouter) as IRouter;
-  const mockBrowserHistoryLocation = new MockBrowserHistoryLocation();
-  mockBrowserHistoryLocation.changeCallback = router.viewer.handlePopstate;
-  router.viewer.history = mockBrowserHistoryLocation as any;
-  router.viewer.location = mockBrowserHistoryLocation as any;
-  return router;
-}

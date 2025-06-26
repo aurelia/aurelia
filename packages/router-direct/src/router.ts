@@ -904,7 +904,7 @@ export class Router implements IRouter {
     // Add base path...
     let basePath = `${this.configuration.options.basePath as string}/`;
     // ...unless it's not set or we've got an absolute state/path (or we're using fragment hash)
-    if (basePath === null || (state !== '' && state[0] === '/') ||
+    if ((state !== '' && state[0] === '/') ||
       this.configuration.options.useUrlFragmentHash) {
       basePath = '';
     }

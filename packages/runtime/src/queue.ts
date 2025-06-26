@@ -1,5 +1,6 @@
-/* eslint-disable jsdoc/check-tag-names */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable jsdoc/check-indentation */
+/* eslint-disable jsdoc/no-multi-asterisks */
 const tsPending = 'pending';
 const tsRunning = 'running';
 const tsCompleted = 'completed';
@@ -47,29 +48,69 @@ const signalSettled = (hasPerformedWork: boolean) => {
 };
 
 /**
- * @description Processes all currently pending tasks in the task queue.
+ * **Immediately drain** Aurelia's internal task queue.
  *
- * @remarks
- * This function iterates through the task queue, executing each task:
- * - Synchronous tasks (raw functions) are invoked directly.
- * - Asynchronous tasks (instances of `Task`) have their `run()` method called,
- * which initiates their async operation.
+ * Normally the scheduler calls this automatically on the next micro-task
+ * whenever you enqueue work with {@link queueTask} or {@link queueAsyncTask}.
+ * Calling it yourself is only useful in **low-level tests, debugging sessions,
+ * or custom instrumentation** where you need a _synchronous_ flush.
  *
- * `runTasks` is invoked automatically in a microtask after tasks are added via
- * `queueTask` or `queueAsyncTask`. However, it can also be called manually
- * to force immediate processing of the queue.
+ * ### What it does
+ * 1. Removes each item from the queue (FIFO) and runs it.
+ * 2. If an item queues more work, the loop continues until the queue is empty,
+ *    up to **10 000 extra tasks** – after that a "Potential deadlock" error is
+ *    thrown and the queue is cleared.
+ * 3. Collects every uncaught exception.
+ *    * When you invoke the function manually those errors are re-thrown —
+ *      either the single error or an `AggregateError` if several tasks failed.*
+ *    * During the scheduler's automatic run they are _suppressed_ and will only
+ *      surface through `tasksSettled()` or the runtime console, so the app
+ *      keeps running.
+ * 4. Signals the internal "settled promise" so `await tasksSettled()` continues
+ *    once _all_ **synchronous** callbacks have finished (async promises may
+ *    still be pending).
  *
- * If `runTasks` is called manually, and any tasks throw errors during their execution:
- * - If a single task fails, that task's error is thrown directly by `runTasks`.
- * - If multiple tasks fail, an `AggregateError` containing all encountered errors
- * is thrown by `runTasks`.
+ * > **Tip:** In most cases you should prefer `await tasksSettled()`; it waits
+ * > for both the synchronous drain **and** any asynchronous work started by
+ * > the tasks. `runTasks()` is only needed when you must stay purely
+ * > synchronous (e.g. inside a non-async test).
  *
- * Regardless of how it's called, `runTasks` ensures that a promise is available,
- * which `tasksSettled()` uses to allow awaiting the completion of all work.
- * Any errors encountered are collected and will cause the promise returned by
- * `tasksSettled()` to reject.
+ * @throws Error            If a task throws and you called the function
+ *                          directly.
+ * @throws AggregateError   If multiple tasks throw.
+ * @throws Error            "Potential deadlock detected" when > 10 000 extra
+ *                          tasks are re-queued in one drain.
  *
- * @throws {Error|AggregateError} If invoked manually and one or more tasks fail during execution.
+ * @example
+ * Synchronous assertion in a non-async test
+ * ```ts
+ * it('updates the DOM synchronously', () => {
+ *   vm.value = 42;
+ *   runTasks(); // flush queue synchronously
+ *   expect(el.textContent).toBe('42');
+ * });
+ * ```
+ *
+ * @example
+ * Debugging pending tasks in the browser console
+ * ```ts
+ * // In the app startup code
+ * window.runTasks = runTasks;
+ *
+ * // After pausing in a breakpoint
+ * window.runTasks(); // force the scheduler to drain now
+ * ```
+ *
+ * @example
+ * Fail fast when a task throws during manual drain
+ * ```ts
+ * try {
+ *   runTasks();
+ * } catch (e) {
+ *   console.error('A queued operation failed:', e);
+ *   throw e; // make the test fail
+ * }
+ * ```
  */
 export const runTasks = () => {
   const isManualRun = !isAutoRun;
@@ -115,39 +156,85 @@ export const runTasks = () => {
 };
 
 /**
- * @description Returns a promise that resolves when the task queue is empty and all
- * active asynchronous tasks (queued via `queueAsyncTask`) have completed,
- * been canceled, or have otherwise settled.
+ * Return a promise that resolves once **all queued work has finished** and the
+ * Aurelia scheduler is completely idle.
  *
- * @remarks
- * This is the primary API for awaiting the completion of all work scheduled through
- * the task queue. It's essential for scenarios like testing or coordinating updates
- * after a batch of operations.
+ * Conceptually similar to a browser's "micro-task drain" (the classic
+ * `await Promise.resolve()` trick) but extended to cover:
  *
- * The promise will reject if any task executed since the last settlement
- * (or the start of the current batch of work) has thrown an error, or if an
- * asynchronous task's underlying promise has rejected.
- * - If a single error occurred, the promise rejects with that error.
- * - If multiple errors occurred, the promise rejects with an `AggregateError`
- * containing all collected errors.
+ * * synchronous micro-tasks queued via {@link queueTask}
+ * * asynchronous or delayed tasks queued via {@link queueAsyncTask}
+ * * any promises those callbacks return
  *
- * @returns {Promise<boolean>} A promise that resolves when all tasks in the queue
- * have settled, or rejects if any task encountered an error.
- * The resolved promise returns `true` if one or more tasks were queued , otherwise returns `false`.
+ * Perfect for unit / component / e2e tests where you must wait for bindings,
+ * observers, `requestAnimationFrame` chains and timers to flush **without
+ * guessing a timeout**.
+ *
+ * #### Behaviour
+ * | Situation                                                | Result                             |
+ * |----------------------------------------------------------|------------------------------------|
+ * | At least one task ran before the queue became empty      | **resolves `true`**                |
+ * | Nothing was pending when you called the function         | **resolves `false`**               |
+ * | One task throws                                          | **rejects** with that error        |
+ * | Multiple tasks throw                                     | **rejects** with an `AggregateError` |
+ *
+ * Re-invocations while work is still pending return the **same** promise; once
+ * everything settles, the next call starts a fresh cycle.
+ *
+ * @returns Promise<boolean> &mdash; `true` if any work was processed,
+ *          otherwise `false`.
+ *
+ * @throws {*} Propagates the error(s) thrown by tasks, see table above.
  *
  * @example
- * ```typescript
- * import { queueTask, queueAsyncTask, tasksSettled } from '@aurelia/runtime';
+ * <caption>Flush bindings in a component test
+ * ```ts
+ * vm.todoText = 'Write docs';
+ * vm.addTodo();
+ * await tasksSettled(); // wait for DOM & animations
+ * expect(list.children.length).toBe(1);
+ * ```
  *
- * queueTask(() => console.log('Sync task done'));
+ * @example
+ * Playwright helper to wait for framework idle
+ * ```ts
+ * // In the app startup code
+ * window.tasksSettled = tasksSettled;
  *
- * queueAsyncTask(async () => {
- *   await new Promise(r => setTimeout(r, 100));
- *   console.log('Async task done');
+ * // helpers.ts
+ * export async function waitForIdle(page: Page) {
+ *   await page.evaluate(() => window.tasksSettled());
+ * }
+ *
+ * await page.getByRole('button', { name: 'Save' }).click();
+ * await waitForIdle(page); // no arbitrary sleeps
+ * ```
+ *
+ * @example
+ * Detect and surface aggregated task errors
+ * ```ts
+ * queueTask(() => { throw new Error('first'); });
+ * queueTask(() => { throw new Error('second'); });
+ *
+ * try {
+ *   await tasksSettled();
+ * } catch (e) {
+ *   if (e instanceof AggregateError) {
+ *     console.log('Multiple failures:', e.errors.length);
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * Ensure every test exits cleanly using the boolean result
+ * ```ts
+ * afterEach(async () => {
+ *   const didWork = await tasksSettled();
+ *   if (didWork) {
+ *     // Failing here highlights orphaned micro-tasks or timers left by the test
+ *     throw new Error('Test left pending work on the Aurelia scheduler');
+ *   }
  * });
- *
- * await tasksSettled();
- * console.log('All tasks have settled successfully');
  * ```
  */
 export const tasksSettled = (): Promise<boolean> => {
@@ -174,67 +261,117 @@ export const tasksSettled = (): Promise<boolean> => {
 };
 
 /**
- * @description Enqueues a synchronous callback function to be executed on the next tick.
+ * Queue a **synchronous** callback onto Aurelia's internal task queue.
  *
- * @param {TaskCallback} callback - The synchronous function to be added to the queue.
- * This function will be invoked by `runTasks` on the next tick.
+ * The callback is executed in the same micro-task drain as bindings,
+ * computed observers, and other framework internals, immediately after the
+ * current call-stack has unwound.
+ * Because these tasks are *fire-and-forget* they:
  *
- * @remarks
- * If the `callback` throws an error during its execution, this error is caught by the
- * scheduler. It will then contribute to the rejection of the promise returned by
- * `tasksSettled()`.
+ * * **cannot be awaited** – if you need an awaitable handle use
+ *   {@link queueAsyncTask} instead;
+ * * are still included in the bookkeeping for {@link tasksSettled}, so tests
+ *   that `await tasksSettled()` will not proceed until every queued callback
+ *   has run.
  *
- * @example
- * ```typescript
- * import { queueTask, tasksSettled } from '@aurelia/runtime';
+ * **Intended audience**: framework contributors, advanced plug-ins, and custom
+ * binding strategies. Typical application code rarely needs this API.
  *
- * console.log('Before queueing task');
- * queueTask(() => {
- *   console.log('Synchronous task is executing');
- * });
- * console.log('Task queued');
- *
- * tasksSettled().then(() => console.log('Tasks settled'));
- * // Expected output order:
- * // Before queueing task.
- * // Task queued.
- * // Synchronous task is executing.
- * // Tasks settled.
- * ```
+ * @param callback - A *synchronous* function to execute after the current
+ *                   JavaScript turn.  Any exception it throws is captured and
+ *                   surfaced collectively via `tasksSettled()` or `runTasks()`.
  */
-export const queueTask = <R = any>(callback: TaskCallback<R>) => {
+export const queueTask = (callback: TaskCallback) => {
   requestRun();
   queue.push(callback);
 };
 
 /**
- * @description Enqueues a callback function that can perform synchronous or asynchronous work.
+ * Queue a callback to run **asynchronously** on Aurelia's central scheduler
+ * and get back a {@link Task} object you can:
  *
- * @template R The underlying value type of the task's `result` property. For instance, if the
- * `callback` returns `Promise<string>`, then `R` will be `string`, and the `result` property
- * of the task will be of type `Promise<string>`.
+ * * `await` – via `task.result`
+ * * cancel – via `task.cancel()`
+ * * inspect – via `task.status`
  *
- * @param {TaskCallback} callback - The function to be enqueued.
- * This function will be invoked by `runTasks` on the next tick.
- * If it returns a `Promise`, the scheduler waits for this promise to settle, which can be
- * awaited via `tasksSettled()`
+ * Any callbacks scheduled this way are automatically tracked by the framework,
+ * so `await tasksSettled()` waits until the all tasks (and any promises they return)
+ * have finished.
  *
- * @returns {Task<R>} A {@link Task} object that represents the lifecycle and result of the
- * operation. This object provides:
- * - `result`: A promise that resolves with the task's outcome or rejects if the task fails.
- * - `status`: A string indicating the current state of the task ('pending', 'running', 'completed', 'canceled').
+ * @template R The value returned by `callback`, or the value the promise it
+ *             returns resolves to.
  *
- * @remarks
- * Errors thrown synchronously within the `callback`, or rejections from a `Promise`
- * returned by the `callback`, are caught by the scheduler. These errors will cause
- * the `Task`'s `result` promise to reject and will also contribute to the
- * rejection of the promise returned by `tasksSettled()`.
+ * @param callback  - A function to execute. It may be synchronous or asynchronous;
+ *                    if it returns a promise, the scheduler treats the task as
+ *                    *running* until that promise settles.
  *
- * The task can be canceled via its `cancel()` method before it starts running.
+ * @param options.delay  - Optional delay **in milliseconds** before the callback
+ *                         is queued. While waiting, the task can still be
+ *                         cancelled.
+ *
+ * @returns The {@link Task} representing the scheduled work.
+ *
+ * @throws {TaskAbortError} The task's `result` promise rejects with this error
+ *                          if the task is cancelled before it starts.
+ * @throws {*}              The task's `result` promise propagates any error
+ *                          thrown by `callback`.
+ *
+ * ---
  *
  * @example
- * ```typescript
- * // TODO
+ * Component integration tests
+ * ```ts
+ * it('increments the view when the button is clicked', async () => {
+ *   const { vm, host } = await createFixture(`<counter></counter>`);
+ *   host.querySelector('button')!.click();
+ *
+ *   // This will resolve after every queued task has finished,
+ *   // including rendering.
+ *   await tasksSettled();
+ *
+ *   expect(host.textContent).toContain('1');
+ * });
+ * ```
+ *
+ * @example
+ * Debounce a network search – cancel if the user keeps typing
+ * ```ts
+ * let current: Task<SearchResult[]> | null = null;
+ *
+ * function search(term: string) {
+ *   current?.cancel(); // abort the previous call
+ *
+ *   current = queueAsyncTask(async () => {
+ *     const resp = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+ *     return resp.json() as Promise<SearchResult[]>;
+ *   }, { delay: 300 }); // classic 300 ms debounce
+ *
+ *   return current.result; // awaitable by callers
+ * }
+ * ```
+ *
+ * @example
+ * Schedule expensive canvas work onto the next animation frame (test-friendly)
+ * ```ts
+ * export function scheduleRender(frameData: Data) {
+ *   queueAsyncTask(
+ *     () => new Promise<void>(resolve => requestAnimationFrame(() => {
+ *       draw(frameData); // expensive canvas work
+ *       resolve();
+ *     }))
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * Auto-dismiss a toast after 5 s (test-friendly)
+ * ```ts
+ * export function showToast(msg: string) {
+ *   const toast = createToast(msg);
+ *   document.body.appendChild(toast);
+ *
+ *   queueAsyncTask(() => toast.remove(), { delay: 5000 });
+ * }
  * ```
  */
 export const queueAsyncTask = <R = any>(callback: TaskCallback<R>, options?: { delay?: number }) => {
@@ -270,7 +407,25 @@ export class TaskAbortError<T = any> extends Error {
 
 let id = 0;
 
+/**
+ * A handle returned by {@link queueAsyncTask} that lets you observe and control
+ * the life-cycle of a piece of scheduled work.
+ *
+ * Tasks move through **four immutable states**:
+ *
+ * | State      | Meaning | When it changes |
+ * |------------|---------|-----------------|
+ * | `"pending"`   | Waiting in the queue <br>(or in a `setTimeout` delay). | Immediately after creation. |
+ * | `"running"`   | `callback` is executing. | When the scheduler dequeues the task. |
+ * | `"completed"` | Callback (and any returned promise) settled. | After `callback` finishes / promise resolves. |
+ * | `"canceled"`  | Task was aborted **or** callback/promise rejected. | When `cancel()` succeeds, or on error. |
+ *
+ * @template R Type of the value produced by the callback.
+ */
 export class Task<R = any> {
+  /**
+   * Unique, incrementing identifier – handy for logging / debugging.
+   */
   public readonly id: number = ++id;
 
   /** @internal */
@@ -283,12 +438,40 @@ export class Task<R = any> {
 
   /** @internal */
   private readonly _result: Promise<Awaited<R>>;
+  /**
+   * A promise that:
+   * * **fulfils** with the callback's return value, or
+   * * **rejects** with:
+   *   * whatever error the callback throws,
+   *   * whatever rejection the callback's promise yields, or
+   *   * a {@link TaskAbortError} if the task is canceled before it starts.
+   *
+   * Consumers typically `await` this to know when *their* task is done without
+   * caring about unrelated work still queued.
+   *
+   * @example
+   * ```ts
+   * const toastTask = queueAsyncTask(showToast, { delay: 5000 });
+   * await toastTask.result; // waits 5 s then resolves
+   * ```
+   */
   public get result(): Promise<Awaited<R>> {
     return this._result;
   }
 
   /** @internal */
   private _status: TaskStatus = tsPending;
+  /**
+   * Current immutable status of the task.
+   *
+   * @example
+   * ```ts
+   * const task = queueAsyncTask(() => 123);
+   * console.log(task.status); // "pending"
+   * await task.result;
+   * console.log(task.status); // "completed"
+   * ```
+   */
   public get status(): TaskStatus {
     return this._status;
   }
@@ -338,6 +521,26 @@ export class Task<R = any> {
     }
   }
 
+  /**
+   * Attempt to cancel the task **before it runs**.
+   *
+   * * If the task is still `"pending"` **and**:
+   *   * waiting in a `setTimeout` → the timer is cleared.
+   *   * sitting in the queue     → it is removed.
+   *   The task transitions to `"canceled"` and `result` rejects with
+   *   {@link TaskAbortError}.
+   * * If the task is already `"running"` or `"completed"` nothing happens.
+   *
+   * @returns `true` when the task was successfully canceled,
+   *          otherwise `false`.
+   *
+   * @example
+   * ```ts
+   * const t = queueAsyncTask(fetchData, { delay: 300 });
+   * // user typed again before the debounce expired
+   * if (t.cancel()) console.log('Previous fetch aborted');
+   * ```
+   */
   public cancel(): boolean {
     if (this._timerId !== undefined) {
       clearTimeout(this._timerId);

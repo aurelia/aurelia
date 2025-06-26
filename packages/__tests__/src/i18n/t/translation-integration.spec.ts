@@ -1,7 +1,7 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
 import { ISignaler, Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
-import { runTasks, tasksSettled } from '@aurelia/runtime';
+import { queueAsyncTask, runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
@@ -1487,11 +1487,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
 
       await runTest(
-        async function ({ platform, host, container }) {
-          await platform.taskQueue.queueTask(async delta => {
+        async function ({ host, container }) {
+          await queueAsyncTask(async () => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            await tasksSettled();
-            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+            await Promise.resolve();
+            assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
         { component: App });
@@ -1601,11 +1601,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
 
       await runTest(
-        async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
-          await platform.taskQueue.queueTask(async delta => {
+        async function ({ host, container }: I18nIntegrationTestContext<App>) {
+          await queueAsyncTask(async () => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            await tasksSettled();
-            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+            await Promise.resolve();
+            assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
         { component: App });
@@ -1918,7 +1918,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       au.app({ host, component: AppOne });
       await au.start();
 
-      return { au, host, vm: au.root.controller.viewModel as AppOne, queue: ctx.platform.domQueue };
+      return { au, host, vm: au.root.controller.viewModel as AppOne };
     }
 
     async function createAppTwo() {
@@ -1939,7 +1939,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       au.app({ host, component: AppTwo });
       await au.start();
-      return { au, host, vm: au.root.controller.viewModel as AppTwo, queue: ctx.platform.domQueue };
+      return { au, host, vm: au.root.controller.viewModel as AppTwo };
     }
 
     const [

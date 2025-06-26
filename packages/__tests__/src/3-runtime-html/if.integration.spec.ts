@@ -2,7 +2,6 @@ import {
   CustomAttribute,
   ICustomElementViewModel,
   IHydratedController,
-  IPlatform,
   customElement,
 } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
@@ -271,9 +270,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         );
 
         const eventLog = container.get(EventLog);
-        const platform = container.get(IPlatform);
-        const queue = platform.domQueue;
-        queue.flush();
 
         assert.html.textContent(appHost, '', 'init');
         assert.deepStrictEqual(eventLog.events, [], 'init log');
@@ -304,7 +300,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         async function deactivateC1(round: number) {
           eventLog.events.length = 0;
           component.showC1 = false;
-          await queue.yield();
+          await tasksSettled();
           assert.html.textContent(appHost, '', `round#${round} - c-1 deactivation - DOM`);
           assert.deepStrictEqual(eventLog.events, [], `round#${round} - c-1 deactivation - log`);
         }
@@ -313,7 +309,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           try {
             eventLog.events.length = 0;
             component.showC1 = true;
-            await queue.yield();
             if (!success) assert.fail(`round#${round} - c-1 activation should have failed`);
           } catch (e) {
             if (success) throw e;
@@ -355,9 +350,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         );
 
         const eventLog = container.get(EventLog);
-        const platform = container.get(IPlatform);
-        const queue = platform.domQueue;
-        queue.flush();
 
         assert.html.textContent(appHost, 'c-2', 'init');
         assert.deepStrictEqual(eventLog.events, [], 'init log');
@@ -388,7 +380,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         async function deactivateC1(round: number) {
           eventLog.events.length = 0;
           component.showC1 = false;
-          await queue.yield();
+          await tasksSettled();
           assert.html.textContent(appHost, 'c-2', `round#${round} - c-1 deactivation - DOM`);
           assert.deepStrictEqual(eventLog.events, [], `round#${round} - c-1 deactivation - log`);
         }
@@ -397,7 +389,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
           try {
             eventLog.events.length = 0;
             component.showC1 = true;
-            await queue.yield();
             if (!success) assert.fail(`round#${round} - c-1 activation should have failed`);
           } catch (e) {
             if (success) throw e;

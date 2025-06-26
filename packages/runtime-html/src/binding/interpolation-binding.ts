@@ -21,6 +21,8 @@ import type {
 } from '@aurelia/runtime';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { type Interpolation, IsExpression } from '@aurelia/expression-parser';
+import { activating } from '../templating/controller';
+import { atLayout } from '../utilities';
 
 // a pseudo binding to manage multiple InterpolationBinding s
 // ========
@@ -34,6 +36,9 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
   /** @internal */
   public _scope?: Scope = void 0;
+
+  /** @internal */
+  private _isQueued: boolean = false;
 
   public partBindings: InterpolationPartBinding[];
 
@@ -74,7 +79,23 @@ export class InterpolationBinding implements IBinding, ISubscriber, ICollectionS
 
   /** @internal */
   public _handlePartChange() {
-    this.updateTarget();
+    if (!this.isBound) return;
+
+    const shouldQueue = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
+
+    if (shouldQueue) {
+      if (this._isQueued) return;
+      this._isQueued = true;
+
+      queueTask(() => {
+        this._isQueued = false;
+        if (!this.isBound) return;
+
+        this.updateTarget();
+      });
+    } else {
+      this.updateTarget();
+    }
   }
 
   public updateTarget(): void {
@@ -154,8 +175,6 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   // but it wouldn't matter here, just start with something for later check
   public readonly mode: BindingMode = toView;
   public _scope?: Scope;
-  /** @internal */
-  private _isQueued: boolean = false;
   public isBound: boolean = false;
 
   /** @internal */
@@ -192,26 +211,19 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
 
   public handleChange(): void {
     if (!this.isBound) return;
-    if (this._isQueued) return;
-    this._isQueued = true;
 
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
-
-      this.obs.version++;
-      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
-      this.obs.clear();
-      // todo(!=): maybe should do strict comparison?
-      // eslint-disable-next-line eqeqeq
-      if (newValue != this._value) {
-        this._value = newValue;
-        if (isArray(newValue)) {
-          this.observeCollection(newValue);
-        }
-        this.updateTarget();
+    this.obs.version++;
+    const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+    this.obs.clear();
+    // todo(!=): maybe should do strict comparison?
+    // eslint-disable-next-line eqeqeq
+    if (newValue != this._value) {
+      this._value = newValue;
+      if (isArray(newValue)) {
+        this.observeCollection(newValue);
       }
-    });
+      this.updateTarget();
+    }
   }
 
   public handleCollectionChange(): void {

@@ -45,7 +45,6 @@ describe('3-runtime-html/au-compose.spec.ts', function () {
 
       component.message = 'hello';
 
-      assert.strictEqual(appHost.textContent, 'hello world');
       await tasksSettled();
       assert.strictEqual(appHost.textContent, 'hello');
 

@@ -1,10 +1,5 @@
 # Getting started
 
-{% hint style="info" %}
-Please note that in Aurelia2 there are two routers, namely [`@aurelia/router-direct`](../router-direct/getting-started.md) and `@aurelia/router` (this one).
-The router one is smaller in size, supports only configured routing, and does not support direct routing, as facilitated by `@aurelia/router-direct`. Choose your router depending on your need.
-{% endhint %}
-
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 Here is a basic example of routing in an Aurelia application using `router`.
 

@@ -6,16 +6,16 @@ description: >-
 
 # Getting Started
 
+{% hint style="danger" %}
+Currently, two routers ship with Aurelia: router and router-direct (this one). This section refers to the router-direct package that lives in `@aurelia/router-direct` — please see the warning note below on a caveat some developers encounter when working with the router.
+{% endhint %}
+
 Routing with Aurelia feels like a natural part of the framework. It can easily be implemented into your applications in a way that feels familiar if you have worked with other frameworks and library routers.
 
 This section is broken up into two parts—a quick introduction to the router and router configuration.
 
 {% hint style="info" %}
 If you are looking for details on configuring the router (set titles, handle unknown routes, etc.), please see the [Configuration](getting-started.md#configuration) section at the end of this guide.
-{% endhint %}
-
-{% hint style="danger" %}
-Currently, two routers ship with Aurelia: router lite and core router. This section refers to the core router package that lives in `@aurelia/router-direct` — please see the warning note below on a caveat some developers encounter when working with the router.
 {% endhint %}
 
 {% hint style="warning" %}

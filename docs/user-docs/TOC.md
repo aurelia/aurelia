@@ -54,17 +54,6 @@
 ## Getting to know Aurelia
 
 * Routing
-  * @aurelia/router-direct
-    * [Getting Started](router-direct/getting-started.md)
-    * [Creating Routes](router-direct/creating-routes.md)
-    * [Routing Lifecycle](router-direct/routing-lifecycle.md)
-    * [Viewports](router-direct/viewports.md)
-    * [Navigating](router-direct/navigating.md)
-    * [Route hooks](router-direct/router-hooks.md)
-    * [Router animation](router-direct/router-animation.md)
-    * [Route Events](router-direct/route-events.md)
-    * [Router Tutorial](router-direct/router-tutorial.md)
-    * [Router Recipes](router-direct/router-recipes.md)
   * @aurelia/router
     * [Getting started](router/getting-started.md)
     * [Router configuration](router/router-configuration.md)
@@ -77,6 +66,17 @@
     * [Navigation model](router/navigation-model.md)
     * [Current route](router/current-route.md)
     * [Transition plan](router/transition-plans.md)
+  * @aurelia/router-direct
+    * [Getting Started](router-direct/getting-started.md)
+    * [Creating Routes](router-direct/creating-routes.md)
+    * [Routing Lifecycle](router-direct/routing-lifecycle.md)
+    * [Viewports](router-direct/viewports.md)
+    * [Navigating](router-direct/navigating.md)
+    * [Route hooks](router-direct/router-hooks.md)
+    * [Router animation](router-direct/router-animation.md)
+    * [Route Events](router-direct/route-events.md)
+    * [Router Tutorial](router-direct/router-tutorial.md)
+    * [Router Recipes](router-direct/router-recipes.md)
 * [App configuration and startup](getting-to-know-aurelia/app-configuration-and-startup.md)
 * [Enhance](getting-to-know-aurelia/enhance.md)
 * [Template controllers](getting-to-know-aurelia/template-controllers.md)

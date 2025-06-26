@@ -771,5 +771,21 @@ describe('3-runtime-html/interpolation.spec.ts', function () {
       await tasksSettled();
       assertAttr('div', 'data-id', '1,2,3');
     });
+
+    it('observes dependent array', async function () {
+      const item = {};
+      const { component, assertAttr } = createFixture(`<div class="\${activeItems.includes(item) ? 'active': ''}">`, class {
+        item = item;
+        activeItems: (typeof item)[] = [];
+      });
+
+      assertAttr('div', 'class', null);
+      component.activeItems.push(item);
+      await tasksSettled();
+      assertAttr('div', 'class', 'active');
+      component.activeItems.splice(0, 1);
+      await tasksSettled();
+      assertAttr('div', 'class', '');
+    });
   });
 });

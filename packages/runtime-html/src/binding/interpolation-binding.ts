@@ -1,4 +1,4 @@
-import { type IServiceLocator, isArray } from '@aurelia/kernel';
+import { isArray, type IServiceLocator } from '@aurelia/kernel';
 import {
   connectable,
   astBind,
@@ -215,6 +215,7 @@ export class InterpolationPartBinding implements IBinding, ICollectionSubscriber
   }
 
   public handleCollectionChange(): void {
+    this._value = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
     this.updateTarget();
   }
 

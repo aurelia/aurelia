@@ -11,7 +11,6 @@ import {
   type Scope,
   astEvaluate,
   type IOverrideContext,
-  queueTask,
 } from '@aurelia/runtime';
 import {
   BindingMode,
@@ -47,9 +46,6 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
 
   /** @internal */
   public _scope?: Scope | undefined;
-
-  /** @internal */
-  private _isQueued: boolean = false;
 
   public ast: IsBindingBehavior;
   private readonly target: object;
@@ -92,6 +88,7 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
 
   public updateTarget(value: unknown) {
     const targetAccessor = this._targetObserver;
+
     const target = this.target;
     const prop = this.targetProperty;
     const updateCount = this._updateCount++;
@@ -148,48 +145,34 @@ export class StateBinding implements IBinding, ISubscriber, IStoreSubscriber<obj
 
   public handleChange(newValue: unknown): void {
     if (!this.isBound) return;
-    if (this._isQueued) return;
-    this._isQueued = true;
 
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
+    const obsRecord = this.obs;
+    obsRecord.version++;
+    newValue = astEvaluate(this.ast, this._scope!, this, this);
+    obsRecord.clear();
 
-      const obsRecord = this.obs;
-      obsRecord.version++;
-      newValue = astEvaluate(this.ast, this._scope!, this, this);
-      obsRecord.clear();
-
-      this.updateTarget(newValue);
-    });
+    this.updateTarget(newValue);
   }
 
   public handleStateChange(): void {
     if (!this.isBound) return;
-    if (this._isQueued) return;
-    this._isQueued = true;
 
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
+    const state = this._store.getState();
+    const _scope = this._scope!;
+    const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
+    _scope.bindingContext = overrideContext.bindingContext = state;
+    const value = astEvaluate(
+      this.ast,
+      _scope,
+      this,
+      this.mode > BindingMode.oneTime ? this : null
+    );
 
-      const state = this._store.getState();
-      const _scope = this._scope!;
-      const overrideContext = _scope.overrideContext as Writable<IOverrideContext>;
-      _scope.bindingContext = overrideContext.bindingContext = state;
-      const value = astEvaluate(
-        this.ast,
-        _scope,
-        this,
-        this.mode > BindingMode.oneTime ? this : null
-      );
-
-      if (value === this._value) {
-        return;
-      }
-      this._value = value;
-      this.updateTarget(value);
-    });
+    if (value === this._value) {
+      return;
+    }
+    this._value = value;
+    this.updateTarget(value);
   }
 
   /** @internal */

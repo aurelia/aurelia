@@ -14,7 +14,7 @@ npm run dev
 npm run dev:vite
 ```
 
-The app uses `router-lite` by default. To use `router`, add the following querystring `?use-router=true` to the browser URL and load the page.
+The app uses `router` by default. To use `router-direct`, add the following querystring `?use-router-direct=true` to the browser URL and load the page.
 
 ## To test
 

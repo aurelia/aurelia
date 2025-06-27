@@ -217,7 +217,7 @@ jobs:
   #         "runtime",
   #         "runtime-html",
   #         "router",
-  #         "router",
+  #         "router-direct",
   #         "i18n",
   #         "validation",
   #       ]

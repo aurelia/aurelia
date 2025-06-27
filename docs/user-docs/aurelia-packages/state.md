@@ -226,7 +226,9 @@ Middleware provides a way to intercept and process actions before or after they 
 
 ### What is middleware?
 
-Middleware functions are executed before or after actions are processed by action handlers. Note that async middleware functions will trigger a warning and their results will be ignored to ensure predictable execution order. Middleware can:
+Middleware functions are executed before or after actions are processed by action handlers. Middleware can be either synchronous **or asynchronous**.  When a middleware returns a `Promise`, the store will *await* it and use the resolved value (if any) before continuing the dispatch pipeline. This makes it possible to perform tasks such as API calls, logging to remote endpoints, reading from IndexedDB, etc. without blocking the UI thread.
+
+Middleware can:
 
 - Log actions for debugging and auditing
 - Validate actions before processing
@@ -244,7 +246,7 @@ type IStateMiddleware<TState = any, TSettings = any> = (
   state: TState,
   action: unknown,
   settings?: TSettings
-) => TState | undefined | false | void;
+) => TState | undefined | false | void | Promise<TState | undefined | false | void>;
 ```
 
 Here's a simple logging middleware example:
@@ -253,6 +255,15 @@ Here's a simple logging middleware example:
 export const loggingMiddleware = (state, action, settings) => {
   console.log('Action dispatched:', action);
   console.log('Current state:', state);
+  return state; // Return the state unchanged
+};
+```
+
+And an example of an asynchronous middleware:
+
+```ts
+export const asyncLoggingMiddleware = async (state, action, settings) => {
+  await api.log(action);
   return state; // Return the state unchanged
 };
 ```
@@ -459,7 +470,7 @@ export const performanceAfterMiddleware = (state, action) => {
 Middleware can accept custom settings through the third parameter:
 
 ```ts
-export const createLoggingMiddleware = (state, action, settings) => {
+export const loggingMiddleware = (state, action, settings) => {
   const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
 
   if (logLevel === 'debug') {
@@ -475,7 +486,37 @@ export const createLoggingMiddleware = (state, action, settings) => {
 // Register with settings
 middlewares: [
   {
-    middleware: createLoggingMiddleware,
+    middleware: loggingMiddleware,
+    placement: MiddlewarePlacement.Before,
+    settings: { logLevel: 'debug', prefix: '[APP]' }
+  }
+]
+```
+
+### Middleware factory pattern
+
+For more advanced scenarios, you can create factory functions that return middleware:
+
+```ts
+export const createLoggingMiddleware = (actionTypeFilter) => (state, action, settings) => {
+  const { logLevel = 'info', prefix = '[STATE]' } = settings || {};
+
+  if (!actionTypeFilter || action.type === actionTypeFilter) {
+    if (logLevel === 'debug') {
+      console.debug(`${prefix} Action:`, action);
+      console.debug(`${prefix} State:`, state);
+    } else {
+      console.log(`${prefix} ${action.type}`);
+    }
+  }
+
+  return state;
+};
+
+// Register factory-created middleware
+middlewares: [
+  {
+    middleware: createLoggingMiddleware('updateUser'),
     placement: MiddlewarePlacement.Before,
     settings: { logLevel: 'debug', prefix: '[APP]' }
   }
@@ -518,7 +559,7 @@ export class MyComponent {
 5. **Order matters**: Register middleware in the correct execution order for your use case
 6. **Return appropriate values**: Use `false` to block actions, return state to continue
 7. **Test thoroughly**: Write unit tests for your middleware functions
-8. **Use synchronous functions**: Async middleware will trigger warnings and be ignored
+8. **Consider async cost**: Async middleware is supported but will delay the completion of `dispatch` until the `Promise` settles.  Keep any network / long-running work minimal or move it off the critical path when possible.
 
 ### Debugging middleware
 

@@ -411,7 +411,7 @@ describe('state/state.spec.ts', function () {
       let started = 0;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue, platform } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
         `
@@ -447,9 +447,12 @@ describe('state/state.spec.ts', function () {
       assert.deepEqual(logs, [
         { text: '11', click: 0 },
       ]);
-
+      
+      await resolveAfter(1);
       assertValue('input', '11');
+      await resolveAfter(1);
       flush();
+      
       assertValue('input', '11');
     });
 
@@ -500,6 +503,7 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
+      await resolveAfter(1);
       flush();
       assertValue('input', '11');
 
@@ -515,6 +519,7 @@ describe('state/state.spec.ts', function () {
       ]);
 
       assertValue('input', '11');
+      await resolveAfter(1);
       flush();
       assertValue('input', '1111');
     });
@@ -618,7 +623,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: beforeMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: beforeMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -652,7 +657,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: afterMiddleware, placement: MiddlewarePlacement.After }
+              { middleware: afterMiddleware, placement: 'after' }
             ]
           },
           actionHandler
@@ -683,7 +688,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: beforeMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: beforeMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -715,7 +720,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: blockingMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: blockingMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -750,7 +755,7 @@ describe('state/state.spec.ts', function () {
       const store = ctx.container.get(Store);
 
       // Register middleware
-      store.registerMiddleware(middleware, MiddlewarePlacement.Before);
+      store.registerMiddleware(middleware, 'before');
       await store.dispatch({ type: 'increment' });
 
       assert.strictEqual(logs.length, 1);
@@ -788,8 +793,8 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: errorMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: normalMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: errorMiddleware, placement: 'before' },
+              { middleware: normalMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -804,14 +809,14 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual((store.getState() as typeof state).counter, 1);
     });
 
-    it('warns about async middleware and ignores result', async function () {
+    it('executes async middleware and applies its result', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
       const asyncMiddleware = async (s: { counter: number }, action: unknown) => {
         await new Promise(resolve => setTimeout(resolve, 1));
         logs.push('async middleware');
-        return { ...s, counter: 999 }; // This should be ignored
+        return { ...s, counter: 999 }; // Should be applied
       };
 
       const actionHandler = (s: typeof state, action: { type: string }) => {
@@ -825,7 +830,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: asyncMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: asyncMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -835,54 +840,12 @@ describe('state/state.spec.ts', function () {
       const store = ctx.container.get(Store);
       await store.dispatch({ type: 'increment' });
 
-      // Async middleware should be warned about and its result ignored
-      assert.deepStrictEqual(logs, ['action handler']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1);
+      // Both async middleware and action handler should execute
+      assert.deepStrictEqual(logs, ['async middleware', 'action handler']);
+      assert.strictEqual((store.getState() as typeof state).counter, 1000);
     });
 
-    it('handles multiple sync middlewares in sequence', async function () {
-      const logs: string[] = [];
-      const state = { counter: 0, processedBy: [] as string[] };
-
-      const syncMiddleware1 = (s: typeof state, action: unknown) => {
-        logs.push('sync middleware 1');
-        return { ...s, processedBy: [...s.processedBy, 'middleware1'] };
-      };
-
-      const syncMiddleware2 = (s: typeof state, action: unknown) => {
-        logs.push('sync middleware 2');
-        return { ...s, processedBy: [...s.processedBy, 'middleware2'] };
-      };
-
-      const actionHandler = (s: typeof state, action: { type: string }) => {
-        logs.push('action handler');
-        return { ...s, counter: s.counter + 1, processedBy: [...s.processedBy, 'handler'] };
-      };
-
-      const { ctx } = await createFixture
-        .html`<div>`
-        .deps(StateDefaultConfiguration.init(
-          state,
-          {
-            middlewares: [
-              { middleware: syncMiddleware1, placement: MiddlewarePlacement.Before },
-              { middleware: syncMiddleware2, placement: MiddlewarePlacement.Before }
-            ]
-          },
-          actionHandler
-        ))
-        .build().started;
-
-      const store = ctx.container.get(Store);
-      await store.dispatch({ type: 'increment' });
-
-      assert.deepStrictEqual(logs, ['sync middleware 1', 'sync middleware 2', 'action handler']);
-      const finalState = store.getState() as typeof state;
-      assert.strictEqual(finalState.counter, 1);
-      assert.deepStrictEqual(finalState.processedBy, ['middleware1', 'middleware2', 'handler']);
-    });
-
-    it('handles multiple sync middlewares with async in mix (warns and ignores async)', async function () {
+    it('handles multiple middlewares with async in mix (executes all in order)', async function () {
       const logs: string[] = [];
       const state = { counter: 0, processedBy: [] as string[] };
 
@@ -894,7 +857,7 @@ describe('state/state.spec.ts', function () {
       const asyncMiddleware = async (s: typeof state, action: unknown) => {
         await new Promise(resolve => setTimeout(resolve, 1));
         logs.push('async middleware');
-        return { ...s, processedBy: [...s.processedBy, 'async'] }; // This should be ignored
+        return { ...s, processedBy: [...s.processedBy, 'async'] };
       };
 
       const syncMiddleware2 = (s: typeof state, action: unknown) => {
@@ -913,9 +876,9 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: asyncMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: syncMiddleware2, placement: MiddlewarePlacement.Before }
+              { middleware: syncMiddleware, placement: 'before' },
+              { middleware: asyncMiddleware, placement: 'before' },
+              { middleware: syncMiddleware2, placement: 'before' }
             ]
           },
           actionHandler
@@ -925,11 +888,11 @@ describe('state/state.spec.ts', function () {
       const store = ctx.container.get(Store);
       await store.dispatch({ type: 'increment' });
 
-      // Only sync middlewares should execute, async middleware should be warned about and ignored
-      assert.deepStrictEqual(logs, ['sync middleware', 'sync middleware 2', 'action handler']);
+      // All middlewares should execute in order before handler
+      assert.deepStrictEqual(logs, ['sync middleware', 'async middleware', 'sync middleware 2', 'action handler']);
       const finalState = store.getState() as typeof state;
       assert.strictEqual(finalState.counter, 1);
-      assert.deepStrictEqual(finalState.processedBy, ['sync', 'sync2', 'handler']);
+      assert.deepStrictEqual(finalState.processedBy, ['sync', 'async', 'sync2', 'handler']);
     });
 
     it('handles sync middleware that throws errors', async function () {
@@ -957,8 +920,8 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: errorMiddleware, placement: MiddlewarePlacement.Before },
-              { middleware: normalMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: errorMiddleware, placement: 'before' },
+              { middleware: normalMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -993,7 +956,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncBlockingMiddleware, placement: MiddlewarePlacement.Before }
+              { middleware: syncBlockingMiddleware, placement: 'before' }
             ]
           },
           actionHandler
@@ -1028,7 +991,7 @@ describe('state/state.spec.ts', function () {
           state,
           {
             middlewares: [
-              { middleware: syncAfterMiddleware, placement: MiddlewarePlacement.After }
+              { middleware: syncAfterMiddleware, placement: 'after' }
             ]
           },
           actionHandler
@@ -1042,6 +1005,48 @@ describe('state/state.spec.ts', function () {
       const finalState = store.getState() as typeof state;
       assert.strictEqual(finalState.counter, 1);
       assert.strictEqual(finalState.modified, true);
+    });
+
+    it('handles multiple sync middlewares in sequence', async function () {
+      const logs: string[] = [];
+      const state = { counter: 0, processedBy: [] as string[] };
+
+      const syncMiddleware1 = (s: typeof state, action: unknown) => {
+        logs.push('sync middleware 1');
+        return { ...s, processedBy: [...s.processedBy, 'middleware1'] };
+      };
+
+      const syncMiddleware2 = (s: typeof state, action: unknown) => {
+        logs.push('sync middleware 2');
+        return { ...s, processedBy: [...s.processedBy, 'middleware2'] };
+      };
+
+      const actionHandler = (s: typeof state, action: { type: string }) => {
+        logs.push('action handler');
+        return { ...s, counter: s.counter + 1, processedBy: [...s.processedBy, 'handler'] };
+      };
+
+      const { ctx } = await createFixture
+        .html`<div>`
+        .deps(StateDefaultConfiguration.init(
+          state,
+          {
+            middlewares: [
+              { middleware: syncMiddleware1, placement: 'before' },
+              { middleware: syncMiddleware2, placement: 'before' }
+            ]
+          },
+          actionHandler
+        ))
+        .build().started;
+
+      const store = ctx.container.get(Store);
+      await store.dispatch({ type: 'increment' });
+
+      assert.deepStrictEqual(logs, ['sync middleware 1', 'sync middleware 2', 'action handler']);
+      const finalState = store.getState() as typeof state;
+      assert.strictEqual(finalState.counter, 1);
+      assert.deepStrictEqual(finalState.processedBy, ['middleware1', 'middleware2', 'handler']);
     });
   });
   describe('createSelector', function () {

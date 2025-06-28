@@ -78,10 +78,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.obs.version++;
     this._value = astEvaluate(this.ast, this._scope!, this, this);
     this.obs.clear();
@@ -94,10 +91,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
 
   public bind(_scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === _scope) return;
       this.unbind();
     }
     this._scope = _scope;
@@ -112,10 +106,7 @@ export class LetBinding implements IBinding, ISubscriber, ICollectionSubscriber 
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);

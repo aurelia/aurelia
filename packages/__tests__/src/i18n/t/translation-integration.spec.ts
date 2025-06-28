@@ -1,6 +1,7 @@
 import { I18N, I18nConfiguration, Signals } from '@aurelia/i18n';
 import { Class, IContainer } from '@aurelia/kernel';
 import { ISignaler, Aurelia, bindable, customElement, INode, IPlatform } from '@aurelia/runtime-html';
+import { queueAsyncTask, runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, PLATFORM, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../../util.js';
 
@@ -154,7 +155,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     @customElement({ name: 'app', template: `<span t='simple.text'></span>` })
     class App { }
 
-    $it('works for simple string literal key', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for simple string literal key', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
     }, { component: App });
   }
@@ -173,7 +174,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       private readonly undef: undefined = undefined;
       // private readonly zero: 0 = 0;
     }
-    $it('works for null/undefined bound values', function ({ host }: I18nIntegrationTestContext<App>) {
+    $it('works for null/undefined bound values', async function ({ host }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, '#undefined', '');
       assertTextContent(host, '#null', '');
     }, { component: App });
@@ -195,7 +196,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       // private readonly zero: 0 = 0;
     }
 
-    $it('works for null/undefined bound values - default value', function ({ host }: I18nIntegrationTestContext<App>) {
+    $it('works for null/undefined bound values - default value', async function ({ host }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, '#undefined', 'foo');
       assertTextContent(host, '#null', 'bar');
     }, { component: App });
@@ -220,14 +221,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
     }
 
-    $it('works if the keyExpression is changed to null/undefined', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
+    $it('works if the keyExpression is changed to null/undefined', async function ({ host, app }: I18nIntegrationTestContext<App>) {
       app.changeKey();
       assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
       assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
-      ctx.platform.domQueue.flush();
+      await tasksSettled();
       assertTextContent(host, '#undefined', '', 'changeKey() & flush');
       assertTextContent(host, '#null', '', 'changeKey() & flush');
-      ctx.platform.domQueue.flush();
+      await tasksSettled();
       assertTextContent(host, '#undefined', '', 'changeKey() & 2nd flush');
       assertTextContent(host, '#null', '', 'changeKey() & 2nd flush');
     }, { component: App });
@@ -251,11 +252,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         this.undef = undefined;
       }
     }
-    $it('works if the keyExpression is changed to null/undefined - default value', function ({ host, app, ctx }: I18nIntegrationTestContext<App>) {
+    $it('works if the keyExpression is changed to null/undefined - default value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
       app.changeKey();
       assertTextContent(host, '#undefined', 'simple text', 'changeKey(), before flush');
       assertTextContent(host, '#null', 'simple text', 'changeKey, before flush');
-      ctx.platform.domQueue.flush();
+      await tasksSettled();
       assertTextContent(host, '#undefined', 'foo');
       assertTextContent(host, '#null', 'bar');
     }, { component: App });
@@ -264,7 +265,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   for (const value of [true, false, 0]) {
     @customElement({ name: 'app', template: `<p t.bind="key" id="undefined"></p>` })
     class App { private readonly key: boolean | number = value; }
-    $it(`throws error if the key expression is evaluated to ${value}`, function ({ error }: I18nIntegrationTestContext<App>) {
+    $it(`throws error if the key expression is evaluated to ${value}`, async function ({ error }: I18nIntegrationTestContext<App>) {
       assert.match(error?.message, /AUR4002/);
     }, { component: App });
   }
@@ -281,7 +282,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         this.key = value;
       }
     }
-    $it(`throws error if the key expression is changed to ${value}`, function ({ app }: I18nIntegrationTestContext<App>) {
+    $it(`throws error if the key expression is changed to ${value}`, async function ({ app }: I18nIntegrationTestContext<App>) {
       try {
         app.changeKey();
       } catch (e) {
@@ -294,7 +295,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     @customElement({ name: 'app', template: `<span t='simple.text' t='simple.attr'></span>` })
     class App { }
 
-    $it('with multiple `t` attribute only the first one is considered', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('with multiple `t` attribute only the first one is considered', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
     }, { component: App });
   }
@@ -307,7 +308,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     <span id='i18n-bind' i18n.bind='key'></span>
     ` })
     class App { private readonly key: string = 'simple.text'; }
-    $it('works with aliases', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works with aliases', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span#t', translation.simple.text);
       assertTextContent(host, 'span#i18n', translation.simple.text);
       assertTextContent(host, 'span#i18n-bind', translation.simple.text);
@@ -318,7 +319,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     class App {
       private readonly obj: { key: string } = { key: 'simple.text' };
     }
-    $it('works for bound key', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for bound key', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
     }, { component: App });
   }
@@ -335,13 +336,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       assertTextContent(host, 'span > span', translation.simple.text, 'initial rendering');
       assert.doesNotThrow(() => {
         app.changeCondition();
-        ctx.platform.domQueue.flush();
+        runTasks();
         app.obj.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        runTasks();
       }, 'AUR0203 error should not be thrown');
       assert.equal((host as Element).querySelector('span > span'), null, 'inner span removed after unbind');
       app.obj.condition = true;
-      ctx.platform.domQueue.flush();
+      runTasks();
       assertTextContent(host, 'span > span', translation.simple.attr, 'final rendering');
     }, { component: App });
   }
@@ -350,7 +351,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     {
       @customElement({ name: 'app', template: `<span t-params.bind="{context: 'dispatched'}"></span>` })
       class App { }
-      $it('throws error if used without `t` attribute', function ({ error }: I18nIntegrationTestContext<App>) {
+      $it('throws error if used without `t` attribute', async function ({ error }: I18nIntegrationTestContext<App>) {
         assert.includes(error?.message, 'AUR4000');
       }, { component: App });
     }
@@ -380,40 +381,40 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public nameParams: any = { name: this.name };
       }
 
-      $it('works when a vm property is bound as t-params', function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('works when a vm property is bound as t-params', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
       }, { component: App });
 
-      $it('works when a vm property is bound as t-params and changes', function ({ host, en: translation, app, ctx }: I18nIntegrationTestContext<App>) {
+      $it('works when a vm property is bound as t-params and changes', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const currDate = app.dispatchedOn;
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', currDate.toString()), 'before change t-params');
         app.tParams = { context: 'dispatched', date: new Date(2020, 2, 10, 5, 15) };
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', currDate.toString()), 'after change t-params, before flush');
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, '#i18n-ctx-vm', translation.status_dispatched.replace('{{date}}', app.tParams.date.toString()), 'after change t-params & flush');
       }, { component: App });
 
-      $it('works for context-sensitive translations', function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('works for context-sensitive translations', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, '#i18n-ctx-dispatched', translation.status_dispatched.replace('{{date}}', app.dispatchedOn.toString()));
         assertTextContent(host, '#i18n-ctx-delivered', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       }, { component: App });
 
-      $it('works for interpolation, including custom marker for interpolation placeholder', function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('works for interpolation, including custom marker for interpolation placeholder', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
         assertTextContent(host, '#i18n-interpolation-custom', translation.custom_interpolation_brace.replace('{date}', app.deliveredOn.toString()));
         assertTextContent(host, '#i18n-interpolation-es6', translation.custom_interpolation_es6_syntax.replace(`\${date}`, app.deliveredOn.toString()));
       }, { component: App });
 
-      $it('works for interpolation when the interpolation changes', function ({ host, en: translation, app, ctx }: I18nIntegrationTestContext<App>) {
+      $it('works for interpolation when the interpolation changes', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const currDate = app.deliveredOn;
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', currDate.toString()), 'before change');
         app.deliveredOn = new Date(2022, 1, 10, 5, 15);
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', currDate.toString()), 'after change, before flush');
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, '#i18n-interpolation', translation.status_delivered.replace('{{date}}', app.deliveredOn.toString()));
       }, { component: App });
 
-      $it('works for interpolation when a string changes', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('works for interpolation when a string changes', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', app.name));
         assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', app.name));
         const currName = app.name;
@@ -421,12 +422,12 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         app.nameParams = { name: 'Jane' };
         assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', currName));
         assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', currName));
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, '#i18n-interpolation-string-direct', translation.interpolation_greeting.replace('{{name}}', 'Jane'));
         assertTextContent(host, '#i18n-interpolation-string-obj', translation.interpolation_greeting.replace('{{name}}', 'Jane'));
       }, { component: App });
 
-      $it('works for pluralization', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for pluralization', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, '#i18n-items-plural-0', '0 items');
         assertTextContent(host, '#i18n-items-plural-1', '1 item');
         assertTextContent(host, '#i18n-items-plural-10', '10 items');
@@ -436,14 +437,14 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   {
     @customElement({ name: 'app', template: `<img t='imgPath'></img>` })
     class App { }
-    $it('`src` attribute of img element is translated by default', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('`src` attribute of img element is translated by default', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assert.equal((host as Element).querySelector('img').src.endsWith(translation.imgPath), true);
     }, { component: App });
   }
   {
     @customElement({ name: 'app', template: `<span t='[title]simple.attr'></span>` })
     class App { }
-    $it('can translate attributes - t=\'[title]simple.attr\'', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('can translate attributes - t=\'[title]simple.attr\'', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span[title='${translation.simple.attr}']`, '');
     }, { component: App });
   }
@@ -451,7 +452,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   {
     @customElement({ name: 'app', template: `<span t='[title]simple.attr;[title]simple.text'></span>` })
     class App { }
-    $it('value of last key takes effect if multiple keys target same attribute - t=\'[title]simple.attr;[title]simple.text\'', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('value of last key takes effect if multiple keys target same attribute - t=\'[title]simple.attr;[title]simple.text\'', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span[title='${translation.simple.text}']`, '');
     }, { component: App });
   }
@@ -459,7 +460,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   {
     @customElement({ name: 'app', template: `<span t='[title]simple.attr;simple.text'></span>` })
     class App { }
-    $it('works for a mixture of attribute targeted key and textContent targeted key - t=\'[title]simple.attr;simple.text\'', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for a mixture of attribute targeted key and textContent targeted key - t=\'[title]simple.attr;simple.text\'', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span[title='${translation.simple.attr}']`, translation.simple.text);
     }, { component: App });
   }
@@ -467,7 +468,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   {
     @customElement({ name: 'app', template: `<span t='[title,data-foo]simple.attr;simple.text'></span>` })
     class App { }
-    $it('works when multiple attributes are targeted by the same key - `t="[title,data-foo]simple.attr;simple.text"`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works when multiple attributes are targeted by the same key - `t="[title,data-foo]simple.attr;simple.text"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span[title='${translation.simple.attr}'][data-foo='${translation.simple.attr}']`, translation.simple.text);
     }, { component: App });
   }
@@ -483,7 +484,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       private readonly obj: { key1: string; key2: string } = { key1: 'simple.text', key2: 'simple.attr' };
       private readonly status: string = 'dispatched';
     }
-    $it(`works for interpolated keys are used - t="\${obj.key1}"`, function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it(`works for interpolated keys are used - t="\${obj.key1}"`, async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span#a`, translation.simple.text);
       assertTextContent(host, `span#b[title='${translation.simple.attr}']`, translation.simple.text);
       assertTextContent(host, `span#c[title='${translation.simple.attr}']`, translation.simple.text);
@@ -498,7 +499,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
   {
     @customElement({ name: 'app', template: `<span t="$t(simple.text) $t(simple.attr)"></span>` })
     class App { }
-    $it('works nested key - t="$t(simple.text) $t(simple.attr)"', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works nested key - t="$t(simple.text) $t(simple.attr)"', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span`, `${translation.simple.text} ${translation.simple.attr}`);
     }, { component: App });
   }
@@ -511,7 +512,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     class App {
       private readonly part: string = 'text';
     }
-    $it('works for explicit concatenation expression as key - `t.bind="string+string"`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for explicit concatenation expression as key - `t.bind="string+string"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, `span#a`, translation.simple.text);
       assertTextContent(host, `span#b`, translation.simple.text);
     }, { component: App });
@@ -522,7 +523,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     })
     class App { }
 
-    $it('works for textContent replacement with explicit [text] attribute - `t="[text]key"`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for textContent replacement with explicit [text] attribute - `t="[text]key"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assertTextContent(host, 'span', translation.simple.text);
     }, { component: App });
   }
@@ -532,7 +533,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     })
     class App { }
 
-    $it('works for innerHTML replacement - `t="[html]key"`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+    $it('works for innerHTML replacement - `t="[html]key"`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
       assert.equal((host as Element).querySelector('span').innerHTML, translation.html);
     }, { component: App });
   }
@@ -543,7 +544,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre'>tac</span>`
       })
       class App { }
-      $it('works for [prepend] only', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] only', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tic tac');
       }, { component: App });
     }
@@ -552,7 +553,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre;mid'></span>`
       })
       class App { }
-      $it('works for [prepend] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tic tac');
       }, { component: App });
     }
@@ -562,7 +563,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for [prepend] + html', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] + html', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i>');
       }, { component: App });
     }
@@ -572,7 +573,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]preHtml;[html]mid'></span>`
       })
       class App { }
-      $it('works for html content for [prepend] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html content for [prepend] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
       }, { component: App });
     }
@@ -582,7 +583,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]preHtml;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for html content for [prepend] + innerHtml', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html content for [prepend] + innerHtml', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i>');
       }, { component: App });
     }
@@ -591,7 +592,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[append]post'>tac</span>`
       })
       class App { }
-      $it('works for [append] only', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [append] only', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tac toe');
       }, { component: App });
     }
@@ -600,7 +601,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[append]post;mid'></span>`
       })
       class App { }
-      $it('works for [append] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [append] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tac toe');
       }, { component: App });
     }
@@ -610,7 +611,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[append]post;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for [append] + html', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [append] + html', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> toe');
       }, { component: App });
     }
@@ -619,7 +620,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[append]postHtml;[html]mid'></span>`
       })
       class App { }
-      $it('works for html content for [append] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html content for [append] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -628,7 +629,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[append]postHtml;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for html content for [append]', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html content for [append]', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i> <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -637,7 +638,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre;[append]post'>tac</span>`
       })
       class App { }
-      $it('works for [prepend] and [append]', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] and [append]', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tic tac toe');
       }, { component: App });
     }
@@ -646,7 +647,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre;[append]post;mid'></span>`
       })
       class App { }
-      $it('works for [prepend] + [append] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] + [append] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'tic tac toe');
       }, { component: App });
     }
@@ -655,7 +656,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]pre;[append]post;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for [prepend] + [append] + innerHtml', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for [prepend] + [append] + innerHtml', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic <i>tac</i> toe');
       }, { component: App });
     }
@@ -664,7 +665,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;mid'></span>`
       })
       class App { }
-      $it('works for html resource for [prepend] and [append] + textContent', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html resource for [prepend] and [append] + textContent', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -673,7 +674,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span t='[prepend]preHtml;[append]postHtml;[html]midHtml'></span>`
       })
       class App { }
-      $it('works for html resource for [prepend] and [append] + innerHtml', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('works for html resource for [prepend] and [append] + innerHtml', async function ({ host }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> <i>tac</i> <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -684,15 +685,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
-      $it('works correctly for html with the change of both [prepend], and [append] - textContent', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works correctly for html with the change of both [prepend], and [append] - textContent', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
 
         app.keyExpr = '[prepend]pre;[append]post';
-        platform.domQueue.flush();
+        await tasksSettled();
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
 
         app.keyExpr = '[prepend]preHtml;[append]postHtml';
-        platform.domQueue.flush();
+        await tasksSettled();
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
     }
@@ -704,11 +705,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public keyExpr: string = '[prepend]pre;[append]post';
       }
-      $it('works correctly with the change of both [prepend], and [append] - textContent', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the change of both [prepend], and [append] - textContent', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, 'tic tac toe');
         app.keyExpr = '[prepend]preHtml;[append]postHtml';
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -721,11 +722,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
 
-      $it('works correctly with the removal of [append]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of [append]', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[prepend]preHtml';
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac');
       }, { component: App });
@@ -737,11 +738,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
-      $it('works correctly with the removal of [prepend]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of [prepend]', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[append]postHtml';
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assert.equal((host as Element).querySelector('span').innerHTML, 'tac <b>toe</b><span>bar</span>');
       }, { component: App });
@@ -754,11 +755,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public keyExpr: string = '[prepend]preHtml;[append]postHtml';
       }
 
-      $it('works correctly with the removal of both [prepend] and [append]', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works correctly with the removal of both [prepend] and [append]', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         assert.equal((host as Element).querySelector('span').innerHTML, '<b>tic</b><span>foo</span> tac <b>toe</b><span>bar</span>');
         app.keyExpr = '[html]midHtml';
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assert.equal((host as Element).querySelector('span').innerHTML, '<i>tac</i>');
       }, { component: App });
@@ -773,9 +774,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public obj: { key: string } = { key: 'simple.text' };
       }
-      $it('when the key expression changed - interpolation', function ({ host, en: translation, app, ctx }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - interpolation', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.obj.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -786,13 +787,12 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public obj: { base: string; key: string } = { base: 'simple.', key: 'text' };
       }
-      $it('when the key expression changed - multi-interpolation', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - multi-interpolation', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const currText = translation.simple.text;
         assertTextContent(host, `span`, currText);
         app.obj.base = 'simple';
         app.obj.key = '.attr';
-        assertTextContent(host, `span`, currText);
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -803,9 +803,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public obj: { key: string } = { key: 'simple.text' };
       }
-      $it('when the key expression changed - access-member', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - access-member', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.obj.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -816,17 +816,17 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public key = 'simple.text';
       }
-      $it('when the key expression changed - property', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - property', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.simple.attr);
       }, { component: App });
     }
@@ -843,17 +843,17 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public key = 'simple.text';
       }
-      $it('when the key expression changed - property - custom element', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - property - custom element', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, translation.simple.attr);
       }, { component: App });
     }
@@ -864,20 +864,20 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public key = 'simple.text';
       }
-      $it('when the key expression changed - property - DOM Element attribute', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - property - DOM Element attribute', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const span = host.querySelector('span');
         assert.strictEqual(span.dataset.foo, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, translation.simple.attr);
 
         app.key = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, translation.simple.text);
 
         app.key = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, translation.simple.attr);
       }, { component: App });
     }
@@ -896,20 +896,20 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public key1 = 'simple.text';
         public key2 = 'simple.attr';
       }
-      $it('when the key expression changed - property - custom element - multiple bindables', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - property - custom element - multiple bindables', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const r = translation.simple;
         assertTextContent(host, `my-ce`, `${r.text} ${r.attr}`);
 
         app.key1 = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, `${r.attr} ${r.attr}`);
 
         app.key2 = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, `${r.attr} ${r.text}`);
 
         app.key1 = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `my-ce`, `${r.text} ${r.text}`);
       }, { component: App });
     }
@@ -921,7 +921,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public key1 = 'simple.text';
         public key2 = 'simple.attr';
       }
-      $it('when the key expression changed - property - multiple DOM Element attributes', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the key expression changed - property - multiple DOM Element attributes', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         const r = translation.simple;
 
         const span = host.querySelector<HTMLSpanElement & { bar: string }>('span');
@@ -929,17 +929,17 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         assert.strictEqual(span.bar, r.attr);
 
         app.key1 = 'simple.attr';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, r.attr);
         assert.strictEqual(span.bar, r.attr);
 
         app.key2 = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, r.attr);
         assert.strictEqual(span.bar, r.text);
 
         app.key1 = 'simple.text';
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(span.dataset.foo, translation.simple.text);
         assert.strictEqual(span.bar, r.text);
       }, { component: App });
@@ -954,9 +954,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public params: { context: string; date: Date } = { context: 'delivered', date: this.deliveredOn };
       }
 
-      $it('when the translation parameters changed', function ({ ctx, host, en: translation, app }: I18nIntegrationTestContext<App>) {
+      $it('when the translation parameters changed', async function ({ host, en: translation, app }: I18nIntegrationTestContext<App>) {
         app.params = { ...app.params, context: 'dispatched' };
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, `span`, translation.status_dispatched.replace('{{date}}', app.deliveredOn.toString()));
       }, { component: App });
     }
@@ -965,9 +965,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<span id='a' t='simple.text'></span>`
       })
       class App { }
-      $it('when the locale is changed', async function ({ ctx, host, de, i18n }: I18nIntegrationTestContext<App>) {
+      $it('when the locale is changed', async function ({ host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
     }
@@ -980,7 +980,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       })
       class App { }
 
-      $it('can bind to custom elements attributes', function ({ host, en }: I18nIntegrationTestContext<App>) {
+      $it('can bind to custom elements attributes', async function ({ host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'custom-message div', en.simple.text);
       }, { component: App });
     }
@@ -989,16 +989,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<custom-message component.ref="cm" t="[message]itemWithCount" t-params.bind="{count}">`
       })
       class App { public count: number = 0; public cm: CustomMessage; }
-      $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
+      $it('should support params', async function ({ app, host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
-        assert.strictEqual(
-          app.cm.message,
-          en.itemWithCount_other.replace('{{count}}', '10'),
-          '<CustomMessage/> message prop should have been updated immediately'
-        );
+        assert.strictEqual(app.cm.message, en.itemWithCount_other.replace('{{count}}', '0'), '<CustomMessage/> message prop should not yet have been updated immediately');
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '0'));
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
+        assert.strictEqual(app.cm.message, en.itemWithCount_other.replace('{{count}}', '10'), '<CustomMessage/> message prop have been updated');
         assertTextContent(host, 'custom-message div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1007,9 +1004,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<custom-message t="[message]simple.text"></custom-message>`
       })
       class App { }
-      $it('should support locale changes', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('should support locale changes', async function ({ host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'custom-message div', de.simple.text);
       }, { component: App });
@@ -1021,7 +1018,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       })
       class App { }
 
-      $it('can bind to custom elements attributes with camelCased bindable', function ({ host, en }: I18nIntegrationTestContext<App>) {
+      $it('can bind to custom elements attributes with camelCased bindable', async function ({ host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'camel-ce div', en.simple.text);
       }, { component: App });
     }
@@ -1030,16 +1027,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<camel-ce component.ref="cm" t="[some-message]itemWithCount" t-params.bind="{count}">`
       })
       class App { public count: number = 0; public cm: CeWithCamelCaseBindable; }
-      $it('should support params', function ({ app, host, en, ctx }: I18nIntegrationTestContext<App>) {
+      $it('should support params', async function ({ app, host, en }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
         app.count = 10;
-        assert.strictEqual(
-          app.cm.someMessage,
-          en.itemWithCount_other.replace('{{count}}', '10'),
-          '<camel-ce/> message prop should have been updated immediately'
-        );
+        assert.strictEqual(app.cm.someMessage, en.itemWithCount_other.replace('{{count}}', '0'), '<camel-ce/> message prop should not yet have been updated');
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '0'));
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
+        assert.strictEqual(app.cm.someMessage, en.itemWithCount_other.replace('{{count}}', '10'), '<camel-ce/> message prop should have been updated');
         assertTextContent(host, 'camel-ce div', en.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1048,9 +1042,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         name: 'app', template: `<camel-ce some-message="ignored" t="[some-message]simple.text"></camel-ce>`
       })
       class App { }
-      $it('should support locale changes with camelCased bindable', async function ({ host, de, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('should support locale changes with camelCased bindable', async function ({ host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'camel-ce div', de.simple.text);
       }, { component: App });
@@ -1061,21 +1055,21 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     {
       @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
       class App { }
-      $it('key as string literal', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('key as string literal', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.simple.text);
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${key | t}</span>` })
       class App { public key: string = 'simple.text'; }
-      $it('key bound from vm property', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('key bound from vm property', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.simple.text);
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${'itemWithCount' | t: {count:10}}</span>` })
       class App { }
-      $it('with `t-params`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('with `t-params`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1087,7 +1081,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       <span id="c" title.bind="'itemWithCount' | t : {count:10}">t-vc-attr-target</span>
       ` })
       class App { }
-      $it('attribute translation', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('attribute translation', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#c[title='${translation.itemWithCount_other.replace('{{count}}', '10')}']`, 't-vc-attr-target');
@@ -1097,9 +1091,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${'simple.text' | t}</span>` })
       class App { }
 
-      $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
+      $it('change of locale', async function ({ host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
     }
@@ -1109,21 +1103,21 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     {
       @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
       class App { }
-      $it('key as string literal', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('key as string literal', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.simple.text);
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${key & t}</span>` })
       class App { public key: string = 'simple.text'; }
-      $it('key bound from vm property', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('key bound from vm property', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.simple.text);
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${'itemWithCount' & t : {count:10}}</span>` })
       class App { }
-      $it('with `t-params`', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('with `t-params`', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', translation.itemWithCount_other.replace('{{count}}', '10'));
       }, { component: App });
     }
@@ -1135,7 +1129,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       <span id="c" title.bind="'itemWithCount' & t : {count:10}">t-vc-attr-target</span>
       ` })
       class App { }
-      $it('attribute translation', function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
+      $it('attribute translation', async function ({ host, en: translation }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, `span#a[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#b[title='${translation.simple.text}']`, 't-vc-attr-target');
         assertTextContent(host, `span#c[title='${translation.itemWithCount_other.replace('{{count}}', '10')}']`, 't-vc-attr-target');
@@ -1145,9 +1139,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${'simple.text' & t}</span>` })
       class App { }
 
-      $it('change of locale', async function ({ host, de, platform, i18n }: I18nIntegrationTestContext<App>) {
+      $it('change of locale', async function ({ host, de, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', de.simple.text);
       }, { component: App });
@@ -1170,20 +1164,20 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       const baseDef = { name: `app`, template: `<span>\${ dt | df }</span>` };
       @customElement(baseDef)
       class App { private readonly dt: string | number | Date = input; }
-      $it(`${name} STRICT`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`${name} STRICT`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${output ?? ''}`);
       }, { component: App });
 
       @customElement({ ...baseDef })
       class App1 { private readonly dt: string | number | Date = input; }
-      $it(name, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(name, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', (output ?? '').toString());
       }, { component: App1 });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ dt | df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' }</span>` })
       class App { private readonly dt: Date = new Date(2019, 7, 20); }
-      $it('respects provided locale and formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('respects provided locale and formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '20.08.19');
       }, { component: App });
     }
@@ -1191,15 +1185,15 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${ dt | df }</span>` })
       class App { public dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
 
-      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -1221,20 +1215,20 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       const baseDef = { name: 'app', template: `<span>\${ dt & df }</span>` };
       @customElement(baseDef)
       class App { private readonly dt: string | number | Date = input; }
-      $it(`${name} STRICT`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`${name} STRICT`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${output ?? ''}`);
       }, { component: App });
 
       @customElement({ ...baseDef })
       class App1 { private readonly dt: string | number | Date = input; }
-      $it(name, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(name, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', (output ?? '').toString());
       }, { component: App1 });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ dt & df : {year:'2-digit', month:'2-digit', day:'2-digit'} : 'de' }</span>` })
       class App { private readonly dt: Date = new Date(2019, 7, 20); }
-      $it('respects provided locale and formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('respects provided locale and formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '20.08.19');
       }, { component: App });
     }
@@ -1242,9 +1236,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
       class App { private readonly dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', '20.8.2019');
       }, { component: App });
     }
@@ -1252,9 +1246,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${ dt & df }</span>` })
       class App { public dt: Date = new Date(2019, 7, 20); }
 
-      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(2019, 7, 21);
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', '8/21/2019');
       }, { component: App });
     }
@@ -1268,33 +1262,33 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement(strictDef)
       class App { private readonly num: string | boolean | Date = value; }
 
-      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App });
 
       @customElement(def)
       class App1 { private readonly num: string | boolean | Date = value; }
-      $it(`returns the value itself if the value is not a number, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(`returns the value itself if the value is not a number, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App1 });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num | nf }</span>` })
       class App { public num: number = 123456789.12; }
-      $it('formats number by default as per current locale and default formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats number by default as per current locale and default formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123,456,789.12');
       }, { component: App });
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
 
-      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1302,21 +1296,21 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     {
       @customElement({ name: 'app', template: `<span>\${ num | nf : { style: 'currency', currency: 'EUR' } }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '€123,456,789.12');
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num | nf : undefined : 'de' }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given locale', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num | nf : { style: 'currency', currency: 'EUR' } : 'de' }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given locale and formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale and formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123.456.789,12\u00A0€');
       }, { component: App });
     }
@@ -1329,41 +1323,41 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     for (const value of [undefined, null, 'chaos', new Date(), true]) {
       @customElement(strictDef)
       class App { private readonly num: string | boolean | Date = value; }
-      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App });
 
       @customElement(def)
       class App1 { private readonly num: string | boolean | Date = value; }
-      $it(`returns the value itself if the value is not a number, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(`returns the value itself if the value is not a number, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App1 });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats number by default as per current locale and default formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats number by default as per current locale and default formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123,456,789.12');
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num & nf : { style: 'currency', currency: 'EUR' } }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '€123,456,789.12');
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num & nf : undefined : 'de' }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given locale', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
     }
     {
       @customElement({ name: 'app', template: `<span>\${ num & nf : { style: 'currency', currency: 'EUR' } : 'de' }</span>` })
       class App { private readonly num: number = 123456789.12; }
-      $it('formats a given number as per given locale and formating options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale and formating options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '123.456.789,12\u00A0€');
       }, { component: App });
     }
@@ -1371,9 +1365,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
       class App { private readonly num: number = 123456789.12; }
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
         assertTextContent(host, 'span', '123.456.789,12');
       }, { component: App });
     }
@@ -1381,9 +1375,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       @customElement({ name: 'app', template: `<span>\${ num & nf }</span>` })
       class App { public num: number = 123456789.12; }
 
-      $it('works for change of source value', function ({ host, app, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.num = 123456789.21;
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', '123,456,789.21');
       }, { component: App });
@@ -1397,13 +1391,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       const strictDef = { ...def };
       @customElement(strictDef)
       class App { private readonly dt: string | number | boolean = value; }
-      $it(`returns the value itself if the value is not a number STRICT, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`returns the value itself if the value is not a number STRICT, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App });
 
       @customElement(def)
       class App1 { private readonly dt: string | number | boolean = value; }
-      $it(`returns the value itself if the value is not a number, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(`returns the value itself if the value is not a number, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App1 });
     }
@@ -1416,7 +1410,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats date by default as per current locale and default formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats date by default as per current locale and default formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '2 hours ago');
       }, { component: App });
     }
@@ -1429,7 +1423,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats a given number as per given locale', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
     }
@@ -1442,7 +1436,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats a given number as per given locale and formating options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale and formating options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'vor 2 Std.');
       }, { component: App });
     }
@@ -1457,9 +1451,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         }
       }
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1474,10 +1468,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         }
       }
 
-      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1493,11 +1487,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
 
       await runTest(
-        async function ({ platform, host, container }) {
-          await platform.taskQueue.queueTask(delta => {
+        async function ({ host, container }) {
+          await queueAsyncTask(async () => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            platform.domQueue.flush();
-            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+            await Promise.resolve();
+            assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
         { component: App });
@@ -1512,13 +1506,13 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     for (const value of [undefined, null, 'chaos', 123, true]) {
       @customElement(strictDef)
       class App { private readonly dt: string | number | boolean = value; }
-      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App>) {
+      $it(`returns the value itself if the value is not a number STRICT binding, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App });
 
       @customElement(def)
       class App1 { private readonly dt: string | number | boolean = value; }
-      $it(`returns the value itself if the value is not a number, for example: ${value}`, function ({ host }: I18nIntegrationTestContext<App1>) {
+      $it(`returns the value itself if the value is not a number, for example: ${value}`, async function ({ host }: I18nIntegrationTestContext<App1>) {
         assertTextContent(host, 'span', `${value ?? ''}`);
       }, { component: App1 });
     }
@@ -1531,7 +1525,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats date by default as per current locale and default formatting options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats date by default as per current locale and default formatting options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', '2 hours ago');
       }, { component: App });
     }
@@ -1544,7 +1538,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats a given number as per given locale', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
     }
@@ -1557,7 +1551,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
           this.dt.setHours(this.dt.getHours() - 2);
         }
       }
-      $it('formats a given number as per given locale and formating options', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('formats a given number as per given locale and formating options', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'vor 2 Std.');
       }, { component: App });
     }
@@ -1571,9 +1565,9 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         }
       }
 
-      $it('works for change of locale', async function ({ host, i18n, platform }: I18nIntegrationTestContext<App>) {
+      $it('works for change of locale', async function ({ host, i18n }: I18nIntegrationTestContext<App>) {
         await i18n.setLocale('de');
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', 'vor 2 Stunden');
       }, { component: App });
@@ -1588,10 +1582,10 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         }
       }
 
-      $it('works for change of source value', function ({ host, platform, app }: I18nIntegrationTestContext<App>) {
+      $it('works for change of source value', async function ({ host, app }: I18nIntegrationTestContext<App>) {
         app.dt = new Date(app.dt.setHours(app.dt.getHours() - 3));
 
-        platform.domQueue.flush();
+        await tasksSettled();
 
         assertTextContent(host, 'span', '5 hours ago');
       }, { component: App });
@@ -1607,11 +1601,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       }
 
       await runTest(
-        async function ({ host, platform, container }: I18nIntegrationTestContext<App>) {
-          await platform.taskQueue.queueTask(delta => {
+        async function ({ host, container }: I18nIntegrationTestContext<App>) {
+          await queueAsyncTask(async () => {
             container.get<ISignaler>(ISignaler).dispatchSignal(Signals.RT_SIGNAL);
-            platform.domQueue.flush();
-            assertTextContent(host, 'span', `${Math.round((delta + offset) / 1000)} seconds ago`);
+            await Promise.resolve();
+            assertTextContent(host, 'span', `${Math.round((1000 + offset) / 1000)} seconds ago`);
           }, { delay: 1000 }).result;
         },
         { component: App });
@@ -1623,7 +1617,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       const key = 'lost-in-translation';
       @customElement({ name: 'app', template: `<span t='${key}'></span>` })
       class App { }
-      $it('is disabled by default, and the given key is rendered if the key is missing from i18next resource', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('is disabled by default, and the given key is rendered if the key is missing from i18next resource', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', key);
       }, { component: App });
     }
@@ -1631,7 +1625,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       const key = 'lost-in-translation', text = 'untranslated text';
       @customElement({ name: 'app', template: `<span t='${key}'>${text}</span>` })
       class App { }
-      $it('enables skipping translation when set', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('enables skipping translation when set', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', text);
       }, { component: App, skipTranslationOnMissingKey: true });
     }
@@ -1641,7 +1635,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
     {
       @customElement({ name: 'app', template: `<foo-bar status="delivered" date="1971-12-25"></foo-bar>` })
       class App { }
-      $it('w/o projection', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('w/o projection', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'span', 'delivered on 1971-12-25');
       }, { component: App });
     }
@@ -1651,7 +1645,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         private readonly status: string = 'dispatched';
         private readonly date: string = '1972-12-26';
       }
-      $it('with projection', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('with projection', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'div', 'dispatched on 1972-12-26');
       }, { component: App });
     }
@@ -1661,7 +1655,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         private readonly status: string = 'dispatched';
         private readonly date: string = '1972-12-26';
       }
-      $it('with projection - mixed', function ({ host }: I18nIntegrationTestContext<App>) {
+      $it('with projection - mixed', async function ({ host }: I18nIntegrationTestContext<App>) {
         assertTextContent(host, 'div', 'dispatched on 1971-12-25');
       }, { component: App });
     }
@@ -1685,32 +1679,32 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public show: boolean = false;
       }
-      $it('with projection - if.bind on host', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on host', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
 
         assert.html.textContent(host, 'content', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'Inhalt', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         // toggle visibility
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'Inhalt', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'content', 'round #4');
       }, { component: App });
     }
@@ -1734,32 +1728,32 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       class App {
         public show: boolean = false;
       }
-      $it('with projection - if.bind on content', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on content', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
 
         assert.html.textContent(host, 'content', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'Inhalt', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         // toggle visibility
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'Inhalt', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'content', 'round #4');
       }, { component: App });
     }
@@ -1786,34 +1780,34 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public restCount = 1;
         public firstItem = 'foo';
       }
-      $it('with projection - if.bind on host - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on host - changes in t-params', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
 
         assert.html.textContent(host, 'foo and 1 more', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(host.querySelector('ce-1'), null, 'ce-1 should not be rendered');
 
         // toggle visibility
         app.firstItem = 'bar';
         app.restCount = 2;
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'bar and 2 more', 'round #4');
       }, { component: App });
     }
@@ -1839,34 +1833,34 @@ describe('i18n/t/translation-integration.spec.ts', function () {
         public restCount = 1;
         public firstItem = 'foo';
       }
-      $it('with projection - if.bind on content - changes in t-params', async function ({ host, app, platform: { domQueue }, i18n }: I18nIntegrationTestContext<App>) {
+      $it('with projection - if.bind on content - changes in t-params', async function ({ host, app, i18n }: I18nIntegrationTestContext<App>) {
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
 
         assert.html.textContent(host, 'foo and 1 more', 'round #1');
 
         // change locale
         await i18n.setLocale('de');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'foo und 1 mehr', 'round #2');
 
         // toggle visibility
         app.show = false;
-        domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(host.querySelector('ce-2'), null, 'ce-2 should not be rendered');
 
         // toggle visibility
         app.firstItem = 'bar';
         app.restCount = 2;
         app.show = true;
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'bar und 2 mehr', 'round #3');
 
         // change locale
         await i18n.setLocale('en');
-        domQueue.flush();
+        await tasksSettled();
         assert.html.textContent(host, 'bar and 2 more', 'round #4');
       }, { component: App });
     }
@@ -1924,7 +1918,7 @@ describe('i18n/t/translation-integration.spec.ts', function () {
       au.app({ host, component: AppOne });
       await au.start();
 
-      return { au, host, vm: au.root.controller.viewModel as AppOne, queue: ctx.platform.domQueue };
+      return { au, host, vm: au.root.controller.viewModel as AppOne };
     }
 
     async function createAppTwo() {
@@ -1945,12 +1939,12 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
       au.app({ host, component: AppTwo });
       await au.start();
-      return { au, host, vm: au.root.controller.viewModel as AppTwo, queue: ctx.platform.domQueue };
+      return { au, host, vm: au.root.controller.viewModel as AppTwo };
     }
 
     const [
-      { au: au1, host: host1, vm: appOne, queue: q1 },
-      { au: au2, host: host2, vm: appTwo, queue: q2 },
+      { au: au1, host: host1, vm: appOne },
+      { au: au2, host: host2, vm: appTwo },
     ] = await Promise.all([createAppOne(), createAppTwo()]);
 
     assert.html.textContent(host1, 'ab');
@@ -1958,11 +1952,11 @@ describe('i18n/t/translation-integration.spec.ts', function () {
 
     appOne.key11 = 'key13';
     appOne.key12 = 'key14';
-    q1.flush();
+    await tasksSettled();
 
     appTwo.key21 = 'key23';
     appTwo.key22 = 'key24';
-    q2.flush();
+    await tasksSettled();
 
     assert.html.textContent(host1, 'ef');
     assert.html.textContent(host2, 'gh');

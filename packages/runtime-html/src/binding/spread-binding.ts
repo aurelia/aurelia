@@ -1,6 +1,5 @@
 import { AccessScopeExpression, IExpressionParser, type IsBindingBehavior } from '@aurelia/expression-parser';
 import { isObject, type IServiceLocator, type Key, emptyArray } from '@aurelia/kernel';
-import { TaskQueue } from '@aurelia/platform';
 import {
   type IObserverLocator,
   type IObserverLocatorBasedConnectable,
@@ -130,11 +129,7 @@ export class SpreadBinding implements IBinding, IHasController {
   }
 
   public bind(_scope: Scope): void {
-    /* istanbul ignore if */
-    if (this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
+    if (this.isBound) return;
     this.isBound = true;
     const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
     if (innerScope == null) {
@@ -189,9 +184,6 @@ export class SpreadValueBinding implements IBinding {
   /** @internal */
   public l: IServiceLocator;
 
-  /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
   // see Listener binding for explanation
   /** @internal */
   public readonly boundFn = false;
@@ -213,13 +205,11 @@ export class SpreadValueBinding implements IBinding {
     public ast: IsBindingBehavior,
     ol: IObserverLocator,
     l: IServiceLocator,
-    taskQueue: TaskQueue,
     public strict: boolean,
   ) {
     this._controller = controller;
     this.oL = ol;
     this.l = l;
-    this._taskQueue = taskQueue;
   }
 
   public updateTarget(): void {
@@ -236,32 +226,18 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public handleChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
+    if (!this.isBound) return;
     this.updateTarget();
   }
 
   public handleCollectionChange(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
+    if (!this.isBound) return;
     this.updateTarget();
   }
 
   public bind(scope: Scope) {
-      /* istanbul ignore if */
     if (this.isBound) {
-      /* istanbul ignore if */
-      if (scope === this._scope) {
-      /* istanbul ignore next */
-        return;
-      }
-      /* istanbul ignore next */
+      if (this._scope === scope) return;
       this.unbind();
     }
     this.isBound = true;
@@ -275,11 +251,7 @@ export class SpreadValueBinding implements IBinding {
   }
 
   public unbind(): void {
-      /* istanbul ignore if */
-    if (!this.isBound) {
-      /* istanbul ignore next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
     astUnbind(this.ast, this._scope!, this);
     this._scope = void 0;
@@ -324,7 +296,6 @@ export class SpreadValueBinding implements IBinding {
             this._controller,
             this.l,
             this.oL,
-            this._taskQueue,
             SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0),
             this.target,
             key,

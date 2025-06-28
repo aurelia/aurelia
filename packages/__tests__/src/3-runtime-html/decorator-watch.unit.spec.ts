@@ -1,6 +1,6 @@
 import { DI } from '@aurelia/kernel';
 import { AccessMemberExpression, AccessScopeExpression } from '@aurelia/expression-parser';
-import { astEvaluate } from '@aurelia/runtime';
+import { astEvaluate, runTasks } from '@aurelia/runtime';
 import { ComputedWatcher, ExpressionWatcher } from '@aurelia/runtime-html';
 import { assert, createObserverLocator, createScopeForTest } from '@aurelia/testing';
 
@@ -31,17 +31,20 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.deepStrictEqual(callbackValues, []);
 
       obj.prop = 1;
+      runTasks();
       assert.strictEqual(watcher['value'], 1);
       assert.strictEqual(getCallCount, 2);
       assert.deepStrictEqual(callbackValues, [1]);
 
       obj.prop = 2;
+      runTasks();
       assert.strictEqual(watcher['value'], 2);
       assert.strictEqual(getCallCount, 3);
       assert.deepStrictEqual(callbackValues, [1, 2]);
 
       watcher.isBound = false;
       obj.prop = 3;
+      runTasks();
       assert.strictEqual(watcher['value'], 2);
       assert.strictEqual(getCallCount, 3);
       assert.deepStrictEqual(callbackValues, [1, 2]);
@@ -68,19 +71,22 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       const arr = [];
       watcher.isBound = true;
       watcher.observeCollection(arr);
-      arr.push(1);
 
+      arr.push(1);
+      runTasks();
       assert.strictEqual(getCallCount, 1);
       assert.deepStrictEqual(callbackValues, [obj]);
 
       // collection observation dropped last run
       arr.push(2);
+      runTasks();
       assert.strictEqual(getCallCount, 1);
       assert.deepStrictEqual(callbackValues, [obj]);
 
       // start again
       watcher.observe(arr, 'length');
       arr.push(3);
+      runTasks();
       assert.strictEqual(getCallCount, 2);
       // returning te same value, callback won't be call
       assert.deepStrictEqual(callbackValues, [obj]);
@@ -112,11 +118,13 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.deepStrictEqual(callbackValues, []);
 
       obj.prop = 1;
+      runTasks();
       assert.strictEqual(watcher['value'], undefined);
       assert.strictEqual(getCallCount, 1);
       assert.deepStrictEqual(callbackValues, []);
 
       obj._p = 1;
+      runTasks();
       assert.strictEqual(watcher['value'], 1);
       assert.strictEqual(getCallCount, 2);
       assert.deepStrictEqual(callbackValues, [1]);
@@ -162,6 +170,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       // };
 
       obj.a.prop = 1;
+      runTasks();
       assert.strictEqual(evaluateCallCount, 0);
       assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, []);
@@ -172,6 +181,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.deepStrictEqual(callbackValues, []);
 
       obj.a.prop = 2;
+      runTasks();
       assert.strictEqual(evaluateCallCount, 2);
       assert.strictEqual(watcher['value'], 2);
       assert.deepStrictEqual(callbackValues, [2]);
@@ -182,6 +192,7 @@ describe('3-runtime-html/decorator-watch.unit.spec.ts', function () {
       assert.deepStrictEqual(callbackValues, [2]);
 
       obj.a.prop = 3;
+      runTasks();
       assert.strictEqual(evaluateCallCount, 2);
       assert.strictEqual(watcher['value'], void 0);
       assert.deepStrictEqual(callbackValues, [2]);

@@ -17,6 +17,7 @@ import {
   ValueConverter,
 } from '@aurelia/runtime-html';
 import { isNode } from '../util.js';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function () {
 
@@ -628,6 +629,7 @@ describe('3-runtime-html/template-compiler.primary-bindable.spec.ts', function (
       const app = au.root.controller.viewModel as any;
 
       app.appId = 'appId-appId';
+      runTasks();
       if (isNode()) {
         assert.strictEqual(anchorEl.href, '/?params=[object Object]');
       } else {

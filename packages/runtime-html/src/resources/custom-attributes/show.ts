@@ -2,11 +2,10 @@ import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
 import { attrTypeName, type CustomAttributeStaticAuDefinition } from '../custom-attribute';
 
-import type { ITask } from '@aurelia/platform';
-
 import type { ICustomAttributeViewModel } from '../../templating/controller';
 import { IInstruction, HydrateAttributeInstruction } from '@aurelia/template-compiler';
 import { resolve } from '@aurelia/kernel';
+import { queueTask } from '@aurelia/runtime';
 
 export class Show implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -22,7 +21,7 @@ export class Show implements ICustomAttributeViewModel {
   private readonly p = resolve(IPlatform);
 
   /** @internal */ private _isActive: boolean = false;
-  /** @internal */ private _task: ITask | null = null;
+  /** @internal */ private _isQueued: boolean = false;
 
   /** @internal */ private _isToggled: boolean;
   /** @internal */ private readonly _base: boolean;
@@ -40,20 +39,20 @@ export class Show implements ICustomAttributeViewModel {
 
   public detaching() {
     this._isActive = false;
-    this._task?.cancel();
-    this._task = null;
+    this._isQueued = false;
   }
 
   public valueChanged(): void {
-    if (this._isActive && this._task === null) {
-      this._task = this.p.domQueue.queueTask(this.update);
+    if (this._isActive && !this._isQueued) {
+      this._isQueued = true;
+      queueTask(this.update);
     }
   }
 
   private $val: string = '';
   private $prio: string = '';
   private readonly update = (): void => {
-    this._task = null;
+    this._isQueued = false;
 
     // Only compare at the synchronous moment when we're about to update, because the value might have changed since the update was queued.
     if (Boolean(this.value) !== this._isToggled) {

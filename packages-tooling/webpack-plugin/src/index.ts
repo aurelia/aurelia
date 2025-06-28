@@ -9,6 +9,53 @@ import { extname } from "path";
 import { fileURLToPath } from "url";
 
 /**
+ * Webpack plugin interface
+ */
+interface WebpackPluginInstance {
+  apply(compiler: Compiler): void;
+}
+
+/**
+ * LoaderContext interface for webpack 5 loader functions
+ */
+interface LoaderContext {
+  cacheable?: () => void;
+  async: () => (err?: Error | null, content?: string | Buffer, sourceMap?: unknown) => void;
+  getOptions: () => IOptionalPreprocessOptions;
+  resourcePath: string;
+}
+
+/**
+ * Interface for webpack normalModuleFactory hook resolveData
+ */
+interface ResolveData {
+  request?: string;
+  loaders?: { loader: string; options?: IOptionalPreprocessOptions }[];
+}
+
+/**
+ * Extended interface for webpack NormalModuleFactory with proper hook typing
+ */
+interface NormalModuleFactory extends webpack.NormalModuleFactory {
+  hooks: {
+    beforeResolve: {
+      tap: (name: string, callback: (resolveData: ResolveData) => void) => void;
+    };
+  };
+}
+
+/**
+ * Extended interface for webpack Compiler with proper hook typing
+ */
+interface Compiler extends webpack.Compiler {
+  hooks: {
+    normalModuleFactory: {
+      tap: (name: string, callback: (normalModuleFactory: NormalModuleFactory) => void) => void;
+    };
+  };
+}
+
+/**
  * Webpack plugin entry. Designed so that both ESM `import` and CJS `require` obtain
  * the function directly without accessing a `.default` property – the same pattern
  * we already use for our Vite plugin. The returned instance wires its own loader
@@ -16,13 +63,17 @@ import { fileURLToPath } from "url";
  * existing "loader" behaviour continues to work transparently for template, TS and
  * JS resources.
  */
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-export default function auOrLoader(this: any, arg?: any, ...rest: any[]): any {
+export default function auOrLoader(
+  this: LoaderContext | void,
+  arg?: string | Buffer | IOptionalPreprocessOptions,
+  ..._rest: unknown[]
+): WebpackPluginInstance | string {
   // Called as a loader → first argument is the file source (string or Buffer).
   if (typeof arg === "string" || Buffer.isBuffer(arg)) {
     // The loader signature is (source: string, inputSourceMap?: RawSourceMap | undefined)
     // Our loader fn has a 2nd arg for testing, so we only pass the source.
-    return (loader as any).apply(this, [arg]);
+    const source = typeof arg === "string" ? arg : arg.toString();
+    return loader.call(this as LoaderContext, source);
   }
 
   // Otherwise assume normal plugin usage where `arg` is our (optional) options object.
@@ -35,8 +86,7 @@ export default function auOrLoader(this: any, arg?: any, ...rest: any[]): any {
 export function plugin(
   options: IOptionalPreprocessOptions = {},
   _preprocess = preprocess
-): webpack.WebpackPluginInstance {
-  const processed = preprocessOptions(options);
+): WebpackPluginInstance {
   // Determine the absolute path of *this* file so we can reference our built-in loader.
   const loaderPath =
     typeof __filename === "string"
@@ -44,43 +94,34 @@ export function plugin(
       : fileURLToPath(import.meta.url);
 
   return {
-    apply(compiler: webpack.Compiler) {
-      const wp: typeof import("webpack") =
-        (compiler as any).webpack ?? require("webpack");
-      compiler.hooks.compilation.tap(
+    apply(compiler: Compiler) {
+      // Use webpack 5's normalModuleFactory hook to access loader hooks
+      compiler.hooks.normalModuleFactory.tap(
         "AureliaWebpackPlugin",
-        (compilation: unknown) => {
-          // Ensure we always operate on the *same* webpack instance that produced the compiler.
-          // Some consuming applications may have multiple copies of webpack in node_modules,
-          // which can lead to `instanceof` checks failing (see #webpac­k-dup-instance issue).
-          // eslint-disable-next-line import/no-nodejs-modules, @typescript-eslint/no-var-requires
-          const { createRequire } = require("module");
-          const requireFn = createRequire(import.meta.url);
-          const wp: any = (compiler as any).webpack ?? requireFn("webpack");
-          const NormalModule: any = wp.NormalModule;
+        (normalModuleFactory: NormalModuleFactory) => {
+          normalModuleFactory.hooks.beforeResolve.tap(
+            "AureliaWebpackPlugin",
+            (resolveData: ResolveData) => {
+              // Only process .js and .ts files
+              const request = resolveData.request;
+              if (!request) return;
 
-          // Typings for webpack v4/v5 differ; use generics suppressed for maximum compatibility.
-          (NormalModule as any)
-            .getCompilationHooks(compilation as any)
-            .beforeLoaders.tap(
-              "AureliaWebpackPlugin",
-              (loaders: any, module: any) => {
-                const resource = module.resource;
-                if (!resource) return;
-
-                const ext = extname(resource);
-                // The plugin is auto-injected for .js and .ts files.
-                // HTML templates require an explicit rule in webpack.config.js.
-                if (ext !== ".js" && ext !== ".ts") {
-                  return;
-                }
-
-                loaders.push({
-                  loader: loaderPath,
-                  options,
-                });
+              const ext = extname(request);
+              if (ext !== ".js" && ext !== ".ts") {
+                return;
               }
-            );
+
+              // Add our loader to the loader list
+              if (!resolveData.loaders) {
+                resolveData.loaders = [];
+              }
+
+              resolveData.loaders.unshift({
+                loader: loaderPath,
+                options,
+              });
+            }
+          );
         }
       );
     },
@@ -90,21 +131,19 @@ export function plugin(
 /**
  * The loader implementation that the plugin injects for every matched module.
  * It simply delegates to `@aurelia/plugin-conventions` to perform preprocessing
- * ( HMR code injection, etc.) and hands the result back
+ * (HMR code injection, etc.) and hands the result back
  * to Webpack.
  */
 export function loader(
-  // Using `any` here to remain compatible across webpack v4 and v5 typings.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  this: any,
+  this: LoaderContext,
   contents: string,
   _preprocess = preprocess
-) {
+): string {
   // Let Webpack know the result is cacheable for better build performance.
   this.cacheable?.();
 
   const cb = this.async();
-  const options = this.getOptions() as IOptionalPreprocessOptions;
+  const options = this.getOptions();
   const filePath = this.resourcePath;
 
   try {
@@ -117,13 +156,15 @@ export function loader(
     );
 
     if (result) {
-      cb(null, result.code, result.map as any);
-      return;
+      cb(null, result.code, result.map);
+      return result.code;
     }
 
     cb(null, contents);
+    return contents;
   } catch (e) {
     cb(e as Error);
+    return contents;
   }
 }
 

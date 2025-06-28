@@ -41,11 +41,11 @@ const P = Object.freeze({
     isType: t => typeof t === "function" && L in t
 });
 
-const k = /*@__PURE__*/ E("IDevToolsExtension", (t => t.cachedCallback((t => {
+const k = /*@__PURE__*/ E("IDevToolsExtension", t => t.cachedCallback(t => {
     const i = t.get(b);
     const s = i.__REDUX_DEVTOOLS_EXTENSION__;
     return s ?? null;
-}))));
+}));
 
 class Store {
     static register(t) {
@@ -69,16 +69,16 @@ class Store {
     T(t) {
         const i = this._state;
         this._state = t;
-        this.t.forEach((s => s.handleStateChange(t, i)));
+        this.t.forEach(s => s.handleStateChange(t, i));
     }
     getState() {
         return this._state;
     }
     O(t, i, s) {
         for (const n of t) {
-            i = o(i, (t => n(t, s)));
+            i = o(i, t => n(t, s));
         }
-        return o(i, (t => t));
+        return o(i, t => t);
     }
     dispatch(t) {
         if (this.i) {
@@ -86,26 +86,26 @@ class Store {
             return;
         }
         this.i = true;
-        const afterDispatch = t => o(t, (t => {
+        const afterDispatch = t => o(t, t => {
             const i = this.h.shift();
             if (i != null) {
-                return o(this.O(this.B, t, i), (t => {
+                return o(this.O(this.B, t, i), t => {
                     this.T(t);
                     return afterDispatch(t);
-                }));
+                });
             } else {
                 this.i = false;
             }
-        }));
+        });
         const i = this.O(this.B, this._state, t);
         if (c(i)) {
-            return i.then((t => {
+            return i.then(t => {
                 this.T(t);
                 return afterDispatch(this._state);
-            }), (t => {
+            }, t => {
                 this.i = false;
                 throw t;
-            }));
+            });
         } else {
             this.T(i);
             return afterDispatch(this._state);
@@ -120,7 +120,7 @@ class Store {
         t.name ??= "Aurelia State plugin";
         const n = i.connect(t);
         n.init(this.u);
-        n.subscribe((t => {
+        n.subscribe(t => {
             this.C.info("DevTools sent a message:", t);
             const i = typeof t.payload === "string" ? tryParseJson(t.payload) : t.payload;
             if (i === void 0) {
@@ -130,13 +130,13 @@ class Store {
                 if (i == null) {
                     throw new Error("DevTools sent an action with no payload");
                 }
-                void new Promise((t => {
+                void new Promise(t => {
                     t(this.dispatch(i));
-                })).catch((t => {
+                }).catch(t => {
                     throw new Error(`Issue when trying to dispatch an action through devtools:\n${t}`);
-                })).then((() => {
+                }).then(() => {
                     n.send("ACTION", this._state);
-                }));
+                });
                 return;
             }
             if (t.type === "DISPATCH" && i != null) {
@@ -164,7 +164,7 @@ class Store {
                     }
                 }
             }
-        }));
+        });
     }
 }
 
@@ -210,19 +210,19 @@ class StateBinding {
         const isCurrentValue = () => e === this.H - 1;
         this.$();
         if (isSubscribable(t)) {
-            this._ = t.subscribe((t => {
+            this._ = t.subscribe(t => {
                 if (isCurrentValue()) {
                     i.setValue(t, s, n);
                 }
-            }));
+            });
             return;
         }
         if (t instanceof Promise) {
-            void t.then((t => {
+            void t.then(t => {
                 if (isCurrentValue()) {
                     i.setValue(t, s, n);
                 }
-            }), (() => {}));
+            }, () => {});
             return;
         }
         i.setValue(t, s, n);
@@ -260,10 +260,10 @@ class StateBinding {
         let n;
         if (i) {
             n = this.A;
-            this.A = this.P.queueTask((() => {
+            this.A = this.P.queueTask(() => {
                 this.updateTarget(t);
                 this.A = null;
-            }), N);
+            }, N);
             n?.cancel();
             n = null;
         } else {
@@ -287,10 +287,10 @@ class StateBinding {
         let h = null;
         if (e) {
             h = this.A;
-            this.A = this.P.queueTask((() => {
+            this.A = this.P.queueTask(() => {
                 this.updateTarget(n);
                 this.A = null;
-            }), N);
+            }, N);
             h?.cancel();
         } else {
             this.updateTarget(this.v);
@@ -310,7 +310,7 @@ class StateBinding {
 (() => {
     g(StateBinding, null);
     y(StateBinding);
-    v(StateBinding, (() => "updateTarget"));
+    v(StateBinding, () => "updateTarget");
 })();
 
 function isSubscribable(t) {
@@ -417,7 +417,7 @@ class StateDispatchBinding {
 (() => {
     g(StateDispatchBinding, null);
     y(StateDispatchBinding);
-    v(StateDispatchBinding, (() => "callSource"));
+    v(StateDispatchBinding, () => "callSource");
 })();
 
 class StateBindingCommand {
@@ -507,13 +507,13 @@ const G = [ StateBindingCommand, M, DispatchBindingCommand, R, StateBindingBehav
 
 const createConfiguration = (t, s, n = {}) => ({
     register: e => {
-        e.register(i.instance(H, t), ...G, ...s.map(P.define), D.creating(u, (t => {
+        e.register(i.instance(H, t), ...G, ...s.map(P.define), D.creating(u, t => {
             const i = t.get(_);
             const s = t.get(k);
             if (n.devToolsOptions?.disable !== true && s != null) {
                 i.connectDevTools(n.devToolsOptions ?? {});
             }
-        })));
+        }));
     },
     init: (t, i, ...s) => {
         const n = typeof i === "function";
@@ -543,19 +543,19 @@ class StateGetterBinding {
         const isCurrentValue = () => n === this.H - 1;
         this.$();
         if (isSubscribable$1(t)) {
-            this._ = t.subscribe((t => {
+            this._ = t.subscribe(t => {
                 if (isCurrentValue()) {
                     i[s] = t;
                 }
-            }));
+            });
             return;
         }
         if (t instanceof Promise) {
-            void t.then((t => {
+            void t.then(t => {
                 if (isCurrentValue()) {
                     i[s] = t;
                 }
-            }), (() => {}));
+            }, () => {});
             return;
         }
         i[s] = t;

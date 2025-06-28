@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Transform } from 'stream';
 import { IOptionalPreprocessOptions, preprocess } from '@aurelia/plugin-conventions';
 export default function (options?: IOptionalPreprocessOptions): Transform;

@@ -24,8 +24,8 @@ class BrowserPlatform extends e.Platform {
         const notImplemented = e => () => {
             throw new Error(`The PLATFORM did not receive a valid reference to the global function '${e}'.`);
         };
-        ("Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver " + "window document customElements").split(" ").forEach((e => this[e] = e in r ? r[e] : t[e]));
-        "fetch requestAnimationFrame cancelAnimationFrame".split(" ").forEach((e => this[e] = e in r ? r[e] : t[e]?.bind(t) ?? notImplemented(e)));
+        ("Node Element HTMLElement CustomEvent CSSStyleSheet ShadowRoot MutationObserver " + "window document customElements").split(" ").forEach(e => this[e] = e in r ? r[e] : t[e]);
+        "fetch requestAnimationFrame cancelAnimationFrame".split(" ").forEach(e => this[e] = e in r ? r[e] : t[e]?.bind(t) ?? notImplemented(e));
         this.domQueue = (() => {
             let t = false;
             let r = -1;

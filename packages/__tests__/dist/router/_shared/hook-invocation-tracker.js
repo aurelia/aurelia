@@ -13,9 +13,9 @@ export class HookInvocationTracker {
         this.platform = aggregator.platform;
         this._promise = new Promise(resolve => this.$resolve = resolve);
     }
-    notify(componentName, step = '') {
+    notify(componentName) {
         this.notifyHistory.push(componentName);
-        this.aggregator.notify(componentName, step, this);
+        this.aggregator.notify(componentName, this);
     }
     resolve() {
         const $resolve = this.$resolve;
@@ -74,11 +74,8 @@ export class HookInvocationAggregator {
         this.canUnload = new HookInvocationTracker(this, 'canUnload');
         this.unloading = new HookInvocationTracker(this, 'unloading');
     }
-    notify(componentName, step, tracker) {
-        let label = `${this.phase}:${componentName}.${tracker.methodName}`;
-        if (step) {
-            label += `.${step}`;
-        }
+    notify(componentName, tracker) {
+        const label = `${this.phase}.${componentName}.${tracker.methodName}`;
         this.notifyHistory.push(label);
         if (this.config.resolveLabels.includes(label)) {
             tracker.resolve();

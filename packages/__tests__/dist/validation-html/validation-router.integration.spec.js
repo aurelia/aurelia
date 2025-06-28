@@ -38,7 +38,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
 };
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { newInstanceForScope, Registration, resolve } from '@aurelia/kernel';
-import { IRouter, route, RouterConfiguration } from '@aurelia/router-lite';
+import { IRouter, route, RouterConfiguration } from '@aurelia/router';
 import { Aurelia, CustomAttribute, CustomElement, customElement, IHistory, ILocation, IPlatform, } from '@aurelia/runtime-html';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
 import { IValidationRules } from '@aurelia/validation';

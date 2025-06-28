@@ -1,7 +1,7 @@
 import { ensureEmpty, reportTaskQueue } from '@aurelia/platform';
 import { noop, isArrayIndex, DI, Registration, kebabCase, emptyArray, EventAggregator, ILogger, ISink, LogLevel } from '@aurelia/kernel';
 import { IObserverLocator, astEvaluate, astAssign, astBind, astUnbind, IDirtyChecker, INodeObserverLocator, Scope } from '@aurelia/runtime';
-import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia } from '@aurelia/runtime-html';
+import { StandardConfiguration, IPlatform, CustomElement, CustomAttribute, Aurelia, registerHostNode } from '@aurelia/runtime-html';
 import { ITemplateCompiler, InstructionType } from '@aurelia/template-compiler';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { Metadata } from '@aurelia/metadata';
@@ -7767,6 +7767,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         throw new Error('Container of the context contains instance of the application root component. ' +
             'Consider using a different class, or context as it will likely cause surprises in tests.');
     }
+    registerHostNode(container, host);
     const component = container.get(App);
     let startPromise = void 0;
     function startFixtureApp() {

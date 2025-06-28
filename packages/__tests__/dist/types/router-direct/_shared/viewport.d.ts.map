@@ -1,0 +1,1 @@
+{"version":3,"file":"viewport.d.ts","sourceRoot":"","sources":["../../../../src/router-direct/_shared/viewport.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,MAAM,gBAAgB,CAAC;AAE3C,qBAAa,QAAQ;IAKV,IAAI,EAAE,MAAM;IAGZ,KAAK,EAAE,OAAO;IAPhB,IAAI,EAAE,SAAS,CAAC;IAChB,EAAE,EAAE,SAAS,CAAC;gBAGZ,IAAI,EAAE,MAAM,EACnB,IAAI,EAAE,MAAM,EACZ,EAAE,EAAE,MAAM,EACH,KAAK,EAAE,OAAO;CAgIxB"}

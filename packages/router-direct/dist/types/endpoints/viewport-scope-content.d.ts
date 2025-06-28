@@ -1,0 +1,15 @@
+import { EndpointContent } from '../index';
+/**
+ * The viewport scope content represents the content of a viewport scope
+ * and whether it's active or not.
+ *
+ * During a transition, a viewport scope has two viewport scope contents,
+ * the current and the next, which is turned back into one when the
+ * transition is either finalized or aborted.
+ *
+ * Viewport scope contents are used to represent the full state and can
+ * be used for caching
+ */
+export declare class ViewportScopeContent extends EndpointContent {
+}
+//# sourceMappingURL=viewport-scope-content.d.ts.map

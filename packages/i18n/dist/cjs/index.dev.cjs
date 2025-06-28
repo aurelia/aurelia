@@ -63,13 +63,14 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
 
 
 function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
     function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
     var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
-    var descriptor = ({});
+    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
     var _, done = false;
     for (var i = decorators.length - 1; i >= 0; i--) {
         var context = {};
@@ -89,6 +90,7 @@ function __esDecorate(ctor, descriptorIn, decorators, contextIn, initializers, e
             else descriptor[key] = _;
         }
     }
+    if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 }
 function __runInitializers(thisArg, initializers, value) {

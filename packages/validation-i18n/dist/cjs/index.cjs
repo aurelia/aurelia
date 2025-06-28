@@ -17,11 +17,11 @@ const n = /*@__PURE__*/ i.DI.createInterface("I18nKeyConfiguration");
 class LocalizedValidationController extends r.ValidationController {
     constructor(e = i.resolve(i.IEventAggregator), o = i.resolve(t.IPlatform)) {
         super();
-        this.localeChangeSubscription = e.subscribe(a, (() => {
-            o.domQueue.queueTask((async () => {
+        this.localeChangeSubscription = e.subscribe(a, () => {
+            o.domQueue.queueTask(async () => {
                 await this.revalidateErrors();
-            }));
-        }));
+            });
+        });
     }
 }
 
@@ -43,10 +43,10 @@ class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
             this.keyPrefix = r !== void 0 ? `${r}:` : "";
             this.keyPrefix = s !== void 0 ? `${this.keyPrefix}${s}.` : this.keyPrefix;
         }
-        o.subscribe(e.Signals.I18N_EA_CHANNEL, (() => {
+        o.subscribe(e.Signals.I18N_EA_CHANNEL, () => {
             this.registeredMessages = new WeakMap;
             o.publish(a);
-        }));
+        });
     }
     getMessage(e) {
         const i = e.messageKey;
@@ -66,7 +66,7 @@ class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
         if (c === 1 && i === void 0) {
             r = l[0].defaultMessage;
         } else {
-            r = l.find((e => e.name === i))?.defaultMessage;
+            r = l.find(e => e.name === i)?.defaultMessage;
         }
         r ??= i;
         return this.setMessage(e, n.tr(this.getKey(r)));
@@ -102,13 +102,13 @@ function createConfiguration(e) {
                 DefaultNamespace: o.DefaultNamespace,
                 DefaultKeyPrefix: o.DefaultKeyPrefix
             };
-            return t.register(r.ValidationHtmlConfiguration.customize((e => {
+            return t.register(r.ValidationHtmlConfiguration.customize(e => {
                 for (const i of Object.keys(e)) {
                     if (i in o) {
                         e[i] = o[i];
                     }
                 }
-            })), i.Registration.callback(n, (() => a)));
+            }), i.Registration.callback(n, () => a));
         },
         customize(i) {
             return createConfiguration(i ?? e);

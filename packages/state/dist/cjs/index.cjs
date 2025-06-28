@@ -43,11 +43,11 @@ const c = Object.freeze({
     isType: t => typeof t === "function" && o in t
 });
 
-const a = /*@__PURE__*/ n("IDevToolsExtension", (t => t.cachedCallback((t => {
+const a = /*@__PURE__*/ n("IDevToolsExtension", t => t.cachedCallback(t => {
     const i = t.get(s.IWindow);
     const n = i.__REDUX_DEVTOOLS_EXTENSION__;
     return n ?? null;
-}))));
+}));
 
 class Store {
     static register(i) {
@@ -71,16 +71,16 @@ class Store {
     T(t) {
         const i = this._state;
         this._state = t;
-        this.t.forEach((s => s.handleStateChange(t, i)));
+        this.t.forEach(s => s.handleStateChange(t, i));
     }
     getState() {
         return this._state;
     }
     O(i, s, n) {
         for (const e of i) {
-            s = t.onResolve(s, (t => e(t, n)));
+            s = t.onResolve(s, t => e(t, n));
         }
-        return t.onResolve(s, (t => t));
+        return t.onResolve(s, t => t);
     }
     dispatch(i) {
         if (this.i) {
@@ -88,26 +88,26 @@ class Store {
             return;
         }
         this.i = true;
-        const afterDispatch = i => t.onResolve(i, (i => {
+        const afterDispatch = i => t.onResolve(i, i => {
             const s = this.h.shift();
             if (s != null) {
-                return t.onResolve(this.O(this.B, i, s), (t => {
+                return t.onResolve(this.O(this.B, i, s), t => {
                     this.T(t);
                     return afterDispatch(t);
-                }));
+                });
             } else {
                 this.i = false;
             }
-        }));
+        });
         const s = this.O(this.B, this._state, i);
         if (t.isPromise(s)) {
-            return s.then((t => {
+            return s.then(t => {
                 this.T(t);
                 return afterDispatch(this._state);
-            }), (t => {
+            }, t => {
                 this.i = false;
                 throw t;
-            }));
+            });
         } else {
             this.T(s);
             return afterDispatch(this._state);
@@ -122,7 +122,7 @@ class Store {
         t.name ??= "Aurelia State plugin";
         const n = i.connect(t);
         n.init(this.u);
-        n.subscribe((t => {
+        n.subscribe(t => {
             this.C.info("DevTools sent a message:", t);
             const i = typeof t.payload === "string" ? tryParseJson(t.payload) : t.payload;
             if (i === void 0) {
@@ -132,13 +132,13 @@ class Store {
                 if (i == null) {
                     throw new Error("DevTools sent an action with no payload");
                 }
-                void new Promise((t => {
+                void new Promise(t => {
                     t(this.dispatch(i));
-                })).catch((t => {
+                }).catch(t => {
                     throw new Error(`Issue when trying to dispatch an action through devtools:\n${t}`);
-                })).then((() => {
+                }).then(() => {
                     n.send("ACTION", this._state);
-                }));
+                });
                 return;
             }
             if (t.type === "DISPATCH" && i != null) {
@@ -166,7 +166,7 @@ class Store {
                     }
                 }
             }
-        }));
+        });
     }
 }
 
@@ -212,19 +212,19 @@ class StateBinding {
         const isCurrentValue = () => e === this.H - 1;
         this.$();
         if (isSubscribable(t)) {
-            this._ = t.subscribe((t => {
+            this._ = t.subscribe(t => {
                 if (isCurrentValue()) {
                     i.setValue(t, s, n);
                 }
-            }));
+            });
             return;
         }
         if (t instanceof Promise) {
-            void t.then((t => {
+            void t.then(t => {
                 if (isCurrentValue()) {
                     i.setValue(t, s, n);
                 }
-            }), (() => {}));
+            }, () => {});
             return;
         }
         i.setValue(t, s, n);
@@ -262,10 +262,10 @@ class StateBinding {
         let e;
         if (s) {
             e = this.A;
-            this.A = this.P.queueTask((() => {
+            this.A = this.P.queueTask(() => {
                 this.updateTarget(t);
                 this.A = null;
-            }), d);
+            }, d);
             e?.cancel();
             e = null;
         } else {
@@ -289,10 +289,10 @@ class StateBinding {
         let o = null;
         if (r) {
             o = this.A;
-            this.A = this.P.queueTask((() => {
+            this.A = this.P.queueTask(() => {
                 this.updateTarget(h);
                 this.A = null;
-            }), d);
+            }, d);
             o?.cancel();
         } else {
             this.updateTarget(this.v);
@@ -312,7 +312,7 @@ class StateBinding {
 (() => {
     i.connectable(StateBinding, null);
     s.mixinAstEvaluator(StateBinding);
-    s.mixingBindingLimited(StateBinding, (() => "updateTarget"));
+    s.mixingBindingLimited(StateBinding, () => "updateTarget");
 })();
 
 function isSubscribable(t) {
@@ -419,7 +419,7 @@ class StateDispatchBinding {
 (() => {
     i.connectable(StateDispatchBinding, null);
     s.mixinAstEvaluator(StateDispatchBinding);
-    s.mixingBindingLimited(StateDispatchBinding, (() => "callSource"));
+    s.mixingBindingLimited(StateDispatchBinding, () => "callSource");
 })();
 
 class StateBindingCommand {
@@ -509,13 +509,13 @@ const p = [ StateBindingCommand, g, DispatchBindingCommand, S, StateBindingBehav
 
 const createConfiguration = (i, n, e = {}) => ({
     register: o => {
-        o.register(t.Registration.instance(r, i), ...p, ...n.map(c.define), s.AppTask.creating(t.IContainer, (t => {
+        o.register(t.Registration.instance(r, i), ...p, ...n.map(c.define), s.AppTask.creating(t.IContainer, t => {
             const i = t.get(h);
             const s = t.get(a);
             if (e.devToolsOptions?.disable !== true && s != null) {
                 i.connectDevTools(e.devToolsOptions ?? {});
             }
-        })));
+        }));
     },
     init: (t, i, ...s) => {
         const n = typeof i === "function";
@@ -545,19 +545,19 @@ class StateGetterBinding {
         const isCurrentValue = () => n === this.H - 1;
         this.$();
         if (isSubscribable$1(t)) {
-            this._ = t.subscribe((t => {
+            this._ = t.subscribe(t => {
                 if (isCurrentValue()) {
                     i[s] = t;
                 }
-            }));
+            });
             return;
         }
         if (t instanceof Promise) {
-            void t.then((t => {
+            void t.then(t => {
                 if (isCurrentValue()) {
                     i[s] = t;
                 }
-            }), (() => {}));
+            }, () => {});
             return;
         }
         i[s] = t;

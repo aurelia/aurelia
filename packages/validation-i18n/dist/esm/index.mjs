@@ -15,11 +15,11 @@ const v = /*@__PURE__*/ o.createInterface("I18nKeyConfiguration");
 class LocalizedValidationController extends d {
     constructor(i = e(r), t = e(s)) {
         super();
-        this.localeChangeSubscription = i.subscribe(m, (() => {
-            t.domQueue.queueTask((async () => {
+        this.localeChangeSubscription = i.subscribe(m, () => {
+            t.domQueue.queueTask(async () => {
                 await this.revalidateErrors();
-            }));
-        }));
+            });
+        });
     }
 }
 
@@ -41,10 +41,10 @@ class LocalizedValidationMessageProvider extends l {
             this.keyPrefix = n !== void 0 ? `${n}:` : "";
             this.keyPrefix = s !== void 0 ? `${this.keyPrefix}${s}.` : this.keyPrefix;
         }
-        a.subscribe(t.I18N_EA_CHANNEL, (() => {
+        a.subscribe(t.I18N_EA_CHANNEL, () => {
             this.registeredMessages = new WeakMap;
             a.publish(m);
-        }));
+        });
     }
     getMessage(i) {
         const t = i.messageKey;
@@ -64,7 +64,7 @@ class LocalizedValidationMessageProvider extends l {
         if (s === 1 && t === void 0) {
             e = n[0].defaultMessage;
         } else {
-            e = n.find((i => i.name === t))?.defaultMessage;
+            e = n.find(i => i.name === t)?.defaultMessage;
         }
         e ??= t;
         return this.setMessage(i, a.tr(this.getKey(e)));
@@ -100,13 +100,13 @@ function createConfiguration(i) {
                 DefaultNamespace: o.DefaultNamespace,
                 DefaultKeyPrefix: o.DefaultKeyPrefix
             };
-            return t.register(h.customize((i => {
+            return t.register(h.customize(i => {
                 for (const t of Object.keys(i)) {
                     if (t in o) {
                         i[t] = o[t];
                     }
                 }
-            })), a.callback(v, (() => e)));
+            }), a.callback(v, () => e));
         },
         customize(t) {
             return createConfiguration(t ?? i);

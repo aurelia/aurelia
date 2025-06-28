@@ -16,31 +16,33 @@ function __esDecorate(t, i, e, s, r, n) {
         return t;
     }
     var o = s.kind, a = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var l = {};
-    var h, c = false;
-    for (var u = e.length - 1; u >= 0; u--) {
-        var d = {};
-        for (var f in s) d[f] = f === "access" ? {} : s[f];
-        for (var f in s.access) d.access[f] = s.access[f];
-        d.addInitializer = function(t) {
-            if (c) throw new TypeError("Cannot add initializers after decoration has completed");
+    var l = !i && t ? s["static"] ? t : t.prototype : null;
+    var h = i || (l ? Object.getOwnPropertyDescriptor(l, s.name) : {});
+    var c, u = false;
+    for (var d = e.length - 1; d >= 0; d--) {
+        var f = {};
+        for (var v in s) f[v] = v === "access" ? {} : s[v];
+        for (var v in s.access) f.access[v] = s.access[v];
+        f.addInitializer = function(t) {
+            if (u) throw new TypeError("Cannot add initializers after decoration has completed");
             n.push(accept(t || null));
         };
-        var v = (0, e[u])(o === "accessor" ? {
-            get: l.get,
-            set: l.set
-        } : l[a], d);
+        var g = (0, e[d])(o === "accessor" ? {
+            get: h.get,
+            set: h.set
+        } : h[a], f);
         if (o === "accessor") {
-            if (v === void 0) continue;
-            if (v === null || typeof v !== "object") throw new TypeError("Object expected");
-            if (h = accept(v.get)) l.get = h;
-            if (h = accept(v.set)) l.set = h;
-            if (h = accept(v.init)) r.unshift(h);
-        } else if (h = accept(v)) {
-            if (o === "field") r.unshift(h); else l[a] = h;
+            if (g === void 0) continue;
+            if (g === null || typeof g !== "object") throw new TypeError("Object expected");
+            if (c = accept(g.get)) h.get = c;
+            if (c = accept(g.set)) h.set = c;
+            if (c = accept(g.init)) r.unshift(c);
+        } else if (c = accept(g)) {
+            if (o === "field") r.unshift(c); else h[a] = c;
         }
     }
-    c = true;
+    if (l) Object.defineProperty(l, s.name, h);
+    u = true;
 }
 
 function __runInitializers(t, i, e) {
@@ -176,7 +178,7 @@ class ValidationController {
     }
     removeObject(t) {
         this.objects.delete(t);
-        this.processResultDelta("reset", this.results.filter((i => i.object === t)), []);
+        this.processResultDelta("reset", this.results.filter(i => i.object === t), []);
     }
     addError(t, e, s) {
         let r;
@@ -211,31 +213,31 @@ class ValidationController {
         if (e !== void 0) {
             r = [ new i.ValidateInstruction(e, t?.propertyName, t?.rules ?? this.objects.get(e), s, t?.propertyTag) ];
         } else {
-            r = [ ...Array.from(this.objects.entries()).map((([t, e]) => new i.ValidateInstruction(t, void 0, e, s))), ...Array.from(this.bindings.entries()).reduce(((e, [r, n]) => {
+            r = [ ...Array.from(this.objects.entries()).map(([t, e]) => new i.ValidateInstruction(t, void 0, e, s)), ...Array.from(this.bindings.entries()).reduce((e, [r, n]) => {
                 if (!r.isBound) return e;
                 const o = getPropertyInfo(r, n);
                 if (o !== void 0 && !this.objects.has(o.object)) {
                     e.push(new i.ValidateInstruction(o.object, o.propertyName, n.rules, s, t?.propertyTag));
                 }
                 return e;
-            }), []) ];
+            }, []) ];
         }
         this.validating = true;
-        const n = this.platform.domQueue.queueTask((async () => {
+        const n = this.platform.domQueue.queueTask(async () => {
             try {
-                const i = await Promise.all(r.map((async t => this.validator.validate(t))));
-                const e = i.reduce(((t, i) => {
+                const i = await Promise.all(r.map(async t => this.validator.validate(t)));
+                const e = i.reduce((t, i) => {
                     t.push(...i);
                     return t;
-                }), []);
+                }, []);
                 const s = this.getInstructionPredicate(t);
                 const n = this.results.filter(s);
                 this.processResultDelta("validate", n, e);
-                return new ControllerValidateResult(e.find((t => !t.valid)) === void 0, e, t);
+                return new ControllerValidateResult(e.find(t => !t.valid) === void 0, e, t);
             } finally {
                 this.validating = false;
             }
-        }));
+        });
         return n.result;
     }
     reset(t) {
@@ -273,7 +275,7 @@ class ValidationController {
         this.reset(new i.ValidateInstruction(r, n));
     }
     async revalidateErrors() {
-        const t = this.results.reduce(((t, {isManual: i, object: e, propertyRule: s, rule: r, valid: n}) => {
+        const t = this.results.reduce((t, {isManual: i, object: e, propertyRule: s, rule: r, valid: n}) => {
             if (!n && !i && s !== void 0 && e !== void 0 && r !== void 0) {
                 let i = t.get(e);
                 if (i === void 0) {
@@ -286,10 +288,10 @@ class ValidationController {
                 n.push(r);
             }
             return t;
-        }), new Map);
+        }, new Map);
         const e = [];
         for (const [s, r] of t) {
-            e.push(this.validate(new i.ValidateInstruction(s, undefined, Array.from(r).map((([{validationRules: t, messageProvider: e, property: s}, r]) => new i.PropertyRule(this.locator, t, e, s, [ r ]))))));
+            e.push(this.validate(new i.ValidateInstruction(s, undefined, Array.from(r).map(([{validationRules: t, messageProvider: e, property: s}, r]) => new i.PropertyRule(this.locator, t, e, s, [ r ])))));
         }
         await Promise.all(e);
     }
@@ -299,7 +301,7 @@ class ValidationController {
         }
         const i = t.propertyName;
         const e = t.rules;
-        return s => !s.isManual && s.object === t.object && (i === void 0 || s.propertyName === i) && (e === void 0 || e.includes(s.propertyRule) || e.some((t => s.propertyRule === void 0 || t.$rules.flat().every((t => s.propertyRule.$rules.flat().includes(t))))));
+        return s => !s.isManual && s.object === t.object && (i === void 0 || s.propertyName === i) && (e === void 0 || e.includes(s.propertyRule) || e.some(t => s.propertyRule === void 0 || t.$rules.flat().every(t => s.propertyRule.$rules.flat().includes(t))));
     }
     getAssociatedElements({object: t, propertyName: i}) {
         const e = [];
@@ -319,7 +321,7 @@ class ValidationController {
             const i = r.get(t);
             r.delete(t);
             s.removedResults.push(new ValidationResultTarget(t, i));
-            const n = e.findIndex((i => i.rule === t.rule && i.object === t.object && i.propertyName === t.propertyName));
+            const n = e.findIndex(i => i.rule === t.rule && i.object === t.object && i.propertyName === t.propertyName);
             if (n === -1) {
                 this.results.splice(this.results.indexOf(t), 1);
             } else {
@@ -394,7 +396,7 @@ let l = (() => {
         }
         handleValidationEvent(t) {
             for (const {result: i} of t.removedResults) {
-                const t = this.errors.findIndex((t => t.result === i));
+                const t = this.errors.findIndex(t => t.result === i);
                 if (t !== -1) {
                     this.errors.splice(t, 1);
                 }
@@ -403,17 +405,17 @@ let l = (() => {
                 if (i.valid) {
                     continue;
                 }
-                const t = e.filter((t => this.host.contains(t)));
+                const t = e.filter(t => this.host.contains(t));
                 if (t.length > 0) {
                     this.errors.push(new ValidationResultTarget(i, t));
                 }
             }
-            this.errors.sort(((t, i) => {
+            this.errors.sort((t, i) => {
                 if (t.targets[0] === i.targets[0]) {
                     return 0;
                 }
                 return compareDocumentPositionFlat(t.targets[0], i.targets[0]);
-            }));
+            });
         }
         binding() {
             this.controller = this.controller ?? this.scopedController;
@@ -472,7 +474,7 @@ class ValidationErrorsCustomAttribute {
     }
     handleValidationEvent(t) {
         for (const {result: i} of t.removedResults) {
-            const t = this.errorsInternal.findIndex((t => t.result === i));
+            const t = this.errorsInternal.findIndex(t => t.result === i);
             if (t !== -1) {
                 this.errorsInternal.splice(t, 1);
             }
@@ -481,17 +483,17 @@ class ValidationErrorsCustomAttribute {
             if (i.valid) {
                 continue;
             }
-            const t = e.filter((t => this.host.contains(t)));
+            const t = e.filter(t => this.host.contains(t));
             if (t.length > 0) {
                 this.errorsInternal.push(new ValidationResultTarget(i, t));
             }
         }
-        this.errorsInternal.sort(((t, i) => {
+        this.errorsInternal.sort((t, i) => {
             if (t.targets[0] === i.targets[0]) {
                 return 0;
             }
             return compareDocumentPositionFlat(t.targets[0], i.targets[0]);
-        }));
+        });
         this.errors = this.errorsInternal;
     }
     binding() {
@@ -634,7 +636,7 @@ class ValidationConnector {
         if (i === null) return;
         const e = this.bindingInfo.propertyInfo?.propertyName;
         if (e === void 0) return;
-        this.validatedOnce = t.addedResults.find((t => t.result.propertyName === e)) !== void 0;
+        this.validatedOnce = t.addedResults.find(t => t.result.propertyName === e) !== void 0;
     }
     B() {
         const t = this.scope;
@@ -669,7 +671,7 @@ class ValidationConnector {
     }
     validateBinding() {
         const t = this.task;
-        this.task = this.p.domQueue.queueTask((() => this.controller.validateBinding(this.propertyBinding)));
+        this.task = this.p.domQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
         if (t !== this.task) {
             t?.cancel();
         }
@@ -719,7 +721,7 @@ class ValidationConnector {
         return t;
     }
     I(t) {
-        if (Array.isArray(t) && t.every((t => t instanceof i.PropertyRule))) {
+        if (Array.isArray(t) && t.every(t => t instanceof i.PropertyRule)) {
             return t;
         }
     }
@@ -811,13 +813,13 @@ function createConfiguration(s) {
             const o = getDefaultValidationHtmlConfiguration();
             s(o);
             r.registerFactory(n, new o.ValidationControllerFactoryType);
-            r.register(i.ValidationConfiguration.customize((t => {
+            r.register(i.ValidationConfiguration.customize(t => {
                 for (const i of Object.keys(t)) {
                     if (i in o) {
                         t[i] = o[i];
                     }
                 }
-            })), t.Registration.instance(h, o.DefaultTrigger), ValidateBindingBehavior);
+            }), t.Registration.instance(h, o.DefaultTrigger), ValidateBindingBehavior);
             if (o.UseSubscriberCustomAttribute) {
                 r.register(ValidationErrorsCustomAttribute);
             }
@@ -842,7 +844,7 @@ const f = "validation-result-id";
 
 const v = "validation-result-container";
 
-const g = /*@__PURE__*/ t.DI.createInterface("IValidationResultPresenterService", (t => t.transient(ValidationResultPresenterService)));
+const g = /*@__PURE__*/ t.DI.createInterface("IValidationResultPresenterService", t => t.transient(ValidationResultPresenterService));
 
 class ValidationResultPresenterService {
     constructor() {
@@ -884,7 +886,7 @@ class ValidationResultPresenterService {
         return e;
     }
     showResults(t, i) {
-        t.append(...i.reduce(((t, i) => {
+        t.append(...i.reduce((t, i) => {
             if (!i.valid) {
                 const e = this.platform.document.createElement("span");
                 e.setAttribute(f, i.id.toString());
@@ -892,7 +894,7 @@ class ValidationResultPresenterService {
                 t.push(e);
             }
             return t;
-        }), []));
+        }, []));
     }
     removeResults(t, i) {
         for (const e of i) {

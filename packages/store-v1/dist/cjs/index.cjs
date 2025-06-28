@@ -201,7 +201,7 @@ class Store {
     }
     isActionRegistered(t) {
         if (typeof t === "string") {
-            return Array.from(this.actions).find((e => e[1].type === t)) !== undefined;
+            return Array.from(this.actions).find(e => e[1].type === t) !== undefined;
         }
         return this.actions.has(t);
     }
@@ -238,7 +238,7 @@ class Store {
     }
     lookupAction(t) {
         if (typeof t === "string") {
-            const e = Array.from(this.actions).find((([e, r]) => r.type === t));
+            const e = Array.from(this.actions).find(([e, r]) => r.type === t);
             if (e) {
                 return e[0];
             }
@@ -248,7 +248,7 @@ class Store {
         return undefined;
     }
     async queueDispatch(t) {
-        return new Promise(((e, r) => {
+        return new Promise((e, r) => {
             this.dispatchQueue.push({
                 actions: t,
                 resolve: e,
@@ -257,7 +257,7 @@ class Store {
             if (this.dispatchQueue.length === 1) {
                 this.handleQueue();
             }
-        }));
+        });
     }
     async handleQueue() {
         if (this.dispatchQueue.length > 0) {
@@ -273,23 +273,23 @@ class Store {
         }
     }
     async internalDispatch(t) {
-        const r = t.find((t => !this.actions.has(t.reducer)));
+        const r = t.find(t => !this.actions.has(t.reducer));
         if (r) {
             throw new UnregisteredActionError(r.reducer);
         }
         o.container.get(e.IWindow).performance.mark("dispatch-start");
-        const s = t.map((t => ({
+        const s = t.map(t => ({
             type: this.actions.get(t.reducer).type,
             params: t.params,
             reducer: t.reducer
-        })));
+        }));
         const i = {
-            name: s.map((t => t.type)).join("->"),
-            params: s.reduce(((t, e) => t.concat(e.params)), []),
-            pipedActions: s.map((t => ({
+            name: s.map(t => t.type).join("->"),
+            params: s.reduce((t, e) => t.concat(e.params), []),
+            pipedActions: s.map(t => ({
                 name: t.type,
                 params: t.params
-            })))
+            }))
         };
         if (this.options.logDispatchedActions) {
             this.logger[getLogType(this.options, "dispatchedActions", exports.LogLevel.info)](`Dispatching: ${i.name}`);
@@ -341,7 +341,7 @@ class Store {
         }, c);
     }
     executeMiddlewares(t, r, s) {
-        return Array.from(this.middlewares).filter((t => t[1].placement === r)).reduce((async (t, i, n) => {
+        return Array.from(this.middlewares).filter(t => t[1].placement === r).reduce(async (t, i, n) => {
             try {
                 const e = await i[0](await t, this._state.getValue(), i[1].settings, s);
                 if (e === false) {
@@ -356,7 +356,7 @@ class Store {
             } finally {
                 o.container.get(e.IWindow).performance.mark(`dispatch-${r}-${i[0].name}`);
             }
-        }), t);
+        }, t);
     }
     setupDevTools() {
         if (this.t.__REDUX_DEVTOOLS_EXTENSION__) {
@@ -364,12 +364,12 @@ class Store {
             this.devToolsAvailable = true;
             this.devTools = this.t.__REDUX_DEVTOOLS_EXTENSION__.connect(this.options.devToolsOptions);
             this.devTools.init(this.initialState);
-            this.devTools.subscribe((t => {
+            this.devTools.subscribe(t => {
                 this.logger[getLogType(this.options, "devToolsStatus", exports.LogLevel.debug)](`DevTools sent change ${t.type}`);
                 if (t.type === "ACTION" && t.payload !== undefined) {
-                    const e = Array.from(this.actions).find((function([e]) {
+                    const e = Array.from(this.actions).find(function([e]) {
                         return e.name === t.payload?.name;
-                    }));
+                    });
                     const r = this.lookupAction(t.payload?.name) ?? e?.[0];
                     if (!r) {
                         throw new DevToolsRemoteDispatchError("Tried to remotely dispatch an unregistered action");
@@ -377,9 +377,9 @@ class Store {
                     if (!t.payload.args || t.payload.args.length < 1) {
                         throw new DevToolsRemoteDispatchError("No action arguments provided");
                     }
-                    this.dispatch(r, ...t.payload.args.slice(1).map((t => JSON.parse(t)))).catch((() => {
+                    this.dispatch(r, ...t.payload.args.slice(1).map(t => JSON.parse(t))).catch(() => {
                         throw new DevToolsRemoteDispatchError("Issue when trying to dispatch an action through devtools");
-                    }));
+                    });
                     return;
                 }
                 if (t.type === "DISPATCH" && t.payload) {
@@ -407,7 +407,7 @@ class Store {
                         }
                     }
                 }
-            }));
+            });
         }
     }
     updateDevToolsState(t, e) {
@@ -447,14 +447,14 @@ async function executeSteps(t, e, ...r) {
         await t(r);
         e();
     };
-    return new Promise(((e, i) => {
+    return new Promise((e, i) => {
         let o = 0;
-        r.slice(0, -1).forEach((e => {
+        r.slice(0, -1).forEach(e => {
             t.state.pipe(s.skip(o), s.take(1), s.delay(0)).subscribe(tryStep(logStep(e, o), i));
             o++;
-        }));
+        });
         t.state.pipe(s.skip(o), s.take(1)).subscribe(lastStep(tryStep(logStep(r[r.length - 1], o), i), e));
-    }));
+    });
 }
 
 const defaultSelector = t => t.state;
@@ -478,7 +478,7 @@ function connectTo(t) {
         };
         return Object.entries({
             ...t ? s.selector : e
-        }).map((([e, r]) => ({
+        }).map(([e, r]) => ({
             targets: s.target && t ? [ s.target, e ] : [ e ],
             selector: r,
             changeHandlers: {
@@ -486,7 +486,7 @@ function connectTo(t) {
                 [`${s.target ?? e}Changed`]: s.target ? 0 : 1,
                 propertyChanged: 0
             }
-        })));
+        }));
     }
     return function(s, i) {
         const n = typeof t === "object" && t.setup ? s.prototype[t.setup] : s.prototype.binding;
@@ -496,30 +496,30 @@ function connectTo(t) {
                 throw new Error("Provided onChanged handler does not exist on target VM");
             }
             const r = e.Controller.getCached(this) ? e.Controller.getCached(this).container.get(Store) : o.container.get(Store);
-            this._stateSubscriptions = createSelectors().map((t => getSource(r, t.selector).subscribe((e => {
+            this._stateSubscriptions = createSelectors().map(t => getSource(r, t.selector).subscribe(e => {
                 const r = t.targets.length - 1;
-                const s = t.targets.reduce(((t = {}, e) => t[e]), this);
-                Object.entries(t.changeHandlers).forEach((([i, o]) => {
+                const s = t.targets.reduce((t = {}, e) => t[e], this);
+                Object.entries(t.changeHandlers).forEach(([i, o]) => {
                     if (i in this) {
                         this[i](...[ t.targets[r], e, s ].slice(o, 3));
                     }
-                }));
-                t.targets.reduce(((t, s, i) => {
+                });
+                t.targets.reduce((t, s, i) => {
                     t[s] = i === r ? e : t[s] || {};
                     return t[s];
-                }), this);
-            }))));
+                }, this);
+            }));
             if (n) {
                 return n.apply(this, arguments);
             }
         };
         s.prototype[typeof t === "object" && t.teardown ? t.teardown : "unbinding"] = function() {
             if (this._stateSubscriptions && Array.isArray(this._stateSubscriptions)) {
-                this._stateSubscriptions.forEach((t => {
+                this._stateSubscriptions.forEach(t => {
                     if (t instanceof r.Subscription && t.closed === false) {
                         t.unsubscribe();
                     }
-                }));
+                });
             }
             if (a) {
                 return a.apply(this, arguments);

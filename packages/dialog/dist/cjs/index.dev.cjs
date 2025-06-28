@@ -13,11 +13,11 @@ const singletonRegistration = kernel.Registration.singleton;
 const instanceRegistration = kernel.Registration.instance;
 
 /**
- * The dialog service for composing view & view model into a dialog
+ * The dialog service for composing template and component into a dialog
  */
 const IDialogService = /*@__PURE__*/ createInterface('IDialogService');
 /**
- * The controller asscociated with every dialog view model
+ * The controller associated with every dialog component
  */
 const IDialogController = /*@__PURE__*/ createInterface('IDialogController');
 /**
@@ -29,11 +29,9 @@ const IDialogDomRenderer = /*@__PURE__*/ createInterface('IDialogDomRenderer');
  */
 const IDialogDom = /*@__PURE__*/ createInterface('IDialogDom');
 /**
- * An interface for managing the animations of dialog doms.
- * This is only used by the default dialog renderer.
+ * Global configuration for the dialog plugin
  */
-const IDialogDomAnimator = /*@__PURE__*/ createInterface('IDialogDomAnimator');
-const IDialogEventManager = /*@__PURE__*/ createInterface('IDialogKeyboardService');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const IDialogGlobalSettings = /*@__PURE__*/ createInterface('IDialogGlobalSettings');
 class DialogOpenResult {
     constructor(wasCancelled, dialog) {
@@ -71,12 +69,12 @@ const errorsMap = {
     [901 /* ErrorNames.dialog_not_all_dialogs_closed */]: `Failured to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
     [903 /* ErrorNames.dialog_settings_invalid */]: `Invalid Dialog Settings. You must provide either "component" or "template" or both.`,
     [904 /* ErrorNames.dialog_no_empty_default_configuration */]: `Invalid dialog configuration. ` +
-        'Specify the implementations for <IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-        'or use the DialogDefaultConfiguration export.',
+        'Specify default renderer or use the DialogConfigurationStandard/DialogConfigurationClassic export.',
     [905 /* ErrorNames.dialog_activation_rejected */]: 'Dialog activation rejected',
     [906 /* ErrorNames.dialog_cancellation_rejected */]: 'Dialog cancellation rejected',
     [907 /* ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting */]: 'Dialog cancelled with a rejection on cancel',
     [908 /* ErrorNames.dialog_custom_error */]: 'Dialog custom error',
+    [909 /* ErrorNames.dialog_closed_before_deactivation */]: 'Dialog was closed before deactivation, did you call dialog.close()?',
 };
 const getMessageByCode = (name, ...details) => {
     let cooked = errorsMap[name];
@@ -120,8 +118,6 @@ class DialogController {
     constructor() {
         this.p = kernel.resolve(runtimeHtml.IPlatform);
         this.ctn = kernel.resolve(kernel.IContainer);
-        /** @internal */
-        this._disposeHandler = void 0;
         this.closed = new Promise((resolve, reject) => {
             this._resolve = resolve;
             this._reject = reject;
@@ -130,21 +126,21 @@ class DialogController {
     /** @internal */
     activate(settings) {
         const container = this.ctn.createChild();
-        const { model, template, rejectOnCancel, renderer = container.get(IDialogDomRenderer), } = settings;
+        const { model, template, rejectOnCancel, renderer, } = settings;
+        const resolvedRenderer = kernel.isFunction(renderer) ? container.invoke(renderer) : renderer;
         const dialogTargetHost = settings.host ?? this.p.document.body;
-        const dom = this.dom = renderer.render(dialogTargetHost, settings);
+        const dom = this.dom = resolvedRenderer.render(dialogTargetHost, this, settings.options);
         const rootEventTarget = container.has(runtimeHtml.IEventTarget, true)
             ? container.get(runtimeHtml.IEventTarget)
             : null;
         const contentHost = dom.contentHost;
-        const eventManager = container.get(IDialogEventManager);
         this.settings = settings;
         // application root host may be a different element with the dialog root host
         // example:
         // <body>
         //   <my-app>
         //   <au-dialog-container>
-        // when it's different, needs to ensure delegate bindings work
+        // when it's different, need to ensure delegate bindings work
         if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
             container.register(instanceRegistration(runtimeHtml.IEventTarget, dialogTargetHost));
         }
@@ -166,7 +162,6 @@ class DialogController {
             return kernel.onResolve(cmp.activate?.(model), () => {
                 const ctrlr = this.controller = runtimeHtml.Controller.$el(container, cmp, contentHost, null, runtimeHtml.CustomElementDefinition.create(this.getDefinition(cmp) ?? { name: runtimeHtml.CustomElement.generateName(), template }));
                 return kernel.onResolve(ctrlr.activate(ctrlr, null), () => {
-                    this._disposeHandler = eventManager.add(this, dom);
                     return kernel.onResolve(dom.show?.(), () => DialogOpenResult.create(false, this));
                 });
             });
@@ -196,7 +191,6 @@ class DialogController {
                 }
                 return kernel.onResolve(cmp.deactivate?.(dialogResult), () => kernel.onResolve(dom.hide?.(), () => kernel.onResolve(controller.deactivate(controller, null), () => {
                     dom.dispose();
-                    this._disposeHandler?.dispose();
                     if (!rejectOnCancel && status !== 'error') {
                         this._resolve(dialogResult);
                     }
@@ -359,7 +353,11 @@ class DialogService {
                 ? null
                 : controller);
         }))
-            .then(unclosedControllers => unclosedControllers.filter(unclosed => !!unclosed));
+            .then(unclosedControllers => 
+        // something wrong with TS
+        // it's unable to recognize that the null values are filtered out already
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        unclosedControllers.filter(unclosed => !!unclosed));
     }
     /** @internal */
     remove(controller) {
@@ -370,43 +368,28 @@ class DialogService {
     }
 }
 class DialogSettings {
-    static from(...srcs) {
-        return Object.assign(new DialogSettings(), ...srcs)
-            ._validate()
-            ._normalize();
+    static from(baseSettings, settings) {
+        const finalSettings = Object.assign(new DialogSettings(), baseSettings, settings, { options: { ...baseSettings.options ?? {}, ...settings.options ?? {} }
+        });
+        if (finalSettings.component == null && finalSettings.template == null) {
+            throw createMappedError(903 /* ErrorNames.dialog_settings_invalid */);
+        }
+        return finalSettings;
     }
     load() {
         const loaded = this;
         const cmp = this.component;
         const template = this.template;
-        const maybePromise = kernel.onResolveAll(...[
-            cmp == null
-                ? void 0
-                : kernel.onResolve(cmp(), loadedCmp => { loaded.component = loadedCmp; }),
-            kernel.isFunction(template)
-                ? kernel.onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
-                : void 0
-        ]);
-        return kernel.isPromise(maybePromise)
-            ? maybePromise.then(() => loaded)
-            : loaded;
-    }
-    /** @internal */
-    _validate() {
-        if (this.component == null && this.template == null) {
-            throw createMappedError(903 /* ErrorNames.dialog_settings_invalid */);
-        }
-        return this;
-    }
-    /** @internal */
-    _normalize() {
-        if (this.keyboard == null) {
-            this.keyboard = this.lock ? [] : ['Enter', 'Escape'];
-        }
-        if (typeof this.overlayDismiss !== 'boolean') {
-            this.overlayDismiss = !this.lock;
-        }
-        return this;
+        const maybePromise = kernel.onResolveAll(cmp == null
+            ? void 0
+            : kernel.onResolve(runtimeHtml.CustomElement.isType(cmp)
+                ? cmp
+                : cmp(), 
+            // (cmp as Exclude<typeof cmp, Constructable>)(),
+            loadedCmp => { loaded.component = loadedCmp; }), kernel.isFunction(template)
+            ? kernel.onResolve(template(), loadedTpl => { loaded.template = loadedTpl; })
+            : void 0);
+        return kernel.onResolve(maybePromise, () => loaded);
     }
 }
 function whenClosed(onfulfilled, onrejected) {
@@ -417,81 +400,77 @@ function asDialogOpenPromise(promise) {
     return promise;
 }
 
-class DefaultDialogGlobalSettings {
-    constructor() {
-        this.lock = true;
-        this.startingZIndex = 1000;
-        this.rejectOnCancel = false;
-    }
-    static register(container) {
-        singletonRegistration(IDialogGlobalSettings, this).register(container);
-    }
-}
-class DefaultDialogDomRenderer {
+class DialogDomRendererClassic {
     constructor() {
         this.p = kernel.resolve(runtimeHtml.IPlatform);
         /** @internal */
-        this._animator = kernel.resolve(kernel.optional(IDialogDomAnimator));
+        this._eventManager = kernel.resolve(IDialogEventManager);
         this.overlayCss = 'position:absolute;width:100%;height:100%;top:0;left:0;';
         this.wrapperCss = `${this.overlayCss} display:flex;`;
         this.hostCss = 'position:relative;margin:auto;';
     }
-    static register(container) {
-        container.register(singletonRegistration(IDialogDomRenderer, this));
-    }
-    render(dialogHost, settings) {
+    render(dialogHost, controller, options) {
         const doc = this.p.document;
         const h = (name, css) => {
             const el = doc.createElement(name);
             el.style.cssText = css;
             return el;
         };
-        const { startingZIndex } = settings;
+        const { startingZIndex } = options ?? {};
         const wrapperCss = `${this.wrapperCss};${startingZIndex == null ? '' : `z-index:${startingZIndex}`}`;
         const wrapper = dialogHost.appendChild(h('au-dialog-container', wrapperCss));
         const overlay = wrapper.appendChild(h('au-dialog-overlay', this.overlayCss));
         const host = wrapper.appendChild(h('div', this.hostCss));
-        return new DefaultDialogDom(wrapper, overlay, host, this._animator);
+        return new DialogDomClassic(wrapper, overlay, host, controller, this._eventManager, options ?? {});
     }
 }
-class DefaultDialogDom {
-    constructor(wrapper, overlay, contentHost, animator) {
-        this.wrapper = wrapper;
+class DialogDomClassic {
+    constructor(root, overlay, contentHost, controller, eventManager, options) {
+        this.root = root;
         this.overlay = overlay;
         this.contentHost = contentHost;
-        this._animator = animator;
+        /** @internal */
+        this._sub = null;
+        this._controller = controller;
+        this._eventManager = eventManager;
+        this._options = options ?? {};
     }
     show() {
-        return this._animator?.show(this);
+        return kernel.onResolve(this._options?.show?.(this), () => {
+            this._sub = this._eventManager.add(this._controller, this);
+        });
     }
     hide() {
-        return this._animator?.hide(this);
+        this._sub?.dispose();
+        return this._options?.hide?.(this);
     }
     dispose() {
-        this.wrapper.remove();
+        this._sub?.dispose();
+        this.root.remove();
     }
 }
-
-class DefaultDialogEventManager {
+const IDialogEventManager = /*@__PURE__*/ createInterface('IDialogEventManager', x => x.singleton(DialogEventManagerClassic));
+class DialogEventManagerClassic {
     constructor() {
         this.ctrls = [];
         this.w = kernel.resolve(runtimeHtml.IWindow);
-    }
-    static register(container) {
-        singletonRegistration(IDialogEventManager, this).register(container);
     }
     add(controller, dom) {
         if (this.ctrls.push(controller) === 1) {
             this.w.addEventListener('keydown', this);
         }
-        const mouseEvent = controller.settings.mouseEvent ?? 'click';
+        const options = controller.settings.options;
+        const lock = options.lock;
+        let overlayDismiss = options.overlayDismiss;
+        overlayDismiss = typeof overlayDismiss === 'boolean' ? overlayDismiss : !lock;
+        const mouseEvent = options.mouseEvent ?? 'click';
         const handleClick = (e) => {
-            if ( /* user allows dismiss on overlay click */controller.settings.overlayDismiss
+            if ( /* user allows dismiss on overlay click */overlayDismiss
                 && /* did not click inside the host element */ !dom.contentHost.contains(e.target)) {
                 void controller.cancel();
             }
         };
-        dom.overlay.addEventListener(mouseEvent, handleClick);
+        dom.overlay?.addEventListener(mouseEvent, handleClick);
         const handleSubmit = (e) => {
             const target = e.target;
             const noAction = !target.getAttribute('action');
@@ -500,10 +479,15 @@ class DefaultDialogEventManager {
             }
         };
         dom.contentHost.addEventListener('submit', handleSubmit);
+        let disposed = false;
         return {
             dispose: () => {
+                if (disposed) {
+                    return;
+                }
+                disposed = true;
                 this._remove(controller);
-                dom.overlay.removeEventListener(mouseEvent, handleClick);
+                dom.overlay?.removeEventListener(mouseEvent, handleClick);
                 dom.contentHost.removeEventListener('submit', handleSubmit);
             }
         };
@@ -520,17 +504,22 @@ class DefaultDialogEventManager {
         }
     }
     /** @internal */
+    _getKeyboardOptions(ctrl) {
+        const options = ctrl.settings.options;
+        return options.keyboard ?? (options.lock ? [] : ['Enter', 'Escape']);
+    }
+    /** @internal */
     handleEvent(e) {
         const keyEvent = e;
-        const key = getActionKey(keyEvent);
+        const key = DialogEventManagerClassic._getActionKey(keyEvent);
         if (key == null) {
             return;
         }
         const top = this.ctrls.slice(-1)[0];
-        if (top == null || top.settings.keyboard.length === 0) {
+        if (top == null) {
             return;
         }
-        const keyboard = top.settings.keyboard;
+        const keyboard = this._getKeyboardOptions(top);
         if (key === 'Escape' && keyboard.includes(key)) {
             void top.cancel();
         }
@@ -538,63 +527,161 @@ class DefaultDialogEventManager {
             void top.ok();
         }
     }
-}
-function getActionKey(e) {
-    if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
-        return 'Escape';
+    /** @internal */
+    static _getActionKey(e) {
+        if ((e.code || e.key) === 'Escape' || e.keyCode === 27) {
+            return 'Escape';
+        }
+        if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
+            return 'Enter';
+        }
+        return undefined;
     }
-    if ((e.code || e.key) === 'Enter' || e.keyCode === 13) {
-        return 'Enter';
-    }
-    return undefined;
 }
 
-function createDialogConfiguration(settingsProvider, registrations) {
+class DialogDomRendererStandard {
+    constructor() {
+        this.p = kernel.resolve(runtimeHtml.IPlatform);
+    }
+    render(dialogHost, controller, options = {}) {
+        const h = (name) => this.p.document.createElement(name);
+        const wrapper = h('dialog');
+        const host = wrapper.appendChild(h('div'));
+        if (options.closedby) {
+            wrapper.setAttribute('closedby', options.closedby);
+        }
+        dialogHost.appendChild(wrapper);
+        return new DialogDomStandard(wrapper, host, controller, options);
+    }
+}
+class DialogDomStandard {
+    constructor(root, contentHost, controller, options) {
+        this.root = root;
+        this.contentHost = contentHost;
+        /** @internal */
+        this._overlayStyleEl = null;
+        this._controller = controller;
+        this._options = options;
+        this._styleParser = root.ownerDocument.createElement('div');
+        if (options.overlayStyle != null) {
+            this.setOverlayStyle(options.overlayStyle);
+        }
+    }
+    setOverlayStyle(css) {
+        const el = this._overlayStyleEl ??= this.root.insertAdjacentElement('afterbegin', this.root.ownerDocument.createElement('style'));
+        const styleParser = this._styleParser;
+        styleParser.style.cssText = '';
+        if (kernel.isString(css)) {
+            styleParser.style.cssText = css;
+        }
+        else {
+            Object.assign(styleParser.style, css);
+        }
+        el.textContent = `:modal::backdrop{${styleParser.style.cssText}}`;
+    }
+    show() {
+        if (this._options.modal) {
+            this.root.showModal();
+        }
+        else {
+            this.root.show();
+        }
+        return kernel.onResolve(this._options.show?.(this), () => {
+            this.root.addEventListener('cancel', this);
+        });
+    }
+    hide() {
+        // istanbul ignore next
+        if (!this.root.open) {
+            {
+                // eslint-disable-next-line no-console
+                console.warn(createMappedError(909 /* ErrorNames.dialog_closed_before_deactivation */));
+            }
+        }
+        return kernel.onResolve(this._options.hide?.(this), () => {
+            this.root.removeEventListener('cancel', this);
+            this.root.close();
+        });
+    }
+    dispose() {
+        this.root.remove();
+    }
+    /** @internal */
+    handleEvent(event) {
+        /**
+         * The cancel event fires on a <dialog> element when the user instructs the browser that they wish to dismiss the
+         * current open dialog. The browser fires this event when the user presses the Esc key.
+         *
+         * Prevent native dismiss and invoke controller cancel pipeline
+         */
+        event.preventDefault();
+        void this._controller.cancel();
+    }
+}
+
+function createDialogConfiguration(settingsProvider, defaults) {
     return {
-        settingsProvider: settingsProvider,
-        register: (ctn) => ctn.register(...registrations, runtimeHtml.AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)))),
-        customize(cb, regs) {
-            return createDialogConfiguration(cb, regs ?? registrations);
+        register: (ctn) => ctn.register(singletonRegistration(IDialogGlobalSettings, defaults), DialogService, runtimeHtml.AppTask.creating(() => settingsProvider(ctn.get(IDialogGlobalSettings)))),
+        customize(cb) {
+            return createDialogConfiguration(cb, defaults);
         },
     };
 }
 /**
  * A noop configuration for Dialog, should be used as:
-```ts
-DialogConfiguration.customize(settings => {
-  // adjust default value of the settings
-}, [all_implementations_here])
-```
+ ```ts
+ DialogConfiguration.customize(settings => {
+   // provide at least default renderer
+   settings.renderer = MyRenderer;
+ })
+ ```
  */
 const DialogConfiguration = /*@__PURE__*/ createDialogConfiguration(() => {
     throw createMappedError(904 /* ErrorNames.dialog_no_empty_default_configuration */);
-}, [class NoopDialogGlobalSettings {
-        static register(container) {
-            container.register(singletonRegistration(IDialogGlobalSettings, this));
-        }
-    }]);
-const DialogDefaultConfiguration = /*@__PURE__*/ createDialogConfiguration(kernel.noop, [
-    DialogService,
-    DefaultDialogGlobalSettings,
-    DefaultDialogDomRenderer,
-    DefaultDialogEventManager,
-]);
+}, class {
+    constructor() {
+        this.options = {};
+    }
+});
+/**
+ * A configuration for Dialog that uses the `<dialog>` element.
+ */
+const DialogConfigurationStandard = /*@__PURE__*/ createDialogConfiguration(kernel.noop, class {
+    constructor() {
+        this.renderer = DialogDomRendererStandard;
+        this.options = {
+            modal: true
+        };
+    }
+});
+/**
+ * A configuration for Dialog that uses the light DOM for rendering dialog and its overlay.
+ */
+const DialogConfigurationClassic = /*@__PURE__*/ createDialogConfiguration(kernel.noop, class {
+    constructor() {
+        this.renderer = DialogDomRendererClassic;
+        this.options = {
+            lock: true,
+            startingZIndex: 1000,
+        };
+    }
+});
 
-exports.DefaultDialogDom = DefaultDialogDom;
-exports.DefaultDialogDomRenderer = DefaultDialogDomRenderer;
-exports.DefaultDialogEventManager = DefaultDialogEventManager;
-exports.DefaultDialogGlobalSettings = DefaultDialogGlobalSettings;
 exports.DialogCloseResult = DialogCloseResult;
 exports.DialogConfiguration = DialogConfiguration;
+exports.DialogConfigurationClassic = DialogConfigurationClassic;
+exports.DialogConfigurationStandard = DialogConfigurationStandard;
 exports.DialogController = DialogController;
-exports.DialogDefaultConfiguration = DialogDefaultConfiguration;
+exports.DialogDomClassic = DialogDomClassic;
+exports.DialogDomRendererClassic = DialogDomRendererClassic;
+exports.DialogDomRendererStandard = DialogDomRendererStandard;
+exports.DialogDomStandard = DialogDomStandard;
 exports.DialogOpenResult = DialogOpenResult;
 exports.DialogService = DialogService;
 exports.IDialogController = IDialogController;
 exports.IDialogDom = IDialogDom;
-exports.IDialogDomAnimator = IDialogDomAnimator;
 exports.IDialogDomRenderer = IDialogDomRenderer;
-exports.IDialogEventManager = IDialogEventManager;
 exports.IDialogGlobalSettings = IDialogGlobalSettings;
 exports.IDialogService = IDialogService;
+exports.createDialogConfiguration = createDialogConfiguration;
 //# sourceMappingURL=index.dev.cjs.map

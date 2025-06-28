@@ -23,23 +23,23 @@ function defineAstMethods() {
         writable: true,
         value: i
     });
-    [ t.BindingBehaviorExpression, t.ValueConverterExpression, t.AssignExpression, t.ConditionalExpression, t.AccessThisExpression, t.AccessScopeExpression, t.AccessMemberExpression, t.AccessKeyedExpression, t.CallScopeExpression, t.CallMemberExpression, t.CallFunctionExpression, t.BinaryExpression, t.UnaryExpression, t.PrimitiveLiteralExpression, t.ArrayLiteralExpression, t.ObjectLiteralExpression, t.TemplateExpression, t.TaggedTemplateExpression, t.ArrayBindingPattern, t.ObjectBindingPattern, t.BindingIdentifier, t.ForOfStatement, t.Interpolation, t.DestructuringAssignmentExpression, t.DestructuringAssignmentSingleExpression, t.DestructuringAssignmentRestExpression, t.ArrowFunction ].forEach((i => {
-        def(i, "evaluate", (function(...t) {
+    [ t.BindingBehaviorExpression, t.ValueConverterExpression, t.AssignExpression, t.ConditionalExpression, t.AccessThisExpression, t.AccessScopeExpression, t.AccessMemberExpression, t.AccessKeyedExpression, t.CallScopeExpression, t.CallMemberExpression, t.CallFunctionExpression, t.BinaryExpression, t.UnaryExpression, t.PrimitiveLiteralExpression, t.ArrayLiteralExpression, t.ObjectLiteralExpression, t.TemplateExpression, t.TaggedTemplateExpression, t.ArrayBindingPattern, t.ObjectBindingPattern, t.BindingIdentifier, t.ForOfStatement, t.Interpolation, t.DestructuringAssignmentExpression, t.DestructuringAssignmentSingleExpression, t.DestructuringAssignmentRestExpression, t.ArrowFunction ].forEach(i => {
+        def(i, "evaluate", function(...t) {
             return e.astEvaluate(this, ...t);
-        }));
-        def(i, "assign", (function(...t) {
+        });
+        def(i, "assign", function(...t) {
             return e.astAssign(this, ...t);
-        }));
-        def(i, "accept", (function(...e) {
+        });
+        def(i, "accept", function(...e) {
             return t.astVisit(this, ...e);
-        }));
-        def(i, "bind", (function(...t) {
+        });
+        def(i, "bind", function(...t) {
             return e.astBind(this, ...t);
-        }));
-        def(i, "unbind", (function(...t) {
+        });
+        def(i, "unbind", function(...t) {
             return e.astUnbind(this, ...t);
-        }));
-    }));
+        });
+    });
     console.warn('"evaluate"/"assign"/"accept"/"visit"/"bind"/"unbind" are only valid on AST with ast $kind "Custom".' + " Import and use astEvaluate/astAssign/astVisit/astBind/astUnbind accordingly.");
 }
 
@@ -153,7 +153,7 @@ class CallBinding {
         }
         this.s = t;
         e.astBind(this.ast, t, this);
-        this.targetObserver.setValue((t => this.callSource(t)), this.target, this.targetProperty);
+        this.targetObserver.setValue(t => this.callSource(t), this.target, this.targetProperty);
         this.isBound = true;
     }
     unbind() {
@@ -169,7 +169,7 @@ class CallBinding {
 
 (() => {
     i.mixinUseScope(CallBinding);
-    i.mixingBindingLimited(CallBinding, (() => "callSource"));
+    i.mixingBindingLimited(CallBinding, () => "callSource");
     i.mixinAstEvaluator(CallBinding);
 })();
 
@@ -296,7 +296,7 @@ class DelegateListenerBinding {
 
 (() => {
     i.mixinUseScope(DelegateListenerBinding);
-    i.mixingBindingLimited(DelegateListenerBinding, (() => "callSource"));
+    i.mixingBindingLimited(DelegateListenerBinding, () => "callSource");
     i.mixinAstEvaluator(DelegateListenerBinding);
 })();
 
@@ -380,11 +380,11 @@ class DelegateSubscription {
     }
 }
 
-const x = /*@__PURE__*/ n.DI.createInterface("IEventDelegator", (t => t.cachedCallback((t => {
+const x = /*@__PURE__*/ n.DI.createInterface("IEventDelegator", t => t.cachedCallback(t => {
     const e = t.invoke(EventDelegator);
-    t.register(i.AppTask.deactivating((() => e.dispose())));
+    t.register(i.AppTask.deactivating(() => e.dispose()));
     return e;
-}))));
+}));
 
 class EventDelegator {
     constructor() {
@@ -414,7 +414,7 @@ let D = false;
 const defineBindingMethods = () => {
     if (D) return;
     D = true;
-    [ [ i.PropertyBinding, "Property binding" ], [ i.AttributeBinding, "Attribute binding" ], [ i.ListenerBinding, "Listener binding" ], [ CallBinding, "Call binding" ], [ i.LetBinding, "Let binding" ], [ i.InterpolationPartBinding, "Interpolation binding" ], [ i.ContentBinding, "Text binding" ], [ i.RefBinding, "Ref binding" ], [ DelegateListenerBinding, "Delegate Listener binding" ] ].forEach((([t, e]) => {
+    [ [ i.PropertyBinding, "Property binding" ], [ i.AttributeBinding, "Attribute binding" ], [ i.ListenerBinding, "Listener binding" ], [ CallBinding, "Call binding" ], [ i.LetBinding, "Let binding" ], [ i.InterpolationPartBinding, "Interpolation binding" ], [ i.ContentBinding, "Text binding" ], [ i.RefBinding, "Ref binding" ], [ DelegateListenerBinding, "Delegate Listener binding" ] ].forEach(([t, e]) => {
         Object.defineProperty(t.prototype, "sourceExpression", {
             configurable: true,
             enumerable: false,
@@ -427,7 +427,7 @@ const defineBindingMethods = () => {
                 Reflect.set(this, "ast", t);
             }
         });
-    }));
+    });
     const getMessage = (e, i) => console.warn(`[DEV:aurelia] @deprecated "sourceExpression" property for expression on ${e}. It has been renamed to "ast". expression: "${t.Unparser.unparse(i)}"`);
 };
 
@@ -454,13 +454,13 @@ function enableComposeCompat() {
         t.bindables.viewModel = i.BindableDefinition.create("viewModel");
         t.bindables.view = i.BindableDefinition.create("view");
     }
-    defineHiddenProp(I, "viewModelChanged", (function(t) {
+    defineHiddenProp(I, "viewModelChanged", function(t) {
         this.component = t;
-    }));
-    defineHiddenProp(I, "viewChanged", (function(t) {
+    });
+    defineHiddenProp(I, "viewChanged", function(t) {
         this.template = t;
-    }));
-    defineHiddenProp(I, "attaching", (function(...t) {
+    });
+    defineHiddenProp(I, "attaching", function(...t) {
         this[y] = true;
         if (this.viewModel !== void 0) {
             this.component = this.viewModel;
@@ -470,8 +470,8 @@ function enableComposeCompat() {
         }
         this[y] = false;
         return S.apply(this, t);
-    }));
-    defineHiddenProp(I, "propertyChanged", (function(t) {
+    });
+    defineHiddenProp(I, "propertyChanged", function(t) {
         if (this[y]) {
             return;
         }
@@ -481,7 +481,7 @@ function enableComposeCompat() {
             return;
         }
         return T.call(this, t);
-    }));
+    });
 }
 
 function disableComposeCompat() {
@@ -551,21 +551,21 @@ class BindingEngine {
 function noView(t, e) {
     if (t === void 0) {
         return function(t, e) {
-            e.addInitializer((function() {
+            e.addInitializer(function() {
                 setTemplate(t, null);
-            }));
+            });
         };
     }
-    e.addInitializer((function() {
+    e.addInitializer(function() {
         setTemplate(t, null);
-    }));
+    });
 }
 
 function inlineView(t) {
     return function(e, i) {
-        i.addInitializer((function() {
+        i.addInitializer(function() {
             setTemplate(e, t);
-        }));
+        });
     };
 }
 

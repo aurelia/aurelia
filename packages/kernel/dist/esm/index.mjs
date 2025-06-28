@@ -193,14 +193,14 @@ const toArray = t => {
 
 const bound = (t, e) => {
     const n = e.name;
-    e.addInitializer((function() {
+    e.addInitializer(function() {
         Reflect.defineProperty(this, n, {
             value: t.bind(this),
             writable: true,
             configurable: true,
             enumerable: false
         });
-    }));
+    });
 };
 
 const mergeArrays = (...t) => {
@@ -1214,7 +1214,7 @@ class ParameterizedRegistry {
             const e = t.get(this.key);
             e.register(t, ...this.params);
         } else {
-            t.register(...this.params.filter((t => typeof t === "object")));
+            t.register(...this.params.filter(t => typeof t === "object"));
         }
     }
 }
@@ -1257,41 +1257,41 @@ const last = t => ({
     }
 });
 
-const P = /*@__PURE__*/ createResolver(((t, e, n) => () => n.get(t)));
+const P = /*@__PURE__*/ createResolver((t, e, n) => () => n.get(t));
 
-const K = /*@__PURE__*/ createResolver(((t, e, n) => {
+const K = /*@__PURE__*/ createResolver((t, e, n) => {
     if (n.has(t, true)) {
         return n.get(t);
     } else {
         return undefined;
     }
-}));
+});
 
-const N = /*@__PURE__*/ r(((t, e) => {
+const N = /*@__PURE__*/ r((t, e) => {
     inject(N)(t, e);
-}), {
+}, {
     $isResolver: true,
     resolve: () => void 0
 });
 
-const z = /*@__PURE__*/ createResolver(((t, e, n) => (...r) => e.getFactory(t).construct(n, r)));
+const z = /*@__PURE__*/ createResolver((t, e, n) => (...r) => e.getFactory(t).construct(n, r));
 
-const G = /*@__PURE__*/ createResolver(((t, e, n) => n.has(t, false) ? n.get(t) : void 0));
+const G = /*@__PURE__*/ createResolver((t, e, n) => n.has(t, false) ? n.get(t) : void 0);
 
-const W = /*@__PURE__*/ createResolver(((t, e, n) => n.has(t, false) ? n.get(t) : n.root.get(t)));
+const W = /*@__PURE__*/ createResolver((t, e, n) => n.has(t, false) ? n.get(t) : n.root.get(t));
 
-const B = /*@__PURE__*/ createResolver(((t, e, n) => n.has(t, false) ? n.get(t) : n.root.has(t, false) ? n.root.get(t) : void 0));
+const B = /*@__PURE__*/ createResolver((t, e, n) => n.has(t, false) ? n.get(t) : n.root.has(t, false) ? n.root.get(t) : void 0);
 
-const Q = /*@__PURE__*/ createResolver(((t, e, n) => n === n.root ? n.getAll(t, false) : n.has(t, false) ? n.getAll(t, false).concat(n.root.getAll(t, false)) : n.root.getAll(t, false)));
+const Q = /*@__PURE__*/ createResolver((t, e, n) => n === n.root ? n.getAll(t, false) : n.has(t, false) ? n.getAll(t, false).concat(n.root.getAll(t, false)) : n.root.getAll(t, false));
 
-const U = /*@__PURE__*/ createResolver(((t, e, n) => {
+const U = /*@__PURE__*/ createResolver((t, e, n) => {
     const r = createNewInstance(t, e, n);
     const i = new InstanceProvider(s(t), r);
     n.registerResolver(t, i, true);
     return r;
-}));
+});
 
-const x = /*@__PURE__*/ createResolver(((t, e, n) => createNewInstance(t, e, n)));
+const x = /*@__PURE__*/ createResolver((t, e, n) => createNewInstance(t, e, n));
 
 const createNewInstance = (t, e, n) => {
     if (e.hasFactory(t)) {
@@ -1327,8 +1327,8 @@ function __esDecorate(t, e, n, r, s, i) {
         return t;
     }
     var o = r.kind, l = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var c = t ? r["static"] ? t : t.prototype : null;
-    var a = c ? Object.getOwnPropertyDescriptor(c, r.name) : {};
+    var c = !e && t ? r["static"] ? t : t.prototype : null;
+    var a = e || (c ? Object.getOwnPropertyDescriptor(c, r.name) : {});
     var u, f = false;
     for (var h = n.length - 1; h >= 0; h--) {
         var d = {};
@@ -1393,13 +1393,13 @@ const et = n({
     none: tt
 });
 
-const nt = /*@__PURE__*/ createInterface("ILogConfig", (t => t.instance(new LogConfig("no-colors", X))));
+const nt = /*@__PURE__*/ createInterface("ILogConfig", t => t.instance(new LogConfig("no-colors", X)));
 
 const rt = /*@__PURE__*/ createInterface("ISink");
 
-const st = /*@__PURE__*/ createInterface("ILogEventFactory", (t => t.singleton(DefaultLogEventFactory)));
+const st = /*@__PURE__*/ createInterface("ILogEventFactory", t => t.singleton(DefaultLogEventFactory));
 
-const it = /*@__PURE__*/ createInterface("ILogger", (t => t.singleton(ut)));
+const it = /*@__PURE__*/ createInterface("ILogger", t => t.singleton(ut));
 
 const ot = /*@__PURE__*/ createInterface("ILogScope");
 
@@ -1413,9 +1413,9 @@ const lt = /*@__PURE__*/ n({
     }
 });
 
-const sink = t => (e, n) => n.addInitializer((function() {
+const sink = t => (e, n) => n.addInitializer(function() {
     lt.define(this, t);
-}));
+});
 
 const ct = toLookup({
     red(t) {
@@ -1792,7 +1792,7 @@ const ft = /*@__PURE__*/ toLookup({
     }
 });
 
-const ht = /*@__PURE__*/ createInterface((t => t.singleton(ModuleLoader)));
+const ht = /*@__PURE__*/ createInterface(t => t.singleton(ModuleLoader));
 
 const noTransform = t => t;
 
@@ -1815,11 +1815,11 @@ class ModuleTransformer {
         if (this.B.has(t)) {
             return this.B.get(t);
         }
-        const e = t.then((t => this.q(t)));
+        const e = t.then(t => this.q(t));
         this.B.set(t, e);
-        void e.then((e => {
+        void e.then(e => {
             this.B.set(t, e);
-        }));
+        });
         return e;
     }
     q(t) {
@@ -1829,9 +1829,9 @@ class ModuleTransformer {
         const e = this.H(this.J(t));
         this.U.set(t, e);
         if (e instanceof Promise) {
-            void e.then((e => {
+            void e.then(e => {
                 this.U.set(t, e);
-            }));
+            });
         }
         return e;
     }
@@ -1907,7 +1907,7 @@ const aliasedResourcesRegistry = (t, e, n = {}) => ({
     register(r) {
         const s = r.get(ht).load(t);
         let i = false;
-        s.items.forEach((t => {
+        s.items.forEach(t => {
             const s = t.definition;
             if (s == null) {
                 r.register(t.value);
@@ -1920,7 +1920,7 @@ const aliasedResourcesRegistry = (t, e, n = {}) => ({
             }
             const o = n[s.name];
             s.register(r, o);
-        }));
+        });
     }
 });
 
@@ -1936,7 +1936,7 @@ class Handler {
     }
 }
 
-const dt = /*@__PURE__*/ createInterface("IEventAggregator", (t => t.singleton(EventAggregator)));
+const dt = /*@__PURE__*/ createInterface("IEventAggregator", t => t.singleton(EventAggregator));
 
 class EventAggregator {
     constructor() {
@@ -1991,10 +1991,10 @@ class EventAggregator {
         };
     }
     subscribeOnce(t, e) {
-        const n = this.subscribe(t, ((t, r) => {
+        const n = this.subscribe(t, (t, r) => {
             n.dispose();
             e(t, r);
-        }));
+        });
         return n;
     }
 }

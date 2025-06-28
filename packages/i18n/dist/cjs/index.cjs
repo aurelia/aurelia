@@ -64,31 +64,33 @@ function __esDecorate(t, n, e, r, i, s) {
         return t;
     }
     var o = r.kind, a = o === "getter" ? "get" : o === "setter" ? "set" : "value";
-    var l = {};
-    var c, h = false;
-    for (var u = e.length - 1; u >= 0; u--) {
-        var f = {};
-        for (var d in r) f[d] = d === "access" ? {} : r[d];
-        for (var d in r.access) f.access[d] = r.access[d];
-        f.addInitializer = function(t) {
-            if (h) throw new TypeError("Cannot add initializers after decoration has completed");
+    var l = !n && t ? r["static"] ? t : t.prototype : null;
+    var c = n || (l ? Object.getOwnPropertyDescriptor(l, r.name) : {});
+    var h, u = false;
+    for (var f = e.length - 1; f >= 0; f--) {
+        var d = {};
+        for (var m in r) d[m] = m === "access" ? {} : r[m];
+        for (var m in r.access) d.access[m] = r.access[m];
+        d.addInitializer = function(t) {
+            if (u) throw new TypeError("Cannot add initializers after decoration has completed");
             s.push(accept(t || null));
         };
-        var m = (0, e[u])(o === "accessor" ? {
-            get: l.get,
-            set: l.set
-        } : l[a], f);
+        var p = (0, e[f])(o === "accessor" ? {
+            get: c.get,
+            set: c.set
+        } : c[a], d);
         if (o === "accessor") {
-            if (m === void 0) continue;
-            if (m === null || typeof m !== "object") throw new TypeError("Object expected");
-            if (c = accept(m.get)) l.get = c;
-            if (c = accept(m.set)) l.set = c;
-            if (c = accept(m.init)) i.unshift(c);
-        } else if (c = accept(m)) {
-            if (o === "field") i.unshift(c); else l[a] = c;
+            if (p === void 0) continue;
+            if (p === null || typeof p !== "object") throw new TypeError("Object expected");
+            if (h = accept(p.get)) c.get = h;
+            if (h = accept(p.set)) c.set = h;
+            if (h = accept(p.init)) i.unshift(h);
+        } else if (h = accept(p)) {
+            if (o === "field") i.unshift(h); else c[a] = h;
         }
     }
-    h = true;
+    if (l) Object.defineProperty(l, r.name, c);
+    u = true;
 }
 
 function __runInitializers(t, n, e) {
@@ -175,7 +177,7 @@ let v = (() => {
             };
             await this.i18next.changeLanguage(t);
             this.ea.publish(o.I18N_EA_CHANNEL, e);
-            this.i.forEach((t => t.handleLocaleChange(e)));
+            this.i.forEach(t => t.handleLocaleChange(e));
             this.h.dispatchSignal(o.I18N_SIGNAL);
         }
         createNumberFormat(t, n) {
@@ -388,9 +390,9 @@ const createMappedError = (t, ...n) => new Error(`AUR${String(t).padStart(4, "0"
 
 const B = [ "textContent", "innerHTML", "prepend", "append" ];
 
-const T = new Map([ [ "text", "textContent" ], [ "html", "innerHTML" ] ]);
+const b = new Map([ [ "text", "textContent" ], [ "html", "innerHTML" ] ]);
 
-const b = {
+const T = {
     optional: true
 };
 
@@ -416,7 +418,7 @@ class TranslationBinding {
         }
     }
     static B({observerLocator: t, context: n, controller: e, target: r, platform: i}) {
-        let s = e.bindings && e.bindings.find((t => t instanceof TranslationBinding && t.target === r));
+        let s = e.bindings && e.bindings.find(t => t instanceof TranslationBinding && t.target === r);
         if (!s) {
             s = new TranslationBinding(e, n, t, i, r);
             e.addBinding(s);
@@ -486,7 +488,7 @@ class TranslationBinding {
         if (this.parameter != null) {
             throw createMappedError(4001);
         }
-        this.parameter = new ParameterBinding(this, t, (() => this.updateTranslations()));
+        this.parameter = new ParameterBinding(this, t, () => this.updateTranslations());
     }
     updateTranslations() {
         const e = this.i18n.evaluate(this.F, this.parameter?.value);
@@ -501,7 +503,7 @@ class TranslationBinding {
                 if (this.N(o)) {
                     r[o] = e;
                 } else {
-                    const r = n.CustomElement.for(this.target, b);
+                    const r = n.CustomElement.for(this.target, T);
                     const a = r?.viewModel ? this.oL.getAccessor(r.viewModel, t.camelCase(o)) : this.oL.getAccessor(this.target, o);
                     const l = this.I.state !== u && (a.type & i.AccessorType.Layout) > 0;
                     if (l) {
@@ -521,7 +523,7 @@ class TranslationBinding {
             }
         }
         if (s.length > 0 || a) {
-            this.C = this.V.queueTask((() => {
+            this.C = this.V.queueTask(() => {
                 this.C = null;
                 for (const t of s) {
                     t.run();
@@ -529,7 +531,7 @@ class TranslationBinding {
                 if (a) {
                     this.R(r);
                 }
-            }), x);
+            }, x);
         }
         o?.cancel();
     }
@@ -537,8 +539,8 @@ class TranslationBinding {
         if (t.length === 0) {
             t = this.target.tagName === "IMG" ? [ "src" ] : [ "textContent" ];
         }
-        for (const [n, e] of T) {
-            const r = t.findIndex((t => t === n));
+        for (const [n, e] of b) {
+            const r = t.findIndex(t => t === n);
             if (r > -1) {
                 t.splice(r, 1, e);
             }
@@ -599,7 +601,7 @@ i.connectable(TranslationBinding, null);
 
 n.mixinAstEvaluator(TranslationBinding);
 
-n.mixingBindingLimited(TranslationBinding, (() => "updateTranslations"));
+n.mixingBindingLimited(TranslationBinding, () => "updateTranslations");
 
 class AccessorUpdateTask {
     constructor(t, n, e, r) {
@@ -865,7 +867,7 @@ function coreComponents(r) {
     return {
         register(e) {
             const i = r.i18nextWrapper != null && typeof r.i18nextWrapper === "object" ? t.Registration.instance(p, r.i18nextWrapper) : t.Registration.singleton(p, I18nextWrapper);
-            return e.register(t.Registration.callback(m, (() => r.initOptions)), n.AppTask.activating(g, (t => t.initPromise)), i, t.Registration.singleton(g, v), ...h, ...A);
+            return e.register(t.Registration.callback(m, () => r.initOptions), n.AppTask.activating(g, t => t.initPromise), i, t.Registration.singleton(g, v), ...h, ...A);
         }
     };
 }
@@ -892,7 +894,7 @@ function createI18nConfiguration(t) {
     };
 }
 
-const L = /*@__PURE__*/ createI18nConfiguration((() => {}));
+const L = /*@__PURE__*/ createI18nConfiguration(() => {});
 
 exports.DateFormatBindingBehavior = DateFormatBindingBehavior;
 

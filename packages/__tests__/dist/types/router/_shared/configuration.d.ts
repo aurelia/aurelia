@@ -1,6 +1,6 @@
-import { IRegistry, LogLevel } from '@aurelia/kernel';
-import { TestContext } from '@aurelia/testing';
+import { Class, IRegistry, ISink, LogLevel } from '@aurelia/kernel';
 export declare const TestRouterConfiguration: {
-    for(ctx: TestContext, logLevel?: LogLevel): IRegistry;
+    for(logLevel?: LogLevel, sinks?: Class<ISink>[]): IRegistry;
 };
+export declare function getLocationChangeHandlerRegistration(): IRegistry;
 //# sourceMappingURL=configuration.d.ts.map

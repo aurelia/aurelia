@@ -7771,6 +7771,7 @@ function createFixture(template, $class, registrations = [], autoStart = true, c
         throw new Error('Container of the context contains instance of the application root component. ' +
             'Consider using a different class, or context as it will likely cause surprises in tests.');
     }
+    runtimeHtml.registerHostNode(container, host);
     const component = container.get(App);
     let startPromise = void 0;
     function startFixtureApp() {

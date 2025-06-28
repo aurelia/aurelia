@@ -24,7 +24,7 @@ export declare class DialogService implements IDialogService {
      * dialogService.open({ component: () => import('...'), template: () => fetch('my.server/dialog-view.html') })
      * ```
      */
-    open(settings: IDialogSettings): DialogOpenPromise;
+    open<TOptions, TModel, TVm extends object>(settings: IDialogSettings<TOptions, TModel, TVm>): DialogOpenPromise;
     /**
      * Closes all open dialogs at the time of invocation.
      *

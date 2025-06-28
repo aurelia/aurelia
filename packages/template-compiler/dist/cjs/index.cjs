@@ -259,7 +259,7 @@ class SegmentTypes {
     }
 }
 
-const A = /*@__PURE__*/ r("ISyntaxInterpreter", (t => t.singleton(SyntaxInterpreter)));
+const A = /*@__PURE__*/ r("ISyntaxInterpreter", t => t.singleton(SyntaxInterpreter));
 
 class SyntaxInterpreter {
     constructor() {
@@ -267,7 +267,7 @@ class SyntaxInterpreter {
         this.W = [ this.O ];
     }
     add(t) {
-        t = t.slice(0).sort(((t, e) => t.pattern > e.pattern ? 1 : -1));
+        t = t.slice(0).sort((t, e) => t.pattern > e.pattern ? 1 : -1);
         const e = t.length;
         let n;
         let r;
@@ -399,7 +399,7 @@ class AttrSyntax {
 
 const y = /*@__PURE__*/ r("IAttributePattern");
 
-const I = /*@__PURE__*/ r("IAttributeParser", (t => t.singleton(AttributeParser)));
+const I = /*@__PURE__*/ r("IAttributeParser", t => t.singleton(AttributeParser));
 
 class AttributeParser {
     constructor() {
@@ -820,9 +820,9 @@ class SpreadValueBindingInstruction {
 
 function bindingCommand(t) {
     return function(e, n) {
-        n.addInitializer((function() {
+        n.addInitializer(function() {
             Q.define(t, e);
-        }));
+        });
         return e;
     };
 }
@@ -853,7 +853,7 @@ class BindingCommandDefinition {
         const r = typeof e === "string" ? getCommandKeyFrom(e) : this.key;
         const i = this.aliases;
         if (!t.has(r, false)) {
-            t.register(t.has(n, false) ? null : l(n, n), s(n, r), ...i.map((t => s(n, getCommandKeyFrom(t)))));
+            t.register(t.has(n, false) ? null : l(n, n), s(n, r), ...i.map(t => s(n, getCommandKeyFrom(t))));
         }
     }
 }
@@ -1116,7 +1116,7 @@ class ClassBindingCommand {
     build(t, e) {
         let n = t.attr.target;
         if (n.includes(",")) {
-            const t = n.split(",").filter((t => t.length > 0));
+            const t = n.split(",").filter(t => t.length > 0);
             if (t.length === 0) {
                 throw createMappedError(723);
             }
@@ -1164,7 +1164,7 @@ typeof SuppressedError === "function" ? SuppressedError : function(t, e, n) {
     return r.name = "SuppressedError", r.error = t, r.suppressed = e, r;
 };
 
-const X = /*@__PURE__*/ r("ITemplateElementFactory", (t => t.singleton(TemplateElementFactory)));
+const X = /*@__PURE__*/ r("ITemplateElementFactory", t => t.singleton(TemplateElementFactory));
 
 const Y = {};
 
@@ -2083,7 +2083,7 @@ class TemplateCompiler {
             const l = t.toArray(s.querySelectorAll("bindable"));
             const c = new Set;
             const h = new Set;
-            const d = l.reduce(((e, r) => {
+            const d = l.reduce((e, r) => {
                 if (r.parentNode !== s) {
                     throw createMappedError(710, n);
                 }
@@ -2100,7 +2100,7 @@ class TemplateCompiler {
                     }
                     c.add(i);
                 }
-                const o = t.toArray(r.attributes).filter((t => !ht.includes(t.name)));
+                const o = t.toArray(r.attributes).filter(t => !ht.includes(t.name));
                 if (o.length > 0) ;
                 r.remove();
                 e[i] = {
@@ -2109,7 +2109,7 @@ class TemplateCompiler {
                     mode: r.getAttribute("mode") ?? "default"
                 };
                 return e;
-            }), {});
+            }, {});
             class LocalDepType {}
             LocalDepType.$au = {
                 type: a,
@@ -2125,13 +2125,13 @@ class TemplateCompiler {
         }
         const c = (n.root.def.dependencies ?? []).concat(n.root.def.Type == null ? t.emptyArray : [ n.root.def.Type ]);
         for (const t of u) {
-            t.dependencies = c.concat(u.filter((e => e !== t)));
+            t.dependencies = c.concat(u.filter(e => e !== t));
             n.St(t);
         }
     }
     ft(t, e) {
         const n = t.nodeName;
-        return n === "INPUT" && ut[t.type] === 1 || n === "SELECT" && (t.hasAttribute("multiple") || e?.some((t => t.type === _ && t.to === "multiple")));
+        return n === "INPUT" && ut[t.type] === 1 || n === "SELECT" && (t.hasAttribute("multiple") || e?.some(t => t.type === _ && t.to === "multiple"));
     }
     gt(t, e) {
         switch (t.nodeName) {
@@ -2328,7 +2328,7 @@ const ut = {
 
 const ct = /*@__PURE__*/ r("IResourceResolver");
 
-const at = /*@__PURE__*/ r("IBindingCommandResolver", (t => {
+const at = /*@__PURE__*/ r("IBindingCommandResolver", t => {
     class DefaultBindingCommandResolver {
         constructor() {
             this.j = new WeakMap;
@@ -2342,7 +2342,7 @@ const at = /*@__PURE__*/ r("IBindingCommandResolver", (t => {
         }
     }
     return t.singleton(DefaultBindingCommandResolver);
-}));
+});
 
 const ht = i([ "name", "attribute", "mode" ]);
 

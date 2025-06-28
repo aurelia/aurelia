@@ -28,7 +28,6 @@ function au(options = {}) {
                 'platform-browser',
                 'aurelia',
                 'fetch-client',
-                'router-lite',
                 'router',
                 'kernel',
                 'metadata',
@@ -41,7 +40,7 @@ function au(options = {}) {
                 'runtime',
                 'template-compiler',
                 'runtime-html',
-                'router-lite',
+                'router-direct',
             ].reduce((aliases, pkg) => {
                 const name = pkg === 'aurelia' ? pkg : `@aurelia/${pkg}`;
                 try {

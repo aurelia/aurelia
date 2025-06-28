@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig-build.json",
+  "compilerOptions": {
+    "declarationDir": "dist/types",
+    "outDir": "dist/esm",
+    "lib": ["esnext", "dom", "DOM.Iterable"],
+    "rootDir": "src",
+
+    "strict": true
+  },
+  "include": ["src"]
+}

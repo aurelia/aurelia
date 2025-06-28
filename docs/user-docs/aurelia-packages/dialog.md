@@ -19,113 +19,169 @@ This article covers the dialog plugin for Aurelia. This plugin is created for sh
 
 ## Installing The Plugin
 
-There's a set of default implementations for the main interfaces of the Dialog plugin, which includes:
+There are two main interfaces of the dialog plugin, which includes:
 
-* `IDialogService`
-* `IDialogGlobalSettings`
-* `IDialogDomRenderer`
-* `IDialogEventManager`
-* `IDialogAnimator` (only used by the default `DialogDomRenderer`)
+* `IDialogService`: an interface mainly used by application components
+* `IDialogGlobalOptions`: an interface for specifying default options for all dialog rendering.
+    This is the interface that is used to configure/retrieve information about default renderer, options, etc...
+    for dialogs.
 
-These default implementation are grouped in the export named `DialogDefaultConfiguration` of the dialog plugin, which can be used per the following:
+Aurelia provides some out of the box implementations for the mentioned above interfaces. They are `DialogConfigurationStandard` and `DialogConfigurationClassic`.
+An example usage of the `DialogConfigurationStandard` is as follow:
 
 ```typescript
-import { DialogDefaultConfiguration } from '@aurelia/dialog';
+import { DialogConfigurationStandard } from '@aurelia/dialog';
 import { Aurelia } from 'aurelia';
 
-Aurelia.register(DialogDefaultConfiguration).app(MyApp).start();
+Aurelia.register(DialogConfigurationStandard).app(MyApp).start();
 ```
+
+`DialogConfigurationStandard` is a set of implementations that will render dialogs using the standard html `<dialog>` element,
+which is described at https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog.
+`DialogConfigurationClassic` is a set of implementations that will render dialogs using a traditional way: a combination of multiple html elements
+with some specific CSS that produces the look and feel of dialogs/modals.
+
+While some applications may want to stay with the standard `<dialog>` elements, the classic configuration provides an easier path for migration from v1,
+and sometimes more flexibility over styling & functionalities. It's thus up to applications to decide which implementation they want to use.
 
 ### Configuring the Plugin
 
-The export `DialogDefaultConfiguration` is a preset of default behaviors & implementations that are done in a way suitable to most common scenarios.
+The dialog plugin can be configured both on a global level and individual dialog level. This section deals with configuring the dialog plugin on the global level.
 
-If it's desirable to change some of the behaviors or implementations of we can either change the first or the 2nd parameter of the `customize` function on this object.
+To configure the dialog plugin, call `.customize` on the provided configuration of your choice, like the following examples:
 
-An example of changing the behavior for configuring the global settings is:
+{% tabs %}
+{% tab title="Standard" %}
 
-```typescript
-Aurelia.register(DialogDefaultConfiguration.customize(globalSettings => {
-  // change global settings ...
-})).app(MyApp).start()
+```ts
+import { DialogConfigurationStandard } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia
+  .register(DialogConfigurationStandard.customize((settings) => {
+    // treat dialog cancelation as promise rejection
+    settings.rejectOnCancel = true;
+    // default enter animation for all dialogs
+    settings.options.show = (dom) => dom.root.animate(...);
+    // default exit animation for all dialogs
+    settings.options.hide = (dom) => dom.root.animate(...);
+  })
+  .app(MyApp)
+  .start();
 ```
+{% endtab %}
+{% tab title="Classic" %}
+
+```ts
+import { DialogConfigurationClassic } from '@aurelia/dialog';
+import { Aurelia } from 'aurelia';
+
+Aurelia
+  .register(DialogConfigurationClassic.customize((settings) => {
+    // treat dialog cancelation as promise rejection
+    settings.rejectOnCancel = true;
+    // change the default behavior to not dismiss the dialog when clicking on the overlay
+    settings.options.overlayDismiss = false;
+    // any more
+    // default enter animation for all dialogs
+    settings.options.show = (dom) => dom.root.animate(...);
+    // default exit animation for all dialogs
+    settings.options.hide = (dom) => dom.root.animate(...);
+  })
+  .app(MyApp)
+  .start();
+```
+{% endtab %}
+{% endtabs %}
 
 If it's desirable to change some of the default implementations, we can **instead** use the export named `DialogConfiguration` and pass in the list of implementation for the main interfaces:
 
 ```typescript
 import { DialogConfiguration } from '@aurelia/dialog';
 
-Aurelia.register(DialogConfiguration.customize(settings => {
-
-}, [
-  // all custom implementation
-  MyDialogService,
-  MyDialogRenderer,
-  MyDialogGlobalSettings,
-  MyDialogEventManager,
-  MyDialogAnimator,
-]))
+Aurelia
+  .register(DialogConfiguration.customize(
+    settings => {
+      // customize settings here if needed
+    }))
+  .app(MyApp)
+  .start();
 ```
 
-If there's a need to only swap some implementation, say `IDialogDomRenderer` for example, then the default implementation can be imported and mixed like the following example:
-
-```typescript
-import { DialogConfiguration, DialogService, DefaultDialogGlobalSettings, DefaultDialogEventManager } from '@aurelia/dialog';
-
-Aurelia.register(DialogConfiguration.customize(settings => {
-
-}, [
-  // use default dialog service
-  DialogService,
-  // BYO dialog dom renderer
-  MyDialogRenderer,
-  // use default dialog global settings
-  DefaultDialogGlobalSettings,
-  // use default dialog event manager
-  DefaultDialogEventManager,
-]))
-```
-
-## Using The Default Implementation
+## Using The Default Implementations
 
 ### The Dialog Settings
 
-There are two levels where dialog behavior can be configured:
+There are two levels where dialog behaviors can be configured:
 
 * Global level via `IDialogGlobalSettings`
-* Single dialog level via property `settings` on a dialog controller.
+* Single dialog level via dialog service `.open()` call, or the property `settings` on a dialog controller.
 
 Normally, the global settings would be changed during the app startup/or before, while the single dialog settings would be changed during the contruction of the dialog view model, via the `open` method.
 
-An example of configuring the **global** dialog settings:
+1. An example of configuring the **global** dialog settings:
+    - For the standard implementation:
+        Make all dialogs, by default:
+        * show as modal
+        * has some basic animation in & out
 
-Make all dialogs, by default:
+        ```ts
+        Aurelia
+          .reigster(DialogConfigurationStandard.customize((settings) => {
+            settings.options.modal = true;
+            settings.options.show = (dom) => dom.root.animate(...);
+            settings.options.hide = (dom) => dom.root.animate(...);
+          }))
+          .app(MyApp)
+          .start();
+        ```
+    - For the classic implementation:
+        Make all dialogs, by default:
+        * not dismissable by clicking outside of it, or hitting the ESC key
+        * have starting CSS `z-index` of 5
+        *   if not locked, closable by hitting the `ESC` key
 
-* not dismissable by clicking outside of it, or hitting the ESC key
-* have starting CSS `z-index` of 5
-*   if not locked, closable by hitting the `ESC` key
+            ```ts
+            Aurelia
+              .register(DialogConfigurationClassic.customize((settings) => {
+                settings.options.lock = true;
+                settings.options.startingZIndex = 5;
+                settings.options.keyboard = true;
+              }))
+              .app(MyApp)
+              .start();
+            ```
 
-    ```typescript
-    Aurelia.register(DialogDefaultConfiguration.customize(settings => {
-      settings.lock = true;
-      settings.startingZIndex = 5;
-      settings.keyboard = true;
-    })).app(MyApp).start()
-    ```
+2. An example of configuring a single dialog, via `open` method of the dialog service:
+    - For the standard implementation:
+        Displaying an alert dialog
 
-An example of configuring a single dialog, via `open` method of the dialog service:
+        ```ts
+        dialogService.open({
+          component: Alert,
+          options: {
+            // block the entire screen with this alert box
+            modal: true,
+            show: dom => dom.root.animate(...),
+            hide: dom => dom.root.animate(...)
+          }
+        })
+        ```
 
-Displaying an alert dialog, which has `z-index` value as 10 to stay on top of all other dialogs, and will be dismissed when the user hits the `ESC` key.
+    - For the classic implementation:
+        Displaying an alert dialog, which has `z-index` value as 10 to stay on top of all other dialogs, and will be dismissed when the user hits the `ESC` key.
 
-```typescript
-dialogService.open({
-  component: () => Alert,
-  lock: false,
-  startingZIndex: 10,
-})
-```
+        ```typescript
+        dialogService.open({
+          component: Alert,
+          options: {
+            lock: false,
+            startingZIndex: 10,
+          }
+        });
+        ```
 
-The settings that are available in the `open` method of the dialog service:
+The main settings that are available in the `open` method of the dialog service:
 
 * `component` can be class reference or instance, or a function that resolves to such, or a promise of such.
 * `template` can be HTML elements, string or a function that resolves to such, or a promise of such.
@@ -133,20 +189,33 @@ The settings that are available in the `open` method of the dialog service:
 * `host` allows providing the element which will parent the dialog - if not provided the document body will be used.
 * `renderer` allows providing a custom renderer to be used, instead of the pre-registered one. This allows a single dialog service to be able to use multiple renderers for different purposes: default for modals, and a different one for notifications, alert etc...
 * `container` allows specifying the DI Container instance to be used for the dialog. If not provided a new child container will be created from the root one.
-* `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
-* `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
-* `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
 * `rejectOnCancel` is a boolean that must be set to `true` if cancellations should be treated as rejection. The reason will be an `IDialogCancelError` - the property `wasCancelled` will be set to `true` and if cancellation data was provided it will be set to the `value` property.
+* `options` options passed to the renderer.
 
-The default global settings has the following values:
+#### Render options
 
-* `lock` is true
-* `startingZIndex` is `1000`
-* `rejectOnCancel` is `false`
+Beside the main settings above, each renderer may require different set of options. Below is the options for the default implementations of Aurelia dialog plugin:
+1. For the standard implementation:
+    * **modal**: open the dialog as modal, read more on https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/showModal
+    * **overlayStyle**: a css string or a css style declaration for styling the overlay. This is only effective when `modal` option is true. The overlay can also be styled from the dialog dom for this renderer.
+    * **show**: can be given a callback that will run when the dialog is shown
+    * **hide**: can be given a callback that will run when the dialog is hidden
+    * **closedby**: specifies the types of user actions that can be used to close the &lt;dialog&gt; element
 
-{% hint style="warning" %}
-If `rejectOnCancel` behavior is desired, it should only be applied to individual dialog via `open` method of the dialog service.
-{% endhint %}
+    The default global settings has the following values:
+    * `modal` is true
+    * `rejectOnCancel` is false
+
+2. For the classic implementation:
+    * `lock` makes the dialog not dismissable via clicking outside, or using keyboard.
+    * `keyboard` allows configuring keyboard keys that close the dialog. To disable set to an empty array `[]`. To cancel close a dialog when the _ESC_ key is pressed set to an array containing `'Escape'` - `['Escape']`. To close with confirmation when the _ENTER_ key is pressed set to an array containing `'Enter'` - `['Enter']`. To combine the _ESC_ and _ENTER_ keys set to `['Enter', 'Escape']` - the order is irrelevant. (takes precedence over `lock`)
+    * `overlayDismiss` if set to `true` cancel closes the dialog when clicked outside of it. (takes precedence over `lock`)
+
+    The default global settings has the following values:
+
+    * `lock` is true
+    * `startingZIndex` is `1000`
+    * `rejectOnCancel` is `false`
 
 ### The Dialog Service APIs
 
@@ -189,7 +258,7 @@ interface IDialogController {
 }
 ```
 
-An important feature of the dialog plugin is that it is possible to resolve and close (using `cancel`/`ok`/`error` methods) a dialog in the same context where it's open.
+An important feature of the dialog plugin is that it is possible to resolve and close a dialog (using `cancel`/`ok`/`error` methods on the controller) in the same context where it's open.
 
 *   Example of controlling the opening and closing of a dialog in promise style:
 
@@ -427,18 +496,59 @@ Note that the `contentHost` property on a `DefaultDialogDom` object is the same 
 
 #### Styling the overlay
 
-By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
+1. For the standard implementation
 
-```typescript
-import { resolve } from 'aurelia';
-import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+    The overlay of a `<dialog>` element is only "rendered" when it's shown as modal. Which means the following example will not "trigger" any overlay:
 
-export class MyDialog {
-  constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
-    dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-  }
-}
-```
+    ```ts
+    dialogService.open({
+      component: Alert,
+      options: {
+        overlayStyle: 'rgba(0,0,0,0.5)'
+      }
+    })
+    ```
+    as `options.modal` value is not `true`.
+
+    When `options.modal` is `true`, the overlay can be specified using `options.overlayStyle` like the following example:
+
+    ```ts
+    dialogService.open({
+      component: Alert,
+      options: {
+        modal: true,
+        overlayStyle: 'rgba(0,0,0,0.5)'
+      }
+    })
+    ```
+
+    Note that the overlay of a modal dialog dom can also be configured from the dialog dom itself, like the following example:
+
+    ```ts
+    import { resolve } from 'aurelia';
+    import { IDialogDom, DialogDomStandard } from '@aurelia/dialog';
+
+    export class MyDialog {
+      constructor(dialogDom = resolve(IDialogDom) as DialogDomStandard) {
+        dialogDom.setOverlayStyle("rgba(0, 0, 0, 0.5)");
+      }
+    }
+    ```
+
+2. For the classic implementation
+
+    By default, the overlay of a dialog is transparent. Though it's often desirable to add 50% opacity and a background color of black to the modal. To achieve this in dialog, retrieve the `IDialogDom` instance and modify the `overlay` element `style`:
+
+    ```typescript
+    import { resolve } from 'aurelia';
+    import { IDialogDom, DefaultDialogDom } from '@aurelia/dialog';
+
+    export class MyDialog {
+      constructor(dialogDom: DefaultDialogDom = resolve(IDialogDom)) {
+        dialogDom.overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+      }
+    }
+    ```
 
 #### Use your own Dialog Renderer
 
@@ -455,17 +565,22 @@ There are two ways to use your own dialog renderer: register your own default di
         Registration.singleton(IDialogRenderer, MyDialogRenderer).register(container);
       }
 
-      render(host, settings) {
+      render(host, controller, options) {
         const overlay = document.createElement('dialog-overlay');
-        const contentHost = document.createElement('dialog-content-host');
+        const root = document.createElement('dialog-content-host');
+        const contentHost = document.createElement('div');
+        root.appendChild(contentHost);
+
         host.appendChild(overlay);
-        host.appendChild(contentHost);
+        host.appendChild(root);
+
         return {
           overlay,
+          root: contentHost,
           contentHost,
           dispose() {
             host.removeChild(overlay);
-            host.removeChild(contentHost);
+            host.removeChild(root);
           }
         }
       }
@@ -474,7 +589,8 @@ There are two ways to use your own dialog renderer: register your own default di
     Notice the returned object of the `render()` method, it should satisfy the interface of an `IDialogDom`:
     ```typescript
     interface IDialogDom extends IDisposable {
-      readonly overlay: HTMLElement;
+      readonly root: HTMLElement;
+      readonly overlay: HTMLElement | null;
       readonly contentHost: HTMLElement;
       show?(): void | Promise<void>;
       hide?(): void | Promise<void>;
@@ -487,17 +603,22 @@ There are two ways to use your own dialog renderer: register your own default di
     dialogService.open({
       template: '<div>hey there</div>',
       renderer: {
-        render(host, settings) {
+        render(host, controller, options) {
           const overlay = document.createElement('dialog-overlay');
-          const contentHost = document.createElement('dialog-content-host');
+          const root = document.createElement('dialog-content-host');
+          const contentHost = document.createElement('div');
+          root.appendChild(contentHost);
+
           host.appendChild(overlay);
-          host.appendChild(contentHost);
+          host.appendChild(root);
+
           return {
+            root,
             overlay,
             contentHost,
             dispose() {
               host.removeChild(overlay);
-              host.removeChild(contentHost);
+              host.removeChild(root);
             }
           }
         }
@@ -507,55 +628,38 @@ There are two ways to use your own dialog renderer: register your own default di
     Notice the object given to the `renderer` property, it should satisfy the interface of an `IDialogDomRenderer`:
     ```typescript
     interface IDialogDomRenderer {
-      render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
+      render(dialogHost: Element, controller: IDialogController, options: unknown): IDialogDom;
     }
     ```
+
+    {% hint style="info" %}
+    the `options` object will be the combination of the global `options` and the `options` from the `dialogService.open()`
+    {% endhint %}
 
 ### Animation
 
 #### Using the `IDialogDomAnimator`
 
-If you use the default implementation of the interface `IDialogRenderer`, then the interface `IDialogDomAnimator` can be used to register an animator responsible for animating the default dialog dom.
+If you use either the default implementations of the interface `IDialogRenderer`, then the in/out animations of a dialog can be configured via `show`/`hide`
+the options settings, like the following examples:
 
-An `IDialogDomAnimator` implementation should satisfy the following interface:
+1. Global animations for all dialogs:
+
 ```typescript
-interface IDialogDomAnimator {
-  show(dom: IDialogDom): void | Promise<void>;
-  hide(dom: IDialogDom): void | Promise<void>;
-}
+Aurelia.register(DialogStandardConfiguration.customize(settings => {
+  settings.options.show = (dom) => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
+}))
 ```
 
-An example implementation would look like the following:
-```typescript
-class MyDialogDomAnimator implements IDialogDomAnimator {
-  show(dom) {
-    return dom.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 });
-  }
-  hide(dom) {
-    return dom.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 });
-  }
-}
-
-// ...
-// usage:
-import { Registration } from 'aurelia';
-import { IDialogDomAnimator } from '@aurelia/dialog';
-
-Aurelia
-  .register(Registration.singleton(IDialogDomAnimator, MyDialogDomAnimator))
-  .app(...)
-  .start();
-```
-
-If you wished to use a different animators for different `dialogService.open()` calls (modal vs notification etc...), you can do so via the container option in the `dialogService.open()` call, per the following example:
+2. Different animation per dialog `.open()`
 
 ```typescript
 dialogService.open({
-  container: someContainer.creadChild().register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
-  // or like the following,
-  // but beware that if the same container is used then the resolution will be to the first registration
-  container: someContainer.register(Registration.singleton(IDialogDomAnimator, MyNotificationAnimator)),
-  ...
+  component: SuccessNotification,
+  options: {
+    show: dom => dom.root.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 150 }),
+    hide: dom => dom.root.animate([{ transform: 'scale(1)' }, { transform: 'scale(0)' }], { duration: 150 }),
+  }
 })
 ```
 
@@ -588,49 +692,6 @@ export class MyDialog {
       { duration: 200 },
     );
     return animation.finished;
-  }
-}
-```
-
-### The Default Dialog Event Manager
-
-Any implemetattion of `IDialogEventManager` should follow the following interface:
-
-```typescript
-interface IDialogEventManager {
-  add(controller: IDialogController, dom: IDialogDom): IDisposable;
-}
-```
-
-The default implementation of `IDialogEventManager` is `DefaultDialogEventManager`. It will listen to the keyboard `keydown` event on the window object, 
-and close off the last open dialog. It's also responsible for adding a click listener to the overlay of a dialog dom to close off the associated dialog.
-
-### Using your own dialog event manager
-
-If you wish to handle dialog events differently, you can register your implementation with the interface key `IDialogEventManager`, like the following examples:
-```typescript
-import { Registration } from 'aurelia';
-import { IDialogEventManager, IDialogController, IDialogDom } from '@aurelia/dialog';
-
-export class MyDialogEventManager {
-  static register(container) {
-    Registration.singleton(IDialogEventManager, this).register(container);
-  }
-
-  add(controller: IDialogController, dom: IDialogDom): void {
-    if (controller.settings.renderer === ...) {
-      // manage this
-    } else {
-      // don't manage this
-    }
-
-    dom.overlay.addEventListener('...', callback);
-
-    return {
-      dispose: () => {
-        dom.overlay.removeEventListener('...', callback);
-      }
-    }
   }
 }
 ```
@@ -692,6 +753,9 @@ Each dialog instance goes through the full lifecycle once.
 
 ## V1 Dialog Migration
 
+* The v1 dialog implementation is now available as classic implementation. It can be accessed via export `DialogClassicConfiguration` from the `@aurelia/dialog` plugin
+* Beside `viewModel`/`template`/`model`/`container`/`host`/`rejectOnCancel`, all other configuration have been moved to `options` on the dialog settings/global settings. The properties are: `lock`, `keyboard`, `mouseEvent`, `overlayDismiss` and `startingZIndex`.
+* Design wise, the v2 dialog plugin is rendering agnostic, it only requires the result of the render satisfy the `IDialogDom` interface
 * `viewModel` setting in `DialogService.prototype.open` is changed to `component`.
 * `view` setting in `DialogService.prototype.open` is changed to `template`.
 * `keyboard` setting in `DialogService.prototype.open` is changed to accept an array of `Enter`/`Escape` only. Boolean variants are no longer valid. In the future, the API may become less strict.

@@ -14,7 +14,9 @@ export class App {
   async click() {
     await this.dialogService.open({
       component: () => MyDialog,
-      lock: false
+      options: {
+        lock: false
+      }
     });
   }
 }

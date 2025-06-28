@@ -278,7 +278,7 @@ export class App {
 
 ```typescript
 // src/my-app.ts
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 import { resolve } from 'aurelia';
 
 export class MyApp {
@@ -824,7 +824,7 @@ export class UserDetail {
 {% tab title="Aurelia 2" %}
 ```typescript
 // Router configuration - declarative and type-safe
-import { route } from '@aurelia/router-lite';
+import { route } from '@aurelia/router';
 
 @route({
   routes: [
@@ -838,7 +838,7 @@ export class MyApp {
 }
 
 // Enhanced lifecycle hooks with better typing
-import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router-lite';
+import { IRouteViewModel, Params, RouteNode, NavigationInstruction } from '@aurelia/router';
 
 export class UserDetailPage implements IRouteViewModel {
   user: User;

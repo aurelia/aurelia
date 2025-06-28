@@ -9,7 +9,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "aurelia": "latest",
-    "@aurelia/router": "../../packages/router"
+    "@aurelia/router": "../../packages/router-direct"
   },
   "devDependencies": {
     "@aurelia/testing": "latest",

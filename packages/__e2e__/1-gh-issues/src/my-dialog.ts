@@ -1,4 +1,4 @@
-import { IDialogDom, IDialogController, DefaultDialogDom } from '@aurelia/dialog';
+import { IDialogDom, IDialogController, DialogDomClassic } from '@aurelia/dialog';
 
 export class MyDialog {
   static inject = [Element, IDialogController, IDialogDom];
@@ -9,18 +9,18 @@ export class MyDialog {
   dialog: IDialogController;
   dialogDom: IDialogDom;
 
-  constructor(host: HTMLElement, dialog: IDialogController, dialogDom: DefaultDialogDom) {
+  constructor(host: HTMLElement, dialog: IDialogController, dialogDom: DialogDomClassic) {
     this.host = host;
     this.dialog = dialog;
     this.dialogDom = dialogDom;
 
     // Wrapper
-    dialogDom.wrapper.style.zIndex = '990';
-    dialogDom.wrapper.style.position = 'fixed';
-    dialogDom.wrapper.style.top = '0';
-    dialogDom.wrapper.style.bottom = '0';
-    dialogDom.wrapper.style.left = '0';
-    dialogDom.wrapper.style.right = '0';
+    dialogDom.root.style.zIndex = '990';
+    dialogDom.root.style.position = 'fixed';
+    dialogDom.root.style.top = '0';
+    dialogDom.root.style.bottom = '0';
+    dialogDom.root.style.left = '0';
+    dialogDom.root.style.right = '0';
     // dialogDom.wrapper.style.overflow = 'auto'
 
     // // Overlay

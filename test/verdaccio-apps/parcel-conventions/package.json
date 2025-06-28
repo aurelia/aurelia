@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "aurelia": "dev",
-    "@aurelia/router": "dev"
+    "@aurelia/router-direct": "dev"
   },
   "devDependencies": {
     "@aurelia/testing": "dev",

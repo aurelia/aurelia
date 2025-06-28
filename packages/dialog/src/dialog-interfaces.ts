@@ -1,10 +1,10 @@
 import { createInterface } from './utilities-di';
 
 import type { Constructable, IContainer, IDisposable } from '@aurelia/kernel';
-import type { ICustomElementViewModel } from '@aurelia/runtime-html';
+import type { CustomElementType, ICustomElementViewModel } from '@aurelia/runtime-html';
 
 /**
- * The dialog service for composing view & view model into a dialog
+ * The dialog service for composing template and component into a dialog
  */
 export const IDialogService = /*@__PURE__*/createInterface<IDialogService>('IDialogService');
 export interface IDialogService {
@@ -15,7 +15,8 @@ export interface IDialogService {
    * @param settings - Dialog settings for this dialog instance.
    * @returns Promise A promise that settles when the dialog is closed.
    */
-  open(settings?: IDialogSettings): DialogOpenPromise;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  open<TOptions, TModel = any, TComponent extends object = any>(settings: IDialogSettings<TOptions, TModel, TComponent>): DialogOpenPromise;
 
   /**
    * Closes all open dialogs at the time of invocation.
@@ -25,8 +26,33 @@ export interface IDialogService {
   closeAll(): Promise<IDialogController[]>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function testTypes(d: IDialogService) {
+  return [
+    d.open({
+      model: { b: 2 },
+      component: class Abc {},
+      options: {
+        z: 1,
+      }
+    }),
+    d.open<{ a: 1 }>({
+      options: {
+        a: 1,
+      }
+    }),
+    d.open<{ a: 1 }>({
+      options: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        d: 1,
+      }
+    }),
+  ];
+}
+
 /**
- * The controller asscociated with every dialog view model
+ * The controller associated with every dialog component
  */
 export const IDialogController = /*@__PURE__*/createInterface<IDialogController>('IDialogController');
 export interface IDialogController {
@@ -44,9 +70,9 @@ export interface IDialogController {
 /**
  * An interface describing the object responsible for creating the dom structure of a dialog
  */
-export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer>('IDialogDomRenderer');
-export interface IDialogDomRenderer {
-  render(dialogHost: Element, settings: IDialogLoadedSettings): IDialogDom;
+export const IDialogDomRenderer = /*@__PURE__*/createInterface<IDialogDomRenderer<unknown>>('IDialogDomRenderer');
+export interface IDialogDomRenderer<TOptions> {
+  render(dialogHost: Element, requestor: IDialogController, options?: TOptions): IDialogDom;
 }
 
 /**
@@ -54,7 +80,9 @@ export interface IDialogDomRenderer {
  */
 export const IDialogDom = /*@__PURE__*/createInterface<IDialogDom>('IDialogDom');
 export interface IDialogDom extends IDisposable {
-  readonly overlay: HTMLElement;
+  /**
+   * Host element for the dialog content
+   */
   readonly contentHost: HTMLElement;
   /**
    * Called when the dialog should be shown. Application can use this for animations
@@ -67,32 +95,6 @@ export interface IDialogDom extends IDisposable {
 }
 
 /**
- * An interface for managing the animations of dialog doms.
- * This is only used by the default dialog renderer.
- */
-export const IDialogDomAnimator = /*@__PURE__*/createInterface<IDialogDomAnimator>('IDialogDomAnimator');
-export interface IDialogDomAnimator {
-  show(dom: IDialogDom): void | Promise<void>;
-  hide(dom: IDialogDom): void | Promise<void>;
-}
-
-export const IDialogEventManager = /*@__PURE__*/createInterface<IDialogEventManager>('IDialogKeyboardService');
-/**
- * An interface for managing the events of dialogs
- */
-export interface IDialogEventManager {
-  /**
-   * Manage the events of a dialog controller & its dom
-   *
-   * @param controller - the dialog controller to have its events managed
-   * @param dom - the corresponding dialog dom of the controller
-   * @returns a disposable handle to be call whenever the dialog event manager should stop managing the dialog controller & its dom
-   */
-  add(controller: IDialogController, dom: IDialogDom): IDisposable;
-}
-
-/* tslint:disable:max-line-length */
-/**
  * The promised returned from a dialog composition.
  */
 export interface DialogOpenPromise extends Promise<DialogOpenResult> {
@@ -104,33 +106,31 @@ export interface DialogOpenPromise extends Promise<DialogOpenResult> {
     onrejected?: (reason: unknown) => TResult2 | Promise<TResult2>
   ): Promise<TResult1 | TResult2>;
 }
-/* tslint:enable:max-line-length */
 
-export type DialogActionKey = 'Escape' | 'Enter';
-export type DialogMouseEventType = 'click' | 'mouseup' | 'mousedown';
-
-export interface IDialogSettings<
-  TModel = unknown,
-  TVm extends object = object,
-> {
-
+export type IDialogSettings<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TOptions = any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  TModel = any,
+  TComponent extends object = object,
+> = {
   /**
    * A custom renderer for the dialog.
    */
-  renderer?: IDialogDomRenderer;
+  renderer?: Constructable<IDialogDomRenderer<TOptions>> | IDialogDomRenderer<TOptions>;
 
   /**
-   * The view model url, constructor or instance for the dialog.
+   * The component url, constructor or instance for the dialog.
    */
-  component?: () => (Constructable<TVm> | TVm | Promise<TVm | Constructable<TVm>>);
+  component?: CustomElementType<Constructable<TComponent>> | Constructable<TComponent> | (() => (Constructable<TComponent> | TComponent | Promise<TComponent | Constructable<TComponent>>));
 
   /**
-   * The view url or view strategy to override the default view location convention.
+   * The template url or template strategy to override the default template location convention.
    */
   template?: string | Element | Promise<string | Element> | (() => string | Element | Promise<string | Element>);
 
   /**
-   * Data to be passed to the "activate" hook on the view model.
+   * Data to be passed to the "activate" hook on the component.
    */
   model?: TModel;
 
@@ -146,59 +146,34 @@ export interface IDialogSettings<
   container?: IContainer;
 
   /**
-   * When set to "false" allows the dialog to be closed with ESC key or clicking outside the dialog.
-   * When set to "true" the dialog does not close on ESC key or clicking outside of it.
+   * The rendering configuration for the dialog. Different renderers may have different configuration options.
    */
-  lock?: boolean;
-
-  /**
-   * Allows for closing the top most dialog via the keyboard.
-   * When set to "false" no action will be taken.
-   * If set to "true", "Escape" or an array containing "Escape"
-   * the dialog will be "cancel" closed when the ESC key is pressed.
-   * If set to "Enter" or and array containing "Enter"
-   * the dialog will be "ok" closed  when the ENTER key is pressed.
-   * Using the array format allows combining the ESC and ENTER keys.
-   */
-  keyboard?: DialogActionKey[];
-
-  /**
-   * Determines which type of mouse event should be used for closing the dialog
-   *
-   * Default: click
-   */
-  mouseEvent?: DialogMouseEventType;
-
-  /**
-   * When set to "true" allows for the dismissal of the dialog by clicking outside of it.
-   */
-  overlayDismiss?: boolean;
-
-  /**
-   * The z-index of the dialog.
-   * In the terms of the DialogRenderer it is applied to the dialog overlay and the dialog container.
-   */
-  startingZIndex?: number;
+  options?: TOptions;
 
   /**
    * When set to true conveys a cancellation as a rejection.
    */
   rejectOnCancel?: boolean;
-}
-
-export type IDialogLoadedSettings<T extends object = object> = Omit<IDialogSettings<T>, 'component' | 'template' | 'keyboard'> & {
-  component?: Constructable<T> | T;
-  template?: string | Element;
-  readonly keyboard: DialogActionKey[];
-  renderer?: IDialogDomRenderer;
 };
 
-export type IDialogGlobalSettings = Pick<
-  IDialogSettings,
-  'lock' | 'startingZIndex' | 'rejectOnCancel'
->;
-export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings>('IDialogGlobalSettings');
+export type IDialogLoadedSettings<TOptions extends object = object, TModel extends object = object> = Omit<IDialogSettings<TOptions, TModel>, 'component' | 'template' | 'renderer'> & {
+  component?: Constructable<TModel> | TModel;
+  template?: string | Element;
+  renderer: Constructable<IDialogDomRenderer<TOptions>> | IDialogDomRenderer<TOptions>;
+};
 
+/**
+ * Global configuration for the dialog plugin
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const IDialogGlobalSettings = /*@__PURE__*/createInterface<IDialogGlobalSettings<any>>('IDialogGlobalSettings');
+export type IDialogGlobalSettings<TOptions> = Pick<IDialogSettings<TOptions>, 'rejectOnCancel' | 'renderer'> & {
+  options: TOptions;
+};
+
+/**
+ * Base dialog error interface
+ */
 export interface DialogError<T> extends Error {
   wasCancelled: boolean;
   value?: T;

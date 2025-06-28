@@ -17,15 +17,15 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202506151737",
-    "@aurelia/metadata": "2.1.0-dev.202506151737",
-    "@aurelia/platform": "2.1.0-dev.202506151737",
-    "@aurelia/platform-browser": "2.1.0-dev.202506151737",
-    "@aurelia/router": "2.1.0-dev.202506151737",
-    "@aurelia/router-lite": "2.1.0-dev.202506151737",
-    "@aurelia/runtime-html": "2.1.0-dev.202506151737",
-    "@aurelia/runtime": "2.1.0-dev.202506151737",
-    "@aurelia/ui-virtualization": "2.1.0-dev.202506151737"
+    "@aurelia/kernel": "2.0.0-beta.24",
+    "@aurelia/metadata": "2.0.0-beta.24",
+    "@aurelia/platform": "2.0.0-beta.24",
+    "@aurelia/platform-browser": "2.0.0-beta.24",
+    "@aurelia/router-direct": "2.0.0-beta.24",
+    "@aurelia/router": "2.0.0-beta.24",
+    "@aurelia/runtime-html": "2.0.0-beta.24",
+    "@aurelia/runtime": "2.0.0-beta.24",
+    "@aurelia/ui-virtualization": "2.0.0-beta.24"
   },
   "devDependencies": {
     "webpack-cli": "^5.1.4",

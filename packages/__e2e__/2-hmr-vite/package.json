@@ -17,14 +17,14 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/fetch-client": "2.1.0-dev.202506151737",
-    "@aurelia/kernel": "2.1.0-dev.202506151737",
-    "@aurelia/metadata": "2.1.0-dev.202506151737",
-    "@aurelia/route-recognizer": "2.1.0-dev.202506151737",
-    "@aurelia/router-lite": "2.1.0-dev.202506151737",
-    "@aurelia/runtime-html": "2.1.0-dev.202506151737",
-    "@aurelia/runtime": "2.1.0-dev.202506151737",
-    "aurelia": "2.1.0-dev.202506151737"
+    "@aurelia/fetch-client": "2.0.0-beta.24",
+    "@aurelia/kernel": "2.0.0-beta.24",
+    "@aurelia/metadata": "2.0.0-beta.24",
+    "@aurelia/route-recognizer": "2.0.0-beta.24",
+    "@aurelia/router": "2.0.0-beta.24",
+    "@aurelia/runtime-html": "2.0.0-beta.24",
+    "@aurelia/runtime": "2.0.0-beta.24",
+    "aurelia": "2.0.0-beta.24"
   },
   "devDependencies": {
     "@aurelia/vite-plugin": "2.1.0-dev.202506151737",

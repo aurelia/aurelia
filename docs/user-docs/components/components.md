@@ -409,7 +409,7 @@ The constructor is called when the framework instantiates a component, just like
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 
 export class MyComponent {
     readonly router: IRouter = resolve(IRouter);

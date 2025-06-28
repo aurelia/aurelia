@@ -44,7 +44,7 @@ Executed when the instance is created. Inject services here and perform work tha
 
 ```typescript
 import { resolve } from 'aurelia';
-import { IRouter } from '@aurelia/router-lite';
+import { IRouter } from '@aurelia/router';
 
 export class MyComponent {
   readonly router = resolve(IRouter);
@@ -203,7 +203,7 @@ Multiple lifecycle hook classes can be registered; the framework executes them *
 ## Special cases
 
 * **`<au-compose>`** components additionally support `activate` / `deactivate` hooks—see the [dynamic composition guide](../getting-to-know-aurelia/dynamic-composition.md).
-* **Router hooks** such as `canLoad`, `loading`, `canUnload`, `unloading`, etc., are documented in the [routing lifecycle section](../router-lite/routing-lifecycle.md) and are available even if you do not use the router.
+* **Router hooks** such as `canLoad`, `loading`, `canUnload`, `unloading`, etc., are documented in the [routing lifecycle section](../router/routing-lifecycle.md) and are available even if you do not use the router.
 
 ## Best practices
 

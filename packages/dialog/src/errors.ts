@@ -26,6 +26,7 @@ export const enum ErrorNames {
   dialog_cancellation_rejected = 906,
   dialog_cancelled_with_cancel_on_rejection_setting = 907,
   dialog_custom_error = 908,
+  dialog_closed_before_deactivation = 909,
 }
 _END_CONST_ENUM();
 
@@ -35,12 +36,12 @@ const errorsMap: Record<ErrorNames, string> = {
   [ErrorNames.dialog_not_all_dialogs_closed]: `Failured to close all dialogs when deactivating the application, There are still {{0}} open dialog(s).`,
   [ErrorNames.dialog_settings_invalid]: `Invalid Dialog Settings. You must provide either "component" or "template" or both.`,
   [ErrorNames.dialog_no_empty_default_configuration]: `Invalid dialog configuration. ` +
-    'Specify the implementations for <IDialogService>, <IDialogGlobalSettings> and <IDialogDomRenderer>, ' +
-    'or use the DialogDefaultConfiguration export.',
+    'Specify default renderer or use the DialogConfigurationStandard/DialogConfigurationClassic export.',
   [ErrorNames.dialog_activation_rejected]: 'Dialog activation rejected',
   [ErrorNames.dialog_cancellation_rejected]:  'Dialog cancellation rejected',
   [ErrorNames.dialog_cancelled_with_cancel_on_rejection_setting]: 'Dialog cancelled with a rejection on cancel',
   [ErrorNames.dialog_custom_error]: 'Dialog custom error',
+  [ErrorNames.dialog_closed_before_deactivation]: 'Dialog was closed before deactivation, did you call dialog.close()?',
 };
 
 const getMessageByCode = (name: ErrorNames, ...details: unknown[]) => {

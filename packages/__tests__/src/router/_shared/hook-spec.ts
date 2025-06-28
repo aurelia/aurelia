@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { HookName, HookInvocationTracker } from './hook-invocation-tracker.js';
-import { setTimeoutWaiter } from './waiters.js';
+import { HookName } from './hook-invocation-tracker.js';
 import { ITestRouteViewModel } from './view-models.js';
 
 export interface IHookSpec<T extends HookName> {
@@ -10,7 +9,6 @@ export interface IHookSpec<T extends HookName> {
   invoke(
     vm: ITestRouteViewModel,
     getValue: () => ReturnType<ITestRouteViewModel[T]>,
-    tracker?: HookInvocationTracker,
   ): ReturnType<ITestRouteViewModel[T]>;
 }
 
@@ -20,16 +18,8 @@ function getHookSpecs<T extends HookName>(name: T) {
       name,
       type: 'sync',
       ticks: 0,
-      invoke(_vm, getValue, tracker?) {
-        if (tracker) {
-          tracker.notify(`${_vm.viewport?.pathname ?? ''}.${_vm.name}`, 'enter');
-        }
-        const value = getValue();
-        // console.log(`${_vm.name}.${name} sync`, value);
-        if (tracker) {
-          tracker.notify(`${_vm.viewport?.pathname ?? ''}.${_vm.name}`, 'leave');
-        }
-        return value;
+      invoke(_vm, getValue) {
+        return getValue();
       },
     } as IHookSpec<T>,
     async(count: number) {
@@ -37,26 +27,12 @@ function getHookSpecs<T extends HookName>(name: T) {
         name,
         type: `async${count}`,
         ticks: count,
-        invoke(_vm, getValue, tracker?) {
-          if (tracker) {
-            tracker.notify(`${_vm.viewport?.pathname ?? ''}.${_vm.name}`, 'enter');
-          }
+        invoke(_vm, getValue) {
           const value = getValue();
           let i = -1;
-          // console.log(`${_vm.name}.${name} enter async(${count})`, value);
           function next() {
-            // if (i >= 0) {
-            //   console.log(`${_vm.name}.${name} tick ${i + 1} async(${count})`, value);
-            // }
             if (++i < count) {
-              if (tracker) {
-                tracker.notify(`${_vm.viewport?.pathname ?? ''}.${_vm.name}`, 'tick');
-              }
               return Promise.resolve().then(next);
-            }
-            // console.log(`${_vm.name}.${name} leave async(${count})`, value);
-            if (tracker) {
-              tracker.notify(`${_vm.viewport?.pathname ?? ''}.${_vm.name}`, 'leave');
             }
             return value;
           }
@@ -64,20 +40,6 @@ function getHookSpecs<T extends HookName>(name: T) {
         },
       } as IHookSpec<T>;
     },
-    setTimeout_0: {
-      name,
-      ticks: -1,
-      type: 'setTimeout_0',
-      async invoke(vm, getValue, tracker?) {
-        const value = getValue();
-        const ctx = vm.$controller.container;
-        const label = `${vm.name}.${name}`;
-
-        return setTimeoutWaiter(ctx, 0, label)
-          .then(() => value as any
-          );
-      },
-    } as IHookSpec<T>,
   };
 }
 
@@ -108,9 +70,7 @@ function groupByPrefix(list: string[]): Record<string, string[]> {
   return groups;
 }
 
-export function verifyInvocationsEqual(actualIn: string[], expectedIn: string[]): void {
-  let actual: string[] = filterHooks(actualIn);
-  let expected: string[] = filterHooks(expectedIn);
+export function verifyInvocationsEqual(actual: string[], expected: string[]): void {
   const errors: string[] = [];
   const expectedGroups = groupByPrefix(expected);
   const actualGroups = groupByPrefix(actual);
@@ -131,14 +91,4 @@ export function verifyInvocationsEqual(actualIn: string[], expectedIn: string[])
   if (errors.some(e => e.startsWith('N'))) {
     throw new Error(`Failed assertion: invocation mismatch\n  - ${errors.join('\n  - ')})`);
   }
-}
-
-function filterHooks(hooks: string[]): string[] {
-  return hooks.filter(hook => hook
-    && !hook.endsWith('.leave')
-    && !hook.endsWith('.tick')
-    // && !hook.endsWith('.dispose')
-    // && !hook.startsWith('stop.')
-    && (hook.includes('canUnload') || hook.includes('canLoad') || hook.includes('unloading') || hook.includes('loading'))
-  ).map(hook => hook.replace(/:.*?\./gi, '.').replace(/\.enter$/, ''));
 }

@@ -5,7 +5,7 @@ import {
 } from '@aurelia/kernel';
 import {
   IRouteViewModel,
-} from '@aurelia/router-lite';
+} from '@aurelia/router';
 import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,

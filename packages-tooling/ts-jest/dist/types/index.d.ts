@@ -9,13 +9,13 @@ declare function _createTransformer(conventionsOptions?: {}, _preprocess?: typeo
 };
 declare function createTransformer(conventionsOptions?: {}): {
     canInstrument: boolean;
-    getCacheKey: (fileData: string, filePath: string, options: TransformOptions<TsJestTransformerOptions>) => string;
-    process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJestTransformerOptions>) => TransformedSource;
+    getCacheKey: (fileData: string, filePath: string, options: TransformOptions<TsJest.TsJestGlobalOptions>) => string;
+    process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJest.TsJestGlobalOptions>) => TransformedSource;
 };
 declare const _default: {
     canInstrument: boolean;
-    getCacheKey: (fileData: string, filePath: string, options: TransformOptions<TsJestTransformerOptions>) => string;
-    process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJestTransformerOptions>) => TransformedSource;
+    getCacheKey: (fileData: string, filePath: string, options: TransformOptions<TsJest.TsJestGlobalOptions>) => string;
+    process: (sourceText: string, sourcePath: string, transformOptions: TransformOptions<TsJest.TsJestGlobalOptions>) => TransformedSource;
     createTransformer: typeof createTransformer;
     _createTransformer: typeof _createTransformer;
 };

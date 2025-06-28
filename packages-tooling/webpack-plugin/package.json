@@ -48,7 +48,7 @@
     "@aurelia/plugin-conventions": "2.0.0-beta.24"
   },
   "devDependencies": {
-    "@types/webpack": "^4.41.40",
+    "@types/webpack": "^5.28.5",
     "typescript": "5.4.2",
     "webpack-sources": "^3.3.2"
   },

@@ -30,6 +30,7 @@ describe('webpack-plugin', function () {
         assert.equal(map.version, 3);
         done();
       },
+      getOptions: () => ({}),
       resourcePath: 'src/foo-bar.html'
     };
 
@@ -54,6 +55,7 @@ describe('webpack-plugin', function () {
         done();
       },
       query: { defaultShadowOptions: { mode: 'open' } },
+      getOptions: function () { return this.query; },
       resourcePath: 'src/foo-bar.html'
     };
 
@@ -78,6 +80,7 @@ describe('webpack-plugin', function () {
         done();
       },
       query: { useCSSModule: true },
+      getOptions: function () { return this.query; },
       resourcePath: 'src/foo-bar.html'
     };
 
@@ -102,6 +105,7 @@ describe('webpack-plugin', function () {
         done();
       },
       query: { defaultShadowOptions: { mode: 'open' }, useCSSModule: true },
+      getOptions: function () { return this.query; },
       resourcePath: 'src/foo-bar.html'
     };
 
@@ -125,6 +129,7 @@ describe('webpack-plugin', function () {
         assert.equal(map.version, 3);
         done();
       },
+      getOptions: () => ({}),
       resourcePath: 'src/foo-bar.js'
     };
 
@@ -148,6 +153,7 @@ describe('webpack-plugin', function () {
         assert.equal(map.version, 3);
         done();
       },
+      getOptions: () => ({}),
       resourcePath: 'src/foo-bar.ts'
     };
 
@@ -171,6 +177,7 @@ describe('webpack-plugin', function () {
         assert.equal(map, undefined);
         done();
       },
+      getOptions: () => ({}),
       resourcePath: 'src/foo-bar.css'
     };
 

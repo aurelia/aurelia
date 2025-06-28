@@ -81,7 +81,7 @@ async function createFixture<T extends Constructable>(
   };
 }
 
-describe('router-lite/smoke-tests.spec.ts', function () {
+describe('router/smoke-tests.spec.ts', function () {
   @customElement({ name: 'a01', template: `a01${vp(0)}` })
   class A01 { }
   @customElement({ name: 'a02', template: `a02${vp(0)}` })

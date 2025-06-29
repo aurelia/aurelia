@@ -8,7 +8,7 @@ description: >-
 
 ## Introduction
 
-Aurelia provides a powerful validation library that allows you to add validation to your applications. If you are new to Aurelia, we recommend visiting the [Getting Started](../../routing/getting-started.md) section first to familiarize yourself with the framework.
+Aurelia provides a powerful validation library that allows you to add validation to your applications. If you are new to Aurelia, we recommend visiting the [Getting Started](../../router/getting-started.md) section first to familiarize yourself with the framework.
 
 This tutorial aims to teach you all the basics of validation. Enabling it, validation rules, conditional validation and multiple objects.
 

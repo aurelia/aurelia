@@ -30,7 +30,7 @@ After installing Sinon, import it in your test files to access its functionality
 
 {% code title="my-component.ts" %}
 ```typescript
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 import { customElement, resolve } from 'aurelia';
 
 @customElement('my-component')
@@ -53,7 +53,7 @@ To stub the `load` method of the router, use Sinon's `stub` method:
 ```typescript
 import { createFixture } from '@aurelia/testing';
 import { MyComponent } from './my-component';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 import sinon from 'sinon';
 
 describe('MyComponent', () => {
@@ -84,7 +84,7 @@ When you need to replace the entire dependency, create a mock object and registe
 ```typescript
 import { createFixture, Registration } from '@aurelia/testing';
 import { MyComponent } from './my-component';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 
 const mockRouter = {
     load(path: string) {
@@ -170,7 +170,7 @@ Unit tests may require you to instantiate classes manually rather than using Aur
 {% code title="my-component.spec.ts" %}
 ```typescript
 import { MyComponent } from './my-component';
-import { IRouter } from '@aurelia/router';
+import { IRouter } from '@aurelia/router-direct';
 
 describe('MyComponent', () => {
     const mockRouter: IRouter = {

@@ -28,7 +28,7 @@ module.exports = function () {
       alias: {
         ...[
           'fetch-client',
-          'router-lite',
+          'router',
           'kernel',
           'expression-parser',
           'runtime',

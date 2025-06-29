@@ -8,7 +8,7 @@ import {
   IRouter,
   route,
   RouterConfiguration
-} from '@aurelia/router-lite';
+} from '@aurelia/router';
 import {
   Aurelia,
   CustomAttribute,

@@ -52,6 +52,9 @@ export {
   type ComputedGetterFn,
 } from './computed-observer';
 export {
+  computed,
+} from './computed-decorators';
+export {
   IDirtyChecker,
   DirtyChecker,
   DirtyCheckProperty,

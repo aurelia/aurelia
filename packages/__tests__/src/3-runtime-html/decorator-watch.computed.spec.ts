@@ -581,6 +581,36 @@ describe('3-runtime-html/decorator-watch.computed.spec.ts', function () {
     assert.strictEqual(textNode.textContent, '1');
   });
 
+  it('observers getter fn with flush sync timing', async function () {
+    const logs = [];
+    const { component } = createFixture('${msg}', class App {
+      public msg = 'hello';
+
+      @watch((app) => app.msg, { flush: 'sync' })
+      public log(msg: string): void {
+        logs.push(msg);
+      }
+    });
+
+    component.msg = 'world';
+    assert.deepStrictEqual(logs, ['world']);
+  });
+
+  it('observers expression with flush sync timing', async function () {
+    const logs = [];
+    const { component } = createFixture('${msg}', class App {
+      public msg = 'hello';
+
+      @watch('msg', { flush: 'sync' })
+      public log(msg: string): void {
+        logs.push(msg);
+      }
+    });
+
+    component.msg = 'world';
+    assert.deepStrictEqual(logs, ['world']);
+  });
+
   // TODO: revisit (something about batching)
   describe('Array', function () {
     const testCases: ITestCase[] = [

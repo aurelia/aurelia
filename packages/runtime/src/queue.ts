@@ -405,8 +405,6 @@ export class TaskAbortError<T = any> extends Error {
   }
 }
 
-let id = 0;
-
 /**
  * A handle returned by {@link queueAsyncTask} that lets you observe and control
  * the life-cycle of a piece of scheduled work.
@@ -423,10 +421,12 @@ let id = 0;
  * @template R Type of the value produced by the callback.
  */
 export class Task<R = any> {
+  /** @internal */
+  private static _taskId = 0;
   /**
    * Unique, incrementing identifier – handy for logging / debugging.
    */
-  public readonly id: number = ++id;
+  public readonly id: number = ++Task._taskId;
 
   /** @internal */
   public _timerId?: number;

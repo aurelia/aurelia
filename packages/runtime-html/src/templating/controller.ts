@@ -1312,10 +1312,11 @@ function createWatchers(
   let expression: IWatchDefinition['expression'];
   let callback: IWatchDefinition['callback'];
   let ast: IsBindingBehavior;
+  let flush: 'async' | 'sync' | undefined;
   let i = 0;
 
   for (; ii > i; ++i) {
-    ({ expression, callback } = watches[i]);
+    ({ expression, callback, flush } = watches[i]);
     callback = isFunction(callback)
       ? callback
       : Reflect.get(instance, callback) as IWatcherCallback<object>;
@@ -1328,7 +1329,7 @@ function createWatchers(
         observerLocator,
         expression,
         callback,
-        true,
+        flush,
       ));
     } else {
       ast = isString(expression)
@@ -1340,7 +1341,8 @@ function createWatchers(
         context,
         observerLocator,
         ast,
-        callback
+        callback,
+        flush,
       ) as unknown as IBinding);
     }
   }

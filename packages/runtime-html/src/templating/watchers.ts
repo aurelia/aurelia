@@ -47,6 +47,9 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
   public get value(): unknown {
     return this._value;
   }
+
+  /** @internal */
+  public readonly _flush: 'async' | 'sync';
   /**
    * A semi-private property used by connectable mixin
    *
@@ -62,10 +65,11 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     observerLocator: IObserverLocator,
     public readonly $get: (obj: object, watcher: IConnectable) => unknown,
     cb: IWatcherCallback<object>,
-    public readonly useProxy: boolean,
+    flush: 'async' | 'sync' = 'async',
   ) {
     this._callback = cb;
     this.oL = observerLocator;
+    this._flush = flush;
   }
 
   public handleChange(): void {
@@ -90,36 +94,45 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
 
   private run(): void {
     if (!this.isBound) return;
+    if (this._flush === 'sync') {
+      this._run();
+      return;
+    }
+
     if (this._isQueued) return;
     this._isQueued = true;
-    if (this._computeDepth > 100) {
+    queueTask(() => {
+      this._isQueued = false;
+      this._run();
+    });
+  }
+
+  /** @internal */
+  private _run() {
+    if (!this.isBound) return;
+
+    const obj = this.obj;
+    const oldValue = this._value;
+    if (++this._computeDepth > 100) {
       // todo: error code
       throw new Error(`AURXXXX: Possible infinitely recursive side-effect detected in a watcher.`);
     }
 
-    queueTask(() => {
-      this._isQueued = false;
-      if (!this.isBound) return;
+    const newValue = this.compute();
 
-      const obj = this.obj;
-      const oldValue = this._value;
-      ++this._computeDepth;
-      const newValue = this.compute();
-
-      if (!areEqual(newValue, oldValue)) {
-        this._callback.call(obj, newValue, oldValue, obj);
-      }
-      if (!this._isQueued) {
-        this._computeDepth = 0;
-      }
-    });
+    if (!areEqual(newValue, oldValue)) {
+      this._callback.call(obj, newValue, oldValue, obj);
+    }
+    if (!this._isQueued) {
+      this._computeDepth = 0;
+    }
   }
 
   private compute(): unknown {
     this.obs.version++;
     try {
       enter(this);
-      return this._value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+      return this._value = unwrap(this.$get.call(void 0, wrap(this.obj), this));
     } finally {
       this.obs.clear();
       exit(this);
@@ -156,6 +169,9 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
   public readonly boundFn = false;
 
   /** @internal */
+  private readonly _flush: 'async' | 'sync';
+
+  /** @internal */
   private readonly _expression: IsBindingBehavior;
 
   /** @internal */
@@ -167,35 +183,52 @@ export class ExpressionWatcher implements IBinding, IObserverLocatorBasedConnect
     public oL: IObserverLocator,
     expression: IsBindingBehavior,
     callback: IWatcherCallback<object>,
+    flush: 'async' | 'sync' = 'async',
   ) {
     this.obj = scope.bindingContext;
     this._expression = expression;
     this._callback = callback;
+    this._flush = flush;
   }
 
-  public handleChange(value: unknown): void {
+  public handleChange(): void {
+    this.run();
+  }
+
+  public handleCollectionChange(): void {
+    this.run();
+  }
+
+  private run() {
     if (!this.isBound) return;
+
+    if (this._flush === 'sync') {
+      this._run();
+      return;
+    }
+
     if (this._isQueued) return;
     this._isQueued = true;
-
     queueTask(() => {
       this._isQueued = false;
-      if (!this.isBound) return;
-
-      const expr = this._expression;
-      const obj = this.obj;
-      const oldValue = this._value;
-      const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
-      if (!canOptimize) {
-        this.obs.version++;
-        value = astEvaluate(expr, this.scope, this, this);
-        this.obs.clear();
-      }
-      if (!areEqual(value, oldValue)) {
-        this._value = value;
-        this._callback.call(obj, value, oldValue, obj);
-      }
+      this._run();
     });
+  }
+
+  /** @internal */
+  private _run() {
+    if (!this.isBound) return;
+
+    const expr = this._expression;
+    const obj = this.obj;
+    const oldValue = this._value;
+    this.obs.version++;
+    const value = astEvaluate(expr, this.scope, this, this);
+    this.obs.clear();
+    if (!areEqual(value, oldValue)) {
+      this._value = value;
+      this._callback.call(obj, value, oldValue, obj);
+    }
   }
 
   public bind(): void {

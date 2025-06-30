@@ -93,7 +93,8 @@ export class ComputedWatcher implements IBinding, ISubscriber, ICollectionSubscr
     if (this._isQueued) return;
     this._isQueued = true;
     if (this._computeDepth > 100) {
-      throw new Error(`Possible infinitely recursive side-effect detected in a watcher.`);
+      // todo: error code
+      throw new Error(`AURXXXX: Possible infinitely recursive side-effect detected in a watcher.`);
     }
 
     queueTask(() => {

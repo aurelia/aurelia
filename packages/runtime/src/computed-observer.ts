@@ -72,6 +72,9 @@ export class ComputedObserver<T extends object> implements
   /** @internal */
   private _coercionConfig?: ICoercionConfiguration = void 0;
 
+  /** @internal */
+  private readonly _flush: 'sync' | 'async';
+
   /**
    * The getter this observer is wrapping
    */
@@ -92,13 +95,14 @@ export class ComputedObserver<T extends object> implements
     get: ComputedGetterFn<T>,
     set: undefined | ((v: unknown) => void),
     observerLocator: IObserverLocator,
-    useProxy: boolean,
+    flush: 'sync' | 'async' = 'async',
   ) {
     this._obj = obj;
-    this._wrapped = useProxy ? wrap(obj) : obj;
+    this._wrapped = wrap(obj);
     this.$get = get;
     this.$set = set;
     this.oL = observerLocator;
+    this._flush = flush;
   }
 
   public init(value: unknown) {
@@ -187,12 +191,23 @@ export class ComputedObserver<T extends object> implements
   }
 
   private run(): void {
+    if (this._flush === 'sync') {
+      this._run();
+      return;
+    }
+
     if (this._isQueued) {
       return;
     }
     this._isQueued = true;
     queueTask(() => {
       this._isQueued = false;
+      this._run();
+    });
+  }
+
+  /** @internal */
+  private _run() {
       const currValue = this._value;
       const oldValue = this._oldValue;
       const newValue = this.compute();
@@ -208,12 +223,13 @@ export class ComputedObserver<T extends object> implements
     // so we are only notifying subscribers when it's the actual notify phase
 
       if (!this._notified || !areEqual(newValue, currValue)) {
+        // todo: wrong timing, this should be after notify
         this._callback?.(newValue, oldValue);
         this.subs.notify(newValue, oldValue);
         this._oldValue = this._value = newValue;
         this._notified = true;
       }
-    });
+
   }
 
   private compute(): unknown {

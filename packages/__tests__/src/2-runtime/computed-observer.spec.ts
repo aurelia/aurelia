@@ -140,7 +140,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       }
 
       // TODO: use tracer to deeply verify calls
-      const sut = new ComputedObserver(instance, propDescriptor.get, propDescriptor.set, locator, true);
+      const sut = new ComputedObserver(instance, propDescriptor.get, propDescriptor.set, locator);
       sut.subscribe(subscriber1);
       sut.subscribe(subscriber2);
 
@@ -299,7 +299,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       }
     };
 
-    const sut = new ComputedObserver(parent, pd.get, pd.set, locator, true);
+    const sut = new ComputedObserver(parent, pd.get, pd.set, locator);
     sut.subscribe(subscriber1);
 
     let verifiedCount = 0;
@@ -381,7 +381,7 @@ describe('2-runtime/computed-observer.spec.ts', function () {
       },
       void 0,
       locator,
-      true,
+      // true,
     );
     Object.defineProperty(obj, 'prop', {
       get: () => observer.getValue(),

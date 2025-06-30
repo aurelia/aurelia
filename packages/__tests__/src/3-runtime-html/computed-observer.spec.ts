@@ -1,4 +1,4 @@
-import { ComputedObserver, IDirtyChecker, IObserverLocator, runTasks, tasksSettled } from '@aurelia/runtime';
+import { computed, ComputedObserver, IDirtyChecker, IObserverLocator, runTasks, tasksSettled } from '@aurelia/runtime';
 import {
   Constructable,
 } from '@aurelia/kernel';
@@ -535,6 +535,38 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
 
     assert.notStrictEqual(queryBy('.red'), null);
     assert.notStrictEqual(queryBy('.has-errors'), null);
+  });
+
+  it('flushes immediately when decorated with @computed({ flush: "sync" })', async function () {
+    let i1 = 0;
+    let i2 = 0;
+    const { component } = createFixture(
+      `\${msg} \${msg2}`,
+      class MyApp {
+        one = '1';
+        two = '2';
+
+        @computed({ flush: 'sync' })
+        public get msg(): string {
+          i1++;
+          return `${this.one} ${this.two}`;
+        }
+
+        @computed({ flush: 'async' })
+        public get msg2(): string {
+          i2++;
+          return `${this.one} ${this.two}`;
+        }
+      }
+    );
+
+    assert.deepStrictEqual([i1, i2], [1, 1]);
+    component.one = '10';
+    assert.deepStrictEqual([i1, i2], [2, 1]);
+    component.two = '20';
+    assert.deepStrictEqual([i1, i2], [3, 1]);
+    await Promise.resolve();
+    assert.deepStrictEqual([i1, i2], [3, 2]);
   });
 
   class Property {

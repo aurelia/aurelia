@@ -20,17 +20,97 @@ The rest of the document assumes that validation is view is more common scenario
 
 ## How does it work
 
-*   The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
+* The validationRules (`IValidationRules` instance) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
 
-    ![Define rules](<../../.gitbook/assets/seq-define-rules (1) (1) (1) (1) (3).png>)
-*   The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
+```mermaid
+sequenceDiagram
+  ViewModel->>ValidationRules: Start defining validation rules on target
+  ValidationRules->>RulesRegistry: Set validation rules on target
+  RulesRegistry->>RulesRegistry: Set rules metadata annotation on object
+  ValidationRules->>ViewModel: Handle to define further rules
+  ViewModel->>ValidationRules: Define rule on property 'x'
+  ValidationRules->>ViewModel: PropertyRule instance for `x`with a collection of rules
+  Note over ViewModel,ValidationRules: Further rules and customizations<br/>definition.
+```
 
-    ![Rules class diagram](<../../.gitbook/assets/class-rules (1) (1) (1) (1).png>)
-*   The validator (`IValidator` instance) allows you to execute a [validate instruction](broken-reference), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
+* The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.
 
-    ![Rules class diagram](<../../.gitbook/assets/seq-validator (1) (1) (1) (1) (1).png>)
-*   The last piece of the puzzle is to getting the rules executed on demand. For this the validation controller (`IValidationController` instance) is used along with the `validate` binding behavior (more on these later). The binding behavior registers the property binding with the validation controller, and on configured event, instructs the controller to validate the binding. The validation controller eventually ends up invoking the `IValidator#validate` with certain instruction which triggers the workflow shown in the last diagram. The following diagram shows a simplified version of this.
+```mermaid
+classDiagram
+  BaseValidationRule <|-- RequiredRule
+  BaseValidationRule <|-- RegexRule
+  BaseValidationRule <|-- CustomRule
+  PropertyRule o-- BaseValidationRule
 
-    ![Rules class diagram](<../../.gitbook/assets/seq-validation-controller (1) (1) (1) (1) (3).png>)
+  class PropertyRule {
+    +RuleProperty property
+    +BaseValidationRule[][] $rules
+    +validate(args) Promise~ValidationResult[]~
+  }
+  class BaseValidationRule {
+    +execute(value, object) boolean
+    +canExecute(object) boolean
+  }
+  class RequiredRule {
+    +execute(value, object) boolean
+  }
+  class RegexRule {
+    +execute(value, object) boolean
+  }
+  class CustomRule {
+    +execute(value, object) boolean
+  }
+```
+
+* The validator (`IValidator` instance) allows you to execute a [validate instruction](broken-reference), which instructs which object and property needs to be validated. The validator gets the matching rules from the RulesRegistry (see the diagram above), and executes those.
+
+```mermaid
+sequenceDiagram
+  Validator->>RulesRegistry: Get rules for object
+  RulesRegistry->>Validator: rules[]
+  loop property rule
+    Validator->>PropertyRule: validate() (async)
+    loop rule in $rules
+      PropertyRule->>PropertyRule: execute rule (async)
+      opt invalid
+        PropertyRule->>MessageProvider: get validation message
+        MessageProvider->>PropertyRule: validation message
+      end
+    end
+    PropertyRule->>Validator: ValidationResults[]
+  end
+  Validator->>Validator: flatten results and return
+```
+* The last piece of the puzzle is to getting the rules executed on demand. For this the validation controller (`IValidationController` instance) is used along with the `validate` binding behavior (more on these later). The binding behavior registers the property binding with the validation controller, and on configured event, instructs the controller to validate the binding. The validation controller eventually ends up invoking the `IValidator#validate` with certain instruction which triggers the workflow shown in the last diagram. The following diagram shows a simplified version of this.
+
+```mermaid
+sequenceDiagram
+  participant VM/BB
+  participant VC as ValidationController
+  participant V as Validator
+  note left of VM/BB: ViewModel or<br/>BindingBehavior
+
+  VM/BB->>VC: validate(instruction?) (async)
+  alt instruction present
+    VC->>V: validate(instruction) (async)
+    V->>VC: Validation results
+  else not present
+    loop every binding
+      VC->>VC: create instruction for binding
+      VC->>V: validate(instruction_binding) (async)
+    V->>VC: Validation results
+    end
+    loop every object
+      VC->>VC: create instruction for object
+      VC->>V: validate(instruction_object) (async)
+    V->>VC: Validation results
+    end
+  end
+  VC->>VC: process the results in terms of old and new results
+  loop every subscriber
+    VC->>Subscriber: notify
+  end
+  VC->>VM/BB: result
+```
 
 The following sections describe the API in more detail, which will help understanding the concepts further.

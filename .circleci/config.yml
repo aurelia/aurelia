@@ -369,9 +369,7 @@ jobs:
       - when:
           condition: << parameters.coverage >>
           steps:
-            - codecov/upload:
-                dir: packages
-                fail_on_error: true
+            - codecov/upload
             # - run:
             #     name: "Process coverage for Codecov"
             #     command: |

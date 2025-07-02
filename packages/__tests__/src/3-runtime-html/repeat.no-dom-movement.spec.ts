@@ -95,6 +95,8 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
       class { items = ['first']; }
     );
 
+    const document = appHost.ownerDocument;
+
     // Focus the first input
     const firstInput = appHost.querySelector('input') as HTMLInputElement;
     assert.notStrictEqual(firstInput, null);

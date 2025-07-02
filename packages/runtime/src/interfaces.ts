@@ -167,6 +167,20 @@ export type AccessorOrObserver = (IAccessor | IObserver) & {
   isIndexMap: true;
 };
 
+export const hasChanges = (indexMap: IndexMap) => {
+  if (indexMap.deletedIndices.length > 0) {
+    return true;
+  }
+
+  for (let i = 0; i < indexMap.length; ++i) {
+    if (indexMap[i] !== i) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export function copyIndexMap<T = unknown>(
   existing: number[] & { deletedIndices?: number[]; deletedItems?: T[] },
   deletedIndices?: number[],

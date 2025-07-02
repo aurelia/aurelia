@@ -1,6 +1,7 @@
 import { CustomElement, INode } from '@aurelia/runtime-html';
 import { IWcElementRegistry } from '@aurelia/web-components';
 import { assert, createFixture } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/web-components.spec.ts', function () {
   // do not test in JSDOM
@@ -9,12 +10,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
   }
   describe('define', function () {
     it('throws on invalid WC element name', async function () {
-      const { container, startPromise, tearDown } = createFixture(
+      const { container, tearDown } = await createFixture(
         `<my-element>`,
         class App { }
-      );
-
-      await startPromise;
+      ).started;
 
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', class MyElement { }));
 
@@ -22,12 +21,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('throws on containerless WC element', async function () {
-      const { container, startPromise, tearDown } = createFixture(
+      const { container, tearDown } = await createFixture(
         `<my-element>`,
         class App { },
-      );
-
-      await startPromise;
+      ).started;
 
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', class MyElement { public static containerless = true; }));
       assert.throws(() => container.get(IWcElementRegistry).define('myelement', { containerless: true }));
@@ -36,12 +33,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('works with basic plain class', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<my-element>`,
         class App { },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define('my-element', class MyElement {
         public static template = `\${message}`;
@@ -54,12 +49,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('works with literal object element definition', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<my-element-1>`,
         class App { },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define('my-element-1', { template: 'hello world' });
 
@@ -69,12 +62,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('works with Au custom element class', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<my-element-2>`,
         class App { },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define(
         'my-element-2',
@@ -88,12 +79,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('extends built-in elemenet', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<button is="my-btn-1">`,
         class App { },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define('my-btn-1', { template: '<div>hello world</div>' }, { extends: 'button' });
 
@@ -103,14 +92,12 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('observes attribute on normal custom element', async function () {
-      const { platform, container, appHost, component, startPromise, tearDown } = createFixture(
+      const { container, appHost, component, tearDown } = await createFixture(
         `<my-element-3 message.attr="message">`,
         class App {
           public message = 'hello world';
         },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define(
         'my-element-3',
@@ -126,21 +113,19 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.textContent(appHost, 'hello world');
 
-      platform.domQueue.flush();
+      await tasksSettled();
       assert.html.textContent(appHost, 'hello');
 
       await tearDown();
     });
 
     it('observes attribute on extended built-in custom element', async function () {
-      const { platform, container, appHost, component, startPromise, tearDown } = createFixture(
+      const { container, appHost, component, tearDown } = await createFixture(
         `<p is="my-element-4" message.attr="message">`,
         class App {
           public message = 'hello world';
         },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define(
         'my-element-4',
@@ -158,21 +143,19 @@ describe('3-runtime-html/web-components.spec.ts', function () {
       component.message = 'hello';
       assert.html.innerEqual(p, '<div>hello world</div>');
 
-      platform.domQueue.flush();
+      await tasksSettled();
       assert.html.innerEqual(p, '<div>hello</div>');
 
       await tearDown();
     });
 
     it('works with bindable-as-property on normal custom element', async function () {
-      const { platform, container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<my-element-5 message.attr="message">`,
         class App {
           public message = 'hello world';
         },
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define(
         'my-element-5',
@@ -188,16 +171,14 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       el5.message = 'hello';
 
-      platform.domQueue.flush();
+      await tasksSettled();
       assert.html.innerEqual(el5, '<div>hello</div>');
 
       await tearDown();
     });
 
     it('support host injection', async function () {
-      const { platform, container, appHost, startPromise, tearDown } = createFixture(`<my-element-6>`, class App { });
-
-      await startPromise;
+      const { platform, container, appHost, tearDown } = await createFixture(`<my-element-6>`, class App { }).started;
 
       class MyElementVm {
         public static template = `\${message}`;
@@ -217,9 +198,7 @@ describe('3-runtime-html/web-components.spec.ts', function () {
     });
 
     it('bindables works when created with document.createElement', async function () {
-      const { platform, container, appHost, startPromise, tearDown } = createFixture(``);
-
-      await startPromise;
+      const { platform, container, appHost, tearDown } = await createFixture(``).started;
 
       class MyElementVm {
         public static template = `\${message}`;
@@ -243,15 +222,13 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
       myEl7.message = 'hello world';
       assert.html.textContent(myEl7, '');
-      platform.domQueue.flush();
+      await tasksSettled();
       assert.html.textContent(myEl7, 'hello world');
       await tearDown();
     });
 
     it('works with shadow dom mode', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(`<my-element-8>`);
-
-      await startPromise;
+      const { container, appHost, tearDown } = await createFixture(`<my-element-8>`).started;
 
       class MyElementVm {
         public static shadowOptions: ShadowRootInit = { mode: 'open' };
@@ -269,12 +246,10 @@ describe('3-runtime-html/web-components.spec.ts', function () {
 
   describe('disconnectedCallback()', function () {
     it('deactivate controller', async function () {
-      const { container, appHost, startPromise, tearDown } = createFixture(
+      const { container, appHost, tearDown } = await createFixture(
         `<my-element-20>`,
         class App { }
-      );
-
-      await startPromise;
+      ).started;
 
       container.get(IWcElementRegistry).define('my-element-20', class MyElement {
         public static template = `<div repeat.for="i of 3">\${i}</div>`;

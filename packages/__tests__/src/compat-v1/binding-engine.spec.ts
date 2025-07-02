@@ -1,4 +1,5 @@
 import { BindingEngine } from '@aurelia/compat-v1';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('compat-v1/binding-engine.spec.ts', function () {
@@ -57,6 +58,7 @@ describe('compat-v1/binding-engine.spec.ts', function () {
         callCount++;
       });
       arr.push(1);
+      runTasks();
       assert.strictEqual(callCount, 1);
     });
 
@@ -68,6 +70,7 @@ describe('compat-v1/binding-engine.spec.ts', function () {
         callCount++;
       });
       set.add(2);
+      runTasks();
       assert.strictEqual(callCount, 1);
     });
 
@@ -81,6 +84,7 @@ describe('compat-v1/binding-engine.spec.ts', function () {
         callCount++;
       });
       set.set(2, '2');
+      runTasks();
       assert.strictEqual(callCount, 1);
     });
   });
@@ -101,10 +105,12 @@ describe('compat-v1/binding-engine.spec.ts', function () {
         v = newV;
       });
       obj.a.b = 2;
+      runTasks();
       assert.strictEqual(callCount, 1);
       assert.strictEqual(v, 2);
 
       obj.c = 1;
+      runTasks();
       assert.strictEqual(callCount, 1);
       assert.strictEqual(v, 2);
     });
@@ -124,11 +130,13 @@ describe('compat-v1/binding-engine.spec.ts', function () {
         v = newV;
       });
       obj.a = null;
+      runTasks();
       assert.strictEqual(callCount, 1);
       assert.strictEqual(v, undefined);
 
       sub.dispose();
       obj.a = { b: 1 };
+      runTasks();
       assert.strictEqual(callCount, 1);
       assert.strictEqual(v, undefined);
     });

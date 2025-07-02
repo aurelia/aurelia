@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unassigned-import */
-import { IRouter, HookTypes } from '@aurelia/router';
+import { IRouter, HookTypes } from '@aurelia/router-direct';
 import { customElement, IObserverLocator } from '@aurelia/runtime-html';
 import html from './app.html';
 

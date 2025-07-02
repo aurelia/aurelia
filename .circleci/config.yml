@@ -370,8 +370,7 @@ jobs:
           condition: << parameters.coverage >>
           steps:
             - codecov/upload:
-                disable_search: true
-                files: packages/__tests__/coverage/coverage-final.json
+                dir: packages
                 fail_on_error: true
             # - run:
             #     name: "Process coverage for Codecov"

@@ -8,7 +8,7 @@ import { assert, createFixture } from '@aurelia/testing';
 // https://github.com/aurelia/aurelia/issues/2089
 describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
   it('[non-keyed] does not remove existing node when adding a second item', async function () {
-    const { appHost, component, flush } = createFixture(
+    const { appHost, component } = createFixture(
       `<div repeat.for="item of items">\${item}</div>`,
       class { items = [0]; }
     );
@@ -32,7 +32,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
     observer.observe(appHost, { childList: true, subtree: true });
 
     component.items.push(1);
-    flush();
 
     // Give MutationObserver time to process
     await Promise.resolve();
@@ -50,7 +49,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
   });
 
   it('[keyed] does not remove existing node when adding a second item ', async function () {
-    const { appHost, component, flush } = createFixture(
+    const { appHost, component } = createFixture(
       `<div repeat.for="item of items; key: id">\${item.id}</div>`,
       class { items = [{ id: 0 }]; }
     );
@@ -74,7 +73,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
     observer.observe(appHost, { childList: true, subtree: true });
 
     component.items.push({ id: 1 });
-    flush();
 
     // Give MutationObserver time to process
     await Promise.resolve();
@@ -92,7 +90,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
   });
 
   it('does not lose focus when adding a second item', async function () {
-    const { appHost, component, flush } = createFixture(
+    const { appHost, component } = createFixture(
       `<input repeat.for="item of items" value.bind="item" />`,
       class { items = ['first']; }
     );
@@ -110,7 +108,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
     });
 
     component.items.push('second');
-    flush();
 
     // Give time for any async operations
     await Promise.resolve();
@@ -125,7 +122,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
   });
 
   it('properly detects DOM operations using detailed MutationObserver tracking', async function () {
-    const { appHost, component, flush } = createFixture(
+    const { appHost, component } = createFixture(
       `<div repeat.for="item of items" id="\${item}">\${item}</div>`,
       class { items = [0]; }
     );
@@ -162,7 +159,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Add second item
     component.items.push(1);
-    flush();
 
     // Give MutationObserver time to process
     await Promise.resolve();
@@ -190,7 +186,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
   it('tracks actual DOM removal with disconnected callback', async function () {
     let disconnectCount = 0;
-    const { appHost, component, flush } = createFixture(
+    const { appHost, component } = createFixture(
       `<div repeat.for="item of items" custom-attr>\${item}</div>`,
       class { items = [0]; },
       [
@@ -208,7 +204,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Add second item
     component.items.push(1);
-    flush();
 
     await Promise.resolve();
 
@@ -224,7 +219,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
   it('does not deactivate and reactivate existing views when adding items', async function () {
     const lifecycleEvents: string[] = [];
 
-    const { component, flush } = createFixture(
+    const { component } = createFixture(
       `<div repeat.for="item of items"><span lifecycle-tracker.bind="'item: ' + item">\${item}</span></div>`,
       class { items = [0]; },
       [
@@ -269,7 +264,6 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Add second item
     component.items.push(1);
-    flush();
 
     await Promise.resolve();
 

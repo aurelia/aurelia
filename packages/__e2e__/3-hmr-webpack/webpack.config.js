@@ -14,12 +14,6 @@ module.exports = function (env, { mode }) {
       extensions: ['.ts', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
       mainFields: ['module', 'main'],
-      // sadly these fallbacks are required to run the app via webpack-dev-server
-      fallback: {
-        'html-entities': require.resolve('html-entities'),
-        'url': require.resolve('url'),
-        'events': require.resolve('events'),
-      },
     },
     experiments: {
       lazyCompilation: true

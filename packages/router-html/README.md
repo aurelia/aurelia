@@ -13,7 +13,7 @@ npm i aurelia-direct-router
 
 ## Using
 
-Once the Aurelia Direct Router is installed, simply `import` anything router related from `aurelia-direct-router` instead of from `aurelia` or `@aurelia/router`. So, for example, in your `main.js/ts` file
+Once the Aurelia Direct Router is installed, simply `import` anything router related from `aurelia-direct-router` instead of from `aurelia` or `@aurelia/router-direct`. So, for example, in your `main.js/ts` file
 
 ```js
 import Aurelia, { RouterConfiguration } from 'aurelia';

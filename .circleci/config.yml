@@ -295,8 +295,8 @@ jobs:
             - packages/platform/dist
             - packages/platform-browser/dist
             - packages/route-recognizer/dist
+            - packages/router-direct/dist
             - packages/router/dist
-            - packages/router-lite/dist
             - packages/expression-parser/dist
             - packages/runtime/dist
             - packages/template-compiler/dist
@@ -844,20 +844,20 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
           name: e2e_router
-          path: "packages/__e2e__/5-router"
+          path: "packages/__e2e__/6-router"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_none_history_with_hash
+          path: "packages/__e2e__/10-router-none-history-with-hash"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:
@@ -963,8 +963,8 @@ workflows:
             - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
-            - e2e_router_lite
             - e2e_router
+            - e2e_router_direct
             - e2e_i18n
             - request_publish_dev
           from: master
@@ -1068,20 +1068,20 @@ workflows:
             - build_release
       - e2e_test:
           <<: *filter_ignore_develop_release
-          name: e2e_router_lite
-          path: "packages/__e2e__/6-router-lite"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
-          name: e2e_router_lite_none_history_with_hash
-          path: "packages/__e2e__/10-router-lite-none-history-with-hash"
-          requires:
-            - build_release
-      - e2e_test:
-          <<: *filter_ignore_develop_release
           name: e2e_router
-          path: "packages/__e2e__/5-router"
+          path: "packages/__e2e__/6-router"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_none_history_with_hash
+          path: "packages/__e2e__/10-router-none-history-with-hash"
+          requires:
+            - build_release
+      - e2e_test:
+          <<: *filter_ignore_develop_release
+          name: e2e_router_direct
+          path: "packages/__e2e__/5-router-direct"
           requires:
             - build_release
       - e2e_test:
@@ -1127,8 +1127,8 @@ workflows:
             - e2e_gh_issues
             - e2e_hmr_vite
             - e2e_hmr_webpack
-            - e2e_router_lite
             - e2e_router
+            - e2e_router_direct
             - e2e_i18n
           from: $CIRCLE_TAG
           to: release

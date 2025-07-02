@@ -270,7 +270,7 @@ export class MyApp {
 
 ## Router Transition Animations
 
-For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. For comprehensive coverage of router animations, see the dedicated [Router Animation](../routing/router-animation.md) guide.
+For page transitions when navigating between routes, Aurelia provides powerful lifecycle hooks that enable smooth animations. For comprehensive coverage of router animations, see the dedicated [Router Animation](../router-direct/router-animation.md) guide.
 
 ### Quick Router Animation Example
 
@@ -598,4 +598,4 @@ export class SequenceAnimation {
 }
 ```
 
-This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, be sure to check the [Router Animation](../routing/router-animation.md) documentation for detailed examples and patterns.
+This comprehensive guide covers the essential animation techniques available in Aurelia applications. For router-specific animations, be sure to check the [Router Animation](../router-direct/router-animation.md) documentation for detailed examples and patterns.

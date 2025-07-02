@@ -1,9 +1,31 @@
-import { IDisposable, IEventAggregator, resolve } from '@aurelia/kernel';
-import { INode, ICustomAttributeViewModel, ICustomAttributeController, CustomAttribute, CustomAttributeStaticAuDefinition } from '@aurelia/runtime-html';
-import { IRouter, RouterNavigationEndEvent } from '../router';
-import { LoadCustomAttribute } from '../index';
-import { ILinkHandler } from './link-handler';
-import { bmToView, getConsideredActiveInstructions, getLoadIndicator } from './utils';
+import {
+  type ICustomAttributeViewModel,
+  type ICustomAttributeController,
+  INode,
+  IWindow,
+  CustomAttribute,
+  type CustomAttributeStaticAuDefinition,
+  refs
+} from '@aurelia/runtime-html';
+
+import { IRouter } from '../router';
+import { LoadCustomAttribute } from '../configuration';
+import { IRouteContext } from '../route-context';
+import { resolve } from '@aurelia/kernel';
+import { bmToView } from '../util';
+
+/*
+ * Note: Intentionally, there is no bindable `context` here.
+ * Otherwise this CA needs to be turned into a multi-binding CA.
+ * Which means that the following simplest case won't work any longer:
+ *
+ * ```html
+ * <a href="https://bla.bla.com/bla" data-external>bla</a>
+ * ```
+ * Because the template compiler will think that `https` is a bindable property in this CA,
+ * and will fail as it won't find a bindable property `https` here in this CA.
+ * Therefore, till the template compiler can handle that correctly, introduction of a bindable context is intentionally omitted.
+ */
 
 export class HrefCustomAttribute implements ICustomAttributeViewModel {
   public static readonly $au: CustomAttributeStaticAuDefinition = {
@@ -15,57 +37,95 @@ export class HrefCustomAttribute implements ICustomAttributeViewModel {
     }
   };
 
-  public value: string | undefined;
+  /** @internal */private readonly _el: INode<HTMLElement> = resolve<INode<HTMLElement>>(INode as unknown as INode<HTMLElement>);
+  /** @internal */private readonly _router: IRouter = resolve(IRouter);
+  /** @internal */private readonly _ctx: IRouteContext = resolve(IRouteContext);
+
+  public value: unknown;
+
+  /** @internal */private _isInitialized: boolean = false;
+  /** @internal */private _isEnabled: boolean;
+
+  /** @internal */
+  private get _isExternal(): boolean {
+    return this._el.hasAttribute('external') || this._el.hasAttribute('data-external');
+  }
 
   public readonly $controller!: ICustomAttributeController<this>;
 
-  private routerNavigationSubscription?: IDisposable;
-
-  private readonly element = resolve(INode) as HTMLElement;
-  private readonly router = resolve(IRouter);
-  private readonly linkHandler = resolve(ILinkHandler);
-  private readonly ea = resolve(IEventAggregator);
-  private readonly activeClass = this.router.configuration.options.indicators.loadActive;
+  public constructor() {
+    if (
+      this._router.options.useHref &&
+      // Ensure the element is an anchor
+      this._el.nodeName === 'A'
+    ) {
+      const windowName = resolve(IWindow).name;
+      // Ensure the anchor targets the current window.
+      switch (this._el.getAttribute('target')) {
+        case null:
+        case windowName:
+        case '_self':
+          this._isEnabled = true;
+          break;
+        default:
+          this._isEnabled = false;
+          break;
+      }
+    } else {
+      this._isEnabled = false;
+    }
+  }
 
   public binding(): void {
-    if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
-      this.element.addEventListener('click', this.linkHandler);
-      this.routerNavigationSubscription = this.ea.subscribe(RouterNavigationEndEvent.eventName, this.navigationEndHandler);
+    if (!this._isInitialized) {
+      this._isInitialized = true;
+      this._isEnabled = this._isEnabled && refs.get(this._el, CustomAttribute.getDefinition(LoadCustomAttribute).key) === null;
     }
-    this.updateValue();
-    this.updateActive();
+    this.valueChanged(this.value);
+    this._el.addEventListener('click', this);
+    // this.eventListener = this.delegator.addEventListener(this.target, this.el, 'click', this);
   }
   public unbinding(): void {
-    this.element.removeEventListener('click', this.linkHandler);
-    this.routerNavigationSubscription?.dispose();
+    // this.eventListener.dispose();
+    this._el.removeEventListener('click', this);
   }
 
-  public valueChanged(): void {
-    this.updateValue();
-    this.updateActive();
-  }
-
-  private updateValue(): void {
-    this.element.setAttribute('href', this.value as string);
-  }
-
-  private readonly navigationEndHandler = (_navigation: RouterNavigationEndEvent): void => {
-    this.updateActive();
-  };
-
-  private updateActive(): void {
-    if (this.router.configuration.options.useHref && !this.hasLoad() && !this.element.hasAttribute('external')) {
-      const controller = CustomAttribute.for(this.element, 'href')!.parent!;
-      const instructions = getConsideredActiveInstructions(this.router, controller, this.element, this.value);
-      const element = getLoadIndicator(this.element);
-
-      element.classList.toggle(this.activeClass, this.router.checkActive(instructions, { context: controller }));
+  public valueChanged(newValue: unknown): void {
+    if (newValue == null) {
+      this._el.removeAttribute('href');
+    } else {
+      if (this._router.options.useUrlFragmentHash
+        && this._ctx.routeConfigContext.isRoot
+        && !/^[.#]/.test(newValue as string)
+        && !this._isExternal
+      ) {
+        newValue = `#${newValue}`;
+      }
+      this._el.setAttribute('href', newValue as string);
     }
   }
 
-  private hasLoad(): boolean {
-    const parent = this.$controller.parent!;
-    const siblings = parent.children;
-    return siblings?.some(c => c.vmKind === 'customAttribute' && c.viewModel instanceof LoadCustomAttribute) ?? false;
+  public handleEvent(e: MouseEvent) {
+    this._onClick(e);
+  }
+
+  /** @internal */
+  private _onClick(e: MouseEvent): void {
+    // Ensure this is an ordinary left-button click
+    if (e.altKey || e.ctrlKey || e.shiftKey || e.metaKey || e.button !== 0
+      // on an internally managed link
+      || this._isExternal
+      || !this._isEnabled
+    ) {
+      return;
+    }
+
+    // Use the normalized attribute instead of this.value to ensure consistency.
+    const href = this._el.getAttribute('href');
+    if (href !== null) {
+      e.preventDefault();
+      // Floating promises from `Router#load` are ok because the router keeps track of state and handles the errors, etc.
+      void this._router.load(href, { context: this._ctx });
+    }
   }
 }

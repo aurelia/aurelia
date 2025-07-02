@@ -1,12 +1,23 @@
 import { computedPropInfo } from './object-property-info';
 
 /**
- * TODO: description
+ * Decorate a getter to configure various aspects of the computed property created by the getter.
+ *
+ * Example usage:
+ *
+ * ```ts
+ * export class MyElement {
+ *  \@computed({ flush: 'sync' })
+ *   public get prop(): number {
+ *     return 24;
+ *   }
+ * }
+ * ```
  */
 export function computed<
   TThis extends object
 >(
-  _options: {
+  options: {
     flush?: 'sync' | 'async';
     // todo: future improvement
     // dependencies?: (string | symbol)[];
@@ -17,7 +28,7 @@ export function computed<
     context: ClassGetterDecoratorContext<TThis>
   ) {
     context.addInitializer(function (this: object) {
-      const flush = _options.flush ?? 'async';
+      const flush = options.flush ?? 'async';
       computedPropInfo.set(this, context.name, { flush });
     });
   };

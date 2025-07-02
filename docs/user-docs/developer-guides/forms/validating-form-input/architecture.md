@@ -22,6 +22,17 @@ The rest of the document assumes that validation is view is more common scenario
 
 * The validationRules \(`IValidationRules` instance\) allows defining validation rules on a class or object/instance. The defined rules are stored as metadata in a global registry.
 
+```mermaid
+sequenceDiagram
+  ViewModel->>ValidationRules: Start defining validation rules on target
+  ValidationRules->>RulesRegistry: Set validation rules on target
+  RulesRegistry->>RulesRegistry: Set rules metadata annotation on object
+  ValidationRules->>ViewModel: Handle to define further rules
+  ViewModel->>ValidationRules: Define rule on property 'x'
+  ValidationRules->>ViewModel: PropertyRule instance for `x` with a collection of rules
+  Note over ViewModel,ValidationRules: Further rules and customizations<br/>definition.
+```
+
   ![Define rules](../../../.gitbook/assets/seq-define-rules%20%282%29.png)
 
 * The instance of `PropertyRule` instance hold the collection of rules defined for a property. In simplified terms it can be described by the diagram below.

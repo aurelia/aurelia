@@ -10,24 +10,15 @@ import {
   astUnbind,
   type IAstEvaluator,
   type Scope,
+  queueTask,
 } from '@aurelia/runtime';
-import { activating } from '../templating/controller';
 import { createPrototypeMixer, mixinAstEvaluator, mixinUseScope, mixingBindingLimited } from './binding-utils';
 import { oneTime, toView } from './interfaces-bindings';
 
-import type {
-  ITask,
-  QueueTaskOptions,
-  TaskQueue
-} from '@aurelia/platform';
 import type { INode } from '../dom.node';
 import type { IBinding, BindingMode, IBindingController } from './interfaces-bindings';
 import { safeString } from '../utilities';
 import { ForOfStatement, IsBindingBehavior } from '@aurelia/expression-parser';
-
-const taskOptions: QueueTaskOptions = {
-  preempt: true,
-};
 
 // the 2 interfaces implemented come from mixin
 export interface AttributeBinding extends IAstEvaluator, IServiceLocator, IObserverLocatorBasedConnectable {}
@@ -52,7 +43,7 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   public _scope?: Scope = void 0;
 
   /** @internal */
-  private _task: ITask | null = null;
+  private _isQueued: boolean = false;
 
   public target: HTMLElement;
 
@@ -70,9 +61,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   private readonly _controller: IBindingController;
 
   /** @internal */
-  private readonly _taskQueue: TaskQueue;
-
-  /** @internal */
   public readonly l: IServiceLocator;
 
   // see Listener binding for explanation
@@ -88,7 +76,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     controller: IBindingController,
     locator: IServiceLocator,
     observerLocator: IObserverLocator,
-    taskQueue: TaskQueue,
     ast: IsBindingBehavior | ForOfStatement,
     target: INode,
     // some attributes may have inner structure
@@ -107,7 +94,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this._controller = controller;
     this.target = target as HTMLElement;
     this.oL = observerLocator;
-    this._taskQueue = taskQueue;
     // eslint-disable-next-line @typescript-eslint/prefer-includes
     if ((this._isMulti = targetProperty.indexOf(' ') > -1)
       && !AttributeBinding._splitString.has(targetProperty)
@@ -121,7 +107,6 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     const target = this.target;
     const targetAttribute = this.targetAttribute;
     const targetProperty = this.targetProperty;
-
     switch (targetAttribute) {
       case 'class':
         if (this._isMulti) {
@@ -156,37 +141,23 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public handleChange(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
+    if (this._isQueued) return;
+    this._isQueued = true;
 
-    let task: ITask | null;
-    this.obs.version++;
-    const newValue = astEvaluate(
-      this.ast,
-      this._scope!,
-      this,
-      // should observe?
-      (this.mode & toView) > 0 ? this : null
-    );
-    this.obs.clear();
+    queueTask(() => {
+      this._isQueued = false;
+      if (!this.isBound) return;
 
-    if (newValue !== this._value) {
-      this._value = newValue;
-      const shouldQueueFlush = this._controller.state !== activating;
-      if (shouldQueueFlush) {
-        // Queue the new one before canceling the old one, to prevent early yield
-        task = this._task;
-        this._task = this._taskQueue.queueTask(() => {
-          this._task = null;
-          this.updateTarget(newValue);
-        }, taskOptions);
-        task?.cancel();
-      } else {
+      this.obs.version++;
+      const newValue = astEvaluate(this.ast, this._scope!, this, (this.mode & toView) > 0 ? this : null);
+      this.obs.clear();
+
+      if (newValue !== this._value) {
+        this._value = newValue;
         this.updateTarget(newValue);
       }
-    }
+    });
   }
 
   // todo: based off collection and handle update accordingly instead off always start
@@ -194,21 +165,18 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
     this.handleChange();
   }
 
-  public bind(_scope: Scope): void {
+  public bind(scope: Scope): void {
     if (this.isBound) {
-      if (this._scope === _scope) {
-      /* istanbul-ignore-next */
-        return;
-      }
+      if (this._scope === scope) return;
       this.unbind();
     }
-    this._scope = _scope;
+    this._scope = scope;
 
-    astBind(this.ast, _scope, this);
+    astBind(this.ast, scope, this);
 
     if (this.mode & (toView | oneTime)) {
       this.updateTarget(
-        this._value = astEvaluate(this.ast, _scope, this, /* should connect? */(this.mode & toView) > 0 ? this : null)
+        this._value = astEvaluate(this.ast, scope, this, (this.mode & toView) > 0 ? this : null)
       );
     }
 
@@ -216,19 +184,13 @@ export class AttributeBinding implements IBinding, ISubscriber, ICollectionSubsc
   }
 
   public unbind(): void {
-    if (!this.isBound) {
-      /* istanbul-ignore-next */
-      return;
-    }
+    if (!this.isBound) return;
     this.isBound = false;
 
     astUnbind(this.ast, this._scope!, this);
 
     this._scope = void 0;
     this._value = void 0;
-
-    this._task?.cancel();
-    this._task = null;
     this.obs.clearAll();
   }
 }

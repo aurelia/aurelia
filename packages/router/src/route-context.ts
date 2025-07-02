@@ -60,7 +60,6 @@ import { ensureArrayOfStrings, mergeQueryParams } from './util';
 import { isPartialChildRouteConfig, isPartialCustomElementDefinition, isPartialViewportInstruction } from './validation';
 import { ViewportAgent, type ViewportRequest } from './viewport-agent';
 import { Events, debug, error, getMessage, logAndThrow, trace } from './events';
-import { IObserverLocator, ISubscriber } from '@aurelia/runtime';
 import { ILocationManager } from './location-manager';
 
 export interface IRouteContext extends RouteContext { }
@@ -185,6 +184,8 @@ export class RouteContext {
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteContext<${this.routeConfigContext._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
+    this._router._subscribeNavigationStart(this);
+
     const container = this.container = parentContainer.createChild();
     this._platform = container.get(IPlatform);
 
@@ -298,6 +299,7 @@ export class RouteContext {
 
   public dispose(): void {
     this.container.dispose();
+    this._router._unsubscribeNavigationStart(this);
   }
 
   /** @internal */
@@ -488,7 +490,6 @@ export class RouteConfigContext {
   /** @internal */ public readonly _recognizer: RouteRecognizer<RouteConfig | Promise<RouteConfig>>;
   /** @internal */ public _childRoutesConfigured: boolean = false;
   /** @internal */ private readonly _moduleLoader: IModuleLoader;
-  /** @internal */ private readonly _unsubscribeIsNavigatingChange: () => void;
 
   public readonly root: IRouteConfigContext;
   public get isRoot(): boolean {
@@ -547,20 +548,6 @@ export class RouteConfigContext {
     this._logger = parentContainer.get(ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
     if (__DEV__) trace(this._logger, Events.rcCreated);
 
-    const observer = parentContainer.get(IObserverLocator).getObserver(_router, 'isNavigating');
-    const subscriber: ISubscriber<boolean> = {
-      handleChange: (newValue, _previousValue) => {
-        if (newValue !== true) return;
-        this.config._handleNavigationStart();
-        for (const childRoute of this.childRoutes) {
-          if (childRoute instanceof Promise) continue;
-          childRoute._handleNavigationStart();
-        }
-      }
-    };
-    observer.subscribe(subscriber);
-    this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
-
     this._moduleLoader = parentContainer.get(IModuleLoader);
 
     this.container = parentContainer.createChild();
@@ -573,6 +560,15 @@ export class RouteConfigContext {
       this._navigationModel = null;
     }
     this._processConfig(config);
+  }
+
+  /** @internal */
+  public _handleNavigationStart() {
+    this.config._handleNavigationStart();
+    for (const childRoute of this.childRoutes) {
+      if (childRoute instanceof Promise) continue;
+      childRoute._handleNavigationStart();
+    }
   }
 
   /** @internal */
@@ -890,7 +886,6 @@ export class RouteConfigContext {
 
   public dispose(): void {
     this.container.dispose();
-    this._unsubscribeIsNavigatingChange();
   }
 }
 

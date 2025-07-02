@@ -540,16 +540,16 @@ export class Repeat<C extends Collection = unknown[]> implements ICustomAttribut
       view = views[i];
       next = views[i + 1];
 
-      view.nodes.link(next?.nodes ?? _location);
-
       if (indexMap[i] === -2) {
+        view.nodes.link(next?.nodes ?? _location);
         view.setLocation(_location);
         setContextualProperties(_scopes[i].overrideContext as RepeatOverrideContext, i, newLen);
         ret = view.activate(view, $controller, _scopes[i]);
         if (isPromise(ret)) {
           (promises ?? (promises = [])).push(ret);
         }
-      } else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+      } else if (j < 0 || i !== seq[j]) {
+        view.nodes.link(next?.nodes ?? _location);
         setContextualProperties(view.scope.overrideContext as RepeatOverrideContext, i, newLen);
         view.nodes.insertBefore(view.location!);
       } else {

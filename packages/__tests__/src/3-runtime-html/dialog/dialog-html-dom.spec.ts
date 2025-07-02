@@ -16,6 +16,7 @@ import {
   IFixture,
 } from '@aurelia/testing';
 import { isNode } from '../../util.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
   // only deal with <dialog> in the browser
@@ -296,7 +297,7 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
   });
 
   it('closes template when calling ok()', async function () {
-    const { component, assertHtml, trigger, flush } = createFixture(
+    const { component, assertHtml, trigger } = createFixture(
       '',
       class {
         host = resolve(INode) as HTMLElement;
@@ -313,13 +314,13 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     assertHtml('dialog', '<div><button>ok</button></div>');
 
     trigger('button', 'click', { bubbles: true });
-    flush();
+    await tasksSettled();
 
     assertHtml('');
   });
 
   it('closes template when calling cancel()', async function () {
-    const { component, assertHtml, trigger, flush } = createFixture(
+    const { component, assertHtml, trigger } = createFixture(
       '',
       class {
         host = resolve(INode) as HTMLElement;
@@ -336,13 +337,13 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     assertHtml('dialog', '<div><button>cancel</button></div>');
 
     trigger('button', 'click', { bubbles: true });
-    flush();
+    await tasksSettled();
 
     assertHtml('');
   });
 
   it('closes template when calling error()', async function () {
-    const { component, assertHtml, trigger, flush } = createFixture(
+    const { component, assertHtml, trigger } = createFixture(
       '',
       class {
         host = resolve(INode) as HTMLElement;
@@ -359,13 +360,13 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     assertHtml('dialog', '<div><button>error</button></div>');
 
     trigger('button', 'click', { bubbles: true });
-    flush();
+    await tasksSettled();
 
     assertHtml('');
   });
 
   it('does not close and remove the dialog when canDeactivate returns false', async function () {
-    const { component, assertHtml, trigger, flush } = createFixture(
+    const { component, assertHtml, trigger } = createFixture(
       '',
       class {
         host = resolve(INode) as HTMLElement;
@@ -385,11 +386,11 @@ describe('3-runtime-html/dialog/dialog-html-dom.spec.ts', function () {
     });
 
     trigger('button', 'click');
-    flush();
+    await tasksSettled();
     assertHtml('dialog', '<div><button>error</button></div>');
 
     trigger('button', 'click');
-    flush();
+    await tasksSettled();
     assertHtml('');
   });
 });

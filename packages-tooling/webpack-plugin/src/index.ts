@@ -281,3 +281,18 @@ const getHmrCode = (className: string): string => {
 
   return code;
 };
+
+// Provide CommonJS compatibility for direct require() usage without .default
+// This allows both `import plugin from '@aurelia/webpack-plugin'` (ESM)
+// and `const plugin = require('@aurelia/webpack-plugin')` (CommonJS) to work
+// @ts-ignore
+if (typeof module !== 'undefined' && module.exports) {
+  // @ts-ignore
+  module.exports = auOrLoader;
+  // @ts-ignore
+  module.exports.default = auOrLoader;
+  // @ts-ignore
+  module.exports.plugin = plugin;
+  // @ts-ignore
+  module.exports.loader = loader;
+}

@@ -369,12 +369,10 @@ jobs:
       - when:
           condition: << parameters.coverage >>
           steps:
-            - codecov/upload
-            # - run:
-            #     name: "Process coverage for Codecov"
-            #     command: |
-            #       node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
-            #     when: always
+            - run:
+                name: "Process coverage for Codecov"
+                command: |
+                  node_modules/codecov/bin/codecov -f packages/__tests__/coverage/coverage-final.json
             # - store_test_results:
             #     path: packages/__tests__/coverage
             # - store_artifacts:

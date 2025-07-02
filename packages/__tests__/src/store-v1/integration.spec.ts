@@ -1,4 +1,5 @@
 import type { Subscription } from 'rxjs';
+import { tasksSettled } from '@aurelia/runtime';
 import { Aurelia, customElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from '@aurelia/testing';
 import { StoreConfiguration, Store, connectTo, StoreOptions, dispatchify } from "@aurelia/store-v1";
@@ -69,11 +70,11 @@ describe("store-v1/integration.spec.ts", function () {
     await tearDown();
   });
 
-  it("should throw if no initial state was provided", function () {
+  it("should throw if no initial state was provided", async function () {
     @customElement({ name: 'app', template: `<span id="sut">\${state.foo}</span>` })
     class App { }
 
-    return assert.rejects(() => createFixture({ component: App, initialState: null }));
+    await assert.rejects(() => createFixture({ component: App, initialState: null }));
   });
 
   it("should inject the proper store for connectTo", async function () {
@@ -141,7 +142,7 @@ describe("store-v1/integration.spec.ts", function () {
     const sut = ctx.container.get(App);
     await sut.changeFoo();
 
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
 
     assert.equal((host as Element).querySelector("#sut").textContent, "foobar");
     assert.equal(store['_state'].getValue().foo, "foobar");

@@ -105,7 +105,7 @@ alias: {
     'platform-browser',
     'route-recognizer',
     'router',
-    'router-lite',
+    'router',
     'runtime',
     'runtime-html',
     'testing',
@@ -249,7 +249,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor': ['aurelia'],
-          'router': ['@aurelia/router', '@aurelia/router-lite']
+          'router': ['@aurelia/router-direct', '@aurelia/router']
         }
       }
     }

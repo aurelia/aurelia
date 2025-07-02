@@ -1,7 +1,7 @@
 import { alias, Aurelia, CustomAttribute, customAttribute, CustomAttributeDefinition, customElement, CustomElementType } from '@aurelia/runtime-html';
 import { assert, TestContext } from "@aurelia/testing";
 
-function startAndStop(component: CustomElementType) {
+async function startAndStop(component: CustomElementType) {
   const ctx = TestContext.create();
   const container = ctx.container;
   const au = new Aurelia(container);
@@ -9,14 +9,14 @@ function startAndStop(component: CustomElementType) {
 
   au.app({ host, component });
 
-  void au.start();
-  void au.stop();
+  await au.start();
+  await au.stop();
 
   au.dispose();
 }
 
 describe('3-runtime-html/resources.spec.ts', function () {
-  it('works in the most basic scenario', function () {
+  it('works in the most basic scenario', async function () {
     let created = false;
 
     @customAttribute('au-name')
@@ -27,7 +27,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
     @customElement({ name: 'app', template: '<div au-name></div>', dependencies: [AuAttr] })
     class App {}
 
-    startAndStop(App);
+    await startAndStop(App);
 
     assert.strictEqual(created, true, 'created');
 
@@ -75,7 +75,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
   //   assert.strictEqual(created, true, 'created');
   // });
 
-  it('works with alias decorator after customAttribute decorator', function () {
+  it('works with alias decorator after customAttribute decorator', async function () {
     let created = false;
 
     @customAttribute('au-name')
@@ -87,7 +87,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
     @customElement({ name: 'app', template: '<div au-alias></div>', dependencies: [AuAttr] })
     class App {}
 
-    startAndStop(App);
+    await startAndStop(App);
 
     assert.strictEqual(created, true, 'created');
 
@@ -118,7 +118,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
     );
   });
 
-  it('works with alias property in customAttribute decorator', function () {
+  it('works with alias property in customAttribute decorator', async function () {
     let created = false;
 
     @customAttribute({ name: 'au-name', aliases: ['au-alias'] })
@@ -129,12 +129,12 @@ describe('3-runtime-html/resources.spec.ts', function () {
     @customElement({ name: 'app', template: '<div au-alias></div>', dependencies: [AuAttr] })
     class App {}
 
-    startAndStop(App);
+    await startAndStop(App);
 
     assert.strictEqual(created, true, 'created');
   });
 
-  it('works with aliases static property', function () {
+  it('works with aliases static property', async function () {
     let created = false;
 
     @customAttribute('au-name')
@@ -146,7 +146,7 @@ describe('3-runtime-html/resources.spec.ts', function () {
     @customElement({ name: 'app', template: '<div au-alias></div>', dependencies: [AuAttr] })
     class App {}
 
-    startAndStop(App);
+    await startAndStop(App);
 
     assert.strictEqual(created, true, 'created');
   });

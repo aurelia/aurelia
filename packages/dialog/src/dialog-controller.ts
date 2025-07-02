@@ -1,14 +1,12 @@
-import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, type IDisposable, resolve } from '@aurelia/kernel';
+import { isFunction, type Constructable, IContainer, InstanceProvider, onResolve, resolve } from '@aurelia/kernel';
 import { Controller, ICustomElementController, IEventTarget, INode, IPlatform, CustomElement, CustomElementDefinition, registerHostNode } from '@aurelia/runtime-html';
 import {
   IDialogController,
-  IDialogDomRenderer,
   IDialogDom,
   DialogOpenResult,
   DialogCloseResult,
   DialogCancelError,
   DialogCloseError,
-  IDialogEventManager,
 } from './dialog-interfaces';
 import { instanceRegistration } from './utilities-di';
 
@@ -36,11 +34,6 @@ export class DialogController implements IDialogController {
   private _reject!: (reason: unknown) => void;
 
   /** @internal */
-  private _disposeHandler: IDisposable | undefined = void 0;
-
-  /**
-   * @internal
-   */
   private _closingPromise: Promise<DialogCloseResult> | undefined;
 
   /**
@@ -76,15 +69,16 @@ export class DialogController implements IDialogController {
       model,
       template,
       rejectOnCancel,
-      renderer = container.get(IDialogDomRenderer),
+      renderer,
     } = settings;
+
+    const resolvedRenderer = isFunction(renderer) ? container.invoke(renderer) : renderer;
     const dialogTargetHost = settings.host ?? this.p.document.body;
-    const dom = this.dom = renderer.render(dialogTargetHost, settings);
+    const dom = this.dom = resolvedRenderer.render(dialogTargetHost, this, settings.options);
     const rootEventTarget = container.has(IEventTarget, true)
       ? container.get(IEventTarget) as Element
       : null;
     const contentHost = dom.contentHost;
-    const eventManager = container.get(IDialogEventManager);
 
     this.settings = settings;
     // application root host may be a different element with the dialog root host
@@ -92,7 +86,7 @@ export class DialogController implements IDialogController {
     // <body>
     //   <my-app>
     //   <au-dialog-container>
-    // when it's different, needs to ensure delegate bindings work
+    // when it's different, need to ensure delegate bindings work
     if (rootEventTarget == null || !rootEventTarget.contains(dialogTargetHost)) {
       container.register(instanceRegistration(IEventTarget, dialogTargetHost));
     }
@@ -126,7 +120,6 @@ export class DialogController implements IDialogController {
             )
           ) as ICustomElementController;
           return onResolve(ctrlr.activate(ctrlr, null), () => {
-            this._disposeHandler = eventManager.add(this, dom);
             return onResolve(dom.show?.(),
               () => DialogOpenResult.create(false, this)
             );
@@ -166,7 +159,6 @@ export class DialogController implements IDialogController {
               () => onResolve(controller.deactivate(controller, null),
                 () => {
                   dom.dispose();
-                  this._disposeHandler?.dispose();
                   if (!rejectOnCancel && status !== 'error') {
                     this._resolve(dialogResult);
                   } else {

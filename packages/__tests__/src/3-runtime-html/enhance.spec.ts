@@ -14,6 +14,7 @@ import {
   AppTask,
   BindingBehavior,
 } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 import { createSpecFunction, TestExecutionContext, TestFunction } from '../util.js';
 import { delegateSyntax } from '@aurelia/compat-v1';
@@ -80,16 +81,16 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     { text: 'instance', getComponent: () => new App1() },
     { text: 'raw object', getComponent: () => ({ foo: 'Bar' }) },
   ]) {
-    $it(`hydrates the root - ${text}`, function ({ host }) {
+    $it(`hydrates the root - ${text}`, async function ({ host }) {
       assert.html.textContent('span', 'Bar', 'span.text', host);
     }, { getComponent, template: `<span>\${foo}</span>` });
 
     let handled = false;
     $it(`preserves the element reference - ${text}`,
-      function ({ host, platform }) {
+      function ({ host }) {
         handled = false;
         host.querySelector('span').click();
-        platform.domQueue.flush();
+        runTasks();
         assert.equal(handled, true);
       },
       {
@@ -151,8 +152,8 @@ describe('3-runtime-html/enhance.spec.ts', function () {
 
       host.querySelector('button').click();
       await Promise.resolve();
-      ctx.platform.domQueue.flush();
-      ctx.platform.domQueue.flush();
+      runTasks();
+      runTasks();
 
       assert.html.textContent('div:nth-of-type(2)', message, 'div:nth-of-type(2)', host);
 
@@ -200,7 +201,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     au.dispose();
   });
 
-  it('throws when enhancing a realmless node (without window connected document)', function () {
+  it('throws when enhancing a realmless node (without window connected document)', async function () {
     const ctx = TestContext.create();
     assert.throws(() => new Aurelia().enhance({
       host: new ctx.DOMParser().parseFromString('<div></div>', 'text/html').body.firstElementChild as HTMLElement,
@@ -404,7 +405,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     await root.deactivate();
   });
 
-  it('calls app tasks', function () {
+  it('calls app tasks', async function () {
     const logs = [];
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
@@ -449,7 +450,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     assert.deepStrictEqual(logs, activationLogs);
 
     logs.length = 0;
-    return onResolve(root, (root) => onResolve(root.deactivate(), () => {
+    await onResolve(root, (root) => onResolve(root.deactivate(), () => {
       assert.deepStrictEqual(logs, [
         'Task.deactivating',
         'detaching',
@@ -459,7 +460,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
     }));
   });
 
-  it('does not call app task on the original container', function () {
+  it('does not call app task on the original container', async function () {
     const logs = [];
     const ctx = TestContext.create();
     const host = ctx.doc.createElement('div');
@@ -468,7 +469,7 @@ describe('3-runtime-html/enhance.spec.ts', function () {
       AppTask.deactivating(() => logs.push('Task.deactivating')),
     ));
 
-    return onResolve(
+    await onResolve(
       au.enhance({ host, component: {} }),
       (root) => {
         assert.deepStrictEqual(logs, []);

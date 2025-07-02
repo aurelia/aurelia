@@ -1,6 +1,7 @@
 import {
   Class,
 } from '@aurelia/kernel';
+import { tasksSettled } from '@aurelia/runtime';
 import {
   Aurelia,
   CustomElement,
@@ -61,7 +62,7 @@ describe('3-runtime-html/repeater.destructered-declaration.spec.ts', function ()
   async function changeAndAssert(ctx: TestExecutionContext<any>, change: () => void, expectedHtml: string) {
     change();
     // await ctx.platform.domQueue.yield();
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
     assert.html.innerEqual(ctx.host, expectedHtml);
   }
 

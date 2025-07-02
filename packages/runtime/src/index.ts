@@ -18,6 +18,16 @@ export {
 } from './scope';
 
 export {
+  queueTask,
+  queueAsyncTask,
+  runTasks,
+  tasksSettled,
+  Task,
+  TaskAbortError,
+  type TaskStatus,
+} from './queue';
+
+export {
   type IObserverLocatorBasedConnectable,
   type IObserverRecord,
   connectable,
@@ -41,6 +51,9 @@ export {
   ComputedObserver,
   type ComputedGetterFn,
 } from './computed-observer';
+export {
+  computed,
+} from './computed-decorators';
 export {
   IDirtyChecker,
   DirtyChecker,

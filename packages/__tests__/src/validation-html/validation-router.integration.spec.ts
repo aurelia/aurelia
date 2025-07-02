@@ -39,6 +39,7 @@ import {
 import {
   Person
 } from '../validation/_test-resources.js';
+import { tasksSettled } from '@aurelia/runtime';
 
 describe('validation-html/validation-router.integration.spec.ts', function () {
   describe('integration', function () {
@@ -147,7 +148,7 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       assert.notEqual(submit, null, 'submit');
       submit.click();
 
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       // step#1: validation error
       assert.html.textContent('#errors', 'Name is required.', 'error', host);
@@ -155,11 +156,10 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       // step#2: valid value and navigate
       input.value = 'foo';
       input.dispatchEvent(new ctx.Event('change'));
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       submit.click();
-      await platform.domQueue.yield();
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       // step#3: go back
       const navigate = host.querySelector<HTMLButtonElement>('#navigate');
@@ -174,7 +174,7 @@ describe('validation-html/validation-router.integration.spec.ts', function () {
       assert.notEqual(submit, null, 'submit');
       submit.click();
 
-      await platform.domQueue.yield();
+      await tasksSettled();
 
       assert.html.textContent('#errors', 'Name is required.', 'error', host);
     });

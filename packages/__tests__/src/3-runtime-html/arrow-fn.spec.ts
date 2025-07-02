@@ -1,4 +1,5 @@
 import { BindingBehavior, ValueConverter, CustomAttribute, INode } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('3-runtime-html/arrow-fn.spec.ts', function () {
@@ -216,71 +217,71 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
   });
 
   describe('array obervation', function () {
-    it('observes on .map()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .map()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.map(i => i + 1)}`
         .build();
       assertText('2');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2,3');
 
       component.items.push(3);
-      flush();
+      await tasksSettled();
       assertText('2,3,4');
     });
 
-    it('observes on repeat + .map()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on repeat + .map()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`<div repeat.for='i of items.map(i => i + 1)'>\${i}`
         .build();
       assertText('2');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('23');
 
       component.items.push(3);
-      flush();
+      await tasksSettled();
       assertText('234');
     });
 
-    it('observes on <let> + .map()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on <let> + .map()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`<let i.bind='items.map(i => i + 1)'></let>\${i}`
         .build();
       assertText('2');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2,3');
 
       component.items.push(3);
-      flush();
+      await tasksSettled();
       assertText('2,3,4');
     });
 
-    it('observes on .filter()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .filter()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.filter(i => i > 1)}`
         .build();
       assertText('');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2');
 
       component.items.push(3);
-      flush();
+      await tasksSettled();
       assertText('2,3');
     });
 
-    it('can call .filter() with function call inside', function () {
+    it('can call .filter() with function call inside', async function () {
       const { assertText } = createFixture
         .component({ query: 'item', items: [{ name: 'item 1' }, { name: 'gib' }] })
         .html`<div repeat.for="item of items.filter(i => i.name.includes(query))">\${item.name}</div>`
@@ -288,232 +289,232 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('item 1');
     });
 
-    it('observes on .at()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .at()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.at(-1)}`
         .build();
       assertText('1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .includes()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .includes()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.includes(2)}`
         .build();
       assertText('false');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('true');
 
       component.items.splice(0);
-      flush();
+      await tasksSettled();
       assertText('false');
     });
 
-    it('observes on .indexOf()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .indexOf()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.indexOf(2)}`
         .build();
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      await tasksSettled();
       assertText('-1');
     });
 
-    it('observes on .lastIndexOf()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .lastIndexOf()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.lastIndexOf(2)}`
         .build();
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      await tasksSettled();
       assertText('-1');
     });
 
-    it('observes on .findIndex()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .findIndex()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.findIndex(x => x === 2)}`
         .build();
       assertText('-1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1');
 
       component.items.splice(0);
-      flush();
+      await tasksSettled();
       assertText('-1');
     });
 
-    it('observes on .find()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .find()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.find(x => x === 2)}`
         .build();
       assertText('');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2');
 
       component.items.splice(0);
-      flush();
+      await tasksSettled();
       assertText('');
     });
 
-    it('observes on .flat()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .flat()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [[1]] })
         .html`\${items.flat()}`
         .build();
       assertText('1');
 
       component.items.push([2]);
-      flush();
+      await tasksSettled();
       assertText('1,2');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .flatMap()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .flatMap()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.flatMap(i => [i + 1])}`
         .build();
       assertText('2');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('2,3');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('2');
     });
 
-    it('observes on .join()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .join()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.join(', ')}`
         .build();
       assertText('1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1, 2');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .reduce()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .reduce()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.reduce((acc, i) => acc + i, 0)}`
         .build();
       assertText('1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('3');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .reduceRight()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .reduceRight()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.reduceRight((acc, i) => acc + i)}`
         .build();
       assertText('1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('3');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .slice()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .slice()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.slice(0)}`
         .build();
       assertText('1');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1,2');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 
-    it('observes on .every()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .every()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.every(i => i < 2)}`
         .build();
       assertText('true');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('false');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('true');
     });
 
-    it('observes on .some()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on .some()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1] })
         .html`\${items.some(i => i > 1)}`
         .build();
       assertText('false');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('true');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('false');
     });
 
-    it('observes on text + .sort()', function () {
-      const { component, flush, assertText } = createFixture
+    it('observes on text + .sort()', async function () {
+      const { component, assertText } = createFixture
         .component({ items: [1, 4, 3] })
         // this'll result in double evaluation as
         // text binding auto observes array
@@ -524,11 +525,11 @@ describe('3-runtime-html/arrow-fn.spec.ts', function () {
       assertText('1,3,4');
 
       component.items.push(2);
-      flush();
+      await tasksSettled();
       assertText('1,2,3,4');
 
       component.items.splice(1);
-      flush();
+      await tasksSettled();
       assertText('1');
     });
 

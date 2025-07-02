@@ -11,6 +11,7 @@ import {
   TestContext
 } from '@aurelia/testing';
 import { Registration } from '@aurelia/kernel';
+import { runTasks } from '@aurelia/runtime';
 import { isNode } from '../util.js';
 
 describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
@@ -68,7 +69,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     });
 
     component.onMouseMove({ clientX: 50, clientY: 50 });
-    ctx.platform.domQueue.flush();
+    runTasks();
 
     gNodes = appHost.querySelectorAll('svg g');
     assert.strictEqual(gNodes.length, expectedNodeCount, 'should have rendered 127 <g/>');
@@ -193,7 +194,7 @@ describe('3-runtime-html/template-compiler.test-apps.spec.ts', function () {
     );
   }
 
-  it('understands local recursive element', function () {
+  it('understands local recursive element', async function () {
     @customElement({
       name: 'child',
       template: '${v}<child if.bind="v > 0" v.bind="v - 1">'

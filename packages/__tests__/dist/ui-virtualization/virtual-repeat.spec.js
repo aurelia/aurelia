@@ -1,6 +1,7 @@
 import { createFixture, assert } from '@aurelia/testing';
 import { DefaultVirtualizationConfiguration, VirtualRepeat } from '@aurelia/ui-virtualization';
 import { isNode } from '../util.js';
+import { tasksSettled } from '@aurelia/runtime';
 describe('ui-virtualization/virtual-repeat.spec.ts', function () {
     if (isNode()) {
         return;
@@ -58,53 +59,57 @@ describe('ui-virtualization/virtual-repeat.spec.ts', function () {
         ]);
     });
     it('rerenders when scrolled', function () {
-        const { scrollBy, flush } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
+        const { scrollBy, platform } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
             constructor() {
                 this.items = createItems();
             }
         }, virtualRepeatDeps);
         scrollBy('#scroller', 400);
-        flush();
+        platform.domQueue.flush();
         const virtualRepeat = virtualRepeats[0];
         const firstView = virtualRepeat.getViews()[0];
         assert.deepStrictEqual(virtualRepeat.getDistances(), [400, /* whole thing - top distance */ 4600 - /* rendered view (24 items * 50px) */ 1200]);
         assert.strictEqual(firstView.nodes.firstChild.textContent, `item-8`);
     });
     describe('mutation', function () {
-        it('rerenders when removed at the start', function () {
-            const { component, flush } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
+        // TODO: check why this fails
+        it('rerenders when removed at the start', async function () {
+            const { component, platform } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
                 constructor() {
                     this.items = createItems();
                 }
             }, virtualRepeatDeps);
             component.items.splice(0, 10);
-            flush();
+            await tasksSettled();
+            await platform.domQueue.yield();
             assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
             const virtualRepeat = virtualRepeats[0];
             const firstView = virtualRepeat.getViews()[0];
             assert.strictEqual(firstView.nodes.firstChild.textContent, `item-10`);
         });
-        it('rerenders when removed at the end', function () {
-            const { component, flush } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
+        it('rerenders when removed at the end', async function () {
+            const { component, platform } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
                 constructor() {
                     this.items = createItems();
                 }
             }, virtualRepeatDeps);
             component.items.splice(90, 10);
-            flush();
+            await tasksSettled();
+            await platform.domQueue.yield();
             assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
             const virtualRepeat = virtualRepeats[0];
             const firstView = virtualRepeat.getViews()[0];
             assert.strictEqual(firstView.nodes.firstChild.textContent, `item-0`);
         });
-        it('rerenders when removed in the middle', function () {
-            const { component, flush } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
+        it('rerenders when removed in the middle', async function () {
+            const { component, platform } = createFixture(createScrollerTemplate('<div virtual-repeat.for="item of items" style="height: 50px">${item.name}</div>'), class App {
                 constructor() {
                     this.items = createItems();
                 }
             }, virtualRepeatDeps);
             component.items.splice(10, 10);
-            flush();
+            await tasksSettled();
+            await platform.domQueue.yield();
             assert.deepStrictEqual(virtualRepeats[0].getDistances(), [0, (90 - (600 / 50) * 2) * 50]);
             const virtualRepeat = virtualRepeats[0];
             const firstView = virtualRepeat.getViews()[10];

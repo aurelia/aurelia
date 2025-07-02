@@ -43,6 +43,7 @@ import { IValidationRules, } from '@aurelia/validation';
 import { IValidationController, ValidationHtmlConfiguration, ValidationResultPresenterService, IValidationResultPresenterService as $IValidationResultPresenterService, } from '@aurelia/validation-html';
 import { Person } from '../../validation/_test-resources.js';
 import { ToNumberValueConverter, createSpecFunction } from '../../util.js';
+import { tasksSettled } from '@aurelia/runtime';
 describe('validation-html/subscribers/validation-result-presenter-service.spec.ts', function () {
     describe('validation-result-presenter-service', function () {
         const IValidationResultPresenterService = DI.createInterface('ValidationResultPresenterService');
@@ -105,7 +106,7 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             handleValidationEventSpy.calls.splice(0);
             controllerValidateSpy.calls.splice(0);
             target.dispatchEvent(new ctx.Event(event));
-            await platform.domQueue.yield();
+            await tasksSettled();
             assert.equal(controllerValidateSpy.calls.length, 1, 'incorrect #calls for validate');
             assert.equal(handleValidationEventSpy.calls.length, 1, 'incorrect #calls for handleValidationEvent');
         }
@@ -198,7 +199,6 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             removeResultsSpy.reset();
             input2.value = '22';
             input2.dispatchEvent(new ctx.Event('change'));
-            await platform.domQueue.yield();
             await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
             addArgs = addSpy.calls;
             removeArgs = removeSpy.calls;
@@ -220,7 +220,6 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             removeResultsSpy.reset();
             input2.value = '15';
             input2.dispatchEvent(new ctx.Event('change'));
-            await platform.domQueue.yield();
             await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
             addArgs = addSpy.calls;
             removeArgs = removeSpy.calls;
@@ -287,7 +286,6 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             removeResultsSpy.reset();
             input2.value = '22';
             input2.dispatchEvent(new ctx.Event('change'));
-            await platform.domQueue.yield();
             await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
             addArgs = addSpy.calls;
             removeArgs = removeSpy.calls;
@@ -309,7 +307,6 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             removeResultsSpy.reset();
             input2.value = '15';
             input2.dispatchEvent(new ctx.Event('change'));
-            await platform.domQueue.yield();
             await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
             addArgs = addSpy.calls;
             removeArgs = removeSpy.calls;
@@ -367,7 +364,6 @@ describe('validation-html/subscribers/validation-result-presenter-service.spec.t
             removeResultsSpy.reset();
             input2.value = '22';
             input2.dispatchEvent(new ctx.Event('change'));
-            await platform.domQueue.yield();
             await assertEventHandler(input2, platform, controllerSpy, spy, ctx);
             addArgs = addSpy.calls;
             removeArgs = removeSpy.calls;

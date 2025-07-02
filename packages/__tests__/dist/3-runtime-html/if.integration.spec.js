@@ -36,7 +36,8 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
-import { CustomAttribute, IPlatform, customElement, } from '@aurelia/runtime-html';
+import { CustomAttribute, customElement, } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 describe(`3-runtime-html/if.integration.spec.ts`, function () {
     class EventLog {
@@ -50,7 +51,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
     describe('with caching', function () {
         it('disables cache with "false" string', async function () {
             let callCount = 0;
-            const { appHost, component, startPromise, tearDown } = createFixture(`<div if="value.bind: condition; cache: false" abc>hello`, class App {
+            const { appHost, component, tearDown } = await createFixture(`<div if="value.bind: condition; cache: false" abc>hello`, class App {
                 constructor() {
                     this.condition = true;
                 }
@@ -58,8 +59,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     constructor() {
                         callCount++;
                     }
-                })]);
-            await startPromise;
+                })]).started;
             assert.visibleTextEqual(appHost, 'hello');
             assert.strictEqual(callCount, 1);
             component.condition = false;
@@ -73,7 +73,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         for (const falsyValue of [null, undefined, 0, NaN, false]) {
             it(`disables cache with fasly value: "${falsyValue}" string`, async function () {
                 let callCount = 0;
-                const { appHost, component, startPromise, tearDown } = createFixture(`<div if="value.bind: condition; cache.bind: ${falsyValue}" abc>hello`, class App {
+                const { appHost, component, tearDown } = await createFixture(`<div if="value.bind: condition; cache.bind: ${falsyValue}" abc>hello`, class App {
                     constructor() {
                         this.condition = true;
                     }
@@ -81,8 +81,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                         constructor() {
                             callCount++;
                         }
-                    })]);
-                await startPromise;
+                    })]).started;
                 assert.visibleTextEqual(appHost, 'hello');
                 assert.strictEqual(callCount, 1);
                 component.condition = false;
@@ -96,7 +95,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         }
         it('disables cache on [else]', async function () {
             let callCount = 0;
-            const { appHost, component, startPromise, tearDown } = createFixture(`<div if="value.bind: condition; cache: false" abc>hello</div><div else abc>world</div>`, class App {
+            const { appHost, component, tearDown } = await createFixture(`<div if="value.bind: condition; cache: false" abc>hello</div><div else abc>world</div>`, class App {
                 constructor() {
                     this.condition = true;
                 }
@@ -104,8 +103,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     constructor() {
                         callCount++;
                     }
-                })]);
-            await startPromise;
+                })]).started;
             assert.visibleTextEqual(appHost, 'hello');
             assert.strictEqual(callCount, 1);
             component.condition = false;
@@ -122,7 +120,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         });
         it('does not affected nested [if]', async function () {
             let callCount = 0;
-            const { appHost, component, startPromise, tearDown } = createFixture(`<div if="value.bind: condition; cache: false" abc>hello<span if.bind="condition2" abc> span`, class App {
+            const { appHost, component, tearDown } = await createFixture(`<div if="value.bind: condition; cache: false" abc>hello<span if.bind="condition2" abc> span`, class App {
                 constructor() {
                     this.condition = true;
                     this.condition2 = true;
@@ -131,8 +129,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     constructor() {
                         callCount++;
                     }
-                })]);
-            await startPromise;
+                })]).started;
             assert.visibleTextEqual(appHost, 'hello span');
             assert.strictEqual(callCount, 2);
             // change to false
@@ -153,7 +150,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
         });
         it('works on subsequent activation when nested inside other [if]', async function () {
             let callCount = 0;
-            const { appHost, component, startPromise, tearDown } = createFixture(`<div if.bind="condition" abc>hello<span if="value.bind: condition2; cache: false" abc> span`, class App {
+            const { appHost, component, tearDown } = await createFixture(`<div if.bind="condition" abc>hello<span if="value.bind: condition2; cache: false" abc> span`, class App {
                 constructor() {
                     this.condition = true;
                     this.condition2 = true;
@@ -162,8 +159,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     constructor() {
                         callCount++;
                     }
-                })]);
-            await startPromise;
+                })]).started;
             assert.visibleTextEqual(appHost, 'hello span');
             assert.strictEqual(callCount, 2);
             // change to false
@@ -182,29 +178,29 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
             await tearDown();
             assert.visibleTextEqual(appHost, '');
         });
-        it('works with interpolation as only child of <template>', function () {
-            const { assertText, component, flush, tearDown } = createFixture('<div><template if.bind="on">${name}</template>', { on: false, name: 'a' });
+        it('works with interpolation as only child of <template>', async function () {
+            const { assertText, component, tearDown } = createFixture('<div><template if.bind="on">${name}</template>', { on: false, name: 'a' });
             assertText('');
             component.on = true;
-            flush();
+            await tasksSettled();
             assertText('a');
             void tearDown();
             assertText('');
         });
-        it('works with interpolation + leading + trailing text inside template', function () {
-            const { assertText, component, flush, tearDown } = createFixture('<div><template if.bind="on">hey ${name}</template>', { on: false, name: 'a' });
+        it('works with interpolation + leading + trailing text inside template', async function () {
+            const { assertText, component, tearDown } = createFixture('<div><template if.bind="on">hey ${name}</template>', { on: false, name: 'a' });
             assertText('');
             component.on = true;
-            flush();
+            await tasksSettled();
             assertText('hey a');
             void tearDown();
             assertText('');
         });
-        it('works with interpolation as only child of <template> + else', function () {
-            const { assertText, component, flush, tearDown } = createFixture('<template if.bind="on">${name}</template><template else>${name + 1}</template>', { on: false, name: 'a' });
+        it('works with interpolation as only child of <template> + else', async function () {
+            const { assertText, component, tearDown } = createFixture('<template if.bind="on">${name}</template><template else>${name + 1}</template>', { on: false, name: 'a' });
             assertText('a1');
             component.on = true;
-            flush();
+            await tasksSettled();
             assertText('a');
             void tearDown();
             assertText('');
@@ -250,9 +246,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
             it('Once an activation errs, further successful activation of the same elements is still possible - without else', async function () {
                 const { component, appHost, container, stop } = createFixture(`<c-1 if.bind="showC1"></c-1>`, Root, [EventLog, CeOne]);
                 const eventLog = container.get(EventLog);
-                const platform = container.get(IPlatform);
-                const queue = platform.domQueue;
-                queue.flush();
                 assert.html.textContent(appHost, '', 'init');
                 assert.deepStrictEqual(eventLog.events, [], 'init log');
                 // trigger component activation - expect error
@@ -273,7 +266,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                 async function deactivateC1(round) {
                     eventLog.events.length = 0;
                     component.showC1 = false;
-                    await queue.yield();
+                    await tasksSettled();
                     assert.html.textContent(appHost, '', `round#${round} - c-1 deactivation - DOM`);
                     assert.deepStrictEqual(eventLog.events, [], `round#${round} - c-1 deactivation - log`);
                 }
@@ -281,7 +274,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     try {
                         eventLog.events.length = 0;
                         component.showC1 = true;
-                        await queue.yield();
                         if (!success)
                             assert.fail(`round#${round} - c-1 activation should have failed`);
                     }
@@ -352,9 +344,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
             it('Once an activation errs, further successful activation of the same elements is still possible - with else', async function () {
                 const { component, appHost, container, stop } = createFixture(`<c-1 if.bind="showC1"></c-1><c-2 else></c-2>`, Root, [EventLog, CeOne, CeTwo]);
                 const eventLog = container.get(EventLog);
-                const platform = container.get(IPlatform);
-                const queue = platform.domQueue;
-                queue.flush();
                 assert.html.textContent(appHost, 'c-2', 'init');
                 assert.deepStrictEqual(eventLog.events, [], 'init log');
                 // trigger component activation - expect error
@@ -375,7 +364,7 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                 async function deactivateC1(round) {
                     eventLog.events.length = 0;
                     component.showC1 = false;
-                    await queue.yield();
+                    await tasksSettled();
                     assert.html.textContent(appHost, 'c-2', `round#${round} - c-1 deactivation - DOM`);
                     assert.deepStrictEqual(eventLog.events, [], `round#${round} - c-1 deactivation - log`);
                 }
@@ -383,7 +372,6 @@ describe(`3-runtime-html/if.integration.spec.ts`, function () {
                     try {
                         eventLog.events.length = 0;
                         component.showC1 = true;
-                        await queue.yield();
                         if (!success)
                             assert.fail(`round#${round} - c-1 activation should have failed`);
                     }

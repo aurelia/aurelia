@@ -1,5 +1,6 @@
 import { delegateSyntax } from '@aurelia/compat-v1';
 import { CustomAttribute, CustomElement, INode, Aurelia, } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { assert, createFixture, TestContext, } from '@aurelia/testing';
 import { isFirefox, isNode } from '../util.js';
 import { resolve } from '@aurelia/kernel';
@@ -46,7 +47,7 @@ describe('3-runtime-html/custom-elements.harmony.spec.ts', function () {
                 assert.equal(comp.focus, 1);
                 assert.equal(comp.blur, 1);
                 comp.hasFocus = true;
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(ctx.doc.activeElement, host);
                 assert.equal(comp.focus, 2);
                 const div = host.querySelector('div');

@@ -1,5 +1,5 @@
 import { toArray } from '@aurelia/kernel';
-import { IDirtyChecker } from '@aurelia/runtime';
+import { IDirtyChecker, tasksSettled } from '@aurelia/runtime';
 import { assert, getVisibleText, eachCartesianJoin } from '@aurelia/testing';
 import { $it, assertCalls, getViewModel } from './util.js';
 describe('integration/integration.spec.ts', function () {
@@ -7,21 +7,21 @@ describe('integration/integration.spec.ts', function () {
         ['app', 'enhance'],
         ["class" /* ComponentMode.class */, "instance" /* ComponentMode.instance */,],
     ], function (method, componentMode) {
-        $it(`has some readonly texts with different binding modes - ${method} - ${componentMode}`, function ({ host }) {
+        $it(`has some readonly texts with different binding modes - ${method} - ${componentMode}`, async function ({ host }) {
             for (let i = 0; i < 4; i++) {
                 const selector = `read-only-text#text${i}`;
                 assert.html.textContent(selector, `text${i}`, `incorrect text for ${selector}`, host);
             }
         }, { method, componentMode });
-        $it(`changes in bound VM properties are correctly reflected in the read-only-texts - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`changes in bound VM properties are correctly reflected in the read-only-texts - ${method} - ${componentMode}`, async function ({ host }) {
             host.querySelector('button#staticTextChanger').click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent('read-only-text#text0', 'text0', 'incorrect text for read-only-text#text0', host);
             assert.html.textContent('read-only-text#text1', 'text1', 'incorrect text for read-only-text#text1', host);
             assert.html.textContent('read-only-text#text2', 'newText2', 'incorrect text for read-only-text#text2', host);
             assert.html.textContent('read-only-text#text3', 'newText3', 'incorrect text for read-only-text#text3', host);
         }, { method, componentMode });
-        $it(`has some textual inputs with different binding modes - ${method} - ${componentMode}`, function ({ host }) {
+        $it(`has some textual inputs with different binding modes - ${method} - ${componentMode}`, async function ({ host }) {
             const _static = host.querySelector('#input-static input');
             const oneTime = host.querySelector('#input-one-time input');
             const twoWay = host.querySelector('#input-two-way input');
@@ -38,19 +38,19 @@ describe('integration/integration.spec.ts', function () {
             assert.html.value(blurredInputTw, vm.inputBlrTw);
             assert.html.value(blurredInputFv, '');
         }, { method, componentMode });
-        $it(`binds interpolated string to read-only-texts - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`binds interpolated string to read-only-texts - ${method} - ${componentMode}`, async function ({ host }) {
             const el = host.querySelector('#interpolated-text');
             const vm = getViewModel(host);
             assert.html.textContent(el, `interpolated: ${vm.text4}${vm.text5}`, `incorrect text`);
             const text1 = 'hello', text2 = 'world';
             vm.text4 = text1;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(el, `interpolated: ${text1}${vm.text5}`, `incorrect text - change1`, host);
             vm.text5 = text2;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(el, `interpolated: ${text1}${text2}`, `incorrect text - change2`, host);
         }, { method, componentMode });
-        $it(`changes in the text-input are reflected correctly as per binding mode - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`changes in the text-input are reflected correctly as per binding mode - ${method} - ${componentMode}`, async function ({ host }) {
             const oneTime = host.querySelector('#input-one-time input');
             const twoWay = host.querySelector('#input-two-way input');
             const toView = host.querySelector('#input-to-view input');
@@ -64,21 +64,21 @@ describe('integration/integration.spec.ts', function () {
             toView.dispatchEvent(new Event('change'));
             fromView.value = newInputs[3];
             fromView.dispatchEvent(new Event('change'));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             const vm = getViewModel(host);
             assert.equal(vm.inputOneTime, 'input1');
             assert.equal(vm.inputTwoWay, newInputs[1]);
             assert.equal(vm.inputToView, 'input3');
             assert.equal(vm.inputFromView, newInputs[3]);
         }, { method, componentMode });
-        $it(`changes in the vm property are reflected in text-inputs correctly as per binding mode - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`changes in the vm property are reflected in text-inputs correctly as per binding mode - ${method} - ${componentMode}`, async function ({ host }) {
             const newInputs = new Array(4).fill(0).map((_, i) => `new input ${i + 1}`);
             const vm = getViewModel(host);
             vm.inputOneTime = newInputs[0];
             vm.inputTwoWay = newInputs[1];
             vm.inputToView = newInputs[2];
             vm.inputFromView = newInputs[3];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             const oneTime = host.querySelector('#input-one-time input');
             const twoWay = host.querySelector('#input-two-way input');
             const toView = host.querySelector('#input-to-view input');
@@ -88,7 +88,7 @@ describe('integration/integration.spec.ts', function () {
             assert.html.value(toView, newInputs[2]);
             assert.html.value(fromView, '');
         }, { method, componentMode });
-        $it(`changes in the text-input are reflected correctly according to update-trigger event - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`changes in the text-input are reflected correctly according to update-trigger event - ${method} - ${componentMode}`, async function ({ host }) {
             const twoWay = host.querySelector('#blurred-input-two-way input');
             const fromView = host.querySelector('#blurred-input-from-view input');
             const vm = getViewModel(host);
@@ -99,12 +99,12 @@ describe('integration/integration.spec.ts', function () {
             twoWay.dispatchEvent(new Event('change'));
             fromView.value = newInputFv;
             fromView.dispatchEvent(new Event('change'));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.notEqual(vm.inputBlrTw, newInputTw);
             assert.notEqual(vm.inputBlrFv, newInputFv);
             twoWay.dispatchEvent(new Event('blur'));
             fromView.dispatchEvent(new Event('blur'));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(vm.inputBlrTw, newInputTw);
             assert.equal(vm.inputBlrFv, newInputFv);
         }, { method, componentMode });
@@ -115,7 +115,7 @@ describe('integration/integration.spec.ts', function () {
             const [camera, /* laptop */] = vm.things;
             assert.html.textContent('h2', `${camera.modelNumber} by ${camera.make}`, 'incorrect text', specsViewer);
         }, { method, componentMode });
-        $it(`uses a user preference control that 'computes' the full name of the user correctly - static - ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
+        $it(`uses a user preference control that 'computes' the full name of the user correctly - static - ${method} - ${componentMode}`, async function ({ host, ctx, callCollection: { calls } }) {
             const appVm = getViewModel(host);
             const { user } = appVm;
             const userPref = host.querySelector('user-preference');
@@ -130,24 +130,24 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(dirty.length, 0, 'dirty checker should not have been applied');
             let index = calls.length;
             user.firstName = 'Jane';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - fname');
             assert.html.textContent(nonStatic, 'infant', 'incorrect text nonStatic - fname');
             assert.greaterThan(calls.length, index);
             index = calls.length;
             user.age = 10;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(statc, 'Jane Doe', 'incorrect text statc - age');
             assert.html.textContent(nonStatic, 'Jane Doe', 'incorrect text nonStatic - age');
             assert.greaterThan(calls.length, index);
             index = calls.length;
             user.lastName = 'Smith';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(statc, 'Jane Smith', 'incorrect text statc - lname');
             assert.html.textContent(nonStatic, 'Jane Smith', 'incorrect text nonStatic - lname');
             assert.greaterThan(calls.length, index);
         }, { method, componentMode });
-        $it(`uses a user preference control that 'computes' the organization of the user correctly ${method} - ${componentMode}`, function ({ host, ctx, callCollection: { calls } }) {
+        $it(`uses a user preference control that 'computes' the organization of the user correctly ${method} - ${componentMode}`, async function ({ host, ctx, callCollection: { calls } }) {
             const { user } = getViewModel(host);
             const userPref = host.querySelector('user-preference');
             const $userRole = userPref.querySelector('#user_role');
@@ -160,7 +160,7 @@ describe('integration/integration.spec.ts', function () {
             let index = calls.length;
             user.$role = 'Role2';
             user.$location = 'Country2';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent($userRole, 'Role2, Org1', 'incorrect text #user_role - role');
             assert.html.textContent($userLocation, 'City1, Country2', 'incorrect text #user_location - country');
             assert.greaterThan(calls.length, index);
@@ -170,13 +170,13 @@ describe('integration/integration.spec.ts', function () {
             index = calls.length;
             user.organization = 'Org2';
             user.city = 'City2';
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent($userRole, 'Role2, Org2', 'incorrect text #user_role - role');
             assert.html.textContent($userLocation, 'City2, Country2', 'incorrect text #user_location - country');
             assert.greaterThan(calls.length, index);
             assertCalls(calls, index, user, ['get $role'], []);
         }, { method, componentMode });
-        $it(`uses a user preference control gets dirty checked for non-configurable property - ${method} - ${componentMode}`, function ({ host, ctx: { container } }) {
+        $it(`uses a user preference control gets dirty checked for non-configurable property - ${method} - ${componentMode}`, async function ({ host, ctx: { container } }) {
             const { user } = getViewModel(host);
             const userPref = host.querySelector('user-preference');
             const indeterminate = userPref.querySelector('#indeterminate');
@@ -215,7 +215,7 @@ describe('integration/integration.spec.ts', function () {
             // assert.html.textContent(indeterminate, newValue, 'incorrect text indeterminate - after change');
             // assert.equal(flushSpy.calls.length, 1);
         }, { method, componentMode });
-        $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-checked-model - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const contacts = app.contacts1;
             const contactsArr = Array.from(contacts);
@@ -237,14 +237,14 @@ describe('integration/integration.spec.ts', function () {
             }
             // assert if the choice is changed in VM, it is propagated to view
             app.chosenContact1 = contactsArr[0][0];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
             assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
             // assert that when choice is changed from view, it is propagaetd to VM
             const lastIndex = size - 1;
             const lastChoice = labels[lastIndex];
             lastChoice.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
             assert.equal(app.chosenContact1, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
             // assert that change of map is reflected
@@ -252,7 +252,7 @@ describe('integration/integration.spec.ts', function () {
             const newContacts = [[111, 'home2'], [222, 'work2']];
             contacts.set(...newContacts[0]);
             contacts.set(...newContacts[1]);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             labels = toArray(rbl.querySelectorAll('label'));
             size = contacts.size;
             assert.equal(labels.length, size);
@@ -260,24 +260,24 @@ describe('integration/integration.spec.ts', function () {
             assert.html.textContent(labels[size - 2], newContacts[0][1], 'incorrect text');
             // change value of existing key - last
             contacts.set(222, 'work3');
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(rbl.querySelector('label:last-of-type'), 'work3', 'incorrect text');
             // change value of existing key - middle
             contacts.set(111, 'home3');
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(rbl.querySelector(`label:nth-of-type(${size - 1})`), 'home3', 'incorrect text');
             // delete single item
             contacts.delete(111);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             labels = toArray(rbl.querySelectorAll('label'));
             assert.equal(labels.length, size - 1);
             // clear map
             contacts.clear();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             labels = toArray(rbl.querySelectorAll('label'));
             assert.equal(labels.length, 0, `expected no label ${rbl.outerHTML}`);
         }, { method, componentMode });
-        $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`uses a radio-button-list that renders a map as a list of radio buttons - rbl-model-checked - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const contacts = app.contacts2;
             const contactsArr = Array.from(contacts);
@@ -299,14 +299,14 @@ describe('integration/integration.spec.ts', function () {
             }
             // assert if the choice is changed in VM, it is propagated to view
             app.chosenContact2 = contactsArr[0][0];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[0].querySelector('input').checked, true, 'expected change of checked status - checked');
             assert.equal(labels[prevCheckedIndex].querySelector('input').checked, false, 'expected change of checked status - unchecked');
             // assert that when choice is changed from view, it is propagaetd to VM
             const lastIndex = size - 1;
             const lastChoice = labels[lastIndex];
             lastChoice.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
             assert.equal(app.chosenContact2, contactsArr[lastIndex][0], 'expected change to porapagate to vm');
         }, { method, componentMode });
@@ -314,7 +314,7 @@ describe('integration/integration.spec.ts', function () {
             { id: 'rbl-obj-array', collProp: 'contacts3', chosenProp: 'chosenContact3' },
             { id: 'rbl-obj-array-matcher', collProp: 'contacts4', chosenProp: 'chosenContact4' },
             { id: 'rbl-obj-array-matcher-order', collProp: 'contacts5', chosenProp: 'chosenContact5' }
-        ].map(({ id, collProp, chosenProp }) => $it(`binds an object array to radio-button-list - ${id} - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        ].map(({ id, collProp, chosenProp }) => $it(`binds an object array to radio-button-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const contacts = app[collProp];
             const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -329,14 +329,14 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(labels[0].querySelector('input').checked, true, 'expected radio button to be checked');
             // assert if the choice is changed in VM, it is propagated to view
             app[chosenProp] = contacts[1];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
             assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
             // assert that when choice is changed from view, it is propagaetd to VM
             const lastIndex = size - 1;
             const lastChoice = labels[lastIndex];
             lastChoice.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
             if (id.includes('matcher')) {
                 assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
@@ -345,7 +345,7 @@ describe('integration/integration.spec.ts', function () {
                 assert.equal(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
             }
         }, { method, componentMode }));
-        [{ id: 'rbl-string-array', collProp: 'contacts6', chosenProp: 'chosenContact6' }, { id: 'rbl-string-array-order', collProp: 'contacts7', chosenProp: 'chosenContact7' }].map(({ id, collProp, chosenProp }) => $it(`binds a string array to radio-button-list - ${id} - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        [{ id: 'rbl-string-array', collProp: 'contacts6', chosenProp: 'chosenContact6' }, { id: 'rbl-string-array-order', collProp: 'contacts7', chosenProp: 'chosenContact7' }].map(({ id, collProp, chosenProp }) => $it(`binds a string array to radio-button-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const contacts = app[collProp];
             const rbl = host.querySelector(`radio-button-list #${id}`);
@@ -359,18 +359,18 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(labels[0].querySelector('input').checked, true, 'expected radio button to be checked');
             // assert if the choice is changed in VM, it is propagated to view
             app[chosenProp] = contacts[1];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[1].querySelector('input').checked, true, 'expected change of checked status - checked');
             assert.equal(labels[0].querySelector('input').checked, false, 'expected change of checked status - unchecked');
             // assert that when choice is changed from view, it is propagaetd to VM
             const lastIndex = size - 1;
             const lastChoice = labels[lastIndex];
             lastChoice.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(lastChoice.querySelector('input').checked, true, 'expected to be checked');
             assert.deepEqual(app[chosenProp], contacts[2], 'expected change to porapagate to vm');
         }, { method, componentMode }));
-        $it(`uses a tri-state-boolean - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`uses a tri-state-boolean - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const tsb = host.querySelector(`tri-state-boolean`);
             const labels = toArray(tsb.querySelectorAll('label'));
@@ -383,27 +383,27 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(labels[2].querySelector('input').checked, false, `should not have been checked for false`);
             // assert if the choice is changed in VM, it is propagated to view
             app.likesCake = true;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[1].querySelector('input').checked, true, `should have been checked for true`);
             // assert that when choice is changed from view, it is propagaetd to VM
             labels[2].click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(labels[2].querySelector('input').checked, true, `should have been checked for false`);
             assert.equal(app.likesCake, false, 'expected change to porapagate to vm');
         }, { method, componentMode });
-        $it(`uses a checkbox to bind boolean consent property - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`uses a checkbox to bind boolean consent property - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             assert.equal(app.hasAgreed, undefined);
             const consent = host.querySelector(`#consent input`);
             assert.equal(consent.checked, false, 'unchecked1');
             consent.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(app.hasAgreed, true, 'checked');
             app.hasAgreed = false;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(consent.checked, false, 'unchecked2');
         }, { method, componentMode });
-        [{ id: 'cbl-obj-array', collProp: 'products1', chosenProp: 'chosenProducts1' }, { id: 'cbl-obj-array-matcher', collProp: 'products2', chosenProp: 'chosenProducts2' }].map(({ id, collProp, chosenProp }) => $it(`binds an object array to checkbox-list - ${id} - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        [{ id: 'cbl-obj-array', collProp: 'products1', chosenProp: 'chosenProducts1' }, { id: 'cbl-obj-array-matcher', collProp: 'products2', chosenProp: 'chosenProducts2' }].map(({ id, collProp, chosenProp }) => $it(`binds an object array to checkbox-list - ${id} - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const products = app[collProp];
             const inputs = toArray(host.querySelectorAll(`checkbox-list #${id} label input[type=checkbox]`));
@@ -413,13 +413,13 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(inputs[0].checked, true, 'checked0');
             // assert if the choice is changed in VM, it is propagated to view
             app[chosenProp].push(products[1]);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(inputs[0].checked, true, 'checked00');
             assert.equal(inputs[1].checked, true, 'checked1');
             // assert that when choice is changed from view, it is propagaetd to VM
             inputs[0].click();
             inputs[2].click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(inputs[2].checked, true, 'checked2');
             const actual = app[chosenProp].sort((pa, pb) => pa.id - pb.id);
             if (id.includes('matcher')) {
@@ -430,7 +430,7 @@ describe('integration/integration.spec.ts', function () {
                 assert.equal(actual[1], products[2], 'expected change to porapagate to vm - 2');
             }
         }, { method, componentMode }));
-        $it(`changes in array are reflected in checkbox-list - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`changes in array are reflected in checkbox-list - ${method} - ${componentMode}`, async function ({ host }) {
             const getInputs = () => toArray(host.querySelectorAll(`checkbox-list #cbl-obj-array label input[type=checkbox]`));
             const app = getViewModel(host);
             const products = app.products1;
@@ -438,28 +438,28 @@ describe('integration/integration.spec.ts', function () {
             // splice
             const newProduct1 = { id: 10, name: 'Mouse' };
             products.splice(0, 1, newProduct1);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             let inputs = getInputs();
             assert.html.textContent(inputs[0].parentElement, `${newProduct1.id}-${newProduct1.name}`, 'incorrect label0');
             assert.equal(inputs[0].checked, false, 'unchecked0');
             // push
             const newProduct2 = { id: 20, name: 'Keyboard' };
             products.push(newProduct2);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             inputs = getInputs();
             assert.html.textContent(inputs[products.length - 1].parentElement, `${newProduct2.id}-${newProduct2.name}`, 'incorrect label0');
             // pop
             products.pop();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(getInputs().length, products.length);
             // shift
             products.shift();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(getInputs().length, products.length);
             // unshift
             const newProducts = new Array(20).fill(0).map((_, i) => ({ id: i * 10, name: `foo${i + 1}` }));
             products.unshift(...newProducts);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             inputs = getInputs();
             for (let i = 0; i < 20; i++) {
                 assert.html.textContent(inputs[i].parentElement, `${newProducts[i].id}-${newProducts[i].name}`, `incorrect label${i + 1}`);
@@ -467,28 +467,28 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(inputs.length, products.length);
             // sort
             products.sort((pa, pb) => (pa.name < pb.name ? -1 : 1));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             inputs = getInputs();
             assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement, true)), products.map(p => `${p.id}-${p.name}`));
             // reverse
             products.reverse();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             inputs = getInputs();
             assert.deepEqual(inputs.map(i => getVisibleText(i.parentElement, true)), products.map(p => `${p.id}-${p.name}`));
             // clear
             products.splice(0);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             inputs = getInputs();
             assert.equal(inputs.length, 0);
         }, { method, componentMode });
-        $it(`binds an action to the command - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`binds an action to the command - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             assert.equal(app.somethingDone, false);
             (host.querySelector('command button')).click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(app.somethingDone, true);
         }, { method, componentMode });
-        $it(`uses a let-demo - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        $it(`uses a let-demo - ${method} - ${componentMode}`, async function ({ host }) {
             const demo = host.querySelector('let-demo');
             const vm = getViewModel(demo);
             const not = demo.querySelector('#not');
@@ -508,7 +508,7 @@ describe('integration/integration.spec.ts', function () {
             assert.html.textContent(xnorLoose, 'true', 'xnorLoose1');
             // 10
             vm.a = true;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(not, 'false', 'not2');
             assert.html.textContent(and, 'false', 'and2');
             assert.html.textContent(or, 'true', 'or2');
@@ -518,7 +518,7 @@ describe('integration/integration.spec.ts', function () {
             assert.html.textContent(xnorLoose, 'false', 'xnorLoose2');
             // 11
             vm.b = true;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(and, 'true', 'and3');
             assert.html.textContent(or, 'true', 'or3');
             assert.html.textContent(xor, 'false', 'xor3');
@@ -527,7 +527,7 @@ describe('integration/integration.spec.ts', function () {
             assert.html.textContent(xnorLoose, 'true', 'xnorLoose3');
             // 01
             vm.a = false;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(and, 'false', 'and4');
             assert.html.textContent(or, 'true', 'or4');
             assert.html.textContent(xor, 'true', 'xor4');
@@ -547,7 +547,7 @@ describe('integration/integration.spec.ts', function () {
             assert.html.textContent(linex, getLinex(), 'linex1');
             line.slope = 4;
             ec.a = 10;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.html.textContent(ecYSq, getEcYsq(), 'ecysq2');
             assert.html.textContent(ecY, getEcY(), 'ecy2');
             assert.html.textContent(linex, getLinex(), 'linex2');
@@ -577,7 +577,7 @@ describe('integration/integration.spec.ts', function () {
                 collProp: 'items4',
                 chosenProp: 'selectedItem4'
             }
-        ].map(({ id, title, collProp, chosenProp }) => $it(`${title} - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        ].map(({ id, title, collProp, chosenProp }) => $it(`${title} - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const items = app[collProp];
             const select = host.querySelector(`select-dropdown select#select${id}`);
@@ -588,12 +588,12 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(options[1].selected, true, 'option0');
             // assert if the choice is changed in VM, it is propagated to view
             app[chosenProp] = items[1].id;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(options[2].selected, true, 'option1');
             // assert that when choice is changed from view, it is propagaetd to VM
             [options[2].selected, options[3].selected] = [false, true];
             select.dispatchEvent(new Event('change'));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             if (title.includes('matcher')) {
                 assert.deepEqual(app[chosenProp], items[2].id, 'selectedProp');
             }
@@ -626,7 +626,7 @@ describe('integration/integration.spec.ts', function () {
                 collProp: 'items4',
                 chosenProp: 'selectedItems4'
             }
-        ].map(({ id, title, collProp, chosenProp }) => $it(`${title} - ${method} - ${componentMode}`, function ({ host, ctx }) {
+        ].map(({ id, title, collProp, chosenProp }) => $it(`${title} - ${method} - ${componentMode}`, async function ({ host }) {
             const app = getViewModel(host);
             const items = app[collProp];
             const select = host.querySelector(`select-dropdown select#select${id}`);
@@ -637,13 +637,13 @@ describe('integration/integration.spec.ts', function () {
             assert.equal(options[1].selected, true, 'option10');
             // assert if the choice is changed in VM, it is propagated to view
             app[chosenProp].push(items[1].id);
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(options[1].selected, true, 'option11');
             assert.equal(options[2].selected, true, 'option21');
             // assert that when choice is changed from view, it is propagaetd to VM
             options[3].selected = true;
             select.dispatchEvent(new Event('change'));
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(options[1].selected, true, 'option13');
             assert.equal(options[2].selected, true, 'option23');
             assert.equal(options[3].selected, true, 'option33');
@@ -673,7 +673,7 @@ describe('integration/integration.spec.ts', function () {
         //       assert.html.computedStyle(cards2[0], { backgroundColor: selectedHeaderColor }, 'incorrect selected background1 - container2');
         //       assert.html.computedStyle(cards2[0].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color1 - container2');
         //       cards1[1].click();
-        //       ctx.platform.domQueue.flush();
+        //       await tasksSettled();
         //       assert.html.computedStyle(cards1[0], { backgroundColor: 'rgba(0, 0, 0, 0)' }, 'incorrect background1 - container1');
         //       assert.html.computedStyle(cards1[0].querySelector('span'), { color: 'rgb(0, 0, 0)' }, 'incorrect color1 - container1');
         //       assert.html.computedStyle(cards1[1], { backgroundColor: selectedHeaderColor }, 'incorrect selected background2 - container1');
@@ -684,7 +684,7 @@ describe('integration/integration.spec.ts', function () {
         //       assert.html.computedStyle(cards2[1].querySelector('span'), { color: selectedDetailsColor }, 'incorrect selected color2 - container2');
         //     },
         //     { useCSSModule, method, componentMode }));
-        $it(`cards uses inline styles - ${method} - ${componentMode}`, async function ({ host, ctx }) {
+        $it(`cards uses inline styles - ${method} - ${componentMode}`, async function ({ host }) {
             const cardsEl = host.querySelector('cards');
             const cardsVm = getViewModel(cardsEl);
             for (const id of ['simple-style', 'inline-bound-style', 'bound-style-obj', 'bound-style-array', 'bound-style-str']) {
@@ -693,15 +693,16 @@ describe('integration/integration.spec.ts', function () {
             cardsVm.styleStr = 'background-color: rgb(0, 0, 255); border: 1px solid rgb(0, 255, 0)';
             cardsVm.styleObj = { 'background-color': 'rgb(0, 0, 255)', 'border': '1px solid rgb(0, 255, 0)' };
             cardsVm.styleArray = [{ 'background-color': 'rgb(0, 0, 255)' }, { 'border': '1px solid rgb(0, 255, 0)' }];
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
+            const effectiveWidth = `${1 / window.devicePixelRatio}px`;
             for (const id of ['bound-style-obj', 'bound-style-array', 'bound-style-str']) {
                 const para = cardsEl.querySelector(`p#${id}`);
                 assert.html.computedStyle(para, {
                     backgroundColor: 'rgb(0, 0, 255)',
-                    borderTopWidth: '1px',
-                    borderBottomWidth: '1px',
-                    borderRightWidth: '1px',
-                    borderLeftWidth: '1px',
+                    borderTopWidth: effectiveWidth,
+                    borderBottomWidth: effectiveWidth,
+                    borderRightWidth: effectiveWidth,
+                    borderLeftWidth: effectiveWidth,
                     borderTopStyle: 'solid',
                     borderBottomStyle: 'solid',
                     borderRightStyle: 'solid',
@@ -714,21 +715,21 @@ describe('integration/integration.spec.ts', function () {
                 assert.html.notComputedStyle(para, { fontWeight: '700' }, `font-weight ${id} - post change`);
             }
         }, { method, componentMode });
-        $it(`cards have image - ${method} - ${componentMode}`, async function ({ host, ctx }) {
+        $it(`cards have image - ${method} - ${componentMode}`, async function ({ host }) {
             const images = toArray(host.querySelectorAll('cards #cards1 div img'));
             const { heroes } = getViewModel(host);
             for (let i = 0; i < images.length; i++) {
                 assert.equal(images[i].src.endsWith(heroes[i].imgSrc), true, `incorrect img src#${i + 1}`);
             }
             heroes[0].imgSrc = undefined;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(images[0].src, '', `expected null img src`);
             const imgSrc = "foobar.jpg";
             heroes[0].imgSrc = imgSrc;
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(images[0].src.endsWith(imgSrc), true, `incorrect img src`);
         }, { method, componentMode });
-        $it(`uses random-generator which generates a random number iff the container div is clicked - ${method} - ${componentMode}`, async function ({ host, ctx }) {
+        $it(`uses random-generator which generates a random number iff the container div is clicked - ${method} - ${componentMode}`, async function ({ host }) {
             const ce = host.querySelector("random-generator");
             const vm = getViewModel(ce);
             const container = ce.querySelector("div");
@@ -747,15 +748,15 @@ describe('integration/integration.spec.ts', function () {
             assertAttr();
             // self BB
             container.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.notEqual(vm.random, prev, 'new random expected1');
             assertAttr();
             prev = vm.random;
             button.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.equal(vm.random, prev, 'new random not expected');
             container.click();
-            ctx.platform.domQueue.flush();
+            await tasksSettled();
             assert.notEqual(vm.random, prev, 'new random expected2');
             assertAttr();
         }, { method, componentMode });

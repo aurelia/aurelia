@@ -2,10 +2,9 @@ import { Protocol, isString, createLookup, getPrototypeChain, kebabCase, noop, D
 import { BindingMode, InstructionType, ITemplateCompiler, IInstruction, TemplateCompilerHooks, IAttrMapper, IResourceResolver, TemplateCompiler, AttributePattern, AttrSyntax, RefAttributePattern, DotSeparatedAttributePattern, EventAttributePattern, AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DefaultBindingCommand, OneTimeBindingCommand, FromViewBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, ForBindingCommand, RefBindingCommand, TriggerBindingCommand, CaptureBindingCommand, ClassBindingCommand, StyleBindingCommand, AttrBindingCommand, SpreadValueBindingCommand } from '@aurelia/template-compiler';
 export { BindingCommand, BindingMode } from '@aurelia/template-compiler';
 import { Metadata } from '@aurelia/metadata';
-import { AccessorType, astEvaluate, astBind, astUnbind, connectable, astAssign, subscriberCollection, Scope, IObserverLocator, ConnectableSwitcher, ProxyObservable, ICoercionConfiguration, PropertyAccessor, INodeObserverLocator, IDirtyChecker, getObserverLookup, SetterObserver, createIndexMap, getCollectionObserver as getCollectionObserver$1, BindingContext, DirtyChecker } from '@aurelia/runtime';
+import { AccessorType, astEvaluate, queueAsyncTask, queueTask, astBind, astUnbind, connectable, astAssign, subscriberCollection, Scope, IObserverLocator, ConnectableSwitcher, ProxyObservable, ICoercionConfiguration, tasksSettled, PropertyAccessor, INodeObserverLocator, IDirtyChecker, getObserverLookup, SetterObserver, createIndexMap, getCollectionObserver as getCollectionObserver$1, BindingContext, TaskAbortError, DirtyChecker } from '@aurelia/runtime';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AccessScopeExpression, IExpressionParser, ExpressionParser } from '@aurelia/expression-parser';
-import { TaskAbortError } from '@aurelia/platform';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -854,24 +853,34 @@ const refs = /*@__PURE__*/ (() => {
 })();
 const INode = /*@__PURE__*/ createInterface('INode');
 
-function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
+function watch(expressionOrPropertyAccessFn, changeHandlerOrCallbackOrOptions, optionsOrUndefined) {
     if (expressionOrPropertyAccessFn == null) {
         throw createMappedError(772 /* ErrorNames.watch_null_config */);
     }
+    return function decorator(
     // eslint-disable-next-line @typescript-eslint/ban-types
-    return function decorator(target, context) {
+    target, context) {
         const isClassDecorator = context.kind === 'class';
+        let options;
+        let changeHandler;
         // basic validation
         if (isClassDecorator) {
-            if (!isFunction(changeHandlerOrCallback)
-                && (changeHandlerOrCallback == null || !(changeHandlerOrCallback in target.prototype))) {
-                throw createMappedError(773 /* ErrorNames.watch_invalid_change_handler */, `${safeString(changeHandlerOrCallback)}@${target.name}}`);
+            if (!isFunction(changeHandlerOrCallbackOrOptions)
+                && (changeHandlerOrCallbackOrOptions == null
+                    || !(changeHandlerOrCallbackOrOptions in target.prototype))) {
+                throw createMappedError(773 /* ErrorNames.watch_invalid_change_handler */, `${safeString(changeHandlerOrCallbackOrOptions)}@${target.name}}`);
             }
+            changeHandler = changeHandlerOrCallbackOrOptions;
+            options = optionsOrUndefined ?? {};
         }
-        else if (!isFunction(target) || context.static) {
-            throw createMappedError(774 /* ErrorNames.watch_non_method_decorator_usage */, context.name);
+        else {
+            if (!isFunction(target) || context.static) {
+                throw createMappedError(774 /* ErrorNames.watch_non_method_decorator_usage */, context.name);
+            }
+            changeHandler = target;
+            options = changeHandlerOrCallbackOrOptions ?? {};
         }
-        const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, (isClassDecorator ? changeHandlerOrCallback : target));
+        const watchDef = new WatchDefinition(expressionOrPropertyAccessFn, changeHandler, options.flush);
         if (isClassDecorator) {
             addDefinition(target);
         }
@@ -907,9 +916,10 @@ function watch(expressionOrPropertyAccessFn, changeHandlerOrCallback) {
     };
 }
 class WatchDefinition {
-    constructor(expression, callback) {
+    constructor(expression, callback, flush = 'async') {
         this.expression = expression;
         this.callback = callback;
+        this.flush = flush;
     }
 }
 const Watch = /*@__PURE__*/ (() => {
@@ -1490,13 +1500,12 @@ const mixingBindingLimited = /*@__PURE__*/ (() => {
         let task;
         let latestValue;
         let isPending = false;
-        const taskQueue = opts.queue;
         const callOriginalCallback = () => callOriginal(latestValue);
         const fn = (v) => {
             latestValue = v;
             if (binding.isBound) {
                 task = limiterTask;
-                limiterTask = taskQueue.queueTask(callOriginalCallback, { delay: opts.delay });
+                limiterTask = queueAsyncTask(callOriginalCallback, { delay: opts.delay });
                 task?.cancel();
             }
             else {
@@ -1528,7 +1537,6 @@ const mixingBindingLimited = /*@__PURE__*/ (() => {
         let elapsed = 0;
         let latestValue;
         let isPending = false;
-        const taskQueue = opts.queue;
         const now = () => opts.now();
         const callOriginalCallback = () => callOriginal(latestValue);
         const fn = (v) => {
@@ -1542,7 +1550,7 @@ const mixingBindingLimited = /*@__PURE__*/ (() => {
                 }
                 else {
                     // Queue the new one before canceling the old one, to prevent early yield
-                    limiterTask = taskQueue.queueTask(() => {
+                    limiterTask = queueAsyncTask(() => {
                         last = now();
                         callOriginalCallback();
                     }, { delay: opts.delay - elapsed });
@@ -1612,14 +1620,11 @@ const createPrototypeMixer = ((mixed = new WeakSet()) => {
     };
 })();
 
-const taskOptions = {
-    preempt: true,
-};
 /**
  * Attribute binding. Handle attribute binding betwen view/view model. Understand Html special attributes
  */
 class AttributeBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, 
+    constructor(controller, locator, observerLocator, ast, target, 
     // some attributes may have inner structure
     // such as class -> collection of class names
     // such as style -> collection of style rules
@@ -1636,7 +1641,7 @@ class AttributeBinding {
         /** @internal */
         this._scope = void 0;
         /** @internal */
-        this._task = null;
+        this._isQueued = false;
         /** @internal */
         this._value = void 0;
         // see Listener binding for explanation
@@ -1649,7 +1654,6 @@ class AttributeBinding {
         this._controller = controller;
         this.target = target;
         this.oL = observerLocator;
-        this._taskQueue = taskQueue;
         // eslint-disable-next-line @typescript-eslint/prefer-includes
         if ((this._isMulti = targetProperty.indexOf(' ') > -1)
             && !AttributeBinding._splitString.has(targetProperty)) {
@@ -1696,63 +1700,48 @@ class AttributeBinding {
         }
     }
     handleChange() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
-        let task;
-        this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
-        // should observe?
-        (this.mode & toView) > 0 ? this : null);
-        this.obs.clear();
-        if (newValue !== this._value) {
-            this._value = newValue;
-            const shouldQueueFlush = this._controller.state !== activating;
-            if (shouldQueueFlush) {
-                // Queue the new one before canceling the old one, to prevent early yield
-                task = this._task;
-                this._task = this._taskQueue.queueTask(() => {
-                    this._task = null;
-                    this.updateTarget(newValue);
-                }, taskOptions);
-                task?.cancel();
-            }
-            else {
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
+                return;
+            this.obs.version++;
+            const newValue = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+            this.obs.clear();
+            if (newValue !== this._value) {
+                this._value = newValue;
                 this.updateTarget(newValue);
             }
-        }
+        });
     }
     // todo: based off collection and handle update accordingly instead off always start
     handleCollectionChange() {
         this.handleChange();
     }
-    bind(_scope) {
+    bind(scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
-        this._scope = _scope;
-        astBind(this.ast, _scope, this);
+        this._scope = scope;
+        astBind(this.ast, scope, this);
         if (this.mode & (toView | oneTime)) {
-            this.updateTarget(this._value = astEvaluate(this.ast, _scope, this, /* should connect? */ (this.mode & toView) > 0 ? this : null));
+            this.updateTarget(this._value = astEvaluate(this.ast, scope, this, (this.mode & toView) > 0 ? this : null));
         }
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
         this._value = void 0;
-        this._task?.cancel();
-        this._task = null;
         this.obs.clearAll();
     }
 }
@@ -1766,11 +1755,8 @@ AttributeBinding.mix = createPrototypeMixer(() => {
 /** @internal */
 AttributeBinding._splitString = new Map();
 
-const queueTaskOptions$1 = {
-    preempt: true,
-};
 class InterpolationBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode, strict) {
+    constructor(controller, locator, observerLocator, ast, target, targetProperty, mode, strict) {
         this.ast = ast;
         this.target = target;
         this.targetProperty = targetProperty;
@@ -1780,10 +1766,9 @@ class InterpolationBinding {
         /** @internal */
         this._scope = void 0;
         /** @internal */
-        this._task = null;
+        this._isQueued = false;
         this._controller = controller;
         this.oL = observerLocator;
-        this._taskQueue = taskQueue;
         this._targetObserver = observerLocator.getAccessor(target, targetProperty);
         const expressions = ast.expressions;
         const partBindings = this.partBindings = Array(expressions.length);
@@ -1795,11 +1780,30 @@ class InterpolationBinding {
     }
     /** @internal */
     _handlePartChange() {
-        this.updateTarget();
+        if (!this.isBound)
+            return;
+        const shouldQueue = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
+        if (shouldQueue) {
+            if (this._isQueued)
+                return;
+            this._isQueued = true;
+            queueTask(() => {
+                this._isQueued = false;
+                if (!this.isBound)
+                    return;
+                this.updateTarget();
+            });
+        }
+        else {
+            this.updateTarget();
+        }
     }
     updateTarget() {
         const partBindings = this.partBindings;
-        const staticParts = this.ast.parts;
+        const ast = this.ast;
+        const target = this.target;
+        const targetProperty = this.targetProperty;
+        const staticParts = ast.parts;
         const ii = partBindings.length;
         let result = '';
         let i = 0;
@@ -1814,50 +1818,27 @@ class InterpolationBinding {
                 result += partBindings[i]._value + staticParts[i + 1];
             }
         }
-        const targetObserver = this._targetObserver;
-        // Alpha: during bind a simple strategy for bind is always flush immediately
-        // todo:
-        //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = this._controller.state !== activating && (targetObserver.type & atLayout) > 0;
-        let task;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this._task = null;
-                targetObserver.setValue(result, this.target, this.targetProperty);
-            }, queueTaskOptions$1);
-            task?.cancel();
-            task = null;
-        }
-        else {
-            targetObserver.setValue(result, this.target, this.targetProperty);
-        }
+        this._targetObserver.setValue(result, target, targetProperty);
     }
-    bind(_scope) {
+    bind(scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
-        this._scope = _scope;
+        this._scope = scope;
         const partBindings = this.partBindings;
         const ii = partBindings.length;
         let i = 0;
         for (; ii > i; ++i) {
-            partBindings[i].bind(_scope);
+            partBindings[i].bind(scope);
         }
         this.updateTarget();
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         this._scope = void 0;
         const partBindings = this.partBindings;
@@ -1866,8 +1847,6 @@ class InterpolationBinding {
         for (; ii > i; ++i) {
             partBindings[i].unbind();
         }
-        this._task?.cancel();
-        this._task = null;
     }
     /**
      * Start using a given observer to update the target
@@ -1886,7 +1865,6 @@ class InterpolationPartBinding {
         // at runtime, mode may be overriden by binding behavior
         // but it wouldn't matter here, just start with something for later check
         this.mode = toView;
-        this.task = null;
         this.isBound = false;
         /** @internal */
         this._value = '';
@@ -1900,14 +1878,10 @@ class InterpolationPartBinding {
         this.owner._handlePartChange();
     }
     handleChange() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
-        // should observe?
-        (this.mode & toView) > 0 ? this : null);
+        const newValue = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         this.obs.clear();
         // todo(!=): maybe should do strict comparison?
         // eslint-disable-next-line eqeqeq
@@ -1924,10 +1898,8 @@ class InterpolationPartBinding {
     }
     bind(scope) {
         if (this.isBound) {
-            if (this._scope === scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
         this._scope = scope;
@@ -1939,10 +1911,8 @@ class InterpolationPartBinding {
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
@@ -1957,14 +1927,11 @@ InterpolationPartBinding.mix = createPrototypeMixer(() => {
     mixinAstEvaluator(InterpolationPartBinding);
 });
 
-const queueTaskOptions = {
-    preempt: true,
-};
 /**
  * A binding for handling the element content interpolation
  */
 class ContentBinding {
-    constructor(controller, locator, observerLocator, taskQueue, p, ast, target, strict) {
+    constructor(controller, locator, observerLocator, p, ast, target, strict) {
         this.p = p;
         this.ast = ast;
         this.target = target;
@@ -1974,7 +1941,7 @@ class ContentBinding {
         // but it wouldn't matter here, just start with something for later check
         this.mode = toView;
         /** @internal */
-        this._task = null;
+        this._isQueued = false;
         /** @internal */
         this._value = '';
         /** @internal */
@@ -1985,7 +1952,6 @@ class ContentBinding {
         this.l = locator;
         this._controller = controller;
         this.oL = observerLocator;
-        this._taskQueue = taskQueue;
     }
     updateTarget(value) {
         const target = this.target;
@@ -2000,64 +1966,53 @@ class ContentBinding {
             value = '';
             this._needsRemoveNode = true;
         }
-        // console.log({ value, type: typeof value });
         target.textContent = safeString(value ?? '');
     }
     handleChange() {
-        if (!this.isBound) {
-            /* istanbul ignore next */
+        if (!this.isBound)
             return;
-        }
-        this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
-        // should observe?
-        (this.mode & toView) > 0 ? this : null);
-        this.obs.clear();
-        if (newValue === this._value) {
-            // in a frequent update, e.g collection mutation in a loop
-            // value could be changing frequently and previous update task may be stale at this point
-            // cancel if any task going on because the latest value is already the same
-            this._task?.cancel();
-            this._task = null;
+        if (this._isQueued)
             return;
-        }
-        const shouldQueueFlush = this._controller.state !== activating;
-        if (shouldQueueFlush) {
-            this._queueUpdate(newValue);
-        }
-        else {
-            this.updateTarget(newValue);
-        }
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
+                return;
+            this.obs.version++;
+            const newValue = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+            this.obs.clear();
+            if (newValue !== this._value) {
+                this.updateTarget(newValue);
+            }
+        });
     }
     handleCollectionChange() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
-        this.obs.version++;
-        const v = this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
-        this.obs.clear();
-        if (isArray(v)) {
-            this.observeCollection(v);
-        }
-        const shouldQueueFlush = this._controller.state !== activating;
-        if (shouldQueueFlush) {
-            this._queueUpdate(v);
-        }
-        else {
-            this.updateTarget(v);
-        }
-    }
-    bind(_scope) {
-        if (this.isBound) {
-            if (this._scope === _scope) {
-                /* istanbul-ignore-next */
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            if (!this.isBound)
                 return;
+            this.obs.version++;
+            const v = this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+            this.obs.clear();
+            if (isArray(v)) {
+                this.observeCollection(v);
             }
+            this.updateTarget(v);
+        });
+    }
+    bind(scope) {
+        if (this.isBound) {
+            if (this._scope === scope)
+                return;
             this.unbind();
         }
-        this._scope = _scope;
-        astBind(this.ast, _scope, this);
+        this._scope = scope;
+        astBind(this.ast, scope, this);
         const v = this._value = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
         if (isArray(v)) {
             this.observeCollection(v);
@@ -2066,10 +2021,8 @@ class ContentBinding {
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         if (this._needsRemoveNode) {
@@ -2080,18 +2033,6 @@ class ContentBinding {
         // this.updateTarget('');
         this._scope = void 0;
         this.obs.clearAll();
-        this._task?.cancel();
-        this._task = null;
-    }
-    // queue a force update
-    /** @internal */
-    _queueUpdate(newValue) {
-        const task = this._task;
-        this._task = this._taskQueue.queueTask(() => {
-            this._task = null;
-            this.updateTarget(newValue);
-        }, queueTaskOptions);
-        task?.cancel();
     }
 }
 /** @internal */
@@ -2122,10 +2063,8 @@ class LetBinding {
         this.target[this.targetProperty] = this._value;
     }
     handleChange() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.obs.version++;
         this._value = astEvaluate(this.ast, this._scope, this, this);
         this.obs.clear();
@@ -2136,10 +2075,8 @@ class LetBinding {
     }
     bind(_scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === _scope)
                 return;
-            }
             this.unbind();
         }
         this._scope = _scope;
@@ -2150,10 +2087,8 @@ class LetBinding {
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
@@ -2173,7 +2108,7 @@ LetBinding.mix = createPrototypeMixer(() => {
 });
 
 class PropertyBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, targetProperty, mode, strict) {
+    constructor(controller, locator, observerLocator, ast, target, targetProperty, mode, strict) {
         this.ast = ast;
         this.target = target;
         this.targetProperty = targetProperty;
@@ -2185,7 +2120,7 @@ class PropertyBinding {
         /** @internal */
         this._targetObserver = void 0;
         /** @internal */
-        this._task = null;
+        this._isQueued = false;
         /** @internal */
         this._targetSubscriber = null;
         // see Listener binding for explanation
@@ -2193,7 +2128,6 @@ class PropertyBinding {
         this.boundFn = false;
         this.l = locator;
         this._controller = controller;
-        this._taskQueue = taskQueue;
         this.oL = observerLocator;
     }
     updateTarget(value) {
@@ -2203,29 +2137,30 @@ class PropertyBinding {
         astAssign(this.ast, this._scope, this, null, value);
     }
     handleChange() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
-        this.obs.version++;
-        const newValue = astEvaluate(this.ast, this._scope, this, 
-        // should observe?
-        (this.mode & toView) > 0 ? this : null);
-        this.obs.clear();
-        const shouldQueueFlush = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this.updateTarget(newValue);
-                this._task = null;
-            }, updateTaskOpts);
-            task?.cancel();
-            task = null;
+        const shouldQueue = this._controller.state !== activating && (this._targetObserver.type & atLayout) > 0;
+        if (shouldQueue) {
+            if (this._isQueued)
+                return;
+            this._isQueued = true;
+            queueTask(() => {
+                this._isQueued = false;
+                if (!this.isBound)
+                    return;
+                this._handleChange();
+            });
         }
         else {
-            this.updateTarget(newValue);
+            this._handleChange();
         }
+    }
+    /** @internal */
+    _handleChange() {
+        this.obs.version++;
+        const newValue = astEvaluate(this.ast, this._scope, this, (this.mode & toView) > 0 ? this : null);
+        this.obs.clear();
+        this.updateTarget(newValue);
     }
     // todo: based off collection and handle update accordingly instead off always start
     handleCollectionChange() {
@@ -2233,10 +2168,8 @@ class PropertyBinding {
     }
     bind(scope) {
         if (this.isBound) {
-            if (this._scope === scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
         this._scope = scope;
@@ -2266,10 +2199,8 @@ class PropertyBinding {
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
@@ -2277,8 +2208,6 @@ class PropertyBinding {
             this._targetObserver.unsubscribe(this._targetSubscriber);
             this._targetSubscriber = null;
         }
-        this._task?.cancel();
-        this._task = null;
         this.obs.clearAll();
     }
     /**
@@ -2308,10 +2237,6 @@ PropertyBinding.mix = createPrototypeMixer(() => {
     connectable(PropertyBinding, null);
     mixinAstEvaluator(PropertyBinding);
 });
-let task = null;
-const updateTaskOpts = {
-    preempt: true,
-};
 
 class RefBinding {
     constructor(locator, oL, ast, target, strict) {
@@ -2344,24 +2269,20 @@ class RefBinding {
             this.updateSource();
         }
     }
-    bind(_scope) {
+    bind(scope) {
         if (this.isBound) {
-            if (this._scope === _scope) {
-                /* istanbul-ignore-next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
-        this._scope = _scope;
-        astBind(this.ast, _scope, this);
+        this._scope = scope;
+        astBind(this.ast, scope, this);
         this.isBound = true;
         this.updateSource();
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul-ignore-next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         this.obs.clearAll();
         if (astEvaluate(this.ast, this._scope, this, null) === this.target) {
@@ -2415,12 +2336,7 @@ class ListenerBinding {
     callSource(event) {
         const overrideContext = this._scope.overrideContext;
         overrideContext.$event = event;
-        // let result
         let result = astEvaluate(this.ast, this._scope, this, null);
-        // try {
-        // } catch (ex) {
-        //   console.log(ex);
-        // }
         delete overrideContext.$event;
         if (isFunction(result)) {
             result = result(event);
@@ -2447,10 +2363,8 @@ class ListenerBinding {
     }
     bind(scope) {
         if (this.isBound) {
-            if (this._scope === scope) {
-                /* istanbul ignore next */
+            if (this._scope === scope)
                 return;
-            }
             this.unbind();
         }
         this._scope = scope;
@@ -2459,10 +2373,8 @@ class ListenerBinding {
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
-            /* istanbul ignore next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
@@ -2932,11 +2844,8 @@ class SpreadBinding {
         return this.locator.get(key);
     }
     bind(_scope) {
-        /* istanbul ignore if */
-        if (this.isBound) {
-            /* istanbul ignore next */
+        if (this.isBound)
             return;
-        }
         this.isBound = true;
         const innerScope = this.scope = this._hydrationContext.controller.scope.parent ?? void 0;
         if (innerScope == null) {
@@ -2959,7 +2868,7 @@ class SpreadBinding {
     }
 }
 class SpreadValueBinding {
-    constructor(controller, target, targetKeys, ast, ol, l, taskQueue, strict) {
+    constructor(controller, target, targetKeys, ast, ol, l, strict) {
         this.target = target;
         this.targetKeys = targetKeys;
         this.ast = ast;
@@ -2979,7 +2888,6 @@ class SpreadValueBinding {
         this._controller = controller;
         this.oL = ol;
         this.l = l;
-        this._taskQueue = taskQueue;
     }
     updateTarget() {
         this.obs.version++;
@@ -2988,30 +2896,19 @@ class SpreadValueBinding {
         this._createBindings(newValue, true);
     }
     handleChange() {
-        /* istanbul ignore if */
-        if (!this.isBound) {
-            /* istanbul ignore next */
+        if (!this.isBound)
             return;
-        }
         this.updateTarget();
     }
     handleCollectionChange() {
-        /* istanbul ignore if */
-        if (!this.isBound) {
-            /* istanbul ignore next */
+        if (!this.isBound)
             return;
-        }
         this.updateTarget();
     }
     bind(scope) {
-        /* istanbul ignore if */
         if (this.isBound) {
-            /* istanbul ignore if */
-            if (scope === this._scope) {
-                /* istanbul ignore next */
+            if (this._scope === scope)
                 return;
-            }
-            /* istanbul ignore next */
             this.unbind();
         }
         this.isBound = true;
@@ -3021,11 +2918,8 @@ class SpreadValueBinding {
         this._createBindings(value, false);
     }
     unbind() {
-        /* istanbul ignore if */
-        if (!this.isBound) {
-            /* istanbul ignore next */
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         astUnbind(this.ast, this._scope, this);
         this._scope = void 0;
@@ -3064,7 +2958,7 @@ class SpreadValueBinding {
             binding = this._bindingCache[key];
             if (key in value) {
                 if (binding == null) {
-                    binding = this._bindingCache[key] = new PropertyBinding(this._controller, this.l, this.oL, this._taskQueue, SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0), this.target, key, BindingMode.toView, this.strict);
+                    binding = this._bindingCache[key] = new PropertyBinding(this._controller, this.l, this.oL, SpreadValueBinding._astCache[key] ??= new AccessScopeExpression(key, 0), this.target, key, BindingMode.toView, this.strict);
                 }
                 binding.bind(scope);
             }
@@ -3537,7 +3431,7 @@ const InterpolationBindingRenderer = /*@__PURE__*/ renderer(class InterpolationB
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const container = renderingCtrl.container;
-        const binding = new InterpolationBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etInterpolation), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false);
+        const binding = new InterpolationBinding(renderingCtrl, container, observerLocator, ensureExpression(exprParser, instruction.from, etInterpolation), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false);
         if (instruction.to === 'class' && binding.target.nodeType > 0) {
             const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
             binding.useAccessor(new ClassAttributeAccessor(binding.target, cssMapping));
@@ -3552,7 +3446,7 @@ const PropertyBindingRenderer = /*@__PURE__*/ renderer(class PropertyBindingRend
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const container = renderingCtrl.container;
-        const binding = new PropertyBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), getTarget(target), instruction.to, instruction.mode, renderingCtrl.strict ?? false);
+        const binding = new PropertyBinding(renderingCtrl, container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), getTarget(target), instruction.to, instruction.mode, renderingCtrl.strict ?? false);
         if (instruction.to === 'class' && binding.target.nodeType > 0) {
             const cssMapping = container.get(fromHydrationContext(ICssClassMapping));
             binding.useTargetObserver(new ClassAttributeAccessor(binding.target, cssMapping));
@@ -3566,7 +3460,7 @@ const IteratorBindingRenderer = /*@__PURE__*/ renderer(class IteratorBindingRend
         PropertyBinding.mix();
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
-        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.forOf, etIsIterator), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false));
+        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.forOf, etIsIterator), getTarget(target), instruction.to, toView, renderingCtrl.strict ?? false));
     }
 }, null);
 const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer {
@@ -3575,7 +3469,7 @@ const TextBindingRenderer = /*@__PURE__*/ renderer(class TextBindingRenderer {
         ContentBinding.mix();
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
-        renderingCtrl.addBinding(new ContentBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, platform, ensureExpression(exprParser, instruction.from, etIsProperty), target, renderingCtrl.strict ?? false));
+        renderingCtrl.addBinding(new ContentBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform, ensureExpression(exprParser, instruction.from, etIsProperty), target, renderingCtrl.strict ?? false));
     }
 }, null);
 const IListenerBindingOptions = createInterface('IListenerBindingOptions', x => x.singleton(class {
@@ -3663,11 +3557,11 @@ const StylePropertyBindingRenderer = /*@__PURE__*/ renderer(class StylePropertyB
         {
             /* istanbul ignore next */
             if (ambiguousStyles.includes(instruction.to)) {
-                renderingCtrl.addBinding(new DevStylePropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
+                renderingCtrl.addBinding(new DevStylePropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
                 return;
             }
         }
-        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
+        renderingCtrl.addBinding(new PropertyBinding(renderingCtrl, renderingCtrl.container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), target.style, instruction.to, toView, renderingCtrl.strict ?? false));
     }
 }, null);
 /* istanbul ignore next */
@@ -3690,7 +3584,7 @@ const AttributeBindingRenderer = /*@__PURE__*/ renderer(class AttributeBindingRe
         const classMapping = container.has(ICssClassMapping, false)
             ? container.get(ICssClassMapping)
             : null;
-        renderingCtrl.addBinding(new AttributeBinding(renderingCtrl, container, observerLocator, platform.domQueue, ensureExpression(exprParser, instruction.from, etIsProperty), target, instruction.attr /* targetAttribute */, classMapping == null
+        renderingCtrl.addBinding(new AttributeBinding(renderingCtrl, container, observerLocator, ensureExpression(exprParser, instruction.from, etIsProperty), target, instruction.attr /* targetAttribute */, classMapping == null
             ? instruction.to /* targetKey */
             : instruction.to.split(/\s/g).map(c => classMapping[c] ?? c).join(' '), toView, renderingCtrl.strict ?? false));
     }
@@ -3714,7 +3608,7 @@ const SpreadValueRenderer = /*@__PURE__*/ renderer(class SpreadValueRenderer {
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const instructionTarget = instruction.target;
         if (instructionTarget === '$bindables') {
-            renderingCtrl.addBinding(new SpreadValueBinding(renderingCtrl, target.viewModel, objectKeys(target.definition.bindables), exprParser.parse(instruction.from, etIsProperty), observerLocator, renderingCtrl.container, platform.domQueue, renderingCtrl.strict ?? false));
+            renderingCtrl.addBinding(new SpreadValueBinding(renderingCtrl, target.viewModel, objectKeys(target.definition.bindables), exprParser.parse(instruction.from, etIsProperty), observerLocator, renderingCtrl.container, renderingCtrl.strict ?? false));
         }
         else {
             throw createMappedError(820 /* ErrorNames.spreading_invalid_target */, instructionTarget);
@@ -4164,17 +4058,19 @@ class ComputedWatcher {
     get value() {
         return this._value;
     }
-    constructor(obj, observerLocator, $get, cb, useProxy) {
+    constructor(obj, observerLocator, $get, cb, flush = 'async') {
         this.obj = obj;
         this.$get = $get;
-        this.useProxy = useProxy;
         this.isBound = false;
-        // todo: maybe use a counter allow recursive call to a certain level
-        this.running = false;
+        /** @internal */
+        this._isQueued = false;
+        /** @internal */
+        this._computeDepth = 0;
         /** @internal */
         this._value = void 0;
         this._callback = cb;
         this.oL = observerLocator;
+        this._flush = flush;
     }
     handleChange() {
         this.run();
@@ -4183,41 +4079,58 @@ class ComputedWatcher {
         this.run();
     }
     bind() {
-        if (this.isBound) {
+        if (this.isBound)
             return;
-        }
         this.compute();
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         this.obs.clearAll();
     }
     run() {
-        if (!this.isBound || this.running) {
+        if (!this.isBound)
+            return;
+        if (this._flush === 'sync') {
+            this._run();
             return;
         }
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            this._run();
+        });
+    }
+    /** @internal */
+    _run() {
+        if (!this.isBound)
+            return;
         const obj = this.obj;
         const oldValue = this._value;
+        if (++this._computeDepth > 100) {
+            // todo: error code
+            throw new Error(`AURXXXX: Possible infinitely recursive side-effect detected in a watcher.`);
+        }
         const newValue = this.compute();
         if (!areEqual(newValue, oldValue)) {
-            // should optionally queue
             this._callback.call(obj, newValue, oldValue, obj);
+        }
+        if (!this._isQueued) {
+            this._computeDepth = 0;
         }
     }
     compute() {
-        this.running = true;
         this.obs.version++;
         try {
             enter(this);
-            return this._value = unwrap(this.$get.call(void 0, this.useProxy ? wrap(this.obj) : this.obj, this));
+            return this._value = unwrap(this.$get.call(void 0, wrap(this.obj), this));
         }
         finally {
             this.obs.clear();
-            this.running = false;
             exit(this);
         }
     }
@@ -4229,47 +4142,68 @@ class ExpressionWatcher {
     get value() {
         return this._value;
     }
-    constructor(scope, l, oL, expression, callback) {
+    constructor(scope, l, oL, expression, callback, flush = 'async') {
         this.scope = scope;
         this.l = l;
         this.oL = oL;
         this.isBound = false;
+        /** @internal */
+        this._isQueued = false;
         // see Listener binding for explanation
         /** @internal */
         this.boundFn = false;
         this.obj = scope.bindingContext;
         this._expression = expression;
         this._callback = callback;
+        this._flush = flush;
     }
-    handleChange(value) {
+    handleChange() {
+        this.run();
+    }
+    handleCollectionChange() {
+        this.run();
+    }
+    run() {
+        if (!this.isBound)
+            return;
+        if (this._flush === 'sync') {
+            this._run();
+            return;
+        }
+        if (this._isQueued)
+            return;
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            this._run();
+        });
+    }
+    /** @internal */
+    _run() {
+        if (!this.isBound)
+            return;
         const expr = this._expression;
         const obj = this.obj;
         const oldValue = this._value;
-        const canOptimize = expr.$kind === 'AccessScope' && this.obs.count === 1;
-        if (!canOptimize) {
-            this.obs.version++;
-            value = astEvaluate(expr, this.scope, this, this);
-            this.obs.clear();
-        }
+        this.obs.version++;
+        const value = astEvaluate(expr, this.scope, this, this);
+        this.obs.clear();
         if (!areEqual(value, oldValue)) {
             this._value = value;
-            // should optionally queue for batch synchronous
             this._callback.call(obj, value, oldValue, obj);
         }
     }
     bind() {
-        if (this.isBound) {
+        if (this.isBound)
             return;
-        }
         this.obs.version++;
         this._value = astEvaluate(this._expression, this.scope, this, this);
         this.obs.clear();
         this.isBound = true;
     }
     unbind() {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
         this.isBound = false;
         this.obs.clearAll();
         this._value = void 0;
@@ -5293,16 +5227,16 @@ function createObservers(controller, definition, instance) {
     const queueCallback = hasAggregatedCallbacks
         ? (() => {
             let changes = {};
-            let promise = void 0;
+            let isQueued = false;
             let changeCount = 0;
-            const resolvedPromise = Promise.resolve();
             const callPropertiesChanged = () => {
-                if (promise == null) {
-                    promise = resolvedPromise.then(() => {
+                if (!isQueued) {
+                    isQueued = true;
+                    queueTask(() => {
+                        isQueued = false;
                         const $changes = changes;
                         changes = {};
                         changeCount = 0;
-                        promise = void 0;
                         if (controller.isBound) {
                             instance.propertiesChanged?.($changes);
                             if (changeCount > 0) {
@@ -5366,9 +5300,10 @@ function createWatchers(controller, context, definition, instance) {
     let expression;
     let callback;
     let ast;
+    let flush;
     let i = 0;
     for (; ii > i; ++i) {
-        ({ expression, callback } = watches[i]);
+        ({ expression, callback, flush } = watches[i]);
         callback = isFunction(callback)
             ? callback
             : Reflect.get(instance, callback);
@@ -5376,13 +5311,13 @@ function createWatchers(controller, context, definition, instance) {
             throw createMappedError(506 /* ErrorNames.controller_watch_invalid_callback */, callback);
         }
         if (isFunction(expression)) {
-            controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback, true));
+            controller.addBinding(new ComputedWatcher(instance, observerLocator, expression, callback, flush));
         }
         else {
             ast = isString(expression)
                 ? expressionParser.parse(expression, etIsProperty)
                 : getAccessScopeAst(expression);
-            controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback));
+            controller.addBinding(new ExpressionWatcher(scope, context, observerLocator, ast, callback, flush));
         }
     }
 }
@@ -6238,11 +6173,6 @@ class Aurelia {
         this._isStarting = false;
         /** @internal */
         this._isStopping = false;
-        // TODO:
-        // root should just be a controller,
-        // in all other parts of the framework, root of something is always the same type of that thing
-        // i.e: container.root => a container, RouteContext.root => a RouteContext
-        // Aurelia.root of a controller hierarchy should behave similarly
         /** @internal */
         this._root = void 0;
         this.next = void 0;
@@ -6309,14 +6239,17 @@ class Aurelia {
             this._isRunning = false;
             this._isStopping = true;
             return this._stopPromise = onResolve(root.deactivate(), () => {
-                Reflect.deleteProperty(root.host, '$aurelia');
-                if (dispose) {
-                    root.dispose();
-                }
-                this._root = void 0;
-                this._rootProvider.dispose();
-                this._isStopping = false;
-                this._dispatchEvent(root, 'au-stopped', root.host);
+                return onResolve(tasksSettled(), () => {
+                    Reflect.deleteProperty(root.host, '$aurelia');
+                    if (dispose) {
+                        root.dispose();
+                    }
+                    this._root = void 0;
+                    this._rootProvider.dispose();
+                    this._isStopping = false;
+                    this._stopPromise = void 0;
+                    this._dispatchEvent(root, 'au-stopped', root.host);
+                });
             });
         }
     }
@@ -8911,7 +8844,7 @@ class Case {
         /** @internal */ this._factory = resolve(IViewFactory);
         /** @internal */ this._locator = resolve(IObserverLocator);
         /** @internal */ this._location = resolve(IRenderLocation);
-        /** @internal */ this._logger = resolve(ILogger).scopeTo(`${this.constructor.name}-#${this.id}`);
+        /** @internal */ this._logger = resolve(ILogger).scopeTo(`Case-#${this.id}`);
     }
     link(controller, _childController, _target, _instruction) {
         const switchController = controller.parent;
@@ -9037,7 +8970,6 @@ class PromiseTemplateController {
             }
             return;
         }
-        const q = this._platform.domQueue;
         const fulfilled = this.fulfilled;
         const rejected = this.rejected;
         const pending = this.pending;
@@ -9049,7 +8981,7 @@ class PromiseTemplateController {
             void onResolveAll(
             // At first deactivate the fulfilled and rejected views, as well as activate the pending view.
             // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
-            preSettlePromise = (this.preSettledTask = q.queueTask(() => {
+            preSettlePromise = (this.preSettledTask = queueAsyncTask(() => {
                 return onResolveAll(fulfilled?.deactivate(initiator), rejected?.deactivate(initiator), pending?.activate(initiator, s));
             })).result.catch((err) => { if (!(err instanceof TaskAbortError))
                 throw err; }), value
@@ -9059,7 +8991,7 @@ class PromiseTemplateController {
                 }
                 const fulfill = () => {
                     // Deactivation of pending view and the activation of the fulfilled view should not necessarily be sequential.
-                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(pending?.deactivate(initiator), rejected?.deactivate(initiator), fulfilled?.activate(initiator, s, data)))).result;
+                    this.postSettlePromise = (this.postSettledTask = queueAsyncTask(() => onResolveAll(pending?.deactivate(initiator), rejected?.deactivate(initiator), fulfilled?.activate(initiator, s, data)))).result;
                 };
                 if (this.preSettledTask.status === tsRunning) {
                     void preSettlePromise.then(fulfill);
@@ -9074,7 +9006,7 @@ class PromiseTemplateController {
                 }
                 const reject = () => {
                     // Deactivation of pending view and the activation of the rejected view should also not necessarily be sequential.
-                    this.postSettlePromise = (this.postSettledTask = q.queueTask(() => onResolveAll(pending?.deactivate(initiator), fulfilled?.deactivate(initiator), rejected?.activate(initiator, s, err)))).result;
+                    this.postSettlePromise = (this.postSettledTask = queueAsyncTask(() => onResolveAll(pending?.deactivate(initiator), fulfilled?.deactivate(initiator), rejected?.activate(initiator, s, err)))).result;
                 };
                 if (this.preSettledTask.status === tsRunning) {
                     void preSettlePromise.then(reject);
@@ -10230,11 +10162,11 @@ class Show {
         this.el = resolve(INode);
         this.p = resolve(IPlatform);
         /** @internal */ this._isActive = false;
-        /** @internal */ this._task = null;
+        /** @internal */ this._isQueued = false;
         this.$val = '';
         this.$prio = '';
         this.update = () => {
-            this._task = null;
+            this._isQueued = false;
             // Only compare at the synchronous moment when we're about to update, because the value might have changed since the update was queued.
             if (Boolean(this.value) !== this._isToggled) {
                 if (this._isToggled === this._base) {
@@ -10266,12 +10198,12 @@ class Show {
     }
     detaching() {
         this._isActive = false;
-        this._task?.cancel();
-        this._task = null;
+        this._isQueued = false;
     }
     valueChanged() {
-        if (this._isActive && this._task === null) {
-            this._task = this.p.domQueue.queueTask(this.update);
+        if (this._isActive && !this._isQueued) {
+            this._isQueued = true;
+            queueTask(this.update);
         }
     }
 }

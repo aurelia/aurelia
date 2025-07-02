@@ -3059,6 +3059,7 @@ class Router {
         /** @internal */ this._nextTr = null;
         /** @internal */ this._locationChangeSubscription = null;
         /** @internal */ this._hasTitleBuilder = false;
+        /** @internal */ this._activeContexts = [];
         /** @internal */ this._isNavigating = false;
         /** @internal */ this._container = kernel.resolve(kernel.IContainer);
         /** @internal */ this._p = kernel.resolve(runtimeHtml.IPlatform);
@@ -3303,6 +3304,9 @@ class Router {
          * When done, the instruction can be compared starting with the root node.
          */
         this._isNavigating = true;
+        for (const ctx of this._activeContexts) {
+            ctx.routeConfigContext._handleNavigationStart();
+        }
         let navigationContext = this._resolveContext(tr.options.context);
         const logger = /*@__PURE__*/ this._logger.scopeTo('run()');
         trace(logger, 3258 /* Events.rtrRunBegin */, tr);
@@ -3450,6 +3454,17 @@ class Router {
             }
         }
         return title;
+    }
+    /** @internal */
+    _subscribeNavigationStart(ctx) {
+        this._activeContexts.push(ctx);
+    }
+    /** @internal */
+    _unsubscribeNavigationStart(ctx) {
+        const idx = this._activeContexts.indexOf(ctx);
+        if (idx > -1) {
+            this._activeContexts.splice(idx, 1);
+        }
     }
     /** @internal */
     _cancelNavigation(tr) {
@@ -4375,6 +4390,7 @@ class RouteContext {
         }
         this._logger = parentContainer.get(kernel.ILogger).scopeTo(`RouteContext<${this.routeConfigContext._friendlyPath}>`);
         trace(this._logger, 3150 /* Events.rcCreated */);
+        this._router._subscribeNavigationStart(this);
         const container = this.container = parentContainer.createChild();
         this._platform = container.get(runtimeHtml.IPlatform);
         container.registerResolver(runtimeHtml.IController, this._hostControllerProvider = new kernel.InstanceProvider(), true);
@@ -4458,6 +4474,7 @@ class RouteContext {
     }
     dispose() {
         this.container.dispose();
+        this._router._unsubscribeNavigationStart(this);
     }
     /** @internal */
     _resolveViewportAgent(req) {
@@ -4640,21 +4657,6 @@ class RouteConfigContext {
         }
         this._logger = parentContainer.get(kernel.ILogger).scopeTo(`RouteConfigContext<${this._friendlyPath}>`);
         trace(this._logger, 3150 /* Events.rcCreated */);
-        const observer = parentContainer.get(runtime.IObserverLocator).getObserver(_router, 'isNavigating');
-        const subscriber = {
-            handleChange: (newValue, _previousValue) => {
-                if (newValue !== true)
-                    return;
-                this.config._handleNavigationStart();
-                for (const childRoute of this.childRoutes) {
-                    if (childRoute instanceof Promise)
-                        continue;
-                    childRoute._handleNavigationStart();
-                }
-            }
-        };
-        observer.subscribe(subscriber);
-        this._unsubscribeIsNavigatingChange = () => observer.unsubscribe(subscriber);
         this._moduleLoader = parentContainer.get(kernel.IModuleLoader);
         this.container = parentContainer.createChild();
         this._recognizer = new routeRecognizer.RouteRecognizer();
@@ -4665,6 +4667,15 @@ class RouteConfigContext {
             this._navigationModel = null;
         }
         this._processConfig(config);
+    }
+    /** @internal */
+    _handleNavigationStart() {
+        this.config._handleNavigationStart();
+        for (const childRoute of this.childRoutes) {
+            if (childRoute instanceof Promise)
+                continue;
+            childRoute._handleNavigationStart();
+        }
     }
     /** @internal */
     _processConfig(config) {
@@ -4945,7 +4956,6 @@ class RouteConfigContext {
     }
     dispose() {
         this.container.dispose();
-        this._unsubscribeIsNavigatingChange();
     }
 }
 class $RecognizedRoute {

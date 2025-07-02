@@ -1,3 +1,4 @@
+import { tasksSettled } from '@aurelia/runtime';
 import { h, TestContext, verifyEqual, assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/select-value-observer.spec.ts', function () {
     describe('[UNIT]', function () {
@@ -18,7 +19,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             for (const values of valuesArr) {
                 for (const initial of initialArr) {
                     for (const next of nextArr) {
-                        it(`sets 'value' from "${initial}" to "${next}"`, function () {
+                        it(`sets 'value' from "${initial}" to "${next}"`, async function () {
                             const { el, sut } = createFixture(initial, values);
                             assert.strictEqual(el.value, initial, `el.value`);
                             sut.setValue(next);
@@ -41,7 +42,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             //    1. With synchronizeOptions: source => target => source. Or selected <option/> are based on value array
             //    2. Without synchronizeOptions: target => source. Or selected values are based on selected <option/>
             describe('<select multiple="true" />', function () {
-                it('retrieves value freshly when not observing', function () {
+                it('retrieves value freshly when not observing', async function () {
                     const initialValue = [];
                     const { sut, el } = createMutiSelectSut(initialValue, [
                         option({ text: 'A' }),
@@ -52,7 +53,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
                     assert.notStrictEqual(initialValue, sut.getValue());
                     assert.deepEqual(['A', 'B'], sut.getValue(), `currentValue`);
                 });
-                it('retrieves <option /> "model" if has', function () {
+                it('retrieves <option /> "model" if has', async function () {
                     const { sut } = createMutiSelectSut([], [
                         option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }),
                         option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -63,7 +64,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
                         { id: 2, name: 'select 2' }
                     ], sut.getValue());
                 });
-                it('synchronizes with array (3): disregard "value" when there is model', function () {
+                it('synchronizes with array (3): disregard "value" when there is model', async function () {
                     const { sut, el } = createMutiSelectSut([], [
                         option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
                         option({ text: 'B', value: 'BB', _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -79,7 +80,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
                         { id: 2, name: 'select 2' }
                     ]);
                 });
-                it('synchronize regardless disabled state of <option/>', function () {
+                it('synchronize regardless disabled state of <option/>', async function () {
                     const { sut, el } = createMutiSelectSut([], [
                         option({ text: 'A', value: 'AA', _model: { id: 1, name: 'select 1' }, selected: true }),
                         option({ text: 'B', value: 'BB', disabled: true, _model: { id: 2, name: 'select 2' }, selected: true }),
@@ -129,6 +130,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
                         'CC',
                     ]);
                     currentValue.push('DD');
+                    await Promise.resolve();
                     assert.strictEqual(handleChangeCallCount, 0);
                     assert.strictEqual(el.options[3].value, 'DD');
                     assert.strictEqual(el.options[3].selected, true);
@@ -141,7 +143,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
                     sut.unsubscribe(noopSubscriber);
                 });
                 describe('with <optgroup>', function () {
-                    it('synchronizes with array', function () {
+                    it('synchronizes with array', async function () {
                         const { sut, el } = createMutiSelectSut([], [
                             optgroup({}, option({ text: 'A', _model: { id: 1, name: 'select 1' }, selected: true }), option({ text: 'B', _model: { id: 2, name: 'select 2' }, selected: true })),
                             option({ text: 'C', value: 'CC' })
@@ -184,7 +186,7 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
         }
     });
     it('handles source change', async function () {
-        const { ctx, startPromise, component, tearDown } = createFixture(`<h3>Select Product</h3>
+        const { ctx, component, tearDown } = await createFixture(`<h3>Select Product</h3>
       <select value.bind="selectedProductId" ref="selectEl">
         <option model.bind="null">Choose...</option>
         <option repeat.for="product of products" model.bind="product.id">
@@ -206,28 +208,26 @@ describe('3-runtime-html/select-value-observer.spec.ts', function () {
             clear() {
                 this.selectedProductId = null;
             }
-        });
-        await startPromise;
+        }).started;
         component.selectEl.selectedIndex = 2;
         component.selectEl.dispatchEvent(new ctx.CustomEvent('change'));
         assert.strictEqual(component.selectedProductId, 1);
         component.clear();
-        assert.strictEqual(component.selectEl.selectedIndex, 2);
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(component.selectEl.selectedIndex, 0);
         await tearDown();
     });
     describe('multiple and value binding order gh #1724 https://github.com/aurelia/aurelia/issues/1724', function () {
-        it('disregards order in simple case', function () {
+        it('disregards order in simple case', async function () {
             createFixture(`<select value.bind="[]" multiple.bind="true">`);
         });
-        it('disregard order when there are more attributes in between', function () {
+        it('disregard order when there are more attributes in between', async function () {
             createFixture(`<select value.bind="[]" id.bind="a" multiple.bind="true">`);
         });
-        it('disregard order when there are more attributes at the start', function () {
+        it('disregard order when there are more attributes at the start', async function () {
             createFixture(`<select id.bind="a" value.bind="[]" multiple.bind="true">`);
         });
-        it('disregard order when there are more attributes at the end', function () {
+        it('disregard order when there are more attributes at the end', async function () {
             createFixture(`<select value.bind="[]" multiple.bind="true" id.bind="a">`);
         });
     });

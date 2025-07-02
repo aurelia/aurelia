@@ -36,7 +36,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
-import { ComputedObserver, IDirtyChecker, IObserverLocator } from '@aurelia/runtime';
+import { computed, ComputedObserver, IDirtyChecker, IObserverLocator, runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture, eachCartesianJoin, } from '@aurelia/testing';
 import { bindable, BindingMode, customElement } from '@aurelia/runtime-html';
 describe('3-runtime-html/computed-observer.spec.ts', function () {
@@ -58,13 +58,13 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.strictEqual(host.textContent, '40');
                 component.items[0].value = 100;
                 assert.strictEqual(host.textContent, '40');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '140');
                 component.items.splice(1, 1, { name: 'item - 1', value: 100 });
                 // todo: this scenario
                 // component.items[1] = { name: 'item - 1', value: 100 };
                 assert.strictEqual(host.textContent, '140');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '240');
             },
         },
@@ -85,7 +85,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.strictEqual(host.textContent, '5');
                 component.items[1].isDone = true;
                 assert.strictEqual(host.textContent, '5');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '6');
             },
         },
@@ -110,7 +110,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.html.textContent(host, '4');
                 component.items[1].isDone = true;
                 assert.html.textContent(host, '4');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.html.textContent(host, '5');
             },
         },
@@ -132,7 +132,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.strictEqual(host.textContent, '3');
                 component.itemMap.set(`item - 4`, 10);
                 assert.strictEqual(host.textContent, '3');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '4');
             },
         },
@@ -157,7 +157,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 component.items[0].isDone = false;
                 assert.strictEqual(component.activeItems.length, 6);
                 assert.strictEqual(host.textContent, '30');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '31');
             },
         },
@@ -180,7 +180,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.html.textContent(host, '1');
                 component.items.splice(0, 1, { name: 'mock', value: 1000 });
                 assert.html.textContent(host, '1');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.html.textContent(host, '1000');
             },
         },
@@ -201,7 +201,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 assert.strictEqual(host.textContent, '110');
                 component.items[0].value = 100;
                 assert.strictEqual(host.textContent, '110');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '308');
             },
         },
@@ -224,7 +224,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
             assertFn: (ctx, host, component) => {
                 assert.strictEqual(host.textContent, '2.4.6.8.10.');
                 component.items[1].isDone = true;
-                // todo: why so eagerly?
+                runTasks();
                 assert.strictEqual(host.textContent, '4.6.8.10.');
             },
         },
@@ -244,7 +244,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 inputEl.value = '50';
                 inputEl.dispatchEvent(new ctx.CustomEvent('input'));
                 assert.strictEqual(host.textContent, '');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '50');
                 assert.strictEqual(component.nameProp.value, '50');
                 assert.strictEqual(component.nameProp._value, '50');
@@ -284,7 +284,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                 inputEl.value = '50';
                 inputEl.dispatchEvent(new ctx.CustomEvent('input'));
                 assert.strictEqual(host.textContent, '');
-                ctx.platform.domQueue.flush();
+                runTasks();
                 assert.strictEqual(host.textContent, '50');
                 assert.strictEqual(component.nameProp.value, '50');
                 assert.strictEqual(component.nameProp._value, '50');
@@ -368,11 +368,11 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
                     assert.strictEqual(host.textContent, 'no value');
                     component.instrinsic.someProp = 'value';
                     assert.strictEqual(host.textContent, 'no value');
-                    ctx.platform.domQueue.flush();
+                    runTasks();
                     assert.strictEqual(host.textContent, 'no value');
                     component.instrinsic = { someProp: 'has value' };
                     assert.strictEqual(host.textContent, 'no value');
-                    ctx.platform.domQueue.flush();
+                    runTasks();
                     assert.strictEqual(host.textContent, 'has value');
                 },
             };
@@ -405,7 +405,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
         assertText('One two');
     });
     it('observers property in 2nd layer getter', async function () {
-        const { component, assertText, flush } = createFixture(`\${msg}`, class MyApp {
+        const { component, assertText } = createFixture(`\${msg}`, class MyApp {
             constructor() {
                 this.message = 'One';
             }
@@ -421,7 +421,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
         });
         assertText('One two');
         component.message = '1';
-        flush();
+        runTasks();
         assertText('1 two');
     });
     it('notifies all bindings when multiple bindings use the same getter #2093', async function () {
@@ -501,7 +501,7 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
             })();
             return NotificationWrapper = _classThis;
         })();
-        const { trigger, queryBy, flush } = createFixture(`<style>.red { background-color: pink } .has-errors { color: red }</style>
+        const { trigger, queryBy } = createFixture(`<style>.red { background-color: pink } .has-errors { color: red }</style>
       <notification-wrapper id="d1" errors.bind="errors">
         <button au-slot="content" click.trigger="toggle()">Set error</button>
       </notification-wrapper>
@@ -516,10 +516,49 @@ describe('3-runtime-html/computed-observer.spec.ts', function () {
         assert.strictEqual(queryBy('.has-errors'), null);
         assert.strictEqual(queryBy('.red'), null);
         trigger.click('button');
-        await Promise.resolve();
-        flush();
+        await tasksSettled();
         assert.notStrictEqual(queryBy('.red'), null);
         assert.notStrictEqual(queryBy('.has-errors'), null);
+    });
+    it('flushes immediately when decorated with @computed({ flush: "sync" })', async function () {
+        let i1 = 0;
+        let i2 = 0;
+        const { component } = createFixture(`\${msg} \${msg2}`, (() => {
+            var _a;
+            let _instanceExtraInitializers = [];
+            let _get_msg_decorators;
+            let _get_msg2_decorators;
+            return _a = class MyApp {
+                    constructor() {
+                        this.one = (__runInitializers(this, _instanceExtraInitializers), '1');
+                        this.two = '2';
+                    }
+                    get msg() {
+                        i1++;
+                        return `${this.one} ${this.two}`;
+                    }
+                    get msg2() {
+                        i2++;
+                        return `${this.one} ${this.two}`;
+                    }
+                },
+                (() => {
+                    const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                    _get_msg_decorators = [computed({ flush: 'sync' })];
+                    _get_msg2_decorators = [computed({ flush: 'async' })];
+                    __esDecorate(_a, null, _get_msg_decorators, { kind: "getter", name: "msg", static: false, private: false, access: { has: obj => "msg" in obj, get: obj => obj.msg }, metadata: _metadata }, null, _instanceExtraInitializers);
+                    __esDecorate(_a, null, _get_msg2_decorators, { kind: "getter", name: "msg2", static: false, private: false, access: { has: obj => "msg2" in obj, get: obj => obj.msg2 }, metadata: _metadata }, null, _instanceExtraInitializers);
+                    if (_metadata) Object.defineProperty(_a, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                })(),
+                _a;
+        })());
+        assert.deepStrictEqual([i1, i2], [1, 1]);
+        component.one = '10';
+        assert.deepStrictEqual([i1, i2], [2, 1]);
+        component.two = '20';
+        assert.deepStrictEqual([i1, i2], [3, 1]);
+        await Promise.resolve();
+        assert.deepStrictEqual([i1, i2], [3, 2]);
     });
     class Property {
         constructor(name, value) {

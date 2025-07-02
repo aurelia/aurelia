@@ -6,7 +6,7 @@
     "node": ">=14.15.0",
     "npm": ">=6.14.8"
   },
-  "version": "2.1.0-dev.202506280557",
+  "version": "2.1.0-dev.202507020759",
   "port": 9008,
   "scripts": {
     "dev": "vite dev",
@@ -17,22 +17,22 @@
     "test:watch": "npm run test:e2e:watch"
   },
   "dependencies": {
-    "@aurelia/kernel": "2.1.0-dev.202506280557",
-    "@aurelia/metadata": "2.1.0-dev.202506280557",
-    "@aurelia/platform": "2.1.0-dev.202506280557",
-    "@aurelia/platform-browser": "2.1.0-dev.202506280557",
-    "@aurelia/router-direct": "2.1.0-dev.202506280557",
-    "@aurelia/router": "2.1.0-dev.202506280557",
-    "@aurelia/runtime-html": "2.1.0-dev.202506280557",
-    "@aurelia/runtime": "2.1.0-dev.202506280557",
-    "@aurelia/ui-virtualization": "2.1.0-dev.202506280557"
+    "@aurelia/kernel": "2.1.0-dev.202507020759",
+    "@aurelia/metadata": "2.1.0-dev.202507020759",
+    "@aurelia/platform": "2.1.0-dev.202507020759",
+    "@aurelia/platform-browser": "2.1.0-dev.202507020759",
+    "@aurelia/router-direct": "2.1.0-dev.202507020759",
+    "@aurelia/router": "2.1.0-dev.202507020759",
+    "@aurelia/runtime-html": "2.1.0-dev.202507020759",
+    "@aurelia/runtime": "2.1.0-dev.202507020759",
+    "@aurelia/ui-virtualization": "2.1.0-dev.202507020759"
   },
   "devDependencies": {
     "webpack-cli": "^5.1.4",
     "webpack": "^5.90.3",
     "webpack-bundle-analyzer": "^4.10.1",
     "html-webpack-plugin": "^5.5.0",
-    "@aurelia/webpack-loader": "2.1.0-dev.202506280557",
+    "@aurelia/webpack-loader": "2.1.0-dev.202507020759",
     "ts-loader": "^9.3.0",
     "@types/node": "^20.16.10",
     "typescript": "5.4.2"

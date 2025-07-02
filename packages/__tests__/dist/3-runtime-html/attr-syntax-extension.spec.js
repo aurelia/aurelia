@@ -3,13 +3,14 @@ import { AppTask, CustomElement, NodeObserverLocator } from '@aurelia/runtime-ht
 import { assert, createFixture } from '@aurelia/testing';
 import { isNode } from '../util.js';
 import { IAttrMapper } from '@aurelia/template-compiler';
+import { tasksSettled } from '@aurelia/runtime';
 describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
     if (isNode()) {
         return;
     }
     it('understands how to transform .bind on web component custom elements', async function () {
         const elName = CustomElement.generateName();
-        const { ctx, component, appHost, startPromise, tearDown } = createFixture(`<${elName} value.bind="option"></${elName}>`, class App {
+        const { component, appHost, startPromise, tearDown } = createFixture(`<${elName} value.bind="option"></${elName}>`, class App {
             constructor() {
                 this.option = '1';
             }
@@ -49,8 +50,7 @@ describe('3-runtime-html/attr-syntax-extension.spec.ts', function () {
         selectEl.dispatchEvent(new Event('change'));
         assert.strictEqual(component.option, '2');
         component.option = '3';
-        assert.strictEqual(selectEl.value, '2');
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assert.strictEqual(selectEl.value, '3');
         await tearDown();
     });

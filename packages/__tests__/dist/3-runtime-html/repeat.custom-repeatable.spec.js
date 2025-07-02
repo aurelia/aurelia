@@ -2,9 +2,9 @@ import { Registration } from '@aurelia/kernel';
 import { ArrayLikeHandler, IRepeatableHandler } from '@aurelia/runtime-html';
 import { assert, createFixture } from "@aurelia/testing";
 describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
-    it('repeats an html collection', function () {
+    it('repeats an html collection', async function () {
         var _a;
-        const { assertText } = createFixture('<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>', class {
+        const { assertText } = await createFixture('<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>', class {
             bound() {
                 this.items = this.p?.childNodes;
             }
@@ -23,12 +23,12 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
                     }
                 },
                 _a.$au = { type: 'value-converter', name: 'nodeName' },
-                _a)]);
+                _a)]).started;
         assertText('hey 0--#text');
     });
-    it('repeats an html collection using the default array like handler', function () {
+    it('repeats an html collection using the default array like handler', async function () {
         var _a;
-        const { assertText } = createFixture('<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>', class {
+        const { assertText } = await createFixture('<p ref="p">hey</p> <div repeat.for="i of items">${$index}--${i | nodeName}</div>', class {
             bound() {
                 this.items = this.p?.childNodes;
             }
@@ -38,10 +38,10 @@ describe("3-runtime-html/repeat.custom-repeatable.spec.ts", function () {
                     }
                 },
                 _a.$au = { type: 'value-converter', name: 'nodeName' },
-                _a)]);
+                _a)]).started;
         assertText('hey 0--#text');
     });
-    it('throws on unknown repetable value', function () {
+    it('throws on unknown repetable value', async function () {
         assert.throws(() => createFixture('<div repeat.for="i of {}">${$index}--${i | nodeName}</div>'));
     });
 });

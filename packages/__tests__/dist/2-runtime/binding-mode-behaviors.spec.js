@@ -18,7 +18,7 @@ describe('2-runtime/binding-mode-behaviors.spec.ts', function () {
             describe(Behavior.name, function () {
                 beforeEach(function () {
                     sut = new Behavior();
-                    binding = new PropertyBinding({ state: 0 }, container, {}, undefined, undefined, undefined, undefined, initMode, false);
+                    binding = new PropertyBinding({ state: 0 }, container, undefined, undefined, undefined, undefined, initMode, false);
                     sut.bind(undefined, binding);
                 });
                 it(`bind()   should apply  bindingMode ${mode}`, function () {

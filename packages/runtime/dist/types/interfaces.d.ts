@@ -116,6 +116,7 @@ export type IndexMap<T = unknown> = number[] & {
     deletedItems: T[];
     isIndexMap: true;
 };
+export declare const hasChanges: (indexMap: IndexMap) => boolean;
 export declare function copyIndexMap<T = unknown>(existing: number[] & {
     deletedIndices?: number[];
     deletedItems?: T[];

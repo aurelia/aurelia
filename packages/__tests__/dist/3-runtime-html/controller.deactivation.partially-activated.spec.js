@@ -37,9 +37,40 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { DI, onResolve, resolve, } from '@aurelia/kernel';
-import { CustomAttribute, CustomElement, IPlatform, customElement, lifecycleHooks, } from '@aurelia/runtime-html';
-import { assert, createFixture, } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
+import { Aurelia, CustomAttribute, CustomElement, customElement, lifecycleHooks, } from '@aurelia/runtime-html';
+import { assert, createFixture, TestContext, } from '@aurelia/testing';
 describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', function () {
+    it('should invoke lifecycles in the correct order', async function () {
+        // Note: this is not an important test, it's just a debugging playground
+        const CE = CustomElement.define({
+            name: 'c-e',
+            template: 'ce',
+        }, class CE {
+            detaching() {
+                console.log('c-e.detaching');
+            }
+        });
+        const AppRoot = CustomElement.define({
+            name: 'app-root',
+            template: '<c-e></c-e>',
+            dependencies: [CE]
+        }, class AppRoot {
+            detaching() {
+                console.log('app-root.detaching');
+            }
+        });
+        const ctx = TestContext.create();
+        const { container } = ctx;
+        const au = new Aurelia(container);
+        const host = ctx.createElement('div');
+        au.app({
+            component: AppRoot,
+            host,
+        });
+        await au.start();
+        await au.stop();
+    });
     const INotifierManager = DI.createInterface('INotifierManager', x => x.singleton(NotifierManager));
     class NotifierManager {
         constructor() {
@@ -747,7 +778,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 }
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -792,8 +822,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.c-1.binding.enter',
@@ -809,8 +838,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('resolved');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
                 mgr.assertLog([
                     'phase#3.c-1.detaching.enter',
@@ -829,8 +859,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
                 mgr.assertLog([
                     'phase#4.c-2.detaching.enter',
@@ -849,8 +878,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2', 'phase#5.textContent');
                 mgr.assertLog([
                     'phase#5.c-1.detaching.enter',
@@ -1023,7 +1054,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 }
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, Global]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -1100,8 +1130,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.Global.c-1.binding.enter',
@@ -1125,8 +1154,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('resolved');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2', 'phase#3.textContent');
                 mgr.assertLog([
                     'phase#3.Global.c-1.detaching.enter',
@@ -1169,8 +1199,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
                 mgr.assertLog([
                     'phase#4.Global.c-2.detaching.enter',
@@ -1205,8 +1234,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2', 'phase#5.textContent');
                 mgr.assertLog([
                     'phase#5.Global.c-1.detaching.enter',
@@ -1387,7 +1418,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 })();
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -1434,8 +1464,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.c-1.binding.enter',
@@ -1451,8 +1480,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('rejected');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */
@@ -1460,8 +1488,11 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
                 mgr.assertLog([
                     ...(hook === 'attaching' || hook === 'attached'
@@ -1489,8 +1520,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */
@@ -1658,7 +1690,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 }
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, Global]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -1737,8 +1768,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.Global.c-1.binding.enter',
@@ -1762,8 +1792,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('rejected');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#3.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */
@@ -1771,8 +1802,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1', 'phase#4.textContent');
                 mgr.assertLog([
                     ...(hook === 'attaching' || hook === 'attached'
@@ -1820,8 +1850,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2' : '', 'phase#5.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */
@@ -2203,7 +2234,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 }
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1c', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -2256,8 +2286,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.c-1.binding.enter',
@@ -2281,8 +2310,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('resolved');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2c', 'phase#3.textContent');
                 mgr.assertLog([
                     'phase#3.c1-c.detaching.enter',
@@ -2313,8 +2344,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
                 mgr.assertLog([
                     'phase#4.c2-c.detaching.enter',
@@ -2345,8 +2375,10 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c2c', 'phase#5.textContent');
                 mgr.assertLog([
                     'phase#5.c1-c.detaching.enter',
@@ -2524,7 +2556,6 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 }
                 const { au, appHost, container, stop } = createFixture('<c-1 if.bind="showC1"></c-1><c-2 else></c-2>', Root, [C1, C2, INotifierManager, IPromiseManager]);
                 const rootVm = au.root.controller.viewModel;
-                const queue = container.get(IPlatform).taskQueue;
                 const promiseManager = container.get(IPromiseManager);
                 assert.html.textContent(appHost, 'c1c', 'start.textContent');
                 const mgr = container.get(INotifierManager);
@@ -2579,8 +2610,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#2: try to activate c-1 - should work
                 mgr.setPrefix('phase#2');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, 'c1c', 'phase#2.textContent');
                 mgr.assertLog([
                     'phase#2.c-1.binding.enter',
@@ -2604,8 +2634,7 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 promiseManager.setMode('rejected');
                 mgr.setPrefix('phase#3');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#3.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#3', false), 'phase#3');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */
@@ -2613,8 +2642,11 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#4: try to activate c-1 - should work - JFF
                 mgr.setPrefix('phase#4');
                 rootVm.showC1 = true;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
+                await Promise.resolve();
+                await Promise.resolve();
                 assert.html.textContent(appHost, 'c1c', 'phase#4.textContent');
                 mgr.assertLog([
                     ...(hook === 'attaching' || hook === 'attached'
@@ -2653,8 +2685,9 @@ describe('3-runtime-html/controller.deactivation.partially-activated.spec.ts', f
                 // phase#5: try to activate c-2 with resolved promise - should work
                 mgr.setPrefix('phase#5');
                 rootVm.showC1 = false;
-                queue.queueTask(() => Promise.resolve());
-                await queue.yield();
+                await tasksSettled();
+                // Wait for the promises in the lifecycle hooks
+                await Promise.resolve();
                 assert.html.textContent(appHost, hook === 'attached' || hook === 'attaching' ? 'c2c' : '', 'phase#5.textContent');
                 mgr.assertLog(getPendingActivationLog('phase#5', false), 'phase#5');
                 /** clear pending promise from if as it cannot handle a activation rejection by itself */

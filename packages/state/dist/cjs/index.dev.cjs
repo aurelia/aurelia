@@ -211,12 +211,9 @@ function tryParseJson(str) {
     }
 }
 
-const atLayout = runtime.AccessorType.Layout;
-const stateActivating = runtimeHtml.State.activating;
 class StateBinding {
-    constructor(controller, locator, observerLocator, taskQueue, ast, target, prop, store, strict) {
+    constructor(controller, locator, observerLocator, ast, target, prop, store, strict) {
         this.isBound = false;
-        /** @internal */ this._task = null;
         /** @internal */ this._value = void 0;
         /** @internal */ this._sub = void 0;
         /** @internal */ this._updateCount = 0;
@@ -226,7 +223,6 @@ class StateBinding {
         this.mode = runtimeHtml.BindingMode.toView;
         this._controller = controller;
         this.l = locator;
-        this._taskQueue = taskQueue;
         this._store = store;
         this.oL = observerLocator;
         this.ast = ast;
@@ -277,65 +273,30 @@ class StateBinding {
         // also disregard incoming future value of promise resolution if any
         this._updateCount++;
         this._scope = void 0;
-        this._task?.cancel();
-        this._task = null;
         this._store.unsubscribe(this);
     }
     handleChange(newValue) {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
-        // Alpha: during bind a simple strategy for bind is always flush immediately
-        // todo:
-        //  (1). determine whether this should be the behavior
-        //  (2). if not, then fix tests to reflect the changes/platform to properly yield all with aurelia.start()
-        const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         const obsRecord = this.obs;
         obsRecord.version++;
         newValue = runtime.astEvaluate(this.ast, this._scope, this, this);
         obsRecord.clear();
-        let task;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this.updateTarget(newValue);
-                this._task = null;
-            }, updateTaskOpts);
-            task?.cancel();
-            task = null;
-        }
-        else {
-            this.updateTarget(newValue);
-        }
+        this.updateTarget(newValue);
     }
     handleStateChange() {
-        if (!this.isBound) {
+        if (!this.isBound)
             return;
-        }
         const state = this._store.getState();
         const _scope = this._scope;
         const overrideContext = _scope.overrideContext;
         _scope.bindingContext = overrideContext.bindingContext = state;
         const value = runtime.astEvaluate(this.ast, _scope, this, this.mode > runtimeHtml.BindingMode.oneTime ? this : null);
-        const shouldQueueFlush = this._controller.state !== stateActivating && (this._targetObserver.type & atLayout) > 0;
         if (value === this._value) {
             return;
         }
         this._value = value;
-        let task = null;
-        if (shouldQueueFlush) {
-            // Queue the new one before canceling the old one, to prevent early yield
-            task = this._task;
-            this._task = this._taskQueue.queueTask(() => {
-                this.updateTarget(value);
-                this._task = null;
-            }, updateTaskOpts);
-            task?.cancel();
-        }
-        else {
-            this.updateTarget(this._value);
-        }
+        this.updateTarget(value);
     }
     /** @internal */
     _unsub() {
@@ -357,9 +318,6 @@ class StateBinding {
 function isSubscribable(v) {
     return v instanceof Object && 'subscribe' in v;
 }
-const updateTaskOpts = {
-    preempt: true,
-};
 
 const bindingStateSubscriberMap = new WeakMap();
 class StateBindingBehavior {
@@ -518,7 +476,7 @@ const StateBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class
     }
     render(renderingCtrl, target, instruction, platform, exprParser, observerLocator) {
         const ast = ensureExpression(exprParser, instruction.from, 'IsFunction');
-        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, platform.domQueue, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
+        renderingCtrl.addBinding(new StateBinding(renderingCtrl, renderingCtrl.container, observerLocator, ast, target, instruction.to, this._stateContainer, renderingCtrl.strict ?? false));
     }
 }, null);
 const DispatchBindingInstructionRenderer = /*@__PURE__*/ runtimeHtml.renderer(class DispatchBindingInstructionRenderer {

@@ -1,12 +1,14 @@
 export { type IAstEvaluator, astAssign, astBind, astEvaluate, astUnbind, } from './ast.eval';
 export { mixinNoopAstEvaluator, } from './ast.utilities';
 export { Scope, BindingContext, type IBindingContext, type IOverrideContext, } from './scope';
+export { queueTask, queueAsyncTask, runTasks, tasksSettled, Task, TaskAbortError, type TaskStatus, } from './queue';
 export { type IObserverLocatorBasedConnectable, type IObserverRecord, connectable, } from './connectable';
 export { type ArrayObserver, type ArrayIndexObserver, } from './array-observer';
 export { type MapObserver, } from './map-observer';
 export { type SetObserver, } from './set-observer';
 export { CollectionLengthObserver, CollectionSizeObserver, } from './collection-length-observer';
 export { ComputedObserver, type ComputedGetterFn, } from './computed-observer';
+export { computed, } from './computed-decorators';
 export { IDirtyChecker, DirtyChecker, DirtyCheckProperty, DirtyCheckSettings, } from './dirty-checker';
 export { type IEffect, IObservation, Observation, type EffectRunFunc, } from './observation';
 export { type IObservableDefinition, observable, } from './observable';

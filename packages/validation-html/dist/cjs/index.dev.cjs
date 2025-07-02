@@ -317,7 +317,7 @@ class ValidationController {
             ];
         }
         this.validating = true;
-        const task = this.platform.domQueue.queueTask(async () => {
+        const task = runtime.queueAsyncTask(async () => {
             try {
                 const results = await Promise.all(instructions.map(async (x) => this.validator.validate(x)));
                 const newResults = results.reduce((acc, resultSet) => {
@@ -684,7 +684,7 @@ class ValidationConnector {
         this.isDirty = false;
         this.validatedOnce = false;
         this.triggerEvent = null;
-        this.task = null;
+        /** @internal */ this._isQueued = false;
         this.propertyBinding = propertyBinding;
         this.target = propertyBinding.target;
         this.defaultTrigger = defaultTrigger;
@@ -726,10 +726,8 @@ class ValidationConnector {
         }
     }
     stop() {
-        this.task?.cancel();
-        this.source = void 0;
+        this._isQueued = false;
         this.scope = void 0;
-        this.task = null;
         const triggerEventName = this.triggerEvent;
         if (triggerEventName !== null) {
             this.target?.removeEventListener(triggerEventName, this);
@@ -797,12 +795,14 @@ class ValidationConnector {
     //              if it's not observable from a high level, then we should tweak the tests
     //              or make assumption, rather than breaking encapsulation
     validateBinding() {
-        // Queue the new one before canceling the old one, to prevent early yield
-        const task = this.task;
-        this.task = this._platform.domQueue.queueTask(() => this.controller.validateBinding(this.propertyBinding));
-        if (task !== this.task) {
-            task?.cancel();
+        if (this._isQueued) {
+            return;
         }
+        this._isQueued = true;
+        runtime.queueAsyncTask(() => {
+            this._isQueued = false;
+            return this.controller.validateBinding(this.propertyBinding);
+        });
     }
     /** @internal */
     _processDelta(delta) {

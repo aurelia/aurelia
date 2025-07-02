@@ -1,6 +1,6 @@
 import { assert, eachCartesianJoin, TestContext, } from '@aurelia/testing';
 import { Aurelia, CustomElement, } from '@aurelia/runtime-html';
-import { IDirtyChecker } from '@aurelia/runtime';
+import { IDirtyChecker, runTasks } from '@aurelia/runtime';
 describe('3-runtime-html/array-index-observer.spec.ts', function () {
     describe('simple Computed Observer test case', function () {
         class TestClass {
@@ -39,7 +39,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
                     // only care about true boolean
                     assert.strictEqual(inputEl.checked, false);
                     component.itemNames.splice(0, 1, true);
-                    ctx.platform.domQueue.flush();
+                    runTasks();
                     assert.strictEqual(inputEl.checked, true, 'should have been checked');
                     inputEl.checked = false;
                     inputEl.dispatchEvent(new ctx.CustomEvent('change'));
@@ -61,9 +61,9 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
                     selectEl.options[1].selected = true;
                     selectEl.dispatchEvent(new ctx.CustomEvent('change'));
                     assert.strictEqual(component.itemNames[0], 'i-1');
-                    component.itemNames.splice(0, 1, 'i-2');
                     assert.strictEqual(selectEl.value, 'i-1');
-                    ctx.platform.domQueue.flush();
+                    component.itemNames.splice(0, 1, 'i-2');
+                    runTasks();
                     assert.strictEqual(selectEl.value, 'i-2');
                 }
             },
@@ -91,7 +91,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
                     });
                     const dirtyChecker = ctx.container.get(IDirtyChecker);
                     assert.strictEqual(dirtyChecker['tracked'].length, 0);
-                }
+                },
             },
             {
                 title: 'works in basic one way scenario without dirty checking',
@@ -103,7 +103,7 @@ describe('3-runtime-html/array-index-observer.spec.ts', function () {
                     assert.strictEqual(dirtyChecker['tracked'].length, 0, `#2`);
                     component.itemNames.splice(0, 1, '00');
                     assert.html.textContent(host, 'i-0', `#3`);
-                    ctx.platform.domQueue.flush();
+                    runTasks();
                     assert.html.textContent(host, '00', `#4`);
                 }
             }

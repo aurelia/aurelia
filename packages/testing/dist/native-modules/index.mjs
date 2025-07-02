@@ -4466,6 +4466,18 @@ function createFixture(e, t, n = [], i = true, r = TestContext.create(), a = {},
         const n = strictQueryBy(e, `to assert className contains "${t}"`);
         t.forEach(e => He.contains(n.classList, e));
     }
+    function assertClassStrict(e, ...t) {
+        const n = strictQueryBy(e, `to assert className contains only "${t}"`);
+        const i = Array.from(n.classList);
+        if (t.length === 0 && i.length > 0) {
+            He.fail(`expected element to have no classes, but found [${i.join(", ")}]`);
+        }
+        t.forEach(e => He.contains(n.classList, e));
+        const r = i.filter(e => !t.includes(e));
+        if (r.length > 0) {
+            He.fail(`expected element to only have classes [${t.join(", ")}] but found [${r.join(", ")}]`);
+        }
+    }
     function assertAttr(e, t, n) {
         const i = strictQueryBy(e, `to compare attribute "${t}" against "${n}"`);
         He.strictEqual(i.getAttribute(t), n);
@@ -4535,9 +4547,6 @@ function createFixture(e, t, n = [], i = true, r = TestContext.create(), a = {},
         } : t);
         n.dispatchEvent(new l.window.Event("scroll"));
     };
-    const flush = e => {
-        r.platform.domQueue.flush(e);
-    };
     const stop = (e = false) => {
         let t = void 0;
         try {
@@ -4583,6 +4592,7 @@ function createFixture(e, t, n = [], i = true, r = TestContext.create(), a = {},
             this.assertTextContain = assertTextContain;
             this.assertHtml = assertHtml;
             this.assertClass = assertClass;
+            this.assertClassStrict = assertClassStrict;
             this.assertAttr = assertAttr;
             this.assertAttrNS = assertAttrNS;
             this.assertStyles = assertStyles;
@@ -4592,7 +4602,6 @@ function createFixture(e, t, n = [], i = true, r = TestContext.create(), a = {},
             this.trigger = trigger;
             this.type = type;
             this.scrollBy = scrollBy;
-            this.flush = flush;
         }
         start() {
             return (w ??= p.app({

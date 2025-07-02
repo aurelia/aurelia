@@ -4,28 +4,28 @@ var e = require("@aurelia/i18n");
 
 var i = require("@aurelia/kernel");
 
-var t = require("@aurelia/runtime-html");
+var t = require("@aurelia/validation");
 
-var o = require("@aurelia/validation");
+var o = require("@aurelia/validation-html");
 
-var r = require("@aurelia/validation-html");
+var r = require("@aurelia/runtime");
 
 const a = "i18n:locale:changed:validation";
 
 const n = /*@__PURE__*/ i.DI.createInterface("I18nKeyConfiguration");
 
-class LocalizedValidationController extends r.ValidationController {
-    constructor(e = i.resolve(i.IEventAggregator), o = i.resolve(t.IPlatform)) {
+class LocalizedValidationController extends o.ValidationController {
+    constructor(e = i.resolve(i.IEventAggregator)) {
         super();
         this.localeChangeSubscription = e.subscribe(a, () => {
-            o.domQueue.queueTask(async () => {
+            r.queueAsyncTask(async () => {
                 await this.revalidateErrors();
             });
         });
     }
 }
 
-class LocalizedValidationControllerFactory extends r.ValidationControllerFactory {
+class LocalizedValidationControllerFactory extends o.ValidationControllerFactory {
     construct(e, i) {
         return e.invoke(LocalizedValidationController, i);
     }
@@ -33,7 +33,7 @@ class LocalizedValidationControllerFactory extends r.ValidationControllerFactory
 
 const s = Symbol.for("au:validation:explicit-message-key");
 
-class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
+class LocalizedValidationMessageProvider extends t.ValidationMessageProvider {
     constructor(t = i.resolve(n), o = i.resolve(i.IEventAggregator)) {
         super(undefined, []);
         this.i18n = i.resolve(e.I18N);
@@ -50,9 +50,9 @@ class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
     }
     getMessage(e) {
         const i = e.messageKey;
-        const t = this.registeredMessages.get(e);
-        if (t != null) {
-            const e = t.get(s) ?? t.get(i);
+        const o = this.registeredMessages.get(e);
+        if (o != null) {
+            const e = o.get(s) ?? o.get(i);
             if (e !== void 0) {
                 return e;
             }
@@ -61,7 +61,7 @@ class LocalizedValidationMessageProvider extends o.ValidationMessageProvider {
         const a = r != null ? this.getKey(r) : [];
         const n = this.i18n;
         if (n.i18next.exists(a)) return this.setMessage(e, n.tr(a));
-        const l = o.ValidationRuleAliasMessage.getDefaultMessages(e);
+        const l = t.ValidationRuleAliasMessage.getDefaultMessages(e);
         const c = l.length;
         if (c === 1 && i === void 0) {
             r = l[0].defaultMessage;
@@ -90,22 +90,22 @@ function createConfiguration(e) {
     return {
         optionsProvider: e,
         register(t) {
-            const o = {
-                ...r.getDefaultValidationHtmlConfiguration(),
+            const r = {
+                ...o.getDefaultValidationHtmlConfiguration(),
                 MessageProviderType: LocalizedValidationMessageProvider,
                 ValidationControllerFactoryType: LocalizedValidationControllerFactory,
                 DefaultNamespace: void 0,
                 DefaultKeyPrefix: void 0
             };
-            e(o);
+            e(r);
             const a = {
-                DefaultNamespace: o.DefaultNamespace,
-                DefaultKeyPrefix: o.DefaultKeyPrefix
+                DefaultNamespace: r.DefaultNamespace,
+                DefaultKeyPrefix: r.DefaultKeyPrefix
             };
-            return t.register(r.ValidationHtmlConfiguration.customize(e => {
+            return t.register(o.ValidationHtmlConfiguration.customize(e => {
                 for (const i of Object.keys(e)) {
-                    if (i in o) {
-                        e[i] = o[i];
+                    if (i in r) {
+                        e[i] = r[i];
                     }
                 }
             }), i.Registration.callback(n, () => a));

@@ -1,3 +1,4 @@
+import { tasksSettled } from '@aurelia/runtime';
 import { Aurelia, CustomElement } from '@aurelia/runtime-html';
 import { TestContext, assert } from "@aurelia/testing";
 describe("3-runtime-html/repeat.keyed.map.spec.ts", function () {
@@ -53,7 +54,7 @@ describe("3-runtime-html/repeat.keyed.map.spec.ts", function () {
                     async function mutate(cb) {
                         obs.observe(host, { childList: true });
                         cb();
-                        await Promise.resolve();
+                        await tasksSettled();
                         obs.disconnect();
                     }
                     try {

@@ -63,7 +63,7 @@ export { IEventTarget, IRenderLocation, type INodeSequence, FragmentNodeSequence
 export { refs, INode, } from './dom.node';
 export { IPlatform, } from './platform';
 export { CSSModulesProcessorRegistry, cssModules, ShadowDOMRegistry, shadowCSS, StyleConfiguration, IShadowDOMStyleFactory, type IShadowDOMConfiguration, AdoptedStyleSheetsStyles, StyleElementStyles, IShadowDOMStyles, IShadowDOMGlobalStyles, } from './templating/styles';
-export { Watch, watch, type IWatchDefinition, type IWatcherCallback, type IDepCollectionFn, } from './watch';
+export { Watch, watch, type IWatchOptions, type IWatchDefinition, type IWatcherCallback, type IDepCollectionFn, } from './watch';
 export { ComputedWatcher, ExpressionWatcher, } from './templating/watchers';
 export { ISignaler, } from './signaler';
 export { alias, registerAliases, } from './utilities-di';

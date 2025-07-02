@@ -37,7 +37,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { DI, IContainer, Registration, resolve } from '@aurelia/kernel';
-import { observable, } from '@aurelia/runtime';
+import { observable, tasksSettled, } from '@aurelia/runtime';
 import { CustomAttribute, IAurelia, INode, IRenderLocation, IViewFactory, alias, bindable, customAttribute, customElement, templateController } from '@aurelia/runtime-html';
 import { assert, createFixture, eachCartesianJoin } from '@aurelia/testing';
 describe('3-runtime-html/custom-attributes.spec.ts', function () {
@@ -836,6 +836,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                     assert.strictEqual(fooVm.prop, fooVm instanceof Foo4 ? 0 : 'prop', `#1 asserting Foo${idx + 1} initial`);
                 });
                 rootVm.prop = mutationValue;
+                await tasksSettled();
                 foos.forEach((fooVm, idx) => {
                     assert.strictEqual(fooVm.prop, getFooVmProps[idx](usageType), `#2 asserting Foo${idx + 1}`);
                 });
@@ -880,13 +881,13 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                 rootVm.prop = 5;
                 assert.strictEqual(foo1Vm.prop, '5', '#2 <-> RootVm.prop << 5');
                 assert.strictEqual(rootVm.prop, '5', '#2 <-> RootVm.prop << 5');
-                options.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(options.appHost.textContent, '5');
                 const date = new Date();
                 foo1Vm.prop = date;
                 assert.strictEqual(foo1Vm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
                 assert.strictEqual(rootVm.prop, date.toString(), '#3 <-> foo1Vm.prop << Date');
-                options.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(options.appHost.textContent, date.toString());
                 await options.tearDown();
             });
@@ -939,18 +940,18 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                 assert.strictEqual(foo5Vm.prop, 5, '#2 <-> RootVm.prop << 5 -> foo5Vm');
                 assert.strictEqual(foo5Vm.$observers.prop.getValue(), 5, '#2 Foo5.$observer.prop.getValue()');
                 assert.strictEqual(rootVm.prop, 5, '#2 <-> RootVm.prop << 5 -> rootVm');
-                options.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(options.appHost.textContent, '5');
                 const date = new Date();
                 foo5Vm.prop = date;
                 assert.strictEqual(foo5Vm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
                 assert.strictEqual(rootVm.prop, date.getTime(), '#3 <-> foo1Vm.prop << Date');
-                options.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(options.appHost.textContent, date.getTime().toString());
                 rootVm.prop = NaN;
                 assert.strictEqual(Object.is(foo5Vm.prop, NaN), true, '#1 <-> Foo1 initial');
                 assert.strictEqual(Object.is(rootVm.prop, NaN), true, '#1 <-> RootVm initial');
-                options.platform.domQueue.flush();
+                await tasksSettled();
                 assert.strictEqual(options.appHost.textContent, 'NaN');
                 await options.tearDown();
             });
@@ -961,7 +962,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             assert.throws(() => resolve(class Abc {
             }));
         });
-        it('works with resolve and inheritance', function () {
+        it('works with resolve and inheritance', async function () {
             class Base {
                 constructor() {
                     this.au = resolve(IAurelia);
@@ -991,7 +992,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
         });
     });
     describe('getter/[setter] bindable', function () {
-        it('works in basic scenario', function () {
+        it('works in basic scenario', async function () {
             const { assertText } = createFixture(`<div my-attr="hi">`, class App {
             }, [CustomAttribute.define({ name: 'my-attr', bindables: ['message'] }, class {
                     constructor() {
@@ -1010,7 +1011,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                 })]);
             assertText('hi');
         });
-        it('works with readonly bindable + [from-view]', function () {
+        it('works with readonly bindable + [from-view]', async function () {
             const { assertText } = createFixture('<div my-attr.from-view="message">${message}', class App {
                 constructor() {
                     this.message = '';
@@ -1026,9 +1027,10 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                         this._m = '2+';
                     }
                 })]);
+            await tasksSettled();
             assertText('2+');
         });
-        it('works with coercer bindable', function () {
+        it('works with coercer bindable', async function () {
             let setCount = 0;
             const values = [];
             let MyAttr = (() => {
@@ -1073,7 +1075,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             assert.strictEqual(setCount, 2);
             assert.deepStrictEqual(values, [1, 2]);
         });
-        it('works with array based computed bindable', function () {
+        it('works with array based computed bindable', async function () {
             const MyAttr = CustomAttribute.define({
                 name: 'my-attr',
                 bindables: ['message']
@@ -1089,6 +1091,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             }, [MyAttr]);
             assert.strictEqual(component.value, 'hello world');
             component.attr._m[1].v = 'world+';
+            await tasksSettled();
             assert.strictEqual(component.value, 'hello world+');
         });
     });
@@ -1130,7 +1133,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             })();
             return ExampleTemplateController = _classThis;
         })();
-        it('creates new container for factory when containerStrategy is "new"', function () {
+        it('creates new container for factory when containerStrategy is "new"', async function () {
             let MyAttr = (() => {
                 let _classDecorators = [customAttribute('my-attr')];
                 let _classDescriptor;
@@ -1188,7 +1191,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             assertText('5 6', { compact: true });
             assert.deepStrictEqual(examples, []);
         });
-        it('new container strategy does not get affected by nesting', function () {
+        it('new container strategy does not get affected by nesting', async function () {
             let MyCe = (() => {
                 let _classDecorators = [customElement('my-ce')];
                 let _classDescriptor;
@@ -1249,17 +1252,17 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
                 this.host.textContent = this.parent?.value ?? this.value;
             }
         });
-        it('finds closest custom attribute using string', function () {
+        it('finds closest custom attribute using string', async function () {
             const { assertText } = createFixture(`<div foo="1"><div baz="2"></div></div>`, class App {
             }, [Foo, Baz]);
             assertText('1');
         });
-        it('finds closest custom attribute using view model constructor', function () {
+        it('finds closest custom attribute using view model constructor', async function () {
             const { assertText } = createFixture(`<div foo="1"><div bar="2"></div></div>`, class App {
             }, [Foo, Bar]);
             assertText('1');
         });
-        it('returns null if no controller for the name can be found', function () {
+        it('returns null if no controller for the name can be found', async function () {
             const { assertText } = createFixture(
             // Bar is not on an child element that hosts Foo
             `
@@ -1270,7 +1273,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             }, [Foo, Bar, Baz]);
             assertText('2 3', { compact: true });
         });
-        it('finds closest custom attribute when nested multiple dom layers', function () {
+        it('finds closest custom attribute when nested multiple dom layers', async function () {
             const { assertText } = createFixture(`
         <div foo="1">
           <center>
@@ -1282,7 +1285,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             }, [Foo, Bar, Baz]);
             assertText('1 1', { compact: true });
         });
-        it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', function () {
+        it('finds closest custom attribute when nested multiple dom layers + multiple parent attributes', async function () {
             const { assertText } = createFixture(`
         <div foo="1">
           <center>
@@ -1296,7 +1299,7 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             }, [Foo, Bar, Baz]);
             assertText('3 1', { compact: true });
         });
-        it('throws when theres no attribute definition associated with the type', function () {
+        it('throws when theres no attribute definition associated with the type', async function () {
             const { appHost } = createFixture('');
             assert.throws(() => CustomAttribute.closest(appHost, class NotAttr {
             }));
@@ -1825,10 +1828,8 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             component.prop = 2;
             assert.strictEqual(changes, void 0);
             await Promise.resolve();
-            assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
-            changes = void 0;
-            await Promise.resolve();
             assert.deepStrictEqual(changes, { prop: { newValue: 3, oldValue: 2 } });
+            assert.strictEqual(await tasksSettled(), false, 'should have no new tasks after the first flush cycle');
         });
         it('does not call aggregated callback after unbind', async function () {
             let changes = void 0;
@@ -2056,8 +2057,6 @@ describe('3-runtime-html/custom-attributes.spec.ts', function () {
             assert.strictEqual(propertyChangedCallCount, 0);
             component.prop = 2;
             assert.strictEqual(changes, void 0);
-            assert.strictEqual(propChangedCallCount, 1);
-            assert.strictEqual(propertyChangedCallCount, 1);
             await Promise.resolve();
             assert.deepStrictEqual(changes, { prop: { newValue: 2, oldValue: 1 } });
             assert.strictEqual(propChangedCallCount, 1);

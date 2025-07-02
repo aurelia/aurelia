@@ -36,6 +36,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
+import { runTasks } from '@aurelia/runtime';
 import { BindingMode, bindable, customAttribute, customElement, watch } from '@aurelia/runtime-html';
 import { assert, createFixture } from '@aurelia/testing';
 describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
@@ -46,12 +47,16 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             created: (post, _, decoratorCount) => {
                 assert.strictEqual(post.deliveryCount, 0);
                 post.runner.first = 'f';
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 1 * decoratorCount);
                 post.runner.first = 'f';
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 1 * decoratorCount);
                 post.runner = { first: 'f1', last: 'l1', phone: 'p1' };
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
                 post.runner = null;
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 3 * decoratorCount);
             },
             disposed: (post, _, decoratorCount) => {
@@ -65,13 +70,17 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             created: (post, _, decoratorCount) => {
                 assert.strictEqual(post.deliveryCount, 0);
                 post.deliveries.unshift({ id: 1, name: '1', done: false });
+                runTasks();
                 // value changed from void to 1, hence 1 change handler call
                 assert.strictEqual(post.deliveryCount, 1 * decoratorCount);
                 post.deliveries.splice(0, 1, { id: 1, name: 'hello', done: true });
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
                 post.deliveries.splice(0, 1, { id: 1, name: 'hello', done: false });
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 3 * decoratorCount);
                 post.deliveries[0].done = true;
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 4 * decoratorCount);
             },
             disposed: (post, _, decoratorCount) => {
@@ -85,8 +94,10 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             created: (post, _, decoratorCount) => {
                 assert.strictEqual(post.deliveryCount, 0);
                 post[Symbol.for('packages')] = 0;
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 1 * decoratorCount);
                 post[Symbol.for('packages')] = 1;
+                runTasks();
                 assert.strictEqual(post.deliveryCount, 2 * decoratorCount);
             },
             disposed: (post, _, decoratorCount) => {
@@ -332,6 +343,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             await startPromise;
             assert.strictEqual(component.active, undefined);
             component.items.push({ active: true });
+            runTasks();
             assert.strictEqual(component.active, true);
             assert.strictEqual(callCount, 1);
             await tearDown();
@@ -382,6 +394,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             await startPromise;
             assert.strictEqual(component.active, undefined);
             component.items.push({ active: true });
+            runTasks();
             assert.strictEqual(component.active, true);
             assert.strictEqual(callCount, 1);
             await tearDown();
@@ -436,6 +449,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             await startPromise;
             assert.strictEqual(component.active, undefined);
             component.items.push({ active: true });
+            runTasks();
             assert.strictEqual(component.active, true);
             assert.strictEqual(callCount, 1);
             await tearDown();
@@ -490,6 +504,7 @@ describe('3-runtime-html/decorator-watch.expression.spec.ts', function () {
             await startPromise;
             assert.strictEqual(component.active, undefined);
             component.items.push({ active: true });
+            runTasks();
             assert.strictEqual(component.active, true);
             assert.strictEqual(callCount, 2);
             await tearDown();

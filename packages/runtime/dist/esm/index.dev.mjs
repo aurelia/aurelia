@@ -1,5 +1,5 @@
 import { DestructuringAssignmentSingleExpression, IExpressionParser } from '@aurelia/expression-parser';
-import { DI, isObjectOrFunction, isFunction, isArray, isArrayIndex, isSet, isMap, areEqual, Registration, resolve, IPlatform, ILogger, isObject, createLookup, emptyObject } from '@aurelia/kernel';
+import { DI, isObjectOrFunction, isFunction, isArray, isArrayIndex, isSet, isMap, areEqual, isSymbol, Registration, resolve, IPlatform, ILogger, isObject, createLookup, emptyObject } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 
 /**
@@ -830,6 +830,546 @@ const mixinNoopAstEvaluator = (() => (target) => {
         rtDefineHiddenProp(proto, name, () => { throw createMappedError(99 /* ErrorNames.method_not_implemented */, name); });
     });
 })();
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable jsdoc/check-indentation */
+/* eslint-disable jsdoc/no-multi-asterisks */
+const tsPending = 'pending';
+const tsRunning = 'running';
+const tsCompleted = 'completed';
+const tsCanceled = 'canceled';
+const resolvedPromise = Promise.resolve();
+let runScheduled = false;
+let isAutoRun = false;
+const queue = [];
+let pendingAsyncCount = 0;
+let settlePromise = null;
+let taskErrors = [];
+let settlePromiseResolve = null;
+let settlePromiseReject = null;
+const requestRun = () => {
+    if (!runScheduled) {
+        runScheduled = true;
+        void resolvedPromise.then(() => {
+            runScheduled = false;
+            isAutoRun = true;
+            runTasks();
+        });
+    }
+};
+const signalSettled = (hasPerformedWork) => {
+    if (settlePromise && queue.length === 0 && pendingAsyncCount === 0) {
+        settlePromise = null;
+        if (taskErrors.length > 0) {
+            const errors = taskErrors;
+            taskErrors = [];
+            if (errors.length === 1) {
+                settlePromiseReject(errors[0]);
+            }
+            else {
+                settlePromiseReject(new AggregateError(errors, 'One or more tasks failed.'));
+            }
+        }
+        else {
+            settlePromiseResolve(hasPerformedWork);
+        }
+    }
+};
+/**
+ * **Immediately drain** Aurelia's internal task queue.
+ *
+ * Normally the scheduler calls this automatically on the next micro-task
+ * whenever you enqueue work with {@link queueTask} or {@link queueAsyncTask}.
+ * Calling it yourself is only useful in **low-level tests, debugging sessions,
+ * or custom instrumentation** where you need a _synchronous_ flush.
+ *
+ * ### What it does
+ * 1. Removes each item from the queue (FIFO) and runs it.
+ * 2. If an item queues more work, the loop continues until the queue is empty,
+ *    up to **10 000 extra tasks** – after that a "Potential deadlock" error is
+ *    thrown and the queue is cleared.
+ * 3. Collects every uncaught exception.
+ *    * When you invoke the function manually those errors are re-thrown —
+ *      either the single error or an `AggregateError` if several tasks failed.*
+ *    * During the scheduler's automatic run they are _suppressed_ and will only
+ *      surface through `tasksSettled()` or the runtime console, so the app
+ *      keeps running.
+ * 4. Signals the internal "settled promise" so `await tasksSettled()` continues
+ *    once _all_ **synchronous** callbacks have finished (async promises may
+ *    still be pending).
+ *
+ * > **Tip:** In most cases you should prefer `await tasksSettled()`; it waits
+ * > for both the synchronous drain **and** any asynchronous work started by
+ * > the tasks. `runTasks()` is only needed when you must stay purely
+ * > synchronous (e.g. inside a non-async test).
+ *
+ * @throws Error            If a task throws and you called the function
+ *                          directly.
+ * @throws AggregateError   If multiple tasks throw.
+ * @throws Error            "Potential deadlock detected" when > 10 000 extra
+ *                          tasks are re-queued in one drain.
+ *
+ * @example
+ * Synchronous assertion in a non-async test
+ * ```ts
+ * it('updates the DOM synchronously', () => {
+ *   vm.value = 42;
+ *   runTasks(); // flush queue synchronously
+ *   expect(el.textContent).toBe('42');
+ * });
+ * ```
+ *
+ * @example
+ * Debugging pending tasks in the browser console
+ * ```ts
+ * // In the app startup code
+ * window.runTasks = runTasks;
+ *
+ * // After pausing in a breakpoint
+ * window.runTasks(); // force the scheduler to drain now
+ * ```
+ *
+ * @example
+ * Fail fast when a task throws during manual drain
+ * ```ts
+ * try {
+ *   runTasks();
+ * } catch (e) {
+ *   console.error('A queued operation failed:', e);
+ *   throw e; // make the test fail
+ * }
+ * ```
+ */
+const runTasks = () => {
+    const isManualRun = !isAutoRun;
+    isAutoRun = false;
+    settlePromise ??= new Promise((resolve, reject) => {
+        settlePromiseResolve = resolve;
+        settlePromiseReject = reject;
+    });
+    let extraTaskCount = -queue.length;
+    const isEmpty = queue.length === 0;
+    while (queue.length > 0) {
+        if (++extraTaskCount > 10000) {
+            const error = new Error(`Potential deadlock detected. More than 10000 extra tasks were queued from within tasks.`);
+            queue.length = 0;
+            settlePromiseReject?.(error);
+            settlePromise = null;
+            throw error;
+        }
+        const task = queue.shift();
+        if (task instanceof Task) {
+            task.run();
+        }
+        else {
+            try {
+                task();
+            }
+            catch (err) {
+                taskErrors.push(err);
+            }
+        }
+    }
+    // Make a copy; this is for testing, signalSettled will clear the array
+    const errors = taskErrors.slice();
+    signalSettled(!isEmpty);
+    if (isManualRun && errors.length > 0) {
+        if (errors.length === 1) {
+            throw errors[0];
+        }
+        else {
+            throw new AggregateError(errors, 'One or more tasks failed.');
+        }
+    }
+};
+/**
+ * Return a promise that resolves once **all queued work has finished** and the
+ * Aurelia scheduler is completely idle.
+ *
+ * Conceptually similar to a browser's "micro-task drain" (the classic
+ * `await Promise.resolve()` trick) but extended to cover:
+ *
+ * * synchronous micro-tasks queued via {@link queueTask}
+ * * asynchronous or delayed tasks queued via {@link queueAsyncTask}
+ * * any promises those callbacks return
+ *
+ * Perfect for unit / component / e2e tests where you must wait for bindings,
+ * observers, `requestAnimationFrame` chains and timers to flush **without
+ * guessing a timeout**.
+ *
+ * #### Behaviour
+ * | Situation                                                | Result                             |
+ * |----------------------------------------------------------|------------------------------------|
+ * | At least one task ran before the queue became empty      | **resolves `true`**                |
+ * | Nothing was pending when you called the function         | **resolves `false`**               |
+ * | One task throws                                          | **rejects** with that error        |
+ * | Multiple tasks throw                                     | **rejects** with an `AggregateError` |
+ *
+ * Re-invocations while work is still pending return the **same** promise; once
+ * everything settles, the next call starts a fresh cycle.
+ *
+ * @returns Promise<boolean> &mdash; `true` if any work was processed,
+ *          otherwise `false`.
+ *
+ * @throws {*} Propagates the error(s) thrown by tasks, see table above.
+ *
+ * @example
+ * <caption>Flush bindings in a component test
+ * ```ts
+ * vm.todoText = 'Write docs';
+ * vm.addTodo();
+ * await tasksSettled(); // wait for DOM & animations
+ * expect(list.children.length).toBe(1);
+ * ```
+ *
+ * @example
+ * Playwright helper to wait for framework idle
+ * ```ts
+ * // In the app startup code
+ * window.tasksSettled = tasksSettled;
+ *
+ * // helpers.ts
+ * export async function waitForIdle(page: Page) {
+ *   await page.evaluate(() => window.tasksSettled());
+ * }
+ *
+ * await page.getByRole('button', { name: 'Save' }).click();
+ * await waitForIdle(page); // no arbitrary sleeps
+ * ```
+ *
+ * @example
+ * Detect and surface aggregated task errors
+ * ```ts
+ * queueTask(() => { throw new Error('first'); });
+ * queueTask(() => { throw new Error('second'); });
+ *
+ * try {
+ *   await tasksSettled();
+ * } catch (e) {
+ *   if (e instanceof AggregateError) {
+ *     console.log('Multiple failures:', e.errors.length);
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * Ensure every test exits cleanly using the boolean result
+ * ```ts
+ * afterEach(async () => {
+ *   const didWork = await tasksSettled();
+ *   if (didWork) {
+ *     // Failing here highlights orphaned micro-tasks or timers left by the test
+ *     throw new Error('Test left pending work on the Aurelia scheduler');
+ *   }
+ * });
+ * ```
+ */
+const tasksSettled = () => {
+    // do not convert to async function (it will wrap the internal promise and cause test code to fail)
+    if (settlePromise) {
+        return settlePromise;
+    }
+    if (queue.length > 0 || pendingAsyncCount > 0) {
+        return settlePromise ??= new Promise((resolve, reject) => {
+            settlePromiseResolve = resolve;
+            settlePromiseReject = reject;
+        });
+    }
+    // Not strictly necessary but without this we need a lot of extra `await Promise.resolve()` in test code
+    return resolvedPromise.then(() => {
+        if (queue.length > 0 || pendingAsyncCount > 0) {
+            return settlePromise ??= new Promise((resolve, reject) => {
+                settlePromiseResolve = resolve;
+                settlePromiseReject = reject;
+            });
+        }
+        return false;
+    });
+};
+/**
+ * Queue a **synchronous** callback onto Aurelia's internal task queue.
+ *
+ * The callback is executed in the same micro-task drain as bindings,
+ * computed observers, and other framework internals, immediately after the
+ * current call-stack has unwound.
+ * Because these tasks are *fire-and-forget* they:
+ *
+ * * **cannot be awaited** – if you need an awaitable handle use
+ *   {@link queueAsyncTask} instead;
+ * * are still included in the bookkeeping for {@link tasksSettled}, so tests
+ *   that `await tasksSettled()` will not proceed until every queued callback
+ *   has run.
+ *
+ * **Intended audience**: framework contributors, advanced plug-ins, and custom
+ * binding strategies. Typical application code rarely needs this API.
+ *
+ * @param callback - A *synchronous* function to execute after the current
+ *                   JavaScript turn.  Any exception it throws is captured and
+ *                   surfaced collectively via `tasksSettled()` or `runTasks()`.
+ */
+const queueTask = (callback) => {
+    requestRun();
+    queue.push(callback);
+};
+/**
+ * Queue a callback to run **asynchronously** on Aurelia's central scheduler
+ * and get back a {@link Task} object you can:
+ *
+ * * `await` – via `task.result`
+ * * cancel – via `task.cancel()`
+ * * inspect – via `task.status`
+ *
+ * Any callbacks scheduled this way are automatically tracked by the framework,
+ * so `await tasksSettled()` waits until the all tasks (and any promises they return)
+ * have finished.
+ *
+ * @template R The value returned by `callback`, or the value the promise it
+ *             returns resolves to.
+ *
+ * @param callback  - A function to execute. It may be synchronous or asynchronous;
+ *                    if it returns a promise, the scheduler treats the task as
+ *                    *running* until that promise settles.
+ *
+ * @param options.delay  - Optional delay **in milliseconds** before the callback
+ *                         is queued. While waiting, the task can still be
+ *                         cancelled.
+ *
+ * @returns The {@link Task} representing the scheduled work.
+ *
+ * @throws {TaskAbortError} The task's `result` promise rejects with this error
+ *                          if the task is cancelled before it starts.
+ * @throws {*}              The task's `result` promise propagates any error
+ *                          thrown by `callback`.
+ *
+ * ---
+ *
+ * @example
+ * Component integration tests
+ * ```ts
+ * it('increments the view when the button is clicked', async () => {
+ *   const { vm, host } = await createFixture(`<counter></counter>`);
+ *   host.querySelector('button')!.click();
+ *
+ *   // This will resolve after every queued task has finished,
+ *   // including rendering.
+ *   await tasksSettled();
+ *
+ *   expect(host.textContent).toContain('1');
+ * });
+ * ```
+ *
+ * @example
+ * Debounce a network search – cancel if the user keeps typing
+ * ```ts
+ * let current: Task<SearchResult[]> | null = null;
+ *
+ * function search(term: string) {
+ *   current?.cancel(); // abort the previous call
+ *
+ *   current = queueAsyncTask(async () => {
+ *     const resp = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+ *     return resp.json() as Promise<SearchResult[]>;
+ *   }, { delay: 300 }); // classic 300 ms debounce
+ *
+ *   return current.result; // awaitable by callers
+ * }
+ * ```
+ *
+ * @example
+ * Schedule expensive canvas work onto the next animation frame (test-friendly)
+ * ```ts
+ * export function scheduleRender(frameData: Data) {
+ *   queueAsyncTask(
+ *     () => new Promise<void>(resolve => requestAnimationFrame(() => {
+ *       draw(frameData); // expensive canvas work
+ *       resolve();
+ *     }))
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * Auto-dismiss a toast after 5 s (test-friendly)
+ * ```ts
+ * export function showToast(msg: string) {
+ *   const toast = createToast(msg);
+ *   document.body.appendChild(toast);
+ *
+ *   queueAsyncTask(() => toast.remove(), { delay: 5000 });
+ * }
+ * ```
+ */
+const queueAsyncTask = (callback, options) => {
+    const task = new Task(callback, options?.delay);
+    if (task.delay != null && task.delay > 0) {
+        ++pendingAsyncCount;
+        task._timerId = setTimeout(() => {
+            --pendingAsyncCount;
+            task._timerId = undefined;
+            if (task.status === tsCanceled) {
+                signalSettled(true);
+                return;
+            }
+            queue.push(task);
+            requestRun();
+        }, task.delay);
+    }
+    else {
+        queue.push(task);
+        requestRun();
+    }
+    return task;
+};
+class TaskAbortError extends Error {
+    constructor(task) {
+        super(`Task ${task.id} was canceled.`);
+        this.task = task;
+    }
+}
+/**
+ * A handle returned by {@link queueAsyncTask} that lets you observe and control
+ * the life-cycle of a piece of scheduled work.
+ *
+ * Tasks move through **four immutable states**:
+ *
+ * | State      | Meaning | When it changes |
+ * |------------|---------|-----------------|
+ * | `"pending"`   | Waiting in the queue <br>(or in a `setTimeout` delay). | Immediately after creation. |
+ * | `"running"`   | `callback` is executing. | When the scheduler dequeues the task. |
+ * | `"completed"` | Callback (and any returned promise) settled. | After `callback` finishes / promise resolves. |
+ * | `"canceled"`  | Task was aborted **or** callback/promise rejected. | When `cancel()` succeeds, or on error. |
+ *
+ * @template R Type of the value produced by the callback.
+ */
+class Task {
+    /**
+     * A promise that:
+     * * **fulfils** with the callback's return value, or
+     * * **rejects** with:
+     *   * whatever error the callback throws,
+     *   * whatever rejection the callback's promise yields, or
+     *   * a {@link TaskAbortError} if the task is canceled before it starts.
+     *
+     * Consumers typically `await` this to know when *their* task is done without
+     * caring about unrelated work still queued.
+     *
+     * @example
+     * ```ts
+     * const toastTask = queueAsyncTask(showToast, { delay: 5000 });
+     * await toastTask.result; // waits 5 s then resolves
+     * ```
+     */
+    get result() {
+        return this._result;
+    }
+    /**
+     * Current immutable status of the task.
+     *
+     * @example
+     * ```ts
+     * const task = queueAsyncTask(() => 123);
+     * console.log(task.status); // "pending"
+     * await task.result;
+     * console.log(task.status); // "completed"
+     * ```
+     */
+    get status() {
+        return this._status;
+    }
+    constructor(callback, delay) {
+        this.callback = callback;
+        this.delay = delay;
+        /**
+         * Unique, incrementing identifier – handy for logging / debugging.
+         */
+        this.id = ++Task._taskId;
+        /** @internal */
+        this._status = tsPending;
+        this._result = new Promise((resolve, reject) => {
+            this._resolve = resolve;
+            this._reject = reject;
+        });
+    }
+    /** @internal */
+    run() {
+        if (this._status !== tsPending) {
+            throw new Error(`Cannot run task in ${this._status} state`);
+        }
+        this._status = tsRunning;
+        let ret;
+        try {
+            ret = this.callback();
+        }
+        catch (err) {
+            this._status = tsCanceled;
+            this._reject(err);
+            taskErrors.push(err);
+            return;
+        }
+        if (ret instanceof Promise) {
+            ++pendingAsyncCount;
+            ret.then(result => {
+                this._status = tsCompleted;
+                this._resolve(result);
+            }).catch(err => {
+                this._status = tsCanceled;
+                this._reject(err);
+                taskErrors.push(err);
+            }).finally(() => {
+                --pendingAsyncCount;
+                signalSettled(true);
+            });
+        }
+        else {
+            this._status = tsCompleted;
+            this._resolve(ret);
+        }
+    }
+    /**
+     * Attempt to cancel the task **before it runs**.
+     *
+     * * If the task is still `"pending"` **and**:
+     *   * waiting in a `setTimeout` → the timer is cleared.
+     *   * sitting in the queue     → it is removed.
+     *   The task transitions to `"canceled"` and `result` rejects with
+     *   {@link TaskAbortError}.
+     * * If the task is already `"running"` or `"completed"` nothing happens.
+     *
+     * @returns `true` when the task was successfully canceled,
+     *          otherwise `false`.
+     *
+     * @example
+     * ```ts
+     * const t = queueAsyncTask(fetchData, { delay: 300 });
+     * // user typed again before the debounce expired
+     * if (t.cancel()) console.log('Previous fetch aborted');
+     * ```
+     */
+    cancel() {
+        if (this._timerId !== undefined) {
+            clearTimeout(this._timerId);
+            --pendingAsyncCount;
+            this._timerId = undefined;
+            this._status = tsCanceled;
+            this._reject(new TaskAbortError(this));
+            signalSettled(true);
+            return true;
+        }
+        if (this._status === tsPending) {
+            const idx = queue.indexOf(this);
+            if (idx > -1) {
+                queue.splice(idx, 1);
+                this._status = tsCanceled;
+                this._reject(new TaskAbortError(this));
+                signalSettled(true);
+                return true;
+            }
+        }
+        return false;
+    }
+}
+/** @internal */
+Task._taskId = 0;
 
 const ICoercionConfiguration = /*@__PURE__*/ DI.createInterface('ICoercionConfiguration');
 /** @internal */ const atNone = 0b0_000_000;
@@ -2302,10 +2842,7 @@ function wrappedArraySplice(...args) {
     return wrap(getRaw(this).splice(...args));
 }
 function wrappedArrayReverse(..._args) {
-    const raw = getRaw(this);
-    const res = raw.reverse();
-    observeCollection(_connectable, raw);
-    return wrap(res);
+    return wrap(getRaw(this).reverse());
 }
 function wrappedArraySome(cb, thisArg) {
     const raw = getRaw(this);
@@ -2482,16 +3019,17 @@ const ProxyObservable = /*@__PURE__*/ rtObjectFreeze({
 });
 
 class ComputedObserver {
-    constructor(obj, get, set, observerLocator, useProxy) {
+    constructor(obj, get, set, observerLocator, flush = 'async') {
         this.type = atObserver;
         /** @internal */
         this._oldValue = void 0;
         /** @internal */
         this._value = void 0;
+        /** @internal */
         this._notified = false;
         // todo: maybe use a counter allow recursive call to a certain level
         /** @internal */
-        this._isRunning = false;
+        this._isQueued = false;
         /** @internal */
         this._isDirty = false;
         /** @internal */
@@ -2501,10 +3039,11 @@ class ComputedObserver {
         /** @internal */
         this._coercionConfig = void 0;
         this._obj = obj;
-        this._wrapped = useProxy ? wrap(obj) : obj;
+        this._wrapped = wrap(obj);
         this.$get = get;
         this.$set = set;
         this.oL = observerLocator;
+        this._flush = flush;
     }
     init(value) {
         this._value = value;
@@ -2528,10 +3067,7 @@ class ComputedObserver {
                 v = this._coercer.call(null, v, this._coercionConfig);
             }
             if (!areEqual(v, this._value)) {
-                // setting running true as a form of batching
-                this._isRunning = true;
                 this.$set.call(this._obj, v);
-                this._isRunning = false;
                 this.run();
             }
         }
@@ -2586,9 +3122,21 @@ class ComputedObserver {
         }
     }
     run() {
-        if (this._isRunning) {
+        if (this._flush === 'sync') {
+            this._run();
             return;
         }
+        if (this._isQueued) {
+            return;
+        }
+        this._isQueued = true;
+        queueTask(() => {
+            this._isQueued = false;
+            this._run();
+        });
+    }
+    /** @internal */
+    _run() {
         const currValue = this._value;
         const oldValue = this._oldValue;
         const newValue = this.compute();
@@ -2601,6 +3149,7 @@ class ComputedObserver {
         // (subscriber of this observer requests value -> this observer re-computes -> subscribers gets updated)
         // so we are only notifying subscribers when it's the actual notify phase
         if (!this._notified || !areEqual(newValue, currValue)) {
+            // todo: wrong timing, this should be after notify
             this._callback?.(newValue, oldValue);
             this.subs.notify(newValue, oldValue);
             this._oldValue = this._value = newValue;
@@ -2608,7 +3157,6 @@ class ComputedObserver {
         }
     }
     compute() {
-        this._isRunning = true;
         this.obs.version++;
         try {
             enterConnectable(this);
@@ -2616,7 +3164,6 @@ class ComputedObserver {
         }
         finally {
             this.obs.clear();
-            this._isRunning = false;
             exitConnectable(this);
         }
     }
@@ -2625,6 +3172,71 @@ class ComputedObserver {
     connectable(ComputedObserver, null);
     subscriberCollection(ComputedObserver, null);
 })();
+
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
+
+
+typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+    var e = new Error(message);
+    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+};
+
+/** @internal */
+const computedPropInfo = (() => {
+    const map = new WeakMap();
+    const normalizeKey = (key) => {
+        return isSymbol(key) ? key : String(key);
+    };
+    return {
+        get: (obj, key) => map.get(obj)?.get(normalizeKey(key)),
+        _getFlush: (obj, key) => {
+            return map.get(obj)?.get(normalizeKey(key))?.flush;
+        },
+        set: (obj, key, value) => {
+            if (!map.has(obj)) {
+                map.set(obj, new Map());
+            }
+            map.get(obj).set(normalizeKey(key), value);
+        }
+    };
+})();
+
+/**
+ * Decorate a getter to configure various aspects of the computed property created by the getter.
+ *
+ * Example usage:
+ *
+ * ```ts
+ * export class MyElement {
+ *  \@computed({ flush: 'sync' })
+ *   public get prop(): number {
+ *     return 24;
+ *   }
+ * }
+ * ```
+ */
+function computed(options) {
+    return function decorator(target, context) {
+        context.addInitializer(function () {
+            const flush = options.flush ?? 'async';
+            computedPropInfo.set(this, context.name, { flush });
+        });
+    };
+}
 
 const IDirtyChecker = /*@__PURE__*/ rtCreateInterface('IDirtyChecker', x => x.callback(() => {
         throw createMappedError(217 /* ErrorNames.dirty_check_no_handler */);
@@ -2910,7 +3522,7 @@ class DefaultNodeObserverLocator {
 }
 const IComputedObserverLocator = /*@__PURE__*/ rtCreateInterface('IComputedObserverLocator', x => x.singleton(class DefaultLocator {
     getObserver(obj, key, pd, requestor) {
-        const observer = new ComputedObserver(obj, pd.get, pd.set, requestor, true);
+        const observer = new ComputedObserver(obj, pd.get, pd.set, requestor, computedPropInfo._getFlush(obj, key));
         rtDef(obj, key, {
             enumerable: pd.enumerable,
             configurable: true,
@@ -2940,7 +3552,7 @@ class ObserverLocator {
             return new PrimitiveObserver(obj, isFunction(key) ? '' : key);
         }
         if (isFunction(key)) {
-            return new ComputedObserver(obj, key, void 0, this, true);
+            return new ComputedObserver(obj, key, void 0, this);
         }
         const lookup = getObserverLookup(obj);
         let observer = lookup[key];
@@ -3421,28 +4033,6 @@ const observable = /*@__PURE__*/ (() => {
     return observable;
 })();
 
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise, SuppressedError, Symbol, Iterator */
-
-
-typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
-    var e = new Error(message);
-    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
-
 /**
  * A decorator to signal proxy observation shouldn't make an effort to wrap an object
  */
@@ -3467,5 +4057,5 @@ function nowrap(target, context) {
 }
 /* eslint-enable */
 
-export { AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConnectableSwitcher, DirtyCheckProperty, DirtyCheckSettings, DirtyChecker, ICoercionConfiguration, IComputedObserverLocator, IDirtyChecker, INodeObserverLocator, IObservation, IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, ProxyObservable, Scope, SetterObserver, astAssign, astBind, astEvaluate, astUnbind, batch, cloneIndexMap, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, mixinNoopAstEvaluator, nowrap, observable, subscriberCollection };
+export { AccessorType, BindingContext, CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, ConnectableSwitcher, DirtyCheckProperty, DirtyCheckSettings, DirtyChecker, ICoercionConfiguration, IComputedObserverLocator, IDirtyChecker, INodeObserverLocator, IObservation, IObserverLocator, Observation, ObserverLocator, PrimitiveObserver, PropertyAccessor, ProxyObservable, Scope, SetterObserver, Task, TaskAbortError, astAssign, astBind, astEvaluate, astUnbind, batch, cloneIndexMap, computed, connectable, copyIndexMap, createIndexMap, getCollectionObserver, getObserverLookup, isIndexMap, mixinNoopAstEvaluator, nowrap, observable, queueAsyncTask, queueTask, runTasks, subscriberCollection, tasksSettled };
 //# sourceMappingURL=index.dev.mjs.map

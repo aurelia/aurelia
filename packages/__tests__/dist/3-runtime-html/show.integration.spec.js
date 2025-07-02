@@ -37,6 +37,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
     return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
 };
 import { Aurelia, customElement } from '@aurelia/runtime-html';
+import { runTasks, tasksSettled } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 function createFixture() {
     const ctx = TestContext.create();
@@ -48,7 +49,7 @@ function createFixture() {
 describe('3-runtime-html/show.integration.spec.ts', function () {
     describe('show/hide alias works properly', function () {
         it('show + hide', async function () {
-            const { au, host, p } = createFixture();
+            const { au, host } = createFixture();
             let App = (() => {
                 let _classDecorators = [customElement({ name: 'app', template: '<div show.bind="show"></div><div hide.bind="hide"></div>' })];
                 let _classDescriptor;
@@ -100,14 +101,14 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
             component.show = false;
             component.hide = true;
             component.assert(`started after mutating`);
-            p.domQueue.flush();
+            await tasksSettled();
             component.appliedShow = false;
             component.appliedHide = true;
             component.assert(`started after flushing dom writes`);
             await au.stop();
         });
         it('hide + show', async function () {
-            const { au, host, p } = createFixture();
+            const { au, host } = createFixture();
             let App = (() => {
                 let _classDecorators = [customElement({ name: 'app', template: '<div hide.bind="hide"></div><div show.bind="show"></div>' })];
                 let _classDescriptor;
@@ -159,7 +160,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
             component.show = false;
             component.hide = true;
             component.assert(`started after mutating`);
-            p.domQueue.flush();
+            await tasksSettled();
             component.appliedShow = false;
             component.appliedHide = true;
             component.assert(`started after flushing dom writes`);
@@ -188,7 +189,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                             // Initial value
                             for (const show of [true, false]) {
                                 it(`display:'${style.display}',show:${show},attaching:${attaching},attached:${attached},detaching:${detaching},unbinding:${unbinding}`, async function () {
-                                    const { au, host, p } = createFixture();
+                                    const { au, host } = createFixture();
                                     let run = 1;
                                     let App = (() => {
                                         let _classDecorators = [customElement({ name: 'app', template: `<div ${style.tag} show.bind="show"></div>` })];
@@ -225,7 +226,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                                     this.show = !this.show;
                                                     this.assert(`attached after mutating (run ${run})`);
                                                 }
-                                                p.domQueue.flush();
+                                                runTasks();
                                                 this.appliedShow = this.show;
                                                 this.assert(`attached after flushing dom writes (run ${run})`);
                                             }
@@ -269,7 +270,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                     await au.start();
                                     component.show = !component.show;
                                     component.assert(`started after mutating (run ${run})`);
-                                    p.domQueue.flush();
+                                    await tasksSettled();
                                     component.appliedShow = component.show;
                                     component.assert(`started after flushing dom writes (run ${run})`);
                                     await au.stop();
@@ -277,7 +278,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                     await au.start();
                                     component.show = !component.show;
                                     component.assert(`started after mutating (run ${run})`);
-                                    p.domQueue.flush();
+                                    await tasksSettled();
                                     component.appliedShow = component.show;
                                     component.assert(`started after flushing dom writes (run ${run})`);
                                     await au.stop();
@@ -287,7 +288,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                         describe('hide', function () {
                             for (const hide of [true, false]) {
                                 it(`display:'${style.display}',hide:${hide},attaching:${attaching},attached:${attached},detaching:${detaching},unbinding:${unbinding}`, async function () {
-                                    const { au, host, p } = createFixture();
+                                    const { au, host } = createFixture();
                                     let run = 1;
                                     let App = (() => {
                                         let _classDecorators = [customElement({ name: 'app', template: `<div ${style.tag} hide.bind="hide"></div>` })];
@@ -324,7 +325,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                                     this.hide = !this.hide;
                                                     this.assert(`attached after mutating (run ${run})`);
                                                 }
-                                                p.domQueue.flush();
+                                                runTasks();
                                                 this.appliedHide = this.hide;
                                                 this.assert(`attached after flushing dom writes (run ${run})`);
                                             }
@@ -368,7 +369,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                     await au.start();
                                     component.hide = !component.hide;
                                     component.assert(`started after mutating (run ${run})`);
-                                    p.domQueue.flush();
+                                    await tasksSettled();
                                     component.appliedHide = component.hide;
                                     component.assert(`started after flushing dom writes (run ${run})`);
                                     await au.stop();
@@ -376,7 +377,7 @@ describe('3-runtime-html/show.integration.spec.ts', function () {
                                     await au.start();
                                     component.hide = !component.hide;
                                     component.assert(`started after mutating (run ${run})`);
-                                    p.domQueue.flush();
+                                    await tasksSettled();
                                     component.appliedHide = component.hide;
                                     component.assert(`started after flushing dom writes (run ${run})`);
                                     await au.stop();

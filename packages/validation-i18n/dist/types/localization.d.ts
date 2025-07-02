@@ -1,6 +1,5 @@
 import { EventAggregator, IContainer, Key } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
-import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, ValidationMessageProvider } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
 export interface ValidationI18nCustomizationOptions extends ValidationHtmlCustomizationOptions {
@@ -11,7 +10,7 @@ export type I18nKeyConfiguration = Pick<ValidationI18nCustomizationOptions, 'Def
 export declare const I18nKeyConfiguration: import("@aurelia/kernel").InterfaceSymbol<I18nKeyConfiguration>;
 export declare class LocalizedValidationController extends ValidationController {
     private readonly localeChangeSubscription;
-    constructor(ea?: EventAggregator, platform?: IPlatform);
+    constructor(ea?: EventAggregator);
 }
 export declare class LocalizedValidationControllerFactory extends ValidationControllerFactory {
     construct(container: IContainer, _dynamicDependencies?: Key[] | undefined): IValidationController;

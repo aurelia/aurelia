@@ -15,7 +15,7 @@ export declare class RefBinding implements IBinding, ISubscriber, ICollectionSub
     updateSource(): void;
     handleChange(): void;
     handleCollectionChange(): void;
-    bind(_scope: Scope): void;
+    bind(scope: Scope): void;
     unbind(): void;
 }
 //# sourceMappingURL=ref-binding.d.ts.map

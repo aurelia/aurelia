@@ -11,7 +11,7 @@ Create a skeleton with `Webpack` as a bundler and add `markdown-loader` configur
 module: {
   rules: [
     // ...
-    { test: /\.md$/i, use: ['@aurelia/webpack-loader', 'markdown-loader'], exclude: /node_modules/ }
+    { test: /\.md$/i, use: ['@aurelia/webpack-plugin', 'markdown-loader'], exclude: /node_modules/ }
   ]
 },
 // ...

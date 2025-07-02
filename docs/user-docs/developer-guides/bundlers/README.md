@@ -19,12 +19,12 @@ Webpack is a powerful and widely used bundler that allows deep customization of 
 
 ```bash
 npm install --save-dev webpack webpack-cli webpack-dev-server
-npm install --save-dev @aurelia/webpack-loader ts-loader
+npm install --save-dev @aurelia/webpack-plugin ts-loader
 ```
 
-The `@aurelia/webpack-loader` is essential for properly processing Aurelia's HTML templates and TypeScript files with Aurelia-specific transformations.
+The `@aurelia/webpack-plugin` is essential for properly processing Aurelia's HTML templates and TypeScript files with Aurelia-specific transformations.
 
-> **Tip**: If you are migrating from Aurelia 1, you may already have a `webpack.config.js` that you can adapt for Aurelia 2, but you'll need to update the loader configuration.
+> **Tip**: If you are migrating from Aurelia 1, you may already have a `webpack.config.js` that you can adapt for Aurelia 2, but you'll need to update the plugin configuration.
 
 ### Basic Configuration
 
@@ -33,6 +33,7 @@ Here's a complete webpack configuration for Aurelia 2:
 ```js
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const AureliaPlugin = require('@aurelia/webpack-plugin');
 
 module.exports = function(env, { mode }) {
   const production = mode === 'production';
@@ -68,22 +69,19 @@ module.exports = function(env, { mode }) {
         // CSS handling
         { test: /\.css$/i, use: ['style-loader', 'css-loader'] },
 
-        // TypeScript + Aurelia loader
-        {
-          test: /\.ts$/i,
-          use: ['ts-loader', '@aurelia/webpack-loader'],
-          exclude: /node_modules/
-        },
+        // TypeScript loader
+        { test: /\.ts$/i, use: 'ts-loader', exclude: /node_modules/ },
 
         // Aurelia HTML templates
         {
           test: /\.html$/i,
-          use: '@aurelia/webpack-loader',
-          exclude: /node_modules/
+          use: '@aurelia/webpack-plugin',
+          exclude: /index\.html$/
         }
       ]
     },
     plugins: [
+      new AureliaPlugin(),
       new HtmlWebpackPlugin({ template: 'index.html' })
     ]
   };
@@ -122,49 +120,25 @@ alias: {
 ```
 
 #### Hot Module Replacement (HMR)
-To enable HMR for Aurelia components:
+To enable HMR for Aurelia components, pass the `hmr` option to the plugin:
 
 ```js
-// In devServer
-devServer: {
-  hot: true,
-  historyApiFallback: true,
-  port: 9000
-},
-
-// In module rules for TypeScript
-{
-  test: /\.ts$/i,
-  use: [
-    'ts-loader',
-    {
-      loader: '@aurelia/webpack-loader',
-      options: {
-        hmr: true  // Enable HMR for Aurelia
-      }
-    }
-  ],
-  exclude: /node_modules/
-}
+// In plugins array
+plugins: [
+  new AureliaPlugin({ hmr: true }),
+  new HtmlWebpackPlugin({ template: 'index.html' })
+]
 ```
 
 #### TypeScript Type Checking
-For enhanced TypeScript support with template type checking:
+For enhanced TypeScript support with template type checking, pass the `experimentalTemplateTypeCheck` option to the plugin:
 
 ```js
-{
-  test: /\.ts$/i,
-  use: [
-    'ts-loader',
-    {
-      loader: '@aurelia/webpack-loader',
-      options: {
-        experimentalTemplateTypeCheck: true
-      }
-    }
-  ],
-  exclude: /node_modules/
-}
+// In plugins array
+plugins: [
+  new AureliaPlugin({ experimentalTemplateTypeCheck: true }),
+  new HtmlWebpackPlugin({ template: 'index.html' })
+]
 ```
 
 ### Production Optimizations
@@ -393,19 +367,19 @@ npm install --save-dev sass              # Vite (built-in)
 
 #### "Cannot resolve module" errors
 - Ensure file extensions are properly configured in bundler resolve settings
-- Check that Aurelia loaders are properly configured for HTML and TypeScript files
+- Check that the Aurelia plugin is properly configured for HTML and TypeScript files
 
 #### Slow development builds
 - For Webpack: Enable `experiments.lazyCompilation` and proper development aliases
 - For Vite: Ensure `useDev: true` is set in the Aurelia plugin options
 
 #### HMR not working
-- Verify HMR is enabled in both bundler and Aurelia loader configurations
+- Verify HMR is enabled in both the bundler configuration and the Aurelia plugin
 - Check browser console for HMR-related warnings
 
 #### TypeScript template errors
 - Ensure proper HTML type definitions are included
-- Consider enabling `experimentalTemplateTypeCheck` in webpack loader options
+- Consider enabling `experimentalTemplateTypeCheck` in the webpack plugin options
 
 ### Performance Tips
 
@@ -418,10 +392,10 @@ npm install --save-dev sass              # Vite (built-in)
 
 ## Conclusion
 
-Aurelia 2 provides excellent bundler flexibility through dedicated loaders and plugins. **Vite** offers the fastest development experience with minimal configuration, while **Webpack** provides maximum customization options. **Parcel** offers a good middle ground with zero-configuration setup.
+Aurelia 2 provides excellent bundler flexibility through dedicated plugins and transformers. **Vite** offers the fastest development experience with minimal configuration, while **Webpack** provides maximum customization options. **Parcel** offers a good middle ground with zero-configuration setup.
 
 Key points to remember:
-- Always use the official Aurelia bundler plugins/loaders
+- Always use the official Aurelia bundler plugins
 - Configure proper TypeScript declarations for HTML modules
 - Use development bundles during development for better debugging
 - Enable HMR for the best development experience

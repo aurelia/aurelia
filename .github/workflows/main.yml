@@ -84,6 +84,7 @@ jobs:
             packages-tooling/plugin-gulp/dist
             packages-tooling/ts-jest/dist
             packages-tooling/webpack-loader/dist
+            packages-tooling/webpack-plugin/dist
 
   bench_startup:
     timeout-minutes: 10

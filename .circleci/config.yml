@@ -291,6 +291,7 @@ jobs:
             - packages/dialog/dist
             - packages/fetch-client/dist
             - packages/i18n/dist
+            - packages/insights/dist
             - packages/kernel/dist
             - packages/metadata/dist
             - packages/platform/dist

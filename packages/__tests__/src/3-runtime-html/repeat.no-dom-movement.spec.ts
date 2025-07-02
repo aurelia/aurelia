@@ -19,7 +19,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Set up MutationObserver to detect DOM removals
     let nodeWasRemoved = false;
-    const observer = new MutationObserver((mutations) => {
+    const observer = new appHost.ownerDocument.defaultView.MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const removedNode of mutation.removedNodes) {
           if (removedNode === firstItemBefore) {
@@ -60,7 +60,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Set up MutationObserver to detect DOM removals
     let nodeWasRemoved = false;
-    const observer = new MutationObserver((mutations) => {
+    const observer = new appHost.ownerDocument.defaultView.MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const removedNode of mutation.removedNodes) {
           if (removedNode === firstItemBefore) {
@@ -134,7 +134,7 @@ describe('3-runtime-html/repeat.no-dom-movement.spec.ts', function () {
 
     // Set up detailed MutationObserver to track all DOM operations
     const mutations: string[] = [];
-    const observer = new MutationObserver((mutationsList) => {
+    const observer = new appHost.ownerDocument.defaultView.MutationObserver((mutationsList) => {
       for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
           // Track removals

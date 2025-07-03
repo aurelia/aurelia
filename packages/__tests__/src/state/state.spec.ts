@@ -499,8 +499,7 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
-      flush();
-      
+
       assertValue('input', '11');
 
       trigger('input', 'input');
@@ -516,8 +515,7 @@ describe('state/state.spec.ts', function () {
 
       assertValue('input', '11');
       await resolveAfter(1);
-      flush();
-      
+
       assertValue('input', '1111');
     });
   });

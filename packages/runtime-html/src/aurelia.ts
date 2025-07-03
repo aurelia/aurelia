@@ -9,6 +9,7 @@ import type {
 } from '@aurelia/kernel';
 import { ErrorNames, createMappedError } from './errors';
 import { refs } from './dom.node';
+import { tasksSettled } from '@aurelia/runtime';
 
 export interface IAurelia extends Aurelia {}
 export const IAurelia = /*@__PURE__*/createInterface<IAurelia>('IAurelia');
@@ -24,11 +25,6 @@ export class Aurelia implements IDisposable {
   private _isStopping: boolean = false;
   public get isStopping(): boolean { return this._isStopping; }
 
-  // TODO:
-  // root should just be a controller,
-  // in all other parts of the framework, root of something is always the same type of that thing
-  // i.e: container.root => a container, RouteContext.root => a RouteContext
-  // Aurelia.root of a controller hierarchy should behave similarly
   /** @internal */
   private _root: IAppRoot | undefined = void 0;
   public get root(): IAppRoot {
@@ -129,14 +125,17 @@ export class Aurelia implements IDisposable {
       this._isStopping = true;
 
       return this._stopPromise = onResolve(root.deactivate(), () => {
-        Reflect.deleteProperty(root.host, '$aurelia');
-        if (dispose) {
-          root.dispose();
-        }
-        this._root = void 0;
-        this._rootProvider.dispose();
-        this._isStopping = false;
-        this._dispatchEvent(root, 'au-stopped', root.host);
+        return onResolve(tasksSettled(), () => {
+          Reflect.deleteProperty(root.host, '$aurelia');
+          if (dispose) {
+            root.dispose();
+          }
+          this._root = void 0;
+          this._rootProvider.dispose();
+          this._isStopping = false;
+          this._stopPromise = void 0;
+          this._dispatchEvent(root, 'au-stopped', root.host);
+        });
       });
     }
   }

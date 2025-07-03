@@ -1,9 +1,9 @@
 import { I18N, Signals } from '@aurelia/i18n';
 import { DI, EventAggregator, IContainer, IDisposable, IEventAggregator, Key, resolve } from '@aurelia/kernel';
 import { Interpolation, PrimitiveLiteralExpression } from '@aurelia/expression-parser';
-import { IPlatform } from '@aurelia/runtime-html';
 import { IValidationRule, ValidationMessageProvider, ValidationRuleAliasMessage } from '@aurelia/validation';
 import { IValidationController, ValidationController, ValidationControllerFactory, ValidationHtmlCustomizationOptions } from '@aurelia/validation-html';
+import { queueAsyncTask } from '@aurelia/runtime';
 
 const I18N_VALIDATION_EA_CHANNEL = 'i18n:locale:changed:validation';
 
@@ -19,12 +19,11 @@ export class LocalizedValidationController extends ValidationController {
   private readonly localeChangeSubscription: IDisposable;
   public constructor(
     ea: EventAggregator = resolve(IEventAggregator),
-    platform: IPlatform = resolve(IPlatform),
   ) {
     super();
     this.localeChangeSubscription = ea.subscribe(
       I18N_VALIDATION_EA_CHANNEL,
-      () => { platform.domQueue.queueTask(async () => { await this.revalidateErrors(); }); }
+      () => { queueAsyncTask(async () => { await this.revalidateErrors(); }); }
     );
   }
 }

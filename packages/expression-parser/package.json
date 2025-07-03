@@ -56,7 +56,7 @@
     "@aurelia/kernel": "2.0.0-beta.24"
   },
   "devDependencies": {
-    "typescript": "5.4.2"
+    "typescript": "5.8.3"
   },
   "engines": {
     "node": ">=20.16.0"

@@ -277,10 +277,7 @@ function wrappedArraySplice(this: unknown[], ...args: [number, number, ...unknow
   return wrap(getRaw(this).splice(...args));
 }
 function wrappedArrayReverse(this: unknown[], ..._args: unknown[]): unknown[] {
-  const raw = getRaw(this);
-  const res = raw.reverse();
-  observeCollection(_connectable, raw);
-  return wrap(res);
+  return wrap(getRaw(this).reverse());
 }
 
 function wrappedArraySome(this: unknown[], cb: (v: unknown, i: number, arr: unknown[]) => boolean, thisArg?: unknown): boolean {

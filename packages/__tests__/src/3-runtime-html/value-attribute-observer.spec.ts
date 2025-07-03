@@ -1,4 +1,5 @@
 import { ValueAttributeObserver } from '@aurelia/runtime-html';
+import { runTasks } from '@aurelia/runtime';
 import { _, TestContext, assert, createSpy } from '@aurelia/testing';
 
 // eslint-disable-next-line mocha/no-skipped-tests
@@ -45,9 +46,9 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
         for (const valueBefore of [...nullValues, ...validValues]) {
           for (const valueAfter of [...nullValues, ...validValues]) {
 
-            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
+            it(_`hasSubscriber=${hasSubscriber}, valueBefore=${valueBefore}, valueAfter=${valueAfter}`, async function () {
 
-              const { ctx, sut, el, subscriber, platform } = createFixture(hasSubscriber);
+              const { ctx, sut, el, subscriber } = createFixture(hasSubscriber);
 
               const expectedValueBefore = nullValues.includes(valueBefore) ? '' : valueBefore;
               const expectedValueAfter = nullValues.includes(valueAfter) ? '' : valueAfter;
@@ -58,7 +59,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
 
               sut.setValue(valueBefore);
               // assert.strictEqual(lifecycle.flushCount, changeCountBefore, 'lifecycle.flushCount 1');
-              platform.domQueue.flush();
+              runTasks();
               assert.strictEqual(el.value, expectedValueBefore, 'el.value 1');
               assert.strictEqual(sut.getValue(), expectedValueBefore, 'sut.getValue() 1');
               if (hasSubscriber && changeCountBefore) {
@@ -74,7 +75,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
 
               sut.setValue(valueAfter);
               // assert.strictEqual(lifecycle.flushCount, changeCountAfter, 'lifecycle.flushCount 2');
-              platform.domQueue.flush();
+              runTasks();
               assert.strictEqual(el.value, expectedValueAfter, 'el.value 2');
               assert.strictEqual(sut.getValue(), expectedValueAfter, 'sut.getValue() 2',);
               if (hasSubscriber && changeCountAfter) {
@@ -123,7 +124,7 @@ describe.skip('3-runtime-html/value-attribute-observer.spec.ts', function () {
         for (const valueAfter of [...nullValues, ...validValues]) {
           for (const event of ['change', 'input']) {
 
-            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, function () {
+            it(_`valueBefore=${valueBefore}, valueAfter=${valueAfter}`, async function () {
 
               const { ctx, sut, el, subscriber } = createFixture();
 

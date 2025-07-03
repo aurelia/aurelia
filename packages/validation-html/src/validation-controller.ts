@@ -14,6 +14,7 @@ import {
 } from '@aurelia/expression-parser';
 import {
   astEvaluate,
+  queueAsyncTask,
   IConnectable,
   type Scope,
 } from '@aurelia/runtime';
@@ -397,7 +398,7 @@ export class ValidationController implements IValidationController {
     }
 
     this.validating = true;
-    const task = this.platform.domQueue.queueTask(async () => {
+    const task = queueAsyncTask(async () => {
       try {
         const results = await Promise.all(instructions.map(
           async (x) => this.validator.validate(x)

@@ -9,23 +9,23 @@ export type Selector<S, R> = (state: S) => R;
  * the selected values. If a single selector function is supplied, it will be
  * memoized directly.
  */
-export function createSelector<S, R>(selector: Selector<S, R>): Selector<S, R>;
-export function createSelector<S, A, R>(
+export function fromMemoState<S, R>(selector: Selector<S, R>): Selector<S, R>;
+export function fromMemoState<S, A, R>(
   s1: Selector<S, A>,
   resultFn: (a: A) => R,
 ): Selector<S, R>;
-export function createSelector<S, A, B, R>(
+export function fromMemoState<S, A, B, R>(
   s1: Selector<S, A>,
   s2: Selector<S, B>,
   resultFn: (a: A, b: B) => R,
 ): Selector<S, R>;
-export function createSelector<S, A, B, C, R>(
+export function fromMemoState<S, A, B, C, R>(
   s1: Selector<S, A>,
   s2: Selector<S, B>,
   s3: Selector<S, C>,
   resultFn: (a: A, b: B, c: C) => R,
 ): Selector<S, R>;
-export function createSelector<S>(
+export function fromMemoState<S>(
   ...fns: (Selector<S, unknown> | ((...args: unknown[]) => unknown))[]
 ): Selector<S, unknown> {
   if (fns.length === 1) {

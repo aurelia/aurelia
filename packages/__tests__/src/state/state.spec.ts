@@ -1,6 +1,6 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement, createSelector } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement, fromMemoState } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -1044,12 +1044,12 @@ describe('state/state.spec.ts', function () {
       assert.deepStrictEqual(finalState.processedBy, ['middleware1', 'middleware2', 'handler']);
     });
   });
-  describe('createSelector', function () {
+  describe('fromMemoState', function () {
     it('memoizes results based on dependencies', function () {
       interface S { items: number[]; flag: boolean; }
       const items = [1, 2, 3];
       let computeCalls = 0;
-      const total = createSelector(
+      const total = fromMemoState(
         (s: S) => s.items,
         i => { computeCalls++; return i.reduce((a, b) => a + b, 0); }
       );
@@ -1072,7 +1072,7 @@ describe('state/state.spec.ts', function () {
         flag: boolean;
       }
       let calls = 0;
-      const selectFlag = createSelector((s: S) => { calls++; return s.flag; });
+      const selectFlag = fromMemoState((s: S) => { calls++; return s.flag; });
 
       const s: S = { flag: true };
       assert.strictEqual(selectFlag(s), true);
@@ -1084,7 +1084,7 @@ describe('state/state.spec.ts', function () {
   it('works with the fromState decorator', async function () {
     interface S { items: number[]; flag: boolean; }
     let computeCalls = 0;
-    const selectTotal = createSelector(
+    const selectTotal = fromMemoState(
       (s: S) => s.items,
       items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
     );
@@ -1096,7 +1096,7 @@ describe('state/state.spec.ts', function () {
     }
 
     const state: S = { items: [1, 2, 3], flag: false };
-    const { trigger, assertText, flush } = await createFixture
+    const { trigger, assertText } = await createFixture
       .html`
         <my-el></my-el>
         <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
@@ -1116,12 +1116,10 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(computeCalls, 1);
 
     trigger('#flag', 'click');
-    flush();
     assertText('my-el', '6');
     assert.strictEqual(computeCalls, 1);
 
     trigger('#add', 'click');
-    flush();
     assertText('my-el', '10');
     assert.strictEqual(computeCalls, 2);
   });
@@ -1129,7 +1127,7 @@ describe('state/state.spec.ts', function () {
   it('shares memoized results across components', async function () {
     interface S { items: number[]; flag: boolean; }
     let computeCalls = 0;
-    const selectTotal = createSelector(
+    const selectTotal = fromMemoState(
       (s: S) => s.items,
       items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
     );
@@ -1141,7 +1139,7 @@ describe('state/state.spec.ts', function () {
     class ElB { @fromState<S>(selectTotal) total: number; }
 
     const state: S = { items: [1, 2, 3], flag: false };
-    const { trigger, assertText, flush } = await createFixture
+    const { trigger, assertText } = await createFixture
       .html`
         <el-a></el-a>
         <el-b></el-b>
@@ -1164,13 +1162,11 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(computeCalls, 1);
 
     trigger('#flag', 'click');
-    flush();
     assertText('el-a', '6');
     assertText('el-b', '6');
     assert.strictEqual(computeCalls, 1);
 
     trigger('#add', 'click');
-    flush();
     assertText('el-a', '10');
     assertText('el-b', '10');
     assert.strictEqual(computeCalls, 2);

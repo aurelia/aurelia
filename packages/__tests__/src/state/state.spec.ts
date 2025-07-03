@@ -1,6 +1,6 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement, fromMemoState } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, Store, fromMemoState } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -1078,6 +1078,213 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(selectFlag(s), true);
       selectFlag(s);
       assert.strictEqual(calls, 1);
+    });
+
+    it('tracks multiple dependencies correctly', function () {
+      interface S { items: number[]; search: string; sortOrder: 'asc' | 'desc'; }
+      let computeCalls = 0;
+
+      const selectFiltered = fromMemoState(
+        (s: S) => s.items,
+        (s: S) => s.search,
+        (s: S) => s.sortOrder,
+        (items, search, sortOrder) => {
+          computeCalls++;
+          return items
+            .filter(item => item.toString().includes(search))
+            .sort((a, b) => sortOrder === 'asc' ? a - b : b - a);
+        }
+      );
+
+      // Initial state
+      const s1: S = { items: [3, 1, 4, 1, 5], search: '1', sortOrder: 'asc' };
+      assert.deepStrictEqual(selectFiltered(s1), [1, 1]);
+      assert.strictEqual(computeCalls, 1);
+
+      // Same state - should not recompute
+      const s2: S = { items: [3, 1, 4, 1, 5], search: '1', sortOrder: 'asc' };
+      assert.deepStrictEqual(selectFiltered(s2), [1, 1]);
+      assert.strictEqual(computeCalls, 1);
+
+      // Change only items - should recompute
+      const s3: S = { items: [3, 1, 4, 1, 5, 9], search: '1', sortOrder: 'asc' };
+      assert.deepStrictEqual(selectFiltered(s3), [1, 1]);
+      assert.strictEqual(computeCalls, 2);
+
+      // Change only search - should recompute
+      const s4: S = { items: [3, 1, 4, 1, 5, 9], search: '3', sortOrder: 'asc' };
+      assert.deepStrictEqual(selectFiltered(s4), [3]);
+      assert.strictEqual(computeCalls, 3);
+
+      // Change only sortOrder - should recompute
+      const s5: S = { items: [3, 1, 4, 1, 5, 9], search: '3', sortOrder: 'desc' };
+      assert.deepStrictEqual(selectFiltered(s5), [3]);
+      assert.strictEqual(computeCalls, 4);
+    });
+
+    it('handles dependency isolation - changing one dependency recomputes only when that dependency actually changed', function () {
+      interface S {
+        userList: { id: number; name: string; }[];
+        filter: string;
+        sort: 'name' | 'id';
+        pagination: { page: number; size: number; };
+      }
+      let computeCalls = 0;
+
+      const selectFilteredUsers = fromMemoState(
+        (s: S) => s.userList,
+        (s: S) => s.filter,
+        (s: S) => s.sort,
+        (users, filter, sort) => {
+          computeCalls++;
+          return users
+            .filter(user => user.name.includes(filter))
+            .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : a.id - b.id);
+        }
+      );
+
+      const users = [
+        { id: 2, name: 'Alice' },
+        { id: 1, name: 'Bob' },
+        { id: 3, name: 'Charlie' }
+      ];
+
+      // Initial computation
+      const s1: S = { userList: users, filter: '', sort: 'name', pagination: { page: 1, size: 10 } };
+      const result1 = selectFilteredUsers(s1);
+      assert.strictEqual((result1 as typeof users).length, 3);
+      assert.strictEqual((result1 as typeof users)[0].name, 'Alice');
+      assert.strictEqual(computeCalls, 1);
+
+      // Change pagination (not a dependency) - should NOT recompute
+      const s2: S = { userList: users, filter: '', sort: 'name', pagination: { page: 2, size: 10 } };
+      const result2 = selectFilteredUsers(s2);
+      assert.deepStrictEqual(result2, result1);
+      assert.strictEqual(computeCalls, 1); // Still 1!
+
+      // Change filter - should recompute
+      const s3: S = { userList: users, filter: 'A', sort: 'name', pagination: { page: 2, size: 10 } };
+      const result3 = selectFilteredUsers(s3);
+      assert.strictEqual((result3 as typeof users).length, 1);
+      assert.strictEqual((result3 as typeof users)[0].name, 'Alice');
+      assert.strictEqual(computeCalls, 2);
+    });
+
+    it('handles complex scenarios with multiple data transformations', function () {
+      interface S {
+        data: number[];
+        filterMin: number;
+        transformFn: 'square' | 'double';
+      }
+      let computeCalls = 0;
+
+      const selectProcessedData = fromMemoState(
+        (s: S) => s.data,
+        (s: S) => s.filterMin,
+        (s: S) => s.transformFn,
+        (data, filterMin, transformFn) => {
+          computeCalls++;
+
+          const filtered = data.filter(n => n >= filterMin);
+
+          const transformed = filtered.map(n => {
+            switch (transformFn) {
+              case 'square': return n * n;
+              case 'double': return n * 2;
+              default: return n;
+            }
+          });
+
+          return transformed.sort((a, b) => a - b);
+        }
+      );
+
+      // Initial state
+      const s1: S = { data: [1, 2, 3, 4, 5], filterMin: 3, transformFn: 'square' };
+      assert.deepStrictEqual(selectProcessedData(s1), [9, 16, 25]); // [3,4,5] squared
+      assert.strictEqual(computeCalls, 1);
+
+      // Change data
+      const s2: S = { ...s1, data: [1, 2, 3, 4, 5, 6] };
+      assert.deepStrictEqual(selectProcessedData(s2), [9, 16, 25, 36]); // Now includes 6
+      assert.strictEqual(computeCalls, 2);
+
+      // Change filterMin
+      const s3: S = { ...s2, filterMin: 4 };
+      assert.deepStrictEqual(selectProcessedData(s3), [16, 25, 36]); // Excludes 3
+      assert.strictEqual(computeCalls, 3);
+
+      // Change transformFn
+      const s4: S = { ...s3, transformFn: 'double' };
+      assert.deepStrictEqual(selectProcessedData(s4), [8, 10, 12]); // [4,5,6] doubled
+      assert.strictEqual(computeCalls, 4);
+
+      // Same state again - should not recompute
+      const s5: S = { ...s4 };
+      assert.deepStrictEqual(selectProcessedData(s5), [8, 10, 12]);
+      assert.strictEqual(computeCalls, 4); // Still 4!
+    });
+
+    it('memoizes with mixed dependency types (primitives, objects, arrays)', function () {
+      interface S {
+        config: { theme: string; locale: string; };
+        items: string[];
+        multiplier: number;
+      }
+      let computeCalls = 0;
+
+      const selectConfiguredItems = fromMemoState(
+        (s: S) => s.config,
+        (s: S) => s.items,
+        (s: S) => s.multiplier,
+        (config, items, multiplier) => {
+          computeCalls++;
+
+          return items.map((item, index) => ({
+            id: index * multiplier,
+            text: `[${config.locale}] ${item}`,
+            theme: config.theme
+          }));
+        }
+      );
+
+      const config1 = { theme: 'dark', locale: 'en' };
+      const items1 = ['apple', 'banana'];
+
+      // Initial state
+      const s1: S = { config: config1, items: items1, multiplier: 10 };
+      const result1 = selectConfiguredItems(s1) as { id: number; text: string; theme: string; }[];
+      assert.strictEqual(result1.length, 2);
+      assert.strictEqual(result1[0].text, '[en] apple');
+      assert.strictEqual(result1[0].theme, 'dark');
+      assert.strictEqual(computeCalls, 1);
+
+      // Same references - should not recompute
+      const s2: S = { config: config1, items: items1, multiplier: 10 };
+      const result2 = selectConfiguredItems(s2);
+      assert.deepStrictEqual(result2, result1);
+      assert.strictEqual(computeCalls, 1); // Still 1!
+
+      // Change config object reference but same content - should recompute (reference equality)
+      const config2 = { theme: 'dark', locale: 'en' }; // New object, same content
+      const s3: S = { config: config2, items: items1, multiplier: 10 };
+      const result3 = selectConfiguredItems(s3);
+      assert.deepStrictEqual(result3, result1); // Same result but recomputed
+      assert.strictEqual(computeCalls, 2);
+
+      // Change array reference - should recompute
+      const items2 = ['apple', 'banana']; // New array, same content
+      const s4: S = { config: config2, items: items2, multiplier: 10 };
+      const result4 = selectConfiguredItems(s4);
+      assert.deepStrictEqual(result4, result1); // Same result but recomputed
+      assert.strictEqual(computeCalls, 3);
+
+      // Change multiplier - should recompute with different result
+      const s5: S = { config: config2, items: items2, multiplier: 20 };
+      const result5 = selectConfiguredItems(s5) as { id: number; text: string; theme: string; }[];
+      assert.strictEqual(result5[0].id, 0); // 0 * 20
+      assert.strictEqual(result5[1].id, 20); // 1 * 20
+      assert.strictEqual(computeCalls, 4);
     });
   });
 

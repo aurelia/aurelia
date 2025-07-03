@@ -1,5 +1,6 @@
 import { disableComposeCompat, enableComposeCompat } from '@aurelia/compat-v1';
 import { CustomElement } from '@aurelia/runtime-html';
+import { tasksSettled } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 // only smoke tests here, enough to assert the most basic behaviors/expectation
@@ -34,7 +35,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
       });
 
       it('works with view string from view model', async function () {
-        const { ctx, component, tearDown, assertText } = createFixture(
+        const { component, tearDown, assertText } = createFixture(
           '<au-compose view.bind="view">',
           class App {
             public message = 'hello world';
@@ -47,7 +48,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
         component.message = 'hello';
 
         assertText('hello world');
-        ctx.platform.domQueue.flush();
+        await tasksSettled();
         assertText('hello');
 
         await tearDown();
@@ -71,6 +72,7 @@ describe('compat-v1/au-compose.spec.ts', function () {
           }
         );
 
+        await tasksSettled();
         assertText('Aurelia!!');
 
         await tearDown();

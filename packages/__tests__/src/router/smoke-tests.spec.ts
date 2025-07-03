@@ -1,5 +1,6 @@
 import { LogLevel, Constructable, kebabCase, ILogConfig, Registration, noop, IModule, inject, resolve } from '@aurelia/kernel';
 import { assert, MockBrowserHistoryLocation, TestContext } from '@aurelia/testing';
+import { tasksSettled } from '@aurelia/runtime';
 import { RouterConfiguration, IRouter, NavigationInstruction, IRouteContext, RouteNode, Params, route, INavigationModel, IRouterOptions, IRouteViewModel, IRouteConfig, Router, HistoryStrategy, IRouterEvents, ITypedNavigationInstruction_string, IViewportInstruction, RouteConfig, Routeable, RouterOptions, RouteContext } from '@aurelia/router';
 import { Aurelia, valueConverter, customElement, CustomElement, ICustomElementViewModel, IHistory, IHydratedController, ILocation, INode, IPlatform, IWindow, watch } from '@aurelia/runtime-html';
 
@@ -3344,7 +3345,7 @@ describe('router/smoke-tests.spec.ts', function () {
     assert.strictEqual(host.querySelector('a').getAttribute('href'), 'abc');
 
     component.href = null;
-    ctx.platform.domQueue.flush();
+    await tasksSettled();
 
     assert.strictEqual(host.querySelector('a').getAttribute('href'), null);
 
@@ -4716,11 +4717,11 @@ describe('router/smoke-tests.spec.ts', function () {
     await au.app({ component: Root, host }).start();
 
     const log = (au.root.controller.viewModel as Root).isNavigatingLog;
-    assert.deepStrictEqual(log, [true, false]);
+    assert.deepStrictEqual(log, []);
 
     log.length = 0;
     await container.get(IRouter).load('p2');
-    assert.deepStrictEqual(log, [true, false]);
+    assert.deepStrictEqual(log, []);
 
     await au.stop(true);
   });

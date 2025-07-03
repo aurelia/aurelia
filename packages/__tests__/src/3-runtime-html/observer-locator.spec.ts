@@ -1,4 +1,4 @@
-import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
+import { CollectionLengthObserver, CollectionSizeObserver, ComputedObserver, DirtyCheckProperty, runTasks, PrimitiveObserver, PropertyAccessor, SetterObserver } from '@aurelia/runtime';
 import {
   AttributeNSAccessor,
   CheckedObserver,
@@ -32,7 +32,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     const el = ctx.createElementFromMarkup(markup);
     const attr = el.attributes[0];
     const expected = sut.getObserver(el, attr.name);
-    it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, function () {
+    it(_`getAccessor() - ${markup} - returns ${expected.constructor.name}`, async function () {
       const actual = sut.getAccessor(el, attr.name);
       assert.instanceOf(actual, expected['constructor'], `actual`);
     });
@@ -53,7 +53,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
   //   `<div aria-=""></div>`,
   //   `<div aria-a=""></div>`,
   // ]) {
-  //   it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, function () {
+  //   it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, async function () {
   //     const el = ctx.createElement(markup) as Element;
   //     const attr = el.attributes[0];
   //     const { sut } = createFixture();
@@ -70,7 +70,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     `<div aria-=""></div>`,
     `<div aria-a=""></div>`,
   ]) {
-    it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, function () {
+    it(_`getAccessor() - ${markup} - returns DataAttributeAccessor`, async function () {
       const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
@@ -87,7 +87,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     `<div _4:a=""></div>`,
     `<div a:a=""></div>`
   ]) {
-    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, function () {
+    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, async function () {
       const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
@@ -111,7 +111,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     `<div aria=""></div>`,
     `<div ariaa=""></div>`,
   ]) {
-    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, function () {
+    it(_`getAccessor() - ${markup} - returns ElementPropertyAccessor`, async function () {
       const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
@@ -121,7 +121,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     });
   }
 
-  it(_`getAccessor() - {} - returns PropertyAccessor`, function () {
+  it(_`getAccessor() - {} - returns PropertyAccessor`, async function () {
     const { sut } = createFixture();
     const obj = {};
     const actual = sut.getAccessor(obj, 'foo');
@@ -133,7 +133,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     undefined, null, true, false, '', 'foo',
     Number.MAX_VALUE, Number.MAX_SAFE_INTEGER, Number.MIN_VALUE, Number.MIN_SAFE_INTEGER, 0, +Infinity, -Infinity, NaN
   ] as any[]) {
-    it(_`getObserver() - ${obj} - returns PrimitiveObserver`, function () {
+    it(_`getObserver() - ${obj} - returns PrimitiveObserver`, async function () {
       const { sut } = createFixture();
       if (obj == null) {
         assert.throws(() => sut.getObserver(obj, 'foo'));
@@ -145,7 +145,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     });
   }
 
-  it(_`getObserver() - {} - twice in a row - reuses existing observer`, function () {
+  it(_`getObserver() - {} - twice in a row - reuses existing observer`, async function () {
     const { sut } = createFixture();
     const obj = {};
     const expected = sut.getObserver(obj, 'foo');
@@ -153,7 +153,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.strictEqual(actual, expected, `actual`);
   });
 
-  it(_`getObserver() - {} - twice in a row different property - returns different observer`, function () {
+  it(_`getObserver() - {} - twice in a row different property - returns different observer`, async function () {
     const { sut } = createFixture();
     const obj = {};
     const expected = sut.getObserver(obj, 'foo');
@@ -176,7 +176,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     { markup: `<div aria-=""></div>`, ctor: DataAttributeAccessor },
     { markup: `<div aria-a=""></div>`, ctor: DataAttributeAccessor }
   ]) {
-    it(_`getObserver() - ${markup} - returns ${ctor.name}`, function () {
+    it(_`getObserver() - ${markup} - returns ${ctor.name}`, async function () {
       const { ctx, sut } = createFixture();
       const el = ctx.createElementFromMarkup(markup);
       const attr = el.attributes[0];
@@ -195,7 +195,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
               for (const isVolatile of hasOverrides ? [true, false, undefined] : [false]) {
                 for (const hasAdapterObserver of [true, false]) {
                   for (const adapterIsDefined of hasAdapterObserver ? [true, false] : [false]) {
-                    it(_`getObserver() - descriptor=${{ configurable, enumerable }}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
+                    it(_`getObserver() - descriptor=${{ configurable, enumerable }}, hasGetter=${hasGetter}, hasSetter=${hasSetter}, hasOverrides=${hasOverrides}, isVolatile=${isVolatile}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, async function () {
                       const { sut } = createFixture();
                       const obj = {};
                       const dummyObserver = {} as any;
@@ -267,7 +267,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         ...Object.getOwnPropertyDescriptors(PLATFORM.HTMLElement.prototype)
       };
       for (const property of Object.keys(descriptors)) {
-        it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, function () {
+        it(_`getObserver() - obj=<div></div>, property=${property}, hasAdapterObserver=${hasAdapterObserver}, adapterIsDefined=${adapterIsDefined}`, async function () {
           const { ctx, sut } = createFixture();
           const obj = ctx.createElement('div');
           const dummyObserver = {} as any;
@@ -296,7 +296,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     }
   }
 
-  it(`getObserver() - Array.foo - returns ArrayObserver`, function () {
+  it(`getObserver() - Array.foo - returns ArrayObserver`, async function () {
     const { sut } = createFixture();
     const obj = [];
     const actual = sut.getObserver(obj, 'foo');
@@ -304,7 +304,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
-  it(`getObserver() - Array.length - returns ArrayObserver`, function () {
+  it(`getObserver() - Array.length - returns ArrayObserver`, async function () {
     const { sut } = createFixture();
     const obj = [];
     const actual = sut.getObserver(obj, 'length');
@@ -312,7 +312,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.instanceOf(actual, CollectionLengthObserver, `actual`);
   });
 
-  it(`getObserver() - Set.foo - returns SetObserver`, function () {
+  it(`getObserver() - Set.foo - returns SetObserver`, async function () {
     const { sut } = createFixture();
     const obj = new Set();
     const actual = sut.getObserver(obj, 'foo');
@@ -320,7 +320,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
-  it(`getObserver() - Set.size - returns SetObserver`, function () {
+  it(`getObserver() - Set.size - returns SetObserver`, async function () {
     const { sut } = createFixture();
     const obj = new Set();
     const actual = sut.getObserver(obj, 'size');
@@ -328,7 +328,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.instanceOf(actual, CollectionSizeObserver, `actual`);
   });
 
-  it(`getObserver() - Map.foo - returns MapObserver`, function () {
+  it(`getObserver() - Map.foo - returns MapObserver`, async function () {
     const { sut } = createFixture();
     const obj = new Map();
     const actual = sut.getObserver(obj, 'foo');
@@ -336,7 +336,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
     assert.instanceOf(actual, SetterObserver, `actual`);
   });
 
-  it(`getObserver() - Map.size - returns MapObserver`, function () {
+  it(`getObserver() - Map.size - returns MapObserver`, async function () {
     const { sut } = createFixture();
     const obj = new Map();
     const actual = sut.getObserver(obj, 'size');
@@ -345,7 +345,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
   });
 
   describe('with getter fn', function () {
-    it('on normal object', function () {
+    it('on normal object', async function () {
       const { sut } = createFixture();
       const obj = { prop: 1 };
       let v = 0;
@@ -353,10 +353,11 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         handleChange: () => v = 1
       });
       obj.prop = 2;
+      runTasks();
       assert.strictEqual(v, 1);
     });
 
-    it('on array', function () {
+    it('on array', async function () {
       const { sut } = createFixture();
       const obj = [{ prop: 1 }];
       let v = 0;
@@ -364,6 +365,7 @@ describe('3-runtime-html/observer-locator.spec.ts', function () {
         handleChange: () => v = 1
       });
       obj.splice(0, 1, { prop: 2 });
+      runTasks();
       assert.strictEqual(v, 1);
     });
   });

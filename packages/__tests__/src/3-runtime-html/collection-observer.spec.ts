@@ -1,46 +1,47 @@
 import { createFixture } from '@aurelia/testing';
+import { runTasks } from '@aurelia/runtime';
 
 describe('3-runtime-html/collection-observer.spec.ts', function () {
   describe('map', function () {
-    it('observes map.size', function () {
-      const { assertText, component, flush } = createFixture('Size: ${map.size}', { map: new Map() });
+    it('observes map.size', async function () {
+      const { assertText, component } = createFixture('Size: ${map.size}', { map: new Map() });
 
       assertText('Size: 0');
 
       component.map.set('a', 1);
-      flush();
+      runTasks();
       assertText('Size: 1');
 
       component.map.delete('a');
-      flush();
+      runTasks();
       assertText('Size: 0');
 
       component.map.set('a', 1);
-      flush();
+      runTasks();
       component.map.clear();
-      flush();
+      runTasks();
       assertText('Size: 0');
     });
   });
 
   describe('set', function () {
-    it('observes set.size', function () {
-      const { assertText, component, flush } = createFixture('Size: ${set.size}', { set: new Set() });
+    it('observes set.size', async function () {
+      const { assertText, component } = createFixture('Size: ${set.size}', { set: new Set() });
 
       assertText('Size: 0');
 
       component.set.add('a');
-      flush();
+      runTasks();
       assertText('Size: 1');
 
       component.set.delete('a');
-      flush();
+      runTasks();
       assertText('Size: 0');
 
       component.set.add('a');
-      flush();
+      runTasks();
       component.set.clear();
-      flush();
+      runTasks();
       assertText('Size: 0');
     });
 

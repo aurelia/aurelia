@@ -1,6 +1,6 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState, Store, MiddlewarePlacement } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, Store, fromMemoState } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -1044,6 +1044,87 @@ describe('state/state.spec.ts', function () {
       assert.deepStrictEqual(finalState.processedBy, ['middleware1', 'middleware2', 'handler']);
     });
   });
+  describe('fromMemoState', function () {
+    it('memoizes single dependency correctly', function () {
+      interface S { data: number[]; other: string; }
+      let computeCalls = 0;
+
+      const selectSum = fromMemoState(
+        (s: S) => s.data,
+        (data: number[]) => { computeCalls++; return data.reduce((a, b) => a + b, 0); }
+      );
+
+      const data1 = [1, 2, 3];
+      const s1: S = { data: data1, other: 'test' };
+
+      // First call - should compute
+      assert.strictEqual(selectSum(s1), 6);
+      assert.strictEqual(computeCalls, 1);
+
+      // Same data reference - should use cache
+      const s2: S = { data: data1, other: 'changed' };
+      assert.strictEqual(selectSum(s2), 6);
+      assert.strictEqual(computeCalls, 1); // Should not recompute
+
+      // Different data reference - should recompute
+      const s3: S = { data: [1, 2, 3, 4], other: 'changed' };
+      assert.strictEqual(selectSum(s3), 10);
+      assert.strictEqual(computeCalls, 2);
+    });
+
+    it('memoizes multiple dependencies correctly', function () {
+      interface S { items: number[]; filter: string; untracked: boolean; }
+      let computeCalls = 0;
+
+      const selectFiltered = fromMemoState(
+        (s: S) => s.items,
+        (s: S) => s.filter,
+        (items: number[], filter: string) => {
+          computeCalls++;
+          return items.filter(n => n.toString().includes(filter));
+        }
+      );
+
+      const items1 = [1, 2, 3, 11, 12];
+      const s1: S = { items: items1, filter: '1', untracked: true };
+
+      // Initial computation
+      assert.deepStrictEqual(selectFiltered(s1), [1, 11, 12]);
+      assert.strictEqual(computeCalls, 1);
+
+      // Change untracked property - should NOT recompute
+      const s2: S = { items: items1, filter: '1', untracked: false };
+      assert.deepStrictEqual(selectFiltered(s2), [1, 11, 12]);
+      assert.strictEqual(computeCalls, 1);
+
+      // Change dependency - should recompute
+      const s3: S = { items: items1, filter: '2', untracked: false };
+      assert.deepStrictEqual(selectFiltered(s3), [2, 12]);
+      assert.strictEqual(computeCalls, 2);
+    });
+
+    it('works with single selector function', function () {
+      interface S { flag: boolean; counter: number; }
+      let calls = 0;
+
+      const selectFlag = fromMemoState((s: S) => { calls++; return s.flag; });
+
+      const s1: S = { flag: true, counter: 1 };
+      assert.strictEqual(selectFlag(s1), true);
+      assert.strictEqual(calls, 1);
+
+      // Same state reference - should use cache
+      assert.strictEqual(selectFlag(s1), true);
+      assert.strictEqual(calls, 1);
+
+      // Different state reference - should recompute
+      const s2: S = { flag: true, counter: 1 };
+      assert.strictEqual(selectFlag(s2), true);
+      assert.strictEqual(calls, 2);
+    });
+  });
+
+
 
 });
 

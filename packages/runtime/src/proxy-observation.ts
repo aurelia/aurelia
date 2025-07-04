@@ -92,7 +92,16 @@ const objectHandler: ProxyHandler<object> = {
     // todo: static
     connectable.observe(target, key);
 
-    return wrap(R$get(target, key, receiver));
+    const value = R$get(target, key, receiver);
+    const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
+
+    // ensure Proxy spec compliance, value of non-configurable and non-writable property MUST be returned as is
+    // https://262.ecma-international.org/8.0/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+    if (descriptor?.configurable === false && descriptor.writable === false) {
+      return value;
+    }
+
+    return wrap(value);
   },
   deleteProperty(target, p) {
     if (__DEV__) {

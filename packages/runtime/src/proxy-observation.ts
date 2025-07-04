@@ -49,7 +49,7 @@ export function unwrap<T>(v: T): T {
 }
 
 function doNotCollect(object: object, key: PropertyKey): boolean {
-  return key === 'constructor'
+  if (key === 'constructor'
     || key === '__proto__'
     // probably should revert to v1 naming style for consistency with builtin?
     // __o__ is shorters & less chance of conflict with other libs as well
@@ -59,7 +59,15 @@ function doNotCollect(object: object, key: PropertyKey): boolean {
     // limit to string first
     // symbol can be added later
     // looking up from the constructor means inheritance is supported
-    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${rtSafeString(key)}__`] === true;
+    || (object.constructor as IIndexable<() => unknown>)[`${nowrapPropKey}_${rtSafeString(key)}__`] === true) {
+    return true;
+  }
+
+  // ensure Proxy spec compliance, value of non-configurable and non-writable property MUST be returned as is
+  // https://262.ecma-international.org/8.0/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+  const descriptor = Reflect.getOwnPropertyDescriptor(object, key);
+
+  return descriptor?.configurable === false && descriptor.writable === false;
 }
 
 function createProxy<T extends object>(obj: T): T {
@@ -92,16 +100,7 @@ const objectHandler: ProxyHandler<object> = {
     // todo: static
     connectable.observe(target, key);
 
-    const value = R$get(target, key, receiver);
-    const descriptor = Reflect.getOwnPropertyDescriptor(target, key);
-
-    // ensure Proxy spec compliance, value of non-configurable and non-writable property MUST be returned as is
-    // https://262.ecma-international.org/8.0/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
-    if (descriptor?.configurable === false && descriptor.writable === false) {
-      return value;
-    }
-
-    return wrap(value);
+    return wrap(R$get(target, key, receiver));
   },
   deleteProperty(target, p) {
     if (__DEV__) {

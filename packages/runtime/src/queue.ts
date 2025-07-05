@@ -432,12 +432,12 @@ export class Task<R = any> {
   public _timerId?: number;
 
   /** @internal */
-  private _resolve!: (value: Awaited<R>) => void;
+  private _resolve!: (value: Awaited<R> | false) => void;
   /** @internal */
   private _reject!: (reason?: any) => void;
 
   /** @internal */
-  private readonly _result: Promise<Awaited<R>>;
+  private readonly _result: Promise<Awaited<R> | false>;
   /**
    * A promise that:
    * * **fulfils** with the callback's return value, or
@@ -455,7 +455,7 @@ export class Task<R = any> {
    * await toastTask.result; // waits 5 s then resolves
    * ```
    */
-  public get result(): Promise<Awaited<R>> {
+  public get result(): Promise<Awaited<R> | false> {
     return this._result;
   }
 
@@ -480,7 +480,7 @@ export class Task<R = any> {
     public callback: TaskCallback<R>,
     public delay?: number,
   ) {
-    this._result = new Promise<Awaited<R>>((resolve, reject) => {
+    this._result = new Promise<Awaited<R> | false>((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
     });
@@ -547,7 +547,7 @@ export class Task<R = any> {
       --pendingAsyncCount;
       this._timerId = undefined;
       this._status = tsCanceled;
-      this._reject(new TaskAbortError(this));
+      this._resolve(false);
       signalSettled(true);
       return true;
     }
@@ -557,7 +557,7 @@ export class Task<R = any> {
       if (idx > -1) {
         queue.splice(idx, 1);
         this._status = tsCanceled;
-        this._reject(new TaskAbortError(this));
+        this._resolve(false);
         signalSettled(true);
         return true;
       }

@@ -19,7 +19,6 @@ export const rtDef = Reflect.defineProperty;
 /** @internal */
 export function rtDefineHiddenProp<T>(obj: object, key: PropertyKey, value: T): T {
   rtDef(obj, key, {
-    enumerable: false,
     configurable: true,
     writable: true,
     value

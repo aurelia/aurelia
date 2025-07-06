@@ -167,6 +167,51 @@ export class AutoSuggest {
 
 With the above, whenever the state changes, it will ensure the `keywords` property of the view model stays in sync with the `keywords` property on the global state.
 
+### Memoizing derived state
+
+Expensive computations in `@fromState` selectors will run on every state change by default. To avoid unnecessary work, the `createStateMemoizer` helper allows you to memoize derived values so they are recomputed only when their dependencies actually change.
+
+```ts
+import { fromState, createStateMemoizer } from '@aurelia/state';
+
+interface State { items: number[]; }
+
+const selectTotal = createStateMemoizer(
+  (s: State) => s.items,
+  items => items.reduce((a, b) => a + b, 0)
+);
+
+export class Summary {
+  @fromState(selectTotal)
+  total!: number;
+}
+```
+
+In the example above, the `selectTotal` function executes only when `items` changes by reference. Other state updates won't trigger a recalculation, keeping the component performant and giving derived logic a clear place to live.
+
+When you only need to read a value from state or perform a cheap calculation, passing a simple function directly to `@fromState` is usually adequate. The decorated property will update on every state change, which keeps things straightforward.
+
+`createStateMemoizer` shines when deriving data is expensive or shared across multiple components. Because the selector remembers its last inputs, recalculation happens only when those inputs change by reference. This reduces wasted work and centralizes complex logic.
+
+Here is another example using multiple selectors:
+
+```ts
+interface State { items: string[]; search: string; }
+
+const selectFiltered = createStateMemoizer(
+  (s: State) => s.items,
+  (s: State) => s.search,
+  (items, term) => items.filter(i => i.includes(term))
+);
+
+export class Results {
+  @fromState(selectFiltered)
+  results!: string[];
+}
+```
+
+In contrast, writing the filter inline like `@fromState(s => s.items.filter(i => i.includes(s.search)))` would rerun on every single state update, even when neither `items` nor `search` changed.
+
 ## Authoring action handlers
 
 As mentioned at the start of this guide, action handlers are the way to handle mutation of the global state. They are expected to return to a new state instead of mutating it. Even though normal mutation works, it may break future integration with devtool.

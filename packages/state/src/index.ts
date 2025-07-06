@@ -36,3 +36,4 @@ export {
 
 export { StateBindingBehavior } from './state-binding-behavior';
 export { fromState } from './state-decorator';
+export { createStateMemoizer, type StateMemoizer } from './state-memorizer';

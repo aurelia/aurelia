@@ -245,6 +245,81 @@ describe('2-runtime/queue.spec.ts', function () {
     }
   });
 
+  it('does not emit an unhandledRejection when a task is cancelled', async function () {
+    const unhandled: unknown[] = [];
+    const handler = (reason: unknown) => unhandled.push(reason);
+    let dispose: () => void;
+
+    if (typeof process !== 'undefined' && typeof process.on === 'function') {
+      process.on('unhandledRejection', handler);
+      dispose = () => process.off('unhandledRejection', handler);
+    } else {
+      addEventListener('unhandledrejection', handler);
+      dispose = () => removeEventListener('unhandledrejection', handler);
+    }
+
+    const task = queueAsyncTask(() => {/* never runs */});
+    const wasCancelled = task.cancel();
+
+    try {
+      assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a pending task');
+
+      await tasksSettled();
+
+      // Wait one more macrotask turn so the check-for-unhandled-rejection job can fire if it would have.
+      await new Promise<void>(resolve => setTimeout(resolve));
+
+      assert.deepStrictEqual(unhandled, [], 'Cancelling a task should not emit an unhandledRejection event');
+    } finally {
+      dispose();
+    }
+
+    try {
+      await task.result;
+      assert.fail('Cancelled task should have rejected');
+    } catch (e: unknown) {
+      assert.instanceOf(e, TaskAbortError);
+    }
+  });
+
+  it('does not emit an unhandledRejection when a delayed task is cancelled before it starts', async function () {
+    const unhandled: unknown[] = [];
+    const handler = (reason: unknown) => unhandled.push(reason);
+    let dispose: () => void;
+
+    if (typeof process !== 'undefined') {
+      process.on('unhandledRejection', handler);
+      dispose = () => process.off('unhandledRejection', handler);
+    } else {
+      addEventListener('unhandledrejection', handler);
+      dispose = () => removeEventListener('unhandledrejection', handler);
+    }
+
+    const task = queueAsyncTask(() => {/* never runs */}, { delay: 10 });
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    const wasCancelled = task.cancel();
+
+    try {
+      assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a delayed task which is cancelled before it starts');
+
+      await tasksSettled();
+
+      // Wait one more macrotask turn so the check-for-unhandled-rejection job can fire if it would have.
+      await new Promise<void>(resolve => setTimeout(resolve));
+
+      assert.deepStrictEqual(unhandled, [], 'Timer-based cancellation should not emit unhandledRejection');
+    } finally {
+      dispose();
+    }
+
+    try {
+      await task.result;
+      assert.fail('Cancelled task should have rejected');
+    } catch (e: unknown) {
+      assert.instanceOf(e, TaskAbortError);
+    }
+  });
+
   it('tasksSettled handles deeply nested mixed task queuing', async function () {
     const stack: string[] = [];
 

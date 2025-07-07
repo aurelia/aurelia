@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable jsdoc/check-indentation */
 /* eslint-disable jsdoc/no-multi-asterisks */
+import { noop } from '@aurelia/kernel';
+
 const tsPending = 'pending';
 const tsRunning = 'running';
 const tsCompleted = 'completed';
@@ -547,7 +549,22 @@ export class Task<R = any> {
       --pendingAsyncCount;
       this._timerId = undefined;
       this._status = tsCanceled;
-      this._reject(new TaskAbortError(this));
+      const abortErr = new TaskAbortError(this);
+      this._reject(abortErr);
+      // Attach a noop-catch so the promise is immediately handled and the host never
+      // emits an `unhandledRejection` for a *normal* cancel.
+      //
+      // IMPORTANT ──────────────────────────────────────────────────────────────
+      // - `cancel()` MUST ONLY reject with the `TaskAbortError` we just created.
+      //   Nothing else is allowed to flow through `_reject()` here.
+      // - If you ever change that invariant (e.g. forward another error or add
+      //   logging-failures), you **must** either:
+      //     1. push the new error into `taskErrors` so the scheduler's aggregator
+      //        surfaces it, or
+      //     2. replace this with a *selective* handler that re-throws anything that
+      //        isn't a TaskAbortError.
+      //   Failing to do so will silently swallow real errors in dev builds.
+      this._result.catch(noop);
       signalSettled(true);
       return true;
     }
@@ -557,7 +574,9 @@ export class Task<R = any> {
       if (idx > -1) {
         queue.splice(idx, 1);
         this._status = tsCanceled;
-        this._reject(new TaskAbortError(this));
+        const abortErr = new TaskAbortError(this);
+        this._reject(abortErr);
+        this._result.catch(noop);
         signalSettled(true);
         return true;
       }

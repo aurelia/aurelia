@@ -1,5 +1,5 @@
 import { ILogger, onResolve, onResolveAll, resolve, isPromise, registrableMetadataKey } from '@aurelia/kernel';
-import { queueAsyncTask, Task, TaskAbortError, Scope } from '@aurelia/runtime';
+import { queueAsyncTask, Task, Scope } from '@aurelia/runtime';
 import { IRenderLocation } from '../../dom';
 import { INode } from '../../dom.node';
 import { IPlatform } from '../../platform';
@@ -97,7 +97,7 @@ export class PromiseTemplateController implements ICustomAttributeViewModel {
             rejected?.deactivate(initiator),
             pending?.activate(initiator, s)
           );
-        })).result.catch((err) => { if (!(err instanceof TaskAbortError)) throw err; }),
+        })).result.catch((err) => { throw err; }),
         value
           .then(
             (data) => {

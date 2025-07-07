@@ -67,7 +67,7 @@ Our contact manager application is going to make use of Aurelia's router for ren
 The changes we are making are not too dramatic or different. We are introducing the `register` method and passing in the `RouterConfiguration` instance to tell Aurelia we want to enable routing. This will enable the router application wide.
 
 ```typescript
-import { RouterConfiguration } from '@aurelia/router';
+import { RouterConfiguration } from '@aurelia/router-direct';
 import Aurelia from 'aurelia';
 import { MyApp } from './my-app';
 

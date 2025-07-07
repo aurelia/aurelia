@@ -1,4 +1,3 @@
-import { ITask } from '@aurelia/platform';
 import { DI, IContainer, IServiceLocator, resolve } from '@aurelia/kernel';
 import { BindingBehaviorExpression } from '@aurelia/expression-parser';
 import {
@@ -10,6 +9,7 @@ import {
   Scope,
   astEvaluate,
   mixinNoopAstEvaluator,
+  queueAsyncTask,
 } from '@aurelia/runtime';
 import {
   type IBinding,
@@ -134,6 +134,7 @@ class ValidationConnector implements ValidationResultsSubscriber {
   /** @internal */ private readonly _triggerMediator: BindingMediator<'handleTriggerChange'>;
   /** @internal */ private readonly _controllerMediator: BindingMediator<'handleControllerChange'>;
   /** @internal */ private readonly _rulesMediator: BindingMediator<'handleRulesChange'>;
+  /** @internal */ private _isQueued: boolean = false;
 
   public constructor(
     platform: IPlatform,
@@ -188,10 +189,8 @@ class ValidationConnector implements ValidationResultsSubscriber {
   }
 
   public stop() {
-    this.task?.cancel();
-    this.source = void 0;
+    this._isQueued = false;
     this.scope = void 0;
-    this.task = null;
 
     const triggerEventName = this.triggerEvent;
     if (triggerEventName !== null) {
@@ -266,19 +265,18 @@ class ValidationConnector implements ValidationResultsSubscriber {
     return new ValidateArgumentsDelta(this._ensureController(controller), this._ensureTrigger(trigger), rules);
   }
 
-  private task: ITask | null = null;
   // todo(sayan): we should not be spying on a private method to do assertion
   //              if it's not observable from a high level, then we should tweak the tests
   //              or make assumption, rather than breaking encapsulation
   private validateBinding() {
-    // Queue the new one before canceling the old one, to prevent early yield
-    const task = this.task;
-    this.task = this._platform.domQueue.queueTask(() =>
-      this.controller.validateBinding(this.propertyBinding)
-    );
-    if (task !== this.task) {
-      task?.cancel();
+    if (this._isQueued) {
+      return;
     }
+    this._isQueued = true;
+    queueAsyncTask(() => {
+      this._isQueued = false;
+      return this.controller.validateBinding(this.propertyBinding);
+    });
   }
 
   /** @internal */

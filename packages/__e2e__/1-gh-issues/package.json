@@ -26,7 +26,7 @@
     "@aurelia/platform-browser": "2.0.0-beta.24",
     "@aurelia/runtime": "2.0.0-beta.24",
     "@aurelia/runtime-html": "2.0.0-beta.24",
-    "@aurelia/router-lite": "2.0.0-beta.24",
+    "@aurelia/router": "2.0.0-beta.24",
     "perf-monitor": "0.6.0"
   },
   "devDependencies": {

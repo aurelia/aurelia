@@ -1,5 +1,7 @@
 import { ValueConverter, customAttribute, customElement, ICustomAttributeController, IWindow } from '@aurelia/runtime-html';
-import { StateDefaultConfiguration, fromState } from '@aurelia/state';
+
+import { tasksSettled } from '@aurelia/runtime';
+import { StateDefaultConfiguration, fromState, createStateMemoizer } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 
 describe('state/state.spec.ts', function () {
@@ -25,7 +27,7 @@ describe('state/state.spec.ts', function () {
     assert.strictEqual(getBy('input').value, '123');
   });
 
-  it('understands shorthand syntax', function () {
+  it('understands shorthand syntax', async function () {
     const state = { value: '1' };
     const { assertValue } = createFixture
       .html`<input value.state>`
@@ -117,7 +119,7 @@ describe('state/state.spec.ts', function () {
 
   it('reacts to view model changes', async function () {
     const state = { text: '123' };
-    const { component, getBy, flush } = await createFixture
+    const { component, getBy } = await createFixture
       .component({ value: '--' })
       .html('<input value.state="text + $parent.value">')
       .deps(StateDefaultConfiguration.init(state))
@@ -125,7 +127,7 @@ describe('state/state.spec.ts', function () {
 
     assert.strictEqual(getBy('input').value, '123--');
     component.value = '';
-    flush();
+    await tasksSettled();
     assert.strictEqual(getBy('input').value, '123');
   });
 
@@ -222,14 +224,14 @@ describe('state/state.spec.ts', function () {
     });
 
     it('updates text when state changes', async function () {
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<input value.bind="text & state" input.dispatch="$event.target.value">`
         .component({ text: 'from view model' })
         .deps(StateDefaultConfiguration.init({ text: '1' }, (s, a) => ({ text: s.text + a })))
         .build().started;
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -243,6 +245,7 @@ describe('state/state.spec.ts', function () {
 
       assertText('center', '123');
       trigger('button', 'click');
+      await tasksSettled();
       assertText('center', '456');
     });
   });
@@ -253,7 +256,7 @@ describe('state/state.spec.ts', function () {
 
     it('dispatches action', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger } = await createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -265,13 +268,13 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 
     it('handles multiple action types in a single reducer', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
+      const { getBy, trigger } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'clear' }">Clear</button>
@@ -290,17 +293,17 @@ describe('state/state.spec.ts', function () {
       assert.strictEqual(getBy('input').value, '1');
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
 
       trigger.click('button');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '');
     });
 
     it('does not throw on unreged action type', async function () {
       const state = { text: '1' };
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'no-reg', v: $event.target.value }">`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -310,14 +313,14 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '1');
     });
 
     it('works with debounce', async function () {
       const state = { text: '1' };
-      const { getBy, trigger, flush } = createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:1">`
+      const { getBy, trigger } = createFixture
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:5">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, { type, v }: { type: string; v: string }) =>
@@ -326,19 +329,18 @@ describe('state/state.spec.ts', function () {
         .build();
 
       trigger('input', 'input');
-      flush();
+      await resolveAfter(1);
       assert.strictEqual(getBy('input').value, '1');
 
       await resolveAfter(10);
-      flush();
       assert.strictEqual(getBy('input').value, '11');
     });
 
     it('works with throttle', async function () {
       let actionCallCount = 0;
       const state = { text: '1' };
-      const { getBy, trigger, flush } = await createFixture
-        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:1">`
+      const { getBy, trigger } = await createFixture
+        .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & throttle:10">`
         .deps(StateDefaultConfiguration.init(
           state,
           (s, { type, v }: { type: string; v: string }) => {
@@ -352,16 +354,15 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
 
       trigger('input', 'input');
-      flush();
+      await resolveAfter(1);
       assert.strictEqual(getBy('input').value, '11');
 
-      await resolveAfter(10);
+      await resolveAfter(20);
       assert.strictEqual(actionCallCount, 2);
-      flush();
       assert.strictEqual(getBy('input').value, '1111');
     });
 
@@ -411,7 +412,7 @@ describe('state/state.spec.ts', function () {
       let started = 0;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
         `
@@ -448,8 +449,6 @@ describe('state/state.spec.ts', function () {
         { text: '11', click: 0 },
       ]);
 
-      assertValue('input', '1');
-      flush();
       assertValue('input', '11');
     });
 
@@ -457,7 +456,7 @@ describe('state/state.spec.ts', function () {
       let started = false;
       const logs = [];
       const state = { text: '1', click: 0 };
-      const { trigger, assertValue, flush } = await createFixture
+      const { trigger, assertValue } = await createFixture
         .html`
           <input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value }">
           <button click.dispatch="{ type: 'click' }">Change</button>
@@ -500,7 +499,6 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
-      flush();
       assertValue('input', '11');
 
       trigger('input', 'input');
@@ -514,8 +512,6 @@ describe('state/state.spec.ts', function () {
         { text: '1111', click: 2 },
       ]);
 
-      assertValue('input', '11');
-      flush();
       assertValue('input', '1111');
     });
   });
@@ -565,13 +561,13 @@ describe('state/state.spec.ts', function () {
       }
 
       const state = { text: '1' };
-      const { trigger, flush, getBy } = await createFixture
+      const { trigger, getBy } = await createFixture
         .html`<my-el>`
         .deps(MyEl, StateDefaultConfiguration.init(state, (s, { v }) => ({ text: s.text + v })))
         .build().started;
 
       trigger('input', 'input');
-      flush();
+      await tasksSettled();
       assert.strictEqual(getBy('input').value, '11');
     });
 
@@ -597,6 +593,137 @@ describe('state/state.spec.ts', function () {
     });
   });
 
+  describe('createStateMemoizer', function () {
+    it('memoizes results based on dependencies', function () {
+      interface S { items: number[]; flag: boolean }
+      const items = [1, 2, 3];
+      let computeCalls = 0;
+      const total = createStateMemoizer(
+        (s: S) => s.items,
+        (i) => { computeCalls++; return i.reduce((a, b) => a + b, 0); }
+      );
+
+      const s1: S = { items, flag: true };
+      assert.strictEqual(total(s1), 6);
+      assert.strictEqual(computeCalls, 1);
+
+      const s2: S = { items, flag: false };
+      assert.strictEqual(total(s2), 6);
+      assert.strictEqual(computeCalls, 1);
+
+      const s3: S = { items: [1, 2, 3, 4], flag: false };
+      assert.strictEqual(total(s3), 10);
+      assert.strictEqual(computeCalls, 2);
+    });
+
+    it('memoizes when single selector is provided', function () {
+      interface S {
+        flag: boolean;
+      }
+      let calls = 0;
+      const selectFlag = createStateMemoizer((s: S) => { calls++; return s.flag; });
+
+      const s: S = { flag: true };
+      assert.strictEqual(selectFlag(s), true);
+      selectFlag(s);
+      assert.strictEqual(calls, 1);
+    });
+  });
+
+  it('works with the fromState decorator', async function () {
+    interface S { items: number[]; flag: boolean }
+    let computeCalls = 0;
+    const selectTotal = createStateMemoizer(
+      (s: S) => s.items,
+      items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
+    );
+
+    @customElement({ name: 'my-el', template: `\${total}` })
+    class MyEl {
+      @fromState<S>(selectTotal)
+      total: number;
+    }
+
+    const state: S = { items: [1, 2, 3], flag: false };
+    const { trigger, assertText } = await createFixture
+      .html`
+        <my-el></my-el>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+      .deps(
+        MyEl,
+        StateDefaultConfiguration.init(state, (s, a: { type: 'toggle' | 'add'; value?: number }) => {
+          if (a.type === 'toggle') { return { ...s, flag: !s.flag }; }
+          if (a.type === 'add') { return { ...s, items: [...s.items, a.value!] }; }
+          return s;
+        })
+      )
+      .build().started;
+
+    assertText('my-el', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#flag', 'click');
+    await Promise.resolve();
+    assertText('my-el', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#add', 'click');
+    await Promise.resolve();
+    assertText('my-el', '10');
+    assert.strictEqual(computeCalls, 2);
+  });
+
+  it('shares memoized results across components', async function () {
+    interface S { items: number[]; flag: boolean }
+    let computeCalls = 0;
+    const selectTotal = createStateMemoizer(
+      (s: S) => s.items,
+      items => { computeCalls++; return items.reduce((a, b) => a + b, 0); }
+    );
+
+    @customElement({ name: 'el-a', template: `\${total}` })
+    class ElA { @fromState<S>(selectTotal) total: number; }
+
+    @customElement({ name: 'el-b', template: `\${total}` })
+    class ElB { @fromState<S>(selectTotal) total: number; }
+
+    const state: S = { items: [1, 2, 3], flag: false };
+    const { trigger, assertText } = await createFixture
+      .html`
+        <el-a></el-a>
+        <el-b></el-b>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+      .deps(
+        ElA,
+        ElB,
+        StateDefaultConfiguration.init(state, (s, a: { type: 'toggle' | 'add'; value?: number }) => {
+          if (a.type === 'toggle') { return { ...s, flag: !s.flag }; }
+          if (a.type === 'add') { return { ...s, items: [...s.items, a.value!] }; }
+          return s;
+        })
+      )
+      .build().started;
+
+    assertText('el-a', '6');
+    assertText('el-b', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#flag', 'click');
+    await Promise.resolve();
+    assertText('el-a', '6');
+    assertText('el-b', '6');
+    assert.strictEqual(computeCalls, 1);
+
+    trigger('#add', 'click');
+    await Promise.resolve();
+    assertText('el-a', '10');
+    assertText('el-b', '10');
+    assert.strictEqual(computeCalls, 2);
+  });
 });
 
 const resolveAfter = <T>(time: number, value?: T) => new Promise<T>(r => setTimeout(() => r(value), time));

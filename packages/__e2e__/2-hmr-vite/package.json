@@ -21,7 +21,7 @@
     "@aurelia/kernel": "2.0.0-beta.24",
     "@aurelia/metadata": "2.0.0-beta.24",
     "@aurelia/route-recognizer": "2.0.0-beta.24",
-    "@aurelia/router-lite": "2.0.0-beta.24",
+    "@aurelia/router": "2.0.0-beta.24",
     "@aurelia/runtime-html": "2.0.0-beta.24",
     "@aurelia/runtime": "2.0.0-beta.24",
     "aurelia": "2.0.0-beta.24"

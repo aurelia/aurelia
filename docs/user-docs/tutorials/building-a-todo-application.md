@@ -112,7 +112,7 @@ export class TodoComponent {
     ];
 
     newTodo(event) {
-        if (event.which === 13) {
+        if (event.key === 'Enter') {
             this.todos.unshift({ completed: false, text: this.todo });
             this.todo = '';
         }
@@ -132,10 +132,10 @@ export class TodoComponent {
 * **Line 2:** We create an empty string called `todo`. This is where any todos we author are stored temporarily
 * **Line 4:** an array of todo items (and any new ones that get added)
 * **Line 15:** `newTodo` is a function that gets called on keypress in the view
-  * We check if the key pressed is enter (keycode 13)
+  * We check if the key pressed is enter (using `event.key === 'Enter'`)
   * If it is, we `unshift` our todo into the `todos` array
   * We then reset the `todo` property
-* **Line 21:** Aurelia will prevent all events by default when you bind to them, so we need to return true outside of our if statement or typing will break in our input field
+* **Line 21:** We return `true` to allow the default browser action for the keypress event to occur. If we didn't, typing in the input would be prevented.
 * **Line 24:** `deleteTodo` will remove a todo from our `todos` array and is passed an index
   * We call Array.splice on the `todos` array and tell it we want to delete one item
 

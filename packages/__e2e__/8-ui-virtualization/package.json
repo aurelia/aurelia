@@ -35,6 +35,6 @@
     "@aurelia/webpack-loader": "2.1.0-dev.202507020759",
     "ts-loader": "^9.3.0",
     "@types/node": "^20.16.10",
-    "typescript": "5.4.2"
+    "typescript": "5.8.3"
   }
 }

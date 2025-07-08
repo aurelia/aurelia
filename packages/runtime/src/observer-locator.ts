@@ -269,10 +269,7 @@ const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 export const getObserverLookup = <T extends IObserver>(instance: object): Record<PropertyKey, T> => {
   let lookup = (instance as IObservable).$observers as Record<PropertyKey, T>;
   if (lookup === void 0) {
-    rtDef(instance, '$observers', {
-      enumerable: false,
-      value: lookup = createLookup(),
-    });
+    rtDef(instance, '$observers', { value: lookup = createLookup() });
   }
   return lookup;
 };

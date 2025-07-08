@@ -500,6 +500,7 @@ describe('state/state.spec.ts', function () {
       ]);
 
       await resolveAfter(1);
+      await tasksSettled();
 
       assertValue('input', '11');
 

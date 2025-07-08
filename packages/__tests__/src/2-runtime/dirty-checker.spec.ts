@@ -1,6 +1,7 @@
 import {
   DirtyCheckSettings,
   IDirtyChecker,
+  RecurringTask,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -12,9 +13,8 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
   function createFixture() {
     const ctx = TestContext.create();
     const dirtyChecker = ctx.container.get(IDirtyChecker);
-    const taskQueue = ctx.platform.taskQueue;
 
-    return { dirtyChecker, taskQueue };
+    return { dirtyChecker };
   }
 
   const specs = [
@@ -89,10 +89,10 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.timeoutsPerCheck} RAF call`, function (done) {
+    it(`updates after ${spec.timeoutsPerCheck} RAF call`, async function () {
       const { timeoutsPerCheck, frameChecks } = spec;
       DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
-      const { dirtyChecker, taskQueue } = createFixture();
+      const { dirtyChecker } = createFixture();
 
       const obj1 = { foo: '0' };
       const obj2 = { foo: '0' };
@@ -175,73 +175,60 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
         }
       }
 
-      taskQueue.queueTask(() => {
-        observer1.subscribe(subscriber1);
-        observer1.subscribe(subscriber2);
-        observer2.subscribe(subscriber3);
-        observer2.subscribe(subscriber4);
+      observer1.subscribe(subscriber1);
+      observer1.subscribe(subscriber2);
+      observer2.subscribe(subscriber3);
+      observer2.subscribe(subscriber4);
+      const task = dirtyChecker['_task'] as RecurringTask;
 
-        obj1.foo = obj2.foo = `${frameCount + 1}`;
+      obj1.foo = obj2.foo = `${frameCount + 1}`;
 
-        assert.strictEqual(callCount1, 0, `callCount1`);
-        assert.strictEqual(callCount2, 0, `callCount2`);
-        assert.strictEqual(callCount3, 0, `callCount3`);
-        assert.strictEqual(callCount4, 0, `callCount4`);
-        taskQueue.queueTask(() => {
-          obj1.foo = obj2.foo = `${++frameCount + 1}`;
-          verifyCalled(2);
-          taskQueue.queueTask(() => {
-            obj1.foo = obj2.foo = `${++frameCount + 1}`;
-            verifyCalled(3);
-            taskQueue.queueTask(() => {
-              obj1.foo = obj2.foo = `${++frameCount + 1}`;
-              verifyCalled(4);
-              taskQueue.queueTask(() => {
-                obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                verifyCalled(5);
-                taskQueue.queueTask(() => {
-                  obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                  verifyCalled(6);
-                  taskQueue.queueTask(() => {
-                    obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                    verifyCalled(7);
-                    taskQueue.queueTask(() => {
-                      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                      verifyCalled(8);
-                      taskQueue.queueTask(() => {
-                        obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                        verifyCalled(9);
-                        taskQueue.queueTask(() => {
-                          obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                          verifyCalled(10);
-                          taskQueue.queueTask(() => {
-                            obj1.foo = obj2.foo = `${++frameCount + 1}`;
-                            verifyCalled(11);
-                            observer1.unsubscribe(subscriber1);
-                            observer1.unsubscribe(subscriber2);
-                            observer2.unsubscribe(subscriber3);
-                            observer2.unsubscribe(subscriber4);
-
-                            done();
-                          });
-                        });
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-        });
-      });
+      assert.strictEqual(callCount1, 0, `callCount1`);
+      assert.strictEqual(callCount2, 0, `callCount2`);
+      assert.strictEqual(callCount3, 0, `callCount3`);
+      assert.strictEqual(callCount4, 0, `callCount4`);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(2);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(3);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(4);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(5);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(6);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(7);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(8);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(9);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(10);
+      await task.next();
+      obj1.foo = obj2.foo = `${++frameCount + 1}`;
+      verifyCalled(11);
+      observer1.unsubscribe(subscriber1);
+      observer1.unsubscribe(subscriber2);
+      observer2.unsubscribe(subscriber3);
+      observer2.unsubscribe(subscriber4);
     });
   }
 
-  it('does nothing if disabled', function (done) {
+  it('does nothing if disabled', async function () {
     const timeoutsPerCheck: number = 1;
     DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
     DirtyCheckSettings.disabled = true;
-    const { dirtyChecker, taskQueue } = createFixture();
+    const { dirtyChecker } = createFixture();
 
     const obj = { foo: '0' };
     const observer = dirtyChecker.createProperty(obj, 'foo');
@@ -254,29 +241,23 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
     };
 
     observer.subscribe(subscriber);
+    const task = dirtyChecker['_task'] as RecurringTask;
 
     obj.foo = `1`;
 
     assert.strictEqual(callCount, 0, `callCount`);
 
-    taskQueue.queueTask(() => {
-      assert.strictEqual(callCount, 0, `callCount`);
-      taskQueue.queueTask(() => {
-        assert.strictEqual(callCount, 0, `callCount`);
-        taskQueue.queueTask(() => {
-          assert.strictEqual(callCount, 0, `callCount`);
-          taskQueue.queueTask(() => {
-            assert.strictEqual(callCount, 0, `callCount`);
-            taskQueue.queueTask(() => {
-              assert.strictEqual(callCount, 0, `callCount`);
-              observer.unsubscribe(subscriber);
-
-              done();
-            });
-          });
-        });
-      });
-    });
+    await task.next();
+    assert.strictEqual(callCount, 0, `callCount`);
+    await task.next();
+    assert.strictEqual(callCount, 0, `callCount`);
+    await task.next();
+    assert.strictEqual(callCount, 0, `callCount`);
+    await task.next();
+    assert.strictEqual(callCount, 0, `callCount`);
+    await task.next();
+    assert.strictEqual(callCount, 0, `callCount`);
+    observer.unsubscribe(subscriber);
   });
 
   it('throws on property creation if configured', function () {

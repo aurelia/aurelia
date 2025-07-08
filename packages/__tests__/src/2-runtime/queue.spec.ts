@@ -1,4 +1,4 @@
-import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled } from '@aurelia/runtime';
+import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled, queueRecurringTask } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
@@ -861,5 +861,111 @@ describe('2-runtime/queue.spec.ts', function () {
       assert.strictEqual(taskB.status, 'completed', `Task with delay: null should have status 'completed'`);
     });
 
+  });
+
+  describe('queueRecurringTask', function () {
+    describe('awaiting next() and cancellation', function () {
+      it('works with interval: 0', async function () {
+        let counter = 0;
+
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { interval: 0 });
+
+        await task.next();
+
+        assert.strictEqual(counter, 1, 'counter mismatch');
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+
+        task.cancel();
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+      });
+
+      it('works with interval: 10', async function () {
+        let counter = 0;
+
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { interval: 10 });
+
+        await task.next();
+
+        assert.strictEqual(counter, 1, 'counter mismatch');
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+
+        task.cancel();
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+      });
+
+      it('works with useRAF: true', async function () {
+        let counter = 0;
+
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { useRAF: true });
+
+        await task.next();
+
+        assert.strictEqual(counter, 1, 'counter mismatch');
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+
+        task.cancel();
+
+        await task.next();
+
+        assert.strictEqual(counter, 2, 'counter mismatch');
+      });
+
+      it('works with useRAF: true and async iterator', async function () {
+        let counter = 0;
+
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { useRAF: true });
+
+        for await (const _ of task) {
+          // TODO: implement passing values into resolvers
+          if (counter === 3) {
+            task.cancel();
+            break;
+          }
+        }
+
+        assert.strictEqual(counter, 3, 'counter mismatch');
+
+        await task.next();
+
+        assert.strictEqual(counter, 3, 'counter mismatch');
+      });
+    });
+
+    it('await tasksSettled() does not wait for recurring tasks', async function () {
+        let counter = 0;
+
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { interval: 0 });
+
+        await tasksSettled();
+
+        assert.strictEqual(counter, 0, 'counter mismatch');
+
+        task.cancel();
+    });
   });
 });

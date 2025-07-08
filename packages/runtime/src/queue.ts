@@ -584,3 +584,97 @@ export class Task<R = any> {
     return false;
   }
 }
+
+export function queueRecurringTask(callback: TaskCallback, options: { interval: number }): RecurringTask;
+export function queueRecurringTask(callback: TaskCallback, options: { useRAF: true }): RecurringTask;
+export function queueRecurringTask(callback: TaskCallback, opts: { interval?: number; useRAF?: true }): RecurringTask {
+  const task = new RecurringTask(callback, Math.max(opts.interval ?? 0, 0), !!opts.useRAF);
+  task._start();
+  return task;
+}
+
+export class RecurringTask implements AsyncIterable<void> {
+  /** @internal */
+  private static _nextId = 0;
+  public readonly id: number = ++RecurringTask._nextId;
+
+  /** @internal */
+  private _timerId?: number;
+  /** @internal */
+  private _rafId?: number;
+  /** @internal */
+  private _canceled = false;
+  /** @internal */
+  private readonly _nextResolvers: (() => void)[] = [];
+
+  public constructor(
+    private readonly _callback: () => unknown,
+    private readonly _interval: number,
+    private readonly _useRAF: boolean,
+  ) {}
+
+  /** @internal */
+  public _start(): void {
+    if (this._canceled) {
+      return;
+    }
+
+    if (this._useRAF) {
+      this._rafId = requestAnimationFrame(() => {
+        this._tick();
+        if (!this._canceled) {
+          this._start();
+        }
+      });
+    } else {
+      this._timerId = setTimeout(() => {
+        this._tick();
+        if (!this._canceled) {
+          this._start();
+        }
+      }, this._interval);
+    }
+  }
+
+  private _tick(): void {
+    queue.push(this._callback);
+    requestRun();
+
+    const resolvers = this._nextResolvers.splice(0);
+    for (const resolver of resolvers) {
+      resolver();
+    }
+  }
+
+  public [Symbol.asyncIterator](): AsyncIterator<void> {
+    return this;
+  }
+
+  public next(): Promise<IteratorResult<void>> {
+    if (this._canceled) {
+      return Promise.resolve({ value: undefined, done: true });
+    }
+    return new Promise<IteratorResult<void>>(resolve => {
+      this._nextResolvers.push(() =>
+        resolve({ value: undefined, done: false }),
+      );
+    });
+  }
+
+  public cancel(): void {
+    this._canceled = true;
+    if (this._timerId !== undefined) {
+      clearTimeout(this._timerId);
+      this._timerId = undefined;
+    }
+    if (this._rafId !== undefined) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = undefined;
+    }
+
+    const resolvers = this._nextResolvers.splice(0);
+    for (const resolve of resolvers) {
+      resolve();
+    }
+  }
+}

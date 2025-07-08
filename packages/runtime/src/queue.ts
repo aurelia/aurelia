@@ -564,7 +564,7 @@ export class Task<R = any> {
       //     2. replace this with a *selective* handler that re-throws anything that
       //        isn't a TaskAbortError.
       //   Failing to do so will silently swallow real errors in dev builds.
-      this._result.catch(noop);
+      void this._result.catch(noop);
       signalSettled(true);
       return true;
     }
@@ -576,7 +576,7 @@ export class Task<R = any> {
         this._status = tsCanceled;
         const abortErr = new TaskAbortError(this);
         this._reject(abortErr);
-        this._result.catch(noop);
+        void this._result.catch(noop);
         signalSettled(true);
         return true;
       }

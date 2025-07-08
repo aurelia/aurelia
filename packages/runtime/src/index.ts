@@ -21,6 +21,7 @@ export {
   queueTask,
   queueAsyncTask,
   queueRecurringTask,
+  getRecurringTasks,
   runTasks,
   tasksSettled,
   Task,

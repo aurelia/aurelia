@@ -14,7 +14,8 @@ const resolvedPromise = Promise.resolve();
 let runScheduled = false;
 let isAutoRun = false;
 
-const queue: (Task | (() => unknown))[] = [];
+const queue: (Task | RecurringTask | (() => unknown))[] = [];
+const recurringTasks: RecurringTask[] = [];
 let pendingAsyncCount = 0;
 let settlePromise: Promise<boolean> | null = null;
 let taskErrors: unknown[] = [];
@@ -135,14 +136,14 @@ export const runTasks = () => {
     }
 
     const task = queue.shift()!;
-    if (task instanceof Task) {
-      task.run();
-    } else {
+    if (typeof task === 'function') {
       try {
         task();
       } catch (err) {
         taskErrors.push(err);
       }
+    } else {
+      task.run();
     }
   }
   // Make a copy; this is for testing, signalSettled will clear the array
@@ -155,6 +156,10 @@ export const runTasks = () => {
       throw new AggregateError(errors, 'One or more tasks failed.');
     }
   }
+};
+
+export const getRecurringTasks = () => {
+  return recurringTasks.slice();
 };
 
 /**
@@ -614,6 +619,17 @@ export class RecurringTask implements AsyncIterable<void> {
   ) {}
 
   /** @internal */
+  public run(): void {
+    try {
+      // TODO: possibly store return value to connect to resolver
+      this._callback();
+    } catch (err) {
+      taskErrors.push(err);
+      return;
+    }
+  }
+
+  /** @internal */
   public _start(): void {
     if (this._canceled) {
       return;
@@ -637,7 +653,7 @@ export class RecurringTask implements AsyncIterable<void> {
   }
 
   private _tick(): void {
-    queue.push(this._callback);
+    queue.push(this);
     requestRun();
 
     const resolvers = this._nextResolvers.splice(0);
@@ -670,6 +686,11 @@ export class RecurringTask implements AsyncIterable<void> {
     if (this._rafId !== undefined) {
       cancelAnimationFrame(this._rafId);
       this._rafId = undefined;
+    }
+
+    const idx = recurringTasks.indexOf(this);
+    if (idx > -1) {
+      recurringTasks.splice(idx, 1);
     }
 
     const resolvers = this._nextResolvers.splice(0);

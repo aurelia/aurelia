@@ -62,9 +62,14 @@ export default function au(options: {
     },
   };
 
+  let $config!: import('vite').ResolvedConfig;
+
   const auPlugin: import('vite').Plugin = {
     name: 'au2',
     enforce: pre ? 'pre' : 'post',
+    configResolved(config) {
+      $config = config;
+    },
     async transform(code, id) {
       if (!filter(id)) return;
       // .$au.ts = .html
@@ -79,9 +84,9 @@ export default function au(options: {
         hmrModule: 'import.meta',
         getHmrCode,
         transformHtmlImportSpecifier: (s) => {
-          return this.meta.watchMode
-            ? s
-            : s.replace(/\.html$/, '.$au.ts');
+          return $config.mode === 'production'
+            ? s.replace(/\.html$/, '.$au.ts')
+            : s;
         },
         stringModuleWrap: (id) => `${id}?inline`,
         ...additionalOptions

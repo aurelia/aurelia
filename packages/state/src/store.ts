@@ -93,7 +93,7 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
         }
 
         try {
-          return onResolve(middleware(currentStateOrFlag, action, settings.settings), (middlewareResult) => {
+          const ret = onResolve(middleware(currentStateOrFlag, action, settings.settings), (middlewareResult) => {
             if (middlewareResult === false) {
               return false;
             }
@@ -105,6 +105,14 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
             // If the middleware did not return a value, propagate the current state.
             return currentStateOrFlag;
           });
+
+          if (isPromise(ret)) {
+            return ret.catch(error => {
+              this._logger.error(`Middleware execution failed: ${error}`);
+              return currentStateOrFlag;
+            });
+          }
+          return ret;
         } catch (error) {
           this._logger.error(`Middleware execution failed: ${error}`);
           return currentStateOrFlag;

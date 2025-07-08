@@ -11,7 +11,7 @@ describe('state/state.spec.ts', function () {
       if ('__REDUX_DEVTOOLS_EXTENSION__' in window) return;
       Object.assign(window, {
         __REDUX_DEVTOOLS_EXTENSION__: {
-          connect: () => ({ init: () => {/* empty */}, subscribe: () => {/* empty */} })
+          connect: () => ({ init: () => {/* empty */ }, subscribe: () => {/* empty */ } })
         }
       });
     });
@@ -251,9 +251,6 @@ describe('state/state.spec.ts', function () {
   });
 
   describe('.dispatch', function () {
-    // firefox not pleasant with throttling & debouncing
-    this.retries(3);
-
     it('dispatches action', async function () {
       const state = { text: '1' };
       const { getBy, trigger } = await createFixture
@@ -281,7 +278,7 @@ describe('state/state.spec.ts', function () {
         `
         .deps(StateDefaultConfiguration.init(
           state,
-          (s, { type, v}: { type: string; v: string }) =>
+          (s, { type, v }: { type: string; v: string }) =>
             type === 'event'
               ? { text: s.text + v }
               : type === 'clear'
@@ -318,6 +315,8 @@ describe('state/state.spec.ts', function () {
     });
 
     it('works with debounce', async function () {
+      // firefox not pleasant with throttling & debouncing
+      this.retries(3);
       const state = { text: '1' };
       const { getBy, trigger } = createFixture
         .html`<input value.state="text" input.dispatch="{ type: 'event', v: $event.target.value } & debounce:5">`
@@ -337,6 +336,8 @@ describe('state/state.spec.ts', function () {
     });
 
     it('works with throttle', async function () {
+      // firefox not pleasant with throttling & debouncing
+      this.retries(3);
       let actionCallCount = 0;
       const state = { text: '1' };
       const { getBy, trigger } = await createFixture
@@ -600,21 +601,43 @@ describe('state/state.spec.ts', function () {
   });
 
   describe('middleware', function () {
-    it('executes before middleware before action handlers', async function () {
+    it('throws on action that throws synchronously', function () {
+      const state = { text: '1' };
+      const { container } = createFixture
+        .html`<div>`
+        .deps(StateDefaultConfiguration.init(
+          state,
+          () => {
+            throw new Error('err');
+          }
+        ))
+        .build();
+
+      const store = container.get(Store);
+
+      try {
+        void store.dispatch({ type: 'increment' });
+        assert.fail('should have thrown');
+      } catch (ex) {
+        assert.strictEqual(ex.message, 'err');
+      }
+    });
+
+    it('executes before middleware before action handlers', function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const beforeMiddleware = (s: { counter: number }, action: unknown) => {
+      const beforeMiddleware = (s: { counter: number }, _action: unknown) => {
         logs.push('before middleware');
         return s;
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state, _action: { type: string }) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
 
-      const { ctx } = await createFixture
+      const { ctx } = createFixture
         .html`<div>`
         .deps(StateDefaultConfiguration.init(
           state,
@@ -625,25 +648,25 @@ describe('state/state.spec.ts', function () {
           },
           actionHandler
         ))
-        .build().started;
+        .build();
 
       const store = ctx.container.get(Store);
-      await store.dispatch({ type: 'increment' });
+      void store.dispatch({ type: 'increment' });
 
       assert.deepStrictEqual(logs, ['before middleware', 'action handler']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1);
+      assert.deepStrictEqual(store.getState(), { counter: 1 });
     });
 
     it('executes after middleware after action handlers', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const afterMiddleware = (s: { counter: number }, action: unknown) => {
+      const afterMiddleware = (s: { counter: number }, _action: unknown) => {
         logs.push('after middleware');
         return s;
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state, _action: { type: string }) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -662,20 +685,20 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       const store = ctx.container.get(Store);
-      await store.dispatch({ type: 'increment' });
+      void store.dispatch({ type: 'increment' });
 
       assert.deepStrictEqual(logs, ['action handler', 'after middleware']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1);
+      assert.deepStrictEqual(store.getState(), { counter: 1 });
     });
 
     it('allows middleware to modify state', async function () {
       const state = { counter: 0, modified: false };
 
-      const beforeMiddleware = (s: { counter: number; modified: boolean }, action: unknown) => {
+      const beforeMiddleware = (s: { counter: number; modified: boolean }, _action: unknown) => {
         return { ...s, modified: true };
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state, _action: { type: string }) => {
         return { ...s, counter: s.counter + 1 };
       };
 
@@ -693,21 +716,19 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       const store = ctx.container.get(Store);
-      await store.dispatch({ type: 'increment' });
+      void store.dispatch({ type: 'increment' });
 
-      const finalState = store.getState() as typeof state;
-      assert.strictEqual(finalState.counter, 1);
-      assert.strictEqual(finalState.modified, true);
+      assert.deepStrictEqual(store.getState(), { counter: 1, modified: true });
     });
 
     it('can block action execution by returning false', async function () {
       const state = { counter: 0 };
 
-      const blockingMiddleware = (s: { counter: number }, action: unknown) => {
+      const blockingMiddleware = () => {
         return false; // Block the action
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         return { ...s, counter: s.counter + 1 };
       };
 
@@ -728,19 +749,19 @@ describe('state/state.spec.ts', function () {
       await store.dispatch({ type: 'increment' });
 
       // State should remain unchanged
-      assert.strictEqual((store.getState() as typeof state).counter, 0);
+      assert.deepStrictEqual(store.getState(), { counter: 0 });
     });
 
     it('can register and unregister middleware at runtime', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const middleware = (s: { counter: number }, action: unknown) => {
+      const middleware = (s: { counter: number }) => {
         logs.push('middleware executed');
         return s;
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         return { ...s, counter: s.counter + 1 };
       };
 
@@ -769,17 +790,17 @@ describe('state/state.spec.ts', function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const errorMiddleware = (s: { counter: number }, action: unknown) => {
+      const errorMiddleware = () => {
         logs.push('error middleware');
         throw new Error('Test error');
       };
 
-      const normalMiddleware = (s: { counter: number }, action: unknown) => {
+      const normalMiddleware = (s: { counter: number }) => {
         logs.push('normal middleware');
         return s;
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -803,20 +824,20 @@ describe('state/state.spec.ts', function () {
 
       // All should execute despite the error
       assert.deepStrictEqual(logs, ['error middleware', 'normal middleware', 'action handler']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1);
+      assert.deepStrictEqual(store.getState(), { counter: 1 });
     });
 
     it('executes async middleware and applies its result', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const asyncMiddleware = async (s: { counter: number }, action: unknown) => {
+      const asyncMiddleware = async (s: { counter: number }) => {
         await new Promise(resolve => setTimeout(resolve, 1));
         logs.push('async middleware');
         return { ...s, counter: 999 }; // Should be applied
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -835,34 +856,37 @@ describe('state/state.spec.ts', function () {
         .build().started;
 
       const store = ctx.container.get(Store);
-      await store.dispatch({ type: 'increment' });
+      const dispatchResult = store.dispatch({ type: 'increment' });
 
+      assert.deepStrictEqual(logs, []);
+
+      await dispatchResult;
       // Both async middleware and action handler should execute
       assert.deepStrictEqual(logs, ['async middleware', 'action handler']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1000);
+      assert.deepStrictEqual(store.getState(), { counter: 1000 });
     });
 
     it('handles multiple middlewares with async in mix (executes all in order)', async function () {
       const logs: string[] = [];
       const state = { counter: 0, processedBy: [] as string[] };
 
-      const syncMiddleware = (s: typeof state, action: unknown) => {
+      const syncMiddleware = (s: typeof state) => {
         logs.push('sync middleware');
         return { ...s, processedBy: [...s.processedBy, 'sync'] };
       };
 
-      const asyncMiddleware = async (s: typeof state, action: unknown) => {
+      const asyncMiddleware = async (s: typeof state) => {
         await new Promise(resolve => setTimeout(resolve, 1));
         logs.push('async middleware');
         return { ...s, processedBy: [...s.processedBy, 'async'] };
       };
 
-      const syncMiddleware2 = (s: typeof state, action: unknown) => {
+      const syncMiddleware2 = (s: typeof state) => {
         logs.push('sync middleware 2');
         return { ...s, processedBy: [...s.processedBy, 'sync2'] };
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1, processedBy: [...s.processedBy, 'handler'] };
       };
@@ -887,26 +911,27 @@ describe('state/state.spec.ts', function () {
 
       // All middlewares should execute in order before handler
       assert.deepStrictEqual(logs, ['sync middleware', 'async middleware', 'sync middleware 2', 'action handler']);
-      const finalState = store.getState() as typeof state;
-      assert.strictEqual(finalState.counter, 1);
-      assert.deepStrictEqual(finalState.processedBy, ['sync', 'async', 'sync2', 'handler']);
+      assert.deepStrictEqual(store.getState(), {
+        counter: 1,
+        processedBy: ['sync', 'async', 'sync2', 'handler']
+      });
     });
 
     it('handles sync middleware that throws errors', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const errorMiddleware = (s: { counter: number }, action: unknown) => {
+      const errorMiddleware = () => {
         logs.push('error middleware');
         throw new Error('Sync middleware error');
       };
 
-      const normalMiddleware = (s: { counter: number }, action: unknown) => {
+      const normalMiddleware = (s: { counter: number }) => {
         logs.push('normal middleware');
         return s;
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -928,21 +953,21 @@ describe('state/state.spec.ts', function () {
       const store = ctx.container.get(Store);
       await store.dispatch({ type: 'increment' });
 
-      // Should continue execution despite sync error
+      // Should continue execution despite sync error in middleware
       assert.deepStrictEqual(logs, ['error middleware', 'normal middleware', 'action handler']);
-      assert.strictEqual((store.getState() as typeof state).counter, 1);
+      assert.deepStrictEqual(store.getState(), { counter: 1 });
     });
 
     it('handles sync middleware that returns false to block action', async function () {
       const logs: string[] = [];
       const state = { counter: 0 };
 
-      const syncBlockingMiddleware = (s: { counter: number }, action: unknown) => {
+      const syncBlockingMiddleware = () => {
         logs.push('sync blocking middleware');
         return false; // Block the action
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -965,19 +990,19 @@ describe('state/state.spec.ts', function () {
 
       // Action should be blocked
       assert.deepStrictEqual(logs, ['sync blocking middleware']);
-      assert.strictEqual((store.getState() as typeof state).counter, 0);
+      assert.deepStrictEqual(store.getState(), { counter: 0 });
     });
 
     it('handles sync after middleware', async function () {
       const logs: string[] = [];
       const state = { counter: 0, modified: false };
 
-      const syncAfterMiddleware = (s: typeof state, action: unknown) => {
+      const syncAfterMiddleware = (s: typeof state) => {
         logs.push('sync after middleware');
         return { ...s, modified: true };
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1 };
       };
@@ -999,26 +1024,24 @@ describe('state/state.spec.ts', function () {
       await store.dispatch({ type: 'increment' });
 
       assert.deepStrictEqual(logs, ['action handler', 'sync after middleware']);
-      const finalState = store.getState() as typeof state;
-      assert.strictEqual(finalState.counter, 1);
-      assert.strictEqual(finalState.modified, true);
+      assert.deepStrictEqual(store.getState(), { counter: 1, modified: true });
     });
 
     it('handles multiple sync middlewares in sequence', async function () {
       const logs: string[] = [];
       const state = { counter: 0, processedBy: [] as string[] };
 
-      const syncMiddleware1 = (s: typeof state, action: unknown) => {
+      const syncMiddleware1 = (s: typeof state) => {
         logs.push('sync middleware 1');
         return { ...s, processedBy: [...s.processedBy, 'middleware1'] };
       };
 
-      const syncMiddleware2 = (s: typeof state, action: unknown) => {
+      const syncMiddleware2 = (s: typeof state) => {
         logs.push('sync middleware 2');
         return { ...s, processedBy: [...s.processedBy, 'middleware2'] };
       };
 
-      const actionHandler = (s: typeof state, action: { type: string }) => {
+      const actionHandler = (s: typeof state) => {
         logs.push('action handler');
         return { ...s, counter: s.counter + 1, processedBy: [...s.processedBy, 'handler'] };
       };
@@ -1041,9 +1064,10 @@ describe('state/state.spec.ts', function () {
       await store.dispatch({ type: 'increment' });
 
       assert.deepStrictEqual(logs, ['sync middleware 1', 'sync middleware 2', 'action handler']);
-      const finalState = store.getState() as typeof state;
-      assert.strictEqual(finalState.counter, 1);
-      assert.deepStrictEqual(finalState.processedBy, ['middleware1', 'middleware2', 'handler']);
+      assert.deepStrictEqual(store.getState(), {
+        counter: 1,
+        processedBy: ['middleware1', 'middleware2', 'handler']
+      });
     });
   });
 

@@ -1,7 +1,7 @@
 import {
   DirtyCheckSettings,
   IDirtyChecker,
-  RecurringTask,
+  getRecurringTasks,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -179,7 +179,9 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
       observer1.subscribe(subscriber2);
       observer2.subscribe(subscriber3);
       observer2.subscribe(subscriber4);
-      const task = dirtyChecker['_task'] as RecurringTask;
+      const tasks = getRecurringTasks();
+      assert.strictEqual(tasks.length, 1, 'there should be exactly one recurring task');
+      const task = tasks[0];
 
       obj1.foo = obj2.foo = `${frameCount + 1}`;
 
@@ -241,7 +243,9 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
     };
 
     observer.subscribe(subscriber);
-    const task = dirtyChecker['_task'] as RecurringTask;
+    const tasks = getRecurringTasks();
+    assert.strictEqual(tasks.length, 1, 'there should be exactly one recurring task');
+    const task = tasks[0];
 
     obj.foo = `1`;
 

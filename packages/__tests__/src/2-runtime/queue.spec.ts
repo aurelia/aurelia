@@ -1,4 +1,4 @@
-import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled, queueRecurringTask } from '@aurelia/runtime';
+import { runTasks, queueAsyncTask, queueTask, TaskAbortError, tasksSettled, queueRecurringTask, getRecurringTasks } from '@aurelia/runtime';
 import { assert, createFixture } from '@aurelia/testing';
 
 describe('2-runtime/queue.spec.ts', function () {
@@ -922,6 +922,59 @@ describe('2-runtime/queue.spec.ts', function () {
         assert.strictEqual(counter, 0, 'counter mismatch');
 
         task.cancel();
+    });
+
+    describe('getRecurringTasks()', function () {
+      it('includes a newly created task in the list', function () {
+        const task = queueRecurringTask(() => { /* noop */ }, { interval: 100 });
+        const tasks = getRecurringTasks();
+
+        assert.includes(tasks, task, 'The new task should be in the active list');
+
+        task.cancel();
+      });
+
+      it('removes a canceled task from the list', function () {
+        const task = queueRecurringTask(() => { /* noop */ }, { interval: 100 });
+
+        assert.includes(getRecurringTasks(), task, 'Task should be in the list initially');
+
+        task.cancel();
+
+        assert.notIncludes(getRecurringTasks(), task, 'The canceled task should be removed from the active list');
+      });
+    });
+
+    describe('cancellation behavior', function () {
+      it('does not run the callback if canceled immediately', async function () {
+        let counter = 0;
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { interval: 0 });
+
+        task.cancel();
+
+        await new Promise(r => setTimeout(r, 10));
+        await tasksSettled();
+
+        assert.strictEqual(counter, 0, 'counter should remain 0 for an immediately-canceled task');
+      });
+
+      it('resolves multiple pending next() promises on the same tick', async function () {
+        let counter = 0;
+        const task = queueRecurringTask(() => {
+          counter++;
+        }, { interval: 10 });
+
+        const p1 = task.next();
+        const p2 = task.next();
+
+        await Promise.all([p1, p2]);
+
+        assert.strictEqual(counter, 1, 'Both next() promises should resolve after one tick');
+
+        task.cancel();
+      });
     });
   });
 });

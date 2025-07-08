@@ -51,6 +51,7 @@ const validToolingPackages = [
   'babel-jest',
   'parcel-transformer',
   'webpack-loader',
+  'webpack-plugin',
 ];
 
 const devPackages = (args.d ?? []) as string[];

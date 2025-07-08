@@ -35,6 +35,7 @@
     "packages-tooling/plugin-conventions",
     "packages-tooling/vite-plugin",
     "packages-tooling/webpack-loader",
+    "packages-tooling/webpack-plugin",
     "packages-tooling/babel-jest",
     "packages-tooling/ts-jest",
     "packages-tooling/parcel-transformer",
@@ -143,6 +144,10 @@
     "typescript": "5.7.2",
     "v8-to-istanbul": "9.3.0",
     "vite": "^7.0.2"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.29.1",
+    "@rollup/rollup-linux-arm64-gnu": "4.29.1"
   },
   "overrides": {
     "yargs": "17.7.2",

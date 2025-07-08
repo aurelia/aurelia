@@ -322,6 +322,7 @@ jobs:
             - packages-tooling/ts-jest/dist
             - packages-tooling/vite-plugin/dist
             - packages-tooling/webpack-loader/dist
+            - packages-tooling/webpack-plugin/dist
 
   unit_test_esm:
     parameters:
@@ -598,6 +599,7 @@ jobs:
             - packages-tooling/ts-jest/node_modules
             - packages-tooling/vite-plugin/node_modules
             - packages-tooling/webpack-loader/node_modules
+            - packages-tooling/webpack-plugin/node_modules
       # instead of doing the following 2 commands
       # - checkout_install
       # just restore some cache from previous steps

@@ -17,9 +17,8 @@ export {
   IActionHandler,
   type IRegistrableAction,
   type IStateMiddleware,
-  MiddlewarePlacement,
+  type MiddlewarePlacement,
   type IMiddlewareSettings,
-  IStateMiddleware as StateMiddleware,
 } from './interfaces';
 
 export { StateBinding, } from './state-binding';

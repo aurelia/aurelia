@@ -1,4 +1,4 @@
-import { all, IContainer, ILogger, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
+import { all, IContainer, ILogger, isPromise, lazy, onResolve, optional, Registration, resolve } from '@aurelia/kernel';
 import { IActionHandler, IState, IStore, IStoreSubscriber, IStateMiddleware, MiddlewarePlacement, IMiddlewareSettings } from './interfaces';
 import { IDevToolsExtension, IDevToolsOptions, IDevToolsPayload } from './interfaces-devtools';
 
@@ -86,35 +86,29 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
     let result: T | false | Promise<T | false> = state;
 
     for (const [middleware, settings] of middlewares) {
-      result = onResolve(result, async (currentStateOrFlag: T | false) => {
+      result = onResolve(result, (currentStateOrFlag: T | false) => {
         // If a previous middleware signalled blocking, keep propagating the flag.
         if (currentStateOrFlag === false) {
           return false;
         }
 
-        const currentState = currentStateOrFlag;
-
-        let middlewareResult: T | undefined | false | void | Promise<T | undefined | false | void>;
         try {
-          middlewareResult = middleware(currentState, action, settings.settings);
+          return onResolve(middleware(currentStateOrFlag, action, settings.settings), (middlewareResult) => {
+            if (middlewareResult === false) {
+              return false;
+            }
+
+            if (middlewareResult != null) {
+              return middlewareResult;
+            }
+
+            // If the middleware did not return a value, propagate the current state.
+            return currentStateOrFlag;
+          });
         } catch (error) {
           this._logger.error(`Middleware execution failed: ${error}`);
-          return currentState;
+          return currentStateOrFlag;
         }
-
-        // Await middleware result if it is a promise to support async middleware.
-        const resolved = await middlewareResult;
-
-        if (resolved === false) {
-          return false;
-        }
-
-        if (resolved != null) {
-          return resolved;
-        }
-
-        // If the middleware did not return a value, propagate the current state.
-        return currentState;
       });
     }
 
@@ -177,17 +171,22 @@ export class Store<T extends object, TAction = unknown> implements IStore<T> {
       return afterBefore;
     };
 
-    const result = processAction(action);
+    try {
+      const result = processAction(action);
 
-    if (result instanceof Promise) {
-      return result.catch(error => {
-        this._dispatching = false;
-        this._logger.error(`Action or middleware failed: ${error}`);
-        throw error;
-      });
+      if (isPromise(result)) {
+        return result.catch(error => {
+          this._dispatching = false;
+          this._logger.error(`Action or middleware failed: ${error}`);
+          throw error;
+        });
+      }
+      return result;
+    } catch (error) {
+      this._dispatching = false;
+      this._logger.error(`Action or middleware failed: ${error}`);
+      throw error;
     }
-
-    return result;
   }
 
   /* istanbul ignore next */

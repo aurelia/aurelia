@@ -299,7 +299,7 @@ class StateBindingBehavior {
             if (n == null) {
                 u.set(i, n = new StateSubscriber(i, t));
             } else {
-                n.N = t;
+                n.M = t;
             }
             this.L.subscribe(n);
             i.useScope?.(t);
@@ -318,14 +318,14 @@ s.BindingBehavior.define("state", StateBindingBehavior);
 
 class StateSubscriber {
     constructor(t, i) {
-        this.$ = t;
-        this.N = i;
+        this.N = t;
+        this.M = i;
     }
     handleStateChange(t) {
-        const i = this.N;
+        const i = this.M;
         const s = i.overrideContext;
         i.bindingContext = s.bindingContext = t;
-        this.$.handleChange?.(undefined, undefined);
+        this.N.handleChange?.(undefined, undefined);
     }
 }
 
@@ -336,7 +336,7 @@ class StateDispatchBinding {
         this.l = t;
         this.L = e;
         this.ast = i;
-        this.M = s;
+        this.$ = s;
         this.R = n;
         this.strict = r;
     }
@@ -356,7 +356,7 @@ class StateDispatchBinding {
         }
         i.astBind(this.ast, t, this);
         this.s = createStateBindingScope(this.L.getState(), t);
-        this.M.addEventListener(this.R, this);
+        this.$.addEventListener(this.R, this);
         this.L.subscribe(this);
         this.isBound = true;
     }
@@ -367,7 +367,7 @@ class StateDispatchBinding {
         this.isBound = false;
         i.astUnbind(this.ast, this.s, this);
         this.s = void 0;
-        this.M.removeEventListener(this.R, this);
+        this.$.removeEventListener(this.R, this);
         this.L.unsubscribe(this);
     }
     handleStateChange(t) {
@@ -614,6 +614,33 @@ class CreatedLifecycleHooks {
 
 s.LifecycleHooks.define({}, CreatedLifecycleHooks);
 
+function createStateMemoizer(...t) {
+    if (t.length === 1) {
+        const i = t[0];
+        let s;
+        let n;
+        return t => {
+            if (t === s) {
+                return n;
+            }
+            s = t;
+            return n = i(t);
+        };
+    }
+    const i = t[t.length - 1];
+    const s = t.slice(0, -1);
+    let n;
+    let e;
+    return t => {
+        const r = s.map(i => i(t));
+        if (n !== undefined && r.length === n.length && r.every((t, i) => t === n[i])) {
+            return e;
+        }
+        n = r;
+        return e = i(...r);
+    };
+}
+
 exports.ActionHandler = c;
 
 exports.DispatchBindingCommand = DispatchBindingCommand;
@@ -641,6 +668,8 @@ exports.StateBindingInstructionRenderer = d;
 exports.StateDefaultConfiguration = g;
 
 exports.StateDispatchBinding = StateDispatchBinding;
+
+exports.createStateMemoizer = createStateMemoizer;
 
 exports.fromState = fromState;
 //# sourceMappingURL=index.cjs.map

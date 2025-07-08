@@ -6935,15 +6935,16 @@ class Repeat {
         for (;r >= 0; --r) {
             n = c[r];
             x = c[r + 1];
-            n.nodes.link(x?.nodes ?? a);
             if (e[r] === -2) {
+                n.nodes.link(x?.nodes ?? a);
                 n.setLocation(a);
                 setContextualProperties(u[r].overrideContext, r, d);
                 i = n.activate(n, l, u[r]);
                 if (t.isPromise(i)) {
                     (s ?? (s = [])).push(i);
                 }
-            } else if (v < 0 || g === 1 || r !== m[v]) {
+            } else if (v < 0 || r !== m[v]) {
+                n.nodes.link(x?.nodes ?? a);
                 setContextualProperties(n.scope.overrideContext, r, d);
                 n.nodes.insertBefore(n.location);
             } else {
@@ -7592,7 +7593,7 @@ class PromiseTemplateController {
         let a;
         const $swap = () => {
             void t.onResolveAll(a = (this.preSettledTask = i.queueAsyncTask(() => t.onResolveAll(n?.deactivate(e), r?.deactivate(e), l?.activate(e, h)))).result.catch(t => {
-                if (!(t instanceof i.TaskAbortError)) throw t;
+                throw t;
             }), s.then(c => {
                 if (this.value !== s) {
                     return;

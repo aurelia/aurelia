@@ -8296,8 +8296,8 @@ class Repeat {
         for (; i >= 0; --i) {
             view = views[i];
             next = views[i + 1];
-            view.nodes.link(next?.nodes ?? _location);
             if (indexMap[i] === -2) {
+                view.nodes.link(next?.nodes ?? _location);
                 view.setLocation(_location);
                 setContextualProperties(_scopes[i].overrideContext, i, newLen);
                 ret = view.activate(view, $controller, _scopes[i]);
@@ -8305,7 +8305,8 @@ class Repeat {
                     (promises ?? (promises = [])).push(ret);
                 }
             }
-            else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+            else if (j < 0 || i !== seq[j]) {
+                view.nodes.link(next?.nodes ?? _location);
                 setContextualProperties(view.scope.overrideContext, i, newLen);
                 view.nodes.insertBefore(view.location);
             }
@@ -8986,8 +8987,7 @@ class PromiseTemplateController {
             // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
             preSettlePromise = (this.preSettledTask = runtime.queueAsyncTask(() => {
                 return kernel.onResolveAll(fulfilled?.deactivate(initiator), rejected?.deactivate(initiator), pending?.activate(initiator, s));
-            })).result.catch((err) => { if (!(err instanceof runtime.TaskAbortError))
-                throw err; }), value
+            })).result.catch((err) => { throw err; }), value
                 .then((data) => {
                 if (this.value !== value) {
                     return;

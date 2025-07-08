@@ -666,6 +666,36 @@ class CreatedLifecycleHooks {
 }
 runtimeHtml.LifecycleHooks.define({}, CreatedLifecycleHooks);
 
+function createStateMemoizer(...fns) {
+    if (fns.length === 1) {
+        // with only 1, result function is also a memorizer
+        const resultFn = fns[0];
+        let lastState;
+        let lastResult;
+        return (state) => {
+            if (state === lastState) {
+                return lastResult;
+            }
+            lastState = state;
+            return (lastResult = resultFn(state));
+        };
+    }
+    const resultFn = fns[fns.length - 1];
+    const memoizerFns = fns.slice(0, -1);
+    let lastInputs;
+    let lastResult;
+    return (state) => {
+        const inputs = memoizerFns.map(fn => fn(state));
+        if (lastInputs !== undefined &&
+            inputs.length === lastInputs.length &&
+            inputs.every((v, i) => v === lastInputs[i])) {
+            return lastResult;
+        }
+        lastInputs = inputs;
+        return (lastResult = resultFn(...inputs));
+    };
+}
+
 exports.ActionHandler = ActionHandler;
 exports.DispatchBindingCommand = DispatchBindingCommand;
 exports.DispatchBindingInstruction = DispatchBindingInstruction;
@@ -680,5 +710,6 @@ exports.StateBindingInstruction = StateBindingInstruction;
 exports.StateBindingInstructionRenderer = StateBindingInstructionRenderer;
 exports.StateDefaultConfiguration = StateDefaultConfiguration;
 exports.StateDispatchBinding = StateDispatchBinding;
+exports.createStateMemoizer = createStateMemoizer;
 exports.fromState = fromState;
 //# sourceMappingURL=index.dev.cjs.map

@@ -2,7 +2,7 @@ import { Protocol, isString, createLookup, getPrototypeChain, kebabCase, noop, D
 import { BindingMode, InstructionType, ITemplateCompiler, IInstruction, TemplateCompilerHooks, IAttrMapper, IResourceResolver, TemplateCompiler, AttributePattern, AttrSyntax, RefAttributePattern, DotSeparatedAttributePattern, EventAttributePattern, AtPrefixedTriggerAttributePattern, ColonPrefixedBindAttributePattern, DefaultBindingCommand, OneTimeBindingCommand, FromViewBindingCommand, ToViewBindingCommand, TwoWayBindingCommand, ForBindingCommand, RefBindingCommand, TriggerBindingCommand, CaptureBindingCommand, ClassBindingCommand, StyleBindingCommand, AttrBindingCommand, SpreadValueBindingCommand } from '@aurelia/template-compiler';
 export { BindingCommand, BindingMode } from '@aurelia/template-compiler';
 import { Metadata } from '@aurelia/metadata';
-import { AccessorType, astEvaluate, queueAsyncTask, queueTask, astBind, astUnbind, connectable, astAssign, subscriberCollection, Scope, IObserverLocator, ConnectableSwitcher, ProxyObservable, ICoercionConfiguration, tasksSettled, PropertyAccessor, INodeObserverLocator, IDirtyChecker, getObserverLookup, SetterObserver, createIndexMap, getCollectionObserver as getCollectionObserver$1, BindingContext, TaskAbortError, DirtyChecker } from '@aurelia/runtime';
+import { AccessorType, astEvaluate, queueAsyncTask, queueTask, astBind, astUnbind, connectable, astAssign, subscriberCollection, Scope, IObserverLocator, ConnectableSwitcher, ProxyObservable, ICoercionConfiguration, tasksSettled, PropertyAccessor, INodeObserverLocator, IDirtyChecker, getObserverLookup, SetterObserver, createIndexMap, getCollectionObserver as getCollectionObserver$1, BindingContext, DirtyChecker } from '@aurelia/runtime';
 import { BrowserPlatform } from '@aurelia/platform-browser';
 import { AccessScopeExpression, IExpressionParser, ExpressionParser } from '@aurelia/expression-parser';
 
@@ -8293,8 +8293,8 @@ class Repeat {
         for (; i >= 0; --i) {
             view = views[i];
             next = views[i + 1];
-            view.nodes.link(next?.nodes ?? _location);
             if (indexMap[i] === -2) {
+                view.nodes.link(next?.nodes ?? _location);
                 view.setLocation(_location);
                 setContextualProperties(_scopes[i].overrideContext, i, newLen);
                 ret = view.activate(view, $controller, _scopes[i]);
@@ -8302,7 +8302,8 @@ class Repeat {
                     (promises ?? (promises = [])).push(ret);
                 }
             }
-            else if (j < 0 || seqLen === 1 || i !== seq[j]) {
+            else if (j < 0 || i !== seq[j]) {
+                view.nodes.link(next?.nodes ?? _location);
                 setContextualProperties(view.scope.overrideContext, i, newLen);
                 view.nodes.insertBefore(view.location);
             }
@@ -8983,8 +8984,7 @@ class PromiseTemplateController {
             // The order of these 3 should not necessarily be sequential (i.e. order-irrelevant).
             preSettlePromise = (this.preSettledTask = queueAsyncTask(() => {
                 return onResolveAll(fulfilled?.deactivate(initiator), rejected?.deactivate(initiator), pending?.activate(initiator, s));
-            })).result.catch((err) => { if (!(err instanceof TaskAbortError))
-                throw err; }), value
+            })).result.catch((err) => { throw err; }), value
                 .then((data) => {
                 if (this.value !== value) {
                     return;

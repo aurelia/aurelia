@@ -1,5 +1,5 @@
 import { DestructuringAssignmentSingleExpression, IExpressionParser } from '@aurelia/expression-parser';
-import { DI, isObjectOrFunction, isFunction, isArray, isArrayIndex, isSet, isMap, areEqual, isSymbol, Registration, resolve, IPlatform, ILogger, isObject, createLookup, emptyObject } from '@aurelia/kernel';
+import { DI, isObjectOrFunction, isFunction, isArray, isArrayIndex, noop, isSet, isMap, areEqual, isSymbol, Registration, resolve, IPlatform, ILogger, isObject, createLookup, emptyObject } from '@aurelia/kernel';
 import { Metadata } from '@aurelia/metadata';
 
 /**
@@ -18,7 +18,6 @@ const rtDef = Reflect.defineProperty;
 /** @internal */
 function rtDefineHiddenProp(obj, key, value) {
     rtDef(obj, key, {
-        enumerable: false,
         configurable: true,
         writable: true,
         value
@@ -1351,7 +1350,22 @@ class Task {
             --pendingAsyncCount;
             this._timerId = undefined;
             this._status = tsCanceled;
-            this._reject(new TaskAbortError(this));
+            const abortErr = new TaskAbortError(this);
+            this._reject(abortErr);
+            // Attach a noop-catch so the promise is immediately handled and the host never
+            // emits an `unhandledRejection` for a *normal* cancel.
+            //
+            // IMPORTANT ──────────────────────────────────────────────────────────────
+            // - `cancel()` MUST ONLY reject with the `TaskAbortError` we just created.
+            //   Nothing else is allowed to flow through `_reject()` here.
+            // - If you ever change that invariant (e.g. forward another error or add
+            //   logging-failures), you **must** either:
+            //     1. push the new error into `taskErrors` so the scheduler's aggregator
+            //        surfaces it, or
+            //     2. replace this with a *selective* handler that re-throws anything that
+            //        isn't a TaskAbortError.
+            //   Failing to do so will silently swallow real errors in dev builds.
+            void this._result.catch(noop);
             signalSettled(true);
             return true;
         }
@@ -1360,7 +1374,9 @@ class Task {
             if (idx > -1) {
                 queue.splice(idx, 1);
                 this._status = tsCanceled;
-                this._reject(new TaskAbortError(this));
+                const abortErr = new TaskAbortError(this);
+                this._reject(abortErr);
+                void this._result.catch(noop);
                 signalSettled(true);
                 return true;
             }
@@ -2063,7 +2079,7 @@ const getArrayObserver = /*@__PURE__*/ (() => {
             }
         };
         for (const method of methods) {
-            rtDef(observe[method], 'observing', { value: true, writable: false, configurable: false, enumerable: false });
+            rtDef(observe[method], 'observing', { value: true });
         }
     }
     let enableArrayObservationCalled = false;
@@ -2639,7 +2655,7 @@ function unwrap(v) {
     return canWrap(v) && v[rawKey] || v;
 }
 function doNotCollect(object, key) {
-    return key === 'constructor'
+    if (key === 'constructor'
         || key === '__proto__'
         // probably should revert to v1 naming style for consistency with builtin?
         // __o__ is shorters & less chance of conflict with other libs as well
@@ -2649,7 +2665,13 @@ function doNotCollect(object, key) {
         // limit to string first
         // symbol can be added later
         // looking up from the constructor means inheritance is supported
-        || object.constructor[`${nowrapPropKey}_${rtSafeString(key)}__`] === true;
+        || object.constructor[`${nowrapPropKey}_${rtSafeString(key)}__`] === true) {
+        return true;
+    }
+    // ensure Proxy spec compliance, value of non-configurable and non-writable property MUST be returned as is
+    // https://262.ecma-international.org/8.0/#sec-proxy-object-internal-methods-and-internal-slots-get-p-receiver
+    const descriptor = Reflect.getOwnPropertyDescriptor(object, key);
+    return descriptor?.configurable === false && descriptor.writable === false;
 }
 function createProxy(obj) {
     const handler = isArray(obj)
@@ -3690,10 +3712,7 @@ const getOwnPropDesc = Object.getOwnPropertyDescriptor;
 const getObserverLookup = (instance) => {
     let lookup = instance.$observers;
     if (lookup === void 0) {
-        rtDef(instance, '$observers', {
-            enumerable: false,
-            value: lookup = createLookup(),
-        });
+        rtDef(instance, '$observers', { value: lookup = createLookup() });
     }
     return lookup;
 };

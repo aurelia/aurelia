@@ -1,4 +1,4 @@
-import { DI as t, Registration as i, resolve as s, optional as n, all as e, ILogger as h, lazy as r, onResolve as o, isPromise as c, camelCase as a, IContainer as u, Protocol as d } from "../../../kernel/dist/native-modules/index.mjs";
+import { DI as t, Registration as i, resolve as s, optional as n, all as e, ILogger as r, lazy as h, onResolve as o, isPromise as c, camelCase as a, IContainer as u, Protocol as d } from "../../../kernel/dist/native-modules/index.mjs";
 
 import { Scope as l, connectable as f, astEvaluate as g, astBind as S, astUnbind as B } from "../../../runtime/dist/native-modules/index.mjs";
 
@@ -57,8 +57,8 @@ class Store {
         this.h = [];
         this.u = this._state = s(n(A)) ?? new State;
         this.B = s(e(O));
-        this.C = s(h);
-        this.I = s(r(L));
+        this.C = s(r);
+        this.I = s(h(L));
     }
     subscribe(t) {
         this.t.add(t);
@@ -180,7 +180,7 @@ function tryParseJson(t) {
 }
 
 class StateBinding {
-    constructor(t, i, s, n, e, h, r, o) {
+    constructor(t, i, s, n, e, r, h, o) {
         this.isBound = false;
         this.v = void 0;
         this.A = void 0;
@@ -189,11 +189,11 @@ class StateBinding {
         this.mode = y.toView;
         this.H = t;
         this.l = i;
-        this.L = r;
+        this.L = h;
         this.oL = s;
         this.ast = n;
         this.target = e;
-        this.targetProperty = h;
+        this.targetProperty = r;
         this.strict = o;
     }
     updateTarget(t) {
@@ -297,7 +297,7 @@ class StateBindingBehavior {
             if (n == null) {
                 P.set(i, n = new StateSubscriber(i, t));
             } else {
-                n.N = t;
+                n.M = t;
             }
             this.L.subscribe(n);
             i.useScope?.(t);
@@ -316,27 +316,27 @@ v.define("state", StateBindingBehavior);
 
 class StateSubscriber {
     constructor(t, i) {
-        this.$ = t;
-        this.N = i;
+        this.N = t;
+        this.M = i;
     }
     handleStateChange(t) {
-        const i = this.N;
+        const i = this.M;
         const s = i.overrideContext;
         i.bindingContext = s.bindingContext = t;
-        this.$.handleChange?.(undefined, undefined);
+        this.N.handleChange?.(undefined, undefined);
     }
 }
 
 class StateDispatchBinding {
-    constructor(t, i, s, n, e, h) {
+    constructor(t, i, s, n, e, r) {
         this.isBound = false;
         this.boundFn = false;
         this.l = t;
         this.L = e;
         this.ast = i;
-        this.M = s;
+        this.$ = s;
         this.R = n;
-        this.strict = h;
+        this.strict = r;
     }
     callSource(t) {
         const i = this.s;
@@ -354,7 +354,7 @@ class StateDispatchBinding {
         }
         S(this.ast, t, this);
         this.s = createStateBindingScope(this.L.getState(), t);
-        this.M.addEventListener(this.R, this);
+        this.$.addEventListener(this.R, this);
         this.L.subscribe(this);
         this.isBound = true;
     }
@@ -365,7 +365,7 @@ class StateDispatchBinding {
         this.isBound = false;
         B(this.ast, this.s, this);
         this.s = void 0;
-        this.M.removeEventListener(this.R, this);
+        this.$.removeEventListener(this.R, this);
         this.L.unsubscribe(this);
     }
     handleStateChange(t) {
@@ -388,14 +388,14 @@ class StateBindingCommand {
     build(t, i, s) {
         const n = t.attr;
         let e = n.target;
-        let h = n.rawValue;
-        h = h === "" ? a(e) : h;
+        let r = n.rawValue;
+        r = r === "" ? a(e) : r;
         if (t.bindable == null) {
             e = s.map(t.node, e) ?? a(e);
         } else {
             e = t.bindable.name;
         }
-        return new StateBindingInstruction(h, e);
+        return new StateBindingInstruction(r, e);
     }
 }
 
@@ -440,9 +440,9 @@ const k = /*@__PURE__*/ w(class StateBindingInstructionRenderer {
         this.target = "sb";
         this.G = s(E);
     }
-    render(t, i, s, n, e, h) {
-        const r = ensureExpression(e, s.from, "IsFunction");
-        t.addBinding(new StateBinding(t, t.container, h, r, i, s.to, this.G, t.strict ?? false));
+    render(t, i, s, n, e, r) {
+        const h = ensureExpression(e, s.from, "IsFunction");
+        t.addBinding(new StateBinding(t, t.container, r, h, i, s.to, this.G, t.strict ?? false));
     }
 }, null);
 
@@ -452,8 +452,8 @@ const J = /*@__PURE__*/ w(class DispatchBindingInstructionRenderer {
         this.G = s(E);
     }
     render(t, i, s, n, e) {
-        const h = ensureExpression(e, s.ast, "IsProperty");
-        t.addBinding(new StateDispatchBinding(t.container, h, i, s.from, this.G, t.strict ?? false));
+        const r = ensureExpression(e, s.ast, "IsProperty");
+        t.addBinding(new StateDispatchBinding(t.container, r, i, s.from, this.G, t.strict ?? false));
     }
 }, null);
 
@@ -484,7 +484,7 @@ const createConfiguration = (t, s, n = {}) => ({
     }
 });
 
-const N = /*@__PURE__*/ createConfiguration({}, []);
+const M = /*@__PURE__*/ createConfiguration({}, []);
 
 class StateGetterBinding {
     constructor(t, i, s, n) {
@@ -571,12 +571,12 @@ function fromState(t) {
             throw new Error(`Invalid usage. @state can only be used on a field ${i} - ${s.kind}`);
         }
         const n = s.name;
-        const e = s.metadata[$] ??= [];
+        const e = s.metadata[N] ??= [];
         e.push(new HydratingLifecycleHooks(t, n), new CreatedLifecycleHooks(t, n));
     };
 }
 
-const $ = d.annotation.keyFor("dependencies");
+const N = d.annotation.keyFor("dependencies");
 
 class HydratingLifecycleHooks {
     constructor(t, i) {
@@ -612,5 +612,32 @@ class CreatedLifecycleHooks {
 
 I.define({}, CreatedLifecycleHooks);
 
-export { H as ActionHandler, DispatchBindingCommand, DispatchBindingInstruction, J as DispatchBindingInstructionRenderer, O as IActionHandler, A as IState, E as IStore, StateBinding, StateBindingBehavior, StateBindingCommand, StateBindingInstruction, k as StateBindingInstructionRenderer, N as StateDefaultConfiguration, StateDispatchBinding, fromState };
+function createStateMemoizer(...t) {
+    if (t.length === 1) {
+        const i = t[0];
+        let s;
+        let n;
+        return t => {
+            if (t === s) {
+                return n;
+            }
+            s = t;
+            return n = i(t);
+        };
+    }
+    const i = t[t.length - 1];
+    const s = t.slice(0, -1);
+    let n;
+    let e;
+    return t => {
+        const r = s.map(i => i(t));
+        if (n !== undefined && r.length === n.length && r.every((t, i) => t === n[i])) {
+            return e;
+        }
+        n = r;
+        return e = i(...r);
+    };
+}
+
+export { H as ActionHandler, DispatchBindingCommand, DispatchBindingInstruction, J as DispatchBindingInstructionRenderer, O as IActionHandler, A as IState, E as IStore, StateBinding, StateBindingBehavior, StateBindingCommand, StateBindingInstruction, k as StateBindingInstructionRenderer, M as StateDefaultConfiguration, StateDispatchBinding, createStateMemoizer, fromState };
 

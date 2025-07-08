@@ -207,6 +207,193 @@ describe('2-runtime/queue.spec.ts', function () {
             assert.instanceOf(e, TaskAbortError, 'cancelled task should reject with TaskAbortError');
         }
     });
+    it('emits an unhandledRejection when a task throws a non-abort error', async function () {
+        const unhandled = [];
+        let handler;
+        let dispose;
+        if (typeof process !== 'undefined' && typeof process.on === 'function') {
+            handler = (err) => unhandled.push(err);
+            process.on('unhandledRejection', handler);
+            dispose = () => process.off('unhandledRejection', handler);
+        }
+        else {
+            handler = (ev) => unhandled.push(ev.reason);
+            addEventListener('unhandledrejection', handler);
+            dispose = () => removeEventListener('unhandledrejection', handler);
+        }
+        let taskErr;
+        const task = queueAsyncTask(() => {
+            taskErr = new Error('Task error');
+            throw taskErr;
+        });
+        try {
+            // Wait a macrotask turn (without using tasksSettled) to mimic application code without a rejection handler.
+            await new Promise(resolve => setTimeout(resolve));
+            // Verify that the TaskAbortError catch handler does not suppress other errors
+            assert.strictEqual(unhandled[0], taskErr, 'Throwing an error in a task without a rejection handler should emit an unhandledRejection event');
+        }
+        finally {
+            dispose();
+        }
+        try {
+            // Awaiting task.result should also yield the same error
+            await task.result;
+            assert.fail('Task should have rejected');
+        }
+        catch (e) {
+            assert.strictEqual(e, taskErr, 'Task.result should return the error that was thrown inside the task');
+        }
+    });
+    it('emits an unhandledRejection when a task throws a non-abort error and tasksSettled is used', async function () {
+        const unhandled = [];
+        let handler;
+        let dispose;
+        if (typeof process !== 'undefined' && typeof process.on === 'function') {
+            handler = (err) => unhandled.push(err);
+            process.on('unhandledRejection', handler);
+            dispose = () => process.off('unhandledRejection', handler);
+        }
+        else {
+            handler = (ev) => unhandled.push(ev.reason);
+            addEventListener('unhandledrejection', handler);
+            dispose = () => removeEventListener('unhandledrejection', handler);
+        }
+        let taskErr;
+        const task = queueAsyncTask(() => {
+            taskErr = new Error('Task error');
+            throw taskErr;
+        });
+        try {
+            try {
+                await tasksSettled();
+                assert.fail('tasksSettled should have rejected');
+            }
+            catch (e) {
+                assert.strictEqual(e, taskErr);
+            }
+            await new Promise(resolve => setTimeout(resolve));
+            // Verify that the TaskAbortError catch handler and tasksSettled does not suppress other errors
+            assert.strictEqual(unhandled[0], taskErr, 'Throwing an error in a task without a rejection handler should emit an unhandledRejection event');
+        }
+        finally {
+            dispose();
+        }
+        try {
+            // Awaiting task.result should also yield the same error
+            await task.result;
+            assert.fail('Task should have rejected');
+        }
+        catch (e) {
+            assert.strictEqual(e, taskErr, 'Task.result should return the error that was thrown inside the task');
+        }
+    });
+    it('does not emit an unhandledRejection when a task throws a non-abort error that is handled by awaiting task.result', async function () {
+        const unhandled = [];
+        let handler;
+        let dispose;
+        if (typeof process !== 'undefined' && typeof process.on === 'function') {
+            handler = (err) => unhandled.push(err);
+            process.on('unhandledRejection', handler);
+            dispose = () => process.off('unhandledRejection', handler);
+        }
+        else {
+            handler = (ev) => unhandled.push(ev.reason);
+            addEventListener('unhandledrejection', handler);
+            dispose = () => removeEventListener('unhandledrejection', handler);
+        }
+        let taskErr;
+        const task = queueAsyncTask(() => {
+            taskErr = new Error('Task error');
+            throw taskErr;
+        });
+        try {
+            try {
+                await tasksSettled();
+                assert.fail('tasksSettled should have rejected');
+            }
+            catch (e) {
+                assert.strictEqual(e, taskErr);
+            }
+            try {
+                await task.result;
+                assert.fail('Task should have rejected');
+            }
+            catch (e) {
+                assert.strictEqual(e, taskErr, 'Task.result should return the error that was thrown inside the task');
+            }
+            // Wait a macrotask turn (without using tasksSettled) to mimic application code with a rejection handler.
+            await new Promise(resolve => setTimeout(resolve));
+            assert.deepStrictEqual(unhandled, [], 'Throwing an error in a task with a rejection handler should not emit an unhandledRejection event');
+        }
+        finally {
+            dispose();
+        }
+    });
+    it('does not emit an unhandledRejection when a task is cancelled', async function () {
+        const unhandled = [];
+        const handler = (reason) => unhandled.push(reason);
+        let dispose;
+        if (typeof process !== 'undefined' && typeof process.on === 'function') {
+            process.on('unhandledRejection', handler);
+            dispose = () => process.off('unhandledRejection', handler);
+        }
+        else {
+            addEventListener('unhandledrejection', handler);
+            dispose = () => removeEventListener('unhandledrejection', handler);
+        }
+        const task = queueAsyncTask(() => { });
+        const wasCancelled = task.cancel();
+        try {
+            assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a pending task');
+            await tasksSettled();
+            // Wait one more macrotask turn so the check-for-unhandled-rejection job can fire if it would have.
+            await new Promise(resolve => setTimeout(resolve));
+            assert.deepStrictEqual(unhandled, [], 'Cancelling a task should not emit an unhandledRejection event');
+        }
+        finally {
+            dispose();
+        }
+        try {
+            await task.result;
+            assert.fail('Cancelled task should have rejected');
+        }
+        catch (e) {
+            assert.instanceOf(e, TaskAbortError);
+        }
+    });
+    it('does not emit an unhandledRejection when a delayed task is cancelled before it starts', async function () {
+        const unhandled = [];
+        const handler = (reason) => unhandled.push(reason);
+        let dispose;
+        if (typeof process !== 'undefined') {
+            process.on('unhandledRejection', handler);
+            dispose = () => process.off('unhandledRejection', handler);
+        }
+        else {
+            addEventListener('unhandledrejection', handler);
+            dispose = () => removeEventListener('unhandledrejection', handler);
+        }
+        const task = queueAsyncTask(() => { }, { delay: 10 });
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const wasCancelled = task.cancel();
+        try {
+            assert.strictEqual(wasCancelled, true, 'task.cancel() should return true for a delayed task which is cancelled before it starts');
+            await tasksSettled();
+            // Wait one more macrotask turn so the check-for-unhandled-rejection job can fire if it would have.
+            await new Promise(resolve => setTimeout(resolve));
+            assert.deepStrictEqual(unhandled, [], 'Timer-based cancellation should not emit unhandledRejection');
+        }
+        finally {
+            dispose();
+        }
+        try {
+            await task.result;
+            assert.fail('Cancelled task should have rejected');
+        }
+        catch (e) {
+            assert.instanceOf(e, TaskAbortError);
+        }
+    });
     it('tasksSettled handles deeply nested mixed task queuing', async function () {
         const stack = [];
         queueTask(() => {

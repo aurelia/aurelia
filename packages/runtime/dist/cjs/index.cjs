@@ -12,7 +12,6 @@ const n = Reflect.defineProperty;
 
 function rtDefineHiddenProp(t, e, r) {
     n(t, e, {
-        enumerable: false,
         configurable: true,
         writable: true,
         value: r
@@ -36,7 +35,7 @@ const c = e.DI.createInterface;
 
 const u = r.Metadata.get;
 
-const l = r.Metadata.define;
+const h = r.Metadata.define;
 
 const createMappedError = (t, ...e) => new Error(`AUR${a(t).padStart(4, "0")}:${e.map(a)}`);
 
@@ -97,7 +96,7 @@ class BindingContext {
 
 class OverrideContext {}
 
-const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (() => {
+const {astAssign: l, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (() => {
     const r = "AccessThis";
     const s = "AccessBoundary";
     const n = "AccessGlobal";
@@ -105,14 +104,14 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
     const o = "ArrayLiteral";
     const c = "ObjectLiteral";
     const u = "PrimitiveLiteral";
-    const l = "New";
-    const h = "Template";
+    const h = "New";
+    const l = "Template";
     const f = "Unary";
     const d = "CallScope";
     const p = "CallMember";
     const w = "CallFunction";
-    const b = "CallGlobal";
-    const v = "AccessMember";
+    const v = "CallGlobal";
+    const b = "AccessMember";
     const g = "AccessKeyed";
     const y = "TaggedTemplate";
     const C = "Binary";
@@ -173,7 +172,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
           case n:
             return globalThis[t.name];
 
-          case b:
+          case v:
             {
                 const r = globalThis[t.name];
                 if (e.isFunction(r)) {
@@ -200,7 +199,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
           case u:
             return t.value;
 
-          case l:
+          case h:
             {
                 const r = astEvaluate(t.func, B, T, j);
                 if (e.isFunction(r)) {
@@ -209,7 +208,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 throw createMappedError(107);
             }
 
-          case h:
+          case l:
             {
                 let e = t.cooked[0];
                 for (let r = 0; r < t.expressions.length; ++r) {
@@ -333,7 +332,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 return func;
             }
 
-          case v:
+          case b:
             {
                 const r = astEvaluate(t.object, B, T, j);
                 if (r == null) {
@@ -545,7 +544,7 @@ const {astAssign: h, astEvaluate: f, astBind: d, astUnbind: p} = /*@__PURE__*/ (
                 return t[r.name] = a;
             }
 
-          case v:
+          case b:
             {
                 const t = astEvaluate(r.object, s, n, o);
                 if (t == null) {
@@ -758,9 +757,9 @@ const w = (() => t => {
     });
 })();
 
-const b = "pending";
+const v = "pending";
 
-const v = "running";
+const b = "running";
 
 const g = "completed";
 
@@ -916,17 +915,17 @@ class Task {
         this.callback = t;
         this.delay = e;
         this.id = ++Task.h;
-        this.u = b;
+        this.u = v;
         this.i = new Promise((t, e) => {
             this.C = t;
             this.A = e;
         });
     }
     run() {
-        if (this.u !== b) {
+        if (this.u !== v) {
             throw new Error(`Cannot run task in ${this.u} state`);
         }
-        this.u = v;
+        this.u = b;
         let t;
         try {
             t = this.callback();
@@ -960,16 +959,20 @@ class Task {
             --x;
             this.t = undefined;
             this.u = y;
-            this.A(new TaskAbortError(this));
+            const t = new TaskAbortError(this);
+            this.A(t);
+            void this.i.catch(e.noop);
             signalSettled(true);
             return true;
         }
-        if (this.u === b) {
+        if (this.u === v) {
             const t = O.indexOf(this);
             if (t > -1) {
                 O.splice(t, 1);
                 this.u = y;
-                this.A(new TaskAbortError(this));
+                const r = new TaskAbortError(this);
+                this.A(r);
+                void this.i.catch(e.noop);
                 signalSettled(true);
                 return true;
             }
@@ -1319,31 +1322,31 @@ const T = /*@__PURE__*/ (() => {
     }
     function insertionSort(t, e, r, s, n) {
         let i, o, a, c, u;
-        let l, h;
-        for (l = r + 1; l < s; l++) {
-            i = t[l];
-            o = e[l];
-            for (h = l - 1; h >= r; h--) {
-                a = t[h];
-                c = e[h];
+        let h, l;
+        for (h = r + 1; h < s; h++) {
+            i = t[h];
+            o = e[h];
+            for (l = h - 1; l >= r; l--) {
+                a = t[l];
+                c = e[l];
                 u = n(a, i);
                 if (u > 0) {
-                    t[h + 1] = a;
-                    e[h + 1] = c;
+                    t[l + 1] = a;
+                    e[l + 1] = c;
                 } else {
                     break;
                 }
             }
-            t[h + 1] = i;
-            e[h + 1] = o;
+            t[l + 1] = i;
+            e[l + 1] = o;
         }
     }
     function quickSort(t, e, r, s, n) {
         let i = 0, o = 0;
         let a, c, u;
-        let l, h, f;
+        let h, l, f;
         let d, p, w;
-        let b, v;
+        let v, b;
         let g, y, C, E;
         let A, O, x, m;
         while (true) {
@@ -1353,47 +1356,47 @@ const T = /*@__PURE__*/ (() => {
             }
             i = r + (s - r >> 1);
             a = t[r];
-            l = e[r];
+            h = e[r];
             c = t[s - 1];
-            h = e[s - 1];
+            l = e[s - 1];
             u = t[i];
             f = e[i];
             d = n(a, c);
             if (d > 0) {
-                b = a;
-                v = l;
+                v = a;
+                b = h;
                 a = c;
-                l = h;
-                c = b;
-                h = v;
+                h = l;
+                c = v;
+                l = b;
             }
             p = n(a, u);
             if (p >= 0) {
-                b = a;
-                v = l;
+                v = a;
+                b = h;
                 a = u;
-                l = f;
+                h = f;
                 u = c;
-                f = h;
-                c = b;
-                h = v;
+                f = l;
+                c = v;
+                l = b;
             } else {
                 w = n(c, u);
                 if (w > 0) {
-                    b = c;
-                    v = h;
+                    v = c;
+                    b = l;
                     c = u;
-                    h = f;
-                    u = b;
-                    f = v;
+                    l = f;
+                    u = v;
+                    f = b;
                 }
             }
             t[r] = a;
-            e[r] = l;
+            e[r] = h;
             t[s - 1] = u;
             e[s - 1] = f;
             g = c;
-            y = h;
+            y = l;
             C = r + 1;
             E = s - 1;
             t[i] = t[C];
@@ -1451,8 +1454,8 @@ const T = /*@__PURE__*/ (() => {
         const a = s.unshift;
         const c = s.pop;
         const u = s.shift;
-        const l = s.splice;
-        const h = s.reverse;
+        const h = s.splice;
+        const l = s.reverse;
         const f = s.sort;
         o = {
             push: function(...e) {
@@ -1527,17 +1530,17 @@ const T = /*@__PURE__*/ (() => {
                 const s = t[1];
                 const n = r.get(this);
                 if (n === void 0) {
-                    return l.apply(this, t);
+                    return h.apply(this, t);
                 }
                 const i = this.length;
                 const o = e | 0;
                 const a = o < 0 ? Math.max(i + o, 0) : Math.min(o, i);
                 const c = n.indexMap;
                 const u = t.length;
-                const h = u === 0 ? 0 : u === 1 ? i - a : s;
+                const l = u === 0 ? 0 : u === 1 ? i - a : s;
                 let f = a;
-                if (h > 0) {
-                    const t = f + h;
+                if (l > 0) {
+                    const t = f + l;
                     while (f < t) {
                         if (c[f] > -1) {
                             c.deletedIndices.push(c[f]);
@@ -1553,12 +1556,12 @@ const T = /*@__PURE__*/ (() => {
                     while (f < t) {
                         r[f++] = -2;
                     }
-                    l.call(c, e, s, ...r);
+                    h.call(c, e, s, ...r);
                 } else {
-                    l.apply(c, t);
+                    h.apply(c, t);
                 }
-                const d = l.apply(this, t);
-                if (h > 0 || f > 0) {
+                const d = h.apply(this, t);
+                if (l > 0 || f > 0) {
                     n.notify();
                 }
                 return d;
@@ -1566,7 +1569,7 @@ const T = /*@__PURE__*/ (() => {
             reverse: function() {
                 const t = r.get(this);
                 if (t === void 0) {
-                    h.call(this);
+                    l.call(this);
                     return this;
                 }
                 const e = this.length;
@@ -1624,10 +1627,7 @@ const T = /*@__PURE__*/ (() => {
         };
         for (const t of i) {
             n(o[t], "observing", {
-                value: true,
-                writable: false,
-                configurable: false,
-                enumerable: false
+                value: true
             });
         }
     }
@@ -1638,7 +1638,7 @@ const T = /*@__PURE__*/ (() => {
             overrideArrayPrototypes();
         }
         if (!(u(c, Array) ?? false)) {
-            l(true, Array, c);
+            h(true, Array, c);
             for (const t of i) {
                 if (s[t].observing !== true) {
                     rtDefineHiddenProp(s, t, o[t]);
@@ -2172,7 +2172,11 @@ function unwrap(t) {
 }
 
 function doNotCollect(t, e) {
-    return e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${Q}_${a(e)}__`] === true;
+    if (e === "constructor" || e === "__proto__" || e === "$observers" || e === Symbol.toPrimitive || e === Symbol.toStringTag || t.constructor[`${Q}_${a(e)}__`] === true) {
+        return true;
+    }
+    const r = Reflect.getOwnPropertyDescriptor(t, e);
+    return r?.configurable === false && r.writable === false;
 }
 
 function createProxy(t) {
@@ -3093,11 +3097,11 @@ class ObserverLocator {
             }
             break;
         }
-        let n = lt(t, r);
+        let n = ht(t, r);
         if (n === void 0) {
             let e = ut(t);
             while (e !== null) {
-                n = lt(e, r);
+                n = ht(e, r);
                 if (n === void 0) {
                     e = ut(e);
                 } else {
@@ -3141,20 +3145,19 @@ const getCollectionObserver = t => {
 
 const ut = Object.getPrototypeOf;
 
-const lt = Object.getOwnPropertyDescriptor;
+const ht = Object.getOwnPropertyDescriptor;
 
 const getObserverLookup = t => {
     let r = t.$observers;
     if (r === void 0) {
         n(t, "$observers", {
-            enumerable: false,
             value: r = e.createLookup()
         });
     }
     return r;
 };
 
-const ht = /*@__PURE__*/ c("IObservation", t => t.singleton(Observation));
+const lt = /*@__PURE__*/ c("IObservation", t => t.singleton(Observation));
 
 class Observation {
     constructor() {
@@ -3506,7 +3509,7 @@ exports.IDirtyChecker = st;
 
 exports.INodeObserverLocator = at;
 
-exports.IObservation = ht;
+exports.IObservation = lt;
 
 exports.IObserverLocator = ot;
 
@@ -3528,7 +3531,7 @@ exports.Task = Task;
 
 exports.TaskAbortError = TaskAbortError;
 
-exports.astAssign = h;
+exports.astAssign = l;
 
 exports.astBind = d;
 

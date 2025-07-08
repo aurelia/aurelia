@@ -38,7 +38,7 @@ var __setFunctionName = (this && this.__setFunctionName) || function (f, name, p
 };
 import { ValueConverter, customAttribute, customElement, IWindow } from '@aurelia/runtime-html';
 import { tasksSettled } from '@aurelia/runtime';
-import { StateDefaultConfiguration, fromState } from '@aurelia/state';
+import { StateDefaultConfiguration, fromState, createStateMemoizer } from '@aurelia/state';
 import { assert, createFixture, onFixtureCreated } from '@aurelia/testing';
 describe('state/state.spec.ts', function () {
     this.beforeEach(function () {
@@ -643,6 +643,174 @@ describe('state/state.spec.ts', function () {
             trigger('div', 'click');
             assert.notStrictEqual(queryBy('div[hello="2"]'), null);
         });
+    });
+    describe('createStateMemoizer', function () {
+        it('memoizes results based on dependencies', function () {
+            const items = [1, 2, 3];
+            let computeCalls = 0;
+            const total = createStateMemoizer((s) => s.items, (i) => { computeCalls++; return i.reduce((a, b) => a + b, 0); });
+            const s1 = { items, flag: true };
+            assert.strictEqual(total(s1), 6);
+            assert.strictEqual(computeCalls, 1);
+            const s2 = { items, flag: false };
+            assert.strictEqual(total(s2), 6);
+            assert.strictEqual(computeCalls, 1);
+            const s3 = { items: [1, 2, 3, 4], flag: false };
+            assert.strictEqual(total(s3), 10);
+            assert.strictEqual(computeCalls, 2);
+        });
+        it('memoizes when single selector is provided', function () {
+            let calls = 0;
+            const selectFlag = createStateMemoizer((s) => { calls++; return s.flag; });
+            const s = { flag: true };
+            assert.strictEqual(selectFlag(s), true);
+            selectFlag(s);
+            assert.strictEqual(calls, 1);
+        });
+    });
+    it('works with the fromState decorator', async function () {
+        let computeCalls = 0;
+        const selectTotal = createStateMemoizer((s) => s.items, items => { computeCalls++; return items.reduce((a, b) => a + b, 0); });
+        let MyEl = (() => {
+            let _classDecorators = [customElement({ name: 'my-el', template: `\${total}` })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _total_decorators;
+            let _total_initializers = [];
+            let _total_extraInitializers = [];
+            var MyEl = _classThis = class {
+                constructor() {
+                    this.total = __runInitializers(this, _total_initializers, void 0);
+                    __runInitializers(this, _total_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "MyEl");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _total_decorators = [fromState(selectTotal)];
+                __esDecorate(null, null, _total_decorators, { kind: "field", name: "total", static: false, private: false, access: { has: obj => "total" in obj, get: obj => obj.total, set: (obj, value) => { obj.total = value; } }, metadata: _metadata }, _total_initializers, _total_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                MyEl = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return MyEl = _classThis;
+        })();
+        const state = { items: [1, 2, 3], flag: false };
+        const { trigger, assertText } = await createFixture
+            .html `
+        <my-el></my-el>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+            .deps(MyEl, StateDefaultConfiguration.init(state, (s, a) => {
+            if (a.type === 'toggle') {
+                return { ...s, flag: !s.flag };
+            }
+            if (a.type === 'add') {
+                return { ...s, items: [...s.items, a.value] };
+            }
+            return s;
+        }))
+            .build().started;
+        assertText('my-el', '6');
+        assert.strictEqual(computeCalls, 1);
+        trigger('#flag', 'click');
+        await Promise.resolve();
+        assertText('my-el', '6');
+        assert.strictEqual(computeCalls, 1);
+        trigger('#add', 'click');
+        await Promise.resolve();
+        assertText('my-el', '10');
+        assert.strictEqual(computeCalls, 2);
+    });
+    it('shares memoized results across components', async function () {
+        let computeCalls = 0;
+        const selectTotal = createStateMemoizer((s) => s.items, items => { computeCalls++; return items.reduce((a, b) => a + b, 0); });
+        let ElA = (() => {
+            let _classDecorators = [customElement({ name: 'el-a', template: `\${total}` })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _total_decorators;
+            let _total_initializers = [];
+            let _total_extraInitializers = [];
+            var ElA = _classThis = class {
+                constructor() {
+                    this.total = __runInitializers(this, _total_initializers, void 0);
+                    __runInitializers(this, _total_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "ElA");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _total_decorators = [fromState(selectTotal)];
+                __esDecorate(null, null, _total_decorators, { kind: "field", name: "total", static: false, private: false, access: { has: obj => "total" in obj, get: obj => obj.total, set: (obj, value) => { obj.total = value; } }, metadata: _metadata }, _total_initializers, _total_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                ElA = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return ElA = _classThis;
+        })();
+        let ElB = (() => {
+            let _classDecorators = [customElement({ name: 'el-b', template: `\${total}` })];
+            let _classDescriptor;
+            let _classExtraInitializers = [];
+            let _classThis;
+            let _total_decorators;
+            let _total_initializers = [];
+            let _total_extraInitializers = [];
+            var ElB = _classThis = class {
+                constructor() {
+                    this.total = __runInitializers(this, _total_initializers, void 0);
+                    __runInitializers(this, _total_extraInitializers);
+                }
+            };
+            __setFunctionName(_classThis, "ElB");
+            (() => {
+                const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+                _total_decorators = [fromState(selectTotal)];
+                __esDecorate(null, null, _total_decorators, { kind: "field", name: "total", static: false, private: false, access: { has: obj => "total" in obj, get: obj => obj.total, set: (obj, value) => { obj.total = value; } }, metadata: _metadata }, _total_initializers, _total_extraInitializers);
+                __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+                ElB = _classThis = _classDescriptor.value;
+                if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+                __runInitializers(_classThis, _classExtraInitializers);
+            })();
+            return ElB = _classThis;
+        })();
+        const state = { items: [1, 2, 3], flag: false };
+        const { trigger, assertText } = await createFixture
+            .html `
+        <el-a></el-a>
+        <el-b></el-b>
+        <button id="flag" click.dispatch="{ type: 'toggle' }"></button>
+        <button id="add" click.dispatch="{ type: 'add', value: 4 }"></button>
+      `
+            .deps(ElA, ElB, StateDefaultConfiguration.init(state, (s, a) => {
+            if (a.type === 'toggle') {
+                return { ...s, flag: !s.flag };
+            }
+            if (a.type === 'add') {
+                return { ...s, items: [...s.items, a.value] };
+            }
+            return s;
+        }))
+            .build().started;
+        assertText('el-a', '6');
+        assertText('el-b', '6');
+        assert.strictEqual(computeCalls, 1);
+        trigger('#flag', 'click');
+        await Promise.resolve();
+        assertText('el-a', '6');
+        assertText('el-b', '6');
+        assert.strictEqual(computeCalls, 1);
+        trigger('#add', 'click');
+        await Promise.resolve();
+        assertText('el-a', '10');
+        assertText('el-b', '10');
+        assert.strictEqual(computeCalls, 2);
     });
 });
 const resolveAfter = (time, value) => new Promise(r => setTimeout(() => r(value), time));

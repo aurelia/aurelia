@@ -8,64 +8,107 @@ description: Learn how to use TailwindCSS in Aurelia 2 with this detailed guide.
 
 Tailwind CSS is a highly customizable, low-level CSS framework that gives you all of the building blocks you need to build bespoke designs without any annoying opinionated styles you have to fight to override.
 
-for more information take a look at [Tailwind CSS](https://tailwindcss.com/)
+For more information take a look at [Tailwind CSS](https://tailwindcss.com/)
 
-## How to configure an Aurelia 2 project with Tailwind CSS?
+## How to configure an Aurelia 2 project with Tailwind CSS v4?
 
-1- Run the following command in your terminal
+### Step 1: Create Aurelia 2 Project
+
+Run the following command in your terminal:
 
 ```bash
 npx makes aurelia
 ```
 
-2- Use your type of project, I am using Default Typescript with Webpack and CSS.
+Choose your preferred bundler (Webpack, Vite, or Parcel) and TypeScript/JavaScript preference.
 
-![](<../../.gitbook/assets/1 (1).png>)
+### Step 2: Install Tailwind CSS
 
-3- Install Tailwind CSS in your project via this command
+Choose the installation method based on your bundler:
 
-```bash
-npm i tailwindcss -D
-or
-yarn add tailwindcss -D
-```
-
-4- After installation go to the root folder and run the below command too
+#### For Webpack Projects
 
 ```bash
-./node_modules/.bin/tailwind init
+npm install tailwindcss@next @tailwindcss/postcss@next postcss postcss-loader
 ```
 
-This command will create a `tailwind.config.js` file in the root folder beside the `webpack.config.js` file with the following content
+#### For Vite Projects (Recommended)
 
-```typescript
-module.exports = {
-  purge: [],
-  theme: {
-    extend: {},
-  },
-  variants: {},
-  plugins: [],
+```bash
+npm install tailwindcss@next @tailwindcss/vite@next
+```
+
+#### For Parcel Projects
+
+```bash
+npm install tailwindcss@next @tailwindcss/postcss@next
+```
+
+### Step 3: Configure Your Bundler
+
+#### Webpack Configuration
+
+1. Create a `postcss.config.js` file in your project root:
+
+```javascript
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  }
 }
 ```
 
-5- Open your `webpack.config.js` file and add the below line into the `postcssLoader` literal object as a first item in `plugins` array. (Just like the picture)
+2. Ensure your `webpack.config.js` includes the PostCSS loader:
 
-```typescript
-require('tailwindcss')('tailwind.config.js'),
+```javascript
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+    ],
+  },
+}
 ```
 
-![](../../.gitbook/assets/2.png)
+#### Vite Configuration
 
-![](../../.gitbook/assets/screenshot\_1.png)
+Add the Tailwind CSS plugin to your `vite.config.js`:
 
-6- Add these lines to the **top** of your main CSS file (for example `my-app.css`)
+```javascript
+import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
+  ],
+})
+```
+
+#### Parcel Configuration
+
+Create a `.postcssrc` file in your project root:
+
+```json
+{
+  "plugins": {
+    "@tailwindcss/postcss": {}
+  }
+}
+```
+
+### Step 4: Add Tailwind CSS to Your Styles
+
+Add this single line to the **top** of your main CSS file (for example `my-app.css`):
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 ```
+
+**Note**: In v4, you no longer need the `@tailwind` directives (`@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`). The single `@import` statement handles everything.
 
 ## How to test it?
 
@@ -83,7 +126,7 @@ In an easy way you can add the following Tailwind CSS snippet code to your proje
 </div>
 ```
 
-I have added this to `my-app.html` now you can run the project by
+now you can run the project by
 
 ```bash
 npm run start
@@ -91,45 +134,67 @@ or
 yarn run
 ```
 
-Seems everything works
+## Content Detection and Optimization
 
-![](../../.gitbook/assets/3.png)
+Tailwind CSS v4 includes **automatic content detection** - no configuration required. The framework automatically discovers all your template files and only includes the CSS you're actually using.
 
-## What is PurgeCSS?
+### Traditional v3 Approach (No Longer Needed)
 
-[Purgecss](https://github.com/FullHuman/purgecss) is a tool to remove unused CSS. It can be used as part of your development workflow. Purgecss comes with a JavaScript API, a CLI, and plugins for popular build tools.
+In previous versions, you needed to manually configure content paths in `tailwind.config.js`:
 
-## Why do we need PurgeCSS with Tailwind CSS?
+```javascript
+// NOT NEEDED IN v4
+module.exports = {
+  content: ['./src/**/*.html', './src/**/*.ts'],
+  // ...
+}
+```
 
-Purgecss is particularly effective with Tailwind because Tailwind generates thousands of utility classes for you, most of which you probably won't actually use. For more information, you can read [Controlling File Size](https://tailwindcss.com/docs/controlling-file-size/).
+### v4 Automatic Detection
 
-If you run the `build` command, you will see the final bundle side is huge (even in production mode)
+In v4, this happens automatically with zero configuration. The framework:
+- Automatically finds all template files
+- Only includes CSS for classes you actually use
+- Optimizes bundle size without manual configuration
+
+### Manual Configuration (Optional)
+
+If you need custom configuration, you can create a `tailwind.config.js` file:
+
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{html,ts}'],
+  theme: {
+    extend: {
+      // Your custom theme extensions
+    },
+  },
+  plugins: [],
+}
+```
+
+### Build Size Optimization
+
+Tailwind CSS v4 automatically optimizes your CSS bundle size:
 
 ```bash
 npm run build
-or
-yarn build
 ```
 
-![](../../.gitbook/assets/4.png)
+The build process will automatically:
+- Remove unused CSS classes
+- Optimize the final bundle size
+- Include only the styles you're using
 
-## How can we enable PurgeCSS?
+## Migration from v3 to v4
 
-Open the `tailwind.config.js` file and replace
+If you're upgrading from Tailwind CSS v3:
 
-```typescript
-purge: [],
-```
+1. **Remove old directives**: Replace `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;` with `@import "tailwindcss";`
 
-with
+2. **Update dependencies**: Install v4 packages (`tailwindcss@next`, `@tailwindcss/vite@next`, etc.)
 
-```typescript
-purge: {
-  enabled: true,
-  content: ['./src/**/*.html'],
-},
-```
+3. **Remove autoprefixer**: v4 handles vendor prefixing automatically
 
-Now, execute the `build` command again and see the result.
-
-![](../../.gitbook/assets/5.png)
+4. **Optional config cleanup**: You can remove most `tailwind.config.js` content as v4 works with zero config

@@ -590,13 +590,11 @@ export class Task<R = any> {
   }
 }
 
-export function queueRecurringTask(callback: TaskCallback, options: { interval: number }): RecurringTask;
-export function queueRecurringTask(callback: TaskCallback, options: { useRAF: true }): RecurringTask;
-export function queueRecurringTask(callback: TaskCallback, opts: { interval?: number; useRAF?: true }): RecurringTask {
-  const task = new RecurringTask(callback, Math.max(opts.interval ?? 0, 0), !!opts.useRAF);
+export const queueRecurringTask = (callback: TaskCallback, opts?: { interval?: number }) => {
+  const task = new RecurringTask(callback, Math.max(opts?.interval ?? 0, 0));
   task._start();
   return task;
-}
+};
 
 export class RecurringTask {
   /** @internal */
@@ -606,8 +604,6 @@ export class RecurringTask {
   /** @internal */
   private _timerId?: number;
   /** @internal */
-  private _rafId?: number;
-  /** @internal */
   private _canceled = false;
   /** @internal */
   private readonly _nextResolvers: (() => void)[] = [];
@@ -615,7 +611,6 @@ export class RecurringTask {
   public constructor(
     private readonly _callback: () => unknown,
     private readonly _interval: number,
-    private readonly _useRAF: boolean,
   ) {}
 
   /** @internal */
@@ -635,21 +630,12 @@ export class RecurringTask {
       return;
     }
 
-    if (this._useRAF) {
-      this._rafId = requestAnimationFrame(() => {
-        this._tick();
-        if (!this._canceled) {
-          this._start();
-        }
-      });
-    } else {
-      this._timerId = setTimeout(() => {
-        this._tick();
-        if (!this._canceled) {
-          this._start();
-        }
-      }, this._interval);
-    }
+    this._timerId = setTimeout(() => {
+      this._tick();
+      if (!this._canceled) {
+        this._start();
+      }
+    }, this._interval);
   }
 
   private _tick(): void {
@@ -674,10 +660,6 @@ export class RecurringTask {
     if (this._timerId !== undefined) {
       clearTimeout(this._timerId);
       this._timerId = undefined;
-    }
-    if (this._rafId !== undefined) {
-      cancelAnimationFrame(this._rafId);
-      this._rafId = undefined;
     }
 
     const idx = recurringTasks.indexOf(this);

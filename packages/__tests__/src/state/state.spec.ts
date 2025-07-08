@@ -515,7 +515,7 @@ describe('state/state.spec.ts', function () {
         { text: '1111', click: 2 },
       ]);
 
-      assertValue('input', '11');
+      assertValue('input', '1111');
       await resolveAfter(1);
 
       assertValue('input', '1111');

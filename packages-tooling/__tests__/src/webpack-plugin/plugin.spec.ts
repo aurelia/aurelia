@@ -226,4 +226,74 @@ describe('webpack-plugin', function () {
       assert.strictEqual(pluginExport, pluginExport.default, 'Main export should be the same as .default');
     });
   });
+
+  describe('Type checking support', function () {
+    it('passes experimentalTemplateTypeCheck option to preprocess', function (done) {
+      const content = 'export class MyApp {}';
+      let i = 0;
+      let capturedOptions: any;
+
+      // Mock preprocess function that captures the options
+      function mockPreprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
+        capturedOptions = options;
+        return {
+          code: `type-checked ${unit.contents}`,
+          map: { version: 3 }
+        };
+      }
+
+      const context = {
+        async: () => function (err, code, map) {
+          i++;
+          if (err) {
+            done(err);
+            return;
+          }
+          assert.equal(code, `type-checked ${content}`);
+          assert.equal(map.version, 3);
+          assert.equal(capturedOptions.experimentalTemplateTypeCheck, true);
+          done();
+        },
+        getOptions: () => ({ experimentalTemplateTypeCheck: true }),
+        resourcePath: 'src/my-app.ts'
+      };
+
+      loader.call(context, content, mockPreprocess);
+      assert.strictEqual(i, 1);
+    });
+
+    it('defaults experimentalTemplateTypeCheck to false when not specified', function (done) {
+      const content = 'export class MyApp {}';
+      let i = 0;
+      let capturedOptions: any;
+
+      // Mock preprocess function that captures the options
+      function mockPreprocess(unit: IFileUnit, options: IOptionalPreprocessOptions) {
+        capturedOptions = options;
+        return {
+          code: `processed ${unit.contents}`,
+          map: { version: 3 }
+        };
+      }
+
+      const context = {
+        async: () => function (err, code, map) {
+          i++;
+          if (err) {
+            done(err);
+            return;
+          }
+          assert.equal(code, `processed ${content}`);
+          assert.equal(map.version, 3);
+          assert.equal(capturedOptions.experimentalTemplateTypeCheck, false);
+          done();
+        },
+        getOptions: () => ({}),
+        resourcePath: 'src/my-app.ts'
+      };
+
+      loader.call(context, content, mockPreprocess);
+      assert.strictEqual(i, 1);
+    });
+  });
 });

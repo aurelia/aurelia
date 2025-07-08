@@ -592,6 +592,7 @@ export class Task<R = any> {
 
 export const queueRecurringTask = (callback: TaskCallback, opts?: { interval?: number }) => {
   const task = new RecurringTask(callback, Math.max(opts?.interval ?? 0, 0));
+  recurringTasks.push(task);
   task._start();
   return task;
 };

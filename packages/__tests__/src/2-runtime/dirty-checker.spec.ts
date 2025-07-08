@@ -2,6 +2,7 @@ import {
   DirtyCheckSettings,
   IDirtyChecker,
   getRecurringTasks,
+  tasksSettled,
 } from '@aurelia/runtime';
 import { assert, TestContext } from '@aurelia/testing';
 
@@ -89,7 +90,7 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
   ];
 
   for (const spec of specs) {
-    it(`updates after ${spec.timeoutsPerCheck} RAF call`, async function () {
+    it(`updates after ${spec.timeoutsPerCheck} call`, async function () {
       const { timeoutsPerCheck, frameChecks } = spec;
       DirtyCheckSettings.timeoutsPerCheck = timeoutsPerCheck;
       const { dirtyChecker } = createFixture();
@@ -183,46 +184,59 @@ describe('2-runtime/dirty-checker.spec.ts', function () {
       assert.strictEqual(tasks.length, 1, 'there should be exactly one recurring task');
       const task = tasks[0];
 
-      obj1.foo = obj2.foo = `${frameCount + 1}`;
+      try {
+        obj1.foo = obj2.foo = `${frameCount + 1}`;
 
-      assert.strictEqual(callCount1, 0, `callCount1`);
-      assert.strictEqual(callCount2, 0, `callCount2`);
-      assert.strictEqual(callCount3, 0, `callCount3`);
-      assert.strictEqual(callCount4, 0, `callCount4`);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(2);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(3);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(4);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(5);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(6);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(7);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(8);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(9);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(10);
-      await task.next();
-      obj1.foo = obj2.foo = `${++frameCount + 1}`;
-      verifyCalled(11);
-      observer1.unsubscribe(subscriber1);
-      observer1.unsubscribe(subscriber2);
-      observer2.unsubscribe(subscriber3);
-      observer2.unsubscribe(subscriber4);
+        assert.strictEqual(callCount1, 0, `callCount1`);
+        assert.strictEqual(callCount2, 0, `callCount2`);
+        assert.strictEqual(callCount3, 0, `callCount3`);
+        assert.strictEqual(callCount4, 0, `callCount4`);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(2);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(3);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(4);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(5);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(6);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(7);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(8);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(9);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(10);
+        await task.next();
+        await tasksSettled();
+        obj1.foo = obj2.foo = `${++frameCount + 1}`;
+        verifyCalled(11);
+      } finally {
+        observer1.unsubscribe(subscriber1);
+        observer1.unsubscribe(subscriber2);
+        observer2.unsubscribe(subscriber3);
+        observer2.unsubscribe(subscriber4);
+      }
     });
   }
 

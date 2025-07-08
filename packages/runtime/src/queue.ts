@@ -598,7 +598,7 @@ export function queueRecurringTask(callback: TaskCallback, opts: { interval?: nu
   return task;
 }
 
-export class RecurringTask implements AsyncIterable<void> {
+export class RecurringTask {
   /** @internal */
   private static _nextId = 0;
   public readonly id: number = ++RecurringTask._nextId;
@@ -662,19 +662,11 @@ export class RecurringTask implements AsyncIterable<void> {
     }
   }
 
-  public [Symbol.asyncIterator](): AsyncIterator<void> {
-    return this;
-  }
-
-  public next(): Promise<IteratorResult<void>> {
+  public next(): Promise<void> {
     if (this._canceled) {
-      return Promise.resolve({ value: undefined, done: true });
+      return Promise.resolve();
     }
-    return new Promise<IteratorResult<void>>(resolve => {
-      this._nextResolvers.push(() =>
-        resolve({ value: undefined, done: false }),
-      );
-    });
+    return new Promise(resolve => this._nextResolvers.push(resolve));
   }
 
   public cancel(): void {

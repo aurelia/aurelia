@@ -930,28 +930,6 @@ describe('2-runtime/queue.spec.ts', function () {
 
         assert.strictEqual(counter, 2, 'counter mismatch');
       });
-
-      it('works with useRAF: true and async iterator', async function () {
-        let counter = 0;
-
-        const task = queueRecurringTask(() => {
-          counter++;
-        }, { useRAF: true });
-
-        for await (const _ of task) {
-          // TODO: implement passing values into resolvers
-          if (counter === 3) {
-            task.cancel();
-            break;
-          }
-        }
-
-        assert.strictEqual(counter, 3, 'counter mismatch');
-
-        await task.next();
-
-        assert.strictEqual(counter, 3, 'counter mismatch');
-      });
     });
 
     it('await tasksSettled() does not wait for recurring tasks', async function () {

@@ -5,7 +5,6 @@ import { createInterface } from './state-utilities';
 export const IActionHandler = /*@__PURE__*/createInterface<IActionHandler>('IActionHandler');
 export type IActionHandler<T = any> = (state: T, action: unknown) => T | Promise<T>;
 
-export const IStateMiddleware = /*@__PURE__*/createInterface<IStateMiddleware>('IStateMiddleware');
 export type IStateMiddleware<T = any, S = any> = (state: T, action: unknown, settings: S) => T | undefined | false | void | Promise<T | undefined | false | void>;
 
 export type MiddlewarePlacement = 'before' | 'after';

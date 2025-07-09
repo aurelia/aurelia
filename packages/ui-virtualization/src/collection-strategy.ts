@@ -1,5 +1,6 @@
 import { IContainer, Registration } from "@aurelia/kernel";
 import { ICollectionStrategy, ICollectionStrategyLocator } from "./interfaces";
+import { createMappedError, ErrorNames } from './errors';
 
 export class CollectionStrategyLocator implements ICollectionStrategyLocator {
   public static register(container: IContainer) {
@@ -13,7 +14,7 @@ export class CollectionStrategyLocator implements ICollectionStrategyLocator {
     if (items instanceof Array) {
       return new ArrayCollectionStrategy(items as unknown[]);
     }
-    throw new Error(`Unable to find a strategy for collection type: ${typeof items}`);
+    throw createMappedError(ErrorNames.unsupported_collection_strategy, typeof items);
   }
 }
 

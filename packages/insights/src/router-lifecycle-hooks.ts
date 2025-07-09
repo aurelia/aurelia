@@ -4,10 +4,8 @@ import { IPerformanceTracker } from './performance-tracker';
 import { IInsightsConfiguration } from './configuration';
 
 // Import router interfaces for both packages
-import type { IRouteableComponent, Parameters, RoutingInstruction } from '@aurelia/router-direct';
+import type { IRouteableComponent, Navigation, Parameters, RoutingInstruction } from '@aurelia/router-direct';
 import type { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
-import type { Navigation } from '@aurelia/router-direct';
-
 /**
  * Combined interface for both router packages
  */

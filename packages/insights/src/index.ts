@@ -45,6 +45,9 @@ export {
 // Performance-enhanced components
 export { PerformanceRepeat } from './performance-repeat';
 
+// Router lifecycle hooks
+export { RouterLifecycleHooks } from './router-lifecycle-hooks';
+
 export { applyListenerBindingPatch } from './patches/listener-binding-patch';
 
 // Test helpers for performance regression testing

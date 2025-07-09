@@ -4,8 +4,9 @@ import { IPerformanceTracker } from './performance-tracker';
 import { IInsightsConfiguration } from './configuration';
 
 // Import router interfaces for both packages
-import type { IRouteableComponent, Parameters, RoutingInstruction } from '@aurelia/router';
-import type { IRouteViewModel, Params, RouteNode } from '@aurelia/router-lite';
+import type { IRouteableComponent, Parameters, RoutingInstruction } from '@aurelia/router-direct';
+import type { IRouteViewModel, Params, RouteNode } from '@aurelia/router';
+import type { Navigation } from '@aurelia/router-direct';
 
 /**
  * Combined interface for both router packages
@@ -47,17 +48,21 @@ export class RouterLifecycleHooks implements IDisposable {
 
   /**
    * loading hook - START measurement for loading time (loading → attached)
+   * Supports both router packages with different signatures:
+   * - router: loading(params: Params, next: RouteNode, current: RouteNode | null)
+   * - router-direct: loading(parameters: Parameters, instruction: RoutingInstruction, navigation: Navigation)
    */
   public loading(
     vm: CombinedRouterComponent,
     paramsOrParams: Parameters | Params,
-    instructionOrNext: RoutingInstruction | RouteNode
+    instructionOrNext: RoutingInstruction | RouteNode,
+    navigationOrCurrent?: Navigation | RouteNode | null
   ): void | Promise<void> {
     if (this.performanceTracker.isEnabled() &&
         this.config.enableRouterTracking) {
 
       const componentName = this.getComponentName(vm);
-      const routeInfo = this.extractRouteInfo(instructionOrNext);
+      const routeInfo = this.extractRouteInfo(instructionOrNext, navigationOrCurrent);
       const measurementName = `${componentName} • Loading → Attached (${routeInfo})`;
 
       const metadata = {
@@ -121,7 +126,13 @@ export class RouterLifecycleHooks implements IDisposable {
       const vmObj = vm as Record<string, any>;
       const constructor = vmObj.constructor;
 
-      return CustomElement.getDefinition(constructor).name;
+      try {
+        const definition = CustomElement.getDefinition(constructor);
+        return definition?.name ?? constructor?.name ?? 'UnknownRouterComponent';
+      } catch {
+        // Fallback to constructor name if getDefinition fails (e.g., in tests or non-custom-element components)
+        return constructor?.name ?? 'UnknownRouterComponent';
+      }
     }
 
     return 'UnknownRouterComponent';
@@ -130,12 +141,12 @@ export class RouterLifecycleHooks implements IDisposable {
   /**
    * Enhanced route information extraction that properly handles both router packages
    */
-  private extractRouteInfo(instructionOrNode: unknown): string {
+  private extractRouteInfo(instructionOrNode: unknown, navigationOrCurrent?: Navigation | RouteNode | null): string {
     if (instructionOrNode == null) {
       return 'unknown route';
     }
 
-    // Type guard for RouteNode (router-lite)
+    // Type guard for RouteNode (router)
     if (this.isRouteNode(instructionOrNode)) {
 
       // Use the official computeAbsolutePath method - this is the canonical way
@@ -157,11 +168,18 @@ export class RouterLifecycleHooks implements IDisposable {
         return instructionOrNode.component.name;
       }
 
-      return 'route-lite-route';
+      return 'router-route';
     }
 
-    // Type guard for RoutingInstruction (router)
+    // Type guard for RoutingInstruction (router-direct)
     if (this.isRoutingInstruction(instructionOrNode)) {
+      // For router-direct, we can also check navigation object for route info
+      if (navigationOrCurrent && this.isNavigation(navigationOrCurrent)) {
+        const navigation = navigationOrCurrent as Navigation;
+        // Try to extract route info from navigation object
+        const routeInfo = this.extractRouteFromNavigation(navigation);
+        if (routeInfo) return routeInfo;
+      }
       // Extract route information from the route property
       if (instructionOrNode.route != null) {
         // Handle string route
@@ -208,7 +226,7 @@ export class RouterLifecycleHooks implements IDisposable {
         return `@${instructionOrNode.viewport.name}`;
       }
 
-      return 'router-route';
+      return 'router-direct-route';
     }
 
     // Generic fallback for objects with path-like properties
@@ -235,7 +253,7 @@ export class RouterLifecycleHooks implements IDisposable {
   }
 
   /**
-   * Type guard to check if the object is a RouteNode (router-lite)
+   * Type guard to check if the object is a RouteNode (router)
    */
   private isRouteNode(obj: unknown): obj is RouteNode {
     if (obj == null || typeof obj !== 'object') {
@@ -253,7 +271,7 @@ export class RouterLifecycleHooks implements IDisposable {
   }
 
   /**
-   * Type guard to check if the object is a RoutingInstruction (router)
+   * Type guard to check if the object is a RoutingInstruction (router-direct)
    */
   private isRoutingInstruction(obj: unknown): obj is RoutingInstruction {
     if (obj == null || typeof obj !== 'object') {
@@ -269,5 +287,55 @@ export class RouterLifecycleHooks implements IDisposable {
       typeof instruction.ownsScope === 'boolean' &&
       Object.prototype.hasOwnProperty.call(instruction, 'route') // route can be null, but should exist as property
     );
+  }
+
+  /**
+   * Type guard to check if the object is a Navigation (router-direct)
+   */
+  private isNavigation(obj: unknown): obj is Navigation {
+    if (obj == null || typeof obj !== 'object') {
+      return false;
+    }
+
+    const navigation = obj as Record<string, unknown>;
+    return (
+      navigation.instruction != null &&
+      navigation.trigger != null &&
+      Object.prototype.hasOwnProperty.call(navigation, 'fromBrowser')
+    );
+  }
+
+  /**
+   * Extract route information from Navigation object (router-direct)
+   */
+  private extractRouteFromNavigation(navigation: Navigation): string | null {
+    if (navigation.instruction) {
+      // Handle string instruction
+      if (typeof navigation.instruction === 'string') {
+        return navigation.instruction;
+      }
+      // Handle RoutingInstruction[] - get the first instruction
+      if (Array.isArray(navigation.instruction) && navigation.instruction.length > 0) {
+        const firstInstruction = navigation.instruction[0];
+        if (firstInstruction && typeof firstInstruction === 'object' && 'route' in firstInstruction) {
+          const route = firstInstruction.route;
+          if (typeof route === 'string') {
+            return route;
+          }
+          // Handle route object
+          if (route && typeof route === 'object' && 'path' in route) {
+            const routeObj = route as Record<string, unknown>;
+            if (typeof routeObj.path === 'string') {
+              return routeObj.path;
+            }
+          }
+        }
+      }
+    }
+    // Try to get path from stored navigation
+    if (navigation.path) {
+      return navigation.path;
+    }
+    return null;
   }
 }

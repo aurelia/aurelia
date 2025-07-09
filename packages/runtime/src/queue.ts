@@ -702,6 +702,7 @@ export class RecurringTask {
     }, this._interval);
   }
 
+  /** @internal */
   private _tick(): void {
     queue.push(this);
     requestRun();

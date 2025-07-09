@@ -39,7 +39,13 @@ export class BindingTargetSubscriber implements ISubscriber {
   }
 
   public flush() {
-    this.b.updateSource(this._value);
+    // when the owning binding is unbound, there's cases where this subscriber still queued
+    // and will be flushed
+    // adding this check so that it does flush at an inappropriate time
+    // todo: maybe consider a way to dequeue this as well if necessary
+    if (this.b.isBound) {
+      this.b.updateSource(this._value);
+    }
   }
 
   // deepscan-disable-next-line
@@ -210,6 +216,9 @@ export const mixinAstEvaluator = /*@__PURE__*/(() => {
   };
 })();
 
+/**
+ * A synchronous queue used internally for ensuring update source are not called depth first
+ */
 export interface IFlushable {
   flush(): void;
 }

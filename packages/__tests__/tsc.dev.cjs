@@ -10,6 +10,7 @@ const config = {
   compilerOptions: {
     ...baseConfig.compilerOptions,
     composite: false,
+    incremental: false,
     tsBuildInfoFile: null,
   },
   include: [
@@ -22,6 +23,8 @@ const config = {
         `src/**/*${pattern}*.tsx`,
         `src/**/${pattern}/**/*.ts`,
         `src/**/${pattern}/**/*.tsx`,
+        `src/**/*${pattern}*/**/*.ts`,
+        `src/**/*${pattern}*/**/*.tsx`,
       ]
     })
   ],
